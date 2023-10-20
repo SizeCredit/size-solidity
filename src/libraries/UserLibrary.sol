@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.9;
+
+import "./ScheduleLibrary.sol";
+import "./RealCollateralLibrary.sol";
+
+struct User {
+    address account;
+    RealCollateral cash;
+    RealCollateral eth;
+    Schedule schedule;
+    uint256 totDebtCoveredByRealCollateral;
+}
+
+struct BorrowerStatus {
+    uint256[] expectedFV;
+    uint256[] unlocked;
+    uint256[] dueFV;
+    int256[] RANC;
+}
+
+library UserLibrary {
+    function collateralRatio(
+        User storage self,
+        uint256 price
+    ) public view returns (uint256) {
+        return
+            self.totDebtCoveredByRealCollateral == 0
+                ? type(uint256).max
+                : self.cash.locked +
+                    (self.eth.locked * price) /
+                    self.totDebtCoveredByRealCollateral;
+    }
+
+    function isLiquidatable(
+        User storage self,
+        uint256 price,
+        uint256 CRLiquidation
+    ) public view returns (bool) {
+        return collateralRatio(self, price) < CRLiquidation;
+    }
+}
