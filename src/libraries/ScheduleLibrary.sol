@@ -2,6 +2,7 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import "./EnumerableMapExtensionsLibrary.sol";
 
 struct Schedule {
     EnumerableMap.UintToUintMap expectedFV;
@@ -11,9 +12,10 @@ struct Schedule {
 
 library ScheduleLibrary {
     using EnumerableMap for EnumerableMap.UintToUintMap;
+    using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
 
     function length(Schedule storage self) public view returns (uint256) {
-        return self.expectedFV.length();
+        return self.expectedFV.maxLength();
     }
 
     function RANC(
