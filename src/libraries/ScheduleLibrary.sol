@@ -4,14 +4,16 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 struct Schedule {
-    uint256[] expectedFV;
-    uint256[] unlocked;
-    uint256[] dueFV;
+    EnumerableMap.UintToUintMap expectedFV;
+    EnumerableMap.UintToUintMap unlocked;
+    EnumerableMap.UintToUintMap dueFV;
 }
 
 library ScheduleLibrary {
+    using EnumerableMap for EnumerableMap.UintToUintMap;
+
     function length(Schedule storage self) public view returns (uint256) {
-        return self.expectedFV.length;
+        return self.expectedFV.length();
     }
 
     function RANC(
@@ -24,17 +26,15 @@ library ScheduleLibrary {
         for (uint256 i; i < len; ++i) {
             res[i] =
                 (i > 0 ? res[i - 1] : int256(lockedStart)) +
-                int256(self.expectedFV[i]) -
-                int256(self.unlocked[i]) -
-                int256(self.dueFV[i]);
+                int256(self.expectedFV.get(i)) -
+                int256(self.unlocked.get(i)) -
+                int256(self.dueFV.get(i));
         }
 
         return res;
     }
 
-    function RANC(
-        Schedule storage self
-    ) public view returns (int256[] memory) {
+    function RANC(Schedule storage self) public view returns (int256[] memory) {
         return RANC(self, 0);
     }
 }

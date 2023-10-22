@@ -11,8 +11,8 @@ struct Loan {
 
 struct FOL {
     Loan loan;
-    User lender;
-    User borrower;
+    address lender;
+    address borrower;
     uint256 dueDate;
     uint256 FVCoveredByRealCollateral;
 }
@@ -20,7 +20,7 @@ struct FOL {
 struct SOL {
     Loan loan;
     FOL fol;
-    User lender;
+    address lender;
 }
 
 library LoanLibrary {

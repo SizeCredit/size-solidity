@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import "./UserLibrary.sol";
 
 struct Offer {
-    User lender;
+    address lender;
     uint256 maxAmount;
     uint256 maxDueDate;
     uint256 ratePerTimeUnit;
