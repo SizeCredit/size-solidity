@@ -9,4 +9,4 @@
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts-upgradeable
 [submodule "lib/solplot"]
 	path = lib/solplot
-	url = https://github.com/0xClandestine/solplot
+	url = https://github.com/aviggiano/solplot
