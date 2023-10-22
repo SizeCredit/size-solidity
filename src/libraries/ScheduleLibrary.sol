@@ -24,11 +24,14 @@ library ScheduleLibrary {
         int256[] memory res = new int256[](len);
 
         for (uint256 i; i < len; ++i) {
+            (, uint256 expectedFV) = self.expectedFV.tryGet(i);
+            (, uint256 unlocked) = self.unlocked.tryGet(i);
+            (, uint256 dueFV) = self.dueFV.tryGet(i);
             res[i] =
                 (i > 0 ? res[i - 1] : int256(lockedStart)) +
-                int256(self.expectedFV.get(i)) -
-                int256(self.unlocked.get(i)) -
-                int256(self.dueFV.get(i));
+                int256(expectedFV) -
+                int256(unlocked) -
+                int256(dueFV);
         }
 
         return res;

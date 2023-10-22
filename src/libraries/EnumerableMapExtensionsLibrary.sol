@@ -11,7 +11,8 @@ library EnumerableMapExtensionsLibrary {
         uint256 key,
         uint256 value
     ) public returns (bool) {
-        return self.set(key, self.get(key) + value);
+        (, uint256 oldValue) = self.tryGet(key);
+        return self.set(key, oldValue + value);
     }
 
     function decrement(
@@ -19,7 +20,8 @@ library EnumerableMapExtensionsLibrary {
         uint256 key,
         uint256 value
     ) public returns (bool) {
-        return self.set(key, self.get(key) - value);
+        (, uint256 oldValue) = self.tryGet(key);
+        return self.set(key, oldValue - value);
     }
 
     function values(

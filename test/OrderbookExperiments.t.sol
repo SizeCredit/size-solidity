@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import "../src/Orderbook.sol";
+import "./mocks/OrderbookMock.sol";
 import "./mocks/PriceFeedMock.sol";
 import "./libraries/PlotLibrary.sol";
 import "../src/libraries/UserLibrary.sol";
@@ -17,21 +17,17 @@ contract OrderbookTest is Test {
     using PlotLibrary for BorrowerStatus;
     using EnumerableMap for EnumerableMap.UintToUintMap;
 
-    Orderbook public orderbook;
+    OrderbookMock public orderbook;
     PriceFeedMock public priceFeed;
 
     address public alice = address(0x1);
     address public bob = address(0x2);
     address public james = address(0x3);
 
-    User internal aliceUser;
-    User internal bobUser;
-    User internal jamesUser;
-
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
         ERC1967Proxy proxy = new ERC1967Proxy(
-            address(new Orderbook()),
+            address(new OrderbookMock()),
             abi.encodeWithSelector(
                 Orderbook.initialize.selector,
                 address(this),
@@ -41,7 +37,7 @@ contract OrderbookTest is Test {
                 1.3e18
             )
         );
-        orderbook = Orderbook(address(proxy));
+        orderbook = OrderbookMock(address(proxy));
 
         vm.label(alice, "alice");
         vm.label(bob, "bob");
@@ -59,30 +55,30 @@ contract OrderbookTest is Test {
         console.log("context");
         priceFeed.setPrice(100e18);
 
-        bobUser.account = bob;
-        bobUser.cash.free = 100e18;
 
-        aliceUser.account = alice;
-        aliceUser.cash.free = 100e18;
-
-        jamesUser.account = james;
-        jamesUser.cash.free = 100e18;
+        vm.prank(alice);
+        orderbook.addCash(100e18);
+        vm.prank(bob);
+        orderbook.addCash(100e18);
+        vm.prank(james);
+        orderbook.addCash(100e18);
 
         console.log(
             "Let's pretend she has some virtual collateral i.e. some loan she has given"
         );
-        aliceUser.schedule.expectedFV.set(3, 100);
+        orderbook.setExpectedFV(alice, 3, 100e18);
 
+        vm.prank(bob);
         orderbook.place(100e18, 10, 0.03e18);
 
         console.log("This will revert");
         vm.prank(alice);
         vm.expectRevert();
-        orderbook.pick(0, 100e18, 6);
+        orderbook.pick(1, 100e18, 6);
 
         console.log("This will succeed");
         vm.prank(alice);
-        orderbook.pick(0, 50e18, 6);
+        orderbook.pick(1, 50e18, 6);
 
         orderbook.getBorrowerStatus(bob).plot();
         orderbook.getBorrowerStatus(alice).plot();

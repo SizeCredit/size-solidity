@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
+import "forge-std/console.sol";
+
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+import "./OrderbookStorage.sol";
 import "./libraries/OfferLibrary.sol";
 import "./libraries/UserLibrary.sol";
 import "./libraries/ScheduleLibrary.sol";
@@ -15,7 +18,12 @@ import "./libraries/MathLibrary.sol";
 import "./libraries/LoanLibrary.sol";
 import "./oracle/IPriceFeed.sol";
 
-contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract Orderbook is
+    OrderbookStorage,
+    Initializable,
+    Ownable2StepUpgradeable,
+    UUPSUpgradeable
+{
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
     using OfferLibrary for Offer;
     using ScheduleLibrary for Schedule;
@@ -29,20 +37,10 @@ contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     error Orderbook__NothingToRepay();
     error Orderbook__InvalidLender();
     error Orderbook__NotLiquidatable();
+    error Orderbook__InvalidOfferId(uint256 offerId);
     error Orderbook__DueDateOutOfRange(uint256 maxDueDate);
     error Orderbook__InvalidAmount(uint256 maxAmount);
     error Orderbook__NotEnoughCash(uint256 free, uint256 required);
-
-    mapping(uint256 => Offer) private offers;
-    uint256 private id;
-
-    FOL[] private activeFOLs;
-    SOL[] private activeSOLs;
-    mapping(address => User) private users;
-    IPriceFeed public priceFeed;
-    uint256 public maxTime;
-    uint256 public CROpening;
-    uint256 public CRLiquidation;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -70,12 +68,16 @@ contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
         address newImplementation
     ) internal override onlyOwner {}
 
+    function addCash(uint256 amount) public {
+        users[msg.sender].cash.free += amount;
+    }
+
     function place(
         uint256 maxAmount,
         uint256 maxDueDate,
         uint256 ratePerTimeUnit
     ) public {
-        offers[++id] = Offer({
+        offers[++offerIdCounter] = Offer({
             lender: msg.sender,
             maxAmount: maxAmount,
             maxDueDate: maxDueDate,
@@ -84,6 +86,10 @@ contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     }
 
     function pick(uint256 offerId, uint256 amount, uint256 dueDate) public {
+        if (offerId == 0 || offerId > offerIdCounter) {
+            revert Orderbook__InvalidOfferId(offerId);
+        }
+
         Offer storage offer = offers[offerId];
 
         if (dueDate <= block.timestamp) revert Orderbook__PastDueDate();
@@ -103,6 +109,7 @@ contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
         User storage borrower = users[msg.sender];
         borrower.schedule.dueFV.increment(dueDate, FV);
         int256[] memory RANC = borrower.schedule.RANC(borrower.cash.locked);
+        console.log("RANC", RANC.length);
         uint256 maxUsdcToLock = 0;
 
         int256 min = type(int256).max;
@@ -116,33 +123,43 @@ contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
             }
         }
 
-        if (gteZero) {
-            users[offer.lender].schedule.expectedFV.increment(dueDate, FV);
-
-            if (amount == offer.maxAmount) {
-                delete offers[offerId];
-            } else {
-                offers[offerId].maxAmount -= amount;
-            }
-        } else {
+        if (!gteZero) {
             uint256 maxUserDebtUncovered = uint256(-min);
             borrower.totDebtCoveredByRealCollateral = maxUserDebtUncovered;
             uint256 maxETHToLock = (borrower.totDebtCoveredByRealCollateral *
                 CROpening) / priceFeed.getPrice();
             if (!borrower.eth.lock(maxETHToLock)) {
                 borrower.schedule.dueFV.decrement(dueDate, FV);
+                // TX Reverts
                 require(false, "not enough collateral");
             }
             users[offer.lender].cash.transfer(borrower.cash, amount);
-            FOL memory fol = FOL({
-                loan: Loan({FV: FV, amountFVExited: 0}),
+            Loan memory loan = Loan({
+                FV: FV,
+                amountFVExited: 0,
                 lender: offer.lender,
                 borrower: borrower.account,
                 dueDate: dueDate,
-                FVCoveredByRealCollateral: maxUsdcToLock
+                FVCoveredByRealCollateral: maxUsdcToLock,
+                repaid: false,
+                folId: 0
             });
-            activeFOLs.push(fol);
+            loans.push(loan);
         }
+
+        if (amount == offer.maxAmount) {
+            delete offers[offerId];
+        } else {
+            offers[offerId].maxAmount -= amount;
+        }
+
+        users[offer.lender].schedule.expectedFV.increment(dueDate, FV);
+        users[offer.lender].cash.transfer(borrower.cash, amount);
+
+        // createFOL
+        // activeLoans[self.uidLoans] = FOL(context=self.context, lender=lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=FVCoveredByRealCollateral, amountFVExited=0)
+        // self.uidLoans += 1
+        // return self.uidLoans-1
     }
 
     function getBorrowerStatus(
@@ -168,13 +185,8 @@ contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
         uint256 amount,
         uint256[] memory offersIds
     ) public {
-        Loan storage loan = isFOL
-            ? activeFOLs[loanId].loan
-            : activeSOLs[loanId].loan;
-        address loanLender = isFOL
-            ? activeFOLs[loanId].lender
-            : activeSOLs[loanId].lender;
-        if (loanLender != lender) revert Orderbook__InvalidLender();
+        Loan storage loan = loans[loanId];
+        if (loan.getLender(loans) != lender) revert Orderbook__InvalidLender();
         if (amount > loan.maxExit())
             revert Orderbook__InvalidAmount(loan.maxExit());
 
@@ -187,28 +199,28 @@ contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     }
 
     function repay(uint256 loanId, uint256 amount) public {
-        FOL storage fol = activeFOLs[loanId];
-        if (fol.FVCoveredByRealCollateral == 0)
+        Loan storage loan = loans[loanId];
+        if (loan.FVCoveredByRealCollateral == 0)
             revert Orderbook__NothingToRepay();
-        if (users[fol.borrower].cash.free < amount)
+        if (users[loan.borrower].cash.free < amount)
             revert Orderbook__NotEnoughCash(
-                users[fol.borrower].cash.free,
+                users[loan.borrower].cash.free,
                 amount
             );
-        if (amount < fol.FVCoveredByRealCollateral)
-            revert Orderbook__InvalidAmount(fol.FVCoveredByRealCollateral);
+        if (amount < loan.FVCoveredByRealCollateral)
+            revert Orderbook__InvalidAmount(loan.FVCoveredByRealCollateral);
 
-        uint256 excess = amount - fol.FVCoveredByRealCollateral;
+        uint256 excess = amount - loan.FVCoveredByRealCollateral;
 
-        users[fol.borrower].cash.free -= amount;
-        users[fol.lender].cash.locked += fol.FVCoveredByRealCollateral;
-        users[fol.borrower].totDebtCoveredByRealCollateral -= fol
+        users[loan.borrower].cash.free -= amount;
+        users[loan.lender].cash.locked += loan.FVCoveredByRealCollateral;
+        users[loan.borrower].totDebtCoveredByRealCollateral -= loan
             .FVCoveredByRealCollateral;
-        fol.FVCoveredByRealCollateral = 0;
+        loan.FVCoveredByRealCollateral = 0;
     }
 
     function unlock(uint256 loanId, uint256 time, uint256 amount) public {
-        FOL storage loan = activeFOLs[loanId];
+        Loan storage loan = loans[loanId];
         users[loan.lender].schedule.unlocked.increment(time, amount);
         uint256 length = users[loan.lender].schedule.length();
 
@@ -283,19 +295,19 @@ contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
         address _liquidator = msg.sender;
         User storage liquidator = users[_liquidator];
 
-        FOL storage fol = activeFOLs[loanId];
-        int256[] memory RANC = users[fol.borrower].schedule.RANC();
+        Loan storage loan = loans[loanId];
+        int256[] memory RANC = users[loan.borrower].schedule.RANC();
 
-        if (RANC[fol.dueDate] >= 0) revert Orderbook__NotLiquidatable();
+        if (RANC[loan.dueDate] >= 0) revert Orderbook__NotLiquidatable();
 
-        uint256 loanDebtUncovered = uint256(-1 * RANC[fol.dueDate]);
-        uint256 totBorroweDebt = users[fol.borrower]
+        uint256 loanDebtUncovered = uint256(-1 * RANC[loan.dueDate]);
+        uint256 totBorroweDebt = users[loan.borrower]
             .totDebtCoveredByRealCollateral;
-        uint256 loanCollateral = (users[fol.borrower].eth.locked *
+        uint256 loanCollateral = (users[loan.borrower].eth.locked *
             loanDebtUncovered) / totBorroweDebt;
 
         if (
-            !users[fol.borrower].isLiquidatable(
+            !users[loan.borrower].isLiquidatable(
                 priceFeed.getPrice(),
                 CRLiquidation
             )
@@ -309,7 +321,7 @@ contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
         uint256 targetAmountETH = _computeCollateralForDebt(loanDebtUncovered);
         uint256 actualAmountETH = Math.min(
             targetAmountETH,
-            users[fol.borrower].eth.locked
+            users[loan.borrower].eth.locked
         );
         if (actualAmountETH < targetAmountETH) {
             emit LiquidationAtLoss(targetAmountETH - actualAmountETH);
@@ -317,7 +329,7 @@ contract Orderbook is Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
 
         _liquidationSwap(
             liquidator,
-            users[fol.borrower],
+            users[loan.borrower],
             loanDebtUncovered,
             loanCollateral
         );
