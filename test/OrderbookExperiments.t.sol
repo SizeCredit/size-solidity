@@ -21,8 +21,9 @@ contract OrderbookTest is Test, ExperimentsHelper {
 
     address public alice = address(0x10000);
     address public bob = address(0x20000);
-    address public james = address(0x30000);
-    address public liquidator = address(0x40000);
+    address public candy = address(0x30000);
+    address public james = address(0x40000);
+    address public liquidator = address(0x50000);
 
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
@@ -41,6 +42,7 @@ contract OrderbookTest is Test, ExperimentsHelper {
 
         vm.label(alice, "alice");
         vm.label(bob, "bob");
+        vm.label(candy, "candy");
         vm.label(james, "james");
         vm.label(liquidator, "liquidator");
 
@@ -161,5 +163,65 @@ contract OrderbookTest is Test, ExperimentsHelper {
         );
 
         plot("alice_2_3", orderbook.getBorrowerStatus(alice));
+    }
+
+    function test_experiment_3() public {
+        console.log("Extension of the above with loan liquidation");
+
+        console.log("context");
+        priceFeed.setPrice(100e18);
+
+        vm.prank(alice);
+        orderbook.deposit(100e18, 20e18);
+        vm.prank(bob);
+        orderbook.deposit(100e18, 20e18);
+
+
+        console.log(
+            "Let's pretend she has some virtual collateral i.e. some loan she has given"
+        );
+        orderbook.setExpectedFV(alice, 3, 100e18);
+
+        vm.prank(bob);
+        orderbook.place(100e18, 10, 0.03e18);
+
+        console.log("This should work now");
+        vm.prank(alice);
+        orderbook.pick(1, 100e18, 6);
+
+        assertEq(
+            orderbook.getCollateralRatio(alice),
+            orderbook.CROpening(),
+            "Alice Collateral Ratio == CROpening"
+        );
+        assertFalse(
+            orderbook.isLiquidatable(alice),
+            "Borrower should not be liquidatable"
+        );
+
+        plot("alice_3_0", orderbook.getBorrowerStatus(alice));
+
+
+        vm.warp(block.timestamp + 1);
+        priceFeed.setPrice(0.00001e18);
+        assertTrue(
+            orderbook.isLiquidatable(alice),
+            "Borrower should be liquidatable"
+        );
+        plot("alice_3_1", orderbook.getBorrowerStatus(alice));
+
+
+        vm.prank(liquidator);
+        orderbook.deposit(10_000e18, 0);
+
+        vm.prank(liquidator);
+        orderbook.liquidateLoan(1);
+
+        plot("alice_3_2", orderbook.getBorrowerStatus(alice));
+
+        assertFalse(
+            orderbook.isLiquidatable(alice),
+            "Alice should not be eligible for liquidation anymore after the liquidation event"
+        );
     }
 }

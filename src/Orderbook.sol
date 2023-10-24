@@ -65,8 +65,10 @@ contract Orderbook is
         CROpening = _CROpening;
         CRLiquidation = _CRLiquidation;
 
-        Offer memory nil;
-        offers.push(nil);
+        Offer memory o;
+        offers.push(o);
+        Loan memory l;
+        loans.push(l);
     }
 
     function _authorizeUpgrade(
@@ -219,7 +221,7 @@ contract Orderbook is
     function _computeCollateralForDebt(
         uint256 amountUSDC
     ) private returns (uint256) {
-        return amountUSDC * 1e18 / priceFeed.getPrice();
+        return (amountUSDC * 1e18) / priceFeed.getPrice();
     }
 
     function _liquidationSwap(
@@ -269,7 +271,7 @@ contract Orderbook is
         return (actualAmountETH, targetAmountETH);
     }
 
-    function liquidate(uint256 loanId) public {
+    function liquidateLoan(uint256 loanId) public {
         User storage liquidator = users[msg.sender];
 
         Loan storage loan = loans[loanId];
