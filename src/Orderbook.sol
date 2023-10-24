@@ -113,7 +113,6 @@ contract Orderbook is
 
         uint256 FV = ((PERCENT + offer.getFinalRate(dueDate)) * amount) /
             PERCENT;
-        console.log("FV", dueDate, FV);
 
         User storage borrower = users[msg.sender];
         borrower.schedule.dueFV.increment(dueDate, FV);
@@ -127,12 +126,6 @@ contract Orderbook is
             borrower.totDebtCoveredByRealCollateral = maxUserDebtUncovered;
             uint256 maxETHToLock = (borrower.totDebtCoveredByRealCollateral *
                 CROpening) / priceFeed.getPrice();
-            console.log(
-                "pts",
-                borrower.totDebtCoveredByRealCollateral,
-                maxUserDebtUncovered,
-                maxETHToLock
-            );
             if (!borrower.eth.lock(maxETHToLock)) {
                 borrower.schedule.dueFV.decrement(dueDate, FV);
                 revert Orderbook__NotEnoughCash(
@@ -166,23 +159,60 @@ contract Orderbook is
     }
 
     function exit(
-        address lender,
-        bool isFOL,
         uint256 loanId,
         uint256 amount,
+        uint256 dueDate,
         uint256[] memory offersIds
-    ) public {
+    ) public returns (uint256) {
+        // NOTE: The exit is equivalent to a spot swap for exact amount in wheres
+        // - the exiting lender is the taker
+        // - the other lenders are the makers
+        // The swap traverses the `offersIds` as they if they were ticks with liquidity in an orderbook
         Loan storage loan = loans[loanId];
-        if (loan.getLender(loans) != lender) revert Orderbook__InvalidLender();
+        if (loan.getLender(loans) != msg.sender)
+            revert Orderbook__InvalidLender();
         if (amount > loan.maxExit())
             revert Orderbook__InvalidAmount(loan.maxExit());
 
-        uint256 amountLeft = amount;
+        uint256 amountInLeft = amount;
         uint256 length = offersIds.length;
         for (uint256 i = 0; i < length; ++i) {
+            if (amountInLeft == 0) {
+                // No more amountIn to swap
+                break;
+            }
+
             Offer storage offer = offers[offersIds[i]];
+            uint256 r = PERCENT + offer.getFinalRate(dueDate);
+            uint256 deltaAmountIn = Math.min(r * offer.maxAmount, amountInLeft);
+            uint256 deltaAmountOut = (deltaAmountIn * PERCENT) / r;
+
+            // Swap
+            {
+                loans.push(
+                    Loan({
+                        FV: deltaAmountIn,
+                        amountFVExited: 0,
+                        lender: offer.lender,
+                        borrower: msg.sender,
+                        dueDate: loan.dueDate,
+                        FVCoveredByRealCollateral: loan
+                            .FVCoveredByRealCollateral,
+                        repaid: false,
+                        folId: loanId
+                    })
+                );
+            }
+
+            users[offer.lender].cash.transfer(
+                users[msg.sender].cash,
+                deltaAmountOut
+            );
+            offer.maxAmount -= deltaAmountOut;
+            amountInLeft -= deltaAmountIn;
         }
-        revert("not implemented");
+
+        return amountInLeft;
     }
 
     function repay(uint256 loanId, uint256 amount) public {

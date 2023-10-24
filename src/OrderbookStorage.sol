@@ -7,7 +7,7 @@ import "./libraries/OfferLibrary.sol";
 
 abstract contract OrderbookStorage {
     Offer[] internal offers;
-    Loan[] internal loans;
+    Loan[] public loans;
     mapping(address => User) internal users;
     IPriceFeed public priceFeed;
     uint256 public maxTime;

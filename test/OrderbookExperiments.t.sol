@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "./mocks/OrderbookMock.sol";
 import "./mocks/PriceFeedMock.sol";
+import "../src/libraries/LoanLibrary.sol";
 import "../src/libraries/UserLibrary.sol";
 import "../src/libraries/RealCollateralLibrary.sol";
 import "../src/libraries/OfferLibrary.sol";
@@ -15,6 +16,7 @@ import "./ExperimentsHelper.sol";
 
 contract OrderbookTest is Test, ExperimentsHelper {
     using EnumerableMap for EnumerableMap.UintToUintMap;
+    using LoanLibrary for Loan;
 
     OrderbookMock public orderbook;
     PriceFeedMock public priceFeed;
@@ -223,5 +225,71 @@ contract OrderbookTest is Test, ExperimentsHelper {
             orderbook.isLiquidatable(alice),
             "Alice should not be eligible for liquidation anymore after the liquidation event"
         );
+    }
+
+    function test_experiment_4() public {
+        console.log("context");
+        priceFeed.setPrice(100e18);
+
+        vm.prank(alice);
+        orderbook.deposit(100e18, 10e18);
+        vm.prank(bob);
+        orderbook.deposit(100e18, 0);
+        vm.prank(candy);
+        orderbook.deposit(100e18, 0);
+
+        vm.prank(bob);
+        orderbook.place(100e18, 10, 0.03e18);
+
+        vm.prank(alice);
+        orderbook.pick(1, 50e18, 6);
+
+        plot("alice_4", orderbook.getBorrowerStatus(alice));
+        plot("bob_4", orderbook.getBorrowerStatus(bob));
+
+        vm.prank(candy);
+        orderbook.place(100e18, 10, 0.03e18);
+
+        vm.prank(bob);
+        orderbook.pick(2, 10e18, 7);
+    }
+
+    function test_experiment_exit(uint256 percent) public {
+        percent = bound(percent, 1, 9);
+        console.log("context");
+        priceFeed.setPrice(100e18);
+
+        vm.prank(alice);
+        orderbook.deposit(100e18, 10e18);
+        vm.prank(bob);
+        orderbook.deposit(100e18, 0);
+        vm.prank(candy);
+        orderbook.deposit(100e18, 0);
+
+        vm.prank(bob);
+        orderbook.place(100e18, 10, 0.03e18);
+
+        vm.prank(candy);
+        orderbook.place(100e18, 10, 0.05e18);
+
+        vm.prank(alice);
+        orderbook.pick(1, 50e18, 6);
+
+        assertEq(orderbook.activeLoans(), 1, "Checking num of loans before");
+        assertTrue(orderbook.isFOL(1), "The first loan has to be a FOL");
+
+        uint256 amountToExitPercent = percent * 0.1e18;
+        Loan memory loan = orderbook.loan(1);
+        uint256 amountToExit = loan.FV * amountToExitPercent /
+            1e18;
+            vm.prank(bob);
+        uint256[] memory offerIds = new uint256[](1);
+        offerIds[0] = 1;
+        uint256 amountInLeft = orderbook.exit(1, amountToExit, loan.dueDate, offerIds);
+
+        assertEq(orderbook.activeLoans(), 2, "Checking num of loans after");
+        assertFalse(orderbook.isFOL(2), "The second loan has to be a SOL");
+        assertEq(orderbook.loan(2).FV, amountToExit, "Amount to exit should be the same");
+        assertEq(amountInLeft, 0, "Should be able to exit the full amount");
     }
 }
