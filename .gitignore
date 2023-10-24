@@ -16,3 +16,6 @@ docs/
 # plots
 plots/*.csv
 plots/*.svg
+
+# macOS
+.DS_Store

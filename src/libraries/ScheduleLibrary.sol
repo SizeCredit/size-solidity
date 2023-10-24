@@ -42,4 +42,59 @@ library ScheduleLibrary {
     function RANC(Schedule storage self) public view returns (int256[] memory) {
         return RANC(self, 0);
     }
+
+    function isNegativeRANC(
+        Schedule storage self,
+        uint256 lockedStart
+    ) public view returns (bool) {
+        uint256 len = length(self);
+        int256 res;
+
+        for (uint256 i; i < len; ++i) {
+            (, uint256 expectedFV) = self.expectedFV.tryGet(i);
+            (, uint256 unlocked) = self.unlocked.tryGet(i);
+            (, uint256 dueFV) = self.dueFV.tryGet(i);
+            res = (i > 0 ? res : int256(lockedStart)) +
+                int256(expectedFV) -
+                int256(unlocked) -
+                int256(dueFV);
+            if (res < 0) return true;
+        }
+
+        return false;
+    }
+
+    function isNegativeRANC(Schedule storage self) public view returns (bool) {
+        return isNegativeRANC(self, 0);
+    }
+
+    function isNegativeAndMinRANC(
+        Schedule storage self,
+        uint256 lockedStart
+    ) public view returns (bool isNegative, int256 min) {
+        min = type(int256).max;
+
+        uint256 len = length(self);
+        int256 res;
+
+        for (uint256 i; i < len; ++i) {
+            (, uint256 expectedFV) = self.expectedFV.tryGet(i);
+            (, uint256 unlocked) = self.unlocked.tryGet(i);
+            (, uint256 dueFV) = self.dueFV.tryGet(i);
+            res = (i > 0 ? res : int256(lockedStart)) +
+                int256(expectedFV) -
+                int256(unlocked) -
+                int256(dueFV);
+            if (res < 0) {
+                isNegative = true;
+            }
+            if(res < min) {
+                min = res;
+            }
+        }
+    }
+
+    function isNegativeAndMinRANC(Schedule storage self) public view returns (bool, int256) {
+        return isNegativeAndMinRANC(self, 0);
+    }
 }

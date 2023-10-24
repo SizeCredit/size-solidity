@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import "../../src/Orderbook.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import {Orderbook} from "../../src/Orderbook.sol";
 
 contract OrderbookMock is Orderbook {
     using EnumerableMap for EnumerableMap.UintToUintMap;

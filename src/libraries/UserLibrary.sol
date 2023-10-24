@@ -5,7 +5,6 @@ import "./ScheduleLibrary.sol";
 import "./RealCollateralLibrary.sol";
 
 struct User {
-    address account;
     RealCollateral cash;
     RealCollateral eth;
     Schedule schedule;

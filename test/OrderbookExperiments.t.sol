@@ -19,9 +19,9 @@ contract OrderbookTest is Test, Plot {
     OrderbookMock public orderbook;
     PriceFeedMock public priceFeed;
 
-    address public alice = address(0x1);
-    address public bob = address(0x2);
-    address public james = address(0x3);
+    address public alice = address(0x10000);
+    address public bob = address(0x20000);
+    address public james = address(0x30000);
 
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
@@ -43,13 +43,10 @@ contract OrderbookTest is Test, Plot {
         vm.label(james, "james");
     }
 
-    function testExperiment1() public {
+    function test_experiment_1() public {
         console.log("Basic Functioning");
         console.log("Place an offer");
         console.log("Pick a loan from that offer");
-
-        uint256[] memory empty;
-        EnumerableMap.UintToUintMap storage emptyMap;
 
         console.log("context");
         priceFeed.setPrice(100e18);
@@ -78,14 +75,50 @@ contract OrderbookTest is Test, Plot {
         vm.prank(alice);
         orderbook.pick(1, 50e18, 6);
 
-        plot("bob", orderbook.getBorrowerStatus(bob));
-        plot("alice", orderbook.getBorrowerStatus(alice));
-        plot("james", orderbook.getBorrowerStatus(james));
+        plot("bob_1", orderbook.getBorrowerStatus(bob));
+        plot("alice_1", orderbook.getBorrowerStatus(alice));
+        plot("james_1", orderbook.getBorrowerStatus(james));
+    }
+
+    function test_experiment_2() public {
+        console.log("Extension of the above with borrower liquidation");
+
+        console.log("context");
+        priceFeed.setPrice(100e18);
+
+        vm.prank(alice);
+        orderbook.addCash(100e18);
+        vm.prank(alice);
+        orderbook.addEth(20e18);
+        vm.prank(bob);
+        orderbook.addCash(100e18);
+        vm.prank(bob);
+        orderbook.addEth(20e18);
+
+        vm.prank(bob);
+        orderbook.place(100e18, 10, 0.03e18);
+
+        console.log("This should work now");
+        plot("alice_2", orderbook.getBorrowerStatus(alice));
+
+        vm.prank(alice);
+        orderbook.pick(1, 100e18, 6);
+
+        assertEq(
+            orderbook.getCollateralRatio(alice),
+            orderbook.CROpening(),
+            "Alice Collateral Ratio == CROpening"
+        );
+        assertTrue(!orderbook.isLiquidatable(alice), "Borrower should not be liquidatable");
+
+        plot("alice_2_after_pick", orderbook.getBorrowerStatus(alice));
     }
 
     function plot(string memory filename, BorrowerStatus memory self) private {
         try vm.createDir("./plots", false) {} catch {}
-        try vm.removeFile(string.concat("./plots/", filename, ".csv")) {} catch {}
+        try
+            vm.removeFile(string.concat("./plots/", filename, ".csv"))
+        {} catch {}
 
         uint256 length = self.RANC.length;
 
@@ -99,8 +132,6 @@ contract OrderbookTest is Test, Plot {
         // Create input csv
         for (uint256 i; i < length; i++) {
             int256[] memory cols = new int256[](5);
-
-            console.log("lens", self.dueFV.length, self.RANC.length);
 
             cols[0] = int256(i * 1e18);
             cols[1] = int256(self.expectedFV[i]);

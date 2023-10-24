@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "forge-std/console.sol";
+import {console2 as console} from "forge-std/console2.sol";
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+import "./OrderbookView.sol";
 import "./OrderbookStorage.sol";
 import "./libraries/OfferLibrary.sol";
 import "./libraries/UserLibrary.sol";
@@ -20,6 +21,7 @@ import "./oracle/IPriceFeed.sol";
 
 contract Orderbook is
     OrderbookStorage,
+    OrderbookView,
     Initializable,
     Ownable2StepUpgradeable,
     UUPSUpgradeable
@@ -62,6 +64,9 @@ contract Orderbook is
         maxTime = _maxTime;
         CROpening = _CROpening;
         CRLiquidation = _CRLiquidation;
+
+        Offer memory nil;
+        offers.push(nil);
     }
 
     function _authorizeUpgrade(
@@ -72,79 +77,70 @@ contract Orderbook is
         users[msg.sender].cash.free += amount;
     }
 
+    function addEth(uint256 amount) public {
+        users[msg.sender].eth.free += amount;
+    }
+
     function place(
         uint256 maxAmount,
         uint256 maxDueDate,
         uint256 ratePerTimeUnit
     ) public {
-        offers[++offerIdCounter] = Offer({
-            lender: msg.sender,
-            maxAmount: maxAmount,
-            maxDueDate: maxDueDate,
-            ratePerTimeUnit: ratePerTimeUnit
-        });
+        offers.push(
+            Offer({
+                lender: msg.sender,
+                maxAmount: maxAmount,
+                maxDueDate: maxDueDate,
+                ratePerTimeUnit: ratePerTimeUnit
+            })
+        );
     }
 
     function pick(uint256 offerId, uint256 amount, uint256 dueDate) public {
-        if (offerId == 0 || offerId > offerIdCounter) {
+        if (offerId == 0 || offerId >= offers.length) {
             revert Orderbook__InvalidOfferId(offerId);
         }
 
         Offer storage offer = offers[offerId];
+        address lender = offer.lender;
 
         if (dueDate <= block.timestamp) revert Orderbook__PastDueDate();
         if (dueDate > offer.maxDueDate)
             revert Orderbook__DueDateOutOfRange(offer.maxDueDate);
         if (amount > offer.maxAmount)
             revert Orderbook__InvalidAmount(offer.maxAmount);
-        if (users[offer.lender].cash.free < amount)
-            revert Orderbook__NotEnoughCash(
-                users[offer.lender].cash.free,
-                amount
-            );
+        if (users[lender].cash.free < amount)
+            revert Orderbook__NotEnoughCash(users[lender].cash.free, amount);
 
         uint256 FV = ((PERCENT + offer.getFinalRate(dueDate)) * amount) /
             PERCENT;
+        console.log("FV", dueDate, FV);
 
         User storage borrower = users[msg.sender];
         borrower.schedule.dueFV.increment(dueDate, FV);
-        int256[] memory RANC = borrower.schedule.RANC(borrower.cash.locked);
-        console.log("RANC", RANC.length);
         uint256 maxUsdcToLock = 0;
+        (bool isNegative, int256 min) = borrower.schedule.isNegativeAndMinRANC(
+            borrower.cash.locked
+        );
 
-        int256 min = type(int256).max;
-        bool gteZero = true;
-        for (uint256 i = 0; i < RANC.length; i++) {
-            if (RANC[i] < min) {
-                min = RANC[i];
-            }
-            if (RANC[i] < 0) {
-                gteZero = false;
-            }
-        }
-
-        if (!gteZero) {
+        if (isNegative) {
             uint256 maxUserDebtUncovered = uint256(-min);
             borrower.totDebtCoveredByRealCollateral = maxUserDebtUncovered;
             uint256 maxETHToLock = (borrower.totDebtCoveredByRealCollateral *
                 CROpening) / priceFeed.getPrice();
+            console.log(
+                "pts",
+                borrower.totDebtCoveredByRealCollateral,
+                maxUserDebtUncovered,
+                maxETHToLock
+            );
             if (!borrower.eth.lock(maxETHToLock)) {
                 borrower.schedule.dueFV.decrement(dueDate, FV);
-                // TX Reverts
-                require(false, "not enough collateral");
+                revert Orderbook__NotEnoughCash(
+                    borrower.eth.free,
+                    maxETHToLock
+                );
             }
-            users[offer.lender].cash.transfer(borrower.cash, amount);
-            Loan memory loan = Loan({
-                FV: FV,
-                amountFVExited: 0,
-                lender: offer.lender,
-                borrower: borrower.account,
-                dueDate: dueDate,
-                FVCoveredByRealCollateral: maxUsdcToLock,
-                repaid: false,
-                folId: 0
-            });
-            loans.push(loan);
         }
 
         if (amount == offer.maxAmount) {
@@ -153,29 +149,21 @@ contract Orderbook is
             offers[offerId].maxAmount -= amount;
         }
 
-        users[offer.lender].schedule.expectedFV.increment(dueDate, FV);
-        users[offer.lender].cash.transfer(borrower.cash, amount);
+        users[lender].schedule.expectedFV.increment(dueDate, FV);
+        users[lender].cash.transfer(borrower.cash, amount);
 
-        // createFOL
-        // activeLoans[self.uidLoans] = FOL(context=self.context, lender=lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=FVCoveredByRealCollateral, amountFVExited=0)
-        // self.uidLoans += 1
-        // return self.uidLoans-1
-    }
-
-    function getBorrowerStatus(
-        address _borrower
-    ) public returns (BorrowerStatus memory) {
-        User storage borrower = users[_borrower];
-        uint256 lockedStart = borrower.cash.locked +
-            borrower.eth.locked *
-            priceFeed.getPrice();
-        return
-            BorrowerStatus({
-                expectedFV: borrower.schedule.expectedFV.values(),
-                unlocked: borrower.schedule.unlocked.values(),
-                dueFV: borrower.schedule.dueFV.values(),
-                RANC: borrower.schedule.RANC(lockedStart)
-            });
+        loans.push(
+            Loan({
+                FV: FV,
+                amountFVExited: 0,
+                lender: offer.lender,
+                borrower: msg.sender,
+                dueDate: dueDate,
+                FVCoveredByRealCollateral: maxUsdcToLock,
+                repaid: false,
+                folId: 0
+            })
+        );
     }
 
     function exit(
@@ -224,14 +212,8 @@ contract Orderbook is
         users[loan.lender].schedule.unlocked.increment(time, amount);
         uint256 length = users[loan.lender].schedule.length();
 
-        int256[] memory RANC = users[loan.lender].schedule.RANC();
-        bool gteZero = true;
-        for (uint256 i = 0; i < RANC.length; i++) {
-            if (RANC[i] < 0) {
-                gteZero = false;
-            }
-        }
-        if (!gteZero) {
+        bool isNegative = users[loan.lender].schedule.isNegativeRANC();
+        if (isNegative) {
             users[loan.lender].schedule.unlocked.decrement(time, amount);
             require(false, "impossible to unlock loan");
         }
@@ -258,9 +240,8 @@ contract Orderbook is
     function liquidateBorrower(
         address _borrower
     ) public returns (uint256, uint256) {
-        address _liquidator = msg.sender;
         User storage borrower = users[_borrower];
-        User storage liquidator = users[_liquidator];
+        User storage liquidator = users[msg.sender];
 
         if (!borrower.isLiquidatable(priceFeed.getPrice(), CRLiquidation))
             revert Orderbook__NotLiquidatable();
@@ -292,8 +273,7 @@ contract Orderbook is
     }
 
     function liquidate(uint256 loanId) public {
-        address _liquidator = msg.sender;
-        User storage liquidator = users[_liquidator];
+        User storage liquidator = users[msg.sender];
 
         Loan storage loan = loans[loanId];
         int256[] memory RANC = users[loan.borrower].schedule.RANC();
