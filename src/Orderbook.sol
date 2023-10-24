@@ -73,12 +73,9 @@ contract Orderbook is
         address newImplementation
     ) internal override onlyOwner {}
 
-    function addCash(uint256 amount) public {
-        users[msg.sender].cash.free += amount;
-    }
-
-    function addEth(uint256 amount) public {
-        users[msg.sender].eth.free += amount;
+    function deposit(uint256 cash, uint256 eth) public {
+        users[msg.sender].cash.free += cash;
+        users[msg.sender].eth.free += eth;
     }
 
     function place(
@@ -222,7 +219,7 @@ contract Orderbook is
     function _computeCollateralForDebt(
         uint256 amountUSDC
     ) private returns (uint256) {
-        return amountUSDC / priceFeed.getPrice();
+        return amountUSDC * 1e18 / priceFeed.getPrice();
     }
 
     function _liquidationSwap(

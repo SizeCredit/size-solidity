@@ -22,6 +22,7 @@ contract OrderbookTest is Test, ExperimentsHelper {
     address public alice = address(0x10000);
     address public bob = address(0x20000);
     address public james = address(0x30000);
+    address public liquidator = address(0x40000);
 
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
@@ -41,6 +42,10 @@ contract OrderbookTest is Test, ExperimentsHelper {
         vm.label(alice, "alice");
         vm.label(bob, "bob");
         vm.label(james, "james");
+        vm.label(liquidator, "liquidator");
+
+        // starts at t=0
+        vm.warp(0);
     }
 
     function test_experiment_1() public {
@@ -52,11 +57,11 @@ contract OrderbookTest is Test, ExperimentsHelper {
         priceFeed.setPrice(100e18);
 
         vm.prank(alice);
-        orderbook.addCash(100e18);
+        orderbook.deposit(100e18, 0);
         vm.prank(bob);
-        orderbook.addCash(100e18);
+        orderbook.deposit(100e18, 0);
         vm.prank(james);
-        orderbook.addCash(100e18);
+        orderbook.deposit(100e18, 0);
 
         console.log(
             "Let's pretend she has some virtual collateral i.e. some loan she has given"
@@ -87,19 +92,15 @@ contract OrderbookTest is Test, ExperimentsHelper {
         priceFeed.setPrice(100e18);
 
         vm.prank(alice);
-        orderbook.addCash(100e18);
-        vm.prank(alice);
-        orderbook.addEth(20e18);
+        orderbook.deposit(100e18, 20e18);
         vm.prank(bob);
-        orderbook.addCash(100e18);
-        vm.prank(bob);
-        orderbook.addEth(20e18);
+        orderbook.deposit(100e18, 20e18);
 
         vm.prank(bob);
         orderbook.place(100e18, 10, 0.03e18);
 
         console.log("This should work now");
-        plot("alice_2", orderbook.getBorrowerStatus(alice));
+        plot("alice_2_0", orderbook.getBorrowerStatus(alice));
 
         vm.prank(alice);
         orderbook.pick(1, 100e18, 6);
@@ -109,8 +110,56 @@ contract OrderbookTest is Test, ExperimentsHelper {
             orderbook.CROpening(),
             "Alice Collateral Ratio == CROpening"
         );
-        assertTrue(!orderbook.isLiquidatable(alice), "Borrower should not be liquidatable");
+        assertFalse(
+            orderbook.isLiquidatable(alice),
+            "Borrower should not be liquidatable"
+        );
 
-        plot("alice_2_after_pick", orderbook.getBorrowerStatus(alice));
+        plot("alice_2_1", orderbook.getBorrowerStatus(alice));
+
+        vm.warp(block.timestamp + 1);
+        priceFeed.setPrice(0.00001e18);
+        assertTrue(
+            orderbook.isLiquidatable(alice),
+            "Borrower should be liquidatable"
+        );
+        plot("alice_2_2", orderbook.getBorrowerStatus(alice));
+
+        vm.prank(liquidator);
+        orderbook.deposit(10_000e18, 0);
+        uint256 borrowerETHLockedBefore;
+        (, , , borrowerETHLockedBefore) = orderbook.getUserCollateral(alice);
+        vm.prank(liquidator);
+        (uint256 actualAmountETH, uint256 targetAmountETH) = orderbook
+            .liquidateBorrower(alice);
+
+        uint256 liquidatorETHFreeAfter;
+        uint256 liquidatorETHLockedAfter;
+        uint256 aliceETHLockedAfter;
+        (, , liquidatorETHFreeAfter, liquidatorETHLockedAfter) = orderbook
+            .getUserCollateral(liquidator);
+        (, , , aliceETHLockedAfter) = orderbook.getUserCollateral(liquidator);
+
+        assertFalse(
+            orderbook.isLiquidatable(alice),
+            "Alice should not be eligible for liquidation anymore after the liquidation event"
+        );
+        assertEq(
+            liquidatorETHFreeAfter,
+            actualAmountETH,
+            "liquidator.eth.free == actualAmountETH"
+        );
+        assertEq(
+            aliceETHLockedAfter,
+            borrowerETHLockedBefore - actualAmountETH,
+            "alice.eth.locked == borrowerETHLockedBefore - actualAmountETH"
+        );
+        assertEq(
+            liquidatorETHLockedAfter,
+            0,
+            "Liquidator ETH should be all free in this case"
+        );
+
+        plot("alice_2_3", orderbook.getBorrowerStatus(alice));
     }
 }

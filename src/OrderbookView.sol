@@ -16,8 +16,8 @@ abstract contract OrderbookView is OrderbookStorage {
     ) public returns (BorrowerStatus memory) {
         User storage borrower = users[_borrower];
         uint256 lockedStart = borrower.cash.locked +
-            borrower.eth.locked *
-            priceFeed.getPrice() / 1e18;
+            (borrower.eth.locked * priceFeed.getPrice()) /
+            1e18;
         return
             BorrowerStatus({
                 expectedFV: borrower.schedule.expectedFV.values(),
@@ -33,5 +33,12 @@ abstract contract OrderbookView is OrderbookStorage {
 
     function isLiquidatable(address user) public returns (bool) {
         return users[user].isLiquidatable(priceFeed.getPrice(), CRLiquidation);
+    }
+
+    function getUserCollateral(
+        address user
+    ) public returns (uint256, uint256, uint256, uint256) {
+        User storage u = users[user];
+        return (u.cash.free, u.cash.locked, u.eth.free, u.eth.locked);
     }
 }

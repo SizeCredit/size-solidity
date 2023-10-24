@@ -25,12 +25,12 @@ library ScheduleLibrary {
         uint256 len = length(self);
         int256[] memory res = new int256[](len);
 
-        for (uint256 i; i < len; ++i) {
+        for (uint256 i = block.timestamp; i < len; ++i) {
             (, uint256 expectedFV) = self.expectedFV.tryGet(i);
             (, uint256 unlocked) = self.unlocked.tryGet(i);
             (, uint256 dueFV) = self.dueFV.tryGet(i);
             res[i] =
-                (i > 0 ? res[i - 1] : int256(lockedStart)) +
+                (i > block.timestamp ? res[i - 1] : int256(lockedStart)) +
                 int256(expectedFV) -
                 int256(unlocked) -
                 int256(dueFV);
@@ -50,11 +50,11 @@ library ScheduleLibrary {
         uint256 len = length(self);
         int256 res;
 
-        for (uint256 i; i < len; ++i) {
+        for (uint256 i = block.timestamp; i < len; ++i) {
             (, uint256 expectedFV) = self.expectedFV.tryGet(i);
             (, uint256 unlocked) = self.unlocked.tryGet(i);
             (, uint256 dueFV) = self.dueFV.tryGet(i);
-            res = (i > 0 ? res : int256(lockedStart)) +
+            res = (i > block.timestamp ? res : int256(lockedStart)) +
                 int256(expectedFV) -
                 int256(unlocked) -
                 int256(dueFV);
@@ -77,11 +77,11 @@ library ScheduleLibrary {
         uint256 len = length(self);
         int256 res;
 
-        for (uint256 i; i < len; ++i) {
+        for (uint256 i = block.timestamp; i < len; ++i) {
             (, uint256 expectedFV) = self.expectedFV.tryGet(i);
             (, uint256 unlocked) = self.unlocked.tryGet(i);
             (, uint256 dueFV) = self.dueFV.tryGet(i);
-            res = (i > 0 ? res : int256(lockedStart)) +
+            res = (i > block.timestamp ? res : int256(lockedStart)) +
                 int256(expectedFV) -
                 int256(unlocked) -
                 int256(dueFV);
