@@ -99,8 +99,13 @@ class User:
 
 
 @dataclass
-class LoanOffer:
+class Offer:
     context: Context
+
+
+@dataclass
+class LoanOffer(Offer):
+    # context: Context
     lender: User
     maxAmount: float
     maxDueDate: int
@@ -112,10 +117,19 @@ class LoanOffer:
         assert dueDate <= self.maxDueDate, "Due Date out of range"
         return self.ratePerTimeUnit * (dueDate - self.context.time)
 
+class BorrowOffer(Offer):
+    borrower: User
+    amount: float
+    dueDate: int
+    rate: float
+
 @dataclass
 class GenericLoan:
     # The Orderbook UID of the loan
     # uid: int
+    lender: User
+    borrower: User
+
     FV: float
     amountFVExited: float
 
@@ -134,18 +148,24 @@ class GenericLoan:
     def getDueDate(self):
         return self.DueDate if self.isFOL() else self.fol.DueDate
 
-    def getLender(self):
-        return self.lender if self.isFOL() else self.fol.lender
+    # def getLender(self):
+    #     return self.lender if self.isFOL() else self.fol.lender
+    #
+    # def getBorrower(self):
+    #     return self.borrower if self.isFOL() else self.fol.borrower
 
     def getFOL(self):
         return self if self.isFOL() else self.fol
+
+    def lock(self, amount):
+        assert amount <= self.maxExit(), f"Amount={amount} too big for maxExit={self.maxExit()}"
 
 
 @dataclass
 class FOL(GenericLoan):
     context: Context
-    lender: User
-    borrower: User
+    # lender: User
+    # borrower: User
     DueDate: int
     FVCoveredByRealCollateral: float
     repaid: bool = False
@@ -171,7 +191,8 @@ class FOL(GenericLoan):
 @dataclass
 class SOL(GenericLoan):
     fol: FOL
-    lender: User
+    # lender: User
+    # borrower: User
 
 @dataclass
 class VariableLoan:
@@ -214,30 +235,36 @@ class AMM:
 @dataclass
 class LendingOB:
     context: Context
-    offers: Dict[int, LoanOffer] = field(default_factory=dict)
+    loanOffers: Dict[int, LoanOffer] = field(default_factory=dict)
+    borrowOffers: Dict[int, BorrowOffer] = field(default_factory=dict)
     activeLoans: Dict[int, GenericLoan] = field(default_factory=dict)
     # activeFOLs: Dict[int, FOL] = field(default_factory=dict)
     # activeSOLs: Dict[int, SOL] = field(default_factory=dict)
-    uidOffers: int = 0
+    uidLoanOffers: int = 0
+    uidBorrowOffers: int = 0
     uidLoans: int = 0
 
-    def place(self, offer):
-        self.offers[self.uidOffers] = offer
-        self.uidOffers += 1
+    def placeLoanOffer(self, offer: LoanOffer):
+        self.loanOffers[self.uidLoanOffers] = offer
+        self.uidLoanOffers += 1
+
+    def placeBorrowOffer(self, offer: BorrowOffer):
+        self.borrowOffers[self.uidBorrowOffers] = offer
+        self.uidBorrowOffers += 1
 
     def createFOL(self, lender: User, borrower: User, FV: float, dueDate: int, FVCoveredByRealCollateral: float):
         self.activeLoans[self.uidLoans] = FOL(context=self.context, lender=lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=FVCoveredByRealCollateral, amountFVExited=0)
         self.uidLoans += 1
         return self.uidLoans-1
 
-    def createSOL(self, fol: FOL, lender: User, FV: float):
-        self.activeLoans[self.uidLoans] = SOL(fol=fol, lender=lender, FV=FV, amountFVExited=0)
+    def createSOL(self, fol: FOL, lender: User, borrower: User, FV: float):
+        self.activeLoans[self.uidLoans] = SOL(fol=fol, lender=lender, borrower=borrower, FV=FV, amountFVExited=0)
         self.uidLoans += 1
         return self.uidLoans-1
 
 
-    def pick(self, borrower, offerId, amount, dueDate):
-        offer = self.offers[offerId]
+    def pick(self, borrower: User, offerId: int, amount: float, dueDate: int):
+        offer = self.loanOffers[offerId]
         assert dueDate > self.context.time, "Due Date need to be in the future"
         assert amount <= offer.maxAmount, "Money is not enough"
         assert dueDate <= offer.maxDueDate, "Due Date out of range"
@@ -267,9 +294,9 @@ class LendingOB:
 
         # NOTE: Here loan can be taken so let's proceed with the other state modifications
         if amount == offer.maxAmount:
-            del self.offers[offerId]
+            del self.loanOffers[offerId]
         else:
-            self.offers[offerId].maxAmount -= amount
+            self.loanOffers[offerId].maxAmount -= amount
         offer.lender.schedule.expectedFV[dueDate] += FV
         offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=amount)
         return self.createFOL(lender=offer.lender, borrower=borrower, FV=FV, dueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock)
@@ -277,6 +304,39 @@ class LendingOB:
         # # self.activeFOLs[self.uidLoans] = FOL(context=self.context, lender=offer.lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock, amountFVExited=0)
         # self.uidLoans += 1
         # return self.uidLoans-1
+
+    def pickByExiting(self, borrower: User, offerId: int, amount: float, virtualCollateralLoansIds: List[int]):
+        offer = self.loanOffers[offerId]
+        # assert dueDate > self.context.time, "Due Date need to be in the future"
+        assert amount <= offer.maxAmount, "Money is not enough"
+        # assert dueDate <= offer.maxDueDate, "Due Date out of range"
+        assert offer.lender.cash.free >= amount, f"Lender has not enough free cash to lend out offer.lender.cash.free={offer.lender.cash.free}, amount={amount}"
+        # deltaT = dueDate - self.context.time
+
+        amountOutLeft = amount
+
+        # TODO: Create SOLs
+        for loanId in virtualCollateralLoansIds:
+            if amountOutLeft == 0:
+                break
+            loan = self.activeLoans[loanId]
+            if loan.lender != borrower:
+                print(f"Warning: Skipping loanId={loanId} since it is not owned by borrower")
+                continue
+            if loan.getDueDate() > offer.maxDueDate:
+                print(f"Warning: Skipping loanId={loanId} since it is due after the offer maxDueDate")
+                continue
+            r = (1 + offer.getFinalRate(dueDate=loan.getDueDate()))
+            amountInLeft = r * amountOutLeft
+            deltaAmountIn = min(amountInLeft, self.activeLoans[loanId].maxExit())
+            deltaAmountOut = deltaAmountIn / r
+            self.createSOL(fol=loan.getFOL(), lender=offer.lender, borrower=borrower, FV=deltaAmountIn)
+            loan.lock(deltaAmountIn)
+            offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=deltaAmountOut)
+            offer.maxAmount -= deltaAmountOut
+            amountInLeft -= deltaAmountIn
+
+
 
     def getBorrowerStatus(self, borrower: User):
         lockedStart = borrower.cash.locked + borrower.eth.locked * context.price
@@ -295,7 +355,7 @@ class LendingOB:
         loan = self.activeLoans[loanId]
         dueDate = dueDate if dueDate is not None else loan.getDueDate()
         # loan = self.activeFOLs[loanId] if isFOL else self.activeSOLs[loanId]
-        assert loan.getLender() == exitingLender, "Invalid lender"
+        assert loan.lender == exitingLender, "Invalid lender"
         assert amount <= loan.maxExit(), "Amount too big"
         amountInLeft = amount
         for offerId in offersIds:
@@ -303,7 +363,7 @@ class LendingOB:
             if(amountInLeft == 0):
                 break
 
-            offer = self.offers[offerId]
+            offer = self.loanOffers[offerId]
             # No liquidity to take in this bin
             if(offer.maxAmount == 0):
                 continue
@@ -313,7 +373,8 @@ class LendingOB:
             deltaAmountOut = deltaAmountIn / r
 
             # Swap
-            self.createSOL(fol=loan.getFOL(), lender=offer.lender, FV=deltaAmountIn)
+            self.createSOL(fol=loan.getFOL(), lender=offer.lender, borrower=exitingLender, FV=deltaAmountIn)
+            loan.lock(deltaAmountIn)
             offer.lender.cash.transfer(creditorRealCollateral=exitingLender.cash, amount=deltaAmountOut)
             offer.maxAmount -= deltaAmountOut
             amountInLeft -= deltaAmountIn
