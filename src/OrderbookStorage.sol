@@ -6,7 +6,8 @@ import "./libraries/LoanLibrary.sol";
 import "./libraries/OfferLibrary.sol";
 
 abstract contract OrderbookStorage {
-    Offer[] internal offers;
+    LoanOffer[] public loanOffers;
+    BorrowOffer[] public borrowOffers;
     Loan[] public loans;
     mapping(address => User) internal users;
     IPriceFeed public priceFeed;

@@ -21,23 +21,13 @@ struct BorrowerStatus {
 library UserLibrary {
     using ScheduleLibrary for Schedule;
 
-    function collateralRatio(
-        User storage self,
-        uint256 price
-    ) public view returns (uint256) {
-        return
-            self.totDebtCoveredByRealCollateral == 0
-                ? type(uint256).max
-                : self.cash.locked +
-                    (self.eth.locked * price) /
-                    self.totDebtCoveredByRealCollateral;
+    function collateralRatio(User storage self, uint256 price) public view returns (uint256) {
+        return self.totDebtCoveredByRealCollateral == 0
+            ? type(uint256).max
+            : self.cash.locked + (self.eth.locked * price) / self.totDebtCoveredByRealCollateral;
     }
 
-    function isLiquidatable(
-        User storage self,
-        uint256 price,
-        uint256 CRLiquidation
-    ) public view returns (bool) {
+    function isLiquidatable(User storage self, uint256 price, uint256 CRLiquidation) public view returns (bool) {
         return collateralRatio(self, price) < CRLiquidation;
     }
 

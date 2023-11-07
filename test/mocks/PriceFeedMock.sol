@@ -6,6 +6,7 @@ import "../../src/oracle/IPriceFeed.sol";
 
 contract PriceFeedMock is IPriceFeed, Ownable {
     uint256 public price;
+
     event PriceUpdated(uint256 oldPrice, uint256 newPrice);
 
     constructor(address owner) Ownable(owner) {}

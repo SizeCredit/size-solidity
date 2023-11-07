@@ -2,5 +2,5 @@
 pragma solidity ^0.8.9;
 
 interface IPriceFeed {
-    function getPrice() external returns(uint256);
+    function getPrice() external returns (uint256);
 }

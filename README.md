@@ -14,3 +14,7 @@ Install <https://github.com/0xClandestine/solplot>
 | R-01     | RANC        | Taking a loan decreases the RANC function  t_DD                                          |
 | L-01     | Liquidation | A borrower is eligible to liquidation if it is underwater or if the due date has reached |
 | L-02     | Liquidation | A loan is eligible to liquidation if RANC(t_DD) < 0                                      |
+
+References
+
+- <https://hackmd.io/lWCjLs9NSiORaEzaWRJdsQ?view>

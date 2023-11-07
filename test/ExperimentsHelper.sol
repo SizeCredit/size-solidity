@@ -9,18 +9,13 @@ import "../src/libraries/UserLibrary.sol";
 abstract contract ExperimentsHelper is Test, Plot {
     function plot(string memory filename, BorrowerStatus memory self) internal {
         try vm.createDir("./plots", false) {} catch {}
-        try
-            vm.removeFile(string.concat("./plots/", filename, ".csv"))
-        {} catch {}
+        try vm.removeFile(string.concat("./plots/", filename, ".csv")) {} catch {}
 
         uint256 length = self.RANC.length;
 
         // Use first row as legend
         // Make sure the same amount of columns are included for the legend
-        vm.writeLine(
-            string.concat("./plots/", filename, ".csv"),
-            "x axis,expectedFV,unlocked,dueFV,RANC,"
-        );
+        vm.writeLine(string.concat("./plots/", filename, ".csv"), "x axis,expectedFV,unlocked,dueFV,RANC,");
 
         // Create input csv
         for (uint256 i; i < length; i++) {

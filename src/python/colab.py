@@ -48,6 +48,16 @@ class RealCollateral:
     free: float = 0
     locked: float = 0
 
+    def lockAbs(self, amount):
+        self.free += self.locked
+        self.locked = 0
+        if amount > self.free:
+            print(f"WARNING: Collateral not enough, amount={amount}, self.free={self.free}")
+            return False
+        self.locked = amount
+        self.free -= amount
+        return True
+
     def lock(self, amount):
         if amount <= self.free:
             self.free -= amount
@@ -103,25 +113,58 @@ class Offer:
     context: Context
 
 
+
+
+
+
+@dataclass
+class YieldCurve:
+    timeBuckets: List[int]
+    rates: List[float]
+
+    @staticmethod
+    def getFlatRate(rate: float, timeBuckets: List[int]):
+        return YieldCurve(timeBuckets=timeBuckets, rates=[rate] * len(timeBuckets))
+
+
 @dataclass
 class LoanOffer(Offer):
     # context: Context
     lender: User
     maxAmount: float
     maxDueDate: int
-    # Assuming flat rate over all the due dates, will be changed later to support different rates for different due dates i.e. the yield curve
-    ratePerTimeUnit: float
+    # ratePerTimeUnit: float
+    curveRelativeTime: YieldCurve = None
 
-    def getFinalRate(self, dueDate):
+
+    def getRate(self, dueDate):
         assert dueDate > self.context.time, "Due Date need to be in the future"
-        assert dueDate <= self.maxDueDate, "Due Date out of range"
-        return self.ratePerTimeUnit * (dueDate - self.context.time)
+        deltaT = dueDate - self.context.time
+        if deltaT > self.curveRelativeTime.timeBuckets[-1]:
+            return False, 0
+        if deltaT < self.curveRelativeTime.timeBuckets[0]:
+            return False, 0
+        _minIdx = [index for index in range(len(self.curveRelativeTime.timeBuckets)) if self.curveRelativeTime.timeBuckets[index] <= deltaT][-1]
+        _maxIdx = [index for index in range(len(self.curveRelativeTime.timeBuckets)) if self.curveRelativeTime.timeBuckets[index] >= deltaT][0]
+        x0, y0 = self.curveRelativeTime.timeBuckets[_minIdx], self.curveRelativeTime.rates[_minIdx]
+        x1, y1 = self.curveRelativeTime.timeBuckets[_maxIdx], self.curveRelativeTime.rates[_maxIdx]
+        y = y0 + (y1 - y0) * (dueDate - x0) / (x1 - x0) if x1 != x0 else y0
+        return True, y
+
+    # def getFinalRate(self, dueDate):
+    #     assert dueDate > self.context.time, "Due Date need to be in the future"
+    #     assert dueDate <= self.maxDueDate, "Due Date out of range"
+    #     return self.ratePerTimeUnit * (dueDate - self.context.time)
 
 class BorrowOffer(Offer):
     borrower: User
     amount: float
     dueDate: int
     rate: float
+    virtualCollateralLoansIds: List[int]
+
+    def getFV(self):
+        return (1 + self.rate) * self.amount
 
 @dataclass
 class GenericLoan:
@@ -244,11 +287,11 @@ class LendingOB:
     uidBorrowOffers: int = 0
     uidLoans: int = 0
 
-    def placeLoanOffer(self, offer: LoanOffer):
+    def lendAsLimitOrder(self, offer: LoanOffer):
         self.loanOffers[self.uidLoanOffers] = offer
         self.uidLoanOffers += 1
 
-    def placeBorrowOffer(self, offer: BorrowOffer):
+    def borrowAsLimitOrder(self, offer: BorrowOffer):
         self.borrowOffers[self.uidBorrowOffers] = offer
         self.uidBorrowOffers += 1
 
@@ -263,7 +306,7 @@ class LendingOB:
         return self.uidLoans-1
 
 
-    def pick(self, borrower: User, offerId: int, amount: float, dueDate: int):
+    def borrowAsMarketOrder(self, borrower: User, offerId: int, amount: float, dueDate: int):
         offer = self.loanOffers[offerId]
         assert dueDate > self.context.time, "Due Date need to be in the future"
         assert amount <= offer.maxAmount, "Money is not enough"
@@ -271,7 +314,11 @@ class LendingOB:
         assert offer.lender.cash.free >= amount, f"Lender has not enough free cash to lend out offer.lender.cash.free={offer.lender.cash.free}, amount={amount}"
         # deltaT = dueDate - self.context.time
 
-        FV = (1 + offer.getFinalRate(dueDate=dueDate)) * amount
+        temp, rate = offer.getRate(dueDate=dueDate)
+        if not temp:
+            return False, 0
+        FV = (1 + rate) * amount
+        # FV = (1 + offer.getFinalRate(dueDate=dueDate)) * amount
         # FV = (1 + offer.ratePerTimeUnit * deltaT) * amount
         print(f"FV = {FV}")
 
@@ -287,10 +334,11 @@ class LendingOB:
             maxETHToLock = (borrower.totDebtCoveredByRealCollateral / self.context.price) * CROpening
             print(f"pick() borrower.totDebtCoveredByRealCollateral = {borrower.totDebtCoveredByRealCollateral}")
             print(f"maxETHToLock = {maxETHToLock}")
-            if not borrower.eth.lock(amount=maxETHToLock):
+            if not borrower.eth.lockAbs(amount=maxETHToLock):
                 # TX Reverts
                 borrower.schedule.dueFV[dueDate] -= FV
-                assert False, "Virtual Collateral is not enough to take the loan"
+                print(f"WARNING: Virtual Collateral is not enough to take the loan")
+                return False, 0
 
         # NOTE: Here loan can be taken so let's proceed with the other state modifications
         if amount == offer.maxAmount:
@@ -299,13 +347,23 @@ class LendingOB:
             self.loanOffers[offerId].maxAmount -= amount
         offer.lender.schedule.expectedFV[dueDate] += FV
         offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=amount)
-        return self.createFOL(lender=offer.lender, borrower=borrower, FV=FV, dueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock)
+        return True, self.createFOL(lender=offer.lender, borrower=borrower, FV=FV, dueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock)
         # self.activeLoans[self.uidLoans] = FOL(context=self.context, lender=offer.lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock, amountFVExited=0)
         # # self.activeFOLs[self.uidLoans] = FOL(context=self.context, lender=offer.lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock, amountFVExited=0)
         # self.uidLoans += 1
         # return self.uidLoans-1
 
-    def pickByExiting(self, borrower: User, offerId: int, amount: float, virtualCollateralLoansIds: List[int]):
+
+    def lendAsMarketOrderByExiting(self, lender: User, borrowOfferId: int):
+        # TODO: Implement
+        offer = self.borrowOffers[borrowOfferId]
+        assert lender.cash.free >= offer.amount, f"Lender has not enough free cash to lend out lender.cash.free={lender.cash.free}, offer.amount={offer.amount}"
+        # TODO: Finish implementing
+
+
+
+
+    def borrowAsMarketOrderByExiting(self, borrower: User, offerId: int, amount: float, virtualCollateralLoansIds: List[int], dueDate: int = None):
         offer = self.loanOffers[offerId]
         # assert dueDate > self.context.time, "Due Date need to be in the future"
         assert amount <= offer.maxAmount, "Money is not enough"
@@ -323,19 +381,39 @@ class LendingOB:
             if loan.lender != borrower:
                 print(f"Warning: Skipping loanId={loanId} since it is not owned by borrower")
                 continue
-            if loan.getDueDate() > offer.maxDueDate:
+            dueDate = dueDate if dueDate is not None else loan.getDueDate()
+            if dueDate > offer.maxDueDate:
                 print(f"Warning: Skipping loanId={loanId} since it is due after the offer maxDueDate")
                 continue
-            r = (1 + offer.getFinalRate(dueDate=loan.getDueDate()))
+            if dueDate < loan.getDueDate():
+                print(f"Warning: Skipping loanId={loanId} since it is due before the offer dueDate")
+                continue
+            temp, rate = offer.getRate(dueDate=dueDate)
+            if temp == False:
+                return False, 0
+            r = (1 + rate)
+            # r = (1 + offer.getFinalRate(dueDate=dueDate))
             amountInLeft = r * amountOutLeft
             deltaAmountIn = min(amountInLeft, self.activeLoans[loanId].maxExit())
             deltaAmountOut = deltaAmountIn / r
             self.createSOL(fol=loan.getFOL(), lender=offer.lender, borrower=borrower, FV=deltaAmountIn)
             loan.lock(deltaAmountIn)
+            # NOTE: Transfer `deltaAmountOut` for each SOL created
             offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=deltaAmountOut)
             offer.maxAmount -= deltaAmountOut
             amountInLeft -= deltaAmountIn
 
+        # TODO: Cover the remaining amount with real collateral
+        if amountOutLeft > 0:
+            # TODO: Lock ETH to cover that amount
+            borrower.totDebtCoveredByRealCollateral += amountOutLeft
+            maxETHToLock = (amountOutLeft / self.context.price) * CROpening
+            if not borrower.eth.lock(amount=maxETHToLock):
+                # TX Reverts
+                print(f"WARNING: Virtual Collateral is not enough to take the loan")
+                return False, 0
+        offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=amountOutLeft)
+        return True, 0
 
 
     def getBorrowerStatus(self, borrower: User):
@@ -367,7 +445,11 @@ class LendingOB:
             # No liquidity to take in this bin
             if(offer.maxAmount == 0):
                 continue
-            r = (1 + offer.getFinalRate(dueDate=dueDate))
+            temp, rate = offer.getRate(dueDate=dueDate)
+            if temp == False:
+                return False, 0
+            r = (1 + rate)
+            # r = (1 + offer.getFinalRate(dueDate=dueDate))
             maxDeltaAmountIn = r * offer.maxAmount
             deltaAmountIn = min(maxDeltaAmountIn, amountInLeft)
             deltaAmountOut = deltaAmountIn / r
@@ -378,7 +460,7 @@ class LendingOB:
             offer.lender.cash.transfer(creditorRealCollateral=exitingLender.cash, amount=deltaAmountOut)
             offer.maxAmount -= deltaAmountOut
             amountInLeft -= deltaAmountIn
-        return amountInLeft
+        return True, amountInLeft
 
 
     def repay(self, loanId, amount):
