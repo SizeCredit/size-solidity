@@ -228,11 +228,16 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
             revert Orderbook__NotEnoughCash(lender.cash.free, amount);
         }
 
+        //  amountIn: Amount of future cashflow to exit
+        //  amountOut: Amount of cash to borrow at present time
+
+        //  NOTE: The `amountOutLeft` is going to be decreased as more and more SOLs are created
+
         uint256 amountOutLeft = amount;
 
         for (uint256 i = 0; i < virtualCollateralLoansIds.length; ++i) {
             uint256 loanId = virtualCollateralLoansIds[i];
-
+            // Full amount borrowed
             if (amountOutLeft == 0) {
                 break;
             }
@@ -255,7 +260,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
 
             uint256 r = PERCENT + offer.getRate(dueDate);
 
-            uint256 amountInLeft = r * amountOutLeft;
+            uint256 amountInLeft = r * amountOutLeft / PERCENT;
             uint256 deltaAmountIn = Math.min(amountInLeft, loan.maxExit());
             uint256 deltaAmountOut = (deltaAmountIn * PERCENT) / r;
 
@@ -277,6 +282,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
             users[offer.lender].cash.transfer(borrower.cash, deltaAmountOut);
             offer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
+            amountOutLeft -= deltaAmountOut;
         }
 
         // TODO cover the remaining amount with real collateral
@@ -287,9 +293,9 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
             if (!borrower.eth.lock(maxETHToLock)) {
                 revert Orderbook__NotEnoughCash(borrower.eth.free, maxETHToLock);
             }
+            users[offer.lender].cash.transfer(borrower.cash, amountOutLeft);
+            borrower.totDebtCoveredByRealCollateral += amountOutLeft;
         }
-
-        users[offer.lender].cash.transfer(borrower.cash, amountOutLeft);
     }
 
     function repay(uint256 loanId, uint256 amount) public {

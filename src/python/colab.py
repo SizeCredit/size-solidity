@@ -371,10 +371,15 @@ class LendingOB:
         assert offer.lender.cash.free >= amount, f"Lender has not enough free cash to lend out offer.lender.cash.free={offer.lender.cash.free}, amount={amount}"
         # deltaT = dueDate - self.context.time
 
+        # amountIn: Amount of future cashflow to exit
+        # amountOut: Amount of cash to borrow at present time
+
+        # NOTE: The `amountOutLeft` is going to be decreased as more and more SOLs are created
         amountOutLeft = amount
 
         # TODO: Create SOLs
         for loanId in virtualCollateralLoansIds:
+            # Full amount borrowed
             if amountOutLeft == 0:
                 break
             loan = self.activeLoans[loanId]
@@ -389,7 +394,8 @@ class LendingOB:
                 print(f"Warning: Skipping loanId={loanId} since it is due before the offer dueDate")
                 continue
             temp, rate = offer.getRate(dueDate=dueDate)
-            if temp == False:
+            if not temp:
+                print(f"WARNING: dueDate={dueDate} not available in the current offer")
                 return False, 0
             r = (1 + rate)
             # r = (1 + offer.getFinalRate(dueDate=dueDate))
@@ -402,17 +408,19 @@ class LendingOB:
             offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=deltaAmountOut)
             offer.maxAmount -= deltaAmountOut
             amountInLeft -= deltaAmountIn
+            amountOutLeft -= deltaAmountOut
 
         # TODO: Cover the remaining amount with real collateral
         if amountOutLeft > 0:
-            # TODO: Lock ETH to cover that amount
-            borrower.totDebtCoveredByRealCollateral += amountOutLeft
+            print(f"Final Check amountOutLeft = {amountOutLeft}")
             maxETHToLock = (amountOutLeft / self.context.price) * CROpening
             if not borrower.eth.lock(amount=maxETHToLock):
                 # TX Reverts
-                print(f"WARNING: Virtual Collateral is not enough to take the loan")
+                print(f"WARNING: Real Collateral is not enough to take the loan")
                 return False, 0
-        offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=amountOutLeft)
+            # TODO: Lock ETH to cover that amount
+            borrower.totDebtCoveredByRealCollateral += amountOutLeft
+            offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=amount)
         return True, 0
 
 
