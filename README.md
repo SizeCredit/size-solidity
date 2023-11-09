@@ -6,6 +6,12 @@ Size V2 Solidity
 
 Install <https://github.com/0xClandestine/solplot>
 
+## Test
+
+```bash
+forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
+```
+
 ## Invariants
 
 | Property | Category    | Description                                                                              |

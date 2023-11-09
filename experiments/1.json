@@ -1,0 +1,33 @@
+[
+  {
+    "method": "setPrice",
+    "params": [
+      "100e18"
+    ],
+    "sender": "admin"
+  },
+  {
+    "method": "deposit",
+    "params": [
+      "100e18",
+      "0"
+    ],
+    "sender": "alice"
+  },
+  {
+    "method": "deposit",
+    "params": [
+      "100e18",
+      "100e18"
+    ],
+    "sender": "bob"
+  },
+  {
+    "method": "deposit",
+    "params": [
+      "100e18",
+      "100e18"
+    ],
+    "sender": "james"
+  }
+]

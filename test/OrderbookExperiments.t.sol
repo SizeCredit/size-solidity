@@ -5,29 +5,20 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import "./mocks/OrderbookMock.sol";
-import "./mocks/PriceFeedMock.sol";
 import "../src/libraries/LoanLibrary.sol";
 import "../src/libraries/UserLibrary.sol";
 import "../src/libraries/RealCollateralLibrary.sol";
 import "../src/libraries/OfferLibrary.sol";
 import "../src/libraries/ScheduleLibrary.sol";
 import "../src/libraries/YieldCurveLibrary.sol";
+import "./OrderbookTestStorage.sol";
 import "./ExperimentsHelper.sol";
+import {JSONParser} from "./JSONParser.sol";
 
-contract OrderbookTest is Test, ExperimentsHelper {
+contract OrderbookExperimentsTest is Test, OrderbookTestStorage, JSONParser, ExperimentsHelper {
     using EnumerableMap for EnumerableMap.UintToUintMap;
     using LoanLibrary for Loan;
     using OfferLibrary for LoanOffer;
-
-    OrderbookMock public orderbook;
-    PriceFeedMock public priceFeed;
-
-    address public alice = address(0x10000);
-    address public bob = address(0x20000);
-    address public candy = address(0x30000);
-    address public james = address(0x40000);
-    address public liquidator = address(0x50000);
 
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
@@ -327,5 +318,23 @@ contract OrderbookTest is Test, ExperimentsHelper {
         assertEq(loan_james_bob.borrower, bob, "Bob is the borrower");
         assertEq(loan_james_bob.FV, (35e18 * r2) / PERCENT, "James borrows 35e18");
         assertEq(orderbook.getDueDate(1), orderbook.getDueDate(2), "SOL has same dueDate as FOL");
+    }
+
+    function test_experiment_dynamic() public {
+        execute(parse("/experiments/1.json"));
+        assertEq(priceFeed.getPrice(), 100e18);
+        (uint256 aliceCashFree, uint256 aliceCashLocked, uint256 aliceEthFree, uint256 aliceEthLocked) =
+            orderbook.getUserCollateral(alice);
+        assertEq(aliceCashFree, 100e18);
+        assertEq(aliceCashLocked, 0);
+        assertEq(aliceEthFree, 0);
+        assertEq(aliceEthLocked, 0);
+
+        (uint256 bobCashFree, uint256 bobCashLocked, uint256 bobEthFree, uint256 bobEthLocked) =
+            orderbook.getUserCollateral(bob);
+        assertEq(bobCashFree, 100e18);
+        assertEq(bobCashLocked, 0);
+        assertEq(bobEthFree, 100e18);
+        assertEq(bobEthLocked, 0);
     }
 }

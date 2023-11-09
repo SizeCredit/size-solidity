@@ -2,6 +2,6 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-fs_permissions = [{ access = "read-write", path = "./plots"}]
+fs_permissions = [{ access = "read-write", path = "./plots"}, { access = "read", path = "./experiments"}]
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
