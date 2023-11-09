@@ -38,6 +38,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
     error Orderbook__DueDateOutOfRange(uint256 maxDueDate);
     error Orderbook__InvalidAmount(uint256 maxAmount);
     error Orderbook__NotEnoughCash(uint256 free, uint256 required);
+    error Orderbook__NotEnoughCollateral(uint256 free, uint256 required);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -71,6 +72,18 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
     function deposit(uint256 cash, uint256 eth) public {
         users[msg.sender].cash.free += cash;
         users[msg.sender].eth.free += eth;
+    }
+
+    function withdraw(uint256 cash, uint256 eth) public {
+        if (
+            (users[msg.sender].eth.free - eth) * priceFeed.getPrice()
+                < CRLiquidation * users[msg.sender].totDebtCoveredByRealCollateral
+        ) {
+            revert Orderbook__NotEnoughCollateral(users[msg.sender].eth.free, eth);
+        }
+
+        users[msg.sender].cash.free -= cash;
+        users[msg.sender].eth.free -= eth;
     }
 
     function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public {
@@ -260,7 +273,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
 
             uint256 r = PERCENT + offer.getRate(dueDate);
 
-            uint256 amountInLeft = r * amountOutLeft / PERCENT;
+            uint256 amountInLeft = (r * amountOutLeft) / PERCENT;
             uint256 deltaAmountIn = Math.min(amountInLeft, loan.maxExit());
             uint256 deltaAmountOut = (deltaAmountIn * PERCENT) / r;
 
