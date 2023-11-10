@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "forge-std/StdJson.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./OrderbookTestStorage.sol";
+import {YieldCurve} from "../src/libraries/YieldCurveLibrary.sol";
 
 struct Operation {
     string method;
@@ -46,6 +47,8 @@ contract JSONParser is Test, OrderbookTestStorage {
     }
 
     function call(address sender, address target, bytes memory data) internal {
+        if (target == address(0)) return;
+
         vm.prank(sender);
         (bool success,) = target.call(data);
         require(success);
@@ -69,23 +72,49 @@ contract JSONParser is Test, OrderbookTestStorage {
         }
     }
 
-    function getTargetAndCalldata(Operation memory operation)
-        internal
-        view
-        returns (address target, bytes memory data)
-    {
+    function getTargetAndCalldata(Operation memory operation) internal returns (address target, bytes memory data) {
         if (operation.method.equal("setPrice")) {
             target = address(priceFeed);
-            data = abi.encodeWithSelector(priceFeed.setPrice.selector, toUint256(operation.params[0]));
+            data = abi.encodeWithSelector(priceFeed.setPrice.selector, toUint256(operation.params[1]));
         } else if (operation.method.equal("deposit")) {
             target = address(orderbook);
             data = abi.encodeWithSelector(
-                orderbook.deposit.selector, toUint256(operation.params[0]), toUint256(operation.params[1])
+                orderbook.deposit.selector, toUint256(operation.params[1]), toUint256(operation.params[3])
             );
+        } else if (operation.method.equal("lendAsLimitOrder")) {
+            target = address(orderbook);
+            uint256 length = toUint256(operation.params[5]);
+            YieldCurve memory curve = YieldCurve({timeBuckets: new uint256[](length), rates: new uint256[](length)});
+            for (uint256 i = 0; i < length; i++) {
+                curve.timeBuckets[i] = toUint256(operation.params[6 + i]);
+                curve.rates[i] = toUint256(operation.params[6 + length + 2 + i]);
+            }
+            data = abi.encodeWithSelector(
+                orderbook.lendAsLimitOrder.selector,
+                toUint256(operation.params[1]),
+                toUint256(operation.params[3]),
+                curve
+            );
+        } else if (operation.method.equal("borrowAsMarketOrder")) {
+            target = address(orderbook);
+            data = abi.encodeWithSelector(
+                orderbook.borrowAsMarketOrder.selector,
+                toUint256(operation.params[1]),
+                toUint256(operation.params[3]),
+                toUint256(operation.params[5])
+            );
+        } else if (operation.method.equal("assertEq")) {
+            uint256 lhs = operation.params[1].equal("orderbook.activeLoans()")
+                ? orderbook.activeLoans()
+                : toUint256(operation.params[1]);
+            uint256 rhs = operation.params[3].equal("orderbook.activeLoans()")
+                ? orderbook.activeLoans()
+                : toUint256(operation.params[3]);
+            assertEq(lhs, rhs);
         }
     }
 
-    function toUint256(string memory s) internal view returns (uint256) {
+    function toUint256(string memory s) internal pure returns (uint256) {
         bytes memory b = bytes(s);
         uint256 result = 0;
         uint256 exponent = 0;

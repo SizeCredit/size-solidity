@@ -322,19 +322,5 @@ contract OrderbookExperimentsTest is Test, OrderbookTestStorage, JSONParser, Exp
 
     function test_experiment_dynamic() public {
         execute(parse("/experiments/1.json"));
-        assertEq(priceFeed.getPrice(), 100e18);
-        (uint256 aliceCashFree, uint256 aliceCashLocked, uint256 aliceEthFree, uint256 aliceEthLocked) =
-            orderbook.getUserCollateral(alice);
-        assertEq(aliceCashFree, 100e18);
-        assertEq(aliceCashLocked, 0);
-        assertEq(aliceEthFree, 0);
-        assertEq(aliceEthLocked, 0);
-
-        (uint256 bobCashFree, uint256 bobCashLocked, uint256 bobEthFree, uint256 bobEthLocked) =
-            orderbook.getUserCollateral(bob);
-        assertEq(bobCashFree, 100e18);
-        assertEq(bobCashLocked, 0);
-        assertEq(bobEthFree, 100e18);
-        assertEq(bobEthLocked, 0);
     }
 }

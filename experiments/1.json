@@ -2,6 +2,7 @@
   {
     "method": "setPrice",
     "params": [
+      "newPrice",
       "100e18"
     ],
     "sender": "admin"
@@ -9,25 +10,109 @@
   {
     "method": "deposit",
     "params": [
+      "cash",
       "100e18",
+      "eth",
       "0"
-    ],
-    "sender": "alice"
-  },
-  {
-    "method": "deposit",
-    "params": [
-      "100e18",
-      "100e18"
     ],
     "sender": "bob"
   },
   {
     "method": "deposit",
     "params": [
+      "cash",
       "100e18",
+      "eth",
+      "100e18"
+    ],
+    "sender": "alice"
+  },
+  {
+    "method": "deposit",
+    "params": [
+      "cash",
+      "100e18",
+      "eth",
       "100e18"
     ],
     "sender": "james"
+  },
+  {
+    "method": "lendAsLimitOrder",
+    "params": [
+      "maxAmount",
+      "100e18",
+      "maxDueDate",
+      "10",
+      "curveRelativeTime.timeBuckets",
+      "2",
+      "3",
+      "8",
+      "curveRelativeTime.curveRelativeTime",
+      "2",
+      "0.01e18",
+      "0.06e18"
+    ],
+    "sender": "bob"
+  },
+  {
+    "method": "lendAsLimitOrder",
+    "params": [
+      "maxAmount",
+      "100e18",
+      "maxDueDate",
+      "12",
+      "curveRelativeTime.timeBuckets",
+      "12",
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "curveRelativeTime.curveRelativeTime",
+      "12",
+      "0.05e18",
+      "0.05e18",
+      "0.05e18",
+      "0.05e18",
+      "0.05e18",
+      "0.05e18",
+      "0.05e18",
+      "0.05e18",
+      "0.05e18",
+      "0.05e18",
+      "0.05e18",
+      "0.05e18"
+    ],
+    "sender": "james"
+  },
+  {
+    "method": "borrowAsMarketOrder",
+    "params": [
+      "offerId",
+      "1",
+      "amount",
+      "70e18",
+      "dueDate",
+      "5"
+    ],
+    "sender": "alice"
+  },
+  {
+    "method": "assertEq",
+    "params": [
+      "lhs",
+      "orderbook.activeLoans()",
+      "rhs",
+      "1"
+    ],
+    "sender": "admin"
   }
 ]
