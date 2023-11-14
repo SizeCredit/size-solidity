@@ -18,15 +18,9 @@ contract SizeInitializeTest is Test {
     }
 
     function test_SizeInitialize_implementation_cannot_be_initialized() public {
-      implementation = new Size();
-      vm.expectRevert();
-      implementation.initialize(
-        address(this),
-        priceFeed,
-        12,
-        1.5e18,
-        1.3e18
-      );
+        implementation = new Size();
+        vm.expectRevert();
+        implementation.initialize(address(this), priceFeed, 12, 1.5e18, 1.3e18);
     }
 
     function test_SizeInitialize_proxy_can_be_initialized() public {

@@ -90,10 +90,7 @@ contract JSONParserHelper is Test, BaseTest {
                 curve.rates[i] = toUint256(operation.params[6 + length + 2 + i]);
             }
             data = abi.encodeWithSelector(
-                size.lendAsLimitOrder.selector,
-                toUint256(operation.params[1]),
-                toUint256(operation.params[3]),
-                curve
+                size.lendAsLimitOrder.selector, toUint256(operation.params[1]), toUint256(operation.params[3]), curve
             );
         } else if (operation.method.equal("borrowAsMarketOrder")) {
             target = address(size);
@@ -104,12 +101,10 @@ contract JSONParserHelper is Test, BaseTest {
                 toUint256(operation.params[5])
             );
         } else if (operation.method.equal("assertEq")) {
-            uint256 lhs = operation.params[1].equal("size.activeLoans()")
-                ? size.activeLoans()
-                : toUint256(operation.params[1]);
-            uint256 rhs = operation.params[3].equal("size.activeLoans()")
-                ? size.activeLoans()
-                : toUint256(operation.params[3]);
+            uint256 lhs =
+                operation.params[1].equal("size.activeLoans()") ? size.activeLoans() : toUint256(operation.params[1]);
+            uint256 rhs =
+                operation.params[3].equal("size.activeLoans()") ? size.activeLoans() : toUint256(operation.params[3]);
             assertEq(lhs, rhs);
         }
     }

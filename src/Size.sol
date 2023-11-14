@@ -19,7 +19,9 @@ import {EnumerableMapExtensionsLibrary} from "./libraries/EnumerableMapExtension
 import {RealCollateralLibrary, RealCollateral} from "./libraries/RealCollateralLibrary.sol";
 import {Math, PERCENT} from "./libraries/MathLibrary.sol";
 import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
+
 import {IPriceFeed} from "./oracle/IPriceFeed.sol";
+
 import {ISize} from "./interfaces/ISize.sol";
 
 contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
@@ -29,7 +31,6 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
     using RealCollateralLibrary for RealCollateral;
     using LoanLibrary for Loan;
     using UserLibrary for User;
-
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -184,14 +185,13 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
 
             LoanOffer storage offer = loanOffers[loanOffersIds[i]];
             uint256 r = PERCENT + offer.getRate(dueDate);
-            uint256 deltaAmountIn; 
+            uint256 deltaAmountIn;
             uint256 deltaAmountOut;
             // @audit check rounding direction
-            if(amountInLeft >= offer.maxAmount) {
+            if (amountInLeft >= offer.maxAmount) {
                 deltaAmountIn = r * offer.maxAmount / PERCENT;
                 deltaAmountOut = offer.maxAmount;
-            }
-            else {
+            } else {
                 deltaAmountIn = amountInLeft;
                 deltaAmountOut = deltaAmountIn * PERCENT / r;
             }
@@ -277,11 +277,10 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
             uint256 amountInLeft = (r * amountOutLeft) / PERCENT;
             uint256 deltaAmountIn;
             uint256 deltaAmountOut;
-            if(amountInLeft >= loan.maxExit()) {
+            if (amountInLeft >= loan.maxExit()) {
                 deltaAmountIn = loan.maxExit();
                 deltaAmountOut = loan.maxExit() * PERCENT / r;
-            }
-            else {
+            } else {
                 deltaAmountIn = amountInLeft;
                 deltaAmountOut = amountInLeft * PERCENT / r;
             }
