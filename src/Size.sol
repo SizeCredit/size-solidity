@@ -20,7 +20,7 @@ import "./libraries/LoanLibrary.sol";
 import "./oracle/IPriceFeed.sol";
 import "./interfaces/IOrderbook.sol";
 
-contract Orderbook is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
     using OfferLibrary for LoanOffer;
     using ScheduleLibrary for Schedule;

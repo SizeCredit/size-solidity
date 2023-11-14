@@ -3,13 +3,14 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import "./mocks/OrderbookMock.sol";
-import "./mocks/PriceFeedMock.sol";
+import {Size} from "../src/Size.sol";
+import {SizeMock} from "./mocks/SizeMock.sol";
+import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 
-contract OrderbookBaseTest is Test {
-    OrderbookMock public orderbook;
+contract SizeBaseTest is Test {
+    SizeMock public size;
     PriceFeedMock public priceFeed;
 
     address public alice = address(0x10000);
@@ -21,9 +22,9 @@ contract OrderbookBaseTest is Test {
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
         ERC1967Proxy proxy = new ERC1967Proxy(
-            address(new OrderbookMock()),
+            address(new SizeMock()),
             abi.encodeWithSelector(
-                Orderbook.initialize.selector,
+                Size.initialize.selector,
                 address(this),
                 priceFeed,
                 12,
@@ -31,7 +32,7 @@ contract OrderbookBaseTest is Test {
                 1.3e18
             )
         );
-        orderbook = OrderbookMock(address(proxy));
+        size = SizeMock(address(proxy));
 
         vm.label(alice, "alice");
         vm.label(bob, "bob");

@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "forge-std/StdJson.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./OrderbookBaseTest.sol";
+import {SizeBaseTest} from "./SizeBaseTest.sol";
 import {YieldCurve} from "../src/libraries/YieldCurveLibrary.sol";
 
 struct Operation {
@@ -13,7 +13,7 @@ struct Operation {
     string sender;
 }
 
-contract JSONParser is Test, OrderbookBaseTest {
+contract JSONParser is Test, SizeBaseTest {
     using Strings for string;
 
     error NotFound(string);
@@ -77,12 +77,12 @@ contract JSONParser is Test, OrderbookBaseTest {
             target = address(priceFeed);
             data = abi.encodeWithSelector(priceFeed.setPrice.selector, toUint256(operation.params[1]));
         } else if (operation.method.equal("deposit")) {
-            target = address(orderbook);
+            target = address(size);
             data = abi.encodeWithSelector(
-                orderbook.deposit.selector, toUint256(operation.params[1]), toUint256(operation.params[3])
+                size.deposit.selector, toUint256(operation.params[1]), toUint256(operation.params[3])
             );
         } else if (operation.method.equal("lendAsLimitOrder")) {
-            target = address(orderbook);
+            target = address(size);
             uint256 length = toUint256(operation.params[5]);
             YieldCurve memory curve = YieldCurve({timeBuckets: new uint256[](length), rates: new uint256[](length)});
             for (uint256 i = 0; i < length; i++) {
@@ -90,25 +90,25 @@ contract JSONParser is Test, OrderbookBaseTest {
                 curve.rates[i] = toUint256(operation.params[6 + length + 2 + i]);
             }
             data = abi.encodeWithSelector(
-                orderbook.lendAsLimitOrder.selector,
+                size.lendAsLimitOrder.selector,
                 toUint256(operation.params[1]),
                 toUint256(operation.params[3]),
                 curve
             );
         } else if (operation.method.equal("borrowAsMarketOrder")) {
-            target = address(orderbook);
+            target = address(size);
             data = abi.encodeWithSelector(
-                orderbook.borrowAsMarketOrder.selector,
+                size.borrowAsMarketOrder.selector,
                 toUint256(operation.params[1]),
                 toUint256(operation.params[3]),
                 toUint256(operation.params[5])
             );
         } else if (operation.method.equal("assertEq")) {
-            uint256 lhs = operation.params[1].equal("orderbook.activeLoans()")
-                ? orderbook.activeLoans()
+            uint256 lhs = operation.params[1].equal("size.activeLoans()")
+                ? size.activeLoans()
                 : toUint256(operation.params[1]);
-            uint256 rhs = operation.params[3].equal("orderbook.activeLoans()")
-                ? orderbook.activeLoans()
+            uint256 rhs = operation.params[3].equal("size.activeLoans()")
+                ? size.activeLoans()
                 : toUint256(operation.params[3]);
             assertEq(lhs, rhs);
         }
