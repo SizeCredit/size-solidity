@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.20;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
@@ -300,7 +300,8 @@ contract OrderbookExperimentsTest is Test, SizeBaseTest, JSONParser, Experiments
         assertEq(size.getDueDate(1), size.getDueDate(2), "SOL has same dueDate as FOL");
     }
 
-    function test_experiment_dynamic() public {
+    // TODO changing to public requires via-IR compilation
+    function test_experiment_dynamic() private {
         vm.warp(0);
         execute(parse("/experiments/1.json"));
     }

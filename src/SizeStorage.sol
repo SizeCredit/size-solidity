@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+pragma solidity 0.8.20;
 
 import "./oracle/IPriceFeed.sol";
 import "./libraries/LoanLibrary.sol";
 import "./libraries/OfferLibrary.sol";
 
-abstract contract OrderbookStorage {
+abstract contract SizeStorage {
     LoanOffer[] public loanOffers;
     BorrowOffer[] public borrowOffers;
     Loan[] public loans;

@@ -1,28 +1,29 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {Size} from "../src/Size.sol";
 import {SizeMock} from "./mocks/SizeMock.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 
-contract SizeBaseTest is Test {
-    SizeMock public size;
+contract SizeUpgradeTest is Test {
+    Size public v1;
+    SizeMock public v2;
+    ERC1967Proxy public proxy;
     PriceFeedMock public priceFeed;
-
-    address public alice = address(0x10000);
-    address public bob = address(0x20000);
-    address public candy = address(0x30000);
-    address public james = address(0x40000);
-    address public liquidator = address(0x50000);
 
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            address(new SizeMock()),
+    }
+
+    function test_SizeUpgrade_proxy_can_be_upgraded() public {
+        v1 = new Size();
+        proxy = new ERC1967Proxy(
+            address(v1),
             abi.encodeWithSelector(
                 Size.initialize.selector,
                 address(this),
@@ -32,12 +33,9 @@ contract SizeBaseTest is Test {
                 1.3e18
             )
         );
-        size = SizeMock(address(proxy));
+        v2 = new SizeMock();
+        UUPSUpgradeable(address(proxy)).upgradeToAndCall(address(v2), "");
 
-        vm.label(alice, "alice");
-        vm.label(bob, "bob");
-        vm.label(candy, "candy");
-        vm.label(james, "james");
-        vm.label(liquidator, "liquidator");
+        SizeMock(address(proxy)).setExpectedFV(address(0), 1, 2);
     }
 }

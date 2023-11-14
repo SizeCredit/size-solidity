@@ -19,3 +19,7 @@ plots/*.svg
 
 # macOS
 .DS_Store
+
+# Extensions
+bin/
+.vscode/

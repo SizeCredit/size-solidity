@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+pragma solidity 0.8.20;
 
 import {console2 as console} from "forge-std/console2.sol";
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "./OrderbookView.sol";
-import "./OrderbookStorage.sol";
+import {SizeView} from "./SizeView.sol";
+import {SizeStorage} from "./SizeStorage.sol";
 import "./libraries/OfferLibrary.sol";
 import "./libraries/UserLibrary.sol";
 import "./libraries/ScheduleLibrary.sol";
@@ -18,9 +17,9 @@ import "./libraries/RealCollateralLibrary.sol";
 import "./libraries/MathLibrary.sol";
 import "./libraries/LoanLibrary.sol";
 import "./oracle/IPriceFeed.sol";
-import "./interfaces/IOrderbook.sol";
+import "./interfaces/ISize.sol";
 
-contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
     using OfferLibrary for LoanOffer;
     using ScheduleLibrary for Schedule;
@@ -68,7 +67,7 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
             (users[msg.sender].eth.free - eth) * priceFeed.getPrice()
                 < CRLiquidation * users[msg.sender].totDebtCoveredByRealCollateral
         ) {
-            revert Orderbook__NotEnoughCollateral(users[msg.sender].eth.free, eth);
+            revert ISize.NotEnoughCollateral(users[msg.sender].eth.free, eth);
         }
 
         users[msg.sender].cash.free -= cash;
@@ -89,21 +88,21 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
 
     function borrowAsMarketOrder(uint256 offerId, uint256 amount, uint256 dueDate) public {
         if (offerId == 0 || offerId >= loanOffers.length) {
-            revert Orderbook__InvalidOfferId(offerId);
+            revert ISize.InvalidOfferId(offerId);
         }
 
         LoanOffer storage offer = loanOffers[offerId];
         address lender = offer.lender;
 
-        if (dueDate <= block.timestamp) revert Orderbook__PastDueDate();
+        if (dueDate <= block.timestamp) revert ISize.PastDueDate();
         if (dueDate > offer.maxDueDate) {
-            revert Orderbook__DueDateOutOfRange(offer.maxDueDate);
+            revert ISize.DueDateOutOfRange(offer.maxDueDate);
         }
         if (amount > offer.maxAmount) {
-            revert Orderbook__InvalidAmount(offer.maxAmount);
+            revert ISize.InvalidAmount(offer.maxAmount);
         }
         if (users[lender].cash.free < amount) {
-            revert Orderbook__NotEnoughCash(users[lender].cash.free, amount);
+            revert ISize.NotEnoughCash(users[lender].cash.free, amount);
         }
 
         uint256 FV = offer.getFV(amount, dueDate);
@@ -119,7 +118,7 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
             uint256 maxETHToLock = (borrower.totDebtCoveredByRealCollateral * CROpening) / priceFeed.getPrice();
             if (!borrower.eth.lockAbs(maxETHToLock)) {
                 borrower.schedule.dueFV.decrement(dueDate, FV);
-                revert Orderbook__NotEnoughCash(borrower.eth.free, maxETHToLock);
+                revert ISize.NotEnoughCash(borrower.eth.free, maxETHToLock);
             }
         }
 
@@ -152,7 +151,7 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
         User storage lender = users[msg.sender];
 
         if (lender.cash.free < offer.amount) {
-            revert Orderbook__NotEnoughCash(lender.cash.free, offer.amount);
+            revert ISize.NotEnoughCash(lender.cash.free, offer.amount);
         }
 
         revert TODO();
@@ -167,9 +166,9 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
         // - the other lenders are the makers
         // The swap traverses the `loanOffersIds` as they if they were ticks with liquidity in an orderbook
         Loan storage loan = loans[loanId];
-        if (loan.lender != msg.sender) revert Orderbook__InvalidLender();
+        if (loan.lender != msg.sender) revert ISize.InvalidLender();
         if (amount > loan.maxExit()) {
-            revert Orderbook__InvalidAmount(loan.maxExit());
+            revert ISize.InvalidAmount(loan.maxExit());
         }
 
         uint256 amountInLeft = amount;
@@ -236,10 +235,10 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
         LoanOffer storage offer = loanOffers[offerId];
         User storage lender = users[offer.lender];
         if (amount > offer.maxAmount) {
-            revert Orderbook__InvalidAmount(offer.maxAmount);
+            revert ISize.InvalidAmount(offer.maxAmount);
         }
         if (lender.cash.free < amount) {
-            revert Orderbook__NotEnoughCash(lender.cash.free, amount);
+            revert ISize.NotEnoughCash(lender.cash.free, amount);
         }
 
         //  amountIn: Amount of future cashflow to exit
@@ -260,7 +259,7 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
             dueDate = dueDate != type(uint256).max ? dueDate : loan.getDueDate(loans);
 
             if (loan.lender != msg.sender) {
-                revert Orderbook__InvalidLoanId(loanId);
+                revert ISize.InvalidLoanId(loanId);
             }
             if (dueDate > offer.maxDueDate) {
                 // loan is due after offer maxDueDate
@@ -309,7 +308,7 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
         if (amountOutLeft > 0) {
             uint256 maxETHToLock = ((amountOutLeft * CROpening) / priceFeed.getPrice());
             if (!borrower.eth.lock(maxETHToLock)) {
-                revert Orderbook__NotEnoughCash(borrower.eth.free, maxETHToLock);
+                revert ISize.NotEnoughCash(borrower.eth.free, maxETHToLock);
             }
             // TODO Lock ETH to cover that amount
             borrower.totDebtCoveredByRealCollateral += amountOutLeft;
@@ -323,14 +322,14 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
     function repay(uint256 loanId, uint256 amount) public {
         Loan storage loan = loans[loanId];
         if (loan.FVCoveredByRealCollateral == 0) {
-            revert Orderbook__NothingToRepay();
+            revert ISize.NothingToRepay();
         }
         if (users[loan.borrower].cash.free < amount) {
-            revert Orderbook__NotEnoughCash(users[loan.borrower].cash.free, amount);
+            revert ISize.NotEnoughCash(users[loan.borrower].cash.free, amount);
         }
         // @audit why not partial repay? will help borrower CR
         if (amount < loan.FVCoveredByRealCollateral) {
-            revert Orderbook__InvalidAmount(loan.FVCoveredByRealCollateral);
+            revert ISize.InvalidAmount(loan.FVCoveredByRealCollateral);
         }
 
         uint256 excess = amount - loan.FVCoveredByRealCollateral;
@@ -377,11 +376,11 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
 
         // @audit change library-usage for public-function usage (e.g. isLiquidatable(address user))
         if (!borrower.isLiquidatable(priceFeed.getPrice(), CRLiquidation)) {
-            revert Orderbook__NotLiquidatable();
+            revert ISize.NotLiquidatable();
         }
         // @audit partial liquidations? maybe not, just assume flash loan??
         if (liquidator.cash.free < borrower.totDebtCoveredByRealCollateral) {
-            revert Orderbook__NotEnoughCash(liquidator.cash.free, borrower.totDebtCoveredByRealCollateral);
+            revert ISize.NotEnoughCash(liquidator.cash.free, borrower.totDebtCoveredByRealCollateral);
         }
 
         uint256 temp = borrower.cash.locked;
@@ -410,7 +409,7 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
         Loan storage loan = loans[loanId];
         int256[] memory RANC = users[loan.borrower].schedule.RANC();
 
-        if (RANC[loan.dueDate] >= 0) revert Orderbook__NotLiquidatable();
+        if (RANC[loan.dueDate] >= 0) revert ISize.NotLiquidatable();
 
         uint256 loanDebtUncovered = uint256(-1 * RANC[loan.dueDate]);
         uint256 totBorroweDebt = users[loan.borrower].totDebtCoveredByRealCollateral;
@@ -418,10 +417,10 @@ contract Size is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Own
 
         // @audit borrower does not need to be liquidatable for loan to be liquidatable
         if (!users[loan.borrower].isLiquidatable(priceFeed.getPrice(), CRLiquidation)) {
-            revert Orderbook__NotLiquidatable();
+            revert ISize.NotLiquidatable();
         }
         if (liquidator.cash.free < loanDebtUncovered) {
-            revert Orderbook__NotEnoughCash(liquidator.cash.free, loanDebtUncovered);
+            revert ISize.NotEnoughCash(liquidator.cash.free, loanDebtUncovered);
         }
 
         uint256 targetAmountETH = _computeCollateralForDebt(loanDebtUncovered);

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+pragma solidity 0.8.20;
 
-import "./OrderbookStorage.sol";
+import {SizeStorage} from "./SizeStorage.sol";
 import "./libraries/ScheduleLibrary.sol";
 import "./libraries/UserLibrary.sol";
 import "./libraries/LoanLibrary.sol";
 import "./libraries/OfferLibrary.sol";
 import "./libraries/EnumerableMapExtensionsLibrary.sol";
 
-abstract contract OrderbookView is OrderbookStorage {
+abstract contract SizeView is SizeStorage {
     using ScheduleLibrary for Schedule;
     using UserLibrary for User;
     using OfferLibrary for LoanOffer;
