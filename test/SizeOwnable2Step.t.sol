@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {SizeBaseTest} from "./SizeBaseTest.sol";
+import {BaseTest} from "./BaseTest.sol";
 
-contract SizeOwnable2StepTest is SizeBaseTest {
+contract SizeOwnable2StepTest is BaseTest {
     function test_SizeOwnable2Step_has_owner() public {
         assertEq(size.owner(), address(this));
     }

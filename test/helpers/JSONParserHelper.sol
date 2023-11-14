@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import "forge-std/Test.sol";
-import "forge-std/StdJson.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import {SizeBaseTest} from "./SizeBaseTest.sol";
-import {YieldCurve} from "../src/libraries/YieldCurveLibrary.sol";
+import {Test} from "forge-std/Test.sol";
+import {console2} from "forge-std/console2.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {BaseTest} from "../BaseTest.sol";
+import {YieldCurve} from "../../src/libraries/YieldCurveLibrary.sol";
 
 struct Operation {
     string method;
@@ -13,7 +13,7 @@ struct Operation {
     string sender;
 }
 
-contract JSONParser is Test, SizeBaseTest {
+contract JSONParserHelper is Test, BaseTest {
     using Strings for string;
 
     error NotFound(string);
