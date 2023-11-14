@@ -10,6 +10,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 import {SizeView} from "./SizeView.sol";
 import {SizeStorage} from "./SizeStorage.sol";
+import {SizeValidations} from "./SizeValidations.sol";
 
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
 import {OfferLibrary, LoanOffer, BorrowOffer} from "./libraries/OfferLibrary.sol";
@@ -24,7 +25,13 @@ import {IPriceFeed} from "./oracle/IPriceFeed.sol";
 
 import {ISize} from "./interfaces/ISize.sol";
 
-contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract Size is
+    ISize,
+    SizeValidations,
+    Initializable,
+    Ownable2StepUpgradeable,
+    UUPSUpgradeable
+{
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
     using OfferLibrary for LoanOffer;
     using ScheduleLibrary for Schedule;
@@ -59,7 +66,9 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
         loans.push(l);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 
     function deposit(uint256 cash, uint256 eth) public {
         users[msg.sender].cash.free += cash;
@@ -67,18 +76,17 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
     }
 
     function withdraw(uint256 cash, uint256 eth) public {
-        if (
-            (users[msg.sender].eth.free - eth) * priceFeed.getPrice()
-                < CRLiquidation * users[msg.sender].totDebtCoveredByRealCollateral
-        ) {
-            revert ISize.NotEnoughCollateral(users[msg.sender].eth.free, eth);
-        }
-
         users[msg.sender].cash.free -= cash;
         users[msg.sender].eth.free -= eth;
+
+        _validateUserHealthy(msg.sender);
     }
 
-    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public {
+    function lendAsLimitOrder(
+        uint256 maxAmount,
+        uint256 maxDueDate,
+        YieldCurve calldata curveRelativeTime
+    ) public {
         // @audit what prevents the lender of creating 100s of loan offers? maybe some of those will be picked and they won't have any cash to lend later
         loanOffers.push(
             LoanOffer({
@@ -90,7 +98,11 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
         );
     }
 
-    function borrowAsMarketOrder(uint256 offerId, uint256 amount, uint256 dueDate) public {
+    function borrowAsMarketOrder(
+        uint256 offerId,
+        uint256 amount,
+        uint256 dueDate
+    ) public {
         if (offerId == 0 || offerId >= loanOffers.length) {
             revert ISize.InvalidOfferId(offerId);
         }
@@ -114,12 +126,15 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
         User storage borrower = users[msg.sender];
         borrower.schedule.dueFV.increment(dueDate, FV);
         uint256 maxUsdcToLock = 0;
-        (bool isNegative, int256 min) = borrower.schedule.isNegativeAndMinRANC(borrower.cash.locked);
+        (bool isNegative, int256 min) = borrower.schedule.isNegativeAndMinRANC(
+            borrower.cash.locked
+        );
 
         if (isNegative) {
             uint256 maxUserDebtUncovered = uint256(-min);
             borrower.totDebtCoveredByRealCollateral = maxUserDebtUncovered;
-            uint256 maxETHToLock = (borrower.totDebtCoveredByRealCollateral * CROpening) / priceFeed.getPrice();
+            uint256 maxETHToLock = (borrower.totDebtCoveredByRealCollateral *
+                CROpening) / priceFeed.getPrice();
             if (!borrower.eth.lockAbs(maxETHToLock)) {
                 borrower.schedule.dueFV.decrement(dueDate, FV);
                 revert ISize.NotEnoughCash(borrower.eth.free, maxETHToLock);
@@ -161,10 +176,12 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
         revert TODO();
     }
 
-    function exit(uint256 loanId, uint256 amount, uint256 dueDate, uint256[] memory loanOffersIds)
-        public
-        returns (uint256)
-    {
+    function exit(
+        uint256 loanId,
+        uint256 amount,
+        uint256 dueDate,
+        uint256[] memory loanOffersIds
+    ) public returns (uint256) {
         // NOTE: The exit is equivalent to a spot swap for exact amount in wheres
         // - the exiting lender is the taker
         // - the other lenders are the makers
@@ -189,11 +206,11 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
             uint256 deltaAmountOut;
             // @audit check rounding direction
             if (amountInLeft >= offer.maxAmount) {
-                deltaAmountIn = r * offer.maxAmount / PERCENT;
+                deltaAmountIn = (r * offer.maxAmount) / PERCENT;
                 deltaAmountOut = offer.maxAmount;
             } else {
                 deltaAmountIn = amountInLeft;
-                deltaAmountOut = deltaAmountIn * PERCENT / r;
+                deltaAmountOut = (deltaAmountIn * PERCENT) / r;
             }
 
             // Swap
@@ -205,7 +222,8 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
                         lender: offer.lender,
                         borrower: msg.sender,
                         dueDate: loan.dueDate,
-                        FVCoveredByRealCollateral: loan.FVCoveredByRealCollateral,
+                        FVCoveredByRealCollateral: loan
+                            .FVCoveredByRealCollateral,
                         repaid: false,
                         folId: loanId
                     })
@@ -214,7 +232,10 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
             }
 
             // @audit exit is only with real collateral?
-            users[offer.lender].cash.transfer(users[msg.sender].cash, deltaAmountOut);
+            users[offer.lender].cash.transfer(
+                users[msg.sender].cash,
+                deltaAmountOut
+            );
             offer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
         }
@@ -222,10 +243,18 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
         return amountInLeft;
     }
 
-    function borrowAsMarketOrderByExiting(uint256 offerId, uint256 amount, uint256[] memory virtualCollateralLoansIds)
-        public
-    {
-        return borrowAsMarketOrderByExiting(offerId, amount, virtualCollateralLoansIds, type(uint256).max);
+    function borrowAsMarketOrderByExiting(
+        uint256 offerId,
+        uint256 amount,
+        uint256[] memory virtualCollateralLoansIds
+    ) public {
+        return
+            borrowAsMarketOrderByExiting(
+                offerId,
+                amount,
+                virtualCollateralLoansIds,
+                type(uint256).max
+            );
     }
 
     function borrowAsMarketOrderByExiting(
@@ -259,7 +288,9 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
             }
 
             Loan storage loan = loans[loanId];
-            dueDate = dueDate != type(uint256).max ? dueDate : loan.getDueDate(loans);
+            dueDate = dueDate != type(uint256).max
+                ? dueDate
+                : loan.getDueDate(loans);
 
             if (loan.lender != msg.sender) {
                 revert ISize.InvalidLoanId(loanId);
@@ -279,10 +310,10 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
             uint256 deltaAmountOut;
             if (amountInLeft >= loan.maxExit()) {
                 deltaAmountIn = loan.maxExit();
-                deltaAmountOut = loan.maxExit() * PERCENT / r;
+                deltaAmountOut = (loan.maxExit() * PERCENT) / r;
             } else {
                 deltaAmountIn = amountInLeft;
-                deltaAmountOut = amountInLeft * PERCENT / r;
+                deltaAmountOut = (amountInLeft * PERCENT) / r;
             }
 
             loans.push(
@@ -308,7 +339,8 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
 
         // TODO cover the remaining amount with real collateral
         if (amountOutLeft > 0) {
-            uint256 maxETHToLock = ((amountOutLeft * CROpening) / priceFeed.getPrice());
+            uint256 maxETHToLock = ((amountOutLeft * CROpening) /
+                priceFeed.getPrice());
             if (!borrower.eth.lock(maxETHToLock)) {
                 revert ISize.NotEnoughCash(borrower.eth.free, maxETHToLock);
             }
@@ -340,7 +372,8 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
 
         users[loan.borrower].cash.free -= amount;
         users[loan.lender].cash.locked += loan.FVCoveredByRealCollateral;
-        users[loan.borrower].totDebtCoveredByRealCollateral -= loan.FVCoveredByRealCollateral;
+        users[loan.borrower].totDebtCoveredByRealCollateral -= loan
+            .FVCoveredByRealCollateral;
         loan.FVCoveredByRealCollateral = 0;
         // @audit shouldn't the loan be deleted here??
     }
@@ -359,40 +392,53 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
         }
     }
 
-    function _computeCollateralForDebt(uint256 amountUSDC) private returns (uint256) {
+    function _computeCollateralForDebt(
+        uint256 amountUSDC
+    ) private returns (uint256) {
         return (amountUSDC * 1e18) / priceFeed.getPrice();
     }
 
-    function _liquidationSwap(User storage liquidator, User storage borrower, uint256 amountUSDC, uint256 amountETH)
-        private
-    {
+    function _liquidationSwap(
+        User storage liquidator,
+        User storage borrower,
+        uint256 amountUSDC,
+        uint256 amountETH
+    ) private {
         liquidator.cash.transfer(borrower.cash, amountUSDC);
         borrower.cash.lock(amountUSDC);
         borrower.eth.unlock(amountETH);
         borrower.eth.transfer(liquidator.eth, amountETH);
     }
 
-    function liquidateBorrower(address _borrower) public returns (uint256, uint256) {
+    function liquidateBorrower(
+        address _borrower
+    ) public returns (uint256, uint256) {
         User storage borrower = users[_borrower];
         User storage liquidator = users[msg.sender];
 
-        // @audit change library-usage for public-function usage (e.g. isLiquidatable(address user))
-        if (!borrower.isLiquidatable(priceFeed.getPrice(), CRLiquidation)) {
+        if (!isLiquidatable(_borrower)) {
             revert ISize.NotLiquidatable();
         }
         // @audit partial liquidations? maybe not, just assume flash loan??
         if (liquidator.cash.free < borrower.totDebtCoveredByRealCollateral) {
-            revert ISize.NotEnoughCash(liquidator.cash.free, borrower.totDebtCoveredByRealCollateral);
+            revert ISize.NotEnoughCash(
+                liquidator.cash.free,
+                borrower.totDebtCoveredByRealCollateral
+            );
         }
 
         uint256 temp = borrower.cash.locked;
 
         (temp);
 
-        uint256 amountUSDC = borrower.totDebtCoveredByRealCollateral - borrower.cash.locked;
+        uint256 amountUSDC = borrower.totDebtCoveredByRealCollateral -
+            borrower.cash.locked;
 
         uint256 targetAmountETH = _computeCollateralForDebt(amountUSDC);
-        uint256 actualAmountETH = Math.min(targetAmountETH, borrower.eth.locked);
+        uint256 actualAmountETH = Math.min(
+            targetAmountETH,
+            borrower.eth.locked
+        );
         if (actualAmountETH < targetAmountETH) {
             // @audit why would this happen? should we prevent the liquidator from doing it?
             emit LiquidationAtLoss(targetAmountETH - actualAmountETH);
@@ -414,11 +460,18 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
         if (RANC[loan.dueDate] >= 0) revert ISize.NotLiquidatable();
 
         uint256 loanDebtUncovered = uint256(-1 * RANC[loan.dueDate]);
-        uint256 totBorroweDebt = users[loan.borrower].totDebtCoveredByRealCollateral;
-        uint256 loanCollateral = (users[loan.borrower].eth.locked * loanDebtUncovered) / totBorroweDebt;
+        uint256 totBorroweDebt = users[loan.borrower]
+            .totDebtCoveredByRealCollateral;
+        uint256 loanCollateral = (users[loan.borrower].eth.locked *
+            loanDebtUncovered) / totBorroweDebt;
 
         // @audit borrower does not need to be liquidatable for loan to be liquidatable
-        if (!users[loan.borrower].isLiquidatable(priceFeed.getPrice(), CRLiquidation)) {
+        if (
+            !users[loan.borrower].isLiquidatable(
+                priceFeed.getPrice(),
+                CRLiquidation
+            )
+        ) {
             revert ISize.NotLiquidatable();
         }
         if (liquidator.cash.free < loanDebtUncovered) {
@@ -426,12 +479,20 @@ contract Size is ISize, SizeStorage, SizeView, Initializable, Ownable2StepUpgrad
         }
 
         uint256 targetAmountETH = _computeCollateralForDebt(loanDebtUncovered);
-        uint256 actualAmountETH = Math.min(targetAmountETH, users[loan.borrower].eth.locked);
+        uint256 actualAmountETH = Math.min(
+            targetAmountETH,
+            users[loan.borrower].eth.locked
+        );
         if (actualAmountETH < targetAmountETH) {
             emit LiquidationAtLoss(targetAmountETH - actualAmountETH);
         }
 
-        _liquidationSwap(liquidator, users[loan.borrower], loanDebtUncovered, loanCollateral);
+        _liquidationSwap(
+            liquidator,
+            users[loan.borrower],
+            loanDebtUncovered,
+            loanCollateral
+        );
         // @audit specific loan is not being cleared
     }
 }

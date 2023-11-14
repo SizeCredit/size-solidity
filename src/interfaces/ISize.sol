@@ -5,6 +5,7 @@ interface ISize {
     event LiquidationAtLoss(uint256 amount);
 
     error TODO();
+    error UserUnhealthy(address account);
     error PastDueDate();
     error NothingToRepay();
     error InvalidLender();

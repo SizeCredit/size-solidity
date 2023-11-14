@@ -21,6 +21,8 @@ contract SizeInitializeTest is Test {
         implementation = new Size();
         vm.expectRevert();
         implementation.initialize(address(this), priceFeed, 12, 1.5e18, 1.3e18);
+
+        assertEq(implementation.CRLiquidation(), 0);
     }
 
     function test_SizeInitialize_proxy_can_be_initialized() public {
@@ -36,6 +38,7 @@ contract SizeInitializeTest is Test {
                 1.3e18
             )
         );
-        assertTrue(address(proxy) != address(0));
+
+        assertEq(Size(address(proxy)).CRLiquidation(), 1.3e18);
     }
 }
