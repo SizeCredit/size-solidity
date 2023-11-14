@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {console2} from "forge-std/console2.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {BaseTest} from "../BaseTest.sol";
-import {YieldCurve} from "../../src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 struct Operation {
     string method;

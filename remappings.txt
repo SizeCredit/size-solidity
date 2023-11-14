@@ -1,3 +1,5 @@
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
 @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 @solplot=lib/solplot/src/
+@src=src
+@test=test
