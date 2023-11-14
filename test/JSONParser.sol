@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "forge-std/StdJson.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./OrderbookTestStorage.sol";
+import "./OrderbookBaseTest.sol";
 import {YieldCurve} from "../src/libraries/YieldCurveLibrary.sol";
 
 struct Operation {
@@ -13,7 +13,7 @@ struct Operation {
     string sender;
 }
 
-contract JSONParser is Test, OrderbookTestStorage {
+contract JSONParser is Test, OrderbookBaseTest {
     using Strings for string;
 
     error NotFound(string);
@@ -47,7 +47,7 @@ contract JSONParser is Test, OrderbookTestStorage {
     }
 
     function call(address sender, address target, bytes memory data) internal {
-        if (target == address(0)) return;
+        if (target == address(0)) return; // reserved for assertions
 
         vm.prank(sender);
         (bool success,) = target.call(data);

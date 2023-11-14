@@ -21,6 +21,22 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 | C-03     | Collateral  | A user cannot make an operation that leaves them underwater |
 | L-01     | Liquidation | A borrower is eligible to liquidation if it is underwater or if the due date has reached |
 
+- SOL(loanId).FV <= FOL(loanId).FV
+- SUM(SOL(loanId).FV) == FOL(loanId).FV
+- borrowAsMarketOrderByExiting == exit + borrowAsMarketOrder (can we do this with multicall???)
+
+
 References
 
 - <https://hackmd.io/lWCjLs9NSiORaEzaWRJdsQ?view>
+
+
+## TODOs
+
+- chainlink integration
+- safe casting int256 to uint256
+- check rounding direction
+- create helper contracts for liquidation in 1 step (deposit -> liquidate -> withdraw)
+- multi-erc20 tokens with different CR per tokens
+- natspec
+- 

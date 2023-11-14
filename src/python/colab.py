@@ -1,3 +1,10 @@
+
+@dataclass
+class Params:
+    maxTime: int = 12
+    CROpening: float = 1.5
+    CRLiquidation: float = 1.3
+
 @dataclass
 class Context:
     time: int
@@ -58,28 +65,34 @@ class RealCollateral:
         self.free -= amount
         return True
 
-    def lock(self, amount):
+    def lock(self, amount, dryRun=False):
         if amount <= self.free:
-            self.free -= amount
-            self.locked += amount
+            if not dryRun:
+                self.free -= amount
+                self.locked += amount
             return True
         else:
             print(f"Amount too big free={self.free}, amount={amount}")
             return False
 
-    def unlock(self, amount):
+    def unlock(self, amount, dryRun=False):
         if amount <= self.locked:
-            self.locked -= amount
-            self.free += amount
+            if not dryRun:
+                self.locked -= amount
+                self.free += amount
             return True
         else:
             print(f"Amount too big free={self.free}, amount={amount}")
             return False
 
-    def transfer(self, creditorRealCollateral, amount: float):
-        assert self.free >= amount, f"Collateral not enough"
-        self.free -= amount
-        creditorRealCollateral.free += amount
+    def transfer(self, creditorRealCollateral, amount: float, dryRun=False):
+        if self.free < amount:
+            print(f"self.free={self.free}, amount={amount}")
+            return False
+        if not dryRun:
+            self.free -= amount
+            creditorRealCollateral.free += amount
+        return True
 
 
 
@@ -88,7 +101,7 @@ class User:
     context: Context
     cash: RealCollateral
     eth: RealCollateral
-    schedule: Schedule  # Field will be initialized later
+    # schedule: Schedule  # Field will be initialized later
     # schedule: Schedule = field(init=False)  # Field will be initialized later
     totDebtCoveredByRealCollateral: float = 0.0
 
@@ -104,8 +117,8 @@ class User:
     def isLiquidatable(self):
         return self.collateralRatio() < CRLiquidation
 
-    def RANC(self):
-        return self.schedule.getDF(lockedStart=self.cash.locked)
+    # def RANC(self):
+    #     return self.schedule.getDF(lockedStart=self.cash.locked)
 
 
 @dataclass
@@ -172,7 +185,6 @@ class GenericLoan:
     # uid: int
     lender: User
     borrower: User
-
     FV: float
     amountFVExited: float
 
@@ -200,8 +212,17 @@ class GenericLoan:
     def getFOL(self):
         return self if self.isFOL() else self.fol
 
-    def lock(self, amount):
-        assert amount <= self.maxExit(), f"Amount={amount} too big for maxExit={self.maxExit()}"
+    def getAssignedCollateral(self):
+        return self.borrower.eth.locked * self.FV / self.borrower.totDebtCoveredByRealCollateral if self.borrower.totDebtCoveredByRealCollateral != 0 else 0
+
+    def lock(self, amount: float):
+        if amount > self.maxExit():
+            print(f"WARNING: amount={amount} is too big, self.maxExit()={self.maxExit()}")
+            return False
+        self.amountFVExited += amount
+        return True
+
+
 
 
 @dataclass
@@ -210,7 +231,7 @@ class FOL(GenericLoan):
     # lender: User
     # borrower: User
     DueDate: int
-    FVCoveredByRealCollateral: float
+    # FVCoveredByRealCollateral: float
     repaid: bool = False
 
     # def perc(self):
@@ -224,12 +245,6 @@ class FOL(GenericLoan):
     def isExpired(self):
         return self.context.time >= self.dueDate
 
-    # NOTE: Atm this is implemented in the Order Book
-    # def isLiquidatable(self):
-    #     # TODO: Implement
-    #     # NOTE: A subset of FOLs can be eligible for liquidation if they have part of their FV that is not covered by other cashflows
-    #     pass
-
 
 @dataclass
 class SOL(GenericLoan):
@@ -237,55 +252,153 @@ class SOL(GenericLoan):
     # lender: User
     # borrower: User
 
+class VariablePool:
+    pass
+
 @dataclass
 class VariableLoan:
+    context: Context
+    pool: VariablePool
     borrower: User
     amountUSDCLentOut: float
     amountCollateral: float
+    startTime: int
+    repaid: bool = False
+
+    def getDebtCurrent(self):
+        return self.amountUSDCLentOut * (1 + self.pool.getRatePerUnitTime() * (self.context.time - self.startTime))
+
+    def getCollateralRatio(self):
+        return self.amountCollateral * self.context.price / self.getDebtCurrent()
 
 
 
 @dataclass
 class VariablePool:
     context: Context
-    reserveUSDC: float
-    reserveETH: float
+    minCollateralRatio: float
+    cash: RealCollateral
+    eth: RealCollateral
     activeLoans: Dict[int, VariableLoan] = field(default_factory=dict)
+    uidLoans: int = 0
+
+
+    # NOTE: Rate per time unit
+    def getRatePerUnitTime(self):
+        # TODO: Fix this
+        return 1 / 1 + np.exp(- self.cash.free)
+
+    def takeLoan(self, borrower: User, amountUSDC: float, amountETH: float, dryRun=False):
+        if  not self.cash.transfer(creditorRealCollateral=borrower.cash, amount=amountUSDC, dryRun=True):
+            print(f"No enough reserves amountUSDC={amountUSDC}, self.cash.free={self.cash.free}")
+            return False, 0
+        if not borrower.eth.lock(amount=amountETH, dryRun=True):
+            print(f"No enough reserves amountETH={amountETH}, borrower.eth.free={borrower.eth.free}")
+            return False, 0
+        if (amountUSDC * self.getRatePerUnitTime()) * self.minCollateralRatio > amountETH * self.context.price:
+            print(f"Collateral not enough amountUSDC={amountUSDC}, amountETH={amountETH}, self.context.price={self.context.price}")
+            return False, 0
+        if dryRun:
+            return True, 0
+        self.cash.transfer(creditorRealCollateral=borrower.cash, amount=amountUSDC)
+        borrower.eth.lock(amount=amountETH)
+        self.activeLoans[self.uidLoans] = VariableLoan(
+            context=self.context,
+            pool=self,
+            borrower=borrower,
+            amountUSDCLentOut=amountUSDC,
+            amountCollateral=amountETH,
+            startTime=self.context.time)
+        self.uidLoans += 1
+        return True, self.uidLoans-1
+
+    def repay(self, loanId: int):
+        loan = self.activeLoans[loanId]
+        if loan.repaid:
+            print(f"Loan already repaid loanId={loanId}")
+            return False
+        if not loan.borrower.cash.transfer(creditorRealCollateral=self.cash, amount=loan.getDentCurrent(), dryRun=True):
+            print(f"Not enough cash to repay loanId={loanId}")
+            return False
+
+        if not loan.borrower.eth.unlock(amount=loan.amountCollateral, dryRun=True):
+            print(f"Not enough ETH to repay loanId={loanId}")
+            return False
+
+        loan.borrower.cash.transfer(creditorRealCollateral=self.cash, amount=loan.getDentCurrent())
+        loan.borrower.eth.unlock(amount=loan.amountCollateral)
+        loan.repaid = True
+        return True
 
 
 
 @dataclass
 class AMM:
-    reserveUSDC: float
-    reserveETH: float
+    cash: RealCollateral
+    eth: RealCollateral
     fixedPrice: float = 0
 
     def instantPrice(self):
-        return self.reserveUSDC / self.reserveETH if self.fixedPrice == 0 else self.fixedPrice
+        return self.cash.free / self.eth.free if self.fixedPrice == 0 else self.fixedPrice
 
     def quote(self, isExactInput: bool, isAmountQuote: bool, amount: float):
         return self.instantPrice()
 
-    def swap(self, isExactInput: bool, isAmountQuote: bool, amount: float):
+    def swap(self, caller: User, isExactInput: bool, isAmountQuote: bool, amount: float):
         assert isExactInput == True and isAmountQuote == False, f"Unsupported"
         price = self.quote(isExactInput=isExactInput, isAmountQuote=isAmountQuote, amount=amount)
         amountOut = amount * price
-        assert amountOut <= self.reserveUSDC, f"Reserves are not enough amount={amount}, self.reservesUSDC={self.reservesUSDC}"
-        self.reservesUSDC -= amountOut
-        self.reservesETH += amount
+        if not self.cash.transfer(creditorRealCollateral=caller.cash, amount=amountOut, dryRun=True):
+            print(f"Reserves are not enough amount={amountOut}, self.cash.free={self.cash.free}")
+            return False, 0
+        if not caller.eth.transfer(creditorRealCollateral=self.eth, amount=amount, dryRun=True):
+            print(f"Reserves are not enough amount={amount}, self.cash.free={caller.eth.free}")
+            return False, 0
+        self.cash.transfer(creditorRealCollateral=caller.cash, amount=amountOut, dryRun=True)
+        caller.eth.transfer(creditorRealCollateral=self.eth, amount=amount, dryRun=True)
+        return True, 0
 
 
 @dataclass
 class LendingOB:
     context: Context
+    vp: VariablePool
+    cash: RealCollateral
+    eth: RealCollateral
+    usersCash: Dict[User, float] = field(default_factory=dict)
+    usersETH: Dict[User, float] = field(default_factory=dict)
     loanOffers: Dict[int, LoanOffer] = field(default_factory=dict)
     borrowOffers: Dict[int, BorrowOffer] = field(default_factory=dict)
     activeLoans: Dict[int, GenericLoan] = field(default_factory=dict)
-    # activeFOLs: Dict[int, FOL] = field(default_factory=dict)
-    # activeSOLs: Dict[int, SOL] = field(default_factory=dict)
     uidLoanOffers: int = 0
     uidBorrowOffers: int = 0
     uidLoans: int = 0
+
+    def deposit(self, user: User, amount: float, isUSDC: bool):
+        if isUSDC:
+            if not user.cash.transfer(creditorRealCollateral=self.cash, amount=amount,dryRun=True):
+                return False, 0
+            user.cash.transfer(creditorRealCollateral=self.cash, amount=amount)
+            self.usersCash[user] += amount
+        else:
+            if not user.eth.transfer(creditorRealCollateral=self.eth, amount=amount,dryRun=True):
+                return False, 0
+            user.eth.transfer(creditorRealCollateral=self.eth, amount=amount)
+            self.usersETH[user] += amount
+
+
+    def withdraw(self, user: User, amount: float, isUSDC: bool):
+        if isUSDC:
+            if not self.cash.transfer(creditorRealCollateral=user.cash, amount=amount,dryRun=True):
+                return False, 0
+            self.cash.transfer(creditorRealCollateral=user.cash, amount=amount)
+            self.usersCash[user] -= amount
+        else:
+            if not self.eth.transfer(creditorRealCollateral=user.eth, amount=amount,dryRun=True):
+                return False, 0
+            self.eth.transfer(creditorRealCollateral=user.eth, amount=amount)
+            self.usersETH[user] -= amount
+
 
     def lendAsLimitOrder(self, offer: LoanOffer):
         self.loanOffers[self.uidLoanOffers] = offer
@@ -295,8 +408,8 @@ class LendingOB:
         self.borrowOffers[self.uidBorrowOffers] = offer
         self.uidBorrowOffers += 1
 
-    def createFOL(self, lender: User, borrower: User, FV: float, dueDate: int, FVCoveredByRealCollateral: float):
-        self.activeLoans[self.uidLoans] = FOL(context=self.context, lender=lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=FVCoveredByRealCollateral, amountFVExited=0)
+    def createFOL(self, lender: User, borrower: User, FV: float, dueDate: int):
+        self.activeLoans[self.uidLoans] = FOL(context=self.context, lender=lender, borrower=borrower, FV=FV, DueDate=dueDate, amountFVExited=0)
         self.uidLoans += 1
         return self.uidLoans-1
 
@@ -306,52 +419,52 @@ class LendingOB:
         return self.uidLoans-1
 
 
-    def borrowAsMarketOrder(self, borrower: User, offerId: int, amount: float, dueDate: int):
-        offer = self.loanOffers[offerId]
-        assert dueDate > self.context.time, "Due Date need to be in the future"
-        assert amount <= offer.maxAmount, "Money is not enough"
-        assert dueDate <= offer.maxDueDate, "Due Date out of range"
-        assert offer.lender.cash.free >= amount, f"Lender has not enough free cash to lend out offer.lender.cash.free={offer.lender.cash.free}, amount={amount}"
-        # deltaT = dueDate - self.context.time
-
-        temp, rate = offer.getRate(dueDate=dueDate)
-        if not temp:
-            return False, 0
-        FV = (1 + rate) * amount
-        # FV = (1 + offer.getFinalRate(dueDate=dueDate)) * amount
-        # FV = (1 + offer.ratePerTimeUnit * deltaT) * amount
-        print(f"FV = {FV}")
-
-        # NOTE: This is required to compute the correct RANC, will be reverted if the TX fails
-        borrower.schedule.dueFV[dueDate] += FV
-        RANC = borrower.schedule.RANC(lockedStart=borrower.cash.locked)
-        maxUSDCToLock = 0
-
-        if not np.all(RANC >= 0):
-            maxUserDebtUncovered = np.max(-1 * RANC)
-            assert maxUserDebtUncovered > 0, "Unexpected"
-            borrower.totDebtCoveredByRealCollateral = maxUserDebtUncovered
-            maxETHToLock = (borrower.totDebtCoveredByRealCollateral / self.context.price) * CROpening
-            print(f"pick() borrower.totDebtCoveredByRealCollateral = {borrower.totDebtCoveredByRealCollateral}")
-            print(f"maxETHToLock = {maxETHToLock}")
-            if not borrower.eth.lockAbs(amount=maxETHToLock):
-                # TX Reverts
-                borrower.schedule.dueFV[dueDate] -= FV
-                print(f"WARNING: Virtual Collateral is not enough to take the loan")
-                return False, 0
-
-        # NOTE: Here loan can be taken so let's proceed with the other state modifications
-        if amount == offer.maxAmount:
-            del self.loanOffers[offerId]
-        else:
-            self.loanOffers[offerId].maxAmount -= amount
-        offer.lender.schedule.expectedFV[dueDate] += FV
-        offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=amount)
-        return True, self.createFOL(lender=offer.lender, borrower=borrower, FV=FV, dueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock)
-        # self.activeLoans[self.uidLoans] = FOL(context=self.context, lender=offer.lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock, amountFVExited=0)
-        # # self.activeFOLs[self.uidLoans] = FOL(context=self.context, lender=offer.lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock, amountFVExited=0)
-        # self.uidLoans += 1
-        # return self.uidLoans-1
+    # def borrowAsMarketOrderWithRANC(self, borrower: User, offerId: int, amount: float, dueDate: int):
+    #     offer = self.loanOffers[offerId]
+    #     assert dueDate > self.context.time, "Due Date need to be in the future"
+    #     assert amount <= offer.maxAmount, "Money is not enough"
+    #     assert dueDate <= offer.maxDueDate, "Due Date out of range"
+    #     assert offer.lender.cash.free >= amount, f"Lender has not enough free cash to lend out offer.lender.cash.free={offer.lender.cash.free}, amount={amount}"
+    #     # deltaT = dueDate - self.context.time
+    #
+    #     temp, rate = offer.getRate(dueDate=dueDate)
+    #     if not temp:
+    #         return False, 0
+    #     FV = (1 + rate) * amount
+    #     # FV = (1 + offer.getFinalRate(dueDate=dueDate)) * amount
+    #     # FV = (1 + offer.ratePerTimeUnit * deltaT) * amount
+    #     print(f"FV = {FV}")
+    #
+    #     # NOTE: This is required to compute the correct RANC, will be reverted if the TX fails
+    #     borrower.schedule.dueFV[dueDate] += FV
+    #     RANC = borrower.schedule.RANC(lockedStart=borrower.cash.locked)
+    #     maxUSDCToLock = 0
+    #
+    #     if not np.all(RANC >= 0):
+    #         maxUserDebtUncovered = np.max(-1 * RANC)
+    #         assert maxUserDebtUncovered > 0, "Unexpected"
+    #         borrower.totDebtCoveredByRealCollateral = maxUserDebtUncovered
+    #         maxETHToLock = (borrower.totDebtCoveredByRealCollateral / self.context.price) * CROpening
+    #         print(f"pick() borrower.totDebtCoveredByRealCollateral = {borrower.totDebtCoveredByRealCollateral}")
+    #         print(f"maxETHToLock = {maxETHToLock}")
+    #         if not borrower.eth.lockAbs(amount=maxETHToLock):
+    #             # TX Reverts
+    #             borrower.schedule.dueFV[dueDate] -= FV
+    #             print(f"WARNING: Virtual Collateral is not enough to take the loan")
+    #             return False, 0
+    #
+    #     # NOTE: Here loan can be taken so let's proceed with the other state modifications
+    #     if amount == offer.maxAmount:
+    #         del self.loanOffers[offerId]
+    #     else:
+    #         self.loanOffers[offerId].maxAmount -= amount
+    #     offer.lender.schedule.expectedFV[dueDate] += FV
+    #     offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=amount)
+    #     return True, self.createFOL(lender=offer.lender, borrower=borrower, FV=FV, dueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock)
+    #     # self.activeLoans[self.uidLoans] = FOL(context=self.context, lender=offer.lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock, amountFVExited=0)
+    #     # # self.activeFOLs[self.uidLoans] = FOL(context=self.context, lender=offer.lender, borrower=borrower, FV=FV, DueDate=dueDate, FVCoveredByRealCollateral=maxUSDCToLock, amountFVExited=0)
+    #     # self.uidLoans += 1
+    #     # return self.uidLoans-1
 
 
     def lendAsMarketOrderByExiting(self, lender: User, borrowOfferId: int):
@@ -363,16 +476,21 @@ class LendingOB:
 
 
 
-    def borrowAsMarketOrderByExiting(self, borrower: User, offerId: int, amount: float, virtualCollateralLoansIds: List[int], dueDate: int = None):
+    def borrowAsMarketOrder(self, borrower: User, offerId: int, amount: float, virtualCollateralLoansIds: List[int] = [], dueDate: int = None):
         offer = self.loanOffers[offerId]
-        # assert dueDate > self.context.time, "Due Date need to be in the future"
-        assert amount <= offer.maxAmount, "Money is not enough"
-        # assert dueDate <= offer.maxDueDate, "Due Date out of range"
-        assert offer.lender.cash.free >= amount, f"Lender has not enough free cash to lend out offer.lender.cash.free={offer.lender.cash.free}, amount={amount}"
-        # deltaT = dueDate - self.context.time
+        if dueDate <= self.context.time:
+            print(f"Due Date need to be in the future dueDate={dueDate}, self.context.time={self.context.time}")
+            return False, 0
+        if amount > offer.maxAmount:
+            print(f"Money is not enough amount={amount}, offer.maxAmount={offer.maxAmount}")
+            return False, 0
+        if dueDate > offer.maxDueDate:
+            print(f"Due Date out of range dueDate={dueDate}, offer.maxDueDate={offer.maxDueDate}")
+            return False, 0
+        if offer.lender.cash.free < amount:
+            print(f"Lender has not enough free cash to lend out offer.lender.cash.free={offer.lender.cash.free}, amount={amount}")
+            return False, 0
 
-        # amountIn: Amount of future cashflow to exit
-        # amountOut: Amount of cash to borrow at present time
 
         # NOTE: The `amountOutLeft` is going to be decreased as more and more SOLs are created
         amountOutLeft = amount
@@ -403,7 +521,9 @@ class LendingOB:
             deltaAmountIn = min(amountInLeft, self.activeLoans[loanId].maxExit())
             deltaAmountOut = deltaAmountIn / r
             self.createSOL(fol=loan.getFOL(), lender=offer.lender, borrower=borrower, FV=deltaAmountIn)
-            loan.lock(deltaAmountIn)
+            temp = loan.lock(deltaAmountIn)
+            if not temp:
+                return False
             # NOTE: Transfer `deltaAmountOut` for each SOL created
             offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=deltaAmountOut)
             offer.maxAmount -= deltaAmountOut
@@ -413,6 +533,7 @@ class LendingOB:
         # TODO: Cover the remaining amount with real collateral
         if amountOutLeft > 0:
             print(f"Final Check amountOutLeft = {amountOutLeft}")
+
             maxETHToLock = (amountOutLeft / self.context.price) * CROpening
             if not borrower.eth.lock(amount=maxETHToLock):
                 # TX Reverts
@@ -420,7 +541,8 @@ class LendingOB:
                 return False, 0
             # TODO: Lock ETH to cover that amount
             borrower.totDebtCoveredByRealCollateral += amountOutLeft
-            offer.lender.cash.transfer(creditorRealCollateral=borrower.cash, amount=amount)
+            self.createFOL(lender=offer.lender, borrower=borrower, FV=amountOutLeft, dueDate=dueDate)
+            self.cash.transfer(creditorRealCollateral=borrower.cash, amount=amount)
         return True, 0
 
 
@@ -488,6 +610,30 @@ class LendingOB:
         fol.borrower.totDebtCoveredByRealCollateral -= fol.FVCoveredByRealCollateral
         fol.FVCoveredByRealCollateral = 0
 
+    def _moveToVariablePool(self, loanId: int, dryRun=True):
+        fol = self.activeLoans[loanId]
+        if not fol.isFOL():
+            print(f"WARNING: Invalid loan type")
+            return False
+        collateralToTransfer = fol.getAsignedCollateral()
+        if not fol.borrower.eth.unlock(collateralToTransfer, dryRun=dryRun):
+            print(f"WARNING: Not enough ETH to transfer")
+            return False
+        if not self.vp.takeLoan(
+                borrower=fol.borrower,
+                amountUSDC=fol.FVCoveredByRealCollateral,
+                amountETH=collateralToTransfer,
+                dryRun=dryRun):
+            print(f"WARNING: Not enough reserves to transfer")
+            return False
+        # TODO: Finish implementing
+
+    def moveToVariablePool(self, loanId: int):
+        if self._moveToVariablePool(loanId=loanId, dryRun=True):
+            return self._moveToVariablePool(loanId=loanId, dryRun=False)
+        else:
+            return False
+        # TODO: Finish implementing
 
     def unlock(self, loanId: int, time: int, amount: float):
         loan = self.activeLoans[loanId]
@@ -539,29 +685,81 @@ class LendingOB:
 
 
     def liquidateLoan(self, liquidator: User, loanId: int):
-        # TODO: Implement it
-        fol = self.activeLoans[loanId]
-        assert fol.isFOL(), "Invalid loan type"
-        RANC = fol.borrower.schedule.RANC()
-        assert RANC[fol.DueDate] < 0, f"Loan is not liquidatable"
-        # NOTE: We assume all the negative delta cashflow for this time bucket belongs to this FOL
-        # In general, at given t time bucket with RANC(t) < 0, there are N>=1 FOLs with due date t, so instead of assigning to each one RANC(t)/N we assign the full RANC(t) to this FOL
+        # TODO: Finish implementing
+        return False, 0
+        # # TODO: Implement it
+        # fol = self.activeLoans[loanId]
+        # assert fol.isFOL(), "Invalid loan type"
+        # RANC = fol.borrower.schedule.RANC()
+        # assert RANC[fol.DueDate] < 0, f"Loan is not liquidatable"
+        # # NOTE: We assume all the negative delta cashflow for this time bucket belongs to this FOL
+        # # In general, at given t time bucket with RANC(t) < 0, there are N>=1 FOLs with due date t, so instead of assigning to each one RANC(t)/N we assign the full RANC(t) to this FOL
+        #
+        # loanDebtUncovered = -1 * RANC[fol.DueDate]
+        # totBorroweDebt = fol.borrower.totDebtCoveredByRealCollateral
+        # loanCollateral = fol.borrower.eth.locked * loanDebtUncovered / totBorroweDebt
+        # # loanCollateralRatio = loanCollateral / loanDebtUncovered
+        # # NOTE: This is equivalent to the borrower collateral ratio as expected, therefore there is no need to compute that
+        #
+        # assert fol.borrower.isLiquidatable(), f"Borrower is not liquidatable"
+        # assert liquidator.cash.free >= loanDebtUncovered, f"Liquidator has not enough money liquidator.cash.free={liquidator.cash.free}, RANC[fol.DueDate]={RANC[fol.DueDate]}"
+        # targetAmountETH = self._computeCollateralForDebt(amountUSDC=loanDebtUncovered)
+        # actualAmountETH = min(targetAmountETH, fol.borrower.eth.locked)
+        # if(actualAmountETH < targetAmountETH):
+        #     print(f"WARNING: Liquidation at loss, missing {targetAmountETH - actualAmountETH}")
+        #
+        # self._liquidationSwap(liquidator=liquidator, borrower=fol.borrower, amountUSDC=loanDebtUncovered, amountETH=loanCollateral)
+        #
+        #
 
-        loanDebtUncovered = -1 * RANC[fol.DueDate]
-        totBorroweDebt = fol.borrower.totDebtCoveredByRealCollateral
-        loanCollateral = fol.borrower.eth.locked * loanDebtUncovered / totBorroweDebt
-        # loanCollateralRatio = loanCollateral / loanDebtUncovered
-        # NOTE: This is equivalent to the borrower collateral ratio as expected, therefore there is no need to compute that
-
-        assert fol.borrower.isLiquidatable(), f"Borrower is not liquidatable"
-        assert liquidator.cash.free >= loanDebtUncovered, f"Liquidator has not enough money liquidator.cash.free={liquidator.cash.free}, RANC[fol.DueDate]={RANC[fol.DueDate]}"
-        targetAmountETH = self._computeCollateralForDebt(amountUSDC=loanDebtUncovered)
-        actualAmountETH = min(targetAmountETH, fol.borrower.eth.locked)
-        if(actualAmountETH < targetAmountETH):
-            print(f"WARNING: Liquidation at loss, missing {targetAmountETH - actualAmountETH}")
-
-        self._liquidationSwap(liquidator=liquidator, borrower=fol.borrower, amountUSDC=loanDebtUncovered, amountETH=loanCollateral)
 
 
 
+class Test:
+    def __init__(self):
+        self.params = Params()
+    def setup(self):
+        self.context = Context(
+            price=100,
+            time=0
+        )
+        self.bob = User(context=self.context,
+                        cash=RealCollateral(free=100, locked=0),
+                        eth=RealCollateral(free=100, locked=0))
+        self.alice = User(context=self.context,
+             cash=RealCollateral(free=100, locked=0),
+             eth=RealCollateral(free=100, locked=0))
+
+        self.james = User(context=self.context,
+             cash=RealCollateral(free=100, locked=0),
+             eth=RealCollateral(free=100, locked=0))
+
+        self.vp = VariablePool(context=self.context, cash=RealCollateral(free=100000, locked=0), eth=RealCollateral(),  minCollateralRatio=self.params.CRLiquidation)
+        self.ob = LendingOB(context=self.context, vp=self.vp, cash=RealCollateral(free=100000, locked=0), eth=RealCollateral())
+
+    def init1(self):
+        self.ob.lendAsLimitOrder(offer = LoanOffer(
+            context=context,
+            lender=alice,
+            maxAmount=100,
+            maxDueDate=10,
+            curveRelativeTime=YieldCurve.getFlatRate(rate=0.03, timeBuckets=range(self.params.maxTime))
+        ))
+        temp, _ = self.ob.borrowAsMarketOrder(borrower=self.james, offerId=0, amount=100, dueDate=6)
+        assert temp, "borrowAsMarketOrder failed"
+        assert len(self.ob.activeLoans) > 0, f"len(ob.activeLoans) = {len(self.ob.activeLoans)}"
+        loan = self.ob.activeLoans[0]
+        assert loan.maxExit() == loan.FV
+
+        self.ob.lendAsLimitOrder(offer = LoanOffer(
+            context=self.context,
+            lender=self.bob,
+            maxAmount=100,
+            maxDueDate=10,
+            curveRelativeTime=YieldCurve.getFlatRate(rate=0.03, timeBuckets=range(self.params.maxTime))
+        ))
+
+    def test1(self):
+        res, _ = self.ob.borrowAsMarketOrder(borrower=self.alice, offerId=0, amount=100, dueDate=6, virtualCollateralLoansIds=[0])
+        assert res
 

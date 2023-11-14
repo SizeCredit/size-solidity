@@ -16,6 +16,7 @@ library RealCollateralLibrary {
             self.locked = 0;
             return false;
         } else {
+            // @audit Is this assign instead of increment?
             self.locked = amount;
             self.free -= amount;
             return true;

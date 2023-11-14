@@ -34,6 +34,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
     error Orderbook__NothingToRepay();
     error Orderbook__InvalidLender();
     error Orderbook__NotLiquidatable();
+    error Orderbook__InvalidLoanId(uint256 loanId);
     error Orderbook__InvalidOfferId(uint256 offerId);
     error Orderbook__DueDateOutOfRange(uint256 maxDueDate);
     error Orderbook__InvalidAmount(uint256 maxAmount);
@@ -87,6 +88,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
     }
 
     function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public {
+        // @audit what prevents the lender of creating 100s of loan offers? maybe some of those will be picked and they won't have any cash to lend later
         loanOffers.push(
             LoanOffer({
                 lender: msg.sender,
@@ -116,7 +118,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
             revert Orderbook__NotEnoughCash(users[lender].cash.free, amount);
         }
 
-        uint256 FV = ((PERCENT + offer.getRate(dueDate)) * amount) / PERCENT;
+        uint256 FV = offer.getFV(amount, dueDate);
 
         User storage borrower = users[msg.sender];
         borrower.schedule.dueFV.increment(dueDate, FV);
@@ -149,6 +151,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
                 lender: offer.lender,
                 borrower: msg.sender,
                 dueDate: dueDate,
+                // @audit maxUsdcToLock is not updated
                 FVCoveredByRealCollateral: maxUsdcToLock,
                 repaid: false,
                 folId: 0
@@ -191,8 +194,17 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
 
             LoanOffer storage offer = loanOffers[loanOffersIds[i]];
             uint256 r = PERCENT + offer.getRate(dueDate);
-            uint256 deltaAmountIn = Math.min(r * offer.maxAmount, amountInLeft);
-            uint256 deltaAmountOut = (deltaAmountIn * PERCENT) / r;
+            uint256 deltaAmountIn; 
+            uint256 deltaAmountOut;
+            // @audit check rounding direction
+            if(amountInLeft >= offer.maxAmount) {
+                deltaAmountIn = r * offer.maxAmount / PERCENT;
+                deltaAmountOut = offer.maxAmount;
+            }
+            else {
+                deltaAmountIn = amountInLeft;
+                deltaAmountOut = deltaAmountIn * PERCENT / r;
+            }
 
             // Swap
             {
@@ -211,6 +223,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
                 loan.lock(deltaAmountIn);
             }
 
+            // @audit exit is only with real collateral?
             users[offer.lender].cash.transfer(users[msg.sender].cash, deltaAmountOut);
             offer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
@@ -259,8 +272,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
             dueDate = dueDate != type(uint256).max ? dueDate : loan.getDueDate(loans);
 
             if (loan.lender != msg.sender) {
-                // loan not owned by borrower
-                continue;
+                revert Orderbook__InvalidLoanId(loanId);
             }
             if (dueDate > offer.maxDueDate) {
                 // loan is due after offer maxDueDate
@@ -272,10 +284,17 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
             }
 
             uint256 r = PERCENT + offer.getRate(dueDate);
-
             uint256 amountInLeft = (r * amountOutLeft) / PERCENT;
-            uint256 deltaAmountIn = Math.min(amountInLeft, loan.maxExit());
-            uint256 deltaAmountOut = (deltaAmountIn * PERCENT) / r;
+            uint256 deltaAmountIn;
+            uint256 deltaAmountOut;
+            if(amountInLeft >= loan.maxExit()) {
+                deltaAmountIn = loan.maxExit();
+                deltaAmountOut = loan.maxExit() * PERCENT / r;
+            }
+            else {
+                deltaAmountIn = amountInLeft;
+                deltaAmountOut = amountInLeft * PERCENT / r;
+            }
 
             loans.push(
                 Loan({
@@ -300,14 +319,16 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
 
         // TODO cover the remaining amount with real collateral
         if (amountOutLeft > 0) {
-            // TODO Lock ETH to cover that amount
-            borrower.totDebtCoveredByRealCollateral += amountOutLeft;
             uint256 maxETHToLock = ((amountOutLeft * CROpening) / priceFeed.getPrice());
             if (!borrower.eth.lock(maxETHToLock)) {
                 revert Orderbook__NotEnoughCash(borrower.eth.free, maxETHToLock);
             }
-            users[offer.lender].cash.transfer(borrower.cash, amountOutLeft);
+            // TODO Lock ETH to cover that amount
             borrower.totDebtCoveredByRealCollateral += amountOutLeft;
+            // @audit python code is double counting cash transfer since it is transferring `amount`
+            users[offer.lender].cash.transfer(borrower.cash, amountOutLeft);
+            // @audit shouldn't this scenario open a FOL? basically the borrower took N SOLs, doesn't have enough virtual collateral to back the full loan offer and now the last piece of `offer.maxAmount` won't have been updated
+            // @audit validate borrower CR when opening this new loan
         }
     }
 
@@ -319,6 +340,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
         if (users[loan.borrower].cash.free < amount) {
             revert Orderbook__NotEnoughCash(users[loan.borrower].cash.free, amount);
         }
+        // @audit why not partial repay? will help borrower CR
         if (amount < loan.FVCoveredByRealCollateral) {
             revert Orderbook__InvalidAmount(loan.FVCoveredByRealCollateral);
         }
@@ -331,6 +353,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
         users[loan.lender].cash.locked += loan.FVCoveredByRealCollateral;
         users[loan.borrower].totDebtCoveredByRealCollateral -= loan.FVCoveredByRealCollateral;
         loan.FVCoveredByRealCollateral = 0;
+        // @audit shouldn't the loan be deleted here??
     }
 
     function unlock(uint256 loanId, uint256 time, uint256 amount) public {
@@ -364,9 +387,11 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
         User storage borrower = users[_borrower];
         User storage liquidator = users[msg.sender];
 
+        // @audit change library-usage for public-function usage (e.g. isLiquidatable(address user))
         if (!borrower.isLiquidatable(priceFeed.getPrice(), CRLiquidation)) {
             revert Orderbook__NotLiquidatable();
         }
+        // @audit partial liquidations? maybe not, just assume flash loan??
         if (liquidator.cash.free < borrower.totDebtCoveredByRealCollateral) {
             revert Orderbook__NotEnoughCash(liquidator.cash.free, borrower.totDebtCoveredByRealCollateral);
         }
@@ -380,6 +405,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
         uint256 targetAmountETH = _computeCollateralForDebt(amountUSDC);
         uint256 actualAmountETH = Math.min(targetAmountETH, borrower.eth.locked);
         if (actualAmountETH < targetAmountETH) {
+            // @audit why would this happen? should we prevent the liquidator from doing it?
             emit LiquidationAtLoss(targetAmountETH - actualAmountETH);
         }
 
@@ -402,6 +428,7 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
         uint256 totBorroweDebt = users[loan.borrower].totDebtCoveredByRealCollateral;
         uint256 loanCollateral = (users[loan.borrower].eth.locked * loanDebtUncovered) / totBorroweDebt;
 
+        // @audit borrower does not need to be liquidatable for loan to be liquidatable
         if (!users[loan.borrower].isLiquidatable(priceFeed.getPrice(), CRLiquidation)) {
             revert Orderbook__NotLiquidatable();
         }
@@ -416,5 +443,6 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
         }
 
         _liquidationSwap(liquidator, users[loan.borrower], loanDebtUncovered, loanCollateral);
+        // @audit specific loan is not being cleared
     }
 }

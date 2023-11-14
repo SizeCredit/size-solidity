@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
-import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "../src/libraries/LoanLibrary.sol";
 import "../src/libraries/UserLibrary.sol";
@@ -11,39 +10,14 @@ import "../src/libraries/RealCollateralLibrary.sol";
 import "../src/libraries/OfferLibrary.sol";
 import "../src/libraries/ScheduleLibrary.sol";
 import "../src/libraries/YieldCurveLibrary.sol";
-import "./OrderbookTestStorage.sol";
+import "./OrderbookBaseTest.sol";
 import "./ExperimentsHelper.sol";
 import {JSONParser} from "./JSONParser.sol";
 
-contract OrderbookExperimentsTest is Test, OrderbookTestStorage, JSONParser, ExperimentsHelper {
+contract OrderbookExperimentsTest is Test, OrderbookBaseTest, JSONParser, ExperimentsHelper {
     using EnumerableMap for EnumerableMap.UintToUintMap;
     using LoanLibrary for Loan;
     using OfferLibrary for LoanOffer;
-
-    function setUp() public {
-        priceFeed = new PriceFeedMock(address(this));
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            address(new OrderbookMock()),
-            abi.encodeWithSelector(
-                Orderbook.initialize.selector,
-                address(this),
-                priceFeed,
-                12,
-                1.5e18,
-                1.3e18
-            )
-        );
-        orderbook = OrderbookMock(address(proxy));
-
-        vm.label(alice, "alice");
-        vm.label(bob, "bob");
-        vm.label(candy, "candy");
-        vm.label(james, "james");
-        vm.label(liquidator, "liquidator");
-
-        // starts at t=0
-        vm.warp(0);
-    }
 
     function test_experiment_1() public {
         console.log("Basic Functioning");
@@ -52,6 +26,7 @@ contract OrderbookExperimentsTest is Test, OrderbookTestStorage, JSONParser, Exp
 
         console.log("context");
         priceFeed.setPrice(100e18);
+        vm.warp(0);
 
         vm.prank(alice);
         orderbook.deposit(100e18, 0);
@@ -87,6 +62,7 @@ contract OrderbookExperimentsTest is Test, OrderbookTestStorage, JSONParser, Exp
 
         console.log("context");
         priceFeed.setPrice(100e18);
+        vm.warp(0);
 
         vm.prank(alice);
         orderbook.deposit(100e18, 20e18);
@@ -147,6 +123,7 @@ contract OrderbookExperimentsTest is Test, OrderbookTestStorage, JSONParser, Exp
 
         console.log("context");
         priceFeed.setPrice(100e18);
+        vm.warp(0);
 
         vm.prank(alice);
         orderbook.deposit(100e18, 20e18);
@@ -192,6 +169,7 @@ contract OrderbookExperimentsTest is Test, OrderbookTestStorage, JSONParser, Exp
     function test_experiment_4() public {
         console.log("context");
         priceFeed.setPrice(100e18);
+        vm.warp(0);
 
         vm.prank(alice);
         orderbook.deposit(100e18, 10e18);
@@ -222,6 +200,7 @@ contract OrderbookExperimentsTest is Test, OrderbookTestStorage, JSONParser, Exp
         percent = bound(percent, 1, 9);
         console.log("context");
         priceFeed.setPrice(100e18);
+        vm.warp(0);
 
         vm.prank(alice);
         orderbook.deposit(100e18, 10e18);
@@ -263,6 +242,7 @@ contract OrderbookExperimentsTest is Test, OrderbookTestStorage, JSONParser, Exp
     function test_experiment_borrow_with_exit() public {
         console.log("context");
         priceFeed.setPrice(100e18);
+        vm.warp(0);
 
         vm.prank(bob);
         orderbook.deposit(100e18, 0);
@@ -321,6 +301,7 @@ contract OrderbookExperimentsTest is Test, OrderbookTestStorage, JSONParser, Exp
     }
 
     function test_experiment_dynamic() public {
+        vm.warp(0);
         execute(parse("/experiments/1.json"));
     }
 }

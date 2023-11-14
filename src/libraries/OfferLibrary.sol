@@ -25,6 +25,10 @@ library OfferLibrary {
     error OfferLibrary__PastDueDate();
     error OfferLibrary__DueDateOutOfRange(uint256 minDueDate, uint256 maxDueDate);
 
+    function getFV(LoanOffer storage self, uint256 amount, uint256 dueDate) public view returns (uint256) {
+        return ((PERCENT + getRate(self, dueDate)) * amount) / PERCENT;
+    }
+
     function getRate(LoanOffer storage self, uint256 dueDate) public view returns (uint256) {
         if (dueDate <= block.timestamp) revert OfferLibrary__PastDueDate();
         uint256 deltaT = dueDate - block.timestamp;
