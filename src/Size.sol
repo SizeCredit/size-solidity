@@ -8,8 +8,6 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import {SizeView} from "./SizeView.sol";
-import {SizeStorage} from "./SizeStorage.sol";
 import {SizeValidations} from "./SizeValidations.sol";
 
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
@@ -54,6 +52,12 @@ contract Size is
         __Ownable_init(_owner);
         __Ownable2Step_init();
         __UUPSUpgradeable_init();
+
+        _validateNonNull(_owner);
+        _validateNonNull(address(_priceFeed));
+        _validateCollateralRatio(_CROpening);
+        _validateCollateralRatio(_CRLiquidation);
+        _validateCollateralRatio(_CROpening, _CRLiquidation);
 
         priceFeed = _priceFeed;
         maxTime = _maxTime;
@@ -103,9 +107,7 @@ contract Size is
         uint256 amount,
         uint256 dueDate
     ) public {
-        if (offerId == 0 || offerId >= loanOffers.length) {
-            revert ISize.InvalidOfferId(offerId);
-        }
+        _validateOfferId(offerId);
 
         LoanOffer storage offer = loanOffers[offerId];
         address lender = offer.lender;
@@ -349,8 +351,9 @@ contract Size is
             // @audit python code is double counting cash transfer since it is transferring `amount`
             users[offer.lender].cash.transfer(borrower.cash, amountOutLeft);
             // @audit shouldn't this scenario open a FOL? basically the borrower took N SOLs, doesn't have enough virtual collateral to back the full loan offer and now the last piece of `offer.maxAmount` won't have been updated
-            // @audit validate borrower CR when opening this new loan
         }
+
+        _validateUserHealthy(msg.sender);
     }
 
     function repay(uint256 loanId, uint256 amount) public {

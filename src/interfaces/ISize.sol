@@ -6,6 +6,9 @@ interface ISize {
 
     error TODO();
     error UserUnhealthy(address account);
+    error NullAddress();
+    error InvalidCollateralRatio(uint256 cr);
+    error InvalidLiquidationCollateralRatio(uint256 crOpening, uint256 crLiquidation);
     error PastDueDate();
     error NothingToRepay();
     error InvalidLender();
