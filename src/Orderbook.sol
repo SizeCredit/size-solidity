@@ -18,8 +18,9 @@ import "./libraries/RealCollateralLibrary.sol";
 import "./libraries/MathLibrary.sol";
 import "./libraries/LoanLibrary.sol";
 import "./oracle/IPriceFeed.sol";
+import "./interfaces/IOrderbook.sol";
 
-contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract Orderbook is OrderbookStorage, OrderbookView, IOrderbook, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
     using OfferLibrary for LoanOffer;
     using ScheduleLibrary for Schedule;
@@ -27,19 +28,6 @@ contract Orderbook is OrderbookStorage, OrderbookView, Initializable, Ownable2St
     using LoanLibrary for Loan;
     using UserLibrary for User;
 
-    event LiquidationAtLoss(uint256 amount);
-
-    error TODO();
-    error Orderbook__PastDueDate();
-    error Orderbook__NothingToRepay();
-    error Orderbook__InvalidLender();
-    error Orderbook__NotLiquidatable();
-    error Orderbook__InvalidLoanId(uint256 loanId);
-    error Orderbook__InvalidOfferId(uint256 offerId);
-    error Orderbook__DueDateOutOfRange(uint256 maxDueDate);
-    error Orderbook__InvalidAmount(uint256 maxAmount);
-    error Orderbook__NotEnoughCash(uint256 free, uint256 required);
-    error Orderbook__NotEnoughCollateral(uint256 free, uint256 required);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
