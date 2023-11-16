@@ -2,29 +2,16 @@
 pragma solidity 0.8.20;
 
 import {SizeStorage} from "./SizeStorage.sol";
-import "./libraries/ScheduleLibrary.sol";
 import "./libraries/UserLibrary.sol";
 import "./libraries/LoanLibrary.sol";
 import "./libraries/OfferLibrary.sol";
 import "./libraries/EnumerableMapExtensionsLibrary.sol";
 
 abstract contract SizeView is SizeStorage {
-    using ScheduleLibrary for Schedule;
     using UserLibrary for User;
     using OfferLibrary for LoanOffer;
     using LoanLibrary for Loan;
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
-
-    function getBorrowerStatus(address _borrower) public returns (BorrowerStatus memory) {
-        User storage borrower = users[_borrower];
-        uint256 lockedStart = borrower.cash.locked + (borrower.eth.locked * priceFeed.getPrice()) / 1e18;
-        return BorrowerStatus({
-            expectedFV: borrower.schedule.expectedFV.values(),
-            unlocked: borrower.schedule.unlocked.values(),
-            dueFV: borrower.schedule.dueFV.values(),
-            RANC: borrower.schedule.RANC(lockedStart)
-        });
-    }
 
     function getCollateralRatio(address user) public returns (uint256) {
         return users[user].collateralRatio(priceFeed.getPrice());

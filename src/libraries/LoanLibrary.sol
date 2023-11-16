@@ -10,7 +10,6 @@ struct Loan {
     address lender;
     address borrower;
     uint256 dueDate;
-    uint256 FVCoveredByRealCollateral;
     bool repaid;
     uint256 folId; // non-null for SOLs
 }
@@ -71,5 +70,46 @@ library LoanLibrary {
         } else {
             revert LoanLibrary__InvalidLoan(self.folId);
         }
+    }
+
+    function createFOL(
+        Loan[] storage loans,
+        address lender,
+        address borrower,
+        uint256 FV,
+        uint256 dueDate
+    ) public {
+        loans.push(
+            Loan({
+                FV: FV,
+                amountFVExited: 0,
+                lender: lender,
+                borrower: borrower,
+                dueDate: dueDate,
+                repaid: false,
+                folId: 0
+            })
+        );
+    }
+
+    function createSOL(
+        Loan[] storage loans,
+        uint256 folId,
+        address lender,
+        address borrower,
+        uint256 FV
+    ) public {
+        Loan memory fol = loans[folId];
+        loans.push(
+            Loan({
+                FV: FV,
+                amountFVExited: 0,
+                lender: lender,
+                borrower: borrower,
+                dueDate: fol.dueDate,
+                repaid: false,
+                folId: folId
+            })
+        );
     }
 }

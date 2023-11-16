@@ -3,28 +3,25 @@ pragma solidity 0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {Plot} from "@solplot/Plot.sol";
-import {BorrowerStatus} from "../../src/libraries/UserLibrary.sol";
 
 abstract contract ExperimentsHelper is Test, Plot {
-    function plot(string memory filename, BorrowerStatus memory self) internal {
+    function plot(string memory filename, uint256[] memory data) internal {
         try vm.createDir("./plots", false) {} catch {}
         try vm.removeFile(string.concat("./plots/", filename, ".csv")) {} catch {}
 
-        uint256 length = self.RANC.length;
+        uint8 columns = 2;
 
         // Use first row as legend
         // Make sure the same amount of columns are included for the legend
         vm.writeLine(string.concat("./plots/", filename, ".csv"), "x axis,expectedFV,unlocked,dueFV,RANC,");
 
         // Create input csv
-        for (uint256 i; i < length; i++) {
-            int256[] memory cols = new int256[](5);
+        for (uint256 i; i < data.length; i++) {
+            int256[] memory cols = new int256[](columns);
 
-            cols[0] = int256(i * 1e18);
-            cols[1] = int256(self.expectedFV[i]);
-            cols[2] = int256(self.unlocked[i]);
-            cols[3] = int256(self.dueFV[i]);
-            cols[4] = int256(self.RANC[i]);
+            uint256 j = 0;
+            cols[j++] = int256(i * 1e18);
+            cols[j++] = int256(data[i]);
 
             writeRowToCSV(string.concat("./plots/", filename, ".csv"), cols);
         }
@@ -34,7 +31,7 @@ abstract contract ExperimentsHelper is Test, Plot {
             inputCsv: string.concat("./plots/", filename, ".csv"),
             outputSvg: string.concat("./plots/", filename, ".svg"),
             inputDecimals: 18,
-            totalColumns: 5,
+            totalColumns: columns,
             legend: true
         });
     }

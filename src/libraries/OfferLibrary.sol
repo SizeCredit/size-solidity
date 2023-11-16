@@ -9,16 +9,13 @@ struct LoanOffer {
     address lender;
     uint256 maxAmount;
     uint256 maxDueDate;
-    // uint256 ratePerTimeUnit;
     YieldCurve curveRelativeTime;
 }
 
 struct BorrowOffer {
     address borrower;
-    uint256 amount;
-    uint256 dueDate;
-    uint256 rate;
-    uint256[] virtualCollateralLoanIds;
+    uint256 maxAmount;
+    YieldCurve curveRelativeTime;
 }
 
 library OfferLibrary {
@@ -67,8 +64,4 @@ library OfferLibrary {
 
     //     return self.ratePerTimeUnit * (dueDate - block.timestamp);
     // }
-
-    function getFV(BorrowOffer storage self) public view returns (uint256) {
-        return ((PERCENT + self.rate) * self.amount) / PERCENT;
-    }
 }

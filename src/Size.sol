@@ -13,7 +13,6 @@ import {SizeValidations} from "./SizeValidations.sol";
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
 import {OfferLibrary, LoanOffer, BorrowOffer} from "./libraries/OfferLibrary.sol";
 import {UserLibrary, User} from "./libraries/UserLibrary.sol";
-import {ScheduleLibrary, Schedule} from "./libraries/ScheduleLibrary.sol";
 import {EnumerableMapExtensionsLibrary} from "./libraries/EnumerableMapExtensionsLibrary.sol";
 import {RealCollateralLibrary, RealCollateral} from "./libraries/RealCollateralLibrary.sol";
 import {Math, PERCENT} from "./libraries/MathLibrary.sol";
@@ -32,9 +31,9 @@ contract Size is
 {
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
     using OfferLibrary for LoanOffer;
-    using ScheduleLibrary for Schedule;
     using RealCollateralLibrary for RealCollateral;
     using LoanLibrary for Loan;
+    using LoanLibrary for Loan[];
     using UserLibrary for User;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -64,8 +63,10 @@ contract Size is
         CROpening = _CROpening;
         CRLiquidation = _CRLiquidation;
 
-        LoanOffer memory o;
-        loanOffers.push(o);
+        LoanOffer memory lo;
+        loanOffers.push(lo);
+        BorrowOffer memory bo;
+        borrowOffers.push(bo);
         Loan memory l;
         loans.push(l);
     }
@@ -91,7 +92,6 @@ contract Size is
         uint256 maxDueDate,
         YieldCurve calldata curveRelativeTime
     ) public {
-        // @audit what prevents the lender of creating 100s of loan offers? maybe some of those will be picked and they won't have any cash to lend later
         loanOffers.push(
             LoanOffer({
                 lender: msg.sender,
@@ -102,80 +102,122 @@ contract Size is
         );
     }
 
-    function borrowAsMarketOrder(
-        uint256 offerId,
-        uint256 amount,
-        uint256 dueDate
+    function borrowAsLimitOrder(
+        uint256 maxAmount,
+        YieldCurve calldata curveRelativeTime
     ) public {
-        _validateOfferId(offerId);
-
-        LoanOffer storage offer = loanOffers[offerId];
-        address lender = offer.lender;
-
-        if (dueDate <= block.timestamp) revert ISize.PastDueDate();
-        if (dueDate > offer.maxDueDate) {
-            revert ISize.DueDateOutOfRange(offer.maxDueDate);
-        }
-        if (amount > offer.maxAmount) {
-            revert ISize.InvalidAmount(offer.maxAmount);
-        }
-        if (users[lender].cash.free < amount) {
-            revert ISize.NotEnoughCash(users[lender].cash.free, amount);
-        }
-
-        uint256 FV = offer.getFV(amount, dueDate);
-
-        User storage borrower = users[msg.sender];
-        borrower.schedule.dueFV.increment(dueDate, FV);
-        uint256 maxUsdcToLock = 0;
-        (bool isNegative, int256 min) = borrower.schedule.isNegativeAndMinRANC(
-            borrower.cash.locked
-        );
-
-        if (isNegative) {
-            uint256 maxUserDebtUncovered = uint256(-min);
-            borrower.totDebtCoveredByRealCollateral = maxUserDebtUncovered;
-            uint256 maxETHToLock = (borrower.totDebtCoveredByRealCollateral *
-                CROpening) / priceFeed.getPrice();
-            if (!borrower.eth.lockAbs(maxETHToLock)) {
-                borrower.schedule.dueFV.decrement(dueDate, FV);
-                revert ISize.NotEnoughCash(borrower.eth.free, maxETHToLock);
-            }
-        }
-
-        if (amount == offer.maxAmount) {
-            delete loanOffers[offerId];
-        } else {
-            loanOffers[offerId].maxAmount -= amount;
-        }
-
-        users[lender].schedule.expectedFV.increment(dueDate, FV);
-        users[lender].cash.transfer(borrower.cash, amount);
-
-        loans.push(
-            Loan({
-                FV: FV,
-                amountFVExited: 0,
-                lender: offer.lender,
+        borrowOffers.push(
+            BorrowOffer({
                 borrower: msg.sender,
-                dueDate: dueDate,
-                // @audit maxUsdcToLock is not updated
-                FVCoveredByRealCollateral: maxUsdcToLock,
-                repaid: false,
-                folId: 0
+                maxAmount: maxAmount,
+                curveRelativeTime: curveRelativeTime
             })
         );
     }
 
-    function lendAsMarketOrderByExiting(uint256 borrowOfferId) public view {
+    function lendAsMarketOrder(
+        uint256 borrowOfferId,
+        uint256 dueDate,
+        uint256 amount
+    ) public {
         BorrowOffer storage offer = borrowOffers[borrowOfferId];
         User storage lender = users[msg.sender];
 
-        if (lender.cash.free < offer.amount) {
-            revert ISize.NotEnoughCash(lender.cash.free, offer.amount);
-        }
+        // if (offer.dueDate <= block.timestamp) revert ISize.PastDueDate();
+        // if (amount > offer.maxAmount)
+        //     revert ISize.InvalidAmount(offer.maxAmount);
+        if (lender.cash.free < amount)
+            revert ISize.NotEnoughCash(lender.cash.free, amount);
+
+        // uint256 rate = offer.getRate(dueDate);
+        // uint256 r = (PERCENT + rate);
 
         revert TODO();
+    }
+
+    function borrowAsMarketOrder(
+        uint256 offerId,
+        uint256 amount,
+        uint256[] memory virtualCollateralLoansIds,
+        uint256 dueDate
+    ) public {
+        User storage borrower = users[msg.sender];
+        LoanOffer storage offer = loanOffers[offerId];
+        User storage lender = users[offer.lender];
+        if (amount > offer.maxAmount) {
+            revert ISize.InvalidAmount(offer.maxAmount);
+        }
+        if (lender.cash.free < amount) {
+            revert ISize.NotEnoughCash(lender.cash.free, amount);
+        }
+
+        //  amountIn: Amount of future cashflow to exit
+        //  amountOut: Amount of cash to borrow at present time
+
+        uint256 r = PERCENT + offer.getRate(dueDate);
+
+        //  NOTE: The `amountOutLeft` is going to be decreased as more and more SOLs are created
+
+        uint256 amountOutLeft = amount;
+
+        for (uint256 i = 0; i < virtualCollateralLoansIds.length; ++i) {
+            uint256 loanId = virtualCollateralLoansIds[i];
+            // Full amount borrowed
+            if (amountOutLeft == 0) {
+                break;
+            }
+
+            Loan storage loan = loans[loanId];
+            dueDate = dueDate != type(uint256).max
+                ? dueDate
+                : loan.getDueDate(loans);
+
+            if (loan.lender != msg.sender) {
+                revert ISize.InvalidLoanId(loanId);
+            }
+            if (dueDate > offer.maxDueDate) {
+                // loan is due after offer maxDueDate
+                continue;
+            }
+            if (dueDate < loan.getDueDate(loans)) {
+                // loan is due before offer dueDate
+                continue;
+            }
+
+            uint256 amountInLeft = (r * amountOutLeft) / PERCENT;
+            uint256 deltaAmountIn;
+            uint256 deltaAmountOut;
+            if (amountInLeft >= loan.maxExit()) {
+                deltaAmountIn = loan.maxExit();
+                deltaAmountOut = (loan.maxExit() * PERCENT) / r;
+            } else {
+                deltaAmountIn = amountInLeft;
+                deltaAmountOut = (amountInLeft * PERCENT) / r;
+            }
+
+            loans.createSOL(loanId, offer.lender, msg.sender, deltaAmountIn);
+            loan.lock(deltaAmountIn);
+            // NOTE: Transfer deltaAmountOut for each SOL created
+            users[offer.lender].cash.transfer(borrower.cash, deltaAmountOut);
+            offer.maxAmount -= deltaAmountOut;
+            amountInLeft -= deltaAmountIn;
+            amountOutLeft -= deltaAmountOut;
+        }
+
+        // TODO cover the remaining amount with real collateral
+        if (amountOutLeft > 0) {
+            uint256 FV = (r * amountOutLeft) / PERCENT;
+            uint256 maxETHToLock = ((FV * CROpening) / priceFeed.getPrice());
+            if (!borrower.eth.lock(maxETHToLock)) {
+                revert ISize.NotEnoughCash(borrower.eth.free, maxETHToLock);
+            }
+            // TODO Lock ETH to cover that amount
+            borrower.totDebtCoveredByRealCollateral += FV;
+            loans.createFOL(offer.lender, msg.sender, FV, dueDate);
+            users[offer.lender].cash.transfer(borrower.cash, amountOutLeft);
+        }
+
+        _validateUserHealthy(msg.sender);
     }
 
     function exit(
@@ -215,25 +257,8 @@ contract Size is
                 deltaAmountOut = (deltaAmountIn * PERCENT) / r;
             }
 
-            // Swap
-            {
-                loans.push(
-                    Loan({
-                        FV: deltaAmountIn,
-                        amountFVExited: 0,
-                        lender: offer.lender,
-                        borrower: msg.sender,
-                        dueDate: loan.dueDate,
-                        FVCoveredByRealCollateral: loan
-                            .FVCoveredByRealCollateral,
-                        repaid: false,
-                        folId: loanId
-                    })
-                );
-                loan.lock(deltaAmountIn);
-            }
-
-            // @audit exit is only with real collateral?
+            loans.createSOL(loanId, offer.lender, msg.sender, deltaAmountIn);
+            loan.lock(deltaAmountIn);
             users[offer.lender].cash.transfer(
                 users[msg.sender].cash,
                 deltaAmountOut
@@ -245,154 +270,28 @@ contract Size is
         return amountInLeft;
     }
 
-    function borrowAsMarketOrderByExiting(
-        uint256 offerId,
-        uint256 amount,
-        uint256[] memory virtualCollateralLoansIds
-    ) public {
-        return
-            borrowAsMarketOrderByExiting(
-                offerId,
-                amount,
-                virtualCollateralLoansIds,
-                type(uint256).max
-            );
-    }
-
-    function borrowAsMarketOrderByExiting(
-        uint256 offerId,
-        uint256 amount,
-        uint256[] memory virtualCollateralLoansIds,
-        uint256 dueDate
-    ) public {
-        User storage borrower = users[msg.sender];
-        LoanOffer storage offer = loanOffers[offerId];
-        User storage lender = users[offer.lender];
-        if (amount > offer.maxAmount) {
-            revert ISize.InvalidAmount(offer.maxAmount);
-        }
-        if (lender.cash.free < amount) {
-            revert ISize.NotEnoughCash(lender.cash.free, amount);
-        }
-
-        //  amountIn: Amount of future cashflow to exit
-        //  amountOut: Amount of cash to borrow at present time
-
-        //  NOTE: The `amountOutLeft` is going to be decreased as more and more SOLs are created
-
-        uint256 amountOutLeft = amount;
-
-        for (uint256 i = 0; i < virtualCollateralLoansIds.length; ++i) {
-            uint256 loanId = virtualCollateralLoansIds[i];
-            // Full amount borrowed
-            if (amountOutLeft == 0) {
-                break;
-            }
-
-            Loan storage loan = loans[loanId];
-            dueDate = dueDate != type(uint256).max
-                ? dueDate
-                : loan.getDueDate(loans);
-
-            if (loan.lender != msg.sender) {
-                revert ISize.InvalidLoanId(loanId);
-            }
-            if (dueDate > offer.maxDueDate) {
-                // loan is due after offer maxDueDate
-                continue;
-            }
-            if (dueDate < loan.getDueDate(loans)) {
-                // loan is due before offer dueDate
-                continue;
-            }
-
-            uint256 r = PERCENT + offer.getRate(dueDate);
-            uint256 amountInLeft = (r * amountOutLeft) / PERCENT;
-            uint256 deltaAmountIn;
-            uint256 deltaAmountOut;
-            if (amountInLeft >= loan.maxExit()) {
-                deltaAmountIn = loan.maxExit();
-                deltaAmountOut = (loan.maxExit() * PERCENT) / r;
-            } else {
-                deltaAmountIn = amountInLeft;
-                deltaAmountOut = (amountInLeft * PERCENT) / r;
-            }
-
-            loans.push(
-                Loan({
-                    FV: deltaAmountIn,
-                    amountFVExited: 0,
-                    lender: offer.lender,
-                    borrower: msg.sender,
-                    dueDate: loan.dueDate,
-                    FVCoveredByRealCollateral: loan.FVCoveredByRealCollateral,
-                    repaid: false,
-                    folId: loanId
-                })
-            );
-
-            loan.lock(deltaAmountIn);
-            // NOTE: Transfer deltaAmountOut for each SOL created
-            users[offer.lender].cash.transfer(borrower.cash, deltaAmountOut);
-            offer.maxAmount -= deltaAmountOut;
-            amountInLeft -= deltaAmountIn;
-            amountOutLeft -= deltaAmountOut;
-        }
-
-        // TODO cover the remaining amount with real collateral
-        if (amountOutLeft > 0) {
-            uint256 maxETHToLock = ((amountOutLeft * CROpening) /
-                priceFeed.getPrice());
-            if (!borrower.eth.lock(maxETHToLock)) {
-                revert ISize.NotEnoughCash(borrower.eth.free, maxETHToLock);
-            }
-            // TODO Lock ETH to cover that amount
-            borrower.totDebtCoveredByRealCollateral += amountOutLeft;
-            // @audit python code is double counting cash transfer since it is transferring `amount`
-            users[offer.lender].cash.transfer(borrower.cash, amountOutLeft);
-            // @audit shouldn't this scenario open a FOL? basically the borrower took N SOLs, doesn't have enough virtual collateral to back the full loan offer and now the last piece of `offer.maxAmount` won't have been updated
-        }
-
-        _validateUserHealthy(msg.sender);
-    }
-
     function repay(uint256 loanId, uint256 amount) public {
         Loan storage loan = loans[loanId];
-        if (loan.FVCoveredByRealCollateral == 0) {
-            revert ISize.NothingToRepay();
-        }
+        // if (loan.FVCoveredByRealCollateral == 0) {
+        //     revert ISize.NothingToRepay();
+        // }
         if (users[loan.borrower].cash.free < amount) {
             revert ISize.NotEnoughCash(users[loan.borrower].cash.free, amount);
         }
-        // @audit why not partial repay? will help borrower CR
-        if (amount < loan.FVCoveredByRealCollateral) {
-            revert ISize.InvalidAmount(loan.FVCoveredByRealCollateral);
-        }
+        // if (amount < loan.FVCoveredByRealCollateral) {
+        //     revert ISize.InvalidAmount(loan.FVCoveredByRealCollateral);
+        // }
 
-        uint256 excess = amount - loan.FVCoveredByRealCollateral;
+        // uint256 excess = amount - loan.FVCoveredByRealCollateral;
 
-        (excess);
+        // (excess);
 
         users[loan.borrower].cash.free -= amount;
-        users[loan.lender].cash.locked += loan.FVCoveredByRealCollateral;
-        users[loan.borrower].totDebtCoveredByRealCollateral -= loan
-            .FVCoveredByRealCollateral;
-        loan.FVCoveredByRealCollateral = 0;
-        // @audit shouldn't the loan be deleted here??
-    }
-
-    function unlock(uint256 loanId, uint256 time, uint256 amount) public {
-        Loan storage loan = loans[loanId];
-        users[loan.lender].schedule.unlocked.increment(time, amount);
-        uint256 length = users[loan.lender].schedule.length();
-
-        (length);
-
-        bool isNegative = users[loan.lender].schedule.isNegativeRANC();
-        if (isNegative) {
-            users[loan.lender].schedule.unlocked.decrement(time, amount);
-            require(false, "impossible to unlock loan");
-        }
+        // users[loan.lender].cash.locked += loan.FVCoveredByRealCollateral;
+        // users[loan.borrower].totDebtCoveredByRealCollateral -= loan
+        //     .FVCoveredByRealCollateral;
+        // loan.FVCoveredByRealCollateral = 0;
+        loan.repaid = true;
     }
 
     function _computeCollateralForDebt(
@@ -458,44 +357,7 @@ contract Size is
         User storage liquidator = users[msg.sender];
 
         Loan storage loan = loans[loanId];
-        int256[] memory RANC = users[loan.borrower].schedule.RANC();
 
-        if (RANC[loan.dueDate] >= 0) revert ISize.NotLiquidatable();
-
-        uint256 loanDebtUncovered = uint256(-1 * RANC[loan.dueDate]);
-        uint256 totBorroweDebt = users[loan.borrower]
-            .totDebtCoveredByRealCollateral;
-        uint256 loanCollateral = (users[loan.borrower].eth.locked *
-            loanDebtUncovered) / totBorroweDebt;
-
-        // @audit borrower does not need to be liquidatable for loan to be liquidatable
-        if (
-            !users[loan.borrower].isLiquidatable(
-                priceFeed.getPrice(),
-                CRLiquidation
-            )
-        ) {
-            revert ISize.NotLiquidatable();
-        }
-        if (liquidator.cash.free < loanDebtUncovered) {
-            revert ISize.NotEnoughCash(liquidator.cash.free, loanDebtUncovered);
-        }
-
-        uint256 targetAmountETH = _computeCollateralForDebt(loanDebtUncovered);
-        uint256 actualAmountETH = Math.min(
-            targetAmountETH,
-            users[loan.borrower].eth.locked
-        );
-        if (actualAmountETH < targetAmountETH) {
-            emit LiquidationAtLoss(targetAmountETH - actualAmountETH);
-        }
-
-        _liquidationSwap(
-            liquidator,
-            users[loan.borrower],
-            loanDebtUncovered,
-            loanCollateral
-        );
-        // @audit specific loan is not being cleared
+        revert TODO();
     }
 }
