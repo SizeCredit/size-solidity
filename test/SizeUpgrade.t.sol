@@ -7,12 +7,12 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {Size} from "../src/Size.sol";
-import {SizeMock} from "./mocks/SizeMock.sol";
+import {SizeV2} from "./mocks/SizeV2.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 
 contract SizeUpgradeTest is Test {
     Size public v1;
-    SizeMock public v2;
+    SizeV2 public v2;
     ERC1967Proxy public proxy;
     PriceFeedMock public priceFeed;
 
@@ -33,9 +33,8 @@ contract SizeUpgradeTest is Test {
                 1.3e18
             )
         );
-        v2 = new SizeMock();
+        v2 = new SizeV2();
         UUPSUpgradeable(address(proxy)).upgradeToAndCall(address(v2), "");
-
-        SizeMock(address(proxy)).setExpectedFV(address(0), 1, 2);
+        assertEq(SizeV2(address(proxy)).version(), 2);
     }
 }
