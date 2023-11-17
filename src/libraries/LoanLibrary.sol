@@ -28,7 +28,7 @@ library LoanLibrary {
         return self.folId == 0;
     }
 
-    function maxExit(Loan storage self) public view returns (uint256) {
+    function maxExit(Loan memory self) public view returns (uint256) {
         return self.FV - self.amountFVExited;
     }
 

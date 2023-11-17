@@ -13,48 +13,61 @@ import {BaseTest} from "./BaseTest.sol";
 import {ExperimentsHelper} from "./helpers/ExperimentsHelper.sol";
 import {JSONParserHelper} from "./helpers/JSONParserHelper.sol";
 
-contract OrderbookExperimentsTest is Test, BaseTest, JSONParserHelper, ExperimentsHelper {
+contract OrderbookExperimentsTest is
+    Test,
+    BaseTest,
+    JSONParserHelper,
+    ExperimentsHelper
+{
     using EnumerableMap for EnumerableMap.UintToUintMap;
     using LoanLibrary for Loan;
     using OfferLibrary for LoanOffer;
 
-    // function test_experiment_1() public {
-    //     console.log("Basic Functioning");
-    //     console.log("Place an offer");
-    //     console.log("Pick a loan from that offer");
+    function test_experiment_1() public {
+        console.log("context");
+        priceFeed.setPrice(100e18);
+        vm.warp(0);
 
-    //     console.log("context");
-    //     priceFeed.setPrice(100e18);
-    //     vm.warp(0);
+        vm.prank(alice);
+        size.deposit(100e18, 0);
+        // vm.prank(bob);
+        // size.deposit(100e18, 100e18);
+        // vm.prank(james);
+        // size.deposit(100e18, 100e18);
 
-    //     vm.prank(alice);
-    //     size.deposit(100e18, 0);
-    //     vm.prank(bob);
-    //     size.deposit(100e18, 0);
-    //     vm.prank(james);
-    //     size.deposit(100e18, 0);
+        vm.prank(alice);
+        size.lendAsLimitOrder(
+            100e18,
+            10,
+            YieldCurveLibrary.getFlatRate(0.03e18, 12)
+        );
 
-    //     console.log("Let's pretend she has some virtual collateral i.e. some loan she has given");
-    //     size.setExpectedFV(alice, 3, 100e18);
+        uint256[] memory virtualCollateralLoansIds;
+        vm.prank(james);
+        size.borrowAsMarketOrder(1, 100e18, 6, virtualCollateralLoansIds);
 
-    //     YieldCurve memory curve = YieldCurveLibrary.getFlatRate(0.03e18, 12);
+        assertEq(size.activeLoans(), 1);
+        Loan memory loan = size.loan(0);
+        assertEq(loan.maxExit(), loan.FV);
 
-    //     vm.prank(bob);
-    //     size.lendAsLimitOrder(100e18, 10, curve);
+        vm.prank(bob);
+        size.deposit(100e18, 0);
 
-    //     console.log("This will revert");
-    //     vm.prank(alice);
-    //     vm.expectRevert();
-    //     size.borrowAsMarketOrder(1, 100e18, 6);
+        (
+            uint256 cashFree,
+            uint256 cashLocked,
+            uint256 ethFree,
+            uint256 ethLocked
+        ) = size.getUserCollateral(bob);
+        assertEq(cashFree, 100e18);
 
-    //     console.log("This will succeed");
-    //     vm.prank(alice);
-    //     size.borrowAsMarketOrder(1, 50e18, 6);
-
-    //     plot("bob_1", size.getBorrowerStatus(bob));
-    //     plot("alice_1", size.getBorrowerStatus(alice));
-    //     plot("james_1", size.getBorrowerStatus(james));
-    // }
+        vm.prank(bob);
+        size.lendAsLimitOrder(
+            100e18,
+            10,
+            YieldCurveLibrary.getFlatRate(0.03e18, 12)
+        );
+    }
 
     // function test_experiment_2() public {
     //     console.log("Extension of the above with borrower liquidation");

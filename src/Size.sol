@@ -138,18 +138,21 @@ contract Size is
     function borrowAsMarketOrder(
         uint256 offerId,
         uint256 amount,
-        uint256[] memory virtualCollateralLoansIds,
-        uint256 dueDate
+        uint256 dueDate,
+        uint256[] memory virtualCollateralLoansIds
     ) public {
         User storage borrower = users[msg.sender];
         LoanOffer storage offer = loanOffers[offerId];
         User storage lender = users[offer.lender];
+        if(dueDate <= block.timestamp) {
+            revert ISize.PastDueDate();
+        }
         if (amount > offer.maxAmount) {
             revert ISize.InvalidAmount(offer.maxAmount);
         }
-        if (lender.cash.free < amount) {
-            revert ISize.NotEnoughCash(lender.cash.free, amount);
-        }
+        // if (lender.cash.free < amount) {
+        //     revert ISize.NotEnoughCash(lender.cash.free, amount);
+        // }
 
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
