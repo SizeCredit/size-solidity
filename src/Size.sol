@@ -22,13 +22,7 @@ import {IPriceFeed} from "./oracle/IPriceFeed.sol";
 
 import {ISize} from "./interfaces/ISize.sol";
 
-contract Size is
-    ISize,
-    SizeValidations,
-    Initializable,
-    Ownable2StepUpgradeable,
-    UUPSUpgradeable
-{
+contract Size is ISize, SizeValidations, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
     using OfferLibrary for LoanOffer;
     using RealCollateralLibrary for RealCollateral;
@@ -46,7 +40,9 @@ contract Size is
         IPriceFeed _priceFeed,
         uint256 _maxTime,
         uint256 _CROpening,
-        uint256 _CRLiquidation
+        uint256 _CRLiquidation,
+        uint256 _collateralPercPremiumToLiquidator,
+        uint256 _collateralPercPremiumToBorrower
     ) public initializer {
         __Ownable_init(_owner);
         __Ownable2Step_init();
@@ -62,6 +58,8 @@ contract Size is
         maxTime = _maxTime;
         CROpening = _CROpening;
         CRLiquidation = _CRLiquidation;
+        collateralPercPremiumToLiquidator = _collateralPercPremiumToLiquidator;
+        collateralPercPremiumToBorrower = _collateralPercPremiumToBorrower;
 
         LoanOffer memory lo;
         loanOffers.push(lo);
@@ -71,9 +69,7 @@ contract Size is
         loans.push(l);
     }
 
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function deposit(uint256 cash, uint256 eth) public {
         users[msg.sender].cash.free += cash;
@@ -87,11 +83,7 @@ contract Size is
         _validateUserHealthy(msg.sender);
     }
 
-    function lendAsLimitOrder(
-        uint256 maxAmount,
-        uint256 maxDueDate,
-        YieldCurve calldata curveRelativeTime
-    ) public {
+    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public {
         loanOffers.push(
             LoanOffer({
                 lender: msg.sender,
@@ -102,37 +94,30 @@ contract Size is
         );
     }
 
-    function borrowAsLimitOrder(
-        uint256 maxAmount,
-        YieldCurve calldata curveRelativeTime
-    ) public {
+    function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public {
         borrowOffers.push(
-            BorrowOffer({
-                borrower: msg.sender,
-                maxAmount: maxAmount,
-                curveRelativeTime: curveRelativeTime
-            })
+            BorrowOffer({borrower: msg.sender, maxAmount: maxAmount, curveRelativeTime: curveRelativeTime})
         );
     }
 
-    function lendAsMarketOrder(
-        uint256 borrowOfferId,
-        uint256 dueDate,
-        uint256 amount
-    ) public {
+    function lendAsMarketOrder(uint256 borrowOfferId, uint256 dueDate, uint256 amount) public {
         BorrowOffer storage offer = borrowOffers[borrowOfferId];
         User storage lender = users[msg.sender];
 
-        // if (offer.dueDate <= block.timestamp) revert ISize.PastDueDate();
-        // if (amount > offer.maxAmount)
-        //     revert ISize.InvalidAmount(offer.maxAmount);
-        if (lender.cash.free < amount)
+        if (amount > offer.maxAmount) {
+            revert ISize.InvalidAmount(offer.maxAmount);
+        }
+        if (lender.cash.free < amount) {
             revert ISize.NotEnoughCash(lender.cash.free, amount);
+        }
 
         // uint256 rate = offer.getRate(dueDate);
         // uint256 r = (PERCENT + rate);
 
-        revert TODO();
+        (dueDate);
+
+        emit TODO();
+        revert();
     }
 
     function borrowAsMarketOrder(
@@ -144,15 +129,15 @@ contract Size is
         User storage borrower = users[msg.sender];
         LoanOffer storage offer = loanOffers[offerId];
         User storage lender = users[offer.lender];
-        if(dueDate <= block.timestamp) {
+        if (dueDate <= block.timestamp) {
             revert ISize.PastDueDate();
         }
         if (amount > offer.maxAmount) {
             revert ISize.InvalidAmount(offer.maxAmount);
         }
-        // if (lender.cash.free < amount) {
-        //     revert ISize.NotEnoughCash(lender.cash.free, amount);
-        // }
+        if (lender.cash.free < amount) {
+            revert ISize.NotEnoughCash(lender.cash.free, amount);
+        }
 
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
@@ -171,9 +156,7 @@ contract Size is
             }
 
             Loan storage loan = loans[loanId];
-            dueDate = dueDate != type(uint256).max
-                ? dueDate
-                : loan.getDueDate(loans);
+            dueDate = dueDate != type(uint256).max ? dueDate : loan.getDueDate(loans);
 
             if (loan.lender != msg.sender) {
                 revert ISize.InvalidLoanId(loanId);
@@ -190,9 +173,9 @@ contract Size is
             uint256 amountInLeft = (r * amountOutLeft) / PERCENT;
             uint256 deltaAmountIn;
             uint256 deltaAmountOut;
-            if (amountInLeft >= loan.maxExit()) {
-                deltaAmountIn = loan.maxExit();
-                deltaAmountOut = (loan.maxExit() * PERCENT) / r;
+            if (amountInLeft >= loan.getCredit()) {
+                deltaAmountIn = loan.getCredit();
+                deltaAmountOut = (loan.getCredit() * PERCENT) / r;
             } else {
                 deltaAmountIn = amountInLeft;
                 deltaAmountOut = (amountInLeft * PERCENT) / r;
@@ -211,9 +194,7 @@ contract Size is
         if (amountOutLeft > 0) {
             uint256 FV = (r * amountOutLeft) / PERCENT;
             uint256 maxETHToLock = ((FV * CROpening) / priceFeed.getPrice());
-            if (!borrower.eth.lock(maxETHToLock)) {
-                revert ISize.NotEnoughCash(borrower.eth.free, maxETHToLock);
-            }
+            borrower.eth.lock(maxETHToLock);
             // TODO Lock ETH to cover that amount
             borrower.totDebtCoveredByRealCollateral += FV;
             loans.createFOL(offer.lender, msg.sender, FV, dueDate);
@@ -223,20 +204,18 @@ contract Size is
         _validateUserHealthy(msg.sender);
     }
 
-    function exit(
-        uint256 loanId,
-        uint256 amount,
-        uint256 dueDate,
-        uint256[] memory loanOffersIds
-    ) public returns (uint256) {
+    function exit(uint256 loanId, uint256 amount, uint256 dueDate, uint256[] memory loanOffersIds)
+        public
+        returns (uint256)
+    {
         // NOTE: The exit is equivalent to a spot swap for exact amount in wheres
         // - the exiting lender is the taker
         // - the other lenders are the makers
         // The swap traverses the `loanOffersIds` as they if they were ticks with liquidity in an orderbook
         Loan storage loan = loans[loanId];
         if (loan.lender != msg.sender) revert ISize.InvalidLender();
-        if (amount > loan.maxExit()) {
-            revert ISize.InvalidAmount(loan.maxExit());
+        if (amount > loan.getCredit()) {
+            revert ISize.InvalidAmount(loan.getCredit());
         }
 
         uint256 amountInLeft = amount;
@@ -262,10 +241,7 @@ contract Size is
 
             loans.createSOL(loanId, offer.lender, msg.sender, deltaAmountIn);
             loan.lock(deltaAmountIn);
-            users[offer.lender].cash.transfer(
-                users[msg.sender].cash,
-                deltaAmountOut
-            );
+            users[offer.lender].cash.transfer(users[msg.sender].cash, deltaAmountOut);
             offer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
         }
@@ -275,49 +251,37 @@ contract Size is
 
     function repay(uint256 loanId, uint256 amount) public {
         Loan storage loan = loans[loanId];
-        // if (loan.FVCoveredByRealCollateral == 0) {
-        //     revert ISize.NothingToRepay();
-        // }
-        if (users[loan.borrower].cash.free < amount) {
-            revert ISize.NotEnoughCash(users[loan.borrower].cash.free, amount);
+        User storage borrower = users[loan.borrower];
+        User storage protocol = users[address(this)];
+        if (!loan.isFOL()) {
+            revert ISize.InvalidLoanId(loanId);
         }
-        // if (amount < loan.FVCoveredByRealCollateral) {
-        //     revert ISize.InvalidAmount(loan.FVCoveredByRealCollateral);
-        // }
+        if (loan.repaid) {
+            revert ISize.NothingToRepay();
+        }
+        if (amount < loan.FV) {
+            // NOTE partial repayment currently unsupported
+            revert ISize.NotEnoughCash(amount, loan.FV);
+        }
+        if (borrower.cash.free < amount) {
+            revert ISize.NotEnoughCash(borrower.cash.free, amount);
+        }
 
-        // uint256 excess = amount - loan.FVCoveredByRealCollateral;
-
-        // (excess);
-
-        users[loan.borrower].cash.free -= amount;
-        // users[loan.lender].cash.locked += loan.FVCoveredByRealCollateral;
-        // users[loan.borrower].totDebtCoveredByRealCollateral -= loan
-        //     .FVCoveredByRealCollateral;
-        // loan.FVCoveredByRealCollateral = 0;
+        borrower.cash.transfer(protocol.cash, amount);
+        borrower.totDebtCoveredByRealCollateral -= loan.FV;
         loan.repaid = true;
     }
 
-    function _computeCollateralForDebt(
-        uint256 amountUSDC
-    ) private returns (uint256) {
-        return (amountUSDC * 1e18) / priceFeed.getPrice();
-    }
-
-    function _liquidationSwap(
-        User storage liquidator,
-        User storage borrower,
-        uint256 amountUSDC,
-        uint256 amountETH
-    ) private {
+    function _liquidationSwap(User storage liquidator, User storage borrower, uint256 amountUSDC, uint256 amountETH)
+        private
+    {
         liquidator.cash.transfer(borrower.cash, amountUSDC);
         borrower.cash.lock(amountUSDC);
         borrower.eth.unlock(amountETH);
         borrower.eth.transfer(liquidator.eth, amountETH);
     }
 
-    function liquidateBorrower(
-        address _borrower
-    ) public returns (uint256, uint256) {
+    function liquidateBorrower(address _borrower) public returns (uint256, uint256) {
         User storage borrower = users[_borrower];
         User storage liquidator = users[msg.sender];
 
@@ -326,24 +290,17 @@ contract Size is
         }
         // @audit partial liquidations? maybe not, just assume flash loan??
         if (liquidator.cash.free < borrower.totDebtCoveredByRealCollateral) {
-            revert ISize.NotEnoughCash(
-                liquidator.cash.free,
-                borrower.totDebtCoveredByRealCollateral
-            );
+            revert ISize.NotEnoughCash(liquidator.cash.free, borrower.totDebtCoveredByRealCollateral);
         }
 
         uint256 temp = borrower.cash.locked;
 
         (temp);
 
-        uint256 amountUSDC = borrower.totDebtCoveredByRealCollateral -
-            borrower.cash.locked;
+        uint256 amountUSDC = borrower.totDebtCoveredByRealCollateral - borrower.cash.locked;
 
-        uint256 targetAmountETH = _computeCollateralForDebt(amountUSDC);
-        uint256 actualAmountETH = Math.min(
-            targetAmountETH,
-            borrower.eth.locked
-        );
+        uint256 targetAmountETH = (amountUSDC * 1e18) / priceFeed.getPrice();
+        uint256 actualAmountETH = Math.min(targetAmountETH, borrower.eth.locked);
         if (actualAmountETH < targetAmountETH) {
             // @audit why would this happen? should we prevent the liquidator from doing it?
             emit LiquidationAtLoss(targetAmountETH - actualAmountETH);
@@ -357,10 +314,8 @@ contract Size is
     }
 
     function liquidateLoan(uint256 loanId) public {
-        User storage liquidator = users[msg.sender];
-
-        Loan storage loan = loans[loanId];
-
-        revert TODO();
+        (loanId);
+        emit TODO();
+        revert();
     }
 }

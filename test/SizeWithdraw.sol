@@ -31,7 +31,7 @@ contract SizeWithdrawTest is BaseTest {
         assertEq(cashLocked, 0);
         assertEq(ethFree, y);
         assertEq(ethLocked, 0);
-        
+
         z = bound(z, 0, x);
         w = bound(w, 0, y);
 
@@ -43,7 +43,6 @@ contract SizeWithdrawTest is BaseTest {
         assertEq(ethLocked, 0);
     }
 
-    function test_SizeWithdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
-      revert("TODO");
-    }
+    // function test_SizeWithdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
+    // }
 }

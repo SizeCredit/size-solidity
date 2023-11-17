@@ -13,12 +13,7 @@ import {BaseTest} from "./BaseTest.sol";
 import {ExperimentsHelper} from "./helpers/ExperimentsHelper.sol";
 import {JSONParserHelper} from "./helpers/JSONParserHelper.sol";
 
-contract OrderbookExperimentsTest is
-    Test,
-    BaseTest,
-    JSONParserHelper,
-    ExperimentsHelper
-{
+contract OrderbookExperimentsTest is Test, BaseTest, JSONParserHelper, ExperimentsHelper {
     using EnumerableMap for EnumerableMap.UintToUintMap;
     using LoanLibrary for Loan;
     using OfferLibrary for LoanOffer;
@@ -36,11 +31,7 @@ contract OrderbookExperimentsTest is
         // size.deposit(100e18, 100e18);
 
         vm.prank(alice);
-        size.lendAsLimitOrder(
-            100e18,
-            10,
-            YieldCurveLibrary.getFlatRate(0.03e18, 12)
-        );
+        size.lendAsLimitOrder(100e18, 10, YieldCurveLibrary.getFlatRate(0.03e18, 12));
 
         uint256[] memory virtualCollateralLoansIds;
         vm.prank(james);
@@ -53,20 +44,11 @@ contract OrderbookExperimentsTest is
         vm.prank(bob);
         size.deposit(100e18, 0);
 
-        (
-            uint256 cashFree,
-            uint256 cashLocked,
-            uint256 ethFree,
-            uint256 ethLocked
-        ) = size.getUserCollateral(bob);
+        (uint256 cashFree, uint256 cashLocked, uint256 ethFree, uint256 ethLocked) = size.getUserCollateral(bob);
         assertEq(cashFree, 100e18);
 
         vm.prank(bob);
-        size.lendAsLimitOrder(
-            100e18,
-            10,
-            YieldCurveLibrary.getFlatRate(0.03e18, 12)
-        );
+        size.lendAsLimitOrder(100e18, 10, YieldCurveLibrary.getFlatRate(0.03e18, 12));
     }
 
     // function test_experiment_2() public {

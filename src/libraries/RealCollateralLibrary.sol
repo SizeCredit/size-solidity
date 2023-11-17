@@ -7,46 +7,30 @@ struct RealCollateral {
 }
 
 library RealCollateralLibrary {
-    event RealCollateralLibrary__CollateralNotEnough(uint256 amount, uint256 free);
+    error CollateralNotEnough(uint256 amount, uint256 free);
 
-    function lockAbs(RealCollateral storage self, uint256 amount) public returns (bool) {
-        self.free += self.locked;
+    function lock(RealCollateral storage self, uint256 amount) public {
         if (amount > self.free) {
-            emit RealCollateralLibrary__CollateralNotEnough(amount, self.free);
-            self.locked = 0;
-            return false;
-        } else {
-            // @audit Is this assign instead of increment?
-            self.locked = amount;
-            self.free -= amount;
-            return true;
+            revert CollateralNotEnough(amount, self.free);
         }
+
+        self.free -= amount;
+        self.locked += amount;
     }
 
-    function lock(RealCollateral storage self, uint256 amount) public returns (bool) {
-        if (amount <= self.free) {
-            self.free -= amount;
-            self.locked += amount;
-            return true;
-        } else {
-            emit RealCollateralLibrary__CollateralNotEnough(amount, self.free);
-            return false;
+    function unlock(RealCollateral storage self, uint256 amount) public {
+        if (amount > self.locked) {
+            revert CollateralNotEnough(amount, self.locked);
         }
-    }
-
-    function unlock(RealCollateral storage self, uint256 amount) public returns (bool) {
-        if (amount <= self.locked) {
-            self.locked -= amount;
-            self.free += amount;
-            return true;
-        } else {
-            emit RealCollateralLibrary__CollateralNotEnough(amount, self.locked);
-            return false;
-        }
+        self.locked -= amount;
+        self.free += amount;
     }
 
     function transfer(RealCollateral storage self, RealCollateral storage other, uint256 amount) public {
-        assert(self.free >= amount);
+        if (amount > self.free) {
+            revert CollateralNotEnough(amount, self.free);
+        }
+
         self.free -= amount;
         other.free += amount;
     }

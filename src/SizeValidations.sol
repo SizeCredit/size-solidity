@@ -7,7 +7,7 @@ import {ISize} from "./interfaces/ISize.sol";
 import {SizeView} from "./SizeView.sol";
 
 abstract contract SizeSecurityValidations is SizeView, ISize {
-    function _validateUserHealthy(address account) internal {
+    function _validateUserHealthy(address account) internal view {
         if (isLiquidatable(account)) {
             revert ISize.UserUnhealthy(account);
         }
@@ -20,24 +20,24 @@ abstract contract SizeInputValidations is SizeView, ISize {
             revert ISize.NullAddress();
         }
     }
-    function _validateOfferId(uint256 offerId) internal {
+
+    function _validateOfferId(uint256 offerId) internal view {
         if (offerId == 0 || offerId >= loanOffers.length) {
             revert ISize.InvalidOfferId(offerId);
         }
     }
-    function _validateCollateralRatio(uint256 cr) internal {
-        if(cr < PERCENT) {
+
+    function _validateCollateralRatio(uint256 cr) internal pure {
+        if (cr < PERCENT) {
             revert InvalidCollateralRatio(cr);
         }
     }
-    function _validateCollateralRatio(uint256 crOpening, uint256 crLiquidation) internal {
-        if(crOpening <= crLiquidation) {
+
+    function _validateCollateralRatio(uint256 crOpening, uint256 crLiquidation) internal pure {
+        if (crOpening <= crLiquidation) {
             revert InvalidLiquidationCollateralRatio(crOpening, crLiquidation);
         }
     }
 }
 
-abstract contract SizeValidations is
-    SizeSecurityValidations,
-    SizeInputValidations
-{}
+abstract contract SizeValidations is SizeSecurityValidations, SizeInputValidations {}

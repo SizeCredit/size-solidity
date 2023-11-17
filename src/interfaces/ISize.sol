@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 interface ISize {
     event LiquidationAtLoss(uint256 amount);
+    event TODO();
 
-    error TODO();
     error UserUnhealthy(address account);
     error NullAddress();
     error InvalidCollateralRatio(uint256 cr);

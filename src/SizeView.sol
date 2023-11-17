@@ -13,25 +13,36 @@ abstract contract SizeView is SizeStorage {
     using LoanLibrary for Loan;
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
 
-    function getCollateralRatio(address user) public returns (uint256) {
+    function getCollateralRatio(address user) public view returns (uint256) {
         return users[user].collateralRatio(priceFeed.getPrice());
     }
 
-    function isLiquidatable(address user) public returns (bool) {
+    function isLiquidatable(address user) public view returns (bool) {
         return users[user].isLiquidatable(priceFeed.getPrice(), CRLiquidation);
     }
 
+    function isLiquidatable(uint256 loanId) public view returns (bool) {
+        Loan memory loan = loans[loanId];
+        return users[loan.borrower].isLiquidatable(priceFeed.getPrice(), CRLiquidation);
+    }
+
+    function getAssignedCollateral(uint256 loanId) public view returns (uint256) {
+        Loan memory loan = loans[loanId];
+        User memory borrower = users[loan.borrower];
+        if (borrower.totDebtCoveredByRealCollateral == 0) {
+            return 0;
+        } else {
+            return borrower.eth.free * loan.FV / borrower.totDebtCoveredByRealCollateral;
+        }
+    }
+
     function getUserCollateral(address user) public view returns (uint256, uint256, uint256, uint256) {
-        User storage u = users[user];
+        User memory u = users[user];
         return (u.cash.free, u.cash.locked, u.eth.free, u.eth.locked);
     }
 
     function activeLoans() public view returns (uint256) {
         return loans.length - 1;
-    }
-
-    function loan(uint256 loanId) public view returns (Loan memory) {
-        return loans[loanId];
     }
 
     function isFOL(uint256 loanId) public view returns (bool) {

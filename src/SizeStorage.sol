@@ -14,4 +14,6 @@ abstract contract SizeStorage {
     uint256 public maxTime;
     uint256 public CROpening;
     uint256 public CRLiquidation;
+    uint256 public collateralPercPremiumToLiquidator;
+    uint256 public collateralPercPremiumToBorrower;
 }
