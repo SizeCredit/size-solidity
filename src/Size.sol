@@ -9,6 +9,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {SizeValidations} from "./SizeValidations.sol";
+import {SizeVirtualCollateral} from "./SizeVirtualCollateral.sol";
 
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
 import {OfferLibrary, LoanOffer, BorrowOffer} from "./libraries/OfferLibrary.sol";
@@ -22,7 +23,7 @@ import {IPriceFeed} from "./oracle/IPriceFeed.sol";
 
 import {ISize} from "./interfaces/ISize.sol";
 
-contract Size is ISize, SizeValidations, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract Size is ISize, SizeValidations, SizeVirtualCollateral, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
     using OfferLibrary for LoanOffer;
     using RealCollateralLibrary for RealCollateral;
@@ -150,56 +151,13 @@ contract Size is ISize, SizeValidations, Initializable, Ownable2StepUpgradeable,
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
-        uint256 r = PERCENT + offer.getRate(dueDate);
 
         //  NOTE: The `amountOutLeft` is going to be decreased as more and more SOLs are created
-
-        uint256 amountOutLeft = amount;
-
-        for (uint256 i = 0; i < virtualCollateralLoansIds.length; ++i) {
-            uint256 loanId = virtualCollateralLoansIds[i];
-            // Full amount borrowed
-            if (amountOutLeft == 0) {
-                break;
-            }
-
-            Loan storage loan = loans[loanId];
-            dueDate = dueDate != type(uint256).max ? dueDate : loan.getDueDate(loans);
-
-            if (loan.lender != msg.sender) {
-                revert ISize.InvalidLoanId(loanId);
-            }
-            if (dueDate > offer.maxDueDate) {
-                // loan is due after offer maxDueDate
-                continue;
-            }
-            if (dueDate < loan.getDueDate(loans)) {
-                // loan is due before offer dueDate
-                continue;
-            }
-
-            uint256 amountInLeft = (r * amountOutLeft) / PERCENT;
-            uint256 deltaAmountIn;
-            uint256 deltaAmountOut;
-            if (amountInLeft >= loan.getCredit()) {
-                deltaAmountIn = loan.getCredit();
-                deltaAmountOut = (loan.getCredit() * PERCENT) / r;
-            } else {
-                deltaAmountIn = amountInLeft;
-                deltaAmountOut = (amountInLeft * PERCENT) / r;
-            }
-
-            loans.createSOL(loanId, offer.lender, msg.sender, deltaAmountIn);
-            loan.lock(deltaAmountIn);
-            // NOTE: Transfer deltaAmountOut for each SOL created
-            users[offer.lender].cash.transfer(borrower.cash, deltaAmountOut);
-            offer.maxAmount -= deltaAmountOut;
-            amountInLeft -= deltaAmountIn;
-            amountOutLeft -= deltaAmountOut;
-        }
+        uint256 amountOutLeft = _borrowWithVirtualCollateral(offerId, amount, dueDate, virtualCollateralLoansIds);
 
         // TODO cover the remaining amount with real collateral
         if (amountOutLeft > 0) {
+            uint256 r = PERCENT + offer.getRate(dueDate);
             uint256 FV = (r * amountOutLeft) / PERCENT;
             uint256 maxETHToLock = ((FV * CROpening) / priceFeed.getPrice());
             borrower.eth.lock(maxETHToLock);
