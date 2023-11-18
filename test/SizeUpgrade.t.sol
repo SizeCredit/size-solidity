@@ -20,7 +20,7 @@ contract SizeUpgradeTest is Test {
         priceFeed = new PriceFeedMock(address(this));
     }
 
-    function test_SizeUpgrade_proxy_can_be_upgraded() public {
+    function test_SizeUpgrade_proxy_can_be_upgraded_with_uups_casting() public {
         v1 = new Size();
         proxy = new ERC1967Proxy(
             address(v1),
@@ -30,11 +30,35 @@ contract SizeUpgradeTest is Test {
                 priceFeed,
                 12,
                 1.5e18,
-                1.3e18
+                1.3e18,
+                0.3e18,
+                0.1e18
             )
         );
         v2 = new SizeV2();
+
         UUPSUpgradeable(address(proxy)).upgradeToAndCall(address(v2), "");
+        assertEq(SizeV2(address(proxy)).version(), 2);
+    }
+
+    function test_SizeUpgrade_proxy_can_be_upgraded_directly() public {
+        v1 = new Size();
+        proxy = new ERC1967Proxy(
+            address(v1),
+            abi.encodeWithSelector(
+                Size.initialize.selector,
+                address(this),
+                priceFeed,
+                12,
+                1.5e18,
+                1.3e18,
+                0.3e18,
+                0.1e18
+            )
+        );
+        v2 = new SizeV2();
+
+        Size(address(proxy)).upgradeToAndCall(address(v2), "");
         assertEq(SizeV2(address(proxy)).version(), 2);
     }
 }

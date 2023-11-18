@@ -53,6 +53,9 @@ contract Size is ISize, SizeValidations, Initializable, Ownable2StepUpgradeable,
         _validateCollateralRatio(_CROpening);
         _validateCollateralRatio(_CRLiquidation);
         _validateCollateralRatio(_CROpening, _CRLiquidation);
+        _validateCollateralPercPremium(_collateralPercPremiumToLiquidator);
+        _validateCollateralPercPremium(_collateralPercPremiumToBorrower);
+        _validateCollateralPercPremium(_collateralPercPremiumToLiquidator, _collateralPercPremiumToBorrower);
 
         priceFeed = _priceFeed;
         maxTime = _maxTime;
@@ -83,7 +86,7 @@ contract Size is ISize, SizeValidations, Initializable, Ownable2StepUpgradeable,
         _validateUserHealthy(msg.sender);
     }
 
-    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public {
+    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public returns(uint256){
         loanOffers.push(
             LoanOffer({
                 lender: msg.sender,
@@ -92,12 +95,16 @@ contract Size is ISize, SizeValidations, Initializable, Ownable2StepUpgradeable,
                 curveRelativeTime: curveRelativeTime
             })
         );
+
+        return loanOffers.length - 1;
     }
 
-    function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public {
+    function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public returns(uint256){
         borrowOffers.push(
             BorrowOffer({borrower: msg.sender, maxAmount: maxAmount, curveRelativeTime: curveRelativeTime})
         );
+
+        return borrowOffers.length - 1;
     }
 
     function lendAsMarketOrder(uint256 borrowOfferId, uint256 dueDate, uint256 amount) public {
@@ -129,7 +136,8 @@ contract Size is ISize, SizeValidations, Initializable, Ownable2StepUpgradeable,
         User storage borrower = users[msg.sender];
         LoanOffer storage offer = loanOffers[offerId];
         User storage lender = users[offer.lender];
-        if (dueDate <= block.timestamp) {
+        if (dueDate < block.timestamp) {
+            console.log("block.timestamp", block.timestamp);
             revert ISize.PastDueDate();
         }
         if (amount > offer.maxAmount) {

@@ -8,6 +8,8 @@ interface ISize {
     error UserUnhealthy(address account);
     error NullAddress();
     error InvalidCollateralRatio(uint256 cr);
+    error InvalidCollateralPercPremium(uint256 perc);
+    error InvalidCollateralPercPremiumSum(uint256, uint256);
     error InvalidLiquidationCollateralRatio(uint256 crOpening, uint256 crLiquidation);
     error PastDueDate();
     error NothingToRepay();

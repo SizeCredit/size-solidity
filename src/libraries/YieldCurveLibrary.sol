@@ -17,6 +17,5 @@ library YieldCurveLibrary {
             curve.rates[i] = rate;
             curve.timeBuckets[i] = i;
         }
-        return curve;
     }
 }

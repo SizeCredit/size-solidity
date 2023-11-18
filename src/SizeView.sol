@@ -36,13 +36,20 @@ abstract contract SizeView is SizeStorage {
         }
     }
 
-    function getUserCollateral(address user) public view returns (uint256, uint256, uint256, uint256) {
-        User memory u = users[user];
-        return (u.cash.free, u.cash.locked, u.eth.free, u.eth.locked);
+    function getUser(address user) public view returns (User memory) {
+        return users[user];
     }
 
     function activeLoans() public view returns (uint256) {
         return loans.length - 1;
+    }
+
+    function activeLoanOffers() public view returns (uint256) {
+        return loanOffers.length - 1;
+    }
+
+    function activeBorrowOffers() public view returns (uint256) {
+        return borrowOffers.length - 1;
     }
 
     function isFOL(uint256 loanId) public view returns (bool) {
@@ -55,5 +62,9 @@ abstract contract SizeView is SizeStorage {
 
     function getDueDate(uint256 loanId) public view returns (uint256) {
         return loans[loanId].getDueDate(loans);
+    }
+
+    function getLoan(uint256 loanId) public view returns (Loan memory) {
+        return loans[loanId];
     }
 }

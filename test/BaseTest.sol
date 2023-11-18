@@ -29,7 +29,9 @@ contract BaseTest is Test {
                 priceFeed,
                 12,
                 1.5e18,
-                1.3e18
+                1.3e18,
+                0.3e18,
+                0.1e18
             )
         );
         size = SizeMock(address(proxy));
@@ -39,5 +41,7 @@ contract BaseTest is Test {
         vm.label(candy, "candy");
         vm.label(james, "james");
         vm.label(liquidator, "liquidator");
+
+        priceFeed.setPrice(1337e18);
     }
 }

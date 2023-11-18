@@ -27,7 +27,7 @@ library OfferLibrary {
     }
 
     function getRate(LoanOffer storage self, uint256 dueDate) public view returns (uint256) {
-        if (dueDate <= block.timestamp) revert OfferLibrary__PastDueDate();
+        if (dueDate < block.timestamp) revert OfferLibrary__PastDueDate();
         uint256 deltaT = dueDate - block.timestamp;
         uint256 length = self.curveRelativeTime.timeBuckets.length;
         if (deltaT < self.curveRelativeTime.timeBuckets[0] || deltaT > self.curveRelativeTime.timeBuckets[length - 1]) {

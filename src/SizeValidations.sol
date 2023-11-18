@@ -38,6 +38,19 @@ abstract contract SizeInputValidations is SizeView, ISize {
             revert InvalidLiquidationCollateralRatio(crOpening, crLiquidation);
         }
     }
+
+    function _validateCollateralPercPremium(uint256 perc) internal pure {
+        if (perc > PERCENT) {
+            revert InvalidCollateralPercPremium(perc);
+        }
+    }
+
+    function _validateCollateralPercPremium(uint256 perc1, uint256 perc2) internal pure {
+        if (perc1 + perc2 > PERCENT) {
+            revert InvalidCollateralPercPremiumSum(perc1, perc2);
+        }
+    }
+
 }
 
 abstract contract SizeValidations is SizeSecurityValidations, SizeInputValidations {}

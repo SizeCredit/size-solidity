@@ -38,14 +38,14 @@ contract OrderbookExperimentsTest is Test, BaseTest, JSONParserHelper, Experimen
         size.borrowAsMarketOrder(1, 100e18, 6, virtualCollateralLoansIds);
 
         assertEq(size.activeLoans(), 1);
-        Loan memory loan = size.loan(0);
-        assertEq(loan.maxExit(), loan.FV);
+        Loan memory loan = size.getLoan(0);
+        assertEq(loan.getCredit(), loan.FV);
 
         vm.prank(bob);
         size.deposit(100e18, 0);
 
-        (uint256 cashFree, uint256 cashLocked, uint256 ethFree, uint256 ethLocked) = size.getUserCollateral(bob);
-        assertEq(cashFree, 100e18);
+        User memory bobUser = size.getUser(bob);
+        assertEq(bobUser.cash.free, 100e18);
 
         vm.prank(bob);
         size.lendAsLimitOrder(100e18, 10, YieldCurveLibrary.getFlatRate(0.03e18, 12));
