@@ -6,8 +6,12 @@ import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 
 contract SizeBorrowTest is BaseTest {
+    uint256 private constant MAX_RATE = 2e18;
+    uint256 private constant MAX_DUE_DATE = 12;
+
     function test_SizeBorrow_borrowAsLimitOrder_increases_borrow_offers()
         public
     {
@@ -35,6 +39,7 @@ contract SizeBorrowTest is BaseTest {
             12,
             YieldCurveLibrary.getFlatRate(0.03e18, 12)
         );
+        LoanOffer memory offerBefore = size.getLoanOffer(loanOfferId);
 
         User memory aliceBefore = size.getUser(alice);
         User memory bobBefore = size.getUser(bob);
@@ -55,11 +60,13 @@ contract SizeBorrowTest is BaseTest {
         uint256 ethLocked = (debt * size.CROpening()) / priceFeed.getPrice();
         User memory aliceAfter = size.getUser(alice);
         User memory bobAfter = size.getUser(bob);
+        LoanOffer memory offerAfter = size.getLoanOffer(loanOfferId);
 
         assertEq(aliceAfter.cash.free, aliceBefore.cash.free - amount);
         assertEq(bobAfter.cash.free, bobBefore.cash.free + amount);
         assertEq(bobAfter.eth.locked, bobBefore.eth.locked + ethLocked);
         assertEq(bobAfter.totDebtCoveredByRealCollateral, debt);
+        assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
 
     function test_SizeBorrow_borrowAsMarketOrder_transfer_cash_from_lender_to_borrower(
@@ -67,11 +74,13 @@ contract SizeBorrowTest is BaseTest {
         uint256 rate,
         uint256 dueDate
     ) public {
-        uint256 maxRate = 2e18;
-        uint256 maxDueDate = 12;
         amount = bound(amount, 1, 100e18);
-        dueDate = bound(dueDate, block.timestamp, block.timestamp + maxDueDate - 1);
-        rate = bound(rate, 0, maxRate);
+        dueDate = bound(
+            dueDate,
+            block.timestamp,
+            block.timestamp + MAX_DUE_DATE - 1
+        );
+        rate = bound(rate, 0, MAX_RATE);
 
         vm.prank(alice);
         size.deposit(100e18, 100e18);
@@ -81,9 +90,10 @@ contract SizeBorrowTest is BaseTest {
         vm.startPrank(alice);
         uint256 loanOfferId = size.lendAsLimitOrder(
             100e18,
-            block.timestamp + maxDueDate,
-            YieldCurveLibrary.getFlatRate(rate, maxDueDate)
+            block.timestamp + MAX_DUE_DATE,
+            YieldCurveLibrary.getFlatRate(rate, MAX_DUE_DATE)
         );
+        LoanOffer memory offerBefore = size.getLoanOffer(loanOfferId);
 
         User memory aliceBefore = size.getUser(alice);
         User memory bobBefore = size.getUser(bob);
@@ -103,15 +113,15 @@ contract SizeBorrowTest is BaseTest {
                 priceFeed.getPrice();
             User memory aliceAfter = size.getUser(alice);
             User memory bobAfter = size.getUser(bob);
+            LoanOffer memory offerAfter = size.getLoanOffer(loanOfferId);
 
             assertEq(aliceAfter.cash.free, aliceBefore.cash.free - amount);
             assertEq(bobAfter.cash.free, bobBefore.cash.free + amount);
             assertEq(bobAfter.eth.locked, bobBefore.eth.locked + ethLocked);
             assertEq(bobAfter.totDebtCoveredByRealCollateral, debt);
+            assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
         } catch (bytes memory err) {
-            bytes4 expectedSelector = ISize.UserUnhealthy.selector;
-            bytes4 receivedSelector = bytes4(err);
-            assertEq(expectedSelector, receivedSelector);
+            assertEq(ISize.UserUnhealthy.selector, bytes4(err));
         }
     }
 }

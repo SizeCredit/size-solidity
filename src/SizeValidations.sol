@@ -51,6 +51,12 @@ abstract contract SizeInputValidations is SizeView, ISize {
         }
     }
 
+    function _validateDueDate(uint256 dueDate) internal view {
+        if (dueDate < block.timestamp) {
+            revert PastDueDate(dueDate);
+        }
+    }
+
 }
 
 abstract contract SizeValidations is SizeSecurityValidations, SizeInputValidations {}

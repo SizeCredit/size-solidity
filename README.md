@@ -27,6 +27,7 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - loan.FV == 0 <==> loan.repaid
 - upon repayment, the money is locked from the lender until due date, and the protocol earns yield meanwhile
 - cash.free + cash.locked ?= deposits
+- creating a FOL/SOL updates the offer (reduces maxAmount)
 
 
 References

@@ -18,7 +18,7 @@ abstract contract SizeVirtualCollateral is SizeStorage, ISize {
     using LoanLibrary for Loan[];
 
     function _borrowWithVirtualCollateral(
-        uint256 offerId,
+        uint256 loanOfferId,
         uint256 amount,
         uint256 dueDate,
         uint256[] memory virtualCollateralLoansIds
@@ -26,8 +26,8 @@ abstract contract SizeVirtualCollateral is SizeStorage, ISize {
         amountOutLeft = amount;
 
         User storage borrower = users[msg.sender];
-        LoanOffer storage offer = loanOffers[offerId];
-        uint256 r = PERCENT + offer.getRate(dueDate);
+        LoanOffer storage loanOffer = loanOffers[loanOfferId];
+        uint256 r = PERCENT + loanOffer.getRate(dueDate);
 
         for (uint256 i = 0; i < virtualCollateralLoansIds.length; ++i) {
             uint256 loanId = virtualCollateralLoansIds[i];
@@ -44,12 +44,12 @@ abstract contract SizeVirtualCollateral is SizeStorage, ISize {
             if (loan.lender != msg.sender) {
                 revert ISize.InvalidLoanId(loanId);
             }
-            if (dueDate > offer.maxDueDate) {
-                // loan is due after offer maxDueDate
+            if (dueDate > loanOffer.maxDueDate) {
+                // loan is due after loanOffer maxDueDate
                 continue;
             }
             if (dueDate < loan.getDueDate(loans)) {
-                // loan is due before offer dueDate
+                // loan is due before loanOffer dueDate
                 continue;
             }
 
@@ -64,12 +64,12 @@ abstract contract SizeVirtualCollateral is SizeStorage, ISize {
                 deltaAmountOut = (amountInLeft * PERCENT) / r;
             }
 
-            loans.createSOL(loanId, offer.lender, msg.sender, deltaAmountIn);
+            loans.createSOL(loanId, loanOffer.lender, msg.sender, deltaAmountIn);
             loan.lock(deltaAmountIn);
             // NOTE: Transfer deltaAmountOut for each SOL created
-            users[offer.lender].cash.transfer(borrower.cash, deltaAmountOut);
-            offer.maxAmount -= deltaAmountOut;
-            amountInLeft -= deltaAmountIn;
+            users[loanOffer.lender].cash.transfer(borrower.cash, deltaAmountOut);
+            loanOffer.maxAmount -= deltaAmountOut;
+            // amountInLeft -= deltaAmountIn;
             amountOutLeft -= deltaAmountOut;
         }
     }

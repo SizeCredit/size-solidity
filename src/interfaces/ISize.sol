@@ -11,7 +11,7 @@ interface ISize {
     error InvalidCollateralPercPremium(uint256 perc);
     error InvalidCollateralPercPremiumSum(uint256, uint256);
     error InvalidLiquidationCollateralRatio(uint256 crOpening, uint256 crLiquidation);
-    error PastDueDate();
+    error PastDueDate(uint256 dueDate);
     error NothingToRepay();
     error InvalidLender();
     error NotLiquidatable();

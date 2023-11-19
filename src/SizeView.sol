@@ -67,4 +67,8 @@ abstract contract SizeView is SizeStorage {
     function getLoan(uint256 loanId) public view returns (Loan memory) {
         return loans[loanId];
     }
+
+    function getLoanOffer(uint256 loanOfferId) public view returns (LoanOffer memory) {
+        return loanOffers[loanOfferId];
+    }
 }

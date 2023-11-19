@@ -10,6 +10,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 import {SizeValidations} from "./SizeValidations.sol";
 import {SizeVirtualCollateral} from "./SizeVirtualCollateral.sol";
+import {SizeRealCollateral} from "./SizeRealCollateral.sol";
 
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
 import {OfferLibrary, LoanOffer, BorrowOffer} from "./libraries/OfferLibrary.sol";
@@ -23,7 +24,7 @@ import {IPriceFeed} from "./oracle/IPriceFeed.sol";
 
 import {ISize} from "./interfaces/ISize.sol";
 
-contract Size is ISize, SizeValidations, SizeVirtualCollateral, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollateral, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
     using OfferLibrary for LoanOffer;
     using RealCollateralLibrary for RealCollateral;
@@ -128,19 +129,25 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, Initializable, O
         revert();
     }
 
+    // decreases lender free cash
+    // increases borrower free cash
+
+    // increases borrower locked eth
+    // increases borrower totDebtCoveredByRealCollateral
+
+    // decreases loan offer max amount
+
+    // creates new loans 
     function borrowAsMarketOrder(
-        uint256 offerId,
+        uint256 loanOfferId,
         uint256 amount,
         uint256 dueDate,
         uint256[] memory virtualCollateralLoansIds
     ) public {
-        User storage borrower = users[msg.sender];
-        LoanOffer storage offer = loanOffers[offerId];
+        LoanOffer storage offer = loanOffers[loanOfferId];
         User storage lender = users[offer.lender];
-        if (dueDate < block.timestamp) {
-            console.log("block.timestamp", block.timestamp);
-            revert ISize.PastDueDate();
-        }
+
+        _validateDueDate(dueDate);
         if (amount > offer.maxAmount) {
             revert ISize.InvalidAmount(offer.maxAmount);
         }
@@ -153,31 +160,24 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, Initializable, O
 
 
         //  NOTE: The `amountOutLeft` is going to be decreased as more and more SOLs are created
-        uint256 amountOutLeft = _borrowWithVirtualCollateral(offerId, amount, dueDate, virtualCollateralLoansIds);
+        uint256 amountOutLeft = _borrowWithVirtualCollateral(loanOfferId, amount, dueDate, virtualCollateralLoansIds);
 
         // TODO cover the remaining amount with real collateral
         if (amountOutLeft > 0) {
-            uint256 r = PERCENT + offer.getRate(dueDate);
-            uint256 FV = (r * amountOutLeft) / PERCENT;
-            uint256 maxETHToLock = ((FV * CROpening) / priceFeed.getPrice());
-            borrower.eth.lock(maxETHToLock);
-            // TODO Lock ETH to cover that amount
-            borrower.totDebtCoveredByRealCollateral += FV;
-            loans.createFOL(offer.lender, msg.sender, FV, dueDate);
-            users[offer.lender].cash.transfer(borrower.cash, amountOutLeft);
+            _borrowWithRealCollateral(loanOfferId, amountOutLeft, dueDate);
         }
 
         _validateUserHealthy(msg.sender);
     }
 
-    function exit(uint256 loanId, uint256 amount, uint256 dueDate, uint256[] memory loanOffersIds)
+    function exit(uint256 loanId, uint256 amount, uint256 dueDate, uint256[] memory loanOfferIds)
         public
         returns (uint256)
     {
         // NOTE: The exit is equivalent to a spot swap for exact amount in wheres
         // - the exiting lender is the taker
         // - the other lenders are the makers
-        // The swap traverses the `loanOffersIds` as they if they were ticks with liquidity in an orderbook
+        // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
         Loan storage loan = loans[loanId];
         if (loan.lender != msg.sender) revert ISize.InvalidLender();
         if (amount > loan.getCredit()) {
@@ -185,36 +185,44 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, Initializable, O
         }
 
         uint256 amountInLeft = amount;
-        uint256 length = loanOffersIds.length;
+        uint256 length = loanOfferIds.length;
         for (uint256 i = 0; i < length; ++i) {
             if (amountInLeft == 0) {
                 // No more amountIn to swap
                 break;
             }
 
-            LoanOffer storage offer = loanOffers[loanOffersIds[i]];
-            uint256 r = PERCENT + offer.getRate(dueDate);
+            LoanOffer storage loanOffer = loanOffers[loanOfferIds[i]];
+            uint256 r = PERCENT + loanOffer.getRate(dueDate);
             uint256 deltaAmountIn;
             uint256 deltaAmountOut;
             // @audit check rounding direction
-            if (amountInLeft >= offer.maxAmount) {
-                deltaAmountIn = (r * offer.maxAmount) / PERCENT;
-                deltaAmountOut = offer.maxAmount;
+            if (amountInLeft >= loanOffer.maxAmount) {
+                deltaAmountIn = (r * loanOffer.maxAmount) / PERCENT;
+                deltaAmountOut = loanOffer.maxAmount;
             } else {
                 deltaAmountIn = amountInLeft;
                 deltaAmountOut = (deltaAmountIn * PERCENT) / r;
             }
 
-            loans.createSOL(loanId, offer.lender, msg.sender, deltaAmountIn);
+            loans.createSOL(loanId, loanOffer.lender, msg.sender, deltaAmountIn);
             loan.lock(deltaAmountIn);
-            users[offer.lender].cash.transfer(users[msg.sender].cash, deltaAmountOut);
-            offer.maxAmount -= deltaAmountOut;
+            users[loanOffer.lender].cash.transfer(users[msg.sender].cash, deltaAmountOut);
+            loanOffer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
         }
 
         return amountInLeft;
     }
 
+    // decreases borrower free cash
+    // increases protocol free cash
+    // increases lender claim(???)
+
+    // decreases borrower locked eth??
+    // decreases borrower totDebtCoveredByRealCollateral
+
+    // sets loan to repaid
     function repay(uint256 loanId, uint256 amount) public {
         Loan storage loan = loans[loanId];
         User storage borrower = users[loan.borrower];
