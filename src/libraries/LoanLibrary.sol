@@ -81,7 +81,7 @@ library LoanLibrary {
     }
 
     function createSOL(Loan[] storage loans, uint256 folId, address lender, address borrower, uint256 FV) public {
-        Loan memory fol = loans[folId];
+        Loan storage fol = loans[folId];
         loans.push(
             Loan({
                 FV: FV,
@@ -93,5 +93,6 @@ library LoanLibrary {
                 folId: folId
             })
         );
+        lock(fol, FV);
     }
 }

@@ -11,6 +11,7 @@ import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 contract SizeBorrowTest is BaseTest {
     uint256 private constant MAX_RATE = 2e18;
     uint256 private constant MAX_DUE_DATE = 12;
+    uint256 private constant MAX_AMOUNT = 100e18;
 
     function test_SizeBorrow_borrowAsLimitOrder_increases_borrow_offers()
         public
@@ -74,7 +75,7 @@ contract SizeBorrowTest is BaseTest {
         uint256 rate,
         uint256 dueDate
     ) public {
-        amount = bound(amount, 1, 100e18);
+        amount = bound(amount, 0, MAX_AMOUNT / priceFeed.getPrice() / 2); // arbitrary divisor so that user does not get unhealthy
         dueDate = bound(
             dueDate,
             block.timestamp,
@@ -83,13 +84,13 @@ contract SizeBorrowTest is BaseTest {
         rate = bound(rate, 0, MAX_RATE);
 
         vm.prank(alice);
-        size.deposit(100e18, 100e18);
+        size.deposit(MAX_AMOUNT, MAX_AMOUNT);
         vm.prank(bob);
-        size.deposit(100e18, 100e18);
+        size.deposit(MAX_AMOUNT, MAX_AMOUNT);
 
         vm.startPrank(alice);
         uint256 loanOfferId = size.lendAsLimitOrder(
-            100e18,
+            MAX_AMOUNT,
             block.timestamp + MAX_DUE_DATE,
             YieldCurveLibrary.getFlatRate(rate, MAX_DUE_DATE)
         );
@@ -100,28 +101,22 @@ contract SizeBorrowTest is BaseTest {
 
         uint256[] memory virtualCollateralLoansIds;
         vm.startPrank(bob);
-        try
-            size.borrowAsMarketOrder(
-                loanOfferId,
-                amount,
-                dueDate,
-                virtualCollateralLoansIds
-            )
-        {
-            uint256 debt = (amount * (PERCENT + rate)) / PERCENT;
-            uint256 ethLocked = (debt * size.CROpening()) /
-                priceFeed.getPrice();
-            User memory aliceAfter = size.getUser(alice);
-            User memory bobAfter = size.getUser(bob);
-            LoanOffer memory offerAfter = size.getLoanOffer(loanOfferId);
+        size.borrowAsMarketOrder(
+            loanOfferId,
+            amount,
+            dueDate,
+            virtualCollateralLoansIds
+        );
+        uint256 debt = (amount * (PERCENT + rate)) / PERCENT;
+        uint256 ethLocked = (debt * size.CROpening()) / priceFeed.getPrice();
+        User memory aliceAfter = size.getUser(alice);
+        User memory bobAfter = size.getUser(bob);
+        LoanOffer memory offerAfter = size.getLoanOffer(loanOfferId);
 
-            assertEq(aliceAfter.cash.free, aliceBefore.cash.free - amount);
-            assertEq(bobAfter.cash.free, bobBefore.cash.free + amount);
-            assertEq(bobAfter.eth.locked, bobBefore.eth.locked + ethLocked);
-            assertEq(bobAfter.totDebtCoveredByRealCollateral, debt);
-            assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
-        } catch (bytes memory err) {
-            assertEq(ISize.UserUnhealthy.selector, bytes4(err));
-        }
+        assertEq(aliceAfter.cash.free, aliceBefore.cash.free - amount);
+        assertEq(bobAfter.cash.free, bobBefore.cash.free + amount);
+        assertEq(bobAfter.eth.locked, bobBefore.eth.locked + ethLocked);
+        assertEq(bobAfter.totDebtCoveredByRealCollateral, debt);
+        assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
 }

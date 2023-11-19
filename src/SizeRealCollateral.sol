@@ -29,7 +29,6 @@ abstract contract SizeRealCollateral is SizeStorage, ISize {
         uint256 FV = (r * amountOutLeft) / PERCENT;
         uint256 maxETHToLock = ((FV * CROpening) / priceFeed.getPrice());
         borrower.eth.lock(maxETHToLock);
-        // TODO Lock ETH to cover that amount
         borrower.totDebtCoveredByRealCollateral += FV;
         loans.createFOL(loanOffer.lender, msg.sender, FV, dueDate);
         users[loanOffer.lender].cash.transfer(borrower.cash, amountOutLeft);

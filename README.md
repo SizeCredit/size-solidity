@@ -24,10 +24,11 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - SOL(loanId).FV <= FOL(loanId).FV
 - SUM(SOL(loanId).FV) == FOL(loanId).FV
 - borrowAsMarketOrderByExiting == exit + borrowAsMarketOrder (can we do this with multicall???)
-- loan.FV == 0 <==> loan.repaid
+- loan.FV == 0 && isFOL(loan) <==> loan.repaid
+- loan.repaid ==> !isFOL(loan)
 - upon repayment, the money is locked from the lender until due date, and the protocol earns yield meanwhile
 - cash.free + cash.locked ?= deposits
-- creating a FOL/SOL updates the offer (reduces maxAmount)
+- creating a FOL/SOL updates the loanOffer (reduces maxAmount)
 
 
 References

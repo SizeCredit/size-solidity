@@ -132,8 +132,9 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollater
     // decreases lender free cash
     // increases borrower free cash
 
-    // increases borrower locked eth
-    // increases borrower totDebtCoveredByRealCollateral
+    // if FOL
+    //  increases borrower locked eth
+    //  increases borrower totDebtCoveredByRealCollateral
 
     // decreases loan offer max amount
 
@@ -206,7 +207,6 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollater
             }
 
             loans.createSOL(loanId, loanOffer.lender, msg.sender, deltaAmountIn);
-            loan.lock(deltaAmountIn);
             users[loanOffer.lender].cash.transfer(users[msg.sender].cash, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;

@@ -65,7 +65,6 @@ abstract contract SizeVirtualCollateral is SizeStorage, ISize {
             }
 
             loans.createSOL(loanId, loanOffer.lender, msg.sender, deltaAmountIn);
-            loan.lock(deltaAmountIn);
             // NOTE: Transfer deltaAmountOut for each SOL created
             users[loanOffer.lender].cash.transfer(borrower.cash, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
