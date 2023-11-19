@@ -51,13 +51,6 @@ library LoanLibrary {
         return isFOL(self) ? self : loans[self.folId];
     }
 
-    function lock(Loan storage self, uint256 amount) public {
-        if (amount > getCredit(self)) {
-            revert LoanLibrary__InvalidAmount(amount, getCredit(self));
-        }
-        self.amountFVExited += amount;
-    }
-
     function isExpired(Loan memory self) public view returns (bool) {
         if (isFOL(self)) {
             return block.timestamp >= self.dueDate;
@@ -93,6 +86,9 @@ library LoanLibrary {
                 folId: folId
             })
         );
-        lock(fol, FV);
+        if (FV > getCredit(fol)) {
+            revert LoanLibrary__InvalidAmount(FV, getCredit(fol));
+        }
+        fol.amountFVExited += FV;
     }
 }

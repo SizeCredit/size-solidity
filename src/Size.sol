@@ -171,6 +171,14 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollater
         _validateUserHealthy(msg.sender);
     }
 
+    // decreases loanOffer lender free cash
+    // increases msg.sender free cash
+    // maintains loan borrower accounting
+
+    // decreases loanOffers max amount
+    // increases loan amountFVExited
+
+    // creates a new SOL
     function exit(uint256 loanId, uint256 amount, uint256 dueDate, uint256[] memory loanOfferIds)
         public
         returns (uint256)
@@ -186,8 +194,7 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollater
         }
 
         uint256 amountInLeft = amount;
-        uint256 length = loanOfferIds.length;
-        for (uint256 i = 0; i < length; ++i) {
+        for (uint256 i = 0; i < loanOfferIds.length; ++i) {
             if (amountInLeft == 0) {
                 // No more amountIn to swap
                 break;

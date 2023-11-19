@@ -73,3 +73,10 @@ abstract contract SizeVirtualCollateral is SizeStorage, ISize {
         }
     }
 }
+
+/*
+loan, lender, borrower
+0   , alice , bob
+1   , bob   , charlie
+2,  , alice , bob
+*/

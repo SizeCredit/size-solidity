@@ -8,8 +8,10 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Size} from "../src/Size.sol";
 import {SizeMock} from "./mocks/SizeMock.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
+import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+import {AssertsHelper} from "./helpers/AssertsHelper.sol";
 
-contract BaseTest is Test {
+contract BaseTest is Test, AssertsHelper {
     SizeMock public size;
     PriceFeedMock public priceFeed;
 
@@ -43,5 +45,51 @@ contract BaseTest is Test {
         vm.label(liquidator, "liquidator");
 
         priceFeed.setPrice(1337e18);
+    }
+
+    function _deposit(address user) internal {
+        vm.prank(user);
+        size.deposit(100e18, 100e18);
+    }
+
+    function _lendAsLimitOrder(
+        address user
+    ) internal returns (uint256 loanOfferId) {
+        vm.startPrank(user);
+        loanOfferId = size.lendAsLimitOrder(
+            100e18,
+            12,
+            YieldCurveLibrary.getFlatRate(0.03e18, 12)
+        );
+    }
+
+    function _borrowAsMarketOrder(
+        address user,
+        uint256 loanOfferId
+    ) internal returns (uint256) {
+        uint256 amount = 10e18;
+        uint256 dueDate = 12;
+        uint256[] memory virtualCollateralLoansIds;
+
+        vm.startPrank(user);
+        size.borrowAsMarketOrder(
+            loanOfferId,
+            amount,
+            dueDate,
+            virtualCollateralLoansIds
+        );
+        return size.activeLoans();
+    }
+
+    function _exit(
+        address user,
+        uint256 loanId,
+        uint256[] memory loanOfferIds
+    ) internal {
+        uint256 amount = 10e18;
+        uint256 dueDate = 12;
+
+        vm.startPrank(user);
+        size.exit(loanId, amount, dueDate, loanOfferIds);
     }
 }
