@@ -5,13 +5,11 @@ import {SizeStorage} from "./SizeStorage.sol";
 import "./libraries/UserLibrary.sol";
 import "./libraries/LoanLibrary.sol";
 import "./libraries/OfferLibrary.sol";
-import "./libraries/EnumerableMapExtensionsLibrary.sol";
 
 abstract contract SizeView is SizeStorage {
     using UserLibrary for User;
     using OfferLibrary for LoanOffer;
     using LoanLibrary for Loan;
-    using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
 
     function getCollateralRatio(address user) public view returns (uint256) {
         return users[user].collateralRatio(priceFeed.getPrice());
