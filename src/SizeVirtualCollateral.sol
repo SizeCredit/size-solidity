@@ -37,9 +37,7 @@ abstract contract SizeVirtualCollateral is SizeStorage, ISize {
             }
 
             Loan storage loan = loans[loanId];
-            dueDate = dueDate != type(uint256).max
-                ? dueDate
-                : loan.getDueDate(loans);
+            dueDate = dueDate != type(uint256).max ? dueDate : loan.getDueDate(loans);
 
             if (loan.lender != msg.sender) {
                 revert ISize.InvalidLoanId(loanId);

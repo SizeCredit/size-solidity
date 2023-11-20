@@ -17,11 +17,7 @@ abstract contract SizeRealCollateral is SizeStorage, ISize {
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
-    function _borrowWithRealCollateral(
-        uint256 loanOfferId,
-        uint256 amountOutLeft,
-        uint256 dueDate
-    ) internal {
+    function _borrowWithRealCollateral(uint256 loanOfferId, uint256 amountOutLeft, uint256 dueDate) internal {
         User storage borrower = users[msg.sender];
         LoanOffer storage loanOffer = loanOffers[loanOfferId];
         uint256 r = PERCENT + loanOffer.getRate(dueDate);

@@ -47,48 +47,33 @@ contract BaseTest is Test, AssertsHelper {
         priceFeed.setPrice(1337e18);
     }
 
-    function _deposit(address user) internal {
+    function _deposit(address user, uint256 cash, uint256 eth) internal {
         vm.prank(user);
-        size.deposit(100e18, 100e18);
+        size.deposit(cash, eth);
     }
 
-    function _lendAsLimitOrder(
-        address user
-    ) internal returns (uint256 loanOfferId) {
+    function _lendAsLimitOrder(address user, uint256 maxAmount, uint256 rate, uint256 maxDueDate)
+        internal
+        returns (uint256 loanOfferId)
+    {
         vm.startPrank(user);
-        loanOfferId = size.lendAsLimitOrder(
-            100e18,
-            12,
-            YieldCurveLibrary.getFlatRate(0.03e18, 12)
-        );
+        loanOfferId = size.lendAsLimitOrder(maxAmount, maxDueDate, YieldCurveLibrary.getFlatRate(rate, maxDueDate));
     }
 
-    function _borrowAsMarketOrder(
-        address user,
-        uint256 loanOfferId
-    ) internal returns (uint256) {
-        uint256 amount = 10e18;
-        uint256 dueDate = 12;
+    function _borrowAsMarketOrder(address user, uint256 loanOfferId, uint256 amount, uint256 dueDate)
+        internal
+        returns (uint256)
+    {
         uint256[] memory virtualCollateralLoansIds;
 
         vm.startPrank(user);
-        size.borrowAsMarketOrder(
-            loanOfferId,
-            amount,
-            dueDate,
-            virtualCollateralLoansIds
-        );
+        size.borrowAsMarketOrder(loanOfferId, amount, dueDate, virtualCollateralLoansIds);
         return size.activeLoans();
     }
 
-    function _exit(
-        address user,
-        uint256 loanId,
-        uint256[] memory loanOfferIds
-    ) internal {
-        uint256 amount = 10e18;
-        uint256 dueDate = 12;
-
+    function _exit(address user, uint256 loanId, uint256 amount, uint256 dueDate, uint256[] memory loanOfferIds)
+        internal
+    {
         vm.startPrank(user);
         size.exit(loanId, amount, dueDate, loanOfferIds);
     }

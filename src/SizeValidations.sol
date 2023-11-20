@@ -56,7 +56,6 @@ abstract contract SizeInputValidations is SizeView, ISize {
             revert PastDueDate(dueDate);
         }
     }
-
 }
 
 abstract contract SizeValidations is SizeSecurityValidations, SizeInputValidations {}

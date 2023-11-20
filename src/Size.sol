@@ -24,7 +24,15 @@ import {IPriceFeed} from "./oracle/IPriceFeed.sol";
 
 import {ISize} from "./interfaces/ISize.sol";
 
-contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollateral, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract Size is
+    ISize,
+    SizeValidations,
+    SizeVirtualCollateral,
+    SizeRealCollateral,
+    Initializable,
+    Ownable2StepUpgradeable,
+    UUPSUpgradeable
+{
     using EnumerableMapExtensionsLibrary for EnumerableMap.UintToUintMap;
     using OfferLibrary for LoanOffer;
     using RealCollateralLibrary for RealCollateral;
@@ -88,7 +96,10 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollater
         _validateUserHealthy(msg.sender);
     }
 
-    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public returns(uint256){
+    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime)
+        public
+        returns (uint256)
+    {
         loanOffers.push(
             LoanOffer({
                 lender: msg.sender,
@@ -101,7 +112,7 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollater
         return loanOffers.length - 1;
     }
 
-    function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public returns(uint256){
+    function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public returns (uint256) {
         borrowOffers.push(
             BorrowOffer({borrower: msg.sender, maxAmount: maxAmount, curveRelativeTime: curveRelativeTime})
         );
@@ -138,7 +149,7 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollater
 
     // decreases loan offer max amount
 
-    // creates new loans 
+    // creates new loans
     function borrowAsMarketOrder(
         uint256 loanOfferId,
         uint256 amount,
@@ -158,7 +169,6 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollater
 
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
-
 
         //  NOTE: The `amountOutLeft` is going to be decreased as more and more SOLs are created
         uint256 amountOutLeft = _borrowWithVirtualCollateral(loanOfferId, amount, dueDate, virtualCollateralLoansIds);
@@ -189,6 +199,7 @@ contract Size is ISize, SizeValidations, SizeVirtualCollateral, SizeRealCollater
         // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
         Loan storage loan = loans[loanId];
         if (loan.lender != msg.sender) revert ISize.InvalidLender();
+        if (amount == 0) revert ISize.InvalidAmount(amount);
         if (amount > loan.getCredit()) {
             revert ISize.InvalidAmount(loan.getCredit());
         }
