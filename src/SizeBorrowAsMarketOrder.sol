@@ -78,11 +78,11 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, ISize {
 
             uint256 deltaAmountIn;
             uint256 deltaAmountOut;
-            if ((r * amountOutLeft) / PERCENT >= loan.getCredit()) {
+            if (FixedPointMathLib.mulDivUp(r, amountOutLeft, PERCENT) > loan.getCredit()) {
                 deltaAmountIn = loan.getCredit();
-                deltaAmountOut = (loan.getCredit() * PERCENT) / r;
+                deltaAmountOut = FixedPointMathLib.mulDivUp(loan.getCredit(), PERCENT, r);
             } else {
-                deltaAmountIn = (r * amountOutLeft) / PERCENT;
+                deltaAmountIn = FixedPointMathLib.mulDivUp(r, amountOutLeft, PERCENT);
                 deltaAmountOut = amountOutLeft;
             }
 

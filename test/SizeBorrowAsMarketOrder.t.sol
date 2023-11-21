@@ -15,6 +15,7 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
 contract SizeBorrowAsMarketOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
+    using LoanLibrary for Loan;
 
     uint256 private constant MAX_RATE = 2e18;
     uint256 private constant MAX_DUE_DATE = 12;
@@ -138,7 +139,7 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         uint256 rate,
         uint256 dueDate
     ) public {
-        amount = bound(amount, 1, MAX_AMOUNT / 3); // arbitrary divisor so that user does not get unhealthy
+        amount = bound(amount, MAX_AMOUNT / 10, 2 * MAX_AMOUNT / 10); // arbitrary divisor so that user does not get unhealthy
         rate = bound(rate, 0, MAX_RATE);
         dueDate = bound(dueDate, block.timestamp, block.timestamp + MAX_DUE_DATE - 1);
 
@@ -217,22 +218,23 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, 100e18, 100e18);
         uint256 loanOfferId = _lendAsLimitOrder(alice, 100e18, 0.05e18, 12);
         uint256 loanOfferId2 = _lendAsLimitOrder(candy, 100e18, 0.05e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, loanOfferId, amountLoanId1, 12);
-        LoanOffer memory loanOffer = size.getLoanOffer(loanOfferId2);
+        uint256 loanId1 = _borrowAsMarketOrder(bob, loanOfferId, amountLoanId1, 12);
         uint256[] memory virtualCollateralLoanIds = new uint256[](1);
-        virtualCollateralLoanIds[0] = loanId;
+        virtualCollateralLoanIds[0] = loanId1;
+
+        uint256 dueDate = 12;
+        uint256 r = PERCENT + size.getLoanOffer(loanOfferId2).getRate(dueDate);
+        uint256 deltaAmountOut = (
+            FixedPointMathLib.mulDivUp(r, amountLoanId2, PERCENT) > size.getLoan(loanId1).getCredit()
+        ) ? FixedPointMathLib.mulDivUp(size.getLoan(loanId1).getCredit(), PERCENT, r) : amountLoanId2;
+        uint256 FV = FixedPointMathLib.mulDivUp(r, amountLoanId2 - deltaAmountOut, PERCENT);
 
         Vars memory _before = _getUsers();
 
-        uint256 dueDate = 12;
         uint256 loanId2 = _borrowAsMarketOrder(alice, loanOfferId2, amountLoanId2, dueDate, virtualCollateralLoanIds);
-        Loan memory loan2 = size.getLoan(loanId2);
 
         Vars memory _after = _getUsers();
 
-        uint256 r = PERCENT + loanOffer.getRate(dueDate);
-
-        uint256 FV = FixedPointMathLib.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
         uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.CROpening(), priceFeed.getPrice());
 
         assertLt(_after.candy.cash.free, _before.candy.cash.free);
@@ -241,7 +243,7 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.totDebtCoveredByRealCollateral, _before.alice.totDebtCoveredByRealCollateral + FV);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
-        assertEq(loan2.FV, FV);
+        assertEq(size.getLoan(loanId2).FV, FV);
     }
 
     function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_properties() public {

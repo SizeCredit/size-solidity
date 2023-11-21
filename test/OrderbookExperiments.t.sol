@@ -18,7 +18,7 @@ contract OrderbookExperimentsTest is Test, BaseTest, JSONParserHelper, Experimen
     using LoanLibrary for Loan;
     using OfferLibrary for LoanOffer;
 
-    function test_experiment_1() public {
+    function test_experiment_1() internal {
         console.log("context");
         priceFeed.setPrice(100e18);
         vm.warp(0);
