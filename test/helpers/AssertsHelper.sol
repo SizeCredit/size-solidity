@@ -3,18 +3,21 @@ pragma solidity 0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 abstract contract AssertsHelper is Test {
     function assertEq(User memory a, User memory b) internal {
-        assertEq(a.cash.free, b.cash.free);
-        assertEq(a.cash.locked, b.cash.locked);
-        assertEq(a.eth.free, b.eth.free);
-        assertEq(a.eth.locked, b.eth.locked);
-        assertEq(a.totDebtCoveredByRealCollateral, b.totDebtCoveredByRealCollateral);
+        assertEq(a.cash.free, b.cash.free, ".cash.free");
+        assertEq(a.cash.locked, b.cash.locked, ".cash.locked");
+        assertEq(a.eth.free, b.eth.free, ".eth.free");
+        assertEq(a.eth.locked, b.eth.locked, ".eth.locked");
+        assertEq(a.totDebtCoveredByRealCollateral, b.totDebtCoveredByRealCollateral, ".totDebtCoveredByRealCollateral");
     }
 
     function assertEq(uint256 a, uint256 b, uint256 c) internal {
-        assertEq(a, b);
-        assertEq(b, c);
+        string memory reason = string.concat(
+            "Expected ", Strings.toString(a), " to be equal to ", Strings.toString(b), " and ", Strings.toString(c)
+        );
+        assertTrue(a == b && b == c, reason);
     }
 }

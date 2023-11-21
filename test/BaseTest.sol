@@ -10,6 +10,7 @@ import {SizeMock} from "./mocks/SizeMock.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {AssertsHelper} from "./helpers/AssertsHelper.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
 
 contract BaseTest is Test, AssertsHelper {
     SizeMock public size;
@@ -21,6 +22,12 @@ contract BaseTest is Test, AssertsHelper {
     address public james = address(0x40000);
     address public liquidator = address(0x50000);
 
+    struct Vars {
+        User alice;
+        User bob;
+        User candy;
+    }
+
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
         ERC1967Proxy proxy = new ERC1967Proxy(
@@ -29,7 +36,6 @@ contract BaseTest is Test, AssertsHelper {
                 Size.initialize.selector,
                 address(this),
                 priceFeed,
-                12,
                 1.5e18,
                 1.3e18,
                 0.3e18,
@@ -85,5 +91,11 @@ contract BaseTest is Test, AssertsHelper {
     {
         vm.startPrank(user);
         size.exit(loanId, amount, dueDate, loanOfferIds);
+    }
+
+    function _getUsers() internal view returns (Vars memory vars) {
+        vars.alice = size.getUser(alice);
+        vars.bob = size.getUser(bob);
+        vars.candy = size.getUser(candy);
     }
 }

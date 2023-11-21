@@ -8,7 +8,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {SizeValidations} from "./SizeValidations.sol";
-import {SizeBorrow, BorrowAsMarketOrdersParams} from "./SizeBorrow.sol";
+import {SizeBorrowAsMarketOrder, BorrowAsMarketOrdersParams} from "./SizeBorrowAsMarketOrder.sol";
 
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
 import {OfferLibrary, LoanOffer, BorrowOffer} from "./libraries/OfferLibrary.sol";
@@ -21,7 +21,14 @@ import {IPriceFeed} from "./oracle/IPriceFeed.sol";
 
 import {ISize} from "./interfaces/ISize.sol";
 
-contract Size is ISize, SizeValidations, SizeBorrow, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract Size is
+    ISize,
+    SizeValidations,
+    SizeBorrowAsMarketOrder,
+    Initializable,
+    Ownable2StepUpgradeable,
+    UUPSUpgradeable
+{
     using OfferLibrary for LoanOffer;
     using RealCollateralLibrary for RealCollateral;
     using LoanLibrary for Loan;
@@ -151,11 +158,8 @@ contract Size is ISize, SizeValidations, SizeBorrow, Initializable, Ownable2Step
         });
 
         _validateBorrowAsMarketOrder(params);
-        uint256 amountOutLeft = _borrowWithVirtualCollateral(params);
-
-        if (amountOutLeft > 0) {
-            _borrowWithRealCollateral(params);
-        }
+        params.amount = _borrowWithVirtualCollateral(params);
+        _borrowWithRealCollateral(params);
 
         _validateUserIsNotLiquidatable(params.borrower);
     }

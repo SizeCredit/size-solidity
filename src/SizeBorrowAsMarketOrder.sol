@@ -19,7 +19,7 @@ struct BorrowAsMarketOrdersParams {
     uint256[] virtualCollateralLoansIds;
 }
 
-abstract contract SizeBorrow is SizeStorage, ISize {
+abstract contract SizeBorrowAsMarketOrder is SizeStorage, ISize {
     using OfferLibrary for LoanOffer;
     using RealCollateralLibrary for RealCollateral;
     using LoanLibrary for Loan;
@@ -30,6 +30,10 @@ abstract contract SizeBorrow is SizeStorage, ISize {
      * @dev Cover the remaining amount with real collateral
      */
     function _borrowWithRealCollateral(BorrowAsMarketOrdersParams memory params) internal {
+        if (params.amount == 0) {
+            return;
+        }
+
         User storage borrowerUser = users[params.borrower];
         LoanOffer storage loanOffer = loanOffers[params.loanOfferId];
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);

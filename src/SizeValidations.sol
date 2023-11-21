@@ -9,7 +9,7 @@ import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
-import {BorrowAsMarketOrdersParams} from "@src/SizeBorrow.sol";
+import {BorrowAsMarketOrdersParams} from "@src/SizeBorrowAsMarketOrder.sol";
 
 abstract contract SizeSecurityValidations is SizeView, ISize {
     function _validateUserIsNotLiquidatable(address account) internal view {
@@ -53,7 +53,7 @@ abstract contract SizeInputValidations is SizeView, ISize {
     function _validateDueDate(uint256 dueDate) internal view {}
 }
 
-abstract contract SizeBorrowValidations is SizeView, ISize {
+abstract contract SizeBorrowAsMarketOrderValidations is SizeView, ISize {
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
@@ -62,12 +62,15 @@ abstract contract SizeBorrowValidations is SizeView, ISize {
         address lender = loanOffer.lender;
         User memory lenderUser = users[lender];
 
-        // validate loanOfferId
+        // validate params.borrower
+        // N/A
+
+        // validate params.loanOfferId
         if (params.loanOfferId == 0 || params.loanOfferId >= loanOffers.length) {
             revert ERROR_INVALID_LOAN_OFFER_ID(params.loanOfferId);
         }
 
-        // validate amount
+        // validate params.amount
         if (params.amount > loanOffer.maxAmount) {
             revert ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
         }
@@ -75,12 +78,12 @@ abstract contract SizeBorrowValidations is SizeView, ISize {
             revert ERROR_NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, params.amount);
         }
 
-        // validate dueDate
+        // validate params.dueDate
         if (params.dueDate < block.timestamp) {
             revert ERROR_PAST_DUE_DATE(params.dueDate);
         }
 
-        // validate virtualCollateralLoansIds
+        // validate params.virtualCollateralLoansIds
         for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {
             uint256 loanId = params.virtualCollateralLoansIds[i];
             Loan memory loan = loans[loanId];
@@ -95,4 +98,8 @@ abstract contract SizeBorrowValidations is SizeView, ISize {
     }
 }
 
-abstract contract SizeValidations is SizeSecurityValidations, SizeInputValidations, SizeBorrowValidations {}
+abstract contract SizeValidations is
+    SizeSecurityValidations,
+    SizeInputValidations,
+    SizeBorrowAsMarketOrderValidations
+{}
