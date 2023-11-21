@@ -92,4 +92,32 @@ contract SizeBorrowTest is BaseTest {
         assertEq(bobAfter.totDebtCoveredByRealCollateral, debt);
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
+
+    function test_SizeBorrow_borrowAsMarketOrder_with_virtual_collateral_properties() public {
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _deposit(candy, 100e18, 100e18);
+        uint256 loanOfferId = _lendAsLimitOrder(alice, 100e18, 0.03e18, 12);
+        uint256 loanOfferId2 = _lendAsLimitOrder(candy, 100e18, 0.03e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, loanOfferId, 30e18, 12);
+        uint256[] memory virtualCollateralLoanIds = new uint256[](1);
+        virtualCollateralLoanIds[0] = loanId;
+
+        User memory aliceBefore = size.getUser(alice);
+        User memory bobBefore = size.getUser(bob);
+        User memory candyBefore = size.getUser(candy);
+
+        uint256 loanId2 = _borrowAsMarketOrder(alice, loanOfferId2, 30e18, 12, virtualCollateralLoanIds);
+
+        User memory aliceAfter = size.getUser(alice);
+        User memory bobAfter = size.getUser(bob);
+        User memory candyAfter = size.getUser(candy);
+
+        assertLt(candyAfter.cash.free, candyBefore.cash.free);
+        assertGt(aliceAfter.cash.free, aliceBefore.cash.free);
+        assertEq(aliceAfter.eth.locked, aliceBefore.eth.locked, 0);
+        assertEq(aliceAfter.totDebtCoveredByRealCollateral, aliceBefore.totDebtCoveredByRealCollateral);
+        assertEq(bobAfter, bobBefore);
+        assertTrue(!size.isFOL(loanId2));
+    }
 }

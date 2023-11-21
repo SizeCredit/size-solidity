@@ -10,7 +10,7 @@ import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 
 contract SizeExitTest is BaseTest {
-    function test_SizeExit_exit_transfer_cash_from_loanOffer_to_sender() public {
+    function test_SizeExit_exit_transfer_cash_from_loanOffer_to_sender_properties() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
@@ -29,7 +29,7 @@ contract SizeExitTest is BaseTest {
         Loan memory loanBefore = size.getLoan(loanId);
         uint256 loansBefore = size.activeLoans();
 
-        _exit(alice, loanId, 100e18, 12, loanOfferIds);
+        _exit(alice, loanId, 10e18, 12, loanOfferIds);
 
         LoanOffer memory loanOfferAfter = size.getLoanOffer(loanOfferId2);
         Loan memory loanAfter = size.getLoan(loanId);
@@ -43,12 +43,12 @@ contract SizeExitTest is BaseTest {
         assertGt(aliceUserAfter.cash.free, aliceUserBefore.cash.free);
         assertLt(loanOfferAfter.maxAmount, loanOfferBefore.maxAmount);
         assertGt(loanAfter.amountFVExited, loanBefore.amountFVExited);
-        assertEqUser(bobUserBefore, bobUserAfter);
+        assertEq(bobUserBefore, bobUserAfter);
         assertGt(loansAfter, loansBefore);
     }
 
     // @audit exit to self decreases the maxAmount of the loanOffer and increases the amountFVExited of the loan (apparently, no benefit to the lender)
-    function test_SizeExit_exit_to_self_is_possible() public {
+    function test_SizeExit_exit_to_self_is_possible_properties() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
@@ -74,10 +74,10 @@ contract SizeExitTest is BaseTest {
         User memory aliceUserAfter = size.getUser(alice);
         User memory bobUserAfter = size.getUser(bob);
 
-        assertEqUser(aliceUserAfter, aliceUserBefore);
+        assertEq(aliceUserAfter, aliceUserBefore);
         assertLt(loanOfferAfter.maxAmount, loanOfferBefore.maxAmount);
         assertGt(loanAfter.amountFVExited, loanBefore.amountFVExited);
-        assertEqUser(bobUserBefore, bobUserAfter);
+        assertEq(bobUserBefore, bobUserAfter);
         assertGt(loansAfter, loansBefore);
     }
 }
