@@ -5,11 +5,16 @@ import {PERCENT} from "./libraries/MathLibrary.sol";
 
 import {ISize} from "./interfaces/ISize.sol";
 import {SizeView} from "./SizeView.sol";
+import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
+import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
+
+import {BorrowAsMarketOrdersParams} from "@src/SizeBorrow.sol";
 
 abstract contract SizeSecurityValidations is SizeView, ISize {
-    function _validateUserHealthy(address account) internal view {
+    function _validateUserIsNotLiquidatable(address account) internal view {
         if (isLiquidatable(account)) {
-            revert ISize.UserUnhealthy(account);
+            revert ERROR_USER_IS_LIQUIDATABLE(account);
         }
     }
 }
@@ -17,45 +22,77 @@ abstract contract SizeSecurityValidations is SizeView, ISize {
 abstract contract SizeInputValidations is SizeView, ISize {
     function _validateNonNull(address account) internal pure {
         if (account == address(0)) {
-            revert ISize.NullAddress();
-        }
-    }
-
-    function _validateOfferId(uint256 offerId) internal view {
-        if (offerId == 0 || offerId >= loanOffers.length) {
-            revert ISize.InvalidOfferId(offerId);
+            revert ERROR_NULL_ADDRESS();
         }
     }
 
     function _validateCollateralRatio(uint256 cr) internal pure {
         if (cr < PERCENT) {
-            revert InvalidCollateralRatio(cr);
+            revert ERROR_INVALID_COLLATERAL_RATIO(cr);
         }
     }
 
     function _validateCollateralRatio(uint256 crOpening, uint256 crLiquidation) internal pure {
         if (crOpening <= crLiquidation) {
-            revert InvalidLiquidationCollateralRatio(crOpening, crLiquidation);
+            revert ERROR_INVALID_LIQUIDATION_COLLATERAL_RATIO(crOpening, crLiquidation);
         }
     }
 
-    function _validateCollateralPercPremium(uint256 perc) internal pure {
-        if (perc > PERCENT) {
-            revert InvalidCollateralPercPremium(perc);
+    function _validateCollateralPercentagePremium(uint256 percentage) internal pure {
+        if (percentage > PERCENT) {
+            revert ERROR_INVALID_COLLATERAL_PERCENTAGE_PREMIUM(percentage);
         }
     }
 
-    function _validateCollateralPercPremium(uint256 perc1, uint256 perc2) internal pure {
-        if (perc1 + perc2 > PERCENT) {
-            revert InvalidCollateralPercPremiumSum(perc1, perc2);
+    function _validateCollateralPercentagePremium(uint256 a, uint256 b) internal pure {
+        if (a + b > PERCENT) {
+            revert ERROR_INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(a, b);
         }
     }
 
-    function _validateDueDate(uint256 dueDate) internal view {
-        if (dueDate < block.timestamp) {
-            revert PastDueDate(dueDate);
+    function _validateDueDate(uint256 dueDate) internal view {}
+}
+
+abstract contract SizeBorrowValidations is SizeView, ISize {
+    using LoanLibrary for Loan;
+    using LoanLibrary for Loan[];
+
+    function _validateBorrowAsMarketOrder(BorrowAsMarketOrdersParams memory params) internal view {
+        LoanOffer memory loanOffer = loanOffers[params.loanOfferId];
+        address lender = loanOffer.lender;
+        User memory lenderUser = users[lender];
+
+        // validate loanOfferId
+        if (params.loanOfferId == 0 || params.loanOfferId >= loanOffers.length) {
+            revert ERROR_INVALID_LOAN_OFFER_ID(params.loanOfferId);
+        }
+
+        // validate amount
+        if (params.amount > loanOffer.maxAmount) {
+            revert ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
+        }
+        if (lenderUser.cash.free < params.amount) {
+            revert ERROR_NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, params.amount);
+        }
+
+        // validate dueDate
+        if (params.dueDate < block.timestamp) {
+            revert ERROR_PAST_DUE_DATE(params.dueDate);
+        }
+
+        // validate virtualCollateralLoansIds
+        for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {
+            uint256 loanId = params.virtualCollateralLoansIds[i];
+            Loan memory loan = loans[loanId];
+
+            if (loan.lender != params.borrower) {
+                revert ERROR_BORROWER_IS_NOT_LENDER(params.borrower, loan.lender);
+            }
+            if (params.dueDate < loan.getDueDate(loans)) {
+                revert ERROR_DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(loans));
+            }
         }
     }
 }
 
-abstract contract SizeValidations is SizeSecurityValidations, SizeInputValidations {}
+abstract contract SizeValidations is SizeSecurityValidations, SizeInputValidations, SizeBorrowValidations {}

@@ -8,8 +8,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {SizeValidations} from "./SizeValidations.sol";
-import {SizeVirtualCollateral} from "./SizeVirtualCollateral.sol";
-import {SizeRealCollateral} from "./SizeRealCollateral.sol";
+import {SizeBorrow, BorrowAsMarketOrdersParams} from "./SizeBorrow.sol";
 
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
 import {OfferLibrary, LoanOffer, BorrowOffer} from "./libraries/OfferLibrary.sol";
@@ -22,15 +21,7 @@ import {IPriceFeed} from "./oracle/IPriceFeed.sol";
 
 import {ISize} from "./interfaces/ISize.sol";
 
-contract Size is
-    ISize,
-    SizeValidations,
-    SizeVirtualCollateral,
-    SizeRealCollateral,
-    Initializable,
-    Ownable2StepUpgradeable,
-    UUPSUpgradeable
-{
+contract Size is ISize, SizeValidations, SizeBorrow, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     using OfferLibrary for LoanOffer;
     using RealCollateralLibrary for RealCollateral;
     using LoanLibrary for Loan;
@@ -59,9 +50,9 @@ contract Size is
         _validateCollateralRatio(_CROpening);
         _validateCollateralRatio(_CRLiquidation);
         _validateCollateralRatio(_CROpening, _CRLiquidation);
-        _validateCollateralPercPremium(_collateralPercPremiumToLiquidator);
-        _validateCollateralPercPremium(_collateralPercPremiumToBorrower);
-        _validateCollateralPercPremium(_collateralPercPremiumToLiquidator, _collateralPercPremiumToBorrower);
+        _validateCollateralPercentagePremium(_collateralPercPremiumToLiquidator);
+        _validateCollateralPercentagePremium(_collateralPercPremiumToBorrower);
+        _validateCollateralPercentagePremium(_collateralPercPremiumToLiquidator, _collateralPercPremiumToBorrower);
 
         priceFeed = _priceFeed;
         CROpening = _CROpening;
@@ -88,7 +79,7 @@ contract Size is
         users[msg.sender].cash.free -= cash;
         users[msg.sender].eth.free -= eth;
 
-        _validateUserHealthy(msg.sender);
+        _validateUserIsNotLiquidatable(msg.sender);
     }
 
     function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime)
@@ -120,10 +111,10 @@ contract Size is
         User storage lender = users[msg.sender];
 
         if (amount > offer.maxAmount) {
-            revert ISize.InvalidAmount(offer.maxAmount);
+            revert ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(amount, offer.maxAmount);
         }
         if (lender.cash.free < amount) {
-            revert ISize.NotEnoughCash(lender.cash.free, amount);
+            revert ERROR_NOT_ENOUGH_FREE_CASH(lender.cash.free, amount);
         }
 
         // uint256 rate = offer.getRate(dueDate);
@@ -151,29 +142,22 @@ contract Size is
         uint256 dueDate,
         uint256[] memory virtualCollateralLoansIds
     ) public {
-        LoanOffer storage offer = loanOffers[loanOfferId];
-        User storage lender = users[offer.lender];
+        BorrowAsMarketOrdersParams memory params = BorrowAsMarketOrdersParams({
+            borrower: msg.sender,
+            loanOfferId: loanOfferId,
+            amount: amount,
+            dueDate: dueDate,
+            virtualCollateralLoansIds: virtualCollateralLoansIds
+        });
 
-        _validateDueDate(dueDate);
-        if (amount > offer.maxAmount) {
-            revert ISize.InvalidAmount(offer.maxAmount);
-        }
-        if (lender.cash.free < amount) {
-            revert ISize.NotEnoughCash(lender.cash.free, amount);
-        }
+        _validateBorrowAsMarketOrder(params);
+        uint256 amountOutLeft = _borrowWithVirtualCollateral(params);
 
-        //  amountIn: Amount of future cashflow to exit
-        //  amountOut: Amount of cash to borrow at present time
-
-        //  NOTE: The `amountOutLeft` is going to be decreased as more and more SOLs are created
-        uint256 amountOutLeft = _borrowWithVirtualCollateral(loanOfferId, amount, dueDate, virtualCollateralLoansIds);
-
-        // TODO cover the remaining amount with real collateral
         if (amountOutLeft > 0) {
-            _borrowWithRealCollateral(loanOfferId, amountOutLeft, dueDate);
+            _borrowWithRealCollateral(params);
         }
 
-        _validateUserHealthy(msg.sender);
+        _validateUserIsNotLiquidatable(params.borrower);
     }
 
     // decreases loanOffer lender free cash
@@ -193,10 +177,10 @@ contract Size is
         // - the other lenders are the makers
         // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
         Loan storage loan = loans[loanId];
-        if (loan.lender != msg.sender) revert ISize.InvalidLender();
-        if (amount == 0) revert ISize.InvalidAmount(amount);
+        if (loan.lender != msg.sender) revert ERROR_EXITER_IS_NOT_LENDER(msg.sender, loan.lender);
+        if (amount == 0) revert ERROR_NULL_AMOUNT();
         if (amount > loan.getCredit()) {
-            revert ISize.InvalidAmount(loan.getCredit());
+            revert ERROR_AMOUNT_GREATER_THAN_LOAN_CREDIT(amount, loan.getCredit());
         }
 
         uint256 amountInLeft = amount;
@@ -241,17 +225,16 @@ contract Size is
         User storage borrower = users[loan.borrower];
         User storage protocol = users[address(this)];
         if (!loan.isFOL()) {
-            revert ISize.InvalidLoanId(loanId);
+            revert ERROR_ONLY_FOL_CAN_BE_REPAID(loanId);
         }
         if (loan.repaid) {
-            revert ISize.NothingToRepay();
+            revert ERROR_LOAN_ALREADY_REPAID(loanId);
         }
         if (amount < loan.FV) {
-            // NOTE partial repayment currently unsupported
-            revert ISize.NotEnoughCash(amount, loan.FV);
+            revert ERROR_INVALID_PARTIAL_REPAY_AMOUNT(amount, loan.FV);
         }
         if (borrower.cash.free < amount) {
-            revert ISize.NotEnoughCash(borrower.cash.free, amount);
+            revert ERROR_NOT_ENOUGH_FREE_CASH(borrower.cash.free, amount);
         }
 
         borrower.cash.transfer(protocol.cash, amount);
@@ -273,11 +256,11 @@ contract Size is
         User storage liquidator = users[msg.sender];
 
         if (!isLiquidatable(_borrower)) {
-            revert ISize.NotLiquidatable();
+            revert ERROR_NOT_LIQUIDATABLE(_borrower);
         }
         // @audit partial liquidations? maybe not, just assume flash loan??
         if (liquidator.cash.free < borrower.totDebtCoveredByRealCollateral) {
-            revert ISize.NotEnoughCash(liquidator.cash.free, borrower.totDebtCoveredByRealCollateral);
+            revert ERROR_NOT_ENOUGH_FREE_CASH(liquidator.cash.free, borrower.totDebtCoveredByRealCollateral);
         }
 
         uint256 temp = borrower.cash.locked;

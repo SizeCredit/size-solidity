@@ -54,14 +54,7 @@ library OfferLibrary {
         }
     }
 
-    // function getFinalRate(
-    //     Offer storage self,
-    //     uint256 dueDate
-    // ) public view returns (uint256) {
-    //     if (dueDate <= block.timestamp) revert OfferLibrary__PastDueDate();
-    //     if (dueDate > self.maxDueDate)
-    //         revert OfferLibrary__DueDateOutOfRange(self.maxDueDate);
-
-    //     return self.ratePerTimeUnit * (dueDate - block.timestamp);
-    // }
+    function getR(LoanOffer storage self, uint256 dueDate) public view returns (uint256) {
+        return PERCENT + getRate(self, dueDate);
+    }
 }
