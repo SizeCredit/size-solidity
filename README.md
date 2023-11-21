@@ -43,4 +43,4 @@ References
 - create helper contracts for liquidation in 1 step (deposit -> liquidate -> withdraw)
 - multi-erc20 tokens with different CR per tokens
 - natspec
-- 
+- split contracts (config contract, view/lens contract, etc)
