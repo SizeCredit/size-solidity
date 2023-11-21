@@ -13,3 +13,6 @@
 [submodule "size-v2-python"]
 	path = size-v2-python
 	url = git@github.com:SizeLending/size-v2-python.git
+[submodule "lib/solmate"]
+	path = lib/solmate
+	url = https://github.com/transmissions11/solmate

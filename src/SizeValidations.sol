@@ -7,14 +7,16 @@ import {ISize} from "./interfaces/ISize.sol";
 import {SizeView} from "./SizeView.sol";
 import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+import {UserLibrary, User} from "@src/libraries/UserLibrary.sol";
 
 import {BorrowAsMarketOrdersParams} from "@src/SizeBorrowAsMarketOrder.sol";
 
 abstract contract SizeSecurityValidations is SizeView, ISize {
+    using UserLibrary for User;
+
     function _validateUserIsNotLiquidatable(address account) internal view {
         if (isLiquidatable(account)) {
-            revert ERROR_USER_IS_LIQUIDATABLE(account);
+            revert ERROR_USER_IS_LIQUIDATABLE(account, users[account].collateralRatio(priceFeed.getPrice()));
         }
     }
 }
@@ -71,6 +73,9 @@ abstract contract SizeBorrowAsMarketOrderValidations is SizeView, ISize {
         }
 
         // validate params.amount
+        if (params.amount == 0) {
+            revert ERROR_NULL_AMOUNT();
+        }
         if (params.amount > loanOffer.maxAmount) {
             revert ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
         }
@@ -88,7 +93,7 @@ abstract contract SizeBorrowAsMarketOrderValidations is SizeView, ISize {
             uint256 loanId = params.virtualCollateralLoansIds[i];
             Loan memory loan = loans[loanId];
 
-            if (loan.lender != params.borrower) {
+            if (params.borrower != loan.lender) {
                 revert ERROR_BORROWER_IS_NOT_LENDER(params.borrower, loan.lender);
             }
             if (params.dueDate < loan.getDueDate(loans)) {

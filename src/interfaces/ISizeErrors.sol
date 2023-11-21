@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 interface ISizeErrors {
-    error ERROR_USER_IS_LIQUIDATABLE(address account);
+    error ERROR_USER_IS_LIQUIDATABLE(address account, uint256 cr);
     error ERROR_NULL_ADDRESS();
     error ERROR_NULL_AMOUNT();
     error ERROR_INVALID_COLLATERAL_RATIO(uint256 cr);

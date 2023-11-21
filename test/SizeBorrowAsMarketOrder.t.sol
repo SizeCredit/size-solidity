@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {console2 as console} from "forge-std/console2.sol";
+
 import {BaseTest} from "./BaseTest.sol";
 import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
@@ -8,6 +10,8 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+
+import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
 contract SizeBorrowAsMarketOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
@@ -44,8 +48,8 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         vm.startPrank(bob);
         size.borrowAsMarketOrder(loanOfferId, amount, dueDate, virtualCollateralLoansIds);
 
-        uint256 debt = (amount * (PERCENT + 0.03e18)) / PERCENT;
-        uint256 ethLocked = (debt * size.CROpening()) / priceFeed.getPrice();
+        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        uint256 ethLocked = FixedPointMathLib.mulDivUp(debt, size.CROpening(), priceFeed.getPrice());
         User memory aliceAfter = size.getUser(alice);
         User memory bobAfter = size.getUser(bob);
         LoanOffer memory offerAfter = size.getLoanOffer(loanOfferId);
@@ -62,9 +66,13 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         uint256 rate,
         uint256 dueDate
     ) public {
-        amount = bound(amount, 0, MAX_AMOUNT / priceFeed.getPrice() / 2); // arbitrary divisor so that user does not get unhealthy
+        amount = bound(amount, 1, MAX_AMOUNT / 10); // arbitrary divisor so that user does not get unhealthy
         rate = bound(rate, 0, MAX_RATE);
         dueDate = bound(dueDate, block.timestamp, block.timestamp + MAX_DUE_DATE - 1);
+
+        amount = 10e18;
+        rate = 0.03e18;
+        dueDate = 12;
 
         vm.prank(alice);
         size.deposit(MAX_AMOUNT, MAX_AMOUNT);
@@ -83,8 +91,8 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         uint256[] memory virtualCollateralLoansIds;
         vm.startPrank(bob);
         size.borrowAsMarketOrder(loanOfferId, amount, dueDate, virtualCollateralLoansIds);
-        uint256 debt = (amount * (PERCENT + rate)) / PERCENT;
-        uint256 ethLocked = (debt * size.CROpening()) / priceFeed.getPrice();
+        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + rate), PERCENT);
+        uint256 ethLocked = FixedPointMathLib.mulDivUp(debt, size.CROpening(), priceFeed.getPrice());
         User memory aliceAfter = size.getUser(alice);
         User memory bobAfter = size.getUser(bob);
         LoanOffer memory offerAfter = size.getLoanOffer(loanOfferId);
@@ -125,12 +133,12 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         assertTrue(!size.isFOL(loanId2));
     }
 
-    function xxtest_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral(
+    function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral(
         uint256 amount,
         uint256 rate,
         uint256 dueDate
     ) public {
-        amount = bound(amount, 0, MAX_AMOUNT / priceFeed.getPrice() / 3); // arbitrary divisor so that user does not get unhealthy
+        amount = bound(amount, 1, MAX_AMOUNT / 3); // arbitrary divisor so that user does not get unhealthy
         rate = bound(rate, 0, MAX_RATE);
         dueDate = bound(dueDate, block.timestamp, block.timestamp + MAX_DUE_DATE - 1);
 
@@ -185,8 +193,47 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
 
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
 
-        uint256 FV = (r * (amountLoanId2 - amountLoanId1)) / PERCENT;
-        uint256 maxETHToLock = ((FV * size.CROpening()) / priceFeed.getPrice());
+        uint256 FV = FixedPointMathLib.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
+        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.CROpening(), priceFeed.getPrice());
+
+        assertLt(_after.candy.cash.free, _before.candy.cash.free);
+        assertGt(_after.alice.cash.free, _before.alice.cash.free);
+        assertEq(_after.alice.eth.locked, _before.alice.eth.locked + maxETHToLock);
+        assertEq(_after.alice.totDebtCoveredByRealCollateral, _before.alice.totDebtCoveredByRealCollateral + FV);
+        assertEq(_after.bob, _before.bob);
+        assertTrue(size.isFOL(loanId2));
+        assertEq(loan2.FV, FV);
+    }
+
+    function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_and_real_collateral(
+        uint256 amountLoanId1,
+        uint256 amountLoanId2
+    ) public {
+        amountLoanId1 = bound(amountLoanId1, MAX_AMOUNT / 10, 2 * MAX_AMOUNT / 10); // arbitrary divisor so that user does not get unhealthy
+        amountLoanId2 = bound(amountLoanId2, 3 * MAX_AMOUNT / 10, 3 * 2 * MAX_AMOUNT / 10); // arbitrary divisor so that user does not get unhealthy
+
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _deposit(candy, 100e18, 100e18);
+        uint256 loanOfferId = _lendAsLimitOrder(alice, 100e18, 0.05e18, 12);
+        uint256 loanOfferId2 = _lendAsLimitOrder(candy, 100e18, 0.05e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, loanOfferId, amountLoanId1, 12);
+        LoanOffer memory loanOffer = size.getLoanOffer(loanOfferId2);
+        uint256[] memory virtualCollateralLoanIds = new uint256[](1);
+        virtualCollateralLoanIds[0] = loanId;
+
+        Vars memory _before = _getUsers();
+
+        uint256 dueDate = 12;
+        uint256 loanId2 = _borrowAsMarketOrder(alice, loanOfferId2, amountLoanId2, dueDate, virtualCollateralLoanIds);
+        Loan memory loan2 = size.getLoan(loanId2);
+
+        Vars memory _after = _getUsers();
+
+        uint256 r = PERCENT + loanOffer.getRate(dueDate);
+
+        uint256 FV = FixedPointMathLib.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
+        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.CROpening(), priceFeed.getPrice());
 
         assertLt(_after.candy.cash.free, _before.candy.cash.free);
         assertGt(_after.alice.cash.free, _before.alice.cash.free);

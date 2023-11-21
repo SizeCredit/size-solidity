@@ -9,6 +9,8 @@ import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
 import {RealCollateralLibrary, RealCollateral} from "./libraries/RealCollateralLibrary.sol";
 import {PERCENT} from "./libraries/MathLibrary.sol";
 
+import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+
 import {ISize} from "./interfaces/ISize.sol";
 
 struct BorrowAsMarketOrdersParams {
@@ -38,8 +40,8 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, ISize {
         LoanOffer storage loanOffer = loanOffers[params.loanOfferId];
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
-        uint256 FV = (r * params.amount) / PERCENT;
-        uint256 maxETHToLock = ((FV * CROpening) / priceFeed.getPrice());
+        uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
+        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, CROpening, priceFeed.getPrice());
         borrowerUser.eth.lock(maxETHToLock);
         borrowerUser.totDebtCoveredByRealCollateral += FV;
         loans.createFOL(loanOffer.lender, params.borrower, FV, params.dueDate);
