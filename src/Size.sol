@@ -45,7 +45,6 @@ contract Size is
     function initialize(
         address _owner,
         IPriceFeed _priceFeed,
-        uint256 _maxTime,
         uint256 _CROpening,
         uint256 _CRLiquidation,
         uint256 _collateralPercPremiumToLiquidator,
@@ -65,7 +64,6 @@ contract Size is
         _validateCollateralPercPremium(_collateralPercPremiumToLiquidator, _collateralPercPremiumToBorrower);
 
         priceFeed = _priceFeed;
-        maxTime = _maxTime;
         CROpening = _CROpening;
         CRLiquidation = _CRLiquidation;
         collateralPercPremiumToLiquidator = _collateralPercPremiumToLiquidator;
