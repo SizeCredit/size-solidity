@@ -44,3 +44,4 @@ References
 - multi-erc20 tokens with different CR per tokens
 - natspec
 - split contracts (config contract, view/lens contract, etc)
+- dust amount for loans

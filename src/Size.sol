@@ -98,17 +98,11 @@ contract Size is
     }
 
     function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public {
-        if (loanOffers[msg.sender].isNull()) {
-            totalLoanOffers++;
-        }
         loanOffers[msg.sender] =
             LoanOffer({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
     }
 
     function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public {
-        if (borrowOffers[msg.sender].isNull()) {
-            totalBorrowOffers++;
-        }
         borrowOffers[msg.sender] = BorrowOffer({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime});
     }
 

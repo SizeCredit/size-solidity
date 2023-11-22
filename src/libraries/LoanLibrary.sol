@@ -17,10 +17,10 @@ struct Loan {
 }
 
 enum LoanStatus {
-    ACTIVE,
-    OVERDUE,
-    REPAID,
-    CLAIMED
+    ACTIVE, // not yet due
+    OVERDUE, // eligible to liquidation
+    REPAID, // by borrower or liquidator
+    CLAIMED // by lender
 }
 
 struct VariableLoan {

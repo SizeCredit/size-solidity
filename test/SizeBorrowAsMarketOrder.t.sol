@@ -21,14 +21,6 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
     uint256 private constant MAX_DUE_DATE = 12;
     uint256 private constant MAX_AMOUNT = 100e18;
 
-    function test_SizeBorrowAsMarketOrder_borrowAsLimitOrder_increases_borrow_offers() public {
-        vm.startPrank(alice);
-
-        assertEq(size.totalBorrowOffers(), 0);
-        size.borrowAsLimitOrder(100e18, YieldCurveLibrary.getFlatRate(0.03e18, 12));
-        assertEq(size.totalBorrowOffers(), 1);
-    }
-
     function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_real_collateral() public {
         vm.prank(alice);
         size.deposit(100e18, 100e18);

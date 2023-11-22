@@ -8,9 +8,7 @@ import {User} from "@src/libraries/UserLibrary.sol";
 
 abstract contract SizeStorage {
     mapping(address => LoanOffer) public loanOffers;
-    uint256 public totalLoanOffers;
     mapping(address => BorrowOffer) public borrowOffers;
-    uint256 public totalBorrowOffers;
     mapping(address => User) public users;
     Loan[] public loans;
     IPriceFeed public priceFeed;

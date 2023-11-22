@@ -23,7 +23,7 @@ contract SizeExitTest is BaseTest {
         User memory candyUserBefore = size.getUser(candy);
 
         address[] memory lendersToExitTo = new address[](1);
-        lendersToExitTo[0] = alice;
+        lendersToExitTo[0] = candy;
 
         LoanOffer memory loanOfferBefore = size.getLoanOffer(candy);
         Loan memory loanBefore = size.getLoan(loanId);
