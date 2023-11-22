@@ -9,6 +9,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 import {SizeValidations} from "./SizeValidations.sol";
 import {SizeBorrowAsMarketOrder, BorrowAsMarketOrdersParams} from "./SizeBorrowAsMarketOrder.sol";
+import {SizeExit, ExitParams} from "@src/SizeExit.sol";
 
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
 import {OfferLibrary, LoanOffer, BorrowOffer} from "./libraries/OfferLibrary.sol";
@@ -25,11 +26,13 @@ contract Size is
     ISize,
     SizeValidations,
     SizeBorrowAsMarketOrder,
+    SizeExit,
     Initializable,
     Ownable2StepUpgradeable,
     UUPSUpgradeable
 {
     using OfferLibrary for LoanOffer;
+    using OfferLibrary for BorrowOffer;
     using RealCollateralLibrary for RealCollateral;
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
@@ -95,8 +98,7 @@ contract Size is
     }
 
     function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public {
-        LoanOffer memory empty;
-        if (loanOffers[msg.sender] == empty) {
+        if (loanOffers[msg.sender].isNull()) {
             totalLoanOffers++;
         }
         loanOffers[msg.sender] =
@@ -104,8 +106,7 @@ contract Size is
     }
 
     function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public {
-        BorrowOffer memory empty;
-        if (borrowOffers[msg.sender] == empty) {
+        if (borrowOffers[msg.sender].isNull()) {
             totalBorrowOffers++;
         }
         borrowOffers[msg.sender] = BorrowOffer({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime});
@@ -178,44 +179,16 @@ contract Size is
         // - the exiting lender is the taker
         // - the other lenders are the makers
         // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
-        Loan storage loan = loans[loanId];
-        address exiter = msg.sender;
-        if (loan.lender != exiter) {
-            revert ERROR_EXITER_IS_NOT_LENDER(exiter, loan.lender);
-        }
-        if (amount == 0) revert ERROR_NULL_AMOUNT();
-        if (amount > loan.getCredit()) {
-            revert ERROR_AMOUNT_GREATER_THAN_LOAN_CREDIT(amount, loan.getCredit());
-        }
+        ExitParams memory params = ExitParams({
+            exiter: msg.sender,
+            loanId: loanId,
+            amount: amount,
+            dueDate: dueDate,
+            lendersToExitTo: lendersToExitTo
+        });
 
-        uint256 amountInLeft = amount;
-        for (uint256 i = 0; i < lendersToExitTo.length; ++i) {
-            if (amountInLeft == 0) {
-                // No more amountIn to swap
-                break;
-            }
-
-            address lender = lendersToExitTo[i];
-            LoanOffer storage loanOffer = loanOffers[lender];
-            uint256 r = PERCENT + loanOffer.getRate(dueDate);
-            uint256 deltaAmountIn;
-            uint256 deltaAmountOut;
-            // @audit check rounding direction
-            if (amountInLeft >= loanOffer.maxAmount) {
-                deltaAmountIn = (r * loanOffer.maxAmount) / PERCENT;
-                deltaAmountOut = loanOffer.maxAmount;
-            } else {
-                deltaAmountIn = amountInLeft;
-                deltaAmountOut = (deltaAmountIn * PERCENT) / r;
-            }
-
-            loans.createSOL(loanId, lender, exiter, deltaAmountIn);
-            users[lender].cash.transfer(users[exiter].cash, deltaAmountOut);
-            loanOffer.maxAmount -= deltaAmountOut;
-            amountInLeft -= deltaAmountIn;
-        }
-
-        return amountInLeft;
+        _validateExit(params);
+        return _exit(params);
     }
 
     // decreases borrower free cash

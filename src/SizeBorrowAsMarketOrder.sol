@@ -7,6 +7,7 @@ import {Loan} from "./libraries/LoanLibrary.sol";
 import {OfferLibrary, LoanOffer} from "./libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
 import {RealCollateralLibrary, RealCollateral} from "./libraries/RealCollateralLibrary.sol";
+import {SizeView} from "./SizeView.sol";
 import {PERCENT} from "./libraries/MathLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
@@ -21,11 +22,56 @@ struct BorrowAsMarketOrdersParams {
     uint256[] virtualCollateralLoansIds;
 }
 
-abstract contract SizeBorrowAsMarketOrder is SizeStorage, ISize {
+abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
     using OfferLibrary for LoanOffer;
     using RealCollateralLibrary for RealCollateral;
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
+
+    function _validateBorrowAsMarketOrder(BorrowAsMarketOrdersParams memory params) internal view {
+        LoanOffer memory loanOffer = loanOffers[params.lender];
+        User memory lenderUser = users[params.lender];
+
+        // validate params.borrower
+        // N/A
+
+        // validate params.lender
+        if (loanOffer.isNull()) {
+            revert ERROR_INVALID_LOAN_OFFER(params.lender);
+        }
+
+        // validate params.amount
+        if (params.amount == 0) {
+            revert ERROR_NULL_AMOUNT();
+        }
+        if (params.amount > loanOffer.maxAmount) {
+            revert ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
+        }
+        if (lenderUser.cash.free < params.amount) {
+            revert ERROR_NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, params.amount);
+        }
+
+        // validate params.dueDate
+        if (params.dueDate < block.timestamp) {
+            revert ERROR_PAST_DUE_DATE(params.dueDate);
+        }
+        if (params.dueDate > loanOffer.maxDueDate) {
+            revert ERROR_DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
+        }
+
+        // validate params.virtualCollateralLoansIds
+        for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {
+            uint256 loanId = params.virtualCollateralLoansIds[i];
+            Loan memory loan = loans[loanId];
+
+            if (params.borrower != loan.lender) {
+                revert ERROR_BORROWER_IS_NOT_LENDER(params.borrower, loan.lender);
+            }
+            if (params.dueDate < loan.getDueDate(loans)) {
+                revert ERROR_DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(loans));
+            }
+        }
+    }
 
     /**
      * @notice Borrow with real collateral, an internal state-modifying function.

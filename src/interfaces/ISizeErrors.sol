@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {LoanStatus} from "../libraries/LoanLibrary.sol";
+
 interface ISizeErrors {
     error ERROR_USER_IS_LIQUIDATABLE(address account, uint256 cr);
     error ERROR_NULL_ADDRESS();
@@ -14,6 +16,7 @@ interface ISizeErrors {
     error ERROR_DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error ERROR_INVALID_LENDER(address account);
     error ERROR_INVALID_LOAN_OFFER(address lender);
+    error ERROR_INVALID_LOAN_STATUS(uint256 loanId, LoanStatus actual, LoanStatus expected);
 
     error ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(uint256 amount, uint256 maxAmount);
     error ERROR_AMOUNT_GREATER_THAN_LOAN_CREDIT(uint256 amount, uint256 loanCredit);
