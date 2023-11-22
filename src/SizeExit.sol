@@ -56,10 +56,10 @@ abstract contract SizeExit is SizeStorage, ISize {
             if (lender == address(0)) {
                 revert ERROR_NULL_ADDRESS();
             }
-            if (lender == params.exiter) {
-                // @audit should we allow exit to self?
-                revert ERROR_INVALID_LENDER(lender);
-            }
+            // @audit should we prevent exit to self?
+            // if (lender == params.exiter) {
+            //     revert ERROR_INVALID_LENDER(lender);
+            // }
             if (loanOffers[lender].isNull()) {
                 revert ERROR_INVALID_LOAN_OFFER(lender);
             }

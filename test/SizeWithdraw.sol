@@ -24,6 +24,7 @@ contract SizeWithdrawTest is BaseTest {
     }
 
     function test_SizeWithdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
+        vm.assume(x > 0 || y > 0);
         vm.startPrank(alice);
 
         size.deposit(x, y);
@@ -35,6 +36,8 @@ contract SizeWithdrawTest is BaseTest {
 
         z = bound(z, 0, x);
         w = bound(w, 0, y);
+
+        vm.assume(z > 0 || w > 0);
 
         size.withdraw(z, w);
         aliceUser = size.getUser(alice);

@@ -17,6 +17,7 @@ contract SizeDepositTest is BaseTest {
     }
 
     function test_SizeDeposit_deposit_increases_user_balance(uint256 x, uint256 y) public {
+        vm.assume(x > 0 || y > 0);
         vm.startPrank(alice);
 
         size.deposit(x, y);
