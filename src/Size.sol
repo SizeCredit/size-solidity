@@ -67,10 +67,7 @@ contract Size is
         collateralPercPremiumToLiquidator = _collateralPercPremiumToLiquidator;
         collateralPercPremiumToBorrower = _collateralPercPremiumToBorrower;
 
-        LoanOffer memory lo;
-        loanOffers.push(lo);
-        BorrowOffer memory bo;
-        borrowOffers.push(bo);
+        // NOTE Necessary so that loanIds start at 1, and 0 is reserved for SOLs
         Loan memory l;
         loans.push(l);
     }
@@ -78,43 +75,44 @@ contract Size is
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function deposit(uint256 cash, uint256 eth) public {
+        if (cash == 0 && eth == 0) {
+            revert ERROR_NULL_AMOUNT();
+        }
+
         users[msg.sender].cash.free += cash;
         users[msg.sender].eth.free += eth;
     }
 
     function withdraw(uint256 cash, uint256 eth) public {
+        if (cash == 0 && eth == 0) {
+            revert ERROR_NULL_AMOUNT();
+        }
+
         users[msg.sender].cash.free -= cash;
         users[msg.sender].eth.free -= eth;
 
         _validateUserIsNotLiquidatable(msg.sender);
     }
 
-    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime)
-        public
-        returns (uint256)
-    {
-        loanOffers.push(
-            LoanOffer({
-                lender: msg.sender,
-                maxAmount: maxAmount,
-                maxDueDate: maxDueDate,
-                curveRelativeTime: curveRelativeTime
-            })
-        );
-
-        return loanOffers.length - 1;
+    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public {
+        LoanOffer memory empty;
+        if (loanOffers[msg.sender] == empty) {
+            totalLoanOffers++;
+        }
+        loanOffers[msg.sender] =
+            LoanOffer({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
     }
 
-    function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public returns (uint256) {
-        borrowOffers.push(
-            BorrowOffer({borrower: msg.sender, maxAmount: maxAmount, curveRelativeTime: curveRelativeTime})
-        );
-
-        return borrowOffers.length - 1;
+    function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public {
+        BorrowOffer memory empty;
+        if (borrowOffers[msg.sender] == empty) {
+            totalBorrowOffers++;
+        }
+        borrowOffers[msg.sender] = BorrowOffer({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime});
     }
 
-    function lendAsMarketOrder(uint256 borrowOfferId, uint256 dueDate, uint256 amount) public {
-        BorrowOffer storage offer = borrowOffers[borrowOfferId];
+    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) public {
+        BorrowOffer storage offer = borrowOffers[borrower];
         User storage lender = users[msg.sender];
 
         if (amount > offer.maxAmount) {
@@ -144,14 +142,14 @@ contract Size is
 
     // creates new loans
     function borrowAsMarketOrder(
-        uint256 loanOfferId,
+        address lender,
         uint256 amount,
         uint256 dueDate,
         uint256[] memory virtualCollateralLoansIds
     ) public {
         BorrowAsMarketOrdersParams memory params = BorrowAsMarketOrdersParams({
             borrower: msg.sender,
-            loanOfferId: loanOfferId,
+            lender: lender,
             amount: amount,
             dueDate: dueDate,
             virtualCollateralLoansIds: virtualCollateralLoansIds
@@ -172,7 +170,7 @@ contract Size is
     // increases loan amountFVExited
 
     // creates a new SOL
-    function exit(uint256 loanId, uint256 amount, uint256 dueDate, uint256[] memory loanOfferIds)
+    function exit(uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
         public
         returns (uint256)
     {
@@ -181,20 +179,24 @@ contract Size is
         // - the other lenders are the makers
         // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
         Loan storage loan = loans[loanId];
-        if (loan.lender != msg.sender) revert ERROR_EXITER_IS_NOT_LENDER(msg.sender, loan.lender);
+        address exiter = msg.sender;
+        if (loan.lender != exiter) {
+            revert ERROR_EXITER_IS_NOT_LENDER(exiter, loan.lender);
+        }
         if (amount == 0) revert ERROR_NULL_AMOUNT();
         if (amount > loan.getCredit()) {
             revert ERROR_AMOUNT_GREATER_THAN_LOAN_CREDIT(amount, loan.getCredit());
         }
 
         uint256 amountInLeft = amount;
-        for (uint256 i = 0; i < loanOfferIds.length; ++i) {
+        for (uint256 i = 0; i < lendersToExitTo.length; ++i) {
             if (amountInLeft == 0) {
                 // No more amountIn to swap
                 break;
             }
 
-            LoanOffer storage loanOffer = loanOffers[loanOfferIds[i]];
+            address lender = lendersToExitTo[i];
+            LoanOffer storage loanOffer = loanOffers[lender];
             uint256 r = PERCENT + loanOffer.getRate(dueDate);
             uint256 deltaAmountIn;
             uint256 deltaAmountOut;
@@ -207,8 +209,8 @@ contract Size is
                 deltaAmountOut = (deltaAmountIn * PERCENT) / r;
             }
 
-            loans.createSOL(loanId, loanOffer.lender, msg.sender, deltaAmountIn);
-            users[loanOffer.lender].cash.transfer(users[msg.sender].cash, deltaAmountOut);
+            loans.createSOL(loanId, lender, exiter, deltaAmountIn);
+            users[lender].cash.transfer(users[exiter].cash, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
         }
@@ -244,6 +246,24 @@ contract Size is
         borrower.cash.transfer(protocol.cash, amount);
         borrower.totDebtCoveredByRealCollateral -= loan.FV;
         loan.repaid = true;
+    }
+
+    function claim(uint256 loanId) public {
+        Loan storage loan = loans[loanId];
+        User storage protocolUser = users[address(this)];
+        User storage lenderUser = users[loan.lender];
+
+        if (!loan.isRepaid(loans)) {
+            revert ERROR_LOAN_NOT_REPAID(loanId);
+        }
+        if (loan.claimed) {
+            revert ERROR_LOAN_ALREADY_CLAIMED(loanId);
+        }
+        if (loan.lender != msg.sender) {
+            revert ERROR_CLAIMER_IS_NOT_LENDER(msg.sender, loan.lender);
+        }
+
+        protocolUser.cash.transfer(lenderUser.cash, loan.FV);
     }
 
     function _liquidationSwap(User storage liquidator, User storage borrower, uint256 amountUSDC, uint256 amountETH)

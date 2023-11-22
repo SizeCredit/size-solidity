@@ -58,39 +58,36 @@ contract BaseTest is Test, AssertsHelper {
         size.deposit(cash, eth);
     }
 
-    function _lendAsLimitOrder(address user, uint256 maxAmount, uint256 rate, uint256 maxDueDate)
-        internal
-        returns (uint256 loanOfferId)
-    {
-        vm.startPrank(user);
-        loanOfferId = size.lendAsLimitOrder(maxAmount, maxDueDate, YieldCurveLibrary.getFlatRate(rate, maxDueDate));
+    function _lendAsLimitOrder(address lender, uint256 maxAmount, uint256 rate, uint256 maxDueDate) internal {
+        vm.startPrank(lender);
+        size.lendAsLimitOrder(maxAmount, maxDueDate, YieldCurveLibrary.getFlatRate(rate, maxDueDate));
     }
 
-    function _borrowAsMarketOrder(address user, uint256 loanOfferId, uint256 amount, uint256 dueDate)
+    function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate)
         internal
         returns (uint256)
     {
         uint256[] memory virtualCollateralLoansIds;
-        return _borrowAsMarketOrder(user, loanOfferId, amount, dueDate, virtualCollateralLoansIds);
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, virtualCollateralLoansIds);
     }
 
     function _borrowAsMarketOrder(
-        address user,
-        uint256 loanOfferId,
+        address borrower,
+        address lender,
         uint256 amount,
         uint256 dueDate,
         uint256[] memory virtualCollateralLoansIds
     ) internal returns (uint256) {
-        vm.startPrank(user);
-        size.borrowAsMarketOrder(loanOfferId, amount, dueDate, virtualCollateralLoansIds);
+        vm.startPrank(borrower);
+        size.borrowAsMarketOrder(lender, amount, dueDate, virtualCollateralLoansIds);
         return size.activeLoans();
     }
 
-    function _exit(address user, uint256 loanId, uint256 amount, uint256 dueDate, uint256[] memory loanOfferIds)
+    function _exit(address user, uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
         internal
     {
         vm.startPrank(user);
-        size.exit(loanId, amount, dueDate, loanOfferIds);
+        size.exit(loanId, amount, dueDate, lendersToExitTo);
     }
 
     function _getUsers() internal view returns (Vars memory vars) {

@@ -7,10 +7,12 @@ import {LoanOffer, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
 abstract contract SizeStorage {
-    LoanOffer[] public loanOffers;
-    BorrowOffer[] public borrowOffers;
-    Loan[] public loans;
+    mapping(address => LoanOffer) public loanOffers;
+    uint256 public totalLoanOffers;
+    mapping(address => BorrowOffer) public borrowOffers;
+    uint256 public totalBorrowOffers;
     mapping(address => User) public users;
+    Loan[] public loans;
     IPriceFeed public priceFeed;
     uint256 public maxTime;
     uint256 public CROpening;

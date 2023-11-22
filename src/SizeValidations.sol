@@ -60,16 +60,16 @@ abstract contract SizeBorrowAsMarketOrderValidations is SizeView, ISize {
     using LoanLibrary for Loan[];
 
     function _validateBorrowAsMarketOrder(BorrowAsMarketOrdersParams memory params) internal view {
-        LoanOffer memory loanOffer = loanOffers[params.loanOfferId];
-        address lender = loanOffer.lender;
-        User memory lenderUser = users[lender];
+        LoanOffer memory empty;
+        LoanOffer memory loanOffer = loanOffers[params.lender];
+        User memory lenderUser = users[params.lender];
 
         // validate params.borrower
         // N/A
 
-        // validate params.loanOfferId
-        if (params.loanOfferId == 0 || params.loanOfferId >= loanOffers.length) {
-            revert ERROR_INVALID_LOAN_OFFER_ID(params.loanOfferId);
+        // validate params.lender
+        if (loanOffer == empty) {
+            revert ERROR_INVALID_LOAN_OFFER(params.lender);
         }
 
         // validate params.amount
@@ -86,6 +86,9 @@ abstract contract SizeBorrowAsMarketOrderValidations is SizeView, ISize {
         // validate params.dueDate
         if (params.dueDate < block.timestamp) {
             revert ERROR_PAST_DUE_DATE(params.dueDate);
+        }
+        if (params.dueDate > loanOffer.maxDueDate) {
+            revert ERROR_DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
         }
 
         // validate params.virtualCollateralLoansIds

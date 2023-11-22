@@ -12,7 +12,15 @@ struct Loan {
     address borrower;
     uint256 dueDate;
     bool repaid;
+    bool claimed;
     uint256 folId; // non-null for SOLs
+}
+
+enum LoanStatus {
+    ACTIVE,
+    OVERDUE,
+    REPAID,
+    CLAIMED
 }
 
 struct VariableLoan {
@@ -31,12 +39,24 @@ library LoanLibrary {
         return self.folId == 0;
     }
 
+    function getLoanStatus(Loan memory self, Loan[] memory loans) public view returns (LoanStatus) {
+        if (self.claimed) {
+            return LoanStatus.CLAIMED;
+        } else if (self.repaid) {
+            return LoanStatus.REPAID;
+        } else if (block.timestamp > getDueDate(self, loans)) {
+            return LoanStatus.OVERDUE;
+        } else {
+            return LoanStatus.ACTIVE;
+        }
+    }
+
     function getCredit(Loan memory self) public pure returns (uint256) {
         return self.FV - self.amountFVExited;
     }
 
     function getDebt(Loan memory self, bool inCollateral, uint256 price) public pure returns (uint256) {
-        return inCollateral ? self.FV * 1e18 / price : self.FV;
+        return inCollateral ? (self.FV * 1e18) / price : self.FV;
     }
 
     function perc(Loan memory self, Loan[] memory loans) public pure returns (uint256) {
@@ -49,6 +69,10 @@ library LoanLibrary {
 
     function getFOL(Loan memory self, Loan[] memory loans) public pure returns (Loan memory) {
         return isFOL(self) ? self : loans[self.folId];
+    }
+
+    function isRepaid(Loan memory self, Loan[] memory loans) public pure returns (bool) {
+        return isFOL(self) ? self.repaid : loans[self.folId].repaid;
     }
 
     function isExpired(Loan memory self) public view returns (bool) {
@@ -68,6 +92,7 @@ library LoanLibrary {
                 borrower: borrower,
                 dueDate: dueDate,
                 repaid: false,
+                claimed: false,
                 folId: 0
             })
         );
@@ -83,6 +108,7 @@ library LoanLibrary {
                 borrower: borrower,
                 dueDate: fol.dueDate,
                 repaid: false,
+                claimed: false,
                 folId: folId
             })
         );

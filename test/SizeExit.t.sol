@@ -14,24 +14,24 @@ contract SizeExitTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        uint256 loanOfferId = _lendAsLimitOrder(alice, 100e18, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, loanOfferId, 100e18, 12);
-        uint256 loanOfferId2 = _lendAsLimitOrder(candy, 100e18, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 100e18, 0.03e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        _lendAsLimitOrder(candy, 100e18, 0.03e18, 12);
 
         User memory aliceUserBefore = size.getUser(alice);
         User memory bobUserBefore = size.getUser(bob);
         User memory candyUserBefore = size.getUser(candy);
 
-        uint256[] memory loanOfferIds = new uint256[](1);
-        loanOfferIds[0] = loanOfferId2;
+        address[] memory lendersToExitTo = new address[](1);
+        lendersToExitTo[0] = alice;
 
-        LoanOffer memory loanOfferBefore = size.getLoanOffer(loanOfferId2);
+        LoanOffer memory loanOfferBefore = size.getLoanOffer(candy);
         Loan memory loanBefore = size.getLoan(loanId);
         uint256 loansBefore = size.activeLoans();
 
-        _exit(alice, loanId, 10e18, 12, loanOfferIds);
+        _exit(alice, loanId, 10e18, 12, lendersToExitTo);
 
-        LoanOffer memory loanOfferAfter = size.getLoanOffer(loanOfferId2);
+        LoanOffer memory loanOfferAfter = size.getLoanOffer(candy);
         Loan memory loanAfter = size.getLoan(loanId);
         uint256 loansAfter = size.activeLoans();
 
@@ -52,22 +52,22 @@ contract SizeExitTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        uint256 loanOfferId = _lendAsLimitOrder(alice, 100e18, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, loanOfferId, 30e18, 12);
+        _lendAsLimitOrder(alice, 100e18, 0.03e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 30e18, 12);
 
         User memory aliceUserBefore = size.getUser(alice);
         User memory bobUserBefore = size.getUser(bob);
 
-        uint256[] memory loanOfferIds = new uint256[](1);
-        loanOfferIds[0] = loanOfferId;
+        address[] memory lendersToExitTo = new address[](1);
+        lendersToExitTo[0] = alice;
 
-        LoanOffer memory loanOfferBefore = size.getLoanOffer(loanOfferId);
+        LoanOffer memory loanOfferBefore = size.getLoanOffer(alice);
         Loan memory loanBefore = size.getLoan(loanId);
         uint256 loansBefore = size.activeLoans();
 
-        _exit(alice, loanId, 30e18, 12, loanOfferIds);
+        _exit(alice, loanId, 30e18, 12, lendersToExitTo);
 
-        LoanOffer memory loanOfferAfter = size.getLoanOffer(loanOfferId);
+        LoanOffer memory loanOfferAfter = size.getLoanOffer(alice);
         Loan memory loanAfter = size.getLoan(loanId);
         uint256 loansAfter = size.activeLoans();
 

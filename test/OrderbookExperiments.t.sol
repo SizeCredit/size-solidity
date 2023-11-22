@@ -18,38 +18,38 @@ contract OrderbookExperimentsTest is Test, BaseTest, JSONParserHelper, Experimen
     using LoanLibrary for Loan;
     using OfferLibrary for LoanOffer;
 
-    function test_experiment_1() internal {
-        console.log("context");
-        priceFeed.setPrice(100e18);
-        vm.warp(0);
+    // function test_experiment_1() internal {
+    //     console.log("context");
+    //     priceFeed.setPrice(100e18);
+    //     vm.warp(0);
 
-        vm.prank(alice);
-        size.deposit(100e18, 0);
-        // vm.prank(bob);
-        // size.deposit(100e18, 100e18);
-        // vm.prank(james);
-        // size.deposit(100e18, 100e18);
+    //     vm.prank(alice);
+    //     size.deposit(100e18, 0);
+    //     // vm.prank(bob);
+    //     // size.deposit(100e18, 100e18);
+    //     // vm.prank(james);
+    //     // size.deposit(100e18, 100e18);
 
-        vm.prank(alice);
-        size.lendAsLimitOrder(100e18, 10, YieldCurveLibrary.getFlatRate(0.03e18, 12));
+    //     vm.prank(alice);
+    //     size.lendAsLimitOrder(100e18, 10, YieldCurveLibrary.getFlatRate(0.03e18, 12));
 
-        uint256[] memory virtualCollateralLoansIds;
-        vm.prank(james);
-        size.borrowAsMarketOrder(1, 100e18, 6, virtualCollateralLoansIds);
+    //     uint256[] memory virtualCollateralLoansIds;
+    //     vm.prank(james);
+    //     size.borrowAsMarketOrder(1, 100e18, 6, virtualCollateralLoansIds);
 
-        assertEq(size.activeLoans(), 1);
-        Loan memory loan = size.getLoan(0);
-        assertEq(loan.getCredit(), loan.FV);
+    //     assertEq(size.activeLoans(), 1);
+    //     Loan memory loan = size.getLoan(0);
+    //     assertEq(loan.getCredit(), loan.FV);
 
-        vm.prank(bob);
-        size.deposit(100e18, 0);
+    //     vm.prank(bob);
+    //     size.deposit(100e18, 0);
 
-        User memory bobUser = size.getUser(bob);
-        assertEq(bobUser.cash.free, 100e18);
+    //     User memory bobUser = size.getUser(bob);
+    //     assertEq(bobUser.cash.free, 100e18);
 
-        vm.prank(bob);
-        size.lendAsLimitOrder(100e18, 10, YieldCurveLibrary.getFlatRate(0.03e18, 12));
-    }
+    //     vm.prank(bob);
+    //     size.lendAsLimitOrder(100e18, 10, YieldCurveLibrary.getFlatRate(0.03e18, 12));
+    // }
 
     // function test_experiment_2() public {
     //     console.log("Extension of the above with borrower liquidation");

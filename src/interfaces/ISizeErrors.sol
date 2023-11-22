@@ -11,19 +11,23 @@ interface ISizeErrors {
     error ERROR_INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error ERROR_PAST_DUE_DATE(uint256 dueDate);
     error ERROR_DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(uint256 dueDate, uint256 loanDueDate);
+    error ERROR_DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error ERROR_INVALID_LENDER(address account);
-    error ERROR_INVALID_LOAN_OFFER_ID(uint256 loanOfferId);
+    error ERROR_INVALID_LOAN_OFFER(address lender);
 
     error ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(uint256 amount, uint256 maxAmount);
     error ERROR_AMOUNT_GREATER_THAN_LOAN_CREDIT(uint256 amount, uint256 loanCredit);
 
     error ERROR_BORROWER_IS_NOT_LENDER(address borrower, address lender);
     error ERROR_EXITER_IS_NOT_LENDER(address exiter, address lender);
+    error ERROR_CLAIMER_IS_NOT_LENDER(address claimer, address lender);
+    error ERROR_LOAN_ALREADY_CLAIMED(uint256 loanId);
 
     error ERROR_NOT_ENOUGH_FREE_CASH(uint256 free, uint256 amount);
 
     error ERROR_ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
     error ERROR_LOAN_ALREADY_REPAID(uint256 loanId);
+    error ERROR_LOAN_NOT_REPAID(uint256 loanId);
     error ERROR_INVALID_PARTIAL_REPAY_AMOUNT(uint256 amount, uint256 fv);
 
     error ERROR_NOT_LIQUIDATABLE(address account);

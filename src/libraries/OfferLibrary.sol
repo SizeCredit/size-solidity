@@ -6,14 +6,12 @@ import "./UserLibrary.sol";
 import "./YieldCurveLibrary.sol";
 
 struct LoanOffer {
-    address lender;
     uint256 maxAmount;
     uint256 maxDueDate;
     YieldCurve curveRelativeTime;
 }
 
 struct BorrowOffer {
-    address borrower;
     uint256 maxAmount;
     YieldCurve curveRelativeTime;
 }

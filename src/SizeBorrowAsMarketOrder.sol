@@ -15,7 +15,7 @@ import {ISize} from "./interfaces/ISize.sol";
 
 struct BorrowAsMarketOrdersParams {
     address borrower;
-    uint256 loanOfferId;
+    address lender;
     uint256 amount;
     uint256 dueDate;
     uint256[] virtualCollateralLoansIds;
@@ -37,15 +37,16 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, ISize {
         }
 
         User storage borrowerUser = users[params.borrower];
-        LoanOffer storage loanOffer = loanOffers[params.loanOfferId];
+        User storage lenderUser = users[params.lender];
+        LoanOffer storage loanOffer = loanOffers[params.lender];
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
         uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, CROpening, priceFeed.getPrice());
         borrowerUser.eth.lock(maxETHToLock);
         borrowerUser.totDebtCoveredByRealCollateral += FV;
-        loans.createFOL(loanOffer.lender, params.borrower, FV, params.dueDate);
-        users[loanOffer.lender].cash.transfer(borrowerUser.cash, params.amount);
+        loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
+        lenderUser.cash.transfer(borrowerUser.cash, params.amount);
         loanOffer.maxAmount -= params.amount;
     }
 
@@ -62,9 +63,9 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, ISize {
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
-        LoanOffer storage loanOffer = loanOffers[params.loanOfferId];
+        LoanOffer storage loanOffer = loanOffers[params.lender];
         User storage borrowerUser = users[params.borrower];
-        User storage lenderUser = users[loanOffer.lender];
+        User storage lenderUser = users[params.lender];
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {
@@ -86,7 +87,7 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, ISize {
                 deltaAmountOut = amountOutLeft;
             }
 
-            loans.createSOL(loanId, loanOffer.lender, params.borrower, deltaAmountIn);
+            loans.createSOL(loanId, params.lender, params.borrower, deltaAmountIn);
             // NOTE: Transfer deltaAmountOut for each SOL created
             lenderUser.cash.transfer(borrowerUser.cash, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
