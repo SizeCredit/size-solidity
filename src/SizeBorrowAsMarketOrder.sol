@@ -90,7 +90,6 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, ISize {
             // NOTE: Transfer deltaAmountOut for each SOL created
             lenderUser.cash.transfer(borrowerUser.cash, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
-            // amountInLeft -= deltaAmountIn;
             amountOutLeft -= deltaAmountOut;
         }
     }
