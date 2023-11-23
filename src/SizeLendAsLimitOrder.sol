@@ -49,7 +49,7 @@ abstract contract SizeLendAsLimitOrder is SizeStorage, SizeView, ISize {
         }
     }
 
-    function _lendAsLimitOrder(LendAsLimitOrderParams memory params) internal {
+    function _executeLendAsLimitOrder(LendAsLimitOrderParams memory params) internal {
         users[params.lender].loanOffer = LoanOffer({
             maxAmount: params.maxAmount,
             maxDueDate: params.maxDueDate,

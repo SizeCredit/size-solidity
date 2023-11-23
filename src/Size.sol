@@ -114,7 +114,7 @@ contract Size is
             curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
         });
         _validateLendAsLimitOrder(params);
-        _lendAsLimitOrder(params);
+        _executeLendAsLimitOrder(params);
     }
 
     function borrowAsLimitOrder(uint256 maxAmount, uint256[] calldata timeBuckets, uint256[] calldata rates) public {
@@ -124,7 +124,7 @@ contract Size is
             curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
         });
         _validateBorrowAsLimitOrder(params);
-        _borrowAsLimitOrder(params);
+        _executeBorrowAsLimitOrder(params);
     }
 
     function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) public {
@@ -191,10 +191,6 @@ contract Size is
         public
         returns (uint256)
     {
-        // NOTE: The exit is equivalent to a spot swap for exact amount in wheres
-        // - the exiting lender is the taker
-        // - the other lenders are the makers
-        // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
         ExitParams memory params = ExitParams({
             exiter: msg.sender,
             loanId: loanId,

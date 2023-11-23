@@ -40,7 +40,7 @@ abstract contract SizeBorrowAsLimitOrder is SizeStorage, SizeView, ISize {
         }
     }
 
-    function _borrowAsLimitOrder(BorrowAsLimitOrderParams memory params) internal {
+    function _executeBorrowAsLimitOrder(BorrowAsLimitOrderParams memory params) internal {
         users[params.borrower].borrowOffer =
             BorrowOffer({maxAmount: params.maxAmount, curveRelativeTime: params.curveRelativeTime});
     }
