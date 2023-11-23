@@ -14,7 +14,7 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
 import {ISize} from "./interfaces/ISize.sol";
 
-struct BorrowAsMarketOrdersParams {
+struct BorrowAsMarketOrderParams {
     address borrower;
     address lender;
     uint256 amount;
@@ -28,7 +28,7 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
-    function _validateBorrowAsMarketOrder(BorrowAsMarketOrdersParams memory params) internal view {
+    function _validateBorrowAsMarketOrder(BorrowAsMarketOrderParams memory params) internal view {
         User memory lenderUser = users[params.lender];
         LoanOffer memory loanOffer = lenderUser.loanOffer;
 
@@ -77,7 +77,7 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
      * @notice Borrow with real collateral, an internal state-modifying function.
      * @dev Cover the remaining amount with real collateral
      */
-    function _borrowWithRealCollateral(BorrowAsMarketOrdersParams memory params) internal {
+    function _borrowWithRealCollateral(BorrowAsMarketOrderParams memory params) internal {
         if (params.amount == 0) {
             return;
         }
@@ -100,7 +100,7 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
      * @notice Borrow with virtual collateral, an internal state-modifying function.
      * @dev The `amount` is initialized to `amountOutLeft`, which is decreased as more and more SOLs are created
      */
-    function _borrowWithVirtualCollateral(BorrowAsMarketOrdersParams memory params)
+    function _borrowWithVirtualCollateral(BorrowAsMarketOrderParams memory params)
         internal
         returns (uint256 amountOutLeft)
     {

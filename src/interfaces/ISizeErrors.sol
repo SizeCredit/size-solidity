@@ -7,6 +7,8 @@ interface ISizeErrors {
     error ERROR_USER_IS_LIQUIDATABLE(address account, uint256 cr);
     error ERROR_NULL_ADDRESS();
     error ERROR_NULL_AMOUNT();
+    error ERROR_NULL_ARRAY();
+    error ERROR_ARRAY_LENGTHS_MISMATCH();
     error ERROR_INVALID_COLLATERAL_RATIO(uint256 cr);
     error ERROR_INVALID_COLLATERAL_PERCENTAGE_PREMIUM(uint256 percentage);
     error ERROR_INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(uint256 a, uint256 b);

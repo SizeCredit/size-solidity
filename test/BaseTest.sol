@@ -83,6 +83,16 @@ contract BaseTest is Test, AssertsHelper {
         return size.activeLoans();
     }
 
+    function _borrowAsLimitOrder(
+        address borrower,
+        uint256 maxAmount,
+        uint256[] memory timeBuckets,
+        uint256[] memory rates
+    ) internal {
+        vm.startPrank(borrower);
+        size.borrowAsLimitOrder(maxAmount, timeBuckets, rates);
+    }
+
     function _exit(address user, uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
         internal
     {

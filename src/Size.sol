@@ -8,7 +8,8 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {SizeValidations} from "./SizeValidations.sol";
-import {SizeBorrowAsMarketOrder, BorrowAsMarketOrdersParams} from "./SizeBorrowAsMarketOrder.sol";
+import {SizeBorrowAsMarketOrder, BorrowAsMarketOrderParams} from "./SizeBorrowAsMarketOrder.sol";
+import {SizeBorrowAsLimitOrder, BorrowAsLimitOrderParams} from "./SizeBorrowAsLimitOrder.sol";
 import {SizeExit, ExitParams} from "@src/SizeExit.sol";
 
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
@@ -26,6 +27,7 @@ contract Size is
     ISize,
     SizeValidations,
     SizeBorrowAsMarketOrder,
+    SizeBorrowAsLimitOrder,
     SizeExit,
     Initializable,
     Ownable2StepUpgradeable,
@@ -102,8 +104,14 @@ contract Size is
             LoanOffer({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
     }
 
-    function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public {
-        users[msg.sender].borrowOffer = BorrowOffer({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime});
+    function borrowAsLimitOrder(uint256 maxAmount, uint256[] calldata timeBuckets, uint256[] calldata rates) public {
+        BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({
+            borrower: msg.sender,
+            maxAmount: maxAmount,
+            curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
+        });
+        _validateBorrowAsLimitOrder(params);
+        _borrowAsLimitOrder(params);
     }
 
     function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) public {
@@ -143,7 +151,7 @@ contract Size is
         uint256 dueDate,
         uint256[] memory virtualCollateralLoansIds
     ) public {
-        BorrowAsMarketOrdersParams memory params = BorrowAsMarketOrdersParams({
+        BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             borrower: msg.sender,
             lender: lender,
             amount: amount,
