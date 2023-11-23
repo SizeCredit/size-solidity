@@ -7,6 +7,7 @@ interface ISizeErrors {
     error ERROR_USER_IS_LIQUIDATABLE(address account, uint256 cr);
     error ERROR_NULL_ADDRESS();
     error ERROR_NULL_AMOUNT();
+    error ERROR_NULL_MAX_DUE_DATE();
     error ERROR_NULL_ARRAY();
     error ERROR_ARRAY_LENGTHS_MISMATCH();
     error ERROR_INVALID_COLLATERAL_RATIO(uint256 cr);
@@ -14,6 +15,7 @@ interface ISizeErrors {
     error ERROR_INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(uint256 a, uint256 b);
     error ERROR_INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error ERROR_PAST_DUE_DATE(uint256 dueDate);
+    error ERROR_PAST_MAX_DUE_DATE(uint256 dueDate);
     error ERROR_DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(uint256 dueDate, uint256 loanDueDate);
     error ERROR_DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error ERROR_INVALID_LENDER(address account);

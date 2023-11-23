@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console2 as console} from "forge-std/Test.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {Size} from "../src/Size.sol";
 import {SizeMock} from "./mocks/SizeMock.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
-import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {AssertsHelper} from "./helpers/AssertsHelper.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
@@ -58,9 +58,16 @@ contract BaseTest is Test, AssertsHelper {
         size.deposit(cash, eth);
     }
 
-    function _lendAsLimitOrder(address lender, uint256 maxAmount, uint256 rate, uint256 maxDueDate) internal {
+    function _lendAsLimitOrder(
+        address lender,
+        uint256 maxAmount,
+        uint256 maxDueDate,
+        uint256 rate,
+        uint256 timeBucketsLength
+    ) internal {
         vm.startPrank(lender);
-        size.lendAsLimitOrder(maxAmount, maxDueDate, YieldCurveLibrary.getFlatRate(rate, maxDueDate));
+        YieldCurve memory curve = YieldCurveLibrary.getFlatRate(timeBucketsLength, rate);
+        size.lendAsLimitOrder(maxAmount, maxDueDate, curve.timeBuckets, curve.rates);
     }
 
     function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate)

@@ -18,7 +18,7 @@ struct BorrowOffer {
 
 library OfferLibrary {
     error OfferLibrary__PastDueDate();
-    error OfferLibrary__DueDateOutOfRange(uint256 minDueDate, uint256 maxDueDate);
+    error OfferLibrary__DueDateOutOfRange(uint256 deltaT, uint256 minDueDate, uint256 maxDueDate);
 
     function isNull(LoanOffer memory self) public pure returns (bool) {
         return self.maxAmount == 0 && self.maxDueDate == 0 && self.curveRelativeTime.timeBuckets.length == 0
@@ -40,7 +40,7 @@ library OfferLibrary {
         uint256 length = self.curveRelativeTime.timeBuckets.length;
         if (deltaT < self.curveRelativeTime.timeBuckets[0] || deltaT > self.curveRelativeTime.timeBuckets[length - 1]) {
             revert OfferLibrary__DueDateOutOfRange(
-                self.curveRelativeTime.timeBuckets[0], self.curveRelativeTime.timeBuckets[length - 1]
+                deltaT, self.curveRelativeTime.timeBuckets[0], self.curveRelativeTime.timeBuckets[length - 1]
             );
         } else {
             uint256 minIndex = type(uint256).max;

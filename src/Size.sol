@@ -10,6 +10,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {SizeValidations} from "./SizeValidations.sol";
 import {SizeBorrowAsMarketOrder, BorrowAsMarketOrderParams} from "./SizeBorrowAsMarketOrder.sol";
 import {SizeBorrowAsLimitOrder, BorrowAsLimitOrderParams} from "./SizeBorrowAsLimitOrder.sol";
+import {SizeLendAsLimitOrder, LendAsLimitOrderParams} from "./SizeLendAsLimitOrder.sol";
 import {SizeExit, ExitParams} from "@src/SizeExit.sol";
 
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
@@ -28,6 +29,7 @@ contract Size is
     SizeValidations,
     SizeBorrowAsMarketOrder,
     SizeBorrowAsLimitOrder,
+    SizeLendAsLimitOrder,
     SizeExit,
     Initializable,
     Ownable2StepUpgradeable,
@@ -99,9 +101,20 @@ contract Size is
         _validateUserIsNotLiquidatable(msg.sender);
     }
 
-    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public {
-        users[msg.sender].loanOffer =
-            LoanOffer({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
+    function lendAsLimitOrder(
+        uint256 maxAmount,
+        uint256 maxDueDate,
+        uint256[] calldata timeBuckets,
+        uint256[] calldata rates
+    ) public {
+        LendAsLimitOrderParams memory params = LendAsLimitOrderParams({
+            lender: msg.sender,
+            maxAmount: maxAmount,
+            maxDueDate: maxDueDate,
+            curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
+        });
+        _validateLendAsLimitOrder(params);
+        _lendAsLimitOrder(params);
     }
 
     function borrowAsLimitOrder(uint256 maxAmount, uint256[] calldata timeBuckets, uint256[] calldata rates) public {

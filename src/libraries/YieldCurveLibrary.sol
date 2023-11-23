@@ -9,7 +9,7 @@ struct YieldCurve {
 }
 
 library YieldCurveLibrary {
-    function getFlatRate(uint256 rate, uint256 timeBucketsLength) public pure returns (YieldCurve memory curve) {
+    function getFlatRate(uint256 timeBucketsLength, uint256 rate) public pure returns (YieldCurve memory curve) {
         curve.rates = new uint256[](timeBucketsLength);
         curve.timeBuckets = new uint256[](timeBucketsLength);
 
