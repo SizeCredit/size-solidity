@@ -98,23 +98,24 @@ contract Size is
     }
 
     function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve calldata curveRelativeTime) public {
-        loanOffers[msg.sender] =
+        users[msg.sender].loanOffer =
             LoanOffer({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
     }
 
     function borrowAsLimitOrder(uint256 maxAmount, YieldCurve calldata curveRelativeTime) public {
-        borrowOffers[msg.sender] = BorrowOffer({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime});
+        users[msg.sender].borrowOffer = BorrowOffer({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime});
     }
 
     function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) public {
-        BorrowOffer storage offer = borrowOffers[borrower];
-        User storage lender = users[msg.sender];
+        address lender = msg.sender;
+        BorrowOffer storage borrowOffer = users[borrower].borrowOffer;
+        User storage lenderUser = users[lender];
 
-        if (amount > offer.maxAmount) {
-            revert ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(amount, offer.maxAmount);
+        if (amount > borrowOffer.maxAmount) {
+            revert ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(amount, borrowOffer.maxAmount);
         }
-        if (lender.cash.free < amount) {
-            revert ERROR_NOT_ENOUGH_FREE_CASH(lender.cash.free, amount);
+        if (lenderUser.cash.free < amount) {
+            revert ERROR_NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, amount);
         }
 
         // uint256 rate = offer.getRate(dueDate);

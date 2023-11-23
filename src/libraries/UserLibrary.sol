@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import "./RealCollateralLibrary.sol";
+import {RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
+import {LoanOffer, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 
 struct User {
     RealCollateral cash;
     RealCollateral eth;
     uint256 totDebtCoveredByRealCollateral;
+    LoanOffer loanOffer;
+    BorrowOffer borrowOffer;
 }
 
 library UserLibrary {

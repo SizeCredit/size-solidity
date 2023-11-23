@@ -29,8 +29,8 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
     using LoanLibrary for Loan[];
 
     function _validateBorrowAsMarketOrder(BorrowAsMarketOrdersParams memory params) internal view {
-        LoanOffer memory loanOffer = loanOffers[params.lender];
         User memory lenderUser = users[params.lender];
+        LoanOffer memory loanOffer = lenderUser.loanOffer;
 
         // validate params.borrower
         // N/A
@@ -84,7 +84,7 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
 
         User storage borrowerUser = users[params.borrower];
         User storage lenderUser = users[params.lender];
-        LoanOffer storage loanOffer = loanOffers[params.lender];
+        LoanOffer storage loanOffer = lenderUser.loanOffer;
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
@@ -109,9 +109,9 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
-        LoanOffer storage loanOffer = loanOffers[params.lender];
         User storage borrowerUser = users[params.borrower];
         User storage lenderUser = users[params.lender];
+        LoanOffer storage loanOffer = lenderUser.loanOffer;
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {

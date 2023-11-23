@@ -7,8 +7,6 @@ import {LoanOffer, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
 abstract contract SizeStorage {
-    mapping(address => LoanOffer) public loanOffers;
-    mapping(address => BorrowOffer) public borrowOffers;
     mapping(address => User) public users;
     Loan[] public loans;
     IPriceFeed public priceFeed;

@@ -60,13 +60,14 @@ abstract contract SizeExit is SizeStorage, ISize {
             // if (lender == params.exiter) {
             //     revert ERROR_INVALID_LENDER(lender);
             // }
-            if (loanOffers[lender].isNull()) {
+            if (users[lender].loanOffer.isNull()) {
                 revert ERROR_INVALID_LOAN_OFFER(lender);
             }
         }
     }
 
     function _exit(ExitParams memory params) internal returns (uint256 amountInLeft) {
+        User storage exiterUser = users[params.exiter];
         amountInLeft = params.amount;
         for (uint256 i = 0; i < params.lendersToExitTo.length; ++i) {
             if (amountInLeft == 0) {
@@ -75,7 +76,8 @@ abstract contract SizeExit is SizeStorage, ISize {
             }
 
             address lender = params.lendersToExitTo[i];
-            LoanOffer storage loanOffer = loanOffers[lender];
+            User storage lenderUser = users[lender];
+            LoanOffer storage loanOffer = lenderUser.loanOffer;
             uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
             uint256 deltaAmountIn;
             uint256 deltaAmountOut;
@@ -89,7 +91,7 @@ abstract contract SizeExit is SizeStorage, ISize {
             }
 
             loans.createSOL(params.loanId, lender, params.exiter, deltaAmountIn);
-            users[lender].cash.transfer(users[params.exiter].cash, deltaAmountOut);
+            lenderUser.cash.transfer(exiterUser.cash, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
             // @audit update LOAN

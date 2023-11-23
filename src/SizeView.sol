@@ -2,13 +2,14 @@
 pragma solidity 0.8.20;
 
 import {SizeStorage} from "./SizeStorage.sol";
-import "./libraries/UserLibrary.sol";
-import "./libraries/LoanLibrary.sol";
-import "./libraries/OfferLibrary.sol";
+import {User, UserLibrary} from "@src/libraries/UserLibrary.sol";
+import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {LoanOffer, BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 abstract contract SizeView is SizeStorage {
     using UserLibrary for User;
     using OfferLibrary for LoanOffer;
+    using OfferLibrary for BorrowOffer;
     using LoanLibrary for Loan;
 
     function getCollateralRatio(address user) public view returns (uint256) {
@@ -46,8 +47,8 @@ abstract contract SizeView is SizeStorage {
         return loans[loanId].isFOL();
     }
 
-    function getRate(address account, uint256 dueDate) public view returns (uint256) {
-        return loanOffers[account].getRate(dueDate);
+    function getLoanOfferRate(address account, uint256 dueDate) public view returns (uint256) {
+        return users[account].loanOffer.getRate(dueDate);
     }
 
     function getDueDate(uint256 loanId) public view returns (uint256) {
@@ -59,7 +60,11 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getLoanOffer(address account) public view returns (LoanOffer memory) {
-        return loanOffers[account];
+        return users[account].loanOffer;
+    }
+
+    function getBorrowOffer(address account) public view returns (BorrowOffer memory) {
+        return users[account].borrowOffer;
     }
 
     function getUserVirtualCollateralPerDate(address account, uint256 dueDate) public view returns (uint256 res) {
