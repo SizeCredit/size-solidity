@@ -20,7 +20,7 @@ contract SizeInitializeTest is Test {
     function test_SizeInitialize_implementation_cannot_be_initialized() public {
         implementation = new Size();
         vm.expectRevert();
-        implementation.initialize(address(this), priceFeed, 1.5e18, 1.3e18, 0.3e18, 0.1e18);
+        implementation.initialize(address(this), address(priceFeed), 1.5e18, 1.3e18, 0.3e18, 0.1e18);
 
         assertEq(implementation.CRLiquidation(), 0);
     }
@@ -32,7 +32,7 @@ contract SizeInitializeTest is Test {
             abi.encodeWithSelector(
                 Size.initialize.selector,
                 address(this),
-                priceFeed,
+                address(priceFeed),
                 1.5e18,
                 1.3e18,
                 0.3e18,

@@ -7,7 +7,7 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import {SizeValidations} from "./SizeValidations.sol";
+import {SizeInitialize, SizeInitializeParams} from "./SizeInitialize.sol";
 import {SizeBorrowAsMarketOrder, BorrowAsMarketOrderParams} from "./SizeBorrowAsMarketOrder.sol";
 import {SizeBorrowAsLimitOrder, BorrowAsLimitOrderParams} from "./SizeBorrowAsLimitOrder.sol";
 import {SizeLendAsLimitOrder, LendAsLimitOrderParams} from "./SizeLendAsLimitOrder.sol";
@@ -30,10 +30,11 @@ import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
 import {IPriceFeed} from "./oracle/IPriceFeed.sol";
 
 import {ISize} from "./interfaces/ISize.sol";
+import {ISizeFunctions} from "./interfaces/ISizeFunctions.sol";
 
 contract Size is
     ISize,
-    SizeValidations,
+    SizeInitialize,
     SizeDeposit,
     SizeWithdraw,
     SizeBorrowAsMarketOrder,
@@ -63,57 +64,53 @@ contract Size is
 
     function initialize(
         address _owner,
-        IPriceFeed _priceFeed,
+        address _priceFeed,
         uint256 _CROpening,
         uint256 _CRLiquidation,
-        uint256 _collateralPercPremiumToLiquidator,
-        uint256 _collateralPercPremiumToBorrower
+        uint256 _collateralPercentagePremiumToLiquidator,
+        uint256 _collateralPercentagePremiumToBorrower
     ) public initializer {
-        __Ownable_init(_owner);
+        SizeInitializeParams memory params = SizeInitializeParams({
+            owner: _owner,
+            priceFeed: _priceFeed,
+            CROpening: _CROpening,
+            CRLiquidation: _CRLiquidation,
+            collateralPercentagePremiumToLiquidator: _collateralPercentagePremiumToLiquidator,
+            collateralPercentagePremiumToBorrower: _collateralPercentagePremiumToBorrower
+        });
+        _validateInitialize(params);
+
+        __Ownable_init(params.owner);
         __Ownable2Step_init();
         __UUPSUpgradeable_init();
 
-        _validateNonNull(_owner);
-        _validateNonNull(address(_priceFeed));
-        _validateCollateralRatio(_CROpening);
-        _validateCollateralRatio(_CRLiquidation);
-        _validateCollateralRatio(_CROpening, _CRLiquidation);
-        _validateCollateralPercentagePremium(_collateralPercPremiumToLiquidator);
-        _validateCollateralPercentagePremium(_collateralPercPremiumToBorrower);
-        _validateCollateralPercentagePremium(_collateralPercPremiumToLiquidator, _collateralPercPremiumToBorrower);
-
-        priceFeed = _priceFeed;
-        CROpening = _CROpening;
-        CRLiquidation = _CRLiquidation;
-        collateralPercPremiumToLiquidator = _collateralPercPremiumToLiquidator;
-        collateralPercPremiumToBorrower = _collateralPercPremiumToBorrower;
-
-        // NOTE Necessary so that loanIds start at 1, and 0 is reserved for SOLs
-        Loan memory l;
-        loans.push(l);
+        _executeInitialize(params);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function deposit(uint256 cash, uint256 eth) public {
+    /// @inheritdoc ISizeFunctions
+    function deposit(uint256 cash, uint256 eth) public override(ISizeFunctions) {
         DepositParams memory params = DepositParams({user: msg.sender, cash: cash, eth: eth});
         _validateDeposit(params);
         _executeDeposit(params);
     }
 
-    function withdraw(uint256 cash, uint256 eth) public {
+    /// @inheritdoc ISizeFunctions
+    function withdraw(uint256 cash, uint256 eth) public override(ISizeFunctions) {
         WithdrawParams memory params = WithdrawParams({user: msg.sender, cash: cash, eth: eth});
         _validateWithdraw(params);
         _executeWithdraw(params);
         _validateUserIsNotLiquidatable(params.user);
     }
 
+    /// @inheritdoc ISizeFunctions
     function lendAsLimitOrder(
         uint256 maxAmount,
         uint256 maxDueDate,
         uint256[] calldata timeBuckets,
         uint256[] calldata rates
-    ) public {
+    ) public override(ISizeFunctions) {
         LendAsLimitOrderParams memory params = LendAsLimitOrderParams({
             lender: msg.sender,
             maxAmount: maxAmount,
@@ -124,7 +121,11 @@ contract Size is
         _executeLendAsLimitOrder(params);
     }
 
-    function borrowAsLimitOrder(uint256 maxAmount, uint256[] calldata timeBuckets, uint256[] calldata rates) public {
+    /// @inheritdoc ISizeFunctions
+    function borrowAsLimitOrder(uint256 maxAmount, uint256[] calldata timeBuckets, uint256[] calldata rates)
+        public
+        override(ISizeFunctions)
+    {
         BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({
             borrower: msg.sender,
             maxAmount: maxAmount,
@@ -134,29 +135,21 @@ contract Size is
         _executeBorrowAsLimitOrder(params);
     }
 
-    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) public {
+    /// @inheritdoc ISizeFunctions
+    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) public override(ISizeFunctions) {
         LendAsMarketOrderParams memory params =
             LendAsMarketOrderParams({lender: msg.sender, borrower: borrower, dueDate: dueDate, amount: amount});
         _validateLendAsMarketOrder(params);
         _executeLendAsMarketOrder(params);
     }
 
-    // decreases lender free cash
-    // increases borrower free cash
-
-    // if FOL
-    //  increases borrower locked eth
-    //  increases borrower totDebtCoveredByRealCollateral
-
-    // decreases loan offer max amount
-
-    // creates new loans
+    /// @inheritdoc ISizeFunctions
     function borrowAsMarketOrder(
         address lender,
         uint256 amount,
         uint256 dueDate,
         uint256[] memory virtualCollateralLoansIds
-    ) public {
+    ) public override(ISizeFunctions) {
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             borrower: msg.sender,
             lender: lender,
@@ -170,16 +163,10 @@ contract Size is
         _validateUserIsNotLiquidatable(params.borrower);
     }
 
-    // decreases loanOffer lender free cash
-    // increases msg.sender free cash
-    // maintains loan borrower accounting
-
-    // decreases loanOffers max amount
-    // increases loan amountFVExited
-
-    // creates a new SOL
+    /// @inheritdoc ISizeFunctions
     function exit(uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
         public
+        override(ISizeFunctions)
         returns (uint256 amountInLeft)
     {
         ExitParams memory params = ExitParams({
@@ -194,34 +181,34 @@ contract Size is
         amountInLeft = _executeExit(params);
     }
 
-    // decreases borrower free cash
-    // increases protocol free cash
-    // increases lender claim(???)
-
-    // decreases borrower locked eth??
-    // decreases borrower totDebtCoveredByRealCollateral
-
-    // sets loan to repaid
-    function repay(uint256 loanId, uint256 amount) public {
+    /// @inheritdoc ISizeFunctions
+    function repay(uint256 loanId, uint256 amount) public override(ISizeFunctions) {
         RepayParams memory params = RepayParams({loanId: loanId, amount: amount});
         _validateRepay(params);
         _executeRepay(params);
     }
 
-    function claim(uint256 loanId) public {
+    /// @inheritdoc ISizeFunctions
+    function claim(uint256 loanId) public override(ISizeFunctions) {
         ClaimParams memory params = ClaimParams({loanId: loanId, lender: msg.sender, protocol: address(this)});
         _validateClaim(params);
         _executeClaim(params);
     }
 
-    function liquidateBorrower(address borrower) public returns (uint256 actualAmountETH, uint256 targetAmountETH) {
+    /// @inheritdoc ISizeFunctions
+    function liquidateBorrower(address borrower)
+        public
+        override(ISizeFunctions)
+        returns (uint256 actualAmountETH, uint256 targetAmountETH)
+    {
         LiquidateBorrowerParams memory params = LiquidateBorrowerParams({borrower: borrower, liquidator: msg.sender});
         _validateLiquidateBorrower(params);
         (actualAmountETH, targetAmountETH) = _executeLiquidateBorrower(params);
         _validateUserIsNotLiquidatable(params.borrower);
     }
 
-    function liquidateLoan(uint256 loanId) public {
+    /// @inheritdoc ISizeFunctions
+    function liquidateLoan(uint256 loanId) public override(ISizeFunctions) {
         LiquidateLoanParams memory params = LiquidateLoanParams({loanId: loanId, liquidator: msg.sender});
         _validateLiquidateLoan(params);
         _executeLiquidateLoan(params);

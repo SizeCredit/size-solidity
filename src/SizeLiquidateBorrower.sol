@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {SizeStorage} from "./SizeStorage.sol";
-import {User} from "./libraries/UserLibrary.sol";
+import {UserLibrary, User} from "./libraries/UserLibrary.sol";
 import {Loan} from "./libraries/LoanLibrary.sol";
 import {OfferLibrary, BorrowOffer} from "./libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
@@ -23,6 +23,13 @@ struct LiquidateBorrowerParams {
 abstract contract SizeLiquidateBorrower is SizeStorage, SizeView, ISize {
     using LoanLibrary for Loan;
     using RealCollateralLibrary for RealCollateral;
+    using UserLibrary for User;
+
+    function _validateUserIsNotLiquidatable(address account) internal view {
+        if (isLiquidatable(account)) {
+            revert ERROR_USER_IS_LIQUIDATABLE(account, users[account].collateralRatio(priceFeed.getPrice()));
+        }
+    }
 
     function _validateLiquidateBorrower(LiquidateBorrowerParams memory params) internal view {
         User memory borrowerUser = users[params.borrower];

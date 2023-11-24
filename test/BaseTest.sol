@@ -35,7 +35,7 @@ contract BaseTest is Test, AssertsHelper {
             abi.encodeWithSelector(
                 Size.initialize.selector,
                 address(this),
-                priceFeed,
+                address(priceFeed),
                 1.5e18,
                 1.3e18,
                 0.3e18,
