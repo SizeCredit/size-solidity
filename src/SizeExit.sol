@@ -70,7 +70,7 @@ abstract contract SizeExit is SizeStorage, ISize {
     // - the exiting lender is the taker
     // - the other lenders are the makers
     // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
-    function _exit(ExitParams memory params) internal returns (uint256 amountInLeft) {
+    function _executeExit(ExitParams memory params) internal returns (uint256 amountInLeft) {
         User storage exiterUser = users[params.exiter];
         amountInLeft = params.amount;
         for (uint256 i = 0; i < params.lendersToExitTo.length; ++i) {

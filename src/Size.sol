@@ -11,7 +11,14 @@ import {SizeValidations} from "./SizeValidations.sol";
 import {SizeBorrowAsMarketOrder, BorrowAsMarketOrderParams} from "./SizeBorrowAsMarketOrder.sol";
 import {SizeBorrowAsLimitOrder, BorrowAsLimitOrderParams} from "./SizeBorrowAsLimitOrder.sol";
 import {SizeLendAsLimitOrder, LendAsLimitOrderParams} from "./SizeLendAsLimitOrder.sol";
+import {SizeLendAsMarketOrder, LendAsMarketOrderParams} from "./SizeLendAsMarketOrder.sol";
 import {SizeExit, ExitParams} from "@src/SizeExit.sol";
+import {SizeRepay, RepayParams} from "@src/SizeRepay.sol";
+import {SizeClaim, ClaimParams} from "@src/SizeClaim.sol";
+import {SizeLiquidateBorrower, LiquidateBorrowerParams} from "@src/SizeLiquidateBorrower.sol";
+import {SizeLiquidateLoan, LiquidateLoanParams} from "@src/SizeLiquidateLoan.sol";
+import {SizeDeposit, DepositParams} from "@src/SizeDeposit.sol";
+import {SizeWithdraw, WithdrawParams} from "@src/SizeWithdraw.sol";
 
 import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
 import {OfferLibrary, LoanOffer, BorrowOffer} from "./libraries/OfferLibrary.sol";
@@ -27,10 +34,17 @@ import {ISize} from "./interfaces/ISize.sol";
 contract Size is
     ISize,
     SizeValidations,
+    SizeDeposit,
+    SizeWithdraw,
     SizeBorrowAsMarketOrder,
     SizeBorrowAsLimitOrder,
+    SizeLendAsMarketOrder,
     SizeLendAsLimitOrder,
     SizeExit,
+    SizeRepay,
+    SizeClaim,
+    SizeLiquidateBorrower,
+    SizeLiquidateLoan,
     Initializable,
     Ownable2StepUpgradeable,
     UUPSUpgradeable
@@ -82,23 +96,16 @@ contract Size is
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function deposit(uint256 cash, uint256 eth) public {
-        if (cash == 0 && eth == 0) {
-            revert ERROR_NULL_AMOUNT();
-        }
-
-        users[msg.sender].cash.free += cash;
-        users[msg.sender].eth.free += eth;
+        DepositParams memory params = DepositParams({user: msg.sender, cash: cash, eth: eth});
+        _validateDeposit(params);
+        _executeDeposit(params);
     }
 
     function withdraw(uint256 cash, uint256 eth) public {
-        if (cash == 0 && eth == 0) {
-            revert ERROR_NULL_AMOUNT();
-        }
-
-        users[msg.sender].cash.free -= cash;
-        users[msg.sender].eth.free -= eth;
-
-        _validateUserIsNotLiquidatable(msg.sender);
+        WithdrawParams memory params = WithdrawParams({user: msg.sender, cash: cash, eth: eth});
+        _validateWithdraw(params);
+        _executeWithdraw(params);
+        _validateUserIsNotLiquidatable(params.user);
     }
 
     function lendAsLimitOrder(
@@ -128,24 +135,10 @@ contract Size is
     }
 
     function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) public {
-        address lender = msg.sender;
-        BorrowOffer storage borrowOffer = users[borrower].borrowOffer;
-        User storage lenderUser = users[lender];
-
-        if (amount > borrowOffer.maxAmount) {
-            revert ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(amount, borrowOffer.maxAmount);
-        }
-        if (lenderUser.cash.free < amount) {
-            revert ERROR_NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, amount);
-        }
-
-        // uint256 rate = offer.getRate(dueDate);
-        // uint256 r = (PERCENT + rate);
-
-        (dueDate);
-
-        emit TODO();
-        revert();
+        LendAsMarketOrderParams memory params =
+            LendAsMarketOrderParams({lender: msg.sender, borrower: borrower, dueDate: dueDate, amount: amount});
+        _validateLendAsMarketOrder(params);
+        _executeLendAsMarketOrder(params);
     }
 
     // decreases lender free cash
@@ -173,9 +166,7 @@ contract Size is
         });
 
         _validateBorrowAsMarketOrder(params);
-        params.amount = _borrowWithVirtualCollateral(params);
-        _borrowWithRealCollateral(params);
-
+        _executeBorrowAsMarketOrder(params);
         _validateUserIsNotLiquidatable(params.borrower);
     }
 
@@ -189,7 +180,7 @@ contract Size is
     // creates a new SOL
     function exit(uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
         public
-        returns (uint256)
+        returns (uint256 amountInLeft)
     {
         ExitParams memory params = ExitParams({
             exiter: msg.sender,
@@ -200,7 +191,7 @@ contract Size is
         });
 
         _validateExit(params);
-        return _exit(params);
+        amountInLeft = _executeExit(params);
     }
 
     // decreases borrower free cash
@@ -212,89 +203,27 @@ contract Size is
 
     // sets loan to repaid
     function repay(uint256 loanId, uint256 amount) public {
-        Loan storage loan = loans[loanId];
-        User storage borrower = users[loan.borrower];
-        User storage protocol = users[address(this)];
-        if (!loan.isFOL()) {
-            revert ERROR_ONLY_FOL_CAN_BE_REPAID(loanId);
-        }
-        if (loan.repaid) {
-            revert ERROR_LOAN_ALREADY_REPAID(loanId);
-        }
-        if (amount < loan.FV) {
-            revert ERROR_INVALID_PARTIAL_REPAY_AMOUNT(amount, loan.FV);
-        }
-        if (borrower.cash.free < amount) {
-            revert ERROR_NOT_ENOUGH_FREE_CASH(borrower.cash.free, amount);
-        }
-
-        borrower.cash.transfer(protocol.cash, amount);
-        borrower.totDebtCoveredByRealCollateral -= loan.FV;
-        loan.repaid = true;
+        RepayParams memory params = RepayParams({loanId: loanId, amount: amount});
+        _validateRepay(params);
+        _executeRepay(params);
     }
 
     function claim(uint256 loanId) public {
-        Loan storage loan = loans[loanId];
-        User storage protocolUser = users[address(this)];
-        User storage lenderUser = users[loan.lender];
-
-        if (!loan.isRepaid(loans)) {
-            revert ERROR_LOAN_NOT_REPAID(loanId);
-        }
-        if (loan.claimed) {
-            revert ERROR_LOAN_ALREADY_CLAIMED(loanId);
-        }
-        if (loan.lender != msg.sender) {
-            revert ERROR_CLAIMER_IS_NOT_LENDER(msg.sender, loan.lender);
-        }
-
-        protocolUser.cash.transfer(lenderUser.cash, loan.FV);
+        ClaimParams memory params = ClaimParams({loanId: loanId, lender: msg.sender, protocol: address(this)});
+        _validateClaim(params);
+        _executeClaim(params);
     }
 
-    function _liquidationSwap(User storage liquidator, User storage borrower, uint256 amountUSDC, uint256 amountETH)
-        private
-    {
-        liquidator.cash.transfer(borrower.cash, amountUSDC);
-        borrower.cash.lock(amountUSDC);
-        borrower.eth.unlock(amountETH);
-        borrower.eth.transfer(liquidator.eth, amountETH);
-    }
-
-    function liquidateBorrower(address _borrower) public returns (uint256, uint256) {
-        User storage borrower = users[_borrower];
-        User storage liquidator = users[msg.sender];
-
-        if (!isLiquidatable(_borrower)) {
-            revert ERROR_NOT_LIQUIDATABLE(_borrower);
-        }
-        // @audit partial liquidations? maybe not, just assume flash loan??
-        if (liquidator.cash.free < borrower.totDebtCoveredByRealCollateral) {
-            revert ERROR_NOT_ENOUGH_FREE_CASH(liquidator.cash.free, borrower.totDebtCoveredByRealCollateral);
-        }
-
-        uint256 temp = borrower.cash.locked;
-
-        (temp);
-
-        uint256 amountUSDC = borrower.totDebtCoveredByRealCollateral - borrower.cash.locked;
-
-        uint256 targetAmountETH = (amountUSDC * 1e18) / priceFeed.getPrice();
-        uint256 actualAmountETH = Math.min(targetAmountETH, borrower.eth.locked);
-        if (actualAmountETH < targetAmountETH) {
-            // @audit why would this happen? should we prevent the liquidator from doing it?
-            emit LiquidationAtLoss(targetAmountETH - actualAmountETH);
-        }
-
-        _liquidationSwap(liquidator, borrower, amountUSDC, actualAmountETH);
-
-        borrower.totDebtCoveredByRealCollateral = 0;
-
-        return (actualAmountETH, targetAmountETH);
+    function liquidateBorrower(address borrower) public returns (uint256 actualAmountETH, uint256 targetAmountETH) {
+        LiquidateBorrowerParams memory params = LiquidateBorrowerParams({borrower: borrower, liquidator: msg.sender});
+        _validateLiquidateBorrower(params);
+        (actualAmountETH, targetAmountETH) = _executeLiquidateBorrower(params);
+        _validateUserIsNotLiquidatable(params.borrower);
     }
 
     function liquidateLoan(uint256 loanId) public {
-        (loanId);
-        emit TODO();
-        revert();
+        LiquidateLoanParams memory params = LiquidateLoanParams({loanId: loanId, liquidator: msg.sender});
+        _validateLiquidateLoan(params);
+        _executeLiquidateLoan(params);
     }
 }

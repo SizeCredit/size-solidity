@@ -73,6 +73,11 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
         }
     }
 
+    function _executeBorrowAsMarketOrder(BorrowAsMarketOrderParams memory params) internal {
+        params.amount = _borrowWithVirtualCollateral(params);
+        _borrowWithRealCollateral(params);
+    }
+
     /**
      * @notice Borrow with real collateral, an internal state-modifying function.
      * @dev Cover the remaining amount with real collateral
