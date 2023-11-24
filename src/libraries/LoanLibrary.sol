@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import "./MathLibrary.sol";
-import "./UserLibrary.sol";
+import "@src/libraries/MathLibrary.sol";
+import "@src/libraries/UserLibrary.sol";
 
 struct Loan {
     // FOL

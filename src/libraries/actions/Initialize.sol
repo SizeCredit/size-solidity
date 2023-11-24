@@ -4,17 +4,21 @@ pragma solidity 0.8.20;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import {PERCENT} from "./libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
-import {ISize} from "./interfaces/ISize.sol";
-import {SizeView} from "./SizeView.sol";
+import {ISize} from "@src/interfaces/ISize.sol";
+import {SizeView} from "@src/SizeView.sol";
 import {OfferLibrary, LoanOffer} from "@src/libraries/OfferLibrary.sol";
-import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
+import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
 import {UserLibrary, User} from "@src/libraries/UserLibrary.sol";
 
-import {IPriceFeed} from "./oracle/IPriceFeed.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-struct SizeInitializeParams {
+import {State} from "@src/SizeStorage.sol";
+
+import "@src/Errors.sol";
+
+struct InitializeParams {
     address owner;
     address priceFeed;
     uint256 CROpening;
@@ -23,8 +27,8 @@ struct SizeInitializeParams {
     uint256 collateralPercentagePremiumToBorrower;
 }
 
-abstract contract SizeInitialize is SizeView, ISize {
-    function _validateInitialize(SizeInitializeParams memory params) internal pure {
+library Initialize {
+    function validateInitialize(State storage, InitializeParams memory params) external pure {
         // validate owner
         if (params.owner == address(0)) {
             revert ERROR_NULL_ADDRESS();
@@ -64,15 +68,15 @@ abstract contract SizeInitialize is SizeView, ISize {
         }
     }
 
-    function _executeInitialize(SizeInitializeParams memory params) internal {
-        priceFeed = IPriceFeed(params.priceFeed);
-        CROpening = params.CROpening;
-        CRLiquidation = params.CRLiquidation;
-        collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;
-        collateralPercentagePremiumToBorrower = params.collateralPercentagePremiumToBorrower;
+    function executeInitialize(State storage state, InitializeParams memory params) external {
+        state.priceFeed = IPriceFeed(params.priceFeed);
+        state.CROpening = params.CROpening;
+        state.CRLiquidation = params.CRLiquidation;
+        state.collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;
+        state.collateralPercentagePremiumToBorrower = params.collateralPercentagePremiumToBorrower;
 
         // NOTE Necessary so that loanIds start at 1, and 0 is reserved for SOLs
         Loan memory l;
-        loans.push(l);
+        state.loans.push(l);
     }
 }

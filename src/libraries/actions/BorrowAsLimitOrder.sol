@@ -1,19 +1,23 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {SizeStorage} from "./SizeStorage.sol";
-import {User} from "./libraries/UserLibrary.sol";
-import {Loan} from "./libraries/LoanLibrary.sol";
-import {OfferLibrary, BorrowOffer} from "./libraries/OfferLibrary.sol";
-import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
-import {RealCollateralLibrary, RealCollateral} from "./libraries/RealCollateralLibrary.sol";
-import {SizeView} from "./SizeView.sol";
-import {PERCENT} from "./libraries/MathLibrary.sol";
+import {SizeStorage} from "@src/SizeStorage.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
+import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
+import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
+import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
+import {SizeView} from "@src/SizeView.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-import {ISize} from "./interfaces/ISize.sol";
+import {State} from "@src/SizeStorage.sol";
+
+import {ISize} from "@src/interfaces/ISize.sol";
+
+import "@src/Errors.sol";
 
 struct BorrowAsLimitOrderParams {
     address borrower;
@@ -21,8 +25,8 @@ struct BorrowAsLimitOrderParams {
     YieldCurve curveRelativeTime;
 }
 
-abstract contract SizeBorrowAsLimitOrder is SizeStorage, SizeView, ISize {
-    function _validateBorrowAsLimitOrder(BorrowAsLimitOrderParams memory params) internal pure {
+library BorrowAsLimitOrder {
+    function validateBorrowAsLimitOrder(State storage, BorrowAsLimitOrderParams memory params) external pure {
         // validate params.borrower
         // N/A
 
@@ -40,8 +44,8 @@ abstract contract SizeBorrowAsLimitOrder is SizeStorage, SizeView, ISize {
         }
     }
 
-    function _executeBorrowAsLimitOrder(BorrowAsLimitOrderParams memory params) internal {
-        users[params.borrower].borrowOffer =
+    function executeBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams memory params) external {
+        state.users[params.borrower].borrowOffer =
             BorrowOffer({maxAmount: params.maxAmount, curveRelativeTime: params.curveRelativeTime});
     }
 }

@@ -1,61 +1,53 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
+// import {console2 as console} from "forge-std/console2.sol";
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import {SizeInitialize, SizeInitializeParams} from "./SizeInitialize.sol";
-import {SizeBorrowAsMarketOrder, BorrowAsMarketOrderParams} from "./SizeBorrowAsMarketOrder.sol";
-import {SizeBorrowAsLimitOrder, BorrowAsLimitOrderParams} from "./SizeBorrowAsLimitOrder.sol";
-import {SizeLendAsLimitOrder, LendAsLimitOrderParams} from "./SizeLendAsLimitOrder.sol";
-import {SizeLendAsMarketOrder, LendAsMarketOrderParams} from "./SizeLendAsMarketOrder.sol";
-import {SizeExit, ExitParams} from "@src/SizeExit.sol";
-import {SizeRepay, RepayParams} from "@src/SizeRepay.sol";
-import {SizeClaim, ClaimParams} from "@src/SizeClaim.sol";
-import {SizeLiquidateBorrower, LiquidateBorrowerParams} from "@src/SizeLiquidateBorrower.sol";
-import {SizeLiquidateLoan, LiquidateLoanParams} from "@src/SizeLiquidateLoan.sol";
-import {SizeDeposit, DepositParams} from "@src/SizeDeposit.sol";
-import {SizeWithdraw, WithdrawParams} from "@src/SizeWithdraw.sol";
+import {Initialize, InitializeParams} from "@src/libraries/actions/Initialize.sol";
+import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
+import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
+import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
+import {Exit, ExitParams} from "@src/libraries/actions/Exit.sol";
+import {Repay, RepayParams} from "@src/libraries/actions/Repay.sol";
+import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
+import {LiquidateBorrower, LiquidateBorrowerParams} from "@src/libraries/actions/LiquidateBorrower.sol";
+import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {Withdraw, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
 
-import {YieldCurve} from "./libraries/YieldCurveLibrary.sol";
-import {OfferLibrary, LoanOffer, BorrowOffer} from "./libraries/OfferLibrary.sol";
-import {UserLibrary, User} from "./libraries/UserLibrary.sol";
-import {RealCollateralLibrary, RealCollateral} from "./libraries/RealCollateralLibrary.sol";
-import {Math, PERCENT} from "./libraries/MathLibrary.sol";
-import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
+import {SizeView} from "@src/SizeView.sol";
 
-import {IPriceFeed} from "./oracle/IPriceFeed.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {OfferLibrary, LoanOffer, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
+import {UserLibrary, User} from "@src/libraries/UserLibrary.sol";
+import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
+import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
+import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
 
-import {ISize} from "./interfaces/ISize.sol";
-import {ISizeFunctions} from "./interfaces/ISizeFunctions.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-contract Size is
-    ISize,
-    SizeInitialize,
-    SizeDeposit,
-    SizeWithdraw,
-    SizeBorrowAsMarketOrder,
-    SizeBorrowAsLimitOrder,
-    SizeLendAsMarketOrder,
-    SizeLendAsLimitOrder,
-    SizeExit,
-    SizeRepay,
-    SizeClaim,
-    SizeLiquidateBorrower,
-    SizeLiquidateLoan,
-    Initializable,
-    Ownable2StepUpgradeable,
-    UUPSUpgradeable
-{
-    using OfferLibrary for LoanOffer;
-    using OfferLibrary for BorrowOffer;
-    using RealCollateralLibrary for RealCollateral;
-    using LoanLibrary for Loan;
-    using LoanLibrary for Loan[];
-    using UserLibrary for User;
+import {State} from "@src/SizeStorage.sol";
+
+import {ISize} from "@src/interfaces/ISize.sol";
+
+contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+    using Initialize for State;
+    using Deposit for State;
+    using Withdraw for State;
+    using BorrowAsMarketOrder for State;
+    using BorrowAsLimitOrder for State;
+    using LendAsMarketOrder for State;
+    using LendAsLimitOrder for State;
+    using Exit for State;
+    using Repay for State;
+    using Claim for State;
+    using LiquidateBorrower for State;
+    using LiquidateLoan for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -70,7 +62,7 @@ contract Size is
         uint256 _collateralPercentagePremiumToLiquidator,
         uint256 _collateralPercentagePremiumToBorrower
     ) public initializer {
-        SizeInitializeParams memory params = SizeInitializeParams({
+        InitializeParams memory params = InitializeParams({
             owner: _owner,
             priceFeed: _priceFeed,
             CROpening: _CROpening,
@@ -78,78 +70,78 @@ contract Size is
             collateralPercentagePremiumToLiquidator: _collateralPercentagePremiumToLiquidator,
             collateralPercentagePremiumToBorrower: _collateralPercentagePremiumToBorrower
         });
-        _validateInitialize(params);
+        state.validateInitialize(params);
 
         __Ownable_init(params.owner);
         __Ownable2Step_init();
         __UUPSUpgradeable_init();
 
-        _executeInitialize(params);
+        state.executeInitialize(params);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    /// @inheritdoc ISizeFunctions
-    function deposit(uint256 cash, uint256 eth) public override(ISizeFunctions) {
+    /// @inheritdoc ISize
+    function deposit(uint256 cash, uint256 eth) public override(ISize) {
         DepositParams memory params = DepositParams({user: msg.sender, cash: cash, eth: eth});
-        _validateDeposit(params);
-        _executeDeposit(params);
+        state.validateDeposit(params);
+        state.executeDeposit(params);
     }
 
-    /// @inheritdoc ISizeFunctions
-    function withdraw(uint256 cash, uint256 eth) public override(ISizeFunctions) {
+    /// @inheritdoc ISize
+    function withdraw(uint256 cash, uint256 eth) public override(ISize) {
         WithdrawParams memory params = WithdrawParams({user: msg.sender, cash: cash, eth: eth});
-        _validateWithdraw(params);
-        _executeWithdraw(params);
-        _validateUserIsNotLiquidatable(params.user);
+        state.validateWithdraw(params);
+        state.executeWithdraw(params);
+        state.validateUserIsNotLiquidatable(params.user);
     }
 
-    /// @inheritdoc ISizeFunctions
+    /// @inheritdoc ISize
     function lendAsLimitOrder(
         uint256 maxAmount,
         uint256 maxDueDate,
         uint256[] calldata timeBuckets,
         uint256[] calldata rates
-    ) public override(ISizeFunctions) {
+    ) public override(ISize) {
         LendAsLimitOrderParams memory params = LendAsLimitOrderParams({
             lender: msg.sender,
             maxAmount: maxAmount,
             maxDueDate: maxDueDate,
             curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
         });
-        _validateLendAsLimitOrder(params);
-        _executeLendAsLimitOrder(params);
+        state.validateLendAsLimitOrder(params);
+        state.executeLendAsLimitOrder(params);
     }
 
-    /// @inheritdoc ISizeFunctions
+    /// @inheritdoc ISize
     function borrowAsLimitOrder(uint256 maxAmount, uint256[] calldata timeBuckets, uint256[] calldata rates)
         public
-        override(ISizeFunctions)
+        override(ISize)
     {
         BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({
             borrower: msg.sender,
             maxAmount: maxAmount,
             curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
         });
-        _validateBorrowAsLimitOrder(params);
-        _executeBorrowAsLimitOrder(params);
+        state.validateBorrowAsLimitOrder(params);
+        state.executeBorrowAsLimitOrder(params);
     }
 
-    /// @inheritdoc ISizeFunctions
-    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) public override(ISizeFunctions) {
+    /// @inheritdoc ISize
+    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) public override(ISize) {
         LendAsMarketOrderParams memory params =
             LendAsMarketOrderParams({lender: msg.sender, borrower: borrower, dueDate: dueDate, amount: amount});
-        _validateLendAsMarketOrder(params);
-        _executeLendAsMarketOrder(params);
+        state.validateLendAsMarketOrder(params);
+        state.executeLendAsMarketOrder(params);
     }
 
-    /// @inheritdoc ISizeFunctions
+    /// @inheritdoc ISize
     function borrowAsMarketOrder(
         address lender,
         uint256 amount,
         uint256 dueDate,
         uint256[] memory virtualCollateralLoansIds
-    ) public override(ISizeFunctions) {
+    ) public override(ISize) {
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             borrower: msg.sender,
             lender: lender,
@@ -158,15 +150,15 @@ contract Size is
             virtualCollateralLoansIds: virtualCollateralLoansIds
         });
 
-        _validateBorrowAsMarketOrder(params);
-        _executeBorrowAsMarketOrder(params);
-        _validateUserIsNotLiquidatable(params.borrower);
+        state.validateBorrowAsMarketOrder(params);
+        state.executeBorrowAsMarketOrder(params);
+        state.validateUserIsNotLiquidatable(params.borrower);
     }
 
-    /// @inheritdoc ISizeFunctions
+    /// @inheritdoc ISize
     function exit(uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
         public
-        override(ISizeFunctions)
+        override(ISize)
         returns (uint256 amountInLeft)
     {
         ExitParams memory params = ExitParams({
@@ -177,40 +169,40 @@ contract Size is
             lendersToExitTo: lendersToExitTo
         });
 
-        _validateExit(params);
-        amountInLeft = _executeExit(params);
+        state.validateExit(params);
+        amountInLeft = state.executeExit(params);
     }
 
-    /// @inheritdoc ISizeFunctions
-    function repay(uint256 loanId, uint256 amount) public override(ISizeFunctions) {
+    /// @inheritdoc ISize
+    function repay(uint256 loanId, uint256 amount) public override(ISize) {
         RepayParams memory params = RepayParams({loanId: loanId, amount: amount});
-        _validateRepay(params);
-        _executeRepay(params);
+        state.validateRepay(params);
+        state.executeRepay(params);
     }
 
-    /// @inheritdoc ISizeFunctions
-    function claim(uint256 loanId) public override(ISizeFunctions) {
+    /// @inheritdoc ISize
+    function claim(uint256 loanId) public override(ISize) {
         ClaimParams memory params = ClaimParams({loanId: loanId, lender: msg.sender, protocol: address(this)});
-        _validateClaim(params);
-        _executeClaim(params);
+        state.validateClaim(params);
+        state.executeClaim(params);
     }
 
-    /// @inheritdoc ISizeFunctions
+    /// @inheritdoc ISize
     function liquidateBorrower(address borrower)
         public
-        override(ISizeFunctions)
+        override(ISize)
         returns (uint256 actualAmountETH, uint256 targetAmountETH)
     {
         LiquidateBorrowerParams memory params = LiquidateBorrowerParams({borrower: borrower, liquidator: msg.sender});
-        _validateLiquidateBorrower(params);
-        (actualAmountETH, targetAmountETH) = _executeLiquidateBorrower(params);
-        _validateUserIsNotLiquidatable(params.borrower);
+        state.validateLiquidateBorrower(params);
+        (actualAmountETH, targetAmountETH) = state.executeLiquidateBorrower(params);
+        state.validateUserIsNotLiquidatable(params.borrower);
     }
 
-    /// @inheritdoc ISizeFunctions
-    function liquidateLoan(uint256 loanId) public override(ISizeFunctions) {
+    /// @inheritdoc ISize
+    function liquidateLoan(uint256 loanId) public override(ISize) {
         LiquidateLoanParams memory params = LiquidateLoanParams({loanId: loanId, liquidator: msg.sender});
-        _validateLiquidateLoan(params);
-        _executeLiquidateLoan(params);
+        state.validateLiquidateLoan(params);
+        state.executeLiquidateLoan(params);
     }
 }

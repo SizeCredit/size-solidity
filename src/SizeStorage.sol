@@ -1,18 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {IPriceFeed} from "./oracle/IPriceFeed.sol";
-import {Loan} from "./libraries/LoanLibrary.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
+struct State {
+    mapping(address => User) users;
+    Loan[] loans;
+    IPriceFeed priceFeed;
+    uint256 maxTime;
+    uint256 CROpening;
+    uint256 CRLiquidation;
+    uint256 collateralPercentagePremiumToLiquidator;
+    uint256 collateralPercentagePremiumToBorrower;
+}
+
 abstract contract SizeStorage {
-    mapping(address => User) public users;
-    Loan[] public loans;
-    IPriceFeed public priceFeed;
-    uint256 public maxTime;
-    uint256 public CROpening;
-    uint256 public CRLiquidation;
-    uint256 public collateralPercentagePremiumToLiquidator;
-    uint256 public collateralPercentagePremiumToBorrower;
+    State public state;
 }

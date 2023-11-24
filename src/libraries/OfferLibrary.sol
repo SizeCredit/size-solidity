@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import "./MathLibrary.sol";
-import "./UserLibrary.sol";
-import "./YieldCurveLibrary.sol";
+import "@src/libraries/MathLibrary.sol";
+import "@src/libraries/UserLibrary.sol";
+import "@src/libraries/YieldCurveLibrary.sol";
 
 struct LoanOffer {
     uint256 maxAmount;

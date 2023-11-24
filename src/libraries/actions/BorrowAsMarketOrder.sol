@@ -1,18 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {SizeStorage} from "./SizeStorage.sol";
-import {User} from "./libraries/UserLibrary.sol";
-import {Loan} from "./libraries/LoanLibrary.sol";
-import {OfferLibrary, LoanOffer} from "./libraries/OfferLibrary.sol";
-import {LoanLibrary, Loan} from "./libraries/LoanLibrary.sol";
-import {RealCollateralLibrary, RealCollateral} from "./libraries/RealCollateralLibrary.sol";
-import {SizeView} from "./SizeView.sol";
-import {PERCENT} from "./libraries/MathLibrary.sol";
+import {SizeStorage} from "@src/SizeStorage.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
+import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {OfferLibrary, LoanOffer} from "@src/libraries/OfferLibrary.sol";
+import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
+import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
+import {SizeView} from "@src/SizeView.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-import {ISize} from "./interfaces/ISize.sol";
+import {ISize} from "@src/interfaces/ISize.sol";
+
+import {State} from "@src/SizeStorage.sol";
+
+import "@src/Errors.sol";
 
 struct BorrowAsMarketOrderParams {
     address borrower;
@@ -22,14 +26,14 @@ struct BorrowAsMarketOrderParams {
     uint256[] virtualCollateralLoansIds;
 }
 
-abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
+library BorrowAsMarketOrder {
     using OfferLibrary for LoanOffer;
     using RealCollateralLibrary for RealCollateral;
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
-    function _validateBorrowAsMarketOrder(BorrowAsMarketOrderParams memory params) internal view {
-        User memory lenderUser = users[params.lender];
+    function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
+        User memory lenderUser = state.users[params.lender];
         LoanOffer memory loanOffer = lenderUser.loanOffer;
 
         // validate params.borrower
@@ -62,41 +66,43 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
         // validate params.virtualCollateralLoansIds
         for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {
             uint256 loanId = params.virtualCollateralLoansIds[i];
-            Loan memory loan = loans[loanId];
+            Loan memory loan = state.loans[loanId];
 
             if (params.borrower != loan.lender) {
                 revert ERROR_BORROWER_IS_NOT_LENDER(params.borrower, loan.lender);
             }
-            if (params.dueDate < loan.getDueDate(loans)) {
-                revert ERROR_DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(loans));
+            if (params.dueDate < loan.getDueDate(state.loans)) {
+                revert ERROR_DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(state.loans));
             }
         }
     }
 
-    function _executeBorrowAsMarketOrder(BorrowAsMarketOrderParams memory params) internal {
-        params.amount = _borrowWithVirtualCollateral(params);
-        _borrowWithRealCollateral(params);
+    function executeBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external {
+        params.amount = _borrowWithVirtualCollateral(state, params);
+        _borrowWithRealCollateral(state, params);
     }
 
     /**
      * @notice Borrow with real collateral, an internal state-modifying function.
      * @dev Cover the remaining amount with real collateral
      */
-    function _borrowWithRealCollateral(BorrowAsMarketOrderParams memory params) internal {
+    function _borrowWithRealCollateral(State storage state, BorrowAsMarketOrderParams memory params) internal {
         if (params.amount == 0) {
             return;
         }
 
-        User storage borrowerUser = users[params.borrower];
-        User storage lenderUser = users[params.lender];
+        User storage borrowerUser = state.users[params.borrower];
+        User storage lenderUser = state.users[params.lender];
+
         LoanOffer storage loanOffer = lenderUser.loanOffer;
+
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
-        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, CROpening, priceFeed.getPrice());
+        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, state.CROpening, state.priceFeed.getPrice());
         borrowerUser.eth.lock(maxETHToLock);
         borrowerUser.totDebtCoveredByRealCollateral += FV;
-        loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
+        state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
         lenderUser.cash.transfer(borrowerUser.cash, params.amount);
         loanOffer.maxAmount -= params.amount;
     }
@@ -105,7 +111,7 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
      * @notice Borrow with virtual collateral, an internal state-modifying function.
      * @dev The `amount` is initialized to `amountOutLeft`, which is decreased as more and more SOLs are created
      */
-    function _borrowWithVirtualCollateral(BorrowAsMarketOrderParams memory params)
+    function _borrowWithVirtualCollateral(State storage state, BorrowAsMarketOrderParams memory params)
         internal
         returns (uint256 amountOutLeft)
     {
@@ -114,9 +120,11 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
-        User storage borrowerUser = users[params.borrower];
-        User storage lenderUser = users[params.lender];
+        User storage borrowerUser = state.users[params.borrower];
+        User storage lenderUser = state.users[params.lender];
+
         LoanOffer storage loanOffer = lenderUser.loanOffer;
+
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {
@@ -126,7 +134,7 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
             }
 
             uint256 loanId = params.virtualCollateralLoansIds[i];
-            Loan memory loan = loans[loanId];
+            Loan memory loan = state.loans[loanId];
 
             uint256 deltaAmountIn;
             uint256 deltaAmountOut;
@@ -138,7 +146,7 @@ abstract contract SizeBorrowAsMarketOrder is SizeStorage, SizeView, ISize {
                 deltaAmountOut = amountOutLeft;
             }
 
-            loans.createSOL(loanId, params.lender, params.borrower, deltaAmountIn);
+            state.loans.createSOL(loanId, params.lender, params.borrower, deltaAmountIn);
             // NOTE: Transfer deltaAmountOut for each SOL created
             lenderUser.cash.transfer(borrowerUser.cash, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;

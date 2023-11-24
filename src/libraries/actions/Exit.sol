@@ -1,17 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {SizeStorage} from "./SizeStorage.sol";
-import {User} from "./libraries/UserLibrary.sol";
-import {Loan} from "./libraries/LoanLibrary.sol";
-import {OfferLibrary, LoanOffer} from "./libraries/OfferLibrary.sol";
-import {LoanLibrary, Loan, LoanStatus} from "./libraries/LoanLibrary.sol";
-import {RealCollateralLibrary, RealCollateral} from "./libraries/RealCollateralLibrary.sol";
-import {PERCENT} from "./libraries/MathLibrary.sol";
+import {SizeStorage} from "@src/SizeStorage.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
+import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {OfferLibrary, LoanOffer} from "@src/libraries/OfferLibrary.sol";
+import {LoanLibrary, Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-import {ISize} from "./interfaces/ISize.sol";
+import {ISize} from "@src/interfaces/ISize.sol";
+
+import {State} from "@src/SizeStorage.sol";
+
+import "@src/Errors.sol";
 
 struct ExitParams {
     address exiter;
@@ -21,22 +25,22 @@ struct ExitParams {
     address[] lendersToExitTo;
 }
 
-abstract contract SizeExit is SizeStorage, ISize {
+library Exit {
     using OfferLibrary for LoanOffer;
     using RealCollateralLibrary for RealCollateral;
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
-    function _validateExit(ExitParams memory params) internal view {
-        Loan storage loan = loans[params.loanId];
+    function validateExit(State storage state, ExitParams memory params) external view {
+        Loan memory loan = state.loans[params.loanId];
         // validate exiter
         if (loan.lender != params.exiter) {
             revert ERROR_EXITER_IS_NOT_LENDER(params.exiter, loan.lender);
         }
 
         // validate loanId
-        if (loan.getLoanStatus(loans) != LoanStatus.ACTIVE) {
-            revert ERROR_INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(loans), LoanStatus.ACTIVE);
+        if (loan.getLoanStatus(state.loans) != LoanStatus.ACTIVE) {
+            revert ERROR_INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(state.loans), LoanStatus.ACTIVE);
         }
 
         // validate amount
@@ -53,16 +57,18 @@ abstract contract SizeExit is SizeStorage, ISize {
         // validate lendersToExitTo
         for (uint256 i; i < params.lendersToExitTo.length; ++i) {
             address lender = params.lendersToExitTo[i];
+            User memory lenderUser = state.users[lender];
+
             if (lender == address(0)) {
                 revert ERROR_NULL_ADDRESS();
+            }
+            if (lenderUser.loanOffer.isNull()) {
+                revert ERROR_INVALID_LOAN_OFFER(lender);
             }
             // @audit should we prevent exit to self?
             // if (lender == params.exiter) {
             //     revert ERROR_INVALID_LENDER(lender);
             // }
-            if (users[lender].loanOffer.isNull()) {
-                revert ERROR_INVALID_LOAN_OFFER(lender);
-            }
         }
     }
 
@@ -70,8 +76,9 @@ abstract contract SizeExit is SizeStorage, ISize {
     // - the exiting lender is the taker
     // - the other lenders are the makers
     // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
-    function _executeExit(ExitParams memory params) internal returns (uint256 amountInLeft) {
-        User storage exiterUser = users[params.exiter];
+    function executeExit(State storage state, ExitParams memory params) external returns (uint256 amountInLeft) {
+        User storage exiterUser = state.users[params.exiter];
+
         amountInLeft = params.amount;
         for (uint256 i = 0; i < params.lendersToExitTo.length; ++i) {
             if (amountInLeft == 0) {
@@ -80,8 +87,9 @@ abstract contract SizeExit is SizeStorage, ISize {
             }
 
             address lender = params.lendersToExitTo[i];
-            User storage lenderUser = users[lender];
+            User storage lenderUser = state.users[lender];
             LoanOffer storage loanOffer = lenderUser.loanOffer;
+
             uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
             uint256 deltaAmountIn;
             uint256 deltaAmountOut;
@@ -94,7 +102,7 @@ abstract contract SizeExit is SizeStorage, ISize {
                 deltaAmountOut = FixedPointMathLib.mulDivUp(deltaAmountIn, PERCENT, r);
             }
 
-            loans.createSOL(params.loanId, lender, params.exiter, deltaAmountIn);
+            state.loans.createSOL(params.loanId, lender, params.exiter, deltaAmountIn);
             lenderUser.cash.transfer(exiterUser.cash, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;

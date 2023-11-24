@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {SizeStorage} from "./SizeStorage.sol";
+import {SizeStorage, State} from "@src/SizeStorage.sol";
 import {User, UserLibrary} from "@src/libraries/UserLibrary.sol";
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
@@ -13,21 +13,21 @@ abstract contract SizeView is SizeStorage {
     using LoanLibrary for Loan;
 
     function getCollateralRatio(address user) public view returns (uint256) {
-        return users[user].collateralRatio(priceFeed.getPrice());
+        return state.users[user].collateralRatio(state.priceFeed.getPrice());
     }
 
     function isLiquidatable(address user) public view returns (bool) {
-        return users[user].isLiquidatable(priceFeed.getPrice(), CRLiquidation);
+        return state.users[user].isLiquidatable(state.priceFeed.getPrice(), state.CRLiquidation);
     }
 
     function isLiquidatable(uint256 loanId) public view returns (bool) {
-        Loan memory loan = loans[loanId];
-        return users[loan.borrower].isLiquidatable(priceFeed.getPrice(), CRLiquidation);
+        Loan memory loan = state.loans[loanId];
+        return state.users[loan.borrower].isLiquidatable(state.priceFeed.getPrice(), state.CRLiquidation);
     }
 
     function getAssignedCollateral(uint256 loanId) public view returns (uint256) {
-        Loan memory loan = loans[loanId];
-        User memory borrower = users[loan.borrower];
+        Loan memory loan = state.loans[loanId];
+        User memory borrower = state.users[loan.borrower];
         if (borrower.totDebtCoveredByRealCollateral == 0) {
             return 0;
         } else {
@@ -35,42 +35,50 @@ abstract contract SizeView is SizeStorage {
         }
     }
 
+    function CROpening() external view returns (uint256) {
+        return state.CROpening;
+    }
+
+    function CRLiquidation() external view returns (uint256) {
+        return state.CRLiquidation;
+    }
+
     function getUser(address user) public view returns (User memory) {
-        return users[user];
+        return state.users[user];
     }
 
     function activeLoans() public view returns (uint256) {
-        return loans.length - 1;
+        return state.loans.length - 1;
     }
 
     function isFOL(uint256 loanId) public view returns (bool) {
-        return loans[loanId].isFOL();
+        return state.loans[loanId].isFOL();
     }
 
     function getLoanOfferRate(address account, uint256 dueDate) public view returns (uint256) {
-        return users[account].loanOffer.getRate(dueDate);
+        return state.users[account].loanOffer.getRate(dueDate);
     }
 
     function getDueDate(uint256 loanId) public view returns (uint256) {
-        return loans[loanId].getDueDate(loans);
+        return state.loans[loanId].getDueDate(state.loans);
     }
 
     function getLoan(uint256 loanId) public view returns (Loan memory) {
-        return loans[loanId];
+        return state.loans[loanId];
     }
 
     function getLoanOffer(address account) public view returns (LoanOffer memory) {
-        return users[account].loanOffer;
+        return state.users[account].loanOffer;
     }
 
     function getBorrowOffer(address account) public view returns (BorrowOffer memory) {
-        return users[account].borrowOffer;
+        return state.users[account].borrowOffer;
     }
 
     function getUserVirtualCollateralPerDate(address account, uint256 dueDate) public view returns (uint256 res) {
-        for (uint256 i; i < loans.length; ++i) {
-            Loan memory loan = loans[i];
-            if (loan.lender == account && !loan.repaid && loan.getDueDate(loans) <= dueDate) {
+        for (uint256 i; i < state.loans.length; ++i) {
+            Loan memory loan = state.loans[i];
+            if (loan.lender == account && !loan.repaid && loan.getDueDate(state.loans) <= dueDate) {
                 res += loan.getCredit();
             }
         }
@@ -88,9 +96,9 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getFreeVirtualCollateral(address account, uint256 dueDate) public view returns (uint256 res) {
-        for (uint256 i; i < loans.length; ++i) {
-            Loan memory loan = loans[i];
-            if (loan.lender == account && loan.getDueDate(loans) <= dueDate) {
+        for (uint256 i; i < state.loans.length; ++i) {
+            Loan memory loan = state.loans[i];
+            if (loan.lender == account && loan.getDueDate(state.loans) <= dueDate) {
                 res += loan.getCredit();
             }
         }

@@ -13,13 +13,13 @@ struct User {
 }
 
 library UserLibrary {
-    function collateralRatio(User storage self, uint256 price) public view returns (uint256) {
+    function collateralRatio(User memory self, uint256 price) public pure returns (uint256) {
         return self.totDebtCoveredByRealCollateral == 0
             ? type(uint256).max
             : self.cash.locked + (self.eth.locked * price) / self.totDebtCoveredByRealCollateral;
     }
 
-    function isLiquidatable(User storage self, uint256 price, uint256 CRLiquidation) public view returns (bool) {
+    function isLiquidatable(User memory self, uint256 price, uint256 CRLiquidation) public pure returns (bool) {
         return collateralRatio(self, price) < CRLiquidation;
     }
 }
