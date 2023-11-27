@@ -5,10 +5,10 @@ import {Test} from "forge-std/Test.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {Size} from "../src/Size.sol";
+import {Size} from "@src/Size.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 
-contract SizeInitializeTest is Test {
+contract InitializeTest is Test {
     Size public implementation;
     ERC1967Proxy public proxy;
     PriceFeedMock public priceFeed;

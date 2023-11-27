@@ -13,7 +13,7 @@ import {BaseTest} from "./BaseTest.sol";
 import {ExperimentsHelper} from "./helpers/ExperimentsHelper.sol";
 import {JSONParserHelper} from "./helpers/JSONParserHelper.sol";
 
-contract OrderbookExperimentsTest is Test, BaseTest, JSONParserHelper, ExperimentsHelper {
+contract ExperimentsTest is Test, BaseTest, JSONParserHelper, ExperimentsHelper {
     using EnumerableMap for EnumerableMap.UintToUintMap;
     using LoanLibrary for Loan;
     using OfferLibrary for LoanOffer;

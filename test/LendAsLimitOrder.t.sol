@@ -13,10 +13,10 @@ import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-contract SizeLendAsLimitOrderTest is BaseTest {
+contract LendAsLimitOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
-    function test_SizeLendAsLimitOrder_lendAsLimitOrder_adds_loanOffer_to_orderbook() public {
+    function test_LendAsLimitOrder_lendAsLimitOrder_adds_loanOffer_to_orderbook() public {
         _deposit(alice, 100e18, 100e18);
         assertTrue(_getUsers().alice.loanOffer.isNull());
         _lendAsLimitOrder(alice, 50e18, 12, 1.01e18, 12);

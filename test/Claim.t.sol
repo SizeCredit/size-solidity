@@ -4,15 +4,14 @@ pragma solidity 0.8.20;
 import {BaseTest} from "./BaseTest.sol";
 import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-contract SizeClaimTest is BaseTest {
-    function test_SizeClaim_claim_gets_loan_FV_back() public {
+contract ClaimTest is BaseTest {
+    function test_Claim_claim_gets_loan_FV_back() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
@@ -33,7 +32,7 @@ contract SizeClaimTest is BaseTest {
         assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);
     }
 
-    function test_SizeClaim_claim_of_exited_loan_gets_credit_back() public {
+    function test_Claim_claim_of_exited_loan_gets_credit_back() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);

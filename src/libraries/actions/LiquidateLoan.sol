@@ -45,6 +45,7 @@ library LiquidateLoan {
         uint256 amountUSDC,
         uint256 amountETH
     ) internal {
+        // @audit liquidator cash is transferred to the protocol as we don't want dead money
         liquidatorUser.cash.transfer(borrowerUser.cash, amountUSDC);
         borrowerUser.eth.transfer(liquidatorUser.eth, amountETH);
     }

@@ -10,7 +10,7 @@ import {Size} from "../src/Size.sol";
 import {SizeV2} from "./mocks/SizeV2.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 
-contract SizeUpgradeTest is Test {
+contract UpgradeTest is Test {
     Size public v1;
     SizeV2 public v2;
     ERC1967Proxy public proxy;

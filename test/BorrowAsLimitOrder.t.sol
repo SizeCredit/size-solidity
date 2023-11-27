@@ -13,10 +13,10 @@ import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-contract SizeBorrowAsLimitOrderTest is BaseTest {
+contract BorrowAsLimitOrderTest is BaseTest {
     using OfferLibrary for BorrowOffer;
 
-    function test_SizeBorrowAsLimitOrder_borrowAsLimitOrder_adds_borrowOffer_to_orderbook() public {
+    function test_BorrowAsLimitOrder_borrowAsLimitOrder_adds_borrowOffer_to_orderbook() public {
         _deposit(alice, 100e18, 100e18);
         uint256[] memory timeBuckets = new uint256[](2);
         timeBuckets[0] = 1 days;

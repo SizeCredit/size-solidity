@@ -4,15 +4,14 @@ pragma solidity 0.8.20;
 import {BaseTest} from "./BaseTest.sol";
 import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-contract SizeRepay is BaseTest {
-    function test_SizeRepay_repay_reduces_debt() public {
+contract Repay is BaseTest {
+    function test_Repay_repay_reduces_debt() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);

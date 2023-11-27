@@ -6,14 +6,13 @@ import {console2 as console} from "forge-std/console2.sol";
 import {BaseTest} from "./BaseTest.sol";
 import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-contract SizeBorrowAsMarketOrderTest is BaseTest {
+contract BorrowAsMarketOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
     using LoanLibrary for Loan;
 
@@ -21,7 +20,7 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
     uint256 private constant MAX_DUE_DATE = 12;
     uint256 private constant MAX_AMOUNT = 100e18;
 
-    function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_real_collateral() public {
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_real_collateral() public {
         vm.prank(alice);
         size.deposit(100e18, 100e18);
         vm.prank(bob);
@@ -51,7 +50,7 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
 
-    function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_real_collateral(
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_real_collateral(
         uint256 amount,
         uint256 rate,
         uint256 dueDate
@@ -91,7 +90,7 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
 
-    function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral() public {
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
@@ -120,7 +119,7 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         assertTrue(!size.isFOL(loanId2));
     }
 
-    function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral(
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral(
         uint256 amount,
         uint256 rate,
         uint256 dueDate
@@ -157,7 +156,7 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         assertTrue(!size.isFOL(loanId2));
     }
 
-    function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_and_real_collateral() public {
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_and_real_collateral() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
@@ -192,7 +191,7 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         assertEq(loan2.FV, FV);
     }
 
-    function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_and_real_collateral(
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_and_real_collateral(
         uint256 amountLoanId1,
         uint256 amountLoanId2
     ) public {
@@ -232,7 +231,7 @@ contract SizeBorrowAsMarketOrderTest is BaseTest {
         assertEq(size.getLoan(loanId2).FV, FV);
     }
 
-    function test_SizeBorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_properties() public {
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_properties() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);

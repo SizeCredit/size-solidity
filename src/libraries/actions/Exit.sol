@@ -52,13 +52,9 @@ library Exit {
         }
 
         // validate dueDate
-        if (params.dueDate < block.timestamp) {
-            revert Error.PAST_DUE_DATE(params.dueDate);
+        if (params.dueDate < loan.getDueDate(state.loans)) {
+            revert Error.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(state.loans));
         }
-        // REVIEW
-        // if (params.dueDate < loan.getDueDate()) {
-        //     revert Error.DUE_DATE_GREATER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate());
-        // }
 
         // validate lendersToExitTo
         for (uint256 i; i < params.lendersToExitTo.length; ++i) {

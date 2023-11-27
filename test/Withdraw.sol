@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {BaseTest} from "./BaseTest.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
-contract SizeWithdrawTest is BaseTest {
+contract WithdrawTest is BaseTest {
     function test_SizeWithdraw_withdraw_decreases_user_balance() public {
         vm.startPrank(alice);
 
