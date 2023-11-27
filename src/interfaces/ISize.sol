@@ -51,7 +51,5 @@ interface ISize {
 
     function claim(uint256 loanId) external;
 
-    function liquidateBorrower(address borrower) external returns (uint256 actualAmountETH, uint256 targetAmountETH);
-
     function liquidateLoan(uint256 loanId) external returns (uint256);
 }

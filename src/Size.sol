@@ -15,7 +15,6 @@ import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions
 import {Exit, ExitParams} from "@src/libraries/actions/Exit.sol";
 import {Repay, RepayParams} from "@src/libraries/actions/Repay.sol";
 import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
-import {LiquidateBorrower, LiquidateBorrowerParams} from "@src/libraries/actions/LiquidateBorrower.sol";
 import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 import {Withdraw, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
@@ -46,7 +45,6 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     using Exit for State;
     using Repay for State;
     using Claim for State;
-    using LiquidateBorrower for State;
     using LiquidateLoan for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -185,18 +183,6 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
         ClaimParams memory params = ClaimParams({loanId: loanId, lender: msg.sender, protocol: address(this)});
         state.validateClaim(params);
         state.executeClaim(params);
-    }
-
-    /// @inheritdoc ISize
-    function liquidateBorrower(address borrower)
-        public
-        override(ISize)
-        returns (uint256 actualAmountETH, uint256 targetAmountETH)
-    {
-        LiquidateBorrowerParams memory params = LiquidateBorrowerParams({borrower: borrower, liquidator: msg.sender});
-        state.validateLiquidateBorrower(params);
-        (actualAmountETH, targetAmountETH) = state.executeLiquidateBorrower(params);
-        state.validateUserIsNotLiquidatable(params.borrower);
     }
 
     /// @inheritdoc ISize

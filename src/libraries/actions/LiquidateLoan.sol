@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {SizeStorage} from "@src/SizeStorage.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+import {UserLibrary, User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, LoanStatus, Loan} from "@src/libraries/LoanLibrary.sol";
@@ -10,7 +10,6 @@ import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollater
 import {SizeView} from "@src/SizeView.sol";
 import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
-import {LiquidateBorrower} from "@src/libraries/actions/LiquidateBorrower.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
@@ -26,8 +25,13 @@ struct LiquidateLoanParams {
 }
 
 library LiquidateLoan {
+    using UserLibrary for User;
     using LoanLibrary for Loan;
     using RealCollateralLibrary for RealCollateral;
+
+    function _isLiquidatable(State storage state, address account) internal view returns (bool) {
+        return state.users[account].isLiquidatable(state.priceFeed.getPrice(), state.CRLiquidation);
+    }
 
     function _getAssignedCollateral(State storage state, uint256 loanId) internal view returns (uint256) {
         Loan memory loan = state.loans[loanId];
@@ -50,6 +54,12 @@ library LiquidateLoan {
         borrowerUser.eth.transfer(liquidatorUser.eth, amountETH);
     }
 
+    function validateUserIsNotLiquidatable(State storage state, address account) external view {
+        if (_isLiquidatable(state, account)) {
+            revert Error.USER_IS_LIQUIDATABLE(account, state.users[account].collateralRatio(state.priceFeed.getPrice()));
+        }
+    }
+
     function validateLiquidateLoan(State storage state, LiquidateLoanParams memory params) external view {
         Loan memory loan = state.loans[params.loanId];
         uint256 assignedCollateral = _getAssignedCollateral(state, params.loanId);
@@ -59,10 +69,11 @@ library LiquidateLoan {
         if (!loan.isFOL()) {
             revert Error.ONLY_FOL_CAN_BE_LIQUIDATED(params.loanId);
         }
-        if (!LiquidateBorrower._isLiquidatable(state, loan.borrower)) {
+        if (!_isLiquidatable(state, loan.borrower)) {
             revert Error.LOAN_NOT_LIQUIDATABLE(params.loanId);
         }
-        if (loan.getLoanStatus(state.loans) != LoanStatus.OVERDUE) {
+        // @audit is this reachable?
+        if (loan.either(state.loans, [LoanStatus.REPAID, LoanStatus.CLAIMED])) {
             revert Error.LOAN_NOT_LIQUIDATABLE(params.loanId);
         }
         if (assignedCollateral < amountCollateralDebtCoverage) {

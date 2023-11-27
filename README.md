@@ -31,6 +31,7 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - creating a FOL/SOL decreases a loanOffer maxAmount
 - repay should never DoS due to underflow
 - only FOLs can be claimed(??)
+- a loan is liquidatable if a user is liquidatable (CR < LCR)
 
 
 References

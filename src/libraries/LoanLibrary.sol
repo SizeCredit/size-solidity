@@ -51,6 +51,10 @@ library LoanLibrary {
         }
     }
 
+    function either(Loan memory self, Loan[] memory loans, LoanStatus[2] memory status) public view returns (bool) {
+        return getLoanStatus(self, loans) == status[0] || getLoanStatus(self, loans) == status[1];
+    }
+
     function getCredit(Loan memory self) public pure returns (uint256) {
         return self.FV - self.amountFVExited;
     }
