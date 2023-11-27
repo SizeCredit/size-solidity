@@ -15,7 +15,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import "@src/Errors.sol";
+import {Error} from "@src/libraries/Error.sol";
 
 struct WithdrawParams {
     address user;
@@ -33,7 +33,7 @@ library Withdraw {
         // validate cash
         // validate eth
         if (params.cash == 0 && params.eth == 0) {
-            revert ERROR_NULL_AMOUNT();
+            revert Error.NULL_AMOUNT();
         }
     }
 

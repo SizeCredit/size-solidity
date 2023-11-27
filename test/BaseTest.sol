@@ -13,6 +13,8 @@ import {AssertsHelper} from "./helpers/AssertsHelper.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
 contract BaseTest is Test, AssertsHelper {
+    event TODO();
+
     SizeMock public size;
     PriceFeedMock public priceFeed;
 
@@ -21,11 +23,13 @@ contract BaseTest is Test, AssertsHelper {
     address public candy = address(0x30000);
     address public james = address(0x40000);
     address public liquidator = address(0x50000);
+    address public protocol;
 
     struct Vars {
         User alice;
         User bob;
         User candy;
+        User protocol;
     }
 
     function setUp() public {
@@ -42,6 +46,7 @@ contract BaseTest is Test, AssertsHelper {
                 0.1e18
             )
         );
+        protocol = address(proxy);
         size = SizeMock(address(proxy));
 
         vm.label(alice, "alice");
@@ -49,6 +54,7 @@ contract BaseTest is Test, AssertsHelper {
         vm.label(candy, "candy");
         vm.label(james, "james");
         vm.label(liquidator, "liquidator");
+        vm.label(protocol, "protocol");
 
         priceFeed.setPrice(1337e18);
     }
@@ -107,9 +113,20 @@ contract BaseTest is Test, AssertsHelper {
         size.exit(loanId, amount, dueDate, lendersToExitTo);
     }
 
+    function _repay(address user, uint256 loanId) internal {
+        vm.startPrank(user);
+        size.repay(loanId);
+    }
+
+    function _claim(address user, uint256 loanId) internal {
+        vm.startPrank(user);
+        size.claim(loanId);
+    }
+
     function _getUsers() internal view returns (Vars memory vars) {
         vars.alice = size.getUser(alice);
         vars.bob = size.getUser(bob);
         vars.candy = size.getUser(candy);
+        vars.protocol = size.getUser(protocol);
     }
 }

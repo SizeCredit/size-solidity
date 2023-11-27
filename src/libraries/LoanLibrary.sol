@@ -12,7 +12,6 @@ struct Loan {
     address borrower;
     uint256 dueDate;
     bool repaid;
-    bool claimed;
     uint256 folId; // non-null for SOLs
 }
 
@@ -32,7 +31,6 @@ struct VariableLoan {
 library LoanLibrary {
     using UserLibrary for User;
 
-    error LoanLibrary__InvalidLoan(uint256 folId);
     error LoanLibrary__InvalidAmount(uint256 amount, uint256 maxExit);
 
     function isFOL(Loan memory self) public pure returns (bool) {
@@ -40,11 +38,13 @@ library LoanLibrary {
     }
 
     function getLoanStatus(Loan memory self, Loan[] memory loans) public view returns (LoanStatus) {
-        if (self.claimed) {
-            return LoanStatus.CLAIMED;
-        } else if (self.repaid) {
-            return LoanStatus.REPAID;
-        } else if (block.timestamp > getDueDate(self, loans)) {
+        if (self.repaid) {
+            if (self.amountFVExited == self.FV) {
+                return LoanStatus.CLAIMED;
+            } else {
+                return LoanStatus.REPAID;
+            }
+        } else if (isOverdue(self, loans)) {
             return LoanStatus.OVERDUE;
         } else {
             return LoanStatus.ACTIVE;
@@ -71,16 +71,8 @@ library LoanLibrary {
         return isFOL(self) ? self : loans[self.folId];
     }
 
-    function isRepaid(Loan memory self, Loan[] memory loans) public pure returns (bool) {
-        return isFOL(self) ? self.repaid : loans[self.folId].repaid;
-    }
-
-    function isExpired(Loan memory self) public view returns (bool) {
-        if (isFOL(self)) {
-            return block.timestamp >= self.dueDate;
-        } else {
-            revert LoanLibrary__InvalidLoan(self.folId);
-        }
+    function isOverdue(Loan memory self, Loan[] memory loans) public view returns (bool) {
+        return block.timestamp >= getDueDate(self, loans);
     }
 
     function createFOL(Loan[] storage loans, address lender, address borrower, uint256 FV, uint256 dueDate) public {
@@ -92,7 +84,6 @@ library LoanLibrary {
                 borrower: borrower,
                 dueDate: dueDate,
                 repaid: false,
-                claimed: false,
                 folId: 0
             })
         );
@@ -108,7 +99,6 @@ library LoanLibrary {
                 borrower: borrower,
                 dueDate: fol.dueDate,
                 repaid: false,
-                claimed: false,
                 folId: folId
             })
         );

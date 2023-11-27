@@ -16,7 +16,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import "@src/Errors.sol";
+import {Error} from "@src/libraries/Error.sol";
 
 struct BorrowAsMarketOrderParams {
     address borrower;
@@ -41,26 +41,26 @@ library BorrowAsMarketOrder {
 
         // validate params.lender
         if (loanOffer.isNull()) {
-            revert ERROR_INVALID_LOAN_OFFER(params.lender);
+            revert Error.INVALID_LOAN_OFFER(params.lender);
         }
 
         // validate params.amount
         if (params.amount == 0) {
-            revert ERROR_NULL_AMOUNT();
+            revert Error.NULL_AMOUNT();
         }
         if (params.amount > loanOffer.maxAmount) {
-            revert ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
+            revert Error.AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
         }
         if (lenderUser.cash.free < params.amount) {
-            revert ERROR_NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, params.amount);
+            revert Error.NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, params.amount);
         }
 
         // validate params.dueDate
         if (params.dueDate < block.timestamp) {
-            revert ERROR_PAST_DUE_DATE(params.dueDate);
+            revert Error.PAST_DUE_DATE(params.dueDate);
         }
         if (params.dueDate > loanOffer.maxDueDate) {
-            revert ERROR_DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
+            revert Error.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
         }
 
         // validate params.virtualCollateralLoansIds
@@ -69,10 +69,10 @@ library BorrowAsMarketOrder {
             Loan memory loan = state.loans[loanId];
 
             if (params.borrower != loan.lender) {
-                revert ERROR_BORROWER_IS_NOT_LENDER(params.borrower, loan.lender);
+                revert Error.BORROWER_IS_NOT_LENDER(params.borrower, loan.lender);
             }
             if (params.dueDate < loan.getDueDate(state.loans)) {
-                revert ERROR_DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(state.loans));
+                revert Error.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(state.loans));
             }
         }
     }
@@ -80,31 +80,6 @@ library BorrowAsMarketOrder {
     function executeBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external {
         params.amount = _borrowWithVirtualCollateral(state, params);
         _borrowWithRealCollateral(state, params);
-    }
-
-    /**
-     * @notice Borrow with real collateral, an internal state-modifying function.
-     * @dev Cover the remaining amount with real collateral
-     */
-    function _borrowWithRealCollateral(State storage state, BorrowAsMarketOrderParams memory params) internal {
-        if (params.amount == 0) {
-            return;
-        }
-
-        User storage borrowerUser = state.users[params.borrower];
-        User storage lenderUser = state.users[params.lender];
-
-        LoanOffer storage loanOffer = lenderUser.loanOffer;
-
-        uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
-
-        uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
-        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, state.CROpening, state.priceFeed.getPrice());
-        borrowerUser.eth.lock(maxETHToLock);
-        borrowerUser.totDebtCoveredByRealCollateral += FV;
-        state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
-        lenderUser.cash.transfer(borrowerUser.cash, params.amount);
-        loanOffer.maxAmount -= params.amount;
     }
 
     /**
@@ -152,5 +127,30 @@ library BorrowAsMarketOrder {
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
         }
+    }
+
+    /**
+     * @notice Borrow with real collateral, an internal state-modifying function.
+     * @dev Cover the remaining amount with real collateral
+     */
+    function _borrowWithRealCollateral(State storage state, BorrowAsMarketOrderParams memory params) internal {
+        if (params.amount == 0) {
+            return;
+        }
+
+        User storage borrowerUser = state.users[params.borrower];
+        User storage lenderUser = state.users[params.lender];
+
+        LoanOffer storage loanOffer = lenderUser.loanOffer;
+
+        uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
+
+        uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
+        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, state.CROpening, state.priceFeed.getPrice());
+        borrowerUser.eth.lock(maxETHToLock);
+        borrowerUser.totDebtCoveredByRealCollateral += FV;
+        state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
+        lenderUser.cash.transfer(borrowerUser.cash, params.amount);
+        loanOffer.maxAmount -= params.amount;
     }
 }

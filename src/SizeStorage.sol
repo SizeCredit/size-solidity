@@ -15,6 +15,7 @@ struct State {
     uint256 CRLiquidation;
     uint256 collateralPercentagePremiumToLiquidator;
     uint256 collateralPercentagePremiumToBorrower;
+    uint256 liquidationProfitETH;
 }
 
 abstract contract SizeStorage {

@@ -47,11 +47,11 @@ interface ISize {
     // decreases borrower locked eth??
     // decreases borrower totDebtCoveredByRealCollateral
     // sets loan to repaid
-    function repay(uint256 loanId, uint256 amount) external;
+    function repay(uint256 loanId) external;
 
     function claim(uint256 loanId) external;
 
     function liquidateBorrower(address borrower) external returns (uint256 actualAmountETH, uint256 targetAmountETH);
 
-    function liquidateLoan(uint256 loanId) external;
+    function liquidateLoan(uint256 loanId) external returns (uint256);
 }

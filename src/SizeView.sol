@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 import {User, UserLibrary} from "@src/libraries/UserLibrary.sol";
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {Loan, LoanStatus, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 abstract contract SizeView is SizeStorage {
@@ -65,6 +65,10 @@ abstract contract SizeView is SizeStorage {
 
     function getLoan(uint256 loanId) public view returns (Loan memory) {
         return state.loans[loanId];
+    }
+
+    function getLoanStatus(uint256 loanId) public view returns (LoanStatus) {
+        return state.loans[loanId].getLoanStatus(state.loans);
     }
 
     function getLoanOffer(address account) public view returns (LoanOffer memory) {

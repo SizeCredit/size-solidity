@@ -17,7 +17,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import "@src/Errors.sol";
+import {Error} from "@src/libraries/Error.sol";
 
 struct LendAsLimitOrderParams {
     address lender;
@@ -33,23 +33,23 @@ library LendAsLimitOrder {
 
         // validate params.maxAmount
         if (params.maxAmount == 0) {
-            revert ERROR_NULL_AMOUNT();
+            revert Error.NULL_AMOUNT();
         }
 
         // validate maxDueDate
         if (params.maxDueDate == 0) {
-            revert ERROR_NULL_MAX_DUE_DATE();
+            revert Error.NULL_MAX_DUE_DATE();
         }
         if (params.maxDueDate < block.timestamp) {
-            revert ERROR_PAST_MAX_DUE_DATE(params.maxDueDate);
+            revert Error.PAST_MAX_DUE_DATE(params.maxDueDate);
         }
 
         // validate params.curveRelativeTime
         if (params.curveRelativeTime.timeBuckets.length == 0 || params.curveRelativeTime.rates.length == 0) {
-            revert ERROR_NULL_ARRAY();
+            revert Error.NULL_ARRAY();
         }
         if (params.curveRelativeTime.timeBuckets.length != params.curveRelativeTime.rates.length) {
-            revert ERROR_ARRAY_LENGTHS_MISMATCH();
+            revert Error.ARRAY_LENGTHS_MISMATCH();
         }
     }
 

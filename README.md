@@ -23,11 +23,14 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 
 - SOL(loanId).FV <= FOL(loanId).FV
 - SUM(SOL(loanId).FV) == FOL(loanId).FV
+- loan.amountFVExited <= self.FV
 - loan.FV == 0 && isFOL(loan) <==> loan.repaid
 - loan.repaid ==> !isFOL(loan)
 - upon repayment, the money is locked from the lender until due date, and the protocol earns yield meanwhile
 - cash.free + cash.locked ?= deposits
 - creating a FOL/SOL decreases a loanOffer maxAmount
+- repay should never DoS due to underflow
+- only FOLs can be claimed(??)
 
 
 References
@@ -45,3 +48,4 @@ References
 - natspec
 - split contracts (config contract, view/lens contract, etc)
 - dust amount for loans
+- remove `address(this)` as a reference to the protocol P&N and replace by specific PnL struct

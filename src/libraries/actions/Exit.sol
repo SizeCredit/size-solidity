@@ -15,7 +15,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import "@src/Errors.sol";
+import {Error} from "@src/libraries/Error.sol";
 
 struct ExitParams {
     address exiter;
@@ -35,24 +35,30 @@ library Exit {
         Loan memory loan = state.loans[params.loanId];
         // validate exiter
         if (loan.lender != params.exiter) {
-            revert ERROR_EXITER_IS_NOT_LENDER(params.exiter, loan.lender);
+            revert Error.EXITER_IS_NOT_LENDER(params.exiter, loan.lender);
         }
 
         // validate loanId
         if (loan.getLoanStatus(state.loans) != LoanStatus.ACTIVE) {
-            revert ERROR_INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(state.loans), LoanStatus.ACTIVE);
+            revert Error.INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(state.loans), LoanStatus.ACTIVE);
         }
 
         // validate amount
         if (params.amount == 0) {
-            revert ERROR_NULL_AMOUNT();
+            revert Error.NULL_AMOUNT();
         }
         if (params.amount > loan.getCredit()) {
-            revert ERROR_AMOUNT_GREATER_THAN_LOAN_CREDIT(params.amount, loan.getCredit());
+            revert Error.AMOUNT_GREATER_THAN_LOAN_CREDIT(params.amount, loan.getCredit());
         }
 
         // validate dueDate
-        // TODO
+        if (params.dueDate < block.timestamp) {
+            revert Error.PAST_DUE_DATE(params.dueDate);
+        }
+        // REVIEW
+        // if (params.dueDate < loan.getDueDate()) {
+        //     revert Error.DUE_DATE_GREATER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate());
+        // }
 
         // validate lendersToExitTo
         for (uint256 i; i < params.lendersToExitTo.length; ++i) {
@@ -60,14 +66,14 @@ library Exit {
             User memory lenderUser = state.users[lender];
 
             if (lender == address(0)) {
-                revert ERROR_NULL_ADDRESS();
+                revert Error.NULL_ADDRESS();
             }
             if (lenderUser.loanOffer.isNull()) {
-                revert ERROR_INVALID_LOAN_OFFER(lender);
+                revert Error.INVALID_LOAN_OFFER(lender);
             }
             // @audit should we prevent exit to self?
             // if (lender == params.exiter) {
-            //     revert ERROR_INVALID_LENDER(lender);
+            //     revert Error.INVALID_LENDER(lender);
             // }
         }
     }
@@ -106,7 +112,6 @@ library Exit {
             lenderUser.cash.transfer(exiterUser.cash, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
-            // @audit update LOAN
         }
     }
 }

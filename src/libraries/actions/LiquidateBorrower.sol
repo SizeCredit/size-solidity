@@ -17,7 +17,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import "@src/Errors.sol";
+import {Error} from "@src/libraries/Error.sol";
 
 struct LiquidateBorrowerParams {
     address borrower;
@@ -37,7 +37,7 @@ library LiquidateBorrower {
 
     function validateUserIsNotLiquidatable(State storage state, address account) external view {
         if (_isLiquidatable(state, account)) {
-            revert ERROR_USER_IS_LIQUIDATABLE(account, state.users[account].collateralRatio(state.priceFeed.getPrice()));
+            revert Error.USER_IS_LIQUIDATABLE(account, state.users[account].collateralRatio(state.priceFeed.getPrice()));
         }
     }
 
@@ -47,12 +47,12 @@ library LiquidateBorrower {
 
         // validate borrower
         if (!_isLiquidatable(state, params.borrower)) {
-            revert ERROR_NOT_LIQUIDATABLE(params.borrower);
+            revert Error.NOT_LIQUIDATABLE(params.borrower);
         }
 
         // validate liquidator
         if (liquidatorUser.cash.free < borrowerUser.totDebtCoveredByRealCollateral) {
-            revert ERROR_NOT_ENOUGH_FREE_CASH(liquidatorUser.cash.free, borrowerUser.totDebtCoveredByRealCollateral);
+            revert Error.NOT_ENOUGH_FREE_CASH(liquidatorUser.cash.free, borrowerUser.totDebtCoveredByRealCollateral);
         }
     }
 
@@ -71,6 +71,7 @@ library LiquidateBorrower {
             emit LiquidationAtLoss(targetAmountETH - actualAmountETH);
         }
 
+        // _liquidationSwap(liquidatorUser, borrowerUser, amountUSDC, actualAmountETH);
         liquidatorUser.cash.transfer(borrowerUser.cash, amountUSDC);
         borrowerUser.cash.lock(amountUSDC);
         borrowerUser.eth.unlock(actualAmountETH);

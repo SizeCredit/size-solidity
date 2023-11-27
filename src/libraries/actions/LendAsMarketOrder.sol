@@ -17,7 +17,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import "@src/Errors.sol";
+import {Error} from "@src/libraries/Error.sol";
 
 struct LendAsMarketOrderParams {
     address lender;
@@ -39,10 +39,10 @@ library LendAsMarketOrder {
 
         // validate amount
         if (params.amount > borrowOffer.maxAmount) {
-            revert ERROR_AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, borrowOffer.maxAmount);
+            revert Error.AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, borrowOffer.maxAmount);
         }
         if (lenderUser.cash.free < params.amount) {
-            revert ERROR_NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, params.amount);
+            revert Error.NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, params.amount);
         }
     }
 
