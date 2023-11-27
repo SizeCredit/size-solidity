@@ -33,8 +33,7 @@ library LiquidateLoan {
         return state.users[account].isLiquidatable(state.priceFeed.getPrice(), state.CRLiquidation);
     }
 
-    function _getAssignedCollateral(State storage state, uint256 loanId) internal view returns (uint256) {
-        Loan memory loan = state.loans[loanId];
+    function _getAssignedCollateral(State storage state, Loan memory loan) internal view returns (uint256) {
         User memory borrower = state.users[loan.borrower];
         if (borrower.totDebtCoveredByRealCollateral == 0) {
             return 0;
@@ -62,7 +61,7 @@ library LiquidateLoan {
 
     function validateLiquidateLoan(State storage state, LiquidateLoanParams memory params) external view {
         Loan memory loan = state.loans[params.loanId];
-        uint256 assignedCollateral = _getAssignedCollateral(state, params.loanId);
+        uint256 assignedCollateral = _getAssignedCollateral(state, loan);
         uint256 amountCollateralDebtCoverage = loan.getDebt(true, state.priceFeed.getPrice());
 
         // validate loanId
@@ -82,32 +81,32 @@ library LiquidateLoan {
     }
 
     function executeLiquidateLoan(State storage state, LiquidateLoanParams memory params) external returns (uint256) {
-        // solidity
         Loan storage loan = state.loans[params.loanId];
         User storage borrowerUser = state.users[loan.borrower];
         User storage liquidatorUser = state.users[params.liquidator];
+
         uint256 price = state.priceFeed.getPrice();
 
-        uint256 assignedCollateral = _getAssignedCollateral(state, params.loanId);
-        uint256 amountCollateralDebtCoverage = loan.getDebt(true, price);
-        uint256 collateralRemainder = assignedCollateral - amountCollateralDebtCoverage;
+        uint256 assignedCollateral = _getAssignedCollateral(state, loan);
+        uint256 debtCollateral = loan.getDebt(true, price);
+        uint256 collateralRemainder = assignedCollateral - debtCollateral;
 
-        uint256 amountCollateralToLiquidator =
+        uint256 collateralRemainderToLiquidator =
             collateralRemainder * state.collateralPercentagePremiumToLiquidator / PERCENT;
-        uint256 amountCollateralToBorrower = collateralRemainder * state.collateralPercentagePremiumToBorrower / PERCENT;
-        uint256 amountCollateralToProtocol =
-            collateralRemainder - amountCollateralToLiquidator - amountCollateralToBorrower;
+        uint256 collateralRemainderToBorrower = collateralRemainder * state.collateralPercentagePremiumToBorrower / PERCENT;
+        uint256 collateralRemainderToProtocol =
+            collateralRemainder - collateralRemainderToLiquidator - collateralRemainderToBorrower;
 
-        state.liquidationProfitETH += amountCollateralToProtocol;
+        state.liquidationProfitETH += collateralRemainderToProtocol;
 
         uint256 amountUSDC = loan.getDebt(false, price);
-        uint256 amountETH = amountCollateralDebtCoverage + amountCollateralToLiquidator;
+        uint256 amountETH = debtCollateral + collateralRemainderToLiquidator;
 
         _liquidationSwap(liquidatorUser, borrowerUser, amountUSDC, amountETH);
 
-        liquidatorUser.eth.transfer(borrowerUser.eth, amountCollateralToBorrower - amountCollateralDebtCoverage);
-        borrowerUser.eth.transfer(liquidatorUser.eth, amountCollateralToLiquidator);
+        liquidatorUser.eth.transfer(borrowerUser.eth, collateralRemainderToBorrower - debtCollateral);
+        borrowerUser.eth.transfer(liquidatorUser.eth, collateralRemainderToLiquidator);
 
-        return amountCollateralDebtCoverage + amountCollateralToLiquidator;
+        return debtCollateral + collateralRemainderToLiquidator;
     }
 }
