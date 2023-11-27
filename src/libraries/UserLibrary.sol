@@ -22,4 +22,12 @@ library UserLibrary {
     function isLiquidatable(User memory self, uint256 price, uint256 CRLiquidation) public pure returns (bool) {
         return collateralRatio(self, price) < CRLiquidation;
     }
+
+    function getAssignedCollateral(User memory self, uint256 FV) public pure returns (uint256) {
+        if (self.totDebtCoveredByRealCollateral == 0) {
+            return 0;
+        } else {
+            return self.eth.free * FV / self.totDebtCoveredByRealCollateral;
+        }
+    }
 }

@@ -5,6 +5,7 @@ import {SizeStorage, State} from "@src/SizeStorage.sol";
 import {User, UserLibrary} from "@src/libraries/UserLibrary.sol";
 import {Loan, LoanStatus, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 abstract contract SizeView is SizeStorage {
     using UserLibrary for User;
@@ -28,11 +29,12 @@ abstract contract SizeView is SizeStorage {
     function getAssignedCollateral(uint256 loanId) public view returns (uint256) {
         Loan memory loan = state.loans[loanId];
         User memory borrower = state.users[loan.borrower];
-        if (borrower.totDebtCoveredByRealCollateral == 0) {
-            return 0;
-        } else {
-            return borrower.eth.free * loan.FV / borrower.totDebtCoveredByRealCollateral;
-        }
+        return borrower.getAssignedCollateral(loan.FV);
+    }
+
+    function getDebt(uint256 loanId, bool inCollateral) public view returns (uint256) {
+        Loan memory loan = state.loans[loanId];
+        return loan.getDebt(inCollateral, state.priceFeed.getPrice());
     }
 
     function CROpening() external view returns (uint256) {
@@ -41,6 +43,18 @@ abstract contract SizeView is SizeStorage {
 
     function CRLiquidation() external view returns (uint256) {
         return state.CRLiquidation;
+    }
+
+    function collateralPercentagePremiumToLiquidator() external view returns (uint256) {
+        return state.collateralPercentagePremiumToLiquidator;
+    }
+
+    function collateralPercentagePremiumToBorrower() external view returns (uint256) {
+        return state.collateralPercentagePremiumToBorrower;
+    }
+
+    function collateralPercentagePremiumToProtocol() external view returns (uint256) {
+        return PERCENT - (state.collateralPercentagePremiumToBorrower + state.collateralPercentagePremiumToLiquidator);
     }
 
     function getUser(address user) public view returns (User memory) {

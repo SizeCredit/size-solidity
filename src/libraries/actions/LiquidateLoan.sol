@@ -22,6 +22,7 @@ import {Error} from "@src/libraries/Error.sol";
 struct LiquidateLoanParams {
     uint256 loanId;
     address liquidator;
+    address protocol;
 }
 
 library LiquidateLoan {
@@ -34,23 +35,7 @@ library LiquidateLoan {
     }
 
     function _getAssignedCollateral(State storage state, Loan memory loan) internal view returns (uint256) {
-        User memory borrower = state.users[loan.borrower];
-        if (borrower.totDebtCoveredByRealCollateral == 0) {
-            return 0;
-        } else {
-            return borrower.eth.free * loan.FV / borrower.totDebtCoveredByRealCollateral;
-        }
-    }
-
-    function _liquidationSwap(
-        User storage liquidatorUser,
-        User storage borrowerUser,
-        uint256 amountUSDC,
-        uint256 amountETH
-    ) internal {
-        // @audit liquidator cash is transferred to the protocol as we don't want dead money
-        liquidatorUser.cash.transfer(borrowerUser.cash, amountUSDC);
-        borrowerUser.eth.transfer(liquidatorUser.eth, amountETH);
+        return state.users[loan.borrower].getAssignedCollateral(loan.FV);
     }
 
     function validateUserIsNotLiquidatable(State storage state, address account) external view {
@@ -78,34 +63,37 @@ library LiquidateLoan {
         if (assignedCollateral < amountCollateralDebtCoverage) {
             revert Error.LIQUIDATION_AT_LOSS(params.loanId);
         }
+
+        // validate liquidator
+
+        // validate protocol
     }
 
     function executeLiquidateLoan(State storage state, LiquidateLoanParams memory params) external returns (uint256) {
         Loan storage loan = state.loans[params.loanId];
         User storage borrowerUser = state.users[loan.borrower];
         User storage liquidatorUser = state.users[params.liquidator];
+        User storage protocolUser = state.users[params.protocol];
 
         uint256 price = state.priceFeed.getPrice();
 
         uint256 assignedCollateral = _getAssignedCollateral(state, loan);
         uint256 debtCollateral = loan.getDebt(true, price);
+        uint256 debtUSDC = loan.getDebt(false, price);
         uint256 collateralRemainder = assignedCollateral - debtCollateral;
 
         uint256 collateralRemainderToLiquidator =
             collateralRemainder * state.collateralPercentagePremiumToLiquidator / PERCENT;
-        uint256 collateralRemainderToBorrower = collateralRemainder * state.collateralPercentagePremiumToBorrower / PERCENT;
+        uint256 collateralRemainderToBorrower =
+            collateralRemainder * state.collateralPercentagePremiumToBorrower / PERCENT;
         uint256 collateralRemainderToProtocol =
             collateralRemainder - collateralRemainderToLiquidator - collateralRemainderToBorrower;
 
+        borrowerUser.eth.transfer(protocolUser.eth, collateralRemainderToProtocol);
+        borrowerUser.eth.transfer(liquidatorUser.eth, collateralRemainderToLiquidator + debtCollateral);
+        liquidatorUser.cash.transfer(protocolUser.cash, debtUSDC);
+
         state.liquidationProfitETH += collateralRemainderToProtocol;
-
-        uint256 amountUSDC = loan.getDebt(false, price);
-        uint256 amountETH = debtCollateral + collateralRemainderToLiquidator;
-
-        _liquidationSwap(liquidatorUser, borrowerUser, amountUSDC, amountETH);
-
-        liquidatorUser.eth.transfer(borrowerUser.eth, collateralRemainderToBorrower - debtCollateral);
-        borrowerUser.eth.transfer(liquidatorUser.eth, collateralRemainderToLiquidator);
 
         return debtCollateral + collateralRemainderToLiquidator;
     }

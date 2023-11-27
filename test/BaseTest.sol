@@ -29,6 +29,7 @@ contract BaseTest is Test, AssertsHelper {
         User alice;
         User bob;
         User candy;
+        User liquidator;
         User protocol;
     }
 
@@ -71,8 +72,8 @@ contract BaseTest is Test, AssertsHelper {
         uint256 rate,
         uint256 timeBucketsLength
     ) internal {
-        vm.startPrank(lender);
         YieldCurve memory curve = YieldCurveLibrary.getFlatRate(timeBucketsLength, rate);
+        vm.prank(lender);
         size.lendAsLimitOrder(maxAmount, maxDueDate, curve.timeBuckets, curve.rates);
     }
 
@@ -91,7 +92,7 @@ contract BaseTest is Test, AssertsHelper {
         uint256 dueDate,
         uint256[] memory virtualCollateralLoansIds
     ) internal returns (uint256) {
-        vm.startPrank(borrower);
+        vm.prank(borrower);
         size.borrowAsMarketOrder(lender, amount, dueDate, virtualCollateralLoansIds);
         return size.activeLoans();
     }
@@ -102,31 +103,42 @@ contract BaseTest is Test, AssertsHelper {
         uint256[] memory timeBuckets,
         uint256[] memory rates
     ) internal {
-        vm.startPrank(borrower);
+        vm.prank(borrower);
         size.borrowAsLimitOrder(maxAmount, timeBuckets, rates);
     }
 
     function _exit(address user, uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
         internal
     {
-        vm.startPrank(user);
+        vm.prank(user);
         size.exit(loanId, amount, dueDate, lendersToExitTo);
     }
 
     function _repay(address user, uint256 loanId) internal {
-        vm.startPrank(user);
+        vm.prank(user);
         size.repay(loanId);
     }
 
     function _claim(address user, uint256 loanId) internal {
-        vm.startPrank(user);
+        vm.prank(user);
         size.claim(loanId);
+    }
+
+    function _liquidateLoan(address user, uint256 loanId) internal {
+        vm.prank(user);
+        size.liquidateLoan(loanId);
     }
 
     function _getUsers() internal view returns (Vars memory vars) {
         vars.alice = size.getUser(alice);
         vars.bob = size.getUser(bob);
         vars.candy = size.getUser(candy);
+        vars.liquidator = size.getUser(liquidator);
         vars.protocol = size.getUser(protocol);
+    }
+
+    function _setPrice(uint256 price) internal {
+        vm.prank(address(this));
+        priceFeed.setPrice(price);
     }
 }

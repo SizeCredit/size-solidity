@@ -187,7 +187,8 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
 
     /// @inheritdoc ISize
     function liquidateLoan(uint256 loanId) public override(ISize) returns (uint256 ans) {
-        LiquidateLoanParams memory params = LiquidateLoanParams({loanId: loanId, liquidator: msg.sender});
+        LiquidateLoanParams memory params =
+            LiquidateLoanParams({loanId: loanId, liquidator: msg.sender, protocol: address(this)});
         state.validateLiquidateLoan(params);
         ans = state.executeLiquidateLoan(params);
     }
