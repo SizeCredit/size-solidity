@@ -20,8 +20,6 @@ contract SizeClaimTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         _repay(bob, loanId);
 
-        vm.warp(12);
-
         uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
 
         Vars memory _before = _getUsers();
@@ -49,7 +47,6 @@ contract SizeClaimTest is BaseTest {
         uint256 amountFVExited = 10e18;
         _exit(alice, loanId, amountFVExited, 12, lendersToExitTo);
         _repay(bob, loanId);
-        vm.warp(12);
 
         Vars memory _before = _getUsers();
 

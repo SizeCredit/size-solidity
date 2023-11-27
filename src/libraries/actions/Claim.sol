@@ -38,9 +38,6 @@ library Claim {
         if (loan.getLoanStatus(state.loans) != LoanStatus.REPAID) {
             revert Error.LOAN_NOT_REPAID(params.loanId);
         }
-        if (block.timestamp < loan.getDueDate(state.loans)) {
-            revert Error.LOAN_NOT_DUE(params.loanId);
-        }
 
         // validate lender
         if (params.lender != loan.lender) {
