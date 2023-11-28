@@ -10,7 +10,7 @@ import {Loan} from "@src/libraries/LoanLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-contract Repay is BaseTest {
+contract RepayTest is BaseTest {
     function test_Repay_repay_reduces_debt() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);

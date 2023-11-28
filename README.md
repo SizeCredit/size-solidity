@@ -32,6 +32,8 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - repay should never DoS due to underflow
 - only FOLs can be claimed(??)
 - a loan is liquidatable if a user is liquidatable (CR < LCR)
+- Taking loan with only virtual collateral does not decrease the borrower CR
+- Taking loan with real collateral decreases the borrower CR
 
 
 References
@@ -47,6 +49,7 @@ References
 - create helper contracts for liquidation in 1 step (deposit -> liquidate -> withdraw)
 - multi-erc20 tokens with different CR per tokens
 - natspec
-- split contracts (config contract, view/lens contract, etc)
 - dust amount for loans
 - remove `address(this)` as a reference to the protocol P&N and replace by specific PnL struct
+- 100% coverage
+- 

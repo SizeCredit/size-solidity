@@ -131,6 +131,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
             LendAsMarketOrderParams({lender: msg.sender, borrower: borrower, dueDate: dueDate, amount: amount});
         state.validateLendAsMarketOrder(params);
         state.executeLendAsMarketOrder(params);
+        state.validateUserIsNotLiquidatable(params.borrower);
     }
 
     /// @inheritdoc ISize
