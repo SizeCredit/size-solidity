@@ -32,9 +32,8 @@ abstract contract SizeView is SizeStorage {
         return borrower.getAssignedCollateral(loan.FV);
     }
 
-    function getDebt(uint256 loanId, bool inCollateral) public view returns (uint256) {
-        Loan memory loan = state.loans[loanId];
-        return loan.getDebt(inCollateral, state.priceFeed.getPrice());
+    function getDebt(uint256 loanId) public view returns (uint256) {
+        return state.loans[loanId].getDebt();
     }
 
     function CROpening() external view returns (uint256) {

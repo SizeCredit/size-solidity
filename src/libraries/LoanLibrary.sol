@@ -59,8 +59,8 @@ library LoanLibrary {
         return self.FV - self.amountFVExited;
     }
 
-    function getDebt(Loan memory self, bool inCollateral, uint256 price) public pure returns (uint256) {
-        return inCollateral ? (self.FV * 1e18) / price : self.FV;
+    function getDebt(Loan memory self) public pure returns (uint256) {
+        return self.FV;
     }
 
     function perc(Loan memory self, Loan[] memory loans) public pure returns (uint256) {

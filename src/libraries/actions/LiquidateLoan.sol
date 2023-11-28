@@ -47,7 +47,7 @@ library LiquidateLoan {
     function validateLiquidateLoan(State storage state, LiquidateLoanParams memory params) external view {
         Loan memory loan = state.loans[params.loanId];
         uint256 assignedCollateral = _getAssignedCollateral(state, loan);
-        uint256 amountCollateralDebtCoverage = loan.getDebt(true, state.priceFeed.getPrice());
+        uint256 amountCollateralDebtCoverage = loan.getDebt() * 1e18 / state.priceFeed.getPrice();
 
         // validate loanId
         if (!loan.isFOL()) {
@@ -78,8 +78,8 @@ library LiquidateLoan {
         uint256 price = state.priceFeed.getPrice();
 
         uint256 assignedCollateral = _getAssignedCollateral(state, loan);
-        uint256 debtCollateral = loan.getDebt(true, price);
-        uint256 debtUSDC = loan.getDebt(false, price);
+        uint256 debtUSDC = loan.getDebt();
+        uint256 debtCollateral = debtUSDC * 1e18 / price;
         uint256 collateralRemainder = assignedCollateral - debtCollateral;
 
         uint256 collateralRemainderToLiquidator =
