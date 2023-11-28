@@ -10,6 +10,7 @@ library Error {
     error NULL_MAX_DUE_DATE();
     error NULL_ARRAY();
     error ARRAY_LENGTHS_MISMATCH();
+    error INVALID_TOKEN(address token);
     error INVALID_COLLATERAL_RATIO(uint256 cr);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM(uint256 percentage);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(uint256 a, uint256 b);

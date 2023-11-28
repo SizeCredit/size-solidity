@@ -2,15 +2,15 @@
 pragma solidity 0.8.20;
 
 interface ISize {
-    function deposit(uint256 cash, uint256 eth) external;
+    function deposit(address token, uint256 value) external;
 
-    function withdraw(uint256 cash, uint256 eth) external;
+    function withdraw(address token, uint256 value) external;
 
     // decreases lender free cash
     // increases borrower free cash
     // if FOL
     //  increases borrower locked eth
-    //  increases borrower totDebtCoveredByRealCollateral
+    //  increases borrower totalDebtCoveredByRealCollateral
     // decreases loan offer max amount
     // creates new loans
     function borrowAsMarketOrder(
@@ -45,7 +45,7 @@ interface ISize {
     // increases protocol free cash
     // increases lender claim(???)
     // decreases borrower locked eth??
-    // decreases borrower totDebtCoveredByRealCollateral
+    // decreases borrower totalDebtCoveredByRealCollateral
     // sets loan to repaid
     function repay(uint256 loanId) external;
 

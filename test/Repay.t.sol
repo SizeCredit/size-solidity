@@ -27,9 +27,9 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _getUsers();
 
-        assertEq(_after.bob.totDebtCoveredByRealCollateral, _before.bob.totDebtCoveredByRealCollateral - FV);
-        assertEq(_after.bob.cash.free, _before.bob.cash.free - FV);
-        assertEq(_after.protocol.cash.free, _before.protocol.cash.free + FV);
+        assertEq(_after.bob.totalDebtCoveredByRealCollateral, _before.bob.totalDebtCoveredByRealCollateral - FV);
+        assertEq(_after.bob.borrowAsset.free, _before.bob.borrowAsset.free - FV);
+        assertEq(_after.protocol.borrowAsset.free, _before.protocol.borrowAsset.free + FV);
         assertTrue(size.getLoan(loanId).repaid);
     }
 }

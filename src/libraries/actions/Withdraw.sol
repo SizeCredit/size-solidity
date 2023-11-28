@@ -19,26 +19,33 @@ import {Error} from "@src/libraries/Error.sol";
 
 struct WithdrawParams {
     address user;
-    uint256 cash;
-    uint256 eth;
+    address token;
+    uint256 value;
 }
 
 library Withdraw {
     using LoanLibrary for Loan;
     using RealCollateralLibrary for RealCollateral;
 
-    function validateWithdraw(State storage, WithdrawParams memory params) external pure {
+    function validateWithdraw(State storage state, WithdrawParams memory params) external view {
         // validte user
 
-        // validate cash
-        // validate eth
-        if (params.cash == 0 && params.eth == 0) {
+        // validate token
+        if (params.token != address(state.collateralAsset) && params.token != address(state.borrowAsset)) {
+            revert Error.INVALID_TOKEN(params.token);
+        }
+
+        // validate value
+        if (params.value == 0) {
             revert Error.NULL_AMOUNT();
         }
     }
 
     function executeWithdraw(State storage state, WithdrawParams memory params) external {
-        state.users[params.user].cash.free -= params.cash;
-        state.users[params.user].eth.free -= params.eth;
+        if (params.token == address(state.collateralAsset)) {
+            state.users[params.user].collateralAsset.free -= params.value;
+        } else {
+            state.users[params.user].borrowAsset.free -= params.value;
+        }
     }
 }

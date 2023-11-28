@@ -43,13 +43,14 @@ References
 
 ## TODOs
 
-- chainlink integration
-- safe casting int256 to uint256
 - check rounding direction
-- create helper contracts for liquidation in 1 step (deposit -> liquidate -> withdraw)
-- multi-erc20 tokens with different CR per tokens
-- natspec
+- chainlink integration
 - dust amount for loans
 - remove `address(this)` as a reference to the protocol P&N and replace by specific PnL struct
 - 100% coverage
-- 
+ 
+## Later
+
+- create helper contracts for liquidation in 1 step (deposit -> liquidate -> withdraw)
+- natspec
+- multi-erc20 tokens with different CR per tokens

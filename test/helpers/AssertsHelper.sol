@@ -8,11 +8,13 @@ import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
 abstract contract AssertsHelper is Test {
     function assertEq(User memory a, User memory b) internal {
-        assertEq(a.cash.free, b.cash.free, ".cash.free");
-        assertEq(a.cash.locked, b.cash.locked, ".cash.locked");
-        assertEq(a.eth.free, b.eth.free, ".eth.free");
-        assertEq(a.eth.locked, b.eth.locked, ".eth.locked");
-        assertEq(a.totDebtCoveredByRealCollateral, b.totDebtCoveredByRealCollateral, ".totDebtCoveredByRealCollateral");
+        assertEq(a.borrowAsset.free, b.borrowAsset.free, ".borrowAsset.free");
+        assertEq(a.borrowAsset.locked, b.borrowAsset.locked, ".borrowAsset.locked");
+        assertEq(a.collateralAsset.free, b.collateralAsset.free, ".collateralAsset.free");
+        assertEq(a.collateralAsset.locked, b.collateralAsset.locked, ".collateralAsset.locked");
+        assertEq(
+            a.totalDebtCoveredByRealCollateral, b.totalDebtCoveredByRealCollateral, ".totalDebtCoveredByRealCollateral"
+        );
     }
 
     function assertEq(uint256 a, uint256 b, uint256 c) internal {

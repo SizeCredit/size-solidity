@@ -53,7 +53,7 @@ library Claim {
         User storage lenderUser = state.users[loan.lender];
 
         // @audit amountFVExited can increase if SOLs are created, what if claim/exit happen in different times?
-        protocolUser.cash.transfer(lenderUser.cash, loan.getCredit());
+        protocolUser.borrowAsset.transfer(lenderUser.borrowAsset, loan.getCredit());
         loan.amountFVExited = loan.FV;
     }
 }

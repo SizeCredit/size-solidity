@@ -28,7 +28,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _getUsers();
 
-        assertEq(_after.alice.cash.free, _before.alice.cash.free + FV);
+        assertEq(_after.alice.borrowAsset.free, _before.alice.borrowAsset.free + FV);
         assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);
     }
 
@@ -56,7 +56,7 @@ contract ClaimTest is BaseTest {
 
         uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.03e18, 100e18, PERCENT);
         uint256 credit = FV - amountFVExited;
-        assertEq(_after.alice.cash.free, _before.alice.cash.free + credit);
+        assertEq(_after.alice.borrowAsset.free, _before.alice.borrowAsset.free + credit);
         assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);
     }
 }

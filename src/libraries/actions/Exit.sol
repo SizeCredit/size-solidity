@@ -105,7 +105,7 @@ library Exit {
             }
 
             state.loans.createSOL(params.loanId, lender, params.exiter, deltaAmountIn);
-            lenderUser.cash.transfer(exiterUser.cash, deltaAmountOut);
+            lenderUser.borrowAsset.transfer(exiterUser.borrowAsset, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
         }

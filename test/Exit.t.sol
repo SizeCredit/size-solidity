@@ -38,8 +38,8 @@ contract ExitTest is BaseTest {
         User memory bobUserAfter = size.getUser(bob);
         User memory candyUserAfter = size.getUser(candy);
 
-        assertLt(candyUserAfter.cash.free, candyUserBefore.cash.free);
-        assertGt(aliceUserAfter.cash.free, aliceUserBefore.cash.free);
+        assertLt(candyUserAfter.borrowAsset.free, candyUserBefore.borrowAsset.free);
+        assertGt(aliceUserAfter.borrowAsset.free, aliceUserBefore.borrowAsset.free);
         assertLt(loanOfferAfter.maxAmount, loanOfferBefore.maxAmount);
         assertGt(loanAfter.amountFVExited, loanBefore.amountFVExited);
         assertEq(bobUserBefore, bobUserAfter);

@@ -9,15 +9,21 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {Size} from "../src/Size.sol";
 import {SizeV2} from "./mocks/SizeV2.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
+import {WETH} from "./mocks/WETH.sol";
+import {USDC} from "./mocks/USDC.sol";
 
 contract UpgradeTest is Test {
     Size public v1;
     SizeV2 public v2;
     ERC1967Proxy public proxy;
     PriceFeedMock public priceFeed;
+    WETH public weth;
+    USDC public usdc;
 
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
+        weth = new WETH();
+        usdc = new USDC();
     }
 
     function test_SizeUpgrade_proxy_can_be_upgraded_with_uups_casting() public {
@@ -28,6 +34,8 @@ contract UpgradeTest is Test {
                 Size.initialize.selector,
                 address(this),
                 priceFeed,
+
+    address(weth), address(usdc),
                 1.5e18,
                 1.3e18,
                 0.3e18,
@@ -48,6 +56,7 @@ contract UpgradeTest is Test {
                 Size.initialize.selector,
                 address(this),
                 priceFeed,
+    address(weth), address(usdc),
                 1.5e18,
                 1.3e18,
                 0.3e18,

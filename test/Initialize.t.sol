@@ -7,20 +7,28 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 import {Size} from "@src/Size.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
+import {WETH} from "./mocks/WETH.sol";
+import {USDC} from "./mocks/USDC.sol";
 
 contract InitializeTest is Test {
     Size public implementation;
     ERC1967Proxy public proxy;
     PriceFeedMock public priceFeed;
+    WETH public weth;
+    USDC public usdc;
 
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
+        weth = new WETH();
+        usdc = new USDC();
     }
 
     function test_SizeInitialize_implementation_cannot_be_initialized() public {
         implementation = new Size();
         vm.expectRevert();
-        implementation.initialize(address(this), address(priceFeed), 1.5e18, 1.3e18, 0.3e18, 0.1e18);
+        implementation.initialize(
+            address(this), address(priceFeed), address(weth), address(usdc), 1.5e18, 1.3e18, 0.3e18, 0.1e18
+        );
 
         assertEq(implementation.CRLiquidation(), 0);
     }
@@ -33,6 +41,7 @@ contract InitializeTest is Test {
                 Size.initialize.selector,
                 address(this),
                 address(priceFeed),
+    address(weth), address(usdc),
                 1.5e18,
                 1.3e18,
                 0.3e18,

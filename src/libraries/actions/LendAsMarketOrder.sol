@@ -49,8 +49,8 @@ library LendAsMarketOrder {
         if (params.amount > borrowOffer.maxAmount) {
             revert Error.AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, borrowOffer.maxAmount);
         }
-        if (lenderUser.cash.free < params.amount) {
-            revert Error.NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, params.amount);
+        if (lenderUser.borrowAsset.free < params.amount) {
+            revert Error.NOT_ENOUGH_FREE_CASH(lenderUser.borrowAsset.free, params.amount);
         }
     }
 
@@ -63,8 +63,8 @@ library LendAsMarketOrder {
         uint256 r = (PERCENT + rate);
         uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
 
-        lenderUser.cash.transfer(borrowerUser.cash, params.amount);
-        borrowerUser.totDebtCoveredByRealCollateral += FV;
+        lenderUser.borrowAsset.transfer(borrowerUser.borrowAsset, params.amount);
+        borrowerUser.totalDebtCoveredByRealCollateral += FV;
 
         state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
         borrowOffer.maxAmount -= params.amount;

@@ -43,23 +43,24 @@ contract LiquidateLoanTest is BaseTest {
 
         Vars memory _after = _getUsers();
 
-        assertEq(_after.liquidator.cash.free, _before.liquidator.cash.free - debt);
-        assertEq(_after.protocol.cash.free, _before.protocol.cash.free + debt);
+        assertEq(_after.liquidator.borrowAsset.free, _before.liquidator.borrowAsset.free - debt);
+        assertEq(_after.protocol.borrowAsset.free, _before.protocol.borrowAsset.free + debt);
         assertEq(
-            _after.protocol.eth.free,
-            _before.protocol.eth.free + collateralRemainder * size.collateralPercentagePremiumToProtocol() / PERCENT
+            _after.protocol.collateralAsset.free,
+            _before.protocol.collateralAsset.free
+                + collateralRemainder * size.collateralPercentagePremiumToProtocol() / PERCENT
         );
         assertEq(
-            _after.bob.eth.free,
-            _before.bob.eth.free - (debt * 5)
+            _after.bob.collateralAsset.free,
+            _before.bob.collateralAsset.free - (debt * 5)
                 - collateralRemainder
                     * (size.collateralPercentagePremiumToProtocol() + size.collateralPercentagePremiumToLiquidator()) / PERCENT,
-            _before.bob.eth.free - (debt * 5) - collateralRemainder
+            _before.bob.collateralAsset.free - (debt * 5) - collateralRemainder
                 + collateralRemainder * size.collateralPercentagePremiumToBorrower() / PERCENT
         );
         assertEq(
-            _after.liquidator.eth.free,
-            _before.liquidator.eth.free + (debt * 5)
+            _after.liquidator.collateralAsset.free,
+            _before.liquidator.collateralAsset.free + (debt * 5)
                 + collateralRemainder * size.collateralPercentagePremiumToLiquidator() / PERCENT
         );
     }

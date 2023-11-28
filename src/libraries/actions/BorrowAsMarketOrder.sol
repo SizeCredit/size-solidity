@@ -51,8 +51,8 @@ library BorrowAsMarketOrder {
         if (params.amount > loanOffer.maxAmount) {
             revert Error.AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
         }
-        if (lenderUser.cash.free < params.amount) {
-            revert Error.NOT_ENOUGH_FREE_CASH(lenderUser.cash.free, params.amount);
+        if (lenderUser.borrowAsset.free < params.amount) {
+            revert Error.NOT_ENOUGH_FREE_CASH(lenderUser.borrowAsset.free, params.amount);
         }
 
         // validate params.dueDate
@@ -123,7 +123,7 @@ library BorrowAsMarketOrder {
 
             state.loans.createSOL(loanId, params.lender, params.borrower, deltaAmountIn);
             // NOTE: Transfer deltaAmountOut for each SOL created
-            lenderUser.cash.transfer(borrowerUser.cash, deltaAmountOut);
+            lenderUser.borrowAsset.transfer(borrowerUser.borrowAsset, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
         }
@@ -147,10 +147,10 @@ library BorrowAsMarketOrder {
 
         uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
         uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, state.CROpening, state.priceFeed.getPrice());
-        borrowerUser.eth.lock(maxETHToLock);
-        borrowerUser.totDebtCoveredByRealCollateral += FV;
+        borrowerUser.collateralAsset.lock(maxETHToLock);
+        borrowerUser.totalDebtCoveredByRealCollateral += FV;
         state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
-        lenderUser.cash.transfer(borrowerUser.cash, params.amount);
+        lenderUser.borrowAsset.transfer(borrowerUser.borrowAsset, params.amount);
         loanOffer.maxAmount -= params.amount;
     }
 }

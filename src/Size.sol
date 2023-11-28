@@ -55,6 +55,8 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     function initialize(
         address _owner,
         address _priceFeed,
+        address _collateralAsset,
+        address _borrowAsset,
         uint256 _CROpening,
         uint256 _CRLiquidation,
         uint256 _collateralPercentagePremiumToLiquidator,
@@ -63,6 +65,8 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
         InitializeParams memory params = InitializeParams({
             owner: _owner,
             priceFeed: _priceFeed,
+            collateralAsset: _collateralAsset,
+            borrowAsset: _borrowAsset,
             CROpening: _CROpening,
             CRLiquidation: _CRLiquidation,
             collateralPercentagePremiumToLiquidator: _collateralPercentagePremiumToLiquidator,
@@ -80,15 +84,15 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /// @inheritdoc ISize
-    function deposit(uint256 cash, uint256 eth) public override(ISize) {
-        DepositParams memory params = DepositParams({user: msg.sender, cash: cash, eth: eth});
+    function deposit(address token, uint256 value) public override(ISize) {
+        DepositParams memory params = DepositParams({user: msg.sender, token: token, value: value});
         state.validateDeposit(params);
         state.executeDeposit(params);
     }
 
     /// @inheritdoc ISize
-    function withdraw(uint256 cash, uint256 eth) public override(ISize) {
-        WithdrawParams memory params = WithdrawParams({user: msg.sender, cash: cash, eth: eth});
+    function withdraw(address token, uint256 value) public override(ISize) {
+        WithdrawParams memory params = WithdrawParams({user: msg.sender, token: token, value: value});
         state.validateWithdraw(params);
         state.executeWithdraw(params);
         state.validateUserIsNotLiquidatable(params.user);

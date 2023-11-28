@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
@@ -21,6 +22,8 @@ import {Error} from "@src/libraries/Error.sol";
 struct InitializeParams {
     address owner;
     address priceFeed;
+    address collateralAsset;
+    address borrowAsset;
     uint256 CROpening;
     uint256 CRLiquidation;
     uint256 collateralPercentagePremiumToLiquidator;
@@ -36,6 +39,16 @@ library Initialize {
 
         // validate price feed
         if (params.priceFeed == address(0)) {
+            revert Error.NULL_ADDRESS();
+        }
+
+        // validate collateral asset
+        if (params.collateralAsset == address(0)) {
+            revert Error.NULL_ADDRESS();
+        }
+
+        // validate borrow asset
+        if (params.borrowAsset == address(0)) {
             revert Error.NULL_ADDRESS();
         }
 
@@ -70,6 +83,8 @@ library Initialize {
 
     function executeInitialize(State storage state, InitializeParams memory params) external {
         state.priceFeed = IPriceFeed(params.priceFeed);
+        state.collateralAsset = IERC20(params.collateralAsset);
+        state.borrowAsset = IERC20(params.borrowAsset);
         state.CROpening = params.CROpening;
         state.CRLiquidation = params.CRLiquidation;
         state.collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;

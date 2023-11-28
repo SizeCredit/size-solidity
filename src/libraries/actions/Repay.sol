@@ -44,8 +44,8 @@ library Repay {
         if (params.borrower != loan.borrower) {
             revert Error.REPAYER_IS_NOT_BORROWER(params.borrower, loan.borrower);
         }
-        if (borrowerUser.cash.free < loan.FV) {
-            revert Error.NOT_ENOUGH_FREE_CASH(borrowerUser.cash.free, loan.FV);
+        if (borrowerUser.borrowAsset.free < loan.FV) {
+            revert Error.NOT_ENOUGH_FREE_CASH(borrowerUser.borrowAsset.free, loan.FV);
         }
 
         // validate protocol
@@ -56,8 +56,8 @@ library Repay {
         User storage protocolUser = state.users[params.protocol];
         User storage borrowerUser = state.users[loan.borrower];
 
-        borrowerUser.cash.transfer(protocolUser.cash, loan.FV);
-        borrowerUser.totDebtCoveredByRealCollateral -= loan.FV;
+        borrowerUser.borrowAsset.transfer(protocolUser.borrowAsset, loan.FV);
+        borrowerUser.totalDebtCoveredByRealCollateral -= loan.FV;
         loan.repaid = true;
     }
 }

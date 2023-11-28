@@ -11,12 +11,16 @@ import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {AssertsHelper} from "./helpers/AssertsHelper.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
+import {WETH} from "./mocks/WETH.sol";
+import {USDC} from "./mocks/USDC.sol";
 
 contract BaseTest is Test, AssertsHelper {
     event TODO();
 
     SizeMock public size;
     PriceFeedMock public priceFeed;
+    WETH public weth;
+    USDC public usdc;
 
     address public alice = address(0x10000);
     address public bob = address(0x20000);
@@ -35,12 +39,16 @@ contract BaseTest is Test, AssertsHelper {
 
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
+        weth = new WETH();
+        usdc = new USDC();
         ERC1967Proxy proxy = new ERC1967Proxy(
             address(new SizeMock()),
             abi.encodeWithSelector(
                 Size.initialize.selector,
                 address(this),
                 address(priceFeed),
+                address(weth),
+                address(usdc),
                 1.5e18,
                 1.3e18,
                 0.3e18,
@@ -60,9 +68,20 @@ contract BaseTest is Test, AssertsHelper {
         priceFeed.setPrice(1337e18);
     }
 
-    function _deposit(address user, uint256 cash, uint256 eth) internal {
+    function _deposit(address user, address token, uint256 value) internal {
+        deal(token, user, value);
         vm.prank(user);
-        size.deposit(cash, eth);
+        size.deposit(token, value);
+    }
+
+    function _withdraw(address user, address token, uint256 value) internal {
+        vm.prank(user);
+        size.withdraw(token, value);
+    }
+
+    function _deposit(address user, uint256 collateralAssetValue, uint256 debtAssetValue) internal {
+        _deposit(user, address(weth), collateralAssetValue);
+        _deposit(user, address(usdc), debtAssetValue);
     }
 
     function _lendAsLimitOrder(

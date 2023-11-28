@@ -89,9 +89,11 @@ library LiquidateLoan {
         uint256 collateralRemainderToProtocol =
             collateralRemainder - collateralRemainderToLiquidator - collateralRemainderToBorrower;
 
-        borrowerUser.eth.transfer(protocolUser.eth, collateralRemainderToProtocol);
-        borrowerUser.eth.transfer(liquidatorUser.eth, collateralRemainderToLiquidator + debtCollateral);
-        liquidatorUser.cash.transfer(protocolUser.cash, debtUSDC);
+        borrowerUser.collateralAsset.transfer(protocolUser.collateralAsset, collateralRemainderToProtocol);
+        borrowerUser.collateralAsset.transfer(
+            liquidatorUser.collateralAsset, collateralRemainderToLiquidator + debtCollateral
+        );
+        liquidatorUser.borrowAsset.transfer(protocolUser.borrowAsset, debtUSDC);
 
         state.liquidationProfitETH += collateralRemainderToProtocol;
 
