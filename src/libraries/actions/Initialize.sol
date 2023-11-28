@@ -76,7 +76,7 @@ library Initialize {
         }
         if (params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToBorrower > PERCENT) {
             revert Error.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                params.collateralPercentagePremiumToLiquidator, params.collateralPercentagePremiumToBorrower
+                params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToBorrower
             );
         }
     }
