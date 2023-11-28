@@ -25,7 +25,7 @@ import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {OfferLibrary, LoanOffer, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {UserLibrary, User} from "@src/libraries/UserLibrary.sol";
 import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
-import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";

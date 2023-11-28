@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/Test.sol";
-
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
@@ -13,7 +11,6 @@ import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
 import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
 import {SizeView} from "@src/SizeView.sol";
-import {Math} from "@src/libraries/MathLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
@@ -51,10 +48,6 @@ library Deposit {
 
     function executeDeposit(State storage state, DepositParams memory params) external {
         uint256 wad = RealCollateralLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
-        console.log("msg.sender", msg.sender);
-        console.log("address(this)", address(this));
-        console.log("wad", wad);
-        console.log("params.value", params.value);
         if (params.token == address(state.collateralAsset)) {
             state.users[params.user].collateralAsset.free += wad;
             state.collateralAsset.safeTransferFrom(params.user, address(this), params.value);

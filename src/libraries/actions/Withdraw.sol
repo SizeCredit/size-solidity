@@ -9,7 +9,6 @@ import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
 import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
-import {Math} from "@src/libraries/MathLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";

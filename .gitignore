@@ -23,3 +23,8 @@ plots/*.svg
 # Extensions
 bin/
 .vscode/
+
+# Coverage
+coverage/
+report/
+lcov.info

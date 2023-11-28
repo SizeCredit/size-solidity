@@ -8,7 +8,7 @@ import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, LoanStatus, Loan} from "@src/libraries/LoanLibrary.sol";
 import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
 import {SizeView} from "@src/SizeView.sol";
-import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";

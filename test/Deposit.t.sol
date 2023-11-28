@@ -12,6 +12,7 @@ contract DepositTest is BaseTest {
         assertEq(aliceUser.borrowAsset.locked, 0);
         assertEq(aliceUser.collateralAsset.free, 0);
         assertEq(aliceUser.collateralAsset.locked, 0);
+        assertEq(usdc.balanceOf(address(size)), 1e6);
 
         _deposit(alice, address(weth), 2e18);
         aliceUser = size.getUser(alice);
@@ -19,6 +20,7 @@ contract DepositTest is BaseTest {
         assertEq(aliceUser.borrowAsset.locked, 0);
         assertEq(aliceUser.collateralAsset.free, 2e18);
         assertEq(aliceUser.collateralAsset.locked, 0);
+        assertEq(weth.balanceOf(address(size)), 2e18);
     }
 
     function test_Deposit_deposit_increases_user_balance(uint256 x, uint256 y) public {
@@ -31,6 +33,7 @@ contract DepositTest is BaseTest {
         assertEq(aliceUser.borrowAsset.locked, 0);
         assertEq(aliceUser.collateralAsset.free, 0);
         assertEq(aliceUser.collateralAsset.locked, 0);
+        assertEq(usdc.balanceOf(address(size)), x);
 
         _deposit(alice, address(weth), y);
         aliceUser = size.getUser(alice);
@@ -38,5 +41,6 @@ contract DepositTest is BaseTest {
         assertEq(aliceUser.borrowAsset.locked, 0);
         assertEq(aliceUser.collateralAsset.free, y * 10 ** (18 - weth.decimals()));
         assertEq(aliceUser.collateralAsset.locked, 0);
+        assertEq(weth.balanceOf(address(size)), y);
     }
 }

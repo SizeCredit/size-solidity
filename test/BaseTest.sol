@@ -69,6 +69,10 @@ contract BaseTest is Test, AssertsHelper {
         priceFeed.setPrice(1337e18);
     }
 
+    function _deposit(address user, IERC20Metadata token, uint256 value) internal {
+        _deposit(user, address(token), value);
+    }
+
     function _deposit(address user, address token, uint256 value) internal {
         deal(token, user, value);
         vm.prank(user);
@@ -83,8 +87,8 @@ contract BaseTest is Test, AssertsHelper {
     }
 
     function _deposit(address user, uint256 collateralAssetValue, uint256 debtAssetValue) internal {
-        _deposit(user, address(weth), collateralAssetValue);
-        _deposit(user, address(usdc), debtAssetValue);
+        _deposit(user, weth, collateralAssetValue);
+        _deposit(user, usdc, debtAssetValue);
     }
 
     function _lendAsLimitOrder(
