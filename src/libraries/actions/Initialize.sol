@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
@@ -83,8 +83,8 @@ library Initialize {
 
     function executeInitialize(State storage state, InitializeParams memory params) external {
         state.priceFeed = IPriceFeed(params.priceFeed);
-        state.collateralAsset = IERC20(params.collateralAsset);
-        state.borrowAsset = IERC20(params.borrowAsset);
+        state.collateralAsset = IERC20Metadata(params.collateralAsset);
+        state.borrowAsset = IERC20Metadata(params.borrowAsset);
         state.CROpening = params.CROpening;
         state.CRLiquidation = params.CRLiquidation;
         state.collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;

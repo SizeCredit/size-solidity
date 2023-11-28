@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {console2 as console} from "forge-std/Test.sol";
+
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
 import {SizeStorage} from "@src/SizeStorage.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
@@ -28,6 +33,7 @@ struct DepositParams {
 library Deposit {
     using LoanLibrary for Loan;
     using RealCollateralLibrary for RealCollateral;
+    using SafeERC20 for IERC20Metadata;
 
     function validateDeposit(State storage state, DepositParams memory params) external view {
         // validte user
@@ -44,10 +50,17 @@ library Deposit {
     }
 
     function executeDeposit(State storage state, DepositParams memory params) external {
+        uint256 wad = RealCollateralLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
+        console.log("msg.sender", msg.sender);
+        console.log("address(this)", address(this));
+        console.log("wad", wad);
+        console.log("params.value", params.value);
         if (params.token == address(state.collateralAsset)) {
-            state.users[params.user].collateralAsset.free += params.value;
+            state.users[params.user].collateralAsset.free += wad;
+            state.collateralAsset.safeTransferFrom(params.user, address(this), params.value);
         } else {
-            state.users[params.user].borrowAsset.free += params.value;
+            state.users[params.user].borrowAsset.free += wad;
+            state.borrowAsset.safeTransferFrom(params.user, address(this), params.value);
         }
     }
 }

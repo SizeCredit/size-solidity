@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
 import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
@@ -26,6 +29,7 @@ struct WithdrawParams {
 library Withdraw {
     using LoanLibrary for Loan;
     using RealCollateralLibrary for RealCollateral;
+    using SafeERC20 for IERC20Metadata;
 
     function validateWithdraw(State storage state, WithdrawParams memory params) external view {
         // validte user
@@ -42,10 +46,13 @@ library Withdraw {
     }
 
     function executeWithdraw(State storage state, WithdrawParams memory params) external {
+        uint256 wad = RealCollateralLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
         if (params.token == address(state.collateralAsset)) {
-            state.users[params.user].collateralAsset.free -= params.value;
+            state.users[params.user].collateralAsset.free -= wad;
+            state.collateralAsset.safeTransfer(params.user, params.value);
         } else {
-            state.users[params.user].borrowAsset.free -= params.value;
+            state.users[params.user].borrowAsset.free -= wad;
+            state.borrowAsset.safeTransfer(params.user, params.value);
         }
     }
 }

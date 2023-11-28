@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {Test, console2 as console} from "forge-std/Test.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {Size} from "../src/Size.sol";
 import {SizeMock} from "./mocks/SizeMock.sol";
@@ -70,6 +71,8 @@ contract BaseTest is Test, AssertsHelper {
 
     function _deposit(address user, address token, uint256 value) internal {
         deal(token, user, value);
+        vm.prank(user);
+        IERC20Metadata(token).approve(address(size), value);
         vm.prank(user);
         size.deposit(token, value);
     }
