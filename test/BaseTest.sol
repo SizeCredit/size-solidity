@@ -81,6 +81,10 @@ contract BaseTest is Test, AssertsHelper {
         size.deposit(token, value);
     }
 
+    function _withdraw(address user, IERC20Metadata token, uint256 value) internal {
+        _withdraw(user, address(token), value);
+    }
+
     function _withdraw(address user, address token, uint256 value) internal {
         vm.prank(user);
         size.withdraw(token, value);
@@ -135,9 +139,11 @@ contract BaseTest is Test, AssertsHelper {
 
     function _exit(address user, uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
         internal
+        returns (uint256)
     {
         vm.prank(user);
         size.exit(loanId, amount, dueDate, lendersToExitTo);
+        return size.activeLoans();
     }
 
     function _repay(address user, uint256 loanId) internal {
