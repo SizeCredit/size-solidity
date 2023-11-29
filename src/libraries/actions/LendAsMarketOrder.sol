@@ -60,8 +60,7 @@ library LendAsMarketOrder {
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
 
         uint256 rate = borrowOffer.getRate(params.dueDate);
-        uint256 r = (PERCENT + rate);
-        uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
+        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + rate, params.amount, PERCENT);
 
         lenderUser.borrowAsset.transfer(borrowerUser.borrowAsset, params.amount);
         borrowerUser.totalDebtCoveredByRealCollateral += FV;

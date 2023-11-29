@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
 import {LoanOffer, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
@@ -18,7 +19,11 @@ library UserLibrary {
     function collateralRatio(User memory self, uint256 price) public pure returns (uint256) {
         return self.totalDebtCoveredByRealCollateral == 0
             ? type(uint256).max
-            : FixedPointMathLib.mulDivDown(self.collateralAsset.free, price, self.totalDebtCoveredByRealCollateral);
+            : FixedPointMathLib.mulDivDown(
+                FixedPointMathLib.mulDivDown(self.collateralAsset.free, price, self.totalDebtCoveredByRealCollateral),
+                PERCENT,
+                1e18
+            );
     }
 
     function isLiquidatable(User memory self, uint256 price, uint256 CRLiquidation) public pure returns (bool) {

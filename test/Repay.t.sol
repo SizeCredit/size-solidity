@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {console2 as console} from "forge-std/console2.sol";
+
 import {BaseTest} from "./BaseTest.sol";
 import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
@@ -15,11 +17,10 @@ contract RepayTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.05e4, 12);
         uint256 amountLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
-
-        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
+        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e4, amountLoanId1, PERCENT);
 
         Vars memory _before = _getUsers();
 

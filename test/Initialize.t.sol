@@ -27,7 +27,7 @@ contract InitializeTest is Test {
         implementation = new Size();
         vm.expectRevert();
         implementation.initialize(
-            address(this), address(priceFeed), address(weth), address(usdc), 1.5e18, 1.3e18, 0.3e18, 0.1e18
+            address(this), address(priceFeed), address(weth), address(usdc), 1.5e4, 1.3e4, 0.3e4, 0.1e4
         );
 
         assertEq(implementation.CRLiquidation(), 0);
@@ -43,13 +43,13 @@ contract InitializeTest is Test {
                 address(priceFeed),
                 address(weth),
                 address(usdc),
-                1.5e18,
-                1.3e18,
-                0.3e18,
-                0.1e18
+                1.5e4,
+                1.3e4,
+                0.3e4,
+                0.1e4
             )
         );
 
-        assertEq(Size(address(proxy)).CRLiquidation(), 1.3e18);
+        assertEq(Size(address(proxy)).CRLiquidation(), 1.3e4);
     }
 }

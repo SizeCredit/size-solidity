@@ -13,9 +13,9 @@ contract ExitTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 0.03e4, 12);
 
         User memory aliceUserBefore = size.getUser(alice);
         User memory bobUserBefore = size.getUser(bob);
@@ -51,7 +51,7 @@ contract ExitTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 30e18, 12);
 
         User memory aliceUserBefore = size.getUser(alice);

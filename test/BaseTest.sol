@@ -50,10 +50,10 @@ contract BaseTest is Test, AssertsHelper {
                 address(priceFeed),
                 address(weth),
                 address(usdc),
-                1.5e18,
-                1.3e18,
-                0.3e18,
-                0.1e18
+                1.5e4,
+                1.3e4,
+                0.3e4,
+                0.1e4
             )
         );
         protocol = address(proxy);

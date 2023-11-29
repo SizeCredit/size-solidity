@@ -5,6 +5,8 @@ import "@src/libraries/MathLibrary.sol";
 import "@src/libraries/UserLibrary.sol";
 import "@src/libraries/YieldCurveLibrary.sol";
 
+import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+
 struct LoanOffer {
     uint256 maxAmount;
     uint256 maxDueDate;
@@ -31,7 +33,7 @@ library OfferLibrary {
     }
 
     function getFV(LoanOffer storage self, uint256 amount, uint256 dueDate) public view returns (uint256) {
-        return ((PERCENT + getRate(self, dueDate)) * amount) / PERCENT;
+        return FixedPointMathLib.mulDivUp(PERCENT + getRate(self, dueDate), amount, PERCENT);
     }
 
     function getRate(LoanOffer memory self, uint256 dueDate) public view returns (uint256) {
