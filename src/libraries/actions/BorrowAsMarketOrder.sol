@@ -51,9 +51,6 @@ library BorrowAsMarketOrder {
         if (params.amount > loanOffer.maxAmount) {
             revert Error.AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
         }
-        if (lenderUser.borrowAsset.free < params.amount) {
-            revert Error.NOT_ENOUGH_FREE_CASH(lenderUser.borrowAsset.free, params.amount);
-        }
 
         // validate params.dueDate
         if (params.dueDate < block.timestamp) {
