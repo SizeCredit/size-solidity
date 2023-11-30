@@ -17,7 +17,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 struct ClaimParams {
     uint256 loanId;
@@ -36,12 +36,12 @@ library Claim {
         // NOTE: Both ACTIVE and OVERDUE loans can't be claimed because the money is not in the protocol yet
         // NOTE: The CLAIMED can't be claimed either because its credit has already been consumed entirely either by a previous claim or by exiting before
         if (loan.getLoanStatus(state.loans) != LoanStatus.REPAID) {
-            revert Error.LOAN_NOT_REPAID(params.loanId);
+            revert Errors.LOAN_NOT_REPAID(params.loanId);
         }
 
         // validate lender
         if (params.lender != loan.lender) {
-            revert Error.CLAIMER_IS_NOT_LENDER(params.lender, loan.lender);
+            revert Errors.CLAIMER_IS_NOT_LENDER(params.lender, loan.lender);
         }
 
         // validate protocol

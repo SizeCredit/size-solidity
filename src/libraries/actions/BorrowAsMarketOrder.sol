@@ -16,7 +16,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 struct BorrowAsMarketOrderParams {
     address borrower;
@@ -41,23 +41,23 @@ library BorrowAsMarketOrder {
 
         // validate params.lender
         if (loanOffer.isNull()) {
-            revert Error.INVALID_LOAN_OFFER(params.lender);
+            revert Errors.INVALID_LOAN_OFFER(params.lender);
         }
 
         // validate params.amount
         if (params.amount == 0) {
-            revert Error.NULL_AMOUNT();
+            revert Errors.NULL_AMOUNT();
         }
         if (params.amount > loanOffer.maxAmount) {
-            revert Error.AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
+            revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
         }
 
         // validate params.dueDate
         if (params.dueDate < block.timestamp) {
-            revert Error.PAST_DUE_DATE(params.dueDate);
+            revert Errors.PAST_DUE_DATE(params.dueDate);
         }
         if (params.dueDate > loanOffer.maxDueDate) {
-            revert Error.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
+            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
         }
 
         // validate params.virtualCollateralLoansIds
@@ -66,10 +66,10 @@ library BorrowAsMarketOrder {
             Loan memory loan = state.loans[loanId];
 
             if (params.borrower != loan.lender) {
-                revert Error.BORROWER_IS_NOT_LENDER(params.borrower, loan.lender);
+                revert Errors.BORROWER_IS_NOT_LENDER(params.borrower, loan.lender);
             }
             if (params.dueDate < loan.getDueDate(state.loans)) {
-                revert Error.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(state.loans));
+                revert Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(state.loans));
             }
         }
     }

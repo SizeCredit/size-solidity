@@ -17,7 +17,7 @@ import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 struct InitializeParams {
     address owner;
@@ -34,48 +34,48 @@ library Initialize {
     function validateInitialize(State storage, InitializeParams memory params) external pure {
         // validate owner
         if (params.owner == address(0)) {
-            revert Error.NULL_ADDRESS();
+            revert Errors.NULL_ADDRESS();
         }
 
         // validate price feed
         if (params.priceFeed == address(0)) {
-            revert Error.NULL_ADDRESS();
+            revert Errors.NULL_ADDRESS();
         }
 
         // validate collateral asset
         if (params.collateralAsset == address(0)) {
-            revert Error.NULL_ADDRESS();
+            revert Errors.NULL_ADDRESS();
         }
 
         // validate borrow asset
         if (params.borrowAsset == address(0)) {
-            revert Error.NULL_ADDRESS();
+            revert Errors.NULL_ADDRESS();
         }
 
         // validate CROpening
         if (params.CROpening < PERCENT) {
-            revert Error.INVALID_COLLATERAL_RATIO(params.CROpening);
+            revert Errors.INVALID_COLLATERAL_RATIO(params.CROpening);
         }
 
         // validate CRLiquidation
         if (params.CRLiquidation < PERCENT) {
-            revert Error.INVALID_COLLATERAL_RATIO(params.CRLiquidation);
+            revert Errors.INVALID_COLLATERAL_RATIO(params.CRLiquidation);
         }
         if (params.CROpening <= params.CRLiquidation) {
-            revert Error.INVALID_LIQUIDATION_COLLATERAL_RATIO(params.CROpening, params.CRLiquidation);
+            revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(params.CROpening, params.CRLiquidation);
         }
 
         // validate collateralPercentagePremiumToLiquidator
         if (params.collateralPercentagePremiumToLiquidator > PERCENT) {
-            revert Error.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(params.collateralPercentagePremiumToLiquidator);
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(params.collateralPercentagePremiumToLiquidator);
         }
 
         // validate collateralPercentagePremiumToBorrower
         if (params.collateralPercentagePremiumToBorrower > PERCENT) {
-            revert Error.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(params.collateralPercentagePremiumToBorrower);
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(params.collateralPercentagePremiumToBorrower);
         }
         if (params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToBorrower > PERCENT) {
-            revert Error.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
                 params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToBorrower
             );
         }

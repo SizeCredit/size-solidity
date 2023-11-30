@@ -17,7 +17,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 struct LiquidateLoanParams {
     uint256 loanId;
@@ -40,7 +40,9 @@ library LiquidateLoan {
 
     function validateUserIsNotLiquidatable(State storage state, address account) external view {
         if (_isLiquidatable(state, account)) {
-            revert Error.USER_IS_LIQUIDATABLE(account, state.users[account].collateralRatio(state.priceFeed.getPrice()));
+            revert Errors.USER_IS_LIQUIDATABLE(
+                account, state.users[account].collateralRatio(state.priceFeed.getPrice())
+            );
         }
     }
 
@@ -50,18 +52,18 @@ library LiquidateLoan {
         uint256 amountCollateralDebtCoverage = loan.getDebt() * 1e18 / state.priceFeed.getPrice();
 
         // validate loanId
-        if (!loan.isFOL()) {
-            revert Error.ONLY_FOL_CAN_BE_LIQUIDATED(params.loanId);
-        }
         if (!_isLiquidatable(state, loan.borrower)) {
-            revert Error.LOAN_NOT_LIQUIDATABLE(params.loanId);
+            revert Errors.LOAN_NOT_LIQUIDATABLE(params.loanId);
+        }
+        if (!loan.isFOL()) {
+            revert Errors.ONLY_FOL_CAN_BE_LIQUIDATED(params.loanId);
         }
         // @audit is this reachable?
         if (loan.either(state.loans, [LoanStatus.REPAID, LoanStatus.CLAIMED])) {
-            revert Error.LOAN_NOT_LIQUIDATABLE(params.loanId);
+            revert Errors.LOAN_NOT_LIQUIDATABLE(params.loanId);
         }
         if (assignedCollateral < amountCollateralDebtCoverage) {
-            revert Error.LIQUIDATION_AT_LOSS(params.loanId);
+            revert Errors.LIQUIDATION_AT_LOSS(params.loanId);
         }
 
         // validate liquidator

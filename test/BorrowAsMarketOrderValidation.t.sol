@@ -10,7 +10,7 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
@@ -32,28 +32,28 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         uint256[] memory virtualCollateralLoansIds;
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Error.INVALID_LOAN_OFFER.selector, address(0)));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, address(0)));
         size.borrowAsMarketOrder(address(0), amount, dueDate, virtualCollateralLoansIds);
 
-        vm.expectRevert(abi.encodeWithSelector(Error.NULL_AMOUNT.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         size.borrowAsMarketOrder(alice, 0, dueDate, virtualCollateralLoansIds);
 
-        vm.expectRevert(abi.encodeWithSelector(Error.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 110e18, 100e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 110e18, 100e18));
         size.borrowAsMarketOrder(alice, 110e18, dueDate, virtualCollateralLoansIds);
 
-        vm.expectRevert(abi.encodeWithSelector(Error.PAST_DUE_DATE.selector, 0));
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 0));
         size.borrowAsMarketOrder(alice, 100e18, 0, virtualCollateralLoansIds);
 
-        vm.expectRevert(abi.encodeWithSelector(Error.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector, 13, 12));
+        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector, 13, 12));
         size.borrowAsMarketOrder(alice, 100e18, 13, virtualCollateralLoansIds);
 
         virtualCollateralLoansIds = new uint256[](1);
         virtualCollateralLoansIds[0] = loanId;
-        vm.expectRevert(abi.encodeWithSelector(Error.BORROWER_IS_NOT_LENDER.selector, bob, candy));
+        vm.expectRevert(abi.encodeWithSelector(Errors.BORROWER_IS_NOT_LENDER.selector, bob, candy));
         size.borrowAsMarketOrder(alice, 100e18, dueDate, virtualCollateralLoansIds);
 
         vm.startPrank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Error.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE.selector, 4, 10));
+        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE.selector, 4, 10));
         size.borrowAsMarketOrder(bob, 100e18, 4, virtualCollateralLoansIds);
     }
 }

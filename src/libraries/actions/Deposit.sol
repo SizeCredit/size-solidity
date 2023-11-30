@@ -19,7 +19,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 struct DepositParams {
     address user;
@@ -37,12 +37,12 @@ library Deposit {
 
         // validate token
         if (params.token != address(state.collateralAsset) && params.token != address(state.borrowAsset)) {
-            revert Error.INVALID_TOKEN(params.token);
+            revert Errors.INVALID_TOKEN(params.token);
         }
 
         // validate value
         if (params.value == 0) {
-            revert Error.NULL_AMOUNT();
+            revert Errors.NULL_AMOUNT();
         }
     }
 

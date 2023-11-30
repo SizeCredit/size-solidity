@@ -17,7 +17,7 @@ import {State} from "@src/SizeStorage.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 struct BorrowAsLimitOrderParams {
     address borrower;
@@ -32,15 +32,15 @@ library BorrowAsLimitOrder {
 
         // validate params.maxAmount
         if (params.maxAmount == 0) {
-            revert Error.NULL_AMOUNT();
+            revert Errors.NULL_AMOUNT();
         }
 
         // validate params.curveRelativeTime
         if (params.curveRelativeTime.timeBuckets.length == 0 || params.curveRelativeTime.rates.length == 0) {
-            revert Error.NULL_ARRAY();
+            revert Errors.NULL_ARRAY();
         }
         if (params.curveRelativeTime.timeBuckets.length != params.curveRelativeTime.rates.length) {
-            revert Error.ARRAY_LENGTHS_MISMATCH();
+            revert Errors.ARRAY_LENGTHS_MISMATCH();
         }
     }
 

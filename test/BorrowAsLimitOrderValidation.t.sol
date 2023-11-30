@@ -11,7 +11,7 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
@@ -27,18 +27,18 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
         uint256[] memory rates1 = new uint256[](1);
         rates1[0] = 1.01e4;
 
-        vm.expectRevert(abi.encodeWithSelector(Error.ARRAY_LENGTHS_MISMATCH.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
         size.borrowAsLimitOrder(maxAmount, timeBuckets, rates1);
 
         uint256[] memory empty;
 
-        vm.expectRevert(abi.encodeWithSelector(Error.NULL_ARRAY.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
         size.borrowAsLimitOrder(maxAmount, timeBuckets, empty);
 
         uint256[] memory rates = new uint256[](2);
         rates[0] = 1.01e4;
         rates[1] = 1.02e4;
-        vm.expectRevert(abi.encodeWithSelector(Error.NULL_AMOUNT.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         size.borrowAsLimitOrder(0, timeBuckets, rates);
     }
 }

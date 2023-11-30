@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
-library Error {
+library Errors {
     error USER_IS_LIQUIDATABLE(address account, uint256 cr);
     error NULL_ADDRESS();
     error NULL_AMOUNT();

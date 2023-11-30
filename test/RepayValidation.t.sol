@@ -10,7 +10,7 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
@@ -30,16 +30,16 @@ contract RepayValidationTest is BaseTest {
         uint256 solId = _exit(alice, loanId, 10e18, 12, lendersToExitTo);
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Error.ONLY_FOL_CAN_BE_REPAID.selector, solId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_REPAID.selector, solId));
         size.repay(solId);
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Error.REPAYER_IS_NOT_BORROWER.selector, alice, bob));
+        vm.expectRevert(abi.encodeWithSelector(Errors.REPAYER_IS_NOT_BORROWER.selector, alice, bob));
         size.repay(loanId);
 
         vm.startPrank(bob);
         size.withdraw(address(usdc), 100e18);
-        vm.expectRevert(abi.encodeWithSelector(Error.NOT_ENOUGH_FREE_CASH.selector, 10e18, FV));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 10e18, FV));
         size.repay(loanId);
         vm.stopPrank();
 
@@ -47,7 +47,7 @@ contract RepayValidationTest is BaseTest {
 
         vm.startPrank(bob);
         size.repay(loanId);
-        vm.expectRevert(abi.encodeWithSelector(Error.LOAN_ALREADY_REPAID.selector, loanId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId));
         size.repay(loanId);
     }
 }

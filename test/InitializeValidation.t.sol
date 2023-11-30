@@ -10,7 +10,7 @@ import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {USDC} from "./mocks/USDC.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 contract InitializeValidationTest is Test {
     Size public implementation;
@@ -28,7 +28,7 @@ contract InitializeValidationTest is Test {
     function test_SizeInitializeValidation() public {
         implementation = new Size();
 
-        vm.expectRevert(abi.encodeWithSelector(Error.NULL_ADDRESS.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeWithSelector(
@@ -44,7 +44,7 @@ contract InitializeValidationTest is Test {
             )
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Error.NULL_ADDRESS.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeWithSelector(
@@ -60,7 +60,7 @@ contract InitializeValidationTest is Test {
             )
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Error.NULL_ADDRESS.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeWithSelector(
@@ -76,7 +76,7 @@ contract InitializeValidationTest is Test {
             )
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Error.NULL_ADDRESS.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeWithSelector(
@@ -92,7 +92,7 @@ contract InitializeValidationTest is Test {
             )
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Error.INVALID_COLLATERAL_RATIO.selector, 0.5e4));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 0.5e4));
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeWithSelector(
@@ -108,7 +108,7 @@ contract InitializeValidationTest is Test {
             )
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Error.INVALID_COLLATERAL_RATIO.selector, 0.3e4));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 0.3e4));
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeWithSelector(
@@ -124,7 +124,7 @@ contract InitializeValidationTest is Test {
             )
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Error.INVALID_LIQUIDATION_COLLATERAL_RATIO.selector, 1.3e4, 1.5e4));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO.selector, 1.3e4, 1.5e4));
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeWithSelector(
@@ -140,7 +140,7 @@ contract InitializeValidationTest is Test {
             )
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Error.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e4));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e4));
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeWithSelector(
@@ -156,7 +156,7 @@ contract InitializeValidationTest is Test {
             )
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Error.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e4));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e4));
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeWithSelector(
@@ -172,7 +172,7 @@ contract InitializeValidationTest is Test {
             )
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Error.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e4));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e4));
         proxy = new ERC1967Proxy(
             address(implementation),
             abi.encodeWithSelector(

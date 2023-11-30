@@ -16,7 +16,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 struct RepayParams {
     uint256 loanId;
@@ -34,18 +34,18 @@ library Repay {
 
         // validate loanId
         if (!loan.isFOL()) {
-            revert Error.ONLY_FOL_CAN_BE_REPAID(params.loanId);
+            revert Errors.ONLY_FOL_CAN_BE_REPAID(params.loanId);
         }
         if (loan.repaid) {
-            revert Error.LOAN_ALREADY_REPAID(params.loanId);
+            revert Errors.LOAN_ALREADY_REPAID(params.loanId);
         }
 
         // validate borrower
         if (params.borrower != loan.borrower) {
-            revert Error.REPAYER_IS_NOT_BORROWER(params.borrower, loan.borrower);
+            revert Errors.REPAYER_IS_NOT_BORROWER(params.borrower, loan.borrower);
         }
         if (borrowerUser.borrowAsset.free < loan.FV) {
-            revert Error.NOT_ENOUGH_FREE_CASH(borrowerUser.borrowAsset.free, loan.FV);
+            revert Errors.NOT_ENOUGH_FREE_CASH(borrowerUser.borrowAsset.free, loan.FV);
         }
 
         // validate protocol

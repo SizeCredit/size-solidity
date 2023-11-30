@@ -10,7 +10,7 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 
-import {Error} from "@src/libraries/Error.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
@@ -23,14 +23,14 @@ contract ClaimValidationTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Error.LOAN_NOT_REPAID.selector, loanId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_REPAID.selector, loanId));
         size.claim(loanId);
 
         vm.startPrank(bob);
         size.repay(loanId);
 
         vm.startPrank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Error.CLAIMER_IS_NOT_LENDER.selector, candy, alice));
+        vm.expectRevert(abi.encodeWithSelector(Errors.CLAIMER_IS_NOT_LENDER.selector, candy, alice));
         size.claim(loanId);
     }
 }
