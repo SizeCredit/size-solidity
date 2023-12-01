@@ -24,6 +24,7 @@ struct LendAsMarketOrderParams {
     address borrower;
     uint256 dueDate;
     uint256 amount;
+    bool exactAmountIn;
 }
 
 library LendAsMarketOrder {
@@ -52,6 +53,9 @@ library LendAsMarketOrder {
         if (lenderUser.borrowAsset.free < params.amount) {
             revert Errors.NOT_ENOUGH_FREE_CASH(lenderUser.borrowAsset.free, params.amount);
         }
+
+        // validate exactAmountIn
+        // N/A
     }
 
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) internal {
@@ -59,10 +63,18 @@ library LendAsMarketOrder {
         User storage lenderUser = state.users[params.lender];
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
 
-        uint256 rate = borrowOffer.getRate(params.dueDate);
-        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + rate, params.amount, PERCENT);
+        uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
+        uint256 FV;
+        uint256 amountIn;
+        if (params.exactAmountIn) {
+            FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
+            amountIn = params.amount;
+        } else {
+            FV = params.amount;
+            amountIn = FixedPointMathLib.mulDivDown(params.amount, PERCENT, r);
+        }
 
-        lenderUser.borrowAsset.transfer(borrowerUser.borrowAsset, params.amount);
+        lenderUser.borrowAsset.transfer(borrowerUser.borrowAsset, amountIn);
         borrowerUser.totalDebtCoveredByRealCollateral += FV;
 
         state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);

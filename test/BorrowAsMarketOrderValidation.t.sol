@@ -29,31 +29,32 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
 
         uint256 amount = 10e18;
         uint256 dueDate = 12;
+        bool exactAmountIn = false;
         uint256[] memory virtualCollateralLoansIds;
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, address(0)));
-        size.borrowAsMarketOrder(address(0), amount, dueDate, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(address(0), amount, dueDate, exactAmountIn, virtualCollateralLoansIds);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        size.borrowAsMarketOrder(alice, 0, dueDate, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(alice, 0, dueDate, exactAmountIn, virtualCollateralLoansIds);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 110e18, 100e18));
-        size.borrowAsMarketOrder(alice, 110e18, dueDate, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(alice, 110e18, dueDate, exactAmountIn, virtualCollateralLoansIds);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 0));
-        size.borrowAsMarketOrder(alice, 100e18, 0, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(alice, 100e18, 0, exactAmountIn, virtualCollateralLoansIds);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector, 13, 12));
-        size.borrowAsMarketOrder(alice, 100e18, 13, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(alice, 100e18, 13, exactAmountIn, virtualCollateralLoansIds);
 
         virtualCollateralLoansIds = new uint256[](1);
         virtualCollateralLoansIds[0] = loanId;
         vm.expectRevert(abi.encodeWithSelector(Errors.BORROWER_IS_NOT_LENDER.selector, bob, candy));
-        size.borrowAsMarketOrder(alice, 100e18, dueDate, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(alice, 100e18, dueDate, exactAmountIn, virtualCollateralLoansIds);
 
         vm.startPrank(candy);
         vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE.selector, 4, 10));
-        size.borrowAsMarketOrder(bob, 100e18, 4, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(bob, 100e18, 4, exactAmountIn, virtualCollateralLoansIds);
     }
 }

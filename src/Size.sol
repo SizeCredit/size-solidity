@@ -130,9 +130,17 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     }
 
     /// @inheritdoc ISize
-    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) public override(ISize) {
-        LendAsMarketOrderParams memory params =
-            LendAsMarketOrderParams({lender: msg.sender, borrower: borrower, dueDate: dueDate, amount: amount});
+    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn)
+        public
+        override(ISize)
+    {
+        LendAsMarketOrderParams memory params = LendAsMarketOrderParams({
+            lender: msg.sender,
+            borrower: borrower,
+            dueDate: dueDate,
+            amount: amount,
+            exactAmountIn: exactAmountIn
+        });
         state.validateLendAsMarketOrder(params);
         state.executeLendAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(params.borrower);
@@ -143,6 +151,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
         address lender,
         uint256 amount,
         uint256 dueDate,
+        bool exactAmountIn,
         uint256[] memory virtualCollateralLoansIds
     ) public override(ISize) {
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
@@ -150,6 +159,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
             lender: lender,
             amount: amount,
             dueDate: dueDate,
+            exactAmountIn: exactAmountIn,
             virtualCollateralLoansIds: virtualCollateralLoansIds
         });
 

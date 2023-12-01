@@ -69,9 +69,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         User memory aliceBefore = size.getUser(alice);
         User memory bobBefore = size.getUser(bob);
 
-        uint256[] memory virtualCollateralLoansIds;
-        vm.startPrank(bob);
-        size.borrowAsMarketOrder(alice, amount, dueDate, virtualCollateralLoansIds);
+        _borrowAsMarketOrder(bob, alice, amount, dueDate);
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + rate), PERCENT);
         uint256 ethLocked = FixedPointMathLib.mulDivUp(debt, size.CROpening(), priceFeed.getPrice());
         User memory aliceAfter = size.getUser(alice);

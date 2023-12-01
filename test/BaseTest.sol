@@ -111,8 +111,15 @@ contract BaseTest is Test, AssertsHelper {
         internal
         returns (uint256)
     {
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false);
+    }
+
+    function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate, bool exactAmountIn)
+        internal
+        returns (uint256)
+    {
         uint256[] memory virtualCollateralLoansIds;
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, virtualCollateralLoansIds);
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralLoansIds);
     }
 
     function _borrowAsMarketOrder(
@@ -122,8 +129,19 @@ contract BaseTest is Test, AssertsHelper {
         uint256 dueDate,
         uint256[] memory virtualCollateralLoansIds
     ) internal returns (uint256) {
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralLoansIds);
+    }
+
+    function _borrowAsMarketOrder(
+        address borrower,
+        address lender,
+        uint256 amount,
+        uint256 dueDate,
+        bool exactAmountIn,
+        uint256[] memory virtualCollateralLoansIds
+    ) internal returns (uint256) {
         vm.prank(borrower);
-        size.borrowAsMarketOrder(lender, amount, dueDate, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(lender, amount, dueDate, exactAmountIn, virtualCollateralLoansIds);
         return size.activeLoans();
     }
 

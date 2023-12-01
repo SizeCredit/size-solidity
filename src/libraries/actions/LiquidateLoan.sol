@@ -80,8 +80,8 @@ library LiquidateLoan {
         uint256 price = state.priceFeed.getPrice();
 
         uint256 assignedCollateral = _getAssignedCollateral(state, loan);
-        uint256 debtUSDC = loan.getDebt();
-        uint256 debtCollateral = debtUSDC * 1e18 / price;
+        uint256 debtBorrowAsset = loan.getDebt();
+        uint256 debtCollateral = debtBorrowAsset * 1e18 / price;
         uint256 collateralRemainder = assignedCollateral - debtCollateral;
 
         uint256 collateralRemainderToLiquidator =
@@ -95,9 +95,9 @@ library LiquidateLoan {
         borrowerUser.collateralAsset.transfer(
             liquidatorUser.collateralAsset, collateralRemainderToLiquidator + debtCollateral
         );
-        liquidatorUser.borrowAsset.transfer(protocolUser.borrowAsset, debtUSDC);
+        liquidatorUser.borrowAsset.transfer(protocolUser.borrowAsset, debtBorrowAsset);
 
-        state.liquidationProfitETH += collateralRemainderToProtocol;
+        state.liquidationProfitCollateralAsset += collateralRemainderToProtocol;
 
         return debtCollateral + collateralRemainderToLiquidator;
     }

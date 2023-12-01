@@ -23,6 +23,7 @@ struct BorrowAsMarketOrderParams {
     address lender;
     uint256 amount;
     uint256 dueDate;
+    bool exactAmountIn;
     uint256[] virtualCollateralLoansIds;
 }
 
@@ -60,6 +61,9 @@ library BorrowAsMarketOrder {
             revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
         }
 
+        // validate params.exactAmountIn
+        // N/A
+
         // validate params.virtualCollateralLoansIds
         for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {
             uint256 loanId = params.virtualCollateralLoansIds[i];
@@ -87,8 +91,6 @@ library BorrowAsMarketOrder {
         internal
         returns (uint256 amountOutLeft)
     {
-        amountOutLeft = params.amount;
-
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
@@ -98,6 +100,8 @@ library BorrowAsMarketOrder {
         LoanOffer storage loanOffer = lenderUser.loanOffer;
 
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
+
+        amountOutLeft = params.exactAmountIn ? FixedPointMathLib.mulDivUp(params.amount, PERCENT, r) : params.amount;
 
         for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {
             // Full amount borrowed
@@ -143,8 +147,8 @@ library BorrowAsMarketOrder {
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
-        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, state.CROpening, state.priceFeed.getPrice());
-        borrowerUser.collateralAsset.lock(maxETHToLock);
+        uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, state.CROpening, state.priceFeed.getPrice());
+        borrowerUser.collateralAsset.lock(maxCollateralToLock);
         borrowerUser.totalDebtCoveredByRealCollateral += FV;
         state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
         lenderUser.borrowAsset.transfer(borrowerUser.borrowAsset, params.amount);

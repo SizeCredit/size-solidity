@@ -24,7 +24,7 @@ enum LoanStatus {
 
 struct VariableLoan {
     address borrower;
-    uint256 amountUSDCLentOut;
+    uint256 amountBorrowAssetLentOut;
     uint256 amountCollateral;
 }
 

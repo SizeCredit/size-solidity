@@ -17,12 +17,13 @@ interface ISize {
         address lender,
         uint256 amount,
         uint256 dueDate,
+        bool exactAmountIn,
         uint256[] memory virtualCollateralLoansIds
     ) external;
 
     function borrowAsLimitOrder(uint256 maxAmount, uint256[] calldata timeBuckets, uint256[] calldata rates) external;
 
-    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount) external;
+    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn) external;
 
     function lendAsLimitOrder(
         uint256 maxAmount,

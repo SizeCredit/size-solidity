@@ -511,8 +511,47 @@ class LendingOB:
         return self.uidLoans-1
 
 
+    def borrowerExit(self, loanId: int, borrowOfferId: int):
+        offer = self.borrowOffers[borrowOfferId]
+        fol = self.activeLoans[loanId]
+        lender = fol.borrower
+        assert fol.isFOL(), "This should never happen"
+        dueDate = fol.getDueDate()
+        if dueDate <= self.context.time:
+            print(f"Due Date need to be in the future dueDate={dueDate}, self.context.time={self.context.time}")
+            return False, 0
+        temp, rate = offer.getRate(dueDate=dueDate)
+        if not temp:
+            print(f"WARNING: dueDate={dueDate} not available in the current offer")
+            return False, 0
+        r = (1 + rate)
+        FV = fol.FV
+        amountIn = FV / r
+        if amountIn > offer.maxAmount:
+            print(f"Money is too much amountIn={amountIn}, offer.maxAmount={offer.maxAmount}")
+            return False, 0
+        if self.getUserCash(lender) < amountIn:
+            print(f"Lender lender.uid={lender.uid} has not enough free cash to lend out self.usersCash[lender.uid]={self.usersCash[lender.uid]}, amountIn={amountIn}")
+            return False, 0
+        if self.isBorrowerLiquidatable(borrower=offer.borrower, extraDebt=FV):
+            print(f"WARNING: Borrower is liquidatable")
+            return False, 0
 
-    def lendAsMarketOrder(self, lender: User, borrowOfferId: int, dueDate: int, amount: float):
+        temp = self._lendCash(lender=lender, borrower=offer.borrower, amount=amountIn)
+        if not temp:
+            print("borrowerExit() Transfer in FOL failed")
+            return False, 0
+        offer.borrower.totDebtCoveredByRealCollateral += FV
+        fol.borrower.totDebtCoveredByRealCollateral -= FV
+        assert fol.borrower.totDebtCoveredByRealCollateral >= 0, "This should never happen"
+        fol.borrower = offer.borrower
+        # self.createFOL(lender=lender, borrower=offer.borrower, FV=FV, dueDate=dueDate)
+        offer.maxAmount -= amountIn
+        assert offer.maxAmount >= 0, "This should never happen"
+        return True, 0
+
+
+    def lendAsMarketOrder(self, lender: User, borrowOfferId: int, dueDate: int, amount: float, exactAmountIn: bool = False):
         # TODO: Implement
         offer = self.borrowOffers[borrowOfferId]
         if dueDate <= self.context.time:
@@ -530,19 +569,21 @@ class LendingOB:
             print(f"WARNING: dueDate={dueDate} not available in the current offer")
             return False, 0
         r = (1 + rate)
-        FV = r * amount
+        FV = r * amount if exactAmountIn else amount
+        amountIn = amount if exactAmountIn else amount / r
 
         if self.isBorrowerLiquidatable(borrower=offer.borrower, extraDebt=FV):
             print(f"WARNING: Borrower is liquidatable")
             return False, 0
 
-        temp = self._lendCash(lender=lender, borrower=offer.borrower, amount=amount)
+        temp = self._lendCash(lender=lender, borrower=offer.borrower, amount=amountIn)
         if not temp:
             print("borrowAsMarketOrder() Transfer in FOL failed")
             return False
         offer.borrower.totDebtCoveredByRealCollateral += FV
         self.createFOL(lender=lender, borrower=offer.borrower, FV=FV, dueDate=dueDate)
         offer.maxAmount -= amount
+        assert offer.maxAmount >= 0, "This should never happen"
         return True, 0
 
 
@@ -576,7 +617,7 @@ class LendingOB:
     # - the dueDate is in the future
     # - the dueDate has to be the yield curve range
     # - the dueDate has to be after the virtual collateral loans dueDate (if any) otherwise that specific VC loan is skipped
-    def borrowAsMarketOrder(self, borrower: User, lender: User, dueDate: int, amount: float, virtualCollateralLoansIds: List[int] = []):
+    def borrowAsMarketOrder(self, borrower: User, lender: User, dueDate: int, amount: float, exactAmountIn: bool = False, virtualCollateralLoansIds: List[int] = []):
         offer = self.loanOffers[lender.uid]
         if dueDate <= self.context.time:
             print(f"Due Date need to be in the future dueDate={dueDate}, self.context.time={self.context.time}")
@@ -604,7 +645,8 @@ class LendingOB:
         r = (1 + rate)
 
         # NOTE: The `amountOutLeft` is going to be decreased as more and more SOLs are created
-        amountOutLeft = amount
+        amountOutLeft = amount if not exactAmountIn else amount / r
+        # amountOutLeft = amount
 
         # TODO: Create SOLs
         # NOTE: Taking loan with VC does not decrease the borrower CR
@@ -670,63 +712,63 @@ class LendingOB:
             offer.maxAmount -= amountOutLeft
         return True, 0
 
-    def exit(self, exitingLender: User, loanId: int, amount: float, lendersToExitTo: List[User], dueDate=None, dryRun=False):
-        # NOTE: The exit is equivalent to a spot swap for exact amount in wheres
-        # - the exiting lender is the taker
-        # - the other lenders are the makers
-        # The swap traverses the `offersIds` as they if they were ticks with liquidity in an orderbook
-        loan = self.activeLoans[loanId]
-        dueDate = dueDate if dueDate is not None else loan.getDueDate()
-
-        if not dueDate >= loan.getDueDate():
-            print(f"Due Date need to be in the future dueDate={dueDate}, loan.getDueDate()={loan.getDueDate()}")
-            return False, 0
-
-        # NOTE: A kind of access contorl that is not strictly required here but anyway let's use it
-        if not loan.lender == exitingLender:
-            print(f"Invalid lender")
-            return False, 0
-
-        if not amount <= loan.getCredit():
-            print(f"Amount too big amount={amount}, loan.getCredit()={loan.getCredit()}")
-            return False, 0
-
-        amountInLeft = amount
-        for lender in lendersToExitTo:
-            # No more amountIn to swap
-            if(amountInLeft == 0):
-                break
-
-            offer = self.loanOffers[lender.uid]
-            # No liquidity to take in this bin
-            if(offer.maxAmount == 0):
-                continue
-
-            temp, rate = offer.getRate(dueDate=dueDate)
-            # NOTE: INvalid dueDate for this yield curve
-            if not temp:
-                return False, 0
-
-            r = (1 + rate)
-
-            # NOTE: Max credit this (exit to) lender is willing to accept
-            maxDeltaAmountIn = r * offer.maxAmount
-            deltaAmountIn = min(maxDeltaAmountIn, amountInLeft)
-            deltaAmountOut = deltaAmountIn / r
-
-            # NOTE: Increases `amountFVExited` here
-            temp = loan.lock(deltaAmountIn, dryRun=dryRun)
-            if not temp:
-                print("This should never happen")
-                return False, 0
-
-            offer.lender.cash.transfer(creditorRealCollateral=exitingLender.cash, amount=deltaAmountOut, dryRun=dryRun)
-
-            if not dryRun:
-                self.createSOL(fol=loan.getFOL(), lender=offer.lender, borrower=exitingLender, FV=deltaAmountIn)
-                offer.maxAmount -= deltaAmountOut
-            amountInLeft -= deltaAmountIn
-        return True, amountInLeft
+    # def lenderExit(self, exitingLender: User, loanId: int, amount: float, lendersToExitTo: List[User], dueDate=None, dryRun=False):
+    #     # NOTE: The exit is equivalent to a spot swap for exact amount in wheres
+    #     # - the exiting lender is the taker
+    #     # - the other lenders are the makers
+    #     # The swap traverses the `offersIds` as they if they were ticks with liquidity in an orderbook
+    #     loan = self.activeLoans[loanId]
+    #     dueDate = dueDate if dueDate is not None else loan.getDueDate()
+    #
+    #     if not dueDate >= loan.getDueDate():
+    #         print(f"Due Date need to be in the future dueDate={dueDate}, loan.getDueDate()={loan.getDueDate()}")
+    #         return False, 0
+    #
+    #     # NOTE: A kind of access contorl that is not strictly required here but anyway let's use it
+    #     if not loan.lender == exitingLender:
+    #         print(f"Invalid lender")
+    #         return False, 0
+    #
+    #     if not amount <= loan.getCredit():
+    #         print(f"Amount too big amount={amount}, loan.getCredit()={loan.getCredit()}")
+    #         return False, 0
+    #
+    #     amountInLeft = amount
+    #     for lender in lendersToExitTo:
+    #         # No more amountIn to swap
+    #         if(amountInLeft == 0):
+    #             break
+    #
+    #         offer = self.loanOffers[lender.uid]
+    #         # No liquidity to take in this bin
+    #         if(offer.maxAmount == 0):
+    #             continue
+    #
+    #         temp, rate = offer.getRate(dueDate=dueDate)
+    #         # NOTE: INvalid dueDate for this yield curve
+    #         if not temp:
+    #             return False, 0
+    #
+    #         r = (1 + rate)
+    #
+    #         # NOTE: Max credit this (exit to) lender is willing to accept
+    #         maxDeltaAmountIn = r * offer.maxAmount
+    #         deltaAmountIn = min(maxDeltaAmountIn, amountInLeft)
+    #         deltaAmountOut = deltaAmountIn / r
+    #
+    #         # NOTE: Increases `amountFVExited` here
+    #         temp = loan.lock(deltaAmountIn, dryRun=dryRun)
+    #         if not temp:
+    #             print("This should never happen")
+    #             return False, 0
+    #
+    #         offer.lender.cash.transfer(creditorRealCollateral=exitingLender.cash, amount=deltaAmountOut, dryRun=dryRun)
+    #
+    #         if not dryRun:
+    #             self.createSOL(fol=loan.getFOL(), lender=offer.lender, borrower=exitingLender, FV=deltaAmountIn)
+    #             offer.maxAmount -= deltaAmountOut
+    #         amountInLeft -= deltaAmountIn
+    #     return True, amountInLeft
 
 
 
@@ -1084,7 +1126,8 @@ class Test:
         ))
 
         self.ob.deposit(user=self.alice, amount=50, isUSDC=False)
-        temp, _ = self.ob.borrowAsMarketOrder(borrower=self.alice, lender=self.bob, amount=50, dueDate=6)
+        dueDate = 6
+        temp, _ = self.ob.borrowAsMarketOrder(borrower=self.alice, lender=self.bob, amount=50, dueDate=dueDate)
         assert temp, "borrowAsMarketOrder failed"
 
         assert len(self.ob.activeLoans) == 1, f"Checking num of loans before len(self.ob.activeLoans)={len(self.ob.activeLoans)}"
@@ -1093,7 +1136,10 @@ class Test:
         fol = self.ob.activeLoans[0]
 
         amountToExit = fol.FV * amountToExitPerc
-        temp, amountInLeft = self.ob.exit(exitingLender=self.bob, loanId=0, amount=amountToExit, lendersToExitTo=[self.candy])
+
+        # NOTE: Lender exiting using borrow as market order
+        temp, amountInLeft = self.ob.borrowAsMarketOrder(borrower=self.bob, lender=self.candy, amount=amountToExit, exactAmountIn=True, dueDate=dueDate, virtualCollateralLoansIds=[0])
+        # temp, amountInLeft = self.ob.lenderExit(exitingLender=self.bob, loanId=0, amount=amountToExit, lendersToExitTo=[self.candy])
 
         assert len(self.ob.activeLoans) == 2, "Checking num of loans after"
         assert not self.ob.activeLoans[1].isFOL(), "The second loan has be SOL"
@@ -1251,7 +1297,40 @@ class Test:
 
 
 
+    def testBorrowerExit1(self):
+        self.ob.deposit(user=self.bob, amount=100, isUSDC=True)
+        assert self.bob.cash.free == 0, f"bob.cash.free = {self.bob.cash.free}"
+        assert self.ob.getUserCash(self.bob) == 100, f"userCash[self.bob.uid] = {self.ob.getUserCash(self.bob)}"
+        self.ob.lendAsLimitOrder(offer = LoanOffer(
+            context=self.context,
+            lender=self.bob,
+            maxAmount=100,
+            maxDueDate=10,
+            curveRelativeTime=YieldCurve(timeBuckets=[3,8], rates=[0.03, 0.03])
+            # curveRelativeTime=YieldCurve.getFlatRate(rate=0.03, timeBuckets=range(12))
+        ))
 
+
+        self.ob.deposit(user=self.candy, amount=2, isUSDC=False)
+        assert len(self.ob.borrowOffers) == 0, f"len(self.ob.borrowOffers)={len(self.ob.borrowOffers)}"
+        self.ob.borrowAsLimitOrder(offer=BorrowOffer(
+            context=self.context,
+            borrower=self.candy,
+            maxAmount=100,
+            curveRelativeTime=YieldCurve.getFlatRate(rate=0.03, timeBuckets=range(12))
+        ))
+        assert len(self.ob.borrowOffers) == 1, f"len(self.ob.borrowOffers)={len(self.ob.borrowOffers)}"
+
+        # Alice Borrows using real collateral only so that Bob has some virtual collateral
+        self.ob.deposit(user=self.alice, amount=50, isUSDC=False)
+        self.alice.cash.free += 500
+        self.ob.deposit(user=self.alice, amount=200, isUSDC=True)
+        assert self.ob.getUserCash(self.alice) == 200, f"alice.cash.free={self.ob.getUserCash(self.alice)}"
+        temp, _ = self.ob.borrowAsMarketOrder(borrower=self.alice, lender=self.bob, amount=70, dueDate=5)
+        assert temp, "Alice Borrow Market Order should work"
+
+        temp, _ = self.ob.borrowerExit(loanId=0, borrowOfferId=0)
+        assert temp, "Borrower Exit should work"
 
 
 
