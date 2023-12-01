@@ -35,22 +35,24 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - Taking loan with only virtual collateral does not decrease the borrower CR
 - Taking loan with real collateral decreases the borrower CR
 
-
 References
 
 - <https://hackmd.io/lWCjLs9NSiORaEzaWRJdsQ?view>
 
-
 ## TODOs
 
-- check rounding direction
 - chainlink integration
 - dust amount for loans
 - remove `address(this)` as a reference to the protocol P&N and replace by specific PnL struct
 - 100% coverage
+- add experiments as tests
  
 ## Later
 
 - create helper contracts for liquidation in 1 step (deposit -> liquidate -> withdraw)
 - natspec
 - multi-erc20 tokens with different CR per tokens
+
+## Audit remarks
+
+- Check rounding direction of `mulDiv`
