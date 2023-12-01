@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
+import {Vault} from "@src/libraries/VaultLibrary.sol";
 import {LoanOffer, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
 struct User {
-    RealCollateral collateralAsset;
-    RealCollateral borrowAsset;
+    Vault collateralAsset;
+    Vault borrowAsset;
     LoanOffer loanOffer;
     BorrowOffer borrowOffer;
     uint256 totalDebtCoveredByRealCollateral;

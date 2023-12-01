@@ -9,7 +9,7 @@ import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
-import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
+import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
 import {SizeView} from "@src/SizeView.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
@@ -29,7 +29,7 @@ struct DepositParams {
 
 library Deposit {
     using LoanLibrary for Loan;
-    using RealCollateralLibrary for RealCollateral;
+    using VaultLibrary for Vault;
     using SafeERC20 for IERC20Metadata;
 
     function validateDeposit(State storage state, DepositParams memory params) external view {
@@ -47,7 +47,7 @@ library Deposit {
     }
 
     function executeDeposit(State storage state, DepositParams memory params) external {
-        uint256 wad = RealCollateralLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
+        uint256 wad = VaultLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
         if (params.token == address(state.collateralAsset)) {
             state.users[params.user].collateralAsset.free += wad;
             state.collateralAsset.safeTransferFrom(params.user, address(this), params.value);

@@ -6,7 +6,7 @@ import {UserLibrary, User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
-import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
+import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
 import {SizeView} from "@src/SizeView.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
@@ -30,7 +30,7 @@ struct LendAsMarketOrderParams {
 library LendAsMarketOrder {
     using OfferLibrary for BorrowOffer;
     using UserLibrary for User;
-    using RealCollateralLibrary for RealCollateral;
+    using VaultLibrary for Vault;
     using LoanLibrary for Loan[];
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) external view {

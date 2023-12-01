@@ -6,7 +6,7 @@ import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
-import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
+import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
@@ -26,7 +26,7 @@ struct RepayParams {
 
 library Repay {
     using LoanLibrary for Loan;
-    using RealCollateralLibrary for RealCollateral;
+    using VaultLibrary for Vault;
 
     function validateRepay(State storage state, RepayParams memory params) external view {
         Loan memory loan = state.loans[params.loanId];

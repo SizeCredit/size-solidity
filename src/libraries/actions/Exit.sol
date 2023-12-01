@@ -6,7 +6,7 @@ import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {RealCollateralLibrary, RealCollateral} from "@src/libraries/RealCollateralLibrary.sol";
+import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
@@ -27,7 +27,7 @@ struct ExitParams {
 
 library Exit {
     using OfferLibrary for LoanOffer;
-    using RealCollateralLibrary for RealCollateral;
+    using VaultLibrary for Vault;
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
