@@ -68,14 +68,6 @@ abstract contract SizeView is SizeStorage {
         return state.loans[loanId].isFOL();
     }
 
-    function getLoanOfferRate(address account, uint256 dueDate) public view returns (uint256) {
-        return state.users[account].loanOffer.getRate(dueDate);
-    }
-
-    function getDueDate(uint256 loanId) public view returns (uint256) {
-        return state.loans[loanId].getDueDate(state.loans);
-    }
-
     function getLoan(uint256 loanId) public view returns (Loan memory) {
         return state.loans[loanId];
     }
@@ -86,38 +78,5 @@ abstract contract SizeView is SizeStorage {
 
     function getLoanOffer(address account) public view returns (LoanOffer memory) {
         return state.users[account].loanOffer;
-    }
-
-    function getBorrowOffer(address account) public view returns (BorrowOffer memory) {
-        return state.users[account].borrowOffer;
-    }
-
-    function getUserVirtualCollateralPerDate(address account, uint256 dueDate) public view returns (uint256 res) {
-        for (uint256 i; i < state.loans.length; ++i) {
-            Loan memory loan = state.loans[i];
-            if (loan.lender == account && !loan.repaid && loan.getDueDate(state.loans) <= dueDate) {
-                res += loan.getCredit();
-            }
-        }
-    }
-
-    function getUserVirtualCollateralInRange(address account, uint256[] memory dueDates)
-        public
-        view
-        returns (uint256[] memory res)
-    {
-        res = new uint256[](dueDates.length);
-        for (uint256 i; i < dueDates.length; ++i) {
-            res[i] = getUserVirtualCollateralPerDate(account, dueDates[i]);
-        }
-    }
-
-    function getFreeVirtualCollateral(address account, uint256 dueDate) public view returns (uint256 res) {
-        for (uint256 i; i < state.loans.length; ++i) {
-            Loan memory loan = state.loans[i];
-            if (loan.lender == account && loan.getDueDate(state.loans) <= dueDate) {
-                res += loan.getCredit();
-            }
-        }
     }
 }

@@ -33,6 +33,7 @@ library Errors {
     error LOAN_ALREADY_CLAIMED(uint256 loanId);
 
     error NOT_ENOUGH_FREE_CASH(uint256 free, uint256 amount);
+    error NOT_ENOUGH_LOCKED_CASH(uint256 locked, uint256 amount);
 
     error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
     error ONLY_FOL_CAN_BE_LIQUIDATED(uint256 loanId);

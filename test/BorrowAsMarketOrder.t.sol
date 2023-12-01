@@ -12,6 +12,8 @@ import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
+
 contract BorrowAsMarketOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
     using LoanLibrary for Loan;
@@ -250,5 +252,20 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(aliceAfter.totalDebtCoveredByRealCollateral, aliceBefore.totalDebtCoveredByRealCollateral);
         assertEq(bobAfter, bobBefore);
         assertTrue(!size.isFOL(loanId2));
+    }
+
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_free_eth_is_lower_than_locked_amount() public {
+        _deposit(alice, 100e18, 100e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        LoanOffer memory loanOffer = size.getLoanOffer(alice);
+        uint256 amount = 100e18;
+        uint256 dueDate = 12;
+        uint256 r = PERCENT + loanOffer.getRate(dueDate);
+        uint256 FV = FixedPointMathLib.mulDivUp(r, amount, PERCENT);
+        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.CROpening(), priceFeed.getPrice());
+        vm.startPrank(bob);
+        uint256[] memory virtualCollateralLoansIds;
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, maxETHToLock));
+        size.borrowAsMarketOrder(alice, 100e18, 12, false, virtualCollateralLoansIds);
     }
 }

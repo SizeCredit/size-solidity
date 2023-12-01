@@ -29,6 +29,7 @@ contract LiquidateLoanTest is BaseTest {
         assertEq(size.getDebt(loanId), debt);
         assertEq(size.getCollateralRatio(bob), assigned * 1e4 / (debt * 1));
         assertTrue(!size.isLiquidatable(bob));
+        assertTrue(!size.isLiquidatable(loanId));
 
         _setPrice(0.2e18);
 
@@ -36,6 +37,7 @@ contract LiquidateLoanTest is BaseTest {
         assertEq(size.getDebt(loanId), debt);
         assertEq(size.getCollateralRatio(bob), assigned * 1e4 / (debt * 5));
         assertTrue(size.isLiquidatable(bob));
+        assertTrue(size.isLiquidatable(loanId));
 
         Vars memory _before = _getUsers();
 
