@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import "@src/libraries/MathLibrary.sol";
-import "@src/libraries/UserLibrary.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 struct Loan {
     // FOL
@@ -29,8 +28,6 @@ struct VariableLoan {
 }
 
 library LoanLibrary {
-    using UserLibrary for User;
-
     error LoanLibrary__InvalidAmount(uint256 amount, uint256 maxExit);
 
     function isFOL(Loan memory self) public pure returns (bool) {
@@ -61,10 +58,6 @@ library LoanLibrary {
 
     function getDebt(Loan memory self) public pure returns (uint256) {
         return self.FV;
-    }
-
-    function perc(Loan memory self, Loan[] memory loans) public pure returns (uint256) {
-        return (PERCENT * getCredit(self)) / (isFOL(self) ? self.FV : loans[self.folId].FV);
     }
 
     function getDueDate(Loan memory self, Loan[] memory loans) public pure returns (uint256) {
@@ -107,7 +100,7 @@ library LoanLibrary {
             })
         );
         if (FV > getCredit(fol)) {
-            revert LoanLibrary__InvalidAmount(FV, getCredit(fol));
+            revert Errors.NOT_ENOUGH_FREE_CASH(getCredit(fol), FV);
         }
         fol.amountFVExited += FV;
     }

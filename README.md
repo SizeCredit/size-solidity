@@ -58,3 +58,9 @@ References
 ## Audit remarks
 
 - Check rounding direction of `mulDiv`
+
+## Known limitations
+
+- Protocol does not support rebasing tokens
+- Protocol does not support fee-on-transfer tokens
+- Protocol does not support tokens with more than 18 decimals
