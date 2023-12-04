@@ -268,4 +268,21 @@ contract BorrowAsMarketOrderTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, maxETHToLock));
         size.borrowAsMarketOrder(alice, 100e18, 12, false, virtualCollateralLoansIds);
     }
+
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_lender_cannot_transfer_borrowAsset() public {
+        _deposit(alice, usdc, 1000e6);
+        _deposit(bob, weth, 1e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        LoanOffer memory offerBefore = size.getLoanOffer(alice);
+
+        _withdraw(alice, usdc, 999e6);
+
+        uint256 amount = 10e18;
+        uint256 dueDate = 12;
+
+        vm.startPrank(bob);
+        uint256[] memory virtualCollateralLoansIds;
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 1e18, 10e18));
+        size.borrowAsMarketOrder(alice, amount, dueDate, false, virtualCollateralLoansIds);
+    }
 }

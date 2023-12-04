@@ -45,12 +45,14 @@ library Withdraw {
     }
 
     function executeWithdraw(State storage state, WithdrawParams memory params) external {
-        uint256 wad = VaultLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
+        User storage user = state.users[params.user];
         if (params.token == address(state.collateralAsset)) {
-            state.users[params.user].collateralAsset.free -= wad;
+            user.collateralAsset.free -=
+                VaultLibrary.valueToWad(params.value, state.collateralAsset.decimals());
             state.collateralAsset.safeTransfer(params.user, params.value);
         } else {
-            state.users[params.user].borrowAsset.free -= wad;
+            user.borrowAsset.free -=
+                VaultLibrary.valueToWad(params.value, state.borrowAsset.decimals());
             state.borrowAsset.safeTransfer(params.user, params.value);
         }
     }

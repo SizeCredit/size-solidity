@@ -23,6 +23,7 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 
 - SOL(loanId).FV <= FOL(loanId).FV
 - SUM(SOL(loanId).FV) == FOL(loanId).FV
+- fol.FV = SUM(Loan.FV - Loan.ExitedAmount) for all SOLs, FOL
 - loan.amountFVExited <= self.FV
 - loan.FV == 0 && isFOL(loan) <==> loan.repaid
 - loan.repaid ==> !isFOL(loan)
@@ -46,6 +47,7 @@ References
 - remove `address(this)` as a reference to the protocol P&N and replace by specific PnL struct
 - 100% coverage
 - add experiments as tests
+- should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
  
 ## Later
 

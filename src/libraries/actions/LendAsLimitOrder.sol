@@ -27,13 +27,18 @@ struct LendAsLimitOrderParams {
 }
 
 library LendAsLimitOrder {
-    function validateLendAsLimitOrder(State storage, LendAsLimitOrderParams memory params) external view {
-        // validate params.borrower
+    function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams memory params) external view {
+        User memory lenderUser = state.users[params.lender];
+
+        // validate params.lender
         // N/A
 
         // validate params.maxAmount
         if (params.maxAmount == 0) {
             revert Errors.NULL_AMOUNT();
+        }
+        if (params.maxAmount > lenderUser.borrowAsset.free) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(lenderUser.borrowAsset.free, params.maxAmount);
         }
 
         // validate maxDueDate

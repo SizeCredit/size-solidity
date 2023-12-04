@@ -47,12 +47,13 @@ library Deposit {
     }
 
     function executeDeposit(State storage state, DepositParams memory params) external {
-        uint256 wad = VaultLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
         if (params.token == address(state.collateralAsset)) {
-            state.users[params.user].collateralAsset.free += wad;
+            state.users[params.user].collateralAsset.free +=
+                VaultLibrary.valueToWad(params.value, state.collateralAsset.decimals());
             state.collateralAsset.safeTransferFrom(params.user, address(this), params.value);
         } else {
-            state.users[params.user].borrowAsset.free += wad;
+            state.users[params.user].borrowAsset.free +=
+                VaultLibrary.valueToWad(params.value, state.borrowAsset.decimals());
             state.borrowAsset.safeTransferFrom(params.user, address(this), params.value);
         }
     }
