@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
 import {BaseTest} from "./BaseTest.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
@@ -47,6 +49,38 @@ contract WithdrawTest is BaseTest {
         assertEq(aliceUser.borrowAsset.locked, 0);
         assertEq(aliceUser.collateralAsset.free, (y - w) * 1e18);
         assertEq(aliceUser.collateralAsset.locked, 0);
+    }
+
+    function test_SizeWithdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
+        valueUSDC = bound(valueUSDC, 1, type(uint256).max / 1e12);
+        valueWETH = bound(valueWETH, 1, type(uint256).max);
+        deal(address(usdc), alice, valueUSDC);
+        deal(address(weth), alice, valueWETH);
+
+        vm.startPrank(alice);
+        IERC20Metadata(usdc).approve(address(size), valueUSDC);
+        IERC20Metadata(weth).approve(address(size), valueWETH);
+
+        assertEq(usdc.balanceOf(address(size)), 0);
+        assertEq(usdc.balanceOf(address(alice)), valueUSDC);
+        assertEq(weth.balanceOf(address(size)), 0);
+        assertEq(weth.balanceOf(address(alice)), valueWETH);
+
+        size.deposit(address(usdc), valueUSDC);
+        size.deposit(address(weth), valueWETH);
+
+        assertEq(usdc.balanceOf(address(size)), valueUSDC);
+        assertEq(usdc.balanceOf(address(alice)), 0);
+        assertEq(weth.balanceOf(address(size)), valueWETH);
+        assertEq(weth.balanceOf(address(alice)), 0);
+
+        size.withdraw(address(usdc), valueUSDC);
+        size.withdraw(address(weth), valueWETH);
+
+        assertEq(usdc.balanceOf(address(size)), 0);
+        assertEq(usdc.balanceOf(address(alice)), valueUSDC);
+        assertEq(weth.balanceOf(address(size)), 0);
+        assertEq(weth.balanceOf(address(alice)), valueWETH);
     }
 
     // function test_SizeWithdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
