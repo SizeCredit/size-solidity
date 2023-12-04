@@ -64,10 +64,6 @@ library LoanLibrary {
         return isFOL(self) ? self.dueDate : loans[self.folId].dueDate;
     }
 
-    function getFOL(Loan memory self, Loan[] memory loans) public pure returns (Loan memory) {
-        return isFOL(self) ? self : loans[self.folId];
-    }
-
     function isOverdue(Loan memory self, Loan[] memory loans) public view returns (bool) {
         return block.timestamp >= getDueDate(self, loans);
     }
@@ -100,6 +96,7 @@ library LoanLibrary {
             })
         );
         if (FV > getCredit(fol)) {
+            // @audit this has 0 coverage, I believe it is already checked by _borrowWithVirtualCollateral & validateExit
             revert Errors.NOT_ENOUGH_FREE_CASH(getCredit(fol), FV);
         }
         fol.amountFVExited += FV;

@@ -19,7 +19,7 @@ contract LendAsLimitOrderValidationTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
     function test_LendAsLimitOrderValidation() public {
-        _deposit(alice, 100e18, 100e18);
+        _deposit(alice, address(usdc), 100e6);
         uint256 maxAmount = 100e18;
         uint256 maxDueDate = 12;
         uint256[] memory timeBuckets = new uint256[](2);
@@ -28,6 +28,7 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         uint256[] memory rates1 = new uint256[](1);
         rates1[0] = 1.01e4;
 
+        vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
         size.lendAsLimitOrder(maxAmount, maxDueDate, timeBuckets, rates1);
 
@@ -41,6 +42,9 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         rates[1] = 1.02e4;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         size.lendAsLimitOrder(0, maxDueDate, timeBuckets, rates);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 100e18, 100e18 + 1));
+        size.lendAsLimitOrder(maxAmount + 1, maxDueDate, timeBuckets, rates);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_MAX_DUE_DATE.selector));
         size.lendAsLimitOrder(maxAmount, 0, timeBuckets, rates);

@@ -273,7 +273,6 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1e18);
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
-        LoanOffer memory offerBefore = size.getLoanOffer(alice);
 
         _withdraw(alice, usdc, 999e6);
 
