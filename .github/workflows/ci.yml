@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - "*"
+
+jobs:
+  check:
+    strategy:
+      fail-fast: true
+
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Contract sizes
+        run: |
+          forge --version
+          forge build --sizes
+        id: build
+
+      - name: Test
+        run: |
+          forge test -vvv
+        id: test
+
+      - name: Coverage
+        run: |
+          forge coverage --report lcov
+          lcov --remove lcov.info -o lcov.info 'test/*' 'script/*'
+          genhtml lcov.info -o report --branch-coverage
+        id: coverage
+
+      - name: Archive results
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: report/
