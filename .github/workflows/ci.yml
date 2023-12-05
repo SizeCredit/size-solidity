@@ -9,11 +9,11 @@ on:
       - "*"
 
 jobs:
-  check:
+  foundry:
     strategy:
       fail-fast: true
 
-    name: CI
+    name: Foundry
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -51,3 +51,25 @@ jobs:
         with:
           name: coverage
           path: report/
+
+  slither:
+    strategy:
+      fail-fast: true
+
+    name: Slither
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Slither
+        uses: crytic/slither-action@v0.3.0
+        id: slither
+        with:
+          fail-on: low
