@@ -42,9 +42,8 @@ References
 
 ## TODOs
 
-- chainlink integration
-- dust amount for loans
 - remove `address(this)` as a reference to the protocol P&N and replace by specific PnL struct
+- dust amount for loans
 - 100% coverage
 - add experiments as tests
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;

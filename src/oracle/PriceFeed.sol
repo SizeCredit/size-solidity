@@ -50,11 +50,11 @@ contract PriceFeed is IPriceFeed {
 
     function getPrice() external view returns (uint256) {
         return FixedPointMathLib.mulDivDown(
-            getPrice(base, baseStalePrice), 10 ** decimals, getPrice(quote, quoteStalePrice)
+            _getPrice(base, baseStalePrice), 10 ** decimals, _getPrice(quote, quoteStalePrice)
         );
     }
 
-    function getPrice(AggregatorV3Interface aggregator, uint256 stalePrice) public view returns (uint256) {
+    function _getPrice(AggregatorV3Interface aggregator, uint256 stalePrice) internal view returns (uint256) {
         (, int256 price,, uint256 updatedAt,) = aggregator.latestRoundData();
 
         if (price <= 0) revert Errors.INVALID_PRICE(address(aggregator), price);
@@ -72,7 +72,8 @@ contract PriceFeed is IPriceFeed {
             return _price * int256(10 ** uint256(_decimals - _priceDecimals));
         } else if (_priceDecimals > _decimals) {
             return _price / int256(10 ** uint256(_priceDecimals - _decimals));
+        } else {
+            return _price;
         }
-        return _price;
     }
 }
