@@ -48,7 +48,7 @@ References
 - 100% coverage
 - add experiments as tests
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
- 
+
 ## Later
 
 - create helper contracts for liquidation in 1 step (deposit -> liquidate -> withdraw)
@@ -64,3 +64,5 @@ References
 - Protocol does not support rebasing tokens
 - Protocol does not support fee-on-transfer tokens
 - Protocol does not support tokens with more than 18 decimals
+- All features except deposits/withdrawals are paused in case Chainlink oracles are stale
+- Price feeds must be redeployed and updated on the `Size` smart contract in case any chainlink configuration changes (stale price, decimals)

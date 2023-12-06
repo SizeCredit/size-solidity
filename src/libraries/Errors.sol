@@ -45,4 +45,9 @@ library Errors {
     error NOT_LIQUIDATABLE(address account);
     error LOAN_NOT_LIQUIDATABLE(uint256 loanId);
     error LIQUIDATION_AT_LOSS(uint256 loanId);
+
+    error INVALID_DECIMALS(uint8 decimals);
+    error INVALID_PRICE(address aggregator, int256 price);
+    error STALE_PRICE(address aggregator, uint256 updatedAt);
+    error NULL_STALE_PRICE();
 }
