@@ -23,7 +23,6 @@ import {Events} from "@src/libraries/Events.sol";
 struct ClaimParams {
     uint256 loanId;
     address lender;
-    address protocol;
 }
 
 library Claim {
@@ -50,11 +49,11 @@ library Claim {
 
     function executeClaim(State storage state, ClaimParams memory params) external {
         Loan storage loan = state.loans[params.loanId];
-        User storage protocolUser = state.users[params.protocol];
+        Vault storage protocolBorrowAsset = state.protocolBorrowAsset;
         User storage lenderUser = state.users[loan.lender];
 
         // @audit amountFVExited can increase if SOLs are created, what if claim/exit happen in different times?
-        protocolUser.borrowAsset.transfer(lenderUser.borrowAsset, loan.getCredit());
+        protocolBorrowAsset.transfer(lenderUser.borrowAsset, loan.getCredit());
         loan.amountFVExited = loan.FV;
 
         emit Events.Claim(params.loanId, params.lender);

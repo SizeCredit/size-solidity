@@ -6,6 +6,7 @@ import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
+import {Vault} from "@src/libraries/VaultLibrary.sol";
 
 struct State {
     mapping(address => User) users;
@@ -13,6 +14,8 @@ struct State {
     IPriceFeed priceFeed;
     IERC20Metadata collateralAsset;
     IERC20Metadata borrowAsset;
+    Vault protocolCollateralAsset;
+    Vault protocolBorrowAsset;
     uint256 maxTime;
     uint256 CROpening;
     uint256 CRLiquidation;

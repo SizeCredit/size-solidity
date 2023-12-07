@@ -42,7 +42,6 @@ References
 
 ## TODOs
 
-- remove `address(this)` as a reference to the protocol P&N and replace by specific PnL struct
 - dust amount for loans
 - 100% coverage
 - replace Vault by ERC20 sToken (this will simplify events)

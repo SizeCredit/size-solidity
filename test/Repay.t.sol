@@ -22,15 +22,15 @@ contract RepayTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e4, amountLoanId1, PERCENT);
 
-        Vars memory _before = _getUsers();
+        Vars memory _before = _state();
 
         _repay(bob, loanId);
 
-        Vars memory _after = _getUsers();
+        Vars memory _after = _state();
 
         assertEq(_after.bob.totalDebtCoveredByRealCollateral, _before.bob.totalDebtCoveredByRealCollateral - FV);
         assertEq(_after.bob.borrowAsset.free, _before.bob.borrowAsset.free - FV);
-        assertEq(_after.protocol.borrowAsset.free, _before.protocol.borrowAsset.free + FV);
+        assertEq(_after.protocolBorrowAsset.free, _before.protocolBorrowAsset.free + FV);
         assertTrue(size.getLoan(loanId).repaid);
     }
 
@@ -43,26 +43,26 @@ contract RepayTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e4, amountLoanId1, PERCENT);
 
-        Vars memory _before = _getUsers();
+        Vars memory _before = _state();
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
 
         vm.warp(365 days);
 
-        Vars memory _overdue = _getUsers();
+        Vars memory _overdue = _state();
 
         assertEq(_overdue.bob.totalDebtCoveredByRealCollateral, _before.bob.totalDebtCoveredByRealCollateral);
         assertEq(_overdue.bob.borrowAsset.free, _before.bob.borrowAsset.free);
-        assertEq(_overdue.protocol.borrowAsset.free, _before.protocol.borrowAsset.free);
+        assertEq(_overdue.protocolBorrowAsset.free, _before.protocolBorrowAsset.free);
         assertTrue(!size.getLoan(loanId).repaid);
         assertEq(size.getLoanStatus(loanId), LoanStatus.OVERDUE);
 
         _repay(bob, loanId);
 
-        Vars memory _after = _getUsers();
+        Vars memory _after = _state();
 
         assertEq(_after.bob.totalDebtCoveredByRealCollateral, _before.bob.totalDebtCoveredByRealCollateral - FV);
         assertEq(_after.bob.borrowAsset.free, _before.bob.borrowAsset.free - FV);
-        assertEq(_after.protocol.borrowAsset.free, _before.protocol.borrowAsset.free + FV);
+        assertEq(_after.protocolBorrowAsset.free, _before.protocolBorrowAsset.free + FV);
         assertTrue(size.getLoan(loanId).repaid);
         assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
     }

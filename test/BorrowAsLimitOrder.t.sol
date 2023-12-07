@@ -24,8 +24,8 @@ contract BorrowAsLimitOrderTest is BaseTest {
         uint256[] memory rates = new uint256[](2);
         rates[0] = 1.01e4;
         rates[1] = 1.02e4;
-        assertTrue(_getUsers().alice.borrowOffer.isNull());
+        assertTrue(_state().alice.borrowOffer.isNull());
         _borrowAsLimitOrder(alice, 50e18, timeBuckets, rates);
-        assertTrue(!_getUsers().alice.borrowOffer.isNull());
+        assertTrue(!_state().alice.borrowOffer.isNull());
     }
 }

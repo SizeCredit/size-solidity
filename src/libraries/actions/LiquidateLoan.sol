@@ -23,7 +23,6 @@ import {Events} from "@src/libraries/Events.sol";
 struct LiquidateLoanParams {
     uint256 loanId;
     address liquidator;
-    address protocol;
 }
 
 library LiquidateLoan {
@@ -74,9 +73,6 @@ library LiquidateLoan {
 
     function executeLiquidateLoan(State storage state, LiquidateLoanParams memory params) external returns (uint256) {
         Loan storage loan = state.loans[params.loanId];
-        User storage borrowerUser = state.users[loan.borrower];
-        User storage liquidatorUser = state.users[params.liquidator];
-        User storage protocolUser = state.users[params.protocol];
 
         emit Events.LiquidateLoan(params.loanId, params.liquidator);
 
@@ -94,11 +90,13 @@ library LiquidateLoan {
         uint256 collateralRemainderToProtocol =
             collateralRemainder - collateralRemainderToLiquidator - collateralRemainderToBorrower;
 
-        borrowerUser.collateralAsset.transfer(protocolUser.collateralAsset, collateralRemainderToProtocol);
-        borrowerUser.collateralAsset.transfer(
-            liquidatorUser.collateralAsset, collateralRemainderToLiquidator + debtCollateral
+        state.users[loan.borrower].collateralAsset.transfer(
+            state.protocolCollateralAsset, collateralRemainderToProtocol
         );
-        liquidatorUser.borrowAsset.transfer(protocolUser.borrowAsset, debtBorrowAsset);
+        state.users[loan.borrower].collateralAsset.transfer(
+            state.users[params.liquidator].collateralAsset, collateralRemainderToLiquidator + debtCollateral
+        );
+        state.users[params.liquidator].borrowAsset.transfer(state.protocolBorrowAsset, debtBorrowAsset);
 
         state.liquidationProfitCollateralAsset += collateralRemainderToProtocol;
 

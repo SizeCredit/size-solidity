@@ -188,22 +188,21 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
 
     /// @inheritdoc ISize
     function repay(uint256 loanId) public override(ISize) {
-        RepayParams memory params = RepayParams({loanId: loanId, borrower: msg.sender, protocol: address(this)});
+        RepayParams memory params = RepayParams({loanId: loanId, borrower: msg.sender});
         state.validateRepay(params);
         state.executeRepay(params);
     }
 
     /// @inheritdoc ISize
     function claim(uint256 loanId) public override(ISize) {
-        ClaimParams memory params = ClaimParams({loanId: loanId, lender: msg.sender, protocol: address(this)});
+        ClaimParams memory params = ClaimParams({loanId: loanId, lender: msg.sender});
         state.validateClaim(params);
         state.executeClaim(params);
     }
 
     /// @inheritdoc ISize
     function liquidateLoan(uint256 loanId) public override(ISize) returns (uint256 ans) {
-        LiquidateLoanParams memory params =
-            LiquidateLoanParams({loanId: loanId, liquidator: msg.sender, protocol: address(this)});
+        LiquidateLoanParams memory params = LiquidateLoanParams({loanId: loanId, liquidator: msg.sender});
         state.validateLiquidateLoan(params);
         ans = state.executeLiquidateLoan(params);
     }

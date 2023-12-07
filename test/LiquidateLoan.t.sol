@@ -39,19 +39,19 @@ contract LiquidateLoanTest is BaseTest {
         assertTrue(size.isLiquidatable(bob));
         assertTrue(size.isLiquidatable(loanId));
 
-        Vars memory _before = _getUsers();
+        Vars memory _before = _state();
 
         _liquidateLoan(liquidator, loanId);
 
         uint256 collateralRemainder = assigned - (debt * 5);
 
-        Vars memory _after = _getUsers();
+        Vars memory _after = _state();
 
         assertEq(_after.liquidator.borrowAsset.free, _before.liquidator.borrowAsset.free - debt);
-        assertEq(_after.protocol.borrowAsset.free, _before.protocol.borrowAsset.free + debt);
+        assertEq(_after.protocolBorrowAsset.free, _before.protocolBorrowAsset.free + debt);
         assertEq(
-            _after.protocol.collateralAsset.free,
-            _before.protocol.collateralAsset.free
+            _after.protocolCollateralAsset.free,
+            _before.protocolCollateralAsset.free
                 + collateralRemainder * size.collateralPercentagePremiumToProtocol() / PERCENT
         );
         assertEq(

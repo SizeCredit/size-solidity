@@ -21,12 +21,12 @@ contract ClaimTest is BaseTest {
 
         uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e4, amountLoanId1, PERCENT);
 
-        Vars memory _before = _getUsers();
+        Vars memory _before = _state();
 
         assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
         _claim(alice, loanId);
 
-        Vars memory _after = _getUsers();
+        Vars memory _after = _state();
 
         assertEq(_after.alice.borrowAsset.free, _before.alice.borrowAsset.free + FV);
         assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);
@@ -47,12 +47,12 @@ contract ClaimTest is BaseTest {
         _exit(alice, loanId, amountFVExited, 12, lendersToExitTo);
         _repay(bob, loanId);
 
-        Vars memory _before = _getUsers();
+        Vars memory _before = _state();
 
         assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
         _claim(alice, loanId);
 
-        Vars memory _after = _getUsers();
+        Vars memory _after = _state();
 
         uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.03e4, 100e18, PERCENT);
         uint256 credit = FV - amountFVExited;

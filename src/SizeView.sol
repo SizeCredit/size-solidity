@@ -5,6 +5,7 @@ import {SizeStorage, State} from "@src/SizeStorage.sol";
 import {User, UserLibrary} from "@src/libraries/UserLibrary.sol";
 import {Loan, LoanStatus, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {Vault} from "@src/libraries/VaultLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 abstract contract SizeView is SizeStorage {
@@ -58,6 +59,10 @@ abstract contract SizeView is SizeStorage {
 
     function getUser(address user) public view returns (User memory) {
         return state.users[user];
+    }
+
+    function getProtocolVault() public view returns (Vault memory, Vault memory) {
+        return (state.protocolCollateralAsset, state.protocolBorrowAsset);
     }
 
     function activeLoans() public view returns (uint256) {

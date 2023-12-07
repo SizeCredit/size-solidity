@@ -22,7 +22,6 @@ import {Events} from "@src/libraries/Events.sol";
 struct RepayParams {
     uint256 loanId;
     address borrower;
-    address protocol;
 }
 
 library Repay {
@@ -54,10 +53,10 @@ library Repay {
 
     function executeRepay(State storage state, RepayParams memory params) external {
         Loan storage loan = state.loans[params.loanId];
-        User storage protocolUser = state.users[params.protocol];
+        Vault storage protocolBorrowAsset = state.protocolBorrowAsset;
         User storage borrowerUser = state.users[loan.borrower];
 
-        borrowerUser.borrowAsset.transfer(protocolUser.borrowAsset, loan.FV);
+        borrowerUser.borrowAsset.transfer(protocolBorrowAsset, loan.FV);
         borrowerUser.totalDebtCoveredByRealCollateral -= loan.FV;
         loan.repaid = true;
 

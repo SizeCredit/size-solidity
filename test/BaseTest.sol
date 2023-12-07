@@ -12,6 +12,7 @@ import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {AssertsHelper} from "./helpers/AssertsHelper.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
+import {Vault} from "@src/libraries/VaultLibrary.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {USDC} from "./mocks/USDC.sol";
 
@@ -34,8 +35,10 @@ contract BaseTest is Test, AssertsHelper {
         User alice;
         User bob;
         User candy;
+        User james;
         User liquidator;
-        User protocol;
+        Vault protocolCollateralAsset;
+        Vault protocolBorrowAsset;
     }
 
     function setUp() public {
@@ -179,12 +182,13 @@ contract BaseTest is Test, AssertsHelper {
         size.liquidateLoan(loanId);
     }
 
-    function _getUsers() internal view returns (Vars memory vars) {
+    function _state() internal view returns (Vars memory vars) {
         vars.alice = size.getUser(alice);
         vars.bob = size.getUser(bob);
         vars.candy = size.getUser(candy);
+        vars.james = size.getUser(james);
         vars.liquidator = size.getUser(liquidator);
-        vars.protocol = size.getUser(protocol);
+        (vars.protocolCollateralAsset, vars.protocolBorrowAsset) = size.getProtocolVault();
     }
 
     function _setPrice(uint256 price) internal {
