@@ -44,7 +44,7 @@ References
 
 - dust amount for loans
 - 100% coverage
-- replace Vault by ERC20 sToken (this will simplify events)
+- replace Vault by ERC20 sToken (this will simplify events) --> beware of address(this)
 - test events
 - add experiments as tests
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
