@@ -18,9 +18,10 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct WithdrawParams {
-    address user;
+    address account;
     address token;
     uint256 value;
 }
@@ -31,7 +32,7 @@ library Withdraw {
     using SafeERC20 for IERC20Metadata;
 
     function validateWithdraw(State storage state, WithdrawParams memory params) external view {
-        // validte user
+        // validte account
 
         // validate token
         if (params.token != address(state.collateralAsset) && params.token != address(state.borrowAsset)) {
@@ -45,13 +46,14 @@ library Withdraw {
     }
 
     function executeWithdraw(State storage state, WithdrawParams memory params) external {
-        User storage user = state.users[params.user];
-        if (params.token == address(state.collateralAsset)) {
-            user.collateralAsset.free -= VaultLibrary.valueToWad(params.value, state.collateralAsset.decimals());
-            state.collateralAsset.safeTransfer(params.user, params.value);
-        } else {
-            user.borrowAsset.free -= VaultLibrary.valueToWad(params.value, state.borrowAsset.decimals());
-            state.borrowAsset.safeTransfer(params.user, params.value);
-        }
+        User storage user = state.users[params.account];
+        Vault storage vault = params.token == address(state.collateralAsset) ? user.collateralAsset : user.borrowAsset;
+        IERC20Metadata token = IERC20Metadata(params.token);
+        uint256 wad = VaultLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
+
+        vault.free -= wad;
+        token.safeTransfer(params.account, params.value);
+
+        emit Events.Withdraw(params.token, wad);
     }
 }

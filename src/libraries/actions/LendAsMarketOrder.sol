@@ -18,6 +18,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct LendAsMarketOrderParams {
     address lender;
@@ -62,6 +63,10 @@ library LendAsMarketOrder {
         User storage borrowerUser = state.users[params.borrower];
         User storage lenderUser = state.users[params.lender];
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
+
+        emit Events.LendAsMarketOrder(
+            params.lender, params.borrower, params.dueDate, params.amount, params.exactAmountIn
+        );
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
         uint256 FV;

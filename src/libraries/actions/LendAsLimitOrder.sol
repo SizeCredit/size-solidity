@@ -18,6 +18,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct LendAsLimitOrderParams {
     address lender;
@@ -64,5 +65,6 @@ library LendAsLimitOrder {
             maxDueDate: params.maxDueDate,
             curveRelativeTime: params.curveRelativeTime
         });
+        emit Events.LendAsLimitOrder(params.maxAmount, params.maxDueDate, params.curveRelativeTime);
     }
 }

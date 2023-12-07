@@ -2,6 +2,7 @@
 pragma solidity 0.8.20;
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct Loan {
     // FOL
@@ -68,7 +69,10 @@ library LoanLibrary {
         return block.timestamp >= getDueDate(self, loans);
     }
 
-    function createFOL(Loan[] storage loans, address lender, address borrower, uint256 FV, uint256 dueDate) public {
+    function createFOL(Loan[] storage loans, address lender, address borrower, uint256 FV, uint256 dueDate)
+        public
+        returns (uint256 folId)
+    {
         loans.push(
             Loan({
                 FV: FV,
@@ -80,9 +84,15 @@ library LoanLibrary {
                 folId: 0
             })
         );
+        folId = loans.length - 1;
+
+        emit Events.CreateLoan(folId, lender, borrower, 0, FV, dueDate);
     }
 
-    function createSOL(Loan[] storage loans, uint256 folId, address lender, address borrower, uint256 FV) public {
+    function createSOL(Loan[] storage loans, uint256 folId, address lender, address borrower, uint256 FV)
+        public
+        returns (uint256 solId)
+    {
         Loan storage fol = loans[folId];
         loans.push(
             Loan({
@@ -100,5 +110,9 @@ library LoanLibrary {
             revert Errors.NOT_ENOUGH_FREE_CASH(getCredit(fol), FV);
         }
         fol.amountFVExited += FV;
+
+        solId = loans.length - 1;
+
+        emit Events.CreateLoan(solId, lender, borrower, folId, FV, fol.dueDate);
     }
 }

@@ -16,6 +16,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct ExitParams {
     address exiter;
@@ -80,6 +81,8 @@ library Exit {
     // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
     function executeExit(State storage state, ExitParams memory params) external returns (uint256 amountInLeft) {
         User storage exiterUser = state.users[params.exiter];
+
+        emit Events.Exit(params.exiter, params.loanId, params.amount, params.dueDate, params.lendersToExitTo);
 
         amountInLeft = params.amount;
         for (uint256 i = 0; i < params.lendersToExitTo.length; ++i) {

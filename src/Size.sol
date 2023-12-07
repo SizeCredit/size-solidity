@@ -85,17 +85,17 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
 
     /// @inheritdoc ISize
     function deposit(address token, uint256 value) public override(ISize) {
-        DepositParams memory params = DepositParams({user: msg.sender, token: token, value: value});
+        DepositParams memory params = DepositParams({account: msg.sender, token: token, value: value});
         state.validateDeposit(params);
         state.executeDeposit(params);
     }
 
     /// @inheritdoc ISize
     function withdraw(address token, uint256 value) public override(ISize) {
-        WithdrawParams memory params = WithdrawParams({user: msg.sender, token: token, value: value});
+        WithdrawParams memory params = WithdrawParams({account: msg.sender, token: token, value: value});
         state.validateWithdraw(params);
         state.executeWithdraw(params);
-        state.validateUserIsNotLiquidatable(params.user);
+        state.validateUserIsNotLiquidatable(params.account);
     }
 
     /// @inheritdoc ISize

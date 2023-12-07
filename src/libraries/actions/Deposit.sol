@@ -20,9 +20,10 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct DepositParams {
-    address user;
+    address account;
     address token;
     uint256 value;
 }
@@ -33,7 +34,7 @@ library Deposit {
     using SafeERC20 for IERC20Metadata;
 
     function validateDeposit(State storage state, DepositParams memory params) external view {
-        // validte user
+        // validte account
 
         // validate token
         if (params.token != address(state.collateralAsset) && params.token != address(state.borrowAsset)) {
@@ -47,14 +48,14 @@ library Deposit {
     }
 
     function executeDeposit(State storage state, DepositParams memory params) external {
-        if (params.token == address(state.collateralAsset)) {
-            state.users[params.user].collateralAsset.free +=
-                VaultLibrary.valueToWad(params.value, state.collateralAsset.decimals());
-            state.collateralAsset.safeTransferFrom(params.user, address(this), params.value);
-        } else {
-            state.users[params.user].borrowAsset.free +=
-                VaultLibrary.valueToWad(params.value, state.borrowAsset.decimals());
-            state.borrowAsset.safeTransferFrom(params.user, address(this), params.value);
-        }
+        User storage user = state.users[params.account];
+        Vault storage vault = params.token == address(state.collateralAsset) ? user.collateralAsset : user.borrowAsset;
+        IERC20Metadata token = IERC20Metadata(params.token);
+        uint256 wad = VaultLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
+
+        vault.free += wad;
+        token.safeTransferFrom(params.account, address(this), params.value);
+
+        emit Events.Deposit(params.token, wad);
     }
 }

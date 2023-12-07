@@ -18,6 +18,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct ClaimParams {
     uint256 loanId;
@@ -55,5 +56,7 @@ library Claim {
         // @audit amountFVExited can increase if SOLs are created, what if claim/exit happen in different times?
         protocolUser.borrowAsset.transfer(lenderUser.borrowAsset, loan.getCredit());
         loan.amountFVExited = loan.FV;
+
+        emit Events.Claim(params.loanId, params.lender);
     }
 }

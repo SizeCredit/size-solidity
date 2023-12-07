@@ -22,7 +22,7 @@ library UserLibrary {
             : FixedPointMathLib.mulDivDown(
                 FixedPointMathLib.mulDivDown(self.collateralAsset.free, price, self.totalDebtCoveredByRealCollateral),
                 PERCENT,
-                1e18
+                1e18 // TODO this is only because the price feed reports prices in 1e18
             );
     }
 

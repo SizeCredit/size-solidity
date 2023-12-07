@@ -18,6 +18,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct LiquidateLoanParams {
     uint256 loanId;
@@ -76,6 +77,8 @@ library LiquidateLoan {
         User storage borrowerUser = state.users[loan.borrower];
         User storage liquidatorUser = state.users[params.liquidator];
         User storage protocolUser = state.users[params.protocol];
+
+        emit Events.LiquidateLoan(params.loanId, params.liquidator);
 
         uint256 price = state.priceFeed.getPrice();
 

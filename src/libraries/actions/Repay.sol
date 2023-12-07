@@ -17,6 +17,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct RepayParams {
     uint256 loanId;
@@ -59,5 +60,7 @@ library Repay {
         borrowerUser.borrowAsset.transfer(protocolUser.borrowAsset, loan.FV);
         borrowerUser.totalDebtCoveredByRealCollateral -= loan.FV;
         loan.repaid = true;
+
+        emit Events.Repay(params.loanId, params.borrower);
     }
 }

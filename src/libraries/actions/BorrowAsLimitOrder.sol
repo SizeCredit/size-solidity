@@ -18,6 +18,7 @@ import {State} from "@src/SizeStorage.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct BorrowAsLimitOrderParams {
     address borrower;
@@ -47,5 +48,6 @@ library BorrowAsLimitOrder {
     function executeBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams memory params) external {
         state.users[params.borrower].borrowOffer =
             BorrowOffer({maxAmount: params.maxAmount, curveRelativeTime: params.curveRelativeTime});
+        emit Events.BorrowAsLimitOrder(params.maxAmount, params.curveRelativeTime);
     }
 }
