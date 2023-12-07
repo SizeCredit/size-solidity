@@ -95,7 +95,7 @@ contract PriceFeedTest is Test {
         priceFeed.getPrice();
 
         ethToUsd.updateAnswer((ETH_TO_USD * 1.1e8) / 1e8);
-        priceFeed.getPrice();
+        assertEq(priceFeed.getPrice(), (uint256(2200.12e18) * 1.1e18) / uint256(0.9999e18));
 
         vm.warp(updatedAt + 86400 + 1);
         ethToUsd.updateAnswer(ETH_TO_USD);
@@ -103,8 +103,8 @@ contract PriceFeedTest is Test {
         vm.expectRevert(abi.encodeWithSelector(Errors.STALE_PRICE.selector, address(usdcToUsd), updatedAt));
         priceFeed.getPrice();
 
-        usdcToUsd.updateAnswer((USDC_TO_USD * 1.1e8) / 1e8);
-        priceFeed.getPrice();
+        usdcToUsd.updateAnswer((USDC_TO_USD * 1.2e8) / 1e8);
+        assertEq(priceFeed.getPrice(), (uint256(2200.12e18) * 1e18 * 1e18) / (uint256(0.9999e18) * uint256(1.2e18)));
     }
 
     function test_PriceFeed_getPrice_low_decimals() public {
