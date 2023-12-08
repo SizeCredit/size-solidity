@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import "@src/libraries/MathLibrary.sol";
-import "@src/libraries/UserLibrary.sol";
-import "@src/libraries/YieldCurveLibrary.sol";
-
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
 struct LoanOffer {

@@ -4,18 +4,10 @@ pragma solidity 0.8.20;
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {SizeStorage} from "@src/SizeStorage.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
-import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
 import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
-import {SizeView} from "@src/SizeView.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
-
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
-
-import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 

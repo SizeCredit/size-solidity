@@ -26,10 +26,11 @@ library UserLibrary {
             );
     }
 
-    function isLiquidatable(User memory self, uint256 price, uint256 CRLiquidation) public pure returns (bool) {
-        return collateralRatio(self, price) < CRLiquidation;
+    function isLiquidatable(User memory self, uint256 price, uint256 crLiquidation) public pure returns (bool) {
+        return collateralRatio(self, price) < crLiquidation;
     }
 
+    // solhint-disable-next-line var-name-mixedcase
     function getAssignedCollateral(User memory self, uint256 FV) public pure returns (uint256) {
         if (self.totalDebtCoveredByRealCollateral == 0) {
             return 0;

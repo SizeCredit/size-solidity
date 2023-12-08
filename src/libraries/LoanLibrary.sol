@@ -5,7 +5,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct Loan {
-    // FOL
+    // solhint-disable-next-line var-name-mixedcase
     uint256 FV;
     uint256 amountFVExited;
     address lender;
@@ -69,6 +69,7 @@ library LoanLibrary {
         return block.timestamp >= getDueDate(self, loans);
     }
 
+    // solhint-disable-next-line var-name-mixedcase
     function createFOL(Loan[] storage loans, address lender, address borrower, uint256 FV, uint256 dueDate)
         public
         returns (uint256 folId)
@@ -89,6 +90,7 @@ library LoanLibrary {
         emit Events.CreateLoan(folId, lender, borrower, 0, FV, dueDate);
     }
 
+    // solhint-disable-next-line var-name-mixedcase
     function createSOL(Loan[] storage loans, uint256 folId, address lender, address borrower, uint256 FV)
         public
         returns (uint256 solId)

@@ -37,7 +37,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
 
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
-        uint256 ethLocked = FixedPointMathLib.mulDivUp(debt, size.CROpening(), priceFeed.getPrice());
+        uint256 ethLocked = FixedPointMathLib.mulDivUp(debt, size.crOpening(), priceFeed.getPrice());
         User memory aliceAfter = size.getUser(alice);
         User memory bobAfter = size.getUser(bob);
         LoanOffer memory offerAfter = size.getLoanOffer(alice);
@@ -73,7 +73,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + rate), PERCENT);
-        uint256 ethLocked = FixedPointMathLib.mulDivUp(debt, size.CROpening(), priceFeed.getPrice());
+        uint256 ethLocked = FixedPointMathLib.mulDivUp(debt, size.crOpening(), priceFeed.getPrice());
         User memory aliceAfter = size.getUser(alice);
         User memory bobAfter = size.getUser(bob);
         LoanOffer memory offerAfter = size.getLoanOffer(alice);
@@ -175,7 +175,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
 
         uint256 FV = FixedPointMathLib.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
-        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.CROpening(), priceFeed.getPrice());
+        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
 
         assertLt(_after.candy.borrowAsset.free, _before.candy.borrowAsset.free);
         assertGt(_after.alice.borrowAsset.free, _before.alice.borrowAsset.free);
@@ -215,7 +215,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.CROpening(), priceFeed.getPrice());
+        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
 
         assertLt(_after.candy.borrowAsset.free, _before.candy.borrowAsset.free);
         assertGt(_after.alice.borrowAsset.free, _before.alice.borrowAsset.free);
@@ -262,7 +262,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
         uint256 FV = FixedPointMathLib.mulDivUp(r, amount, PERCENT);
-        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.CROpening(), priceFeed.getPrice());
+        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
         vm.startPrank(bob);
         uint256[] memory virtualCollateralLoansIds;
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, maxETHToLock));

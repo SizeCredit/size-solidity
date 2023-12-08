@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {SizeStorage, State} from "@src/SizeStorage.sol";
+import {SizeStorage} from "@src/SizeStorage.sol";
 import {User, UserLibrary} from "@src/libraries/UserLibrary.sol";
 import {Loan, LoanStatus, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
@@ -19,12 +19,12 @@ abstract contract SizeView is SizeStorage {
     }
 
     function isLiquidatable(address user) public view returns (bool) {
-        return state.users[user].isLiquidatable(state.priceFeed.getPrice(), state.CRLiquidation);
+        return state.users[user].isLiquidatable(state.priceFeed.getPrice(), state.crLiquidation);
     }
 
     function isLiquidatable(uint256 loanId) public view returns (bool) {
         Loan memory loan = state.loans[loanId];
-        return state.users[loan.borrower].isLiquidatable(state.priceFeed.getPrice(), state.CRLiquidation);
+        return state.users[loan.borrower].isLiquidatable(state.priceFeed.getPrice(), state.crLiquidation);
     }
 
     function getAssignedCollateral(uint256 loanId) public view returns (uint256) {
@@ -37,12 +37,12 @@ abstract contract SizeView is SizeStorage {
         return state.loans[loanId].getDebt();
     }
 
-    function CROpening() external view returns (uint256) {
-        return state.CROpening;
+    function crOpening() external view returns (uint256) {
+        return state.crOpening;
     }
 
-    function CRLiquidation() external view returns (uint256) {
-        return state.CRLiquidation;
+    function crLiquidation() external view returns (uint256) {
+        return state.crLiquidation;
     }
 
     function collateralPercentagePremiumToLiquidator() external view returns (uint256) {

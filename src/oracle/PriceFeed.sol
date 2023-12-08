@@ -17,6 +17,7 @@ import {Errors} from "@src/libraries/Errors.sol";
  * answer: ETH/USDC in 1e18
  */
 contract PriceFeed is IPriceFeed {
+    /* solhint-disable immutable-vars-naming */
     AggregatorV3Interface public immutable base;
     AggregatorV3Interface public immutable quote;
     uint8 public immutable decimals;
@@ -24,6 +25,8 @@ contract PriceFeed is IPriceFeed {
     uint8 public immutable quoteDecimals;
     uint256 public immutable baseStalePrice;
     uint256 public immutable quoteStalePrice;
+
+    /* solhint-enable immutable-vars-naming */
 
     constructor(address _base, address _quote, uint8 _decimals, uint256 _baseStalePrice, uint256 _quoteStalePrice) {
         if (_base == address(0) || _quote == address(0)) {

@@ -1,17 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-
-import {ISize} from "@src/interfaces/ISize.sol";
-import {SizeView} from "@src/SizeView.sol";
-import {OfferLibrary, LoanOffer} from "@src/libraries/OfferLibrary.sol";
-import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
-import {UserLibrary, User} from "@src/libraries/UserLibrary.sol";
+import {Loan} from "@src/libraries/LoanLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
@@ -24,8 +17,8 @@ struct InitializeParams {
     address priceFeed;
     address collateralAsset;
     address borrowAsset;
-    uint256 CROpening;
-    uint256 CRLiquidation;
+    uint256 crOpening;
+    uint256 crLiquidation;
     uint256 collateralPercentagePremiumToLiquidator;
     uint256 collateralPercentagePremiumToBorrower;
 }
@@ -52,17 +45,17 @@ library Initialize {
             revert Errors.NULL_ADDRESS();
         }
 
-        // validate CROpening
-        if (params.CROpening < PERCENT) {
-            revert Errors.INVALID_COLLATERAL_RATIO(params.CROpening);
+        // validate crOpening
+        if (params.crOpening < PERCENT) {
+            revert Errors.INVALID_COLLATERAL_RATIO(params.crOpening);
         }
 
-        // validate CRLiquidation
-        if (params.CRLiquidation < PERCENT) {
-            revert Errors.INVALID_COLLATERAL_RATIO(params.CRLiquidation);
+        // validate crLiquidation
+        if (params.crLiquidation < PERCENT) {
+            revert Errors.INVALID_COLLATERAL_RATIO(params.crLiquidation);
         }
-        if (params.CROpening <= params.CRLiquidation) {
-            revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(params.CROpening, params.CRLiquidation);
+        if (params.crOpening <= params.crLiquidation) {
+            revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(params.crOpening, params.crLiquidation);
         }
 
         // validate collateralPercentagePremiumToLiquidator
@@ -85,13 +78,13 @@ library Initialize {
         state.priceFeed = IPriceFeed(params.priceFeed);
         state.collateralAsset = IERC20Metadata(params.collateralAsset);
         state.borrowAsset = IERC20Metadata(params.borrowAsset);
-        state.CROpening = params.CROpening;
-        state.CRLiquidation = params.CRLiquidation;
+        state.crOpening = params.crOpening;
+        state.crLiquidation = params.crLiquidation;
         state.collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;
         state.collateralPercentagePremiumToBorrower = params.collateralPercentagePremiumToBorrower;
 
         // NOTE Necessary so that loanIds start at 1, and 0 is reserved for SOLs
-        Loan memory l;
-        state.loans.push(l);
+        Loan memory nullLoan;
+        state.loans.push(nullLoan);
     }
 }

@@ -22,7 +22,7 @@ contract LiquidateLoanTest is BaseTest {
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
-        uint256 lock = FixedPointMathLib.mulDivUp(debt, size.CROpening(), priceFeed.getPrice());
+        uint256 lock = FixedPointMathLib.mulDivUp(debt, size.crOpening(), priceFeed.getPrice());
         uint256 assigned = 100e18 - lock;
 
         assertEq(size.getAssignedCollateral(loanId), assigned);

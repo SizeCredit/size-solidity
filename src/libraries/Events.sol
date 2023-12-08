@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
+// solhint-disable var-name-mixedcase
 library Events {
     event Deposit(address indexed token, uint256 wad);
     event Withdraw(address indexed token, uint256 wad);

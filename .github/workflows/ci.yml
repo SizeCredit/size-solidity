@@ -95,3 +95,17 @@ jobs:
 
       - name: Generate types
         run: npx typechain --target ethers-v5 out/Size.sol/Size.json out/PriceFeed.sol/PriceFeed.json
+
+  solhint:
+    strategy:
+      fail-fast: true
+
+    name: Solhint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Run solhint
+        run: npx solhint src/**/*.sol --max-warnings 0

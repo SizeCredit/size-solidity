@@ -30,7 +30,7 @@ contract InitializeTest is Test {
             address(this), address(priceFeed), address(weth), address(usdc), 1.5e4, 1.3e4, 0.3e4, 0.1e4
         );
 
-        assertEq(implementation.CRLiquidation(), 0);
+        assertEq(implementation.crLiquidation(), 0);
     }
 
     function test_SizeInitialize_proxy_can_be_initialized() public {
@@ -50,6 +50,6 @@ contract InitializeTest is Test {
             )
         );
 
-        assertEq(Size(address(proxy)).CRLiquidation(), 1.3e4);
+        assertEq(Size(address(proxy)).crLiquidation(), 1.3e4);
     }
 }

@@ -1,19 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {SizeStorage} from "@src/SizeStorage.sol";
 import {UserLibrary, User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
 import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
-import {SizeView} from "@src/SizeView.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
-
-import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -69,6 +64,7 @@ library LendAsMarketOrder {
         );
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
+        // solhint-disable-next-line var-name-mixedcase
         uint256 FV;
         uint256 amountIn;
         if (params.exactAmountIn) {

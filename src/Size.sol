@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-// import {console2 as console} from "forge-std/console2.sol";
-
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -22,13 +20,6 @@ import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {SizeView} from "@src/SizeView.sol";
 
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
-import {OfferLibrary, LoanOffer, BorrowOffer} from "@src/libraries/OfferLibrary.sol";
-import {UserLibrary, User} from "@src/libraries/UserLibrary.sol";
-import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
-
-import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -57,8 +48,8 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
         address _priceFeed,
         address _collateralAsset,
         address _borrowAsset,
-        uint256 _CROpening,
-        uint256 _CRLiquidation,
+        uint256 _crOpening,
+        uint256 _crLiquidation,
         uint256 _collateralPercentagePremiumToLiquidator,
         uint256 _collateralPercentagePremiumToBorrower
     ) public initializer {
@@ -67,8 +58,8 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
             priceFeed: _priceFeed,
             collateralAsset: _collateralAsset,
             borrowAsset: _borrowAsset,
-            CROpening: _CROpening,
-            CRLiquidation: _CRLiquidation,
+            crOpening: _crOpening,
+            crLiquidation: _crLiquidation,
             collateralPercentagePremiumToLiquidator: _collateralPercentagePremiumToLiquidator,
             collateralPercentagePremiumToBorrower: _collateralPercentagePremiumToBorrower
         });
@@ -81,6 +72,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
         state.executeInitialize(params);
     }
 
+    // solhint-disable-next-line no-empty-blocks
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /// @inheritdoc ISize

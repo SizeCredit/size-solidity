@@ -1,18 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {SizeStorage} from "@src/SizeStorage.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
 import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
-import {SizeView} from "@src/SizeView.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
-
-import {ISize} from "@src/interfaces/ISize.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -156,8 +152,9 @@ library BorrowAsMarketOrder {
 
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
+        // solhint-disable-next-line var-name-mixedcase
         uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
-        uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, state.CROpening, state.priceFeed.getPrice());
+        uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, state.crOpening, state.priceFeed.getPrice());
         borrowerUser.collateralAsset.lock(maxCollateralToLock);
         borrowerUser.totalDebtCoveredByRealCollateral += FV;
         state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
