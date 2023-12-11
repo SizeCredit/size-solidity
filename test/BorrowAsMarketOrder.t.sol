@@ -3,6 +3,8 @@ pragma solidity 0.8.20;
 
 import {console2 as console} from "forge-std/console2.sol";
 
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+
 import {BaseTest} from "./BaseTest.sol";
 import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
@@ -28,8 +30,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
         LoanOffer memory offerBefore = size.getLoanOffer(alice);
 
-        User memory aliceBefore = size.getUser(alice);
-        User memory bobBefore = size.getUser(bob);
+        Vars memory _before = _state();
 
         uint256 amount = 10e18;
         uint256 dueDate = 12;
@@ -38,14 +39,13 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
         uint256 ethLocked = FixedPointMathLib.mulDivUp(debt, size.crOpening(), priceFeed.getPrice());
-        User memory aliceAfter = size.getUser(alice);
-        User memory bobAfter = size.getUser(bob);
+        Vars memory _after = _state();
         LoanOffer memory offerAfter = size.getLoanOffer(alice);
 
-        assertEq(aliceAfter.borrowAsset.free, aliceBefore.borrowAsset.free - amount);
-        assertEq(bobAfter.borrowAsset.free, bobBefore.borrowAsset.free + amount);
-        assertEq(bobAfter.collateralAsset.locked, bobBefore.collateralAsset.locked + ethLocked);
-        assertEq(bobAfter.totalDebtCoveredByRealCollateral, debt);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount + amount);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount + ethLocked);
+        assertEq(_after.bob.debtAmount, debt);
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
 
@@ -68,20 +68,18 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(alice, MAX_AMOUNT, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
         LoanOffer memory offerBefore = size.getLoanOffer(alice);
 
-        User memory aliceBefore = size.getUser(alice);
-        User memory bobBefore = size.getUser(bob);
+        Vars memory _before = _state();
 
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + rate), PERCENT);
         uint256 ethLocked = FixedPointMathLib.mulDivUp(debt, size.crOpening(), priceFeed.getPrice());
-        User memory aliceAfter = size.getUser(alice);
-        User memory bobAfter = size.getUser(bob);
+        Vars memory _after = _state();
         LoanOffer memory offerAfter = size.getLoanOffer(alice);
 
-        assertEq(aliceAfter.borrowAsset.free, aliceBefore.borrowAsset.free - amount);
-        assertEq(bobAfter.borrowAsset.free, bobBefore.borrowAsset.free + amount);
-        assertEq(bobAfter.collateralAsset.locked, bobBefore.collateralAsset.locked + ethLocked);
-        assertEq(bobAfter.totalDebtCoveredByRealCollateral, debt);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount + amount);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount + ethLocked);
+        assertEq(_after.bob.debtAmount, debt);
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
 
@@ -96,21 +94,17 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256[] memory virtualCollateralLoanIds = new uint256[](1);
         virtualCollateralLoanIds[0] = loanId;
 
-        User memory aliceBefore = size.getUser(alice);
-        User memory bobBefore = size.getUser(bob);
-        User memory candyBefore = size.getUser(candy);
+        Vars memory _before = _state();
 
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amount, 12, virtualCollateralLoanIds);
 
-        User memory aliceAfter = size.getUser(alice);
-        User memory bobAfter = size.getUser(bob);
-        User memory candyAfter = size.getUser(candy);
+        Vars memory _after = _state();
 
-        assertEq(candyAfter.borrowAsset.free, candyBefore.borrowAsset.free - amount);
-        assertEq(aliceAfter.borrowAsset.free, aliceBefore.borrowAsset.free + amount);
-        assertEq(aliceAfter.collateralAsset.locked, aliceBefore.collateralAsset.locked, 0);
-        assertEq(aliceAfter.totalDebtCoveredByRealCollateral, aliceBefore.totalDebtCoveredByRealCollateral);
-        assertEq(bobAfter, bobBefore);
+        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount - amount);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amount);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
+        assertEq(_after.bob, _before.bob);
         assertTrue(!size.isFOL(loanId2));
     }
 
@@ -133,21 +127,17 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256[] memory virtualCollateralLoanIds = new uint256[](1);
         virtualCollateralLoanIds[0] = loanId;
 
-        User memory aliceBefore = size.getUser(alice);
-        User memory bobBefore = size.getUser(bob);
-        User memory candyBefore = size.getUser(candy);
+        Vars memory _before = _state();
 
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amount, dueDate, virtualCollateralLoanIds);
 
-        User memory aliceAfter = size.getUser(alice);
-        User memory bobAfter = size.getUser(bob);
-        User memory candyAfter = size.getUser(candy);
+        Vars memory _after = _state();
 
-        assertEq(candyAfter.borrowAsset.free, candyBefore.borrowAsset.free - amount);
-        assertEq(aliceAfter.borrowAsset.free, aliceBefore.borrowAsset.free + amount);
-        assertEq(aliceAfter.collateralAsset.locked, aliceBefore.collateralAsset.locked, 0);
-        assertEq(aliceAfter.totalDebtCoveredByRealCollateral, aliceBefore.totalDebtCoveredByRealCollateral);
-        assertEq(bobAfter, bobBefore);
+        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount - amount);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amount);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
+        assertEq(_after.bob, _before.bob);
         assertTrue(!size.isFOL(loanId2));
     }
 
@@ -175,12 +165,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
 
         uint256 FV = FixedPointMathLib.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
-        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
+        uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
 
-        assertLt(_after.candy.borrowAsset.free, _before.candy.borrowAsset.free);
-        assertGt(_after.alice.borrowAsset.free, _before.alice.borrowAsset.free);
-        assertEq(_after.alice.collateralAsset.locked, _before.alice.collateralAsset.locked + maxETHToLock);
-        assertEq(_after.alice.totalDebtCoveredByRealCollateral, _before.alice.totalDebtCoveredByRealCollateral + FV);
+        assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
+        assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount + maxCollateralToLock);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + FV);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
         assertEq(loan2.FV, FV);
@@ -215,12 +205,13 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
+        uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
 
-        assertLt(_after.candy.borrowAsset.free, _before.candy.borrowAsset.free);
-        assertGt(_after.alice.borrowAsset.free, _before.alice.borrowAsset.free);
-        assertEq(_after.alice.collateralAsset.locked, _before.alice.collateralAsset.locked + maxETHToLock);
-        assertEq(_after.alice.totalDebtCoveredByRealCollateral, _before.alice.totalDebtCoveredByRealCollateral + FV);
+        assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
+        assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
+        assertGt(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount + maxCollateralToLock);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + FV);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
         assertEq(size.getLoan(loanId2).FV, FV);
@@ -236,21 +227,20 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256[] memory virtualCollateralLoanIds = new uint256[](1);
         virtualCollateralLoanIds[0] = loanId;
 
-        User memory aliceBefore = size.getUser(alice);
-        User memory bobBefore = size.getUser(bob);
-        User memory candyBefore = size.getUser(candy);
+        Vars memory _before = _state();
 
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 30e18, 12, virtualCollateralLoanIds);
 
-        User memory aliceAfter = size.getUser(alice);
-        User memory bobAfter = size.getUser(bob);
-        User memory candyAfter = size.getUser(candy);
+        // uint256 FV = FixedPointMathLib.mulDivUp(r, amount, PERCENT);
+        // uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
 
-        assertLt(candyAfter.borrowAsset.free, candyBefore.borrowAsset.free);
-        assertGt(aliceAfter.borrowAsset.free, aliceBefore.borrowAsset.free);
-        assertEq(aliceAfter.collateralAsset.locked, aliceBefore.collateralAsset.locked, 0);
-        assertEq(aliceAfter.totalDebtCoveredByRealCollateral, aliceBefore.totalDebtCoveredByRealCollateral);
-        assertEq(bobAfter, bobBefore);
+        Vars memory _after = _state();
+
+        assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
+        assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
+        assertEq(_after.bob, _before.bob);
         assertTrue(!size.isFOL(loanId2));
     }
 
@@ -262,10 +252,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
         uint256 FV = FixedPointMathLib.mulDivUp(r, amount, PERCENT);
-        uint256 maxETHToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
+        uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
         vm.startPrank(bob);
         uint256[] memory virtualCollateralLoansIds;
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, maxETHToLock));
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, bob, 0, maxCollateralToLock)
+        );
         size.borrowAsMarketOrder(alice, 100e18, 12, false, virtualCollateralLoansIds);
     }
 
@@ -281,7 +273,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         vm.startPrank(bob);
         uint256[] memory virtualCollateralLoansIds;
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 1e18, 10e18));
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, alice, 1e18, 10e18));
         size.borrowAsMarketOrder(alice, amount, dueDate, false, virtualCollateralLoansIds);
     }
 }

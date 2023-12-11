@@ -5,7 +5,6 @@ import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
@@ -25,7 +24,6 @@ struct ExitParams {
 
 library Exit {
     using OfferLibrary for LoanOffer;
-    using VaultLibrary for Vault;
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
@@ -77,8 +75,6 @@ library Exit {
     // - the other lenders are the makers
     // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
     function executeExit(State storage state, ExitParams memory params) external returns (uint256 amountInLeft) {
-        User storage exiterUser = state.users[params.exiter];
-
         emit Events.Exit(params.exiter, params.loanId, params.amount, params.dueDate, params.lendersToExitTo);
 
         amountInLeft = params.amount;
@@ -105,7 +101,7 @@ library Exit {
             }
 
             state.loans.createSOL(params.loanId, lender, params.exiter, deltaAmountIn);
-            lenderUser.borrowAsset.transfer(exiterUser.borrowAsset, deltaAmountOut);
+            state.borrowToken.transferFrom(lender, params.exiter, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
         }

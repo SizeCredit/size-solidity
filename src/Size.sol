@@ -43,26 +43,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
         _disableInitializers();
     }
 
-    function initialize(
-        address _owner,
-        address _priceFeed,
-        address _collateralAsset,
-        address _borrowAsset,
-        uint256 _crOpening,
-        uint256 _crLiquidation,
-        uint256 _collateralPercentagePremiumToLiquidator,
-        uint256 _collateralPercentagePremiumToBorrower
-    ) public initializer {
-        InitializeParams memory params = InitializeParams({
-            owner: _owner,
-            priceFeed: _priceFeed,
-            collateralAsset: _collateralAsset,
-            borrowAsset: _borrowAsset,
-            crOpening: _crOpening,
-            crLiquidation: _crLiquidation,
-            collateralPercentagePremiumToLiquidator: _collateralPercentagePremiumToLiquidator,
-            collateralPercentagePremiumToBorrower: _collateralPercentagePremiumToBorrower
-        });
+    function initialize(InitializeParams calldata params) public initializer {
         state.validateInitialize(params);
 
         __Ownable_init(params.owner);

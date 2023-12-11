@@ -6,10 +6,11 @@ import "../../src/oracle/IPriceFeed.sol";
 
 contract PriceFeedMock is IPriceFeed, Ownable {
     uint256 public price;
+    uint8 public decimals = 18;
 
     event PriceUpdated(uint256 oldPrice, uint256 newPrice);
 
-    constructor(address owner) Ownable(owner) {}
+    constructor(address owner_) Ownable(owner_) {}
 
     function setPrice(uint256 newPrice) public onlyOwner {
         uint256 oldPrice = price;

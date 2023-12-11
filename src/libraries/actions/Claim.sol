@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {LoanLibrary, LoanStatus, Loan} from "@src/libraries/LoanLibrary.sol";
-import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -18,7 +16,6 @@ struct ClaimParams {
 
 library Claim {
     using LoanLibrary for Loan;
-    using VaultLibrary for Vault;
 
     function validateClaim(State storage state, ClaimParams memory params) external view {
         Loan memory loan = state.loans[params.loanId];
@@ -40,11 +37,9 @@ library Claim {
 
     function executeClaim(State storage state, ClaimParams memory params) external {
         Loan storage loan = state.loans[params.loanId];
-        Vault storage protocolBorrowAsset = state.protocolBorrowAsset;
-        User storage lenderUser = state.users[loan.lender];
 
         // @audit amountFVExited can increase if SOLs are created, what if claim/exit happen in different times?
-        protocolBorrowAsset.transfer(lenderUser.borrowAsset, loan.getCredit());
+        state.borrowToken.transferFrom(state.protocolVault, params.lender, loan.getCredit());
         loan.amountFVExited = loan.FV;
 
         emit Events.Claim(params.loanId, params.lender);

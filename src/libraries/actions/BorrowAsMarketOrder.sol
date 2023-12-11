@@ -5,7 +5,6 @@ import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {OfferLibrary, LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
-import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
@@ -26,7 +25,6 @@ struct BorrowAsMarketOrderParams {
 
 library BorrowAsMarketOrder {
     using OfferLibrary for LoanOffer;
-    using VaultLibrary for Vault;
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
@@ -100,7 +98,6 @@ library BorrowAsMarketOrder {
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
-        User storage borrowerUser = state.users[params.borrower];
         User storage lenderUser = state.users[params.lender];
 
         LoanOffer storage loanOffer = lenderUser.loanOffer;
@@ -130,7 +127,7 @@ library BorrowAsMarketOrder {
 
             state.loans.createSOL(loanId, params.lender, params.borrower, deltaAmountIn);
             // NOTE: Transfer deltaAmountOut for each SOL created
-            lenderUser.borrowAsset.transfer(borrowerUser.borrowAsset, deltaAmountOut);
+            state.borrowToken.transferFrom(params.lender, params.borrower, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
         }
@@ -145,20 +142,21 @@ library BorrowAsMarketOrder {
             return;
         }
 
-        User storage borrowerUser = state.users[params.borrower];
         User storage lenderUser = state.users[params.lender];
 
         LoanOffer storage loanOffer = lenderUser.loanOffer;
+
+        loanOffer.maxAmount -= params.amount;
 
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         // solhint-disable-next-line var-name-mixedcase
         uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
         uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, state.crOpening, state.priceFeed.getPrice());
-        borrowerUser.collateralAsset.lock(maxCollateralToLock);
-        borrowerUser.totalDebtCoveredByRealCollateral += FV;
+
+        state.collateralToken.transferFrom(params.borrower, state.protocolVault, maxCollateralToLock); // lock
+        state.debtToken.mint(params.borrower, FV);
         state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
-        lenderUser.borrowAsset.transfer(borrowerUser.borrowAsset, params.amount);
-        loanOffer.maxAmount -= params.amount;
+        state.borrowToken.transferFrom(params.lender, params.borrower, params.amount);
     }
 }

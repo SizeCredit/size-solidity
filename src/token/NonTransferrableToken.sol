@@ -3,11 +3,10 @@ pragma solidity 0.8.20;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-contract NonTransferrableToken is Ownable2Step, ERC20 {
+contract NonTransferrableToken is Ownable, ERC20 {
     // solhint-disable-next-line no-empty-blocks
     constructor(address owner_, string memory name_, string memory symbol_) Ownable(owner_) ERC20(name_, symbol_) {}
 

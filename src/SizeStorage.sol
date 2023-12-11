@@ -5,7 +5,9 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
-import {Vault} from "@src/libraries/VaultLibrary.sol";
+import {CollateralToken} from "@src/token/CollateralToken.sol";
+import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {DebtToken} from "@src/token/DebtToken.sol";
 
 struct State {
     mapping(address => User) users;
@@ -13,14 +15,16 @@ struct State {
     IPriceFeed priceFeed;
     IERC20Metadata collateralAsset;
     IERC20Metadata borrowAsset;
-    Vault protocolCollateralAsset;
-    Vault protocolBorrowAsset;
+    CollateralToken collateralToken;
+    BorrowToken borrowToken;
+    DebtToken debtToken;
     uint256 maxTime;
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 collateralPercentagePremiumToLiquidator;
     uint256 collateralPercentagePremiumToBorrower;
-    uint256 liquidationProfitCollateralAsset;
+    address protocolVault;
+    address feeRecipient;
 }
 
 abstract contract SizeStorage {

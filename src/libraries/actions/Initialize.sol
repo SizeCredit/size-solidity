@@ -5,6 +5,9 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {CollateralToken} from "@src/token/CollateralToken.sol";
+import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
@@ -17,10 +20,15 @@ struct InitializeParams {
     address priceFeed;
     address collateralAsset;
     address borrowAsset;
+    address collateralToken;
+    address borrowToken;
+    address debtToken;
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 collateralPercentagePremiumToLiquidator;
     uint256 collateralPercentagePremiumToBorrower;
+    address protocolVault;
+    address feeRecipient;
 }
 
 library Initialize {
@@ -42,6 +50,21 @@ library Initialize {
 
         // validate borrow asset
         if (params.borrowAsset == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate collateral token
+        if (params.collateralToken == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate borrow token
+        if (params.borrowToken == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate debt token
+        if (params.debtToken == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
@@ -72,16 +95,31 @@ library Initialize {
                 params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToBorrower
             );
         }
+
+        // validate protocolVault
+        if (params.protocolVault == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate feeRecipient
+        if (params.feeRecipient == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
     }
 
     function executeInitialize(State storage state, InitializeParams memory params) external {
         state.priceFeed = IPriceFeed(params.priceFeed);
         state.collateralAsset = IERC20Metadata(params.collateralAsset);
         state.borrowAsset = IERC20Metadata(params.borrowAsset);
+        state.collateralToken = CollateralToken(params.collateralToken);
+        state.borrowToken = BorrowToken(params.borrowToken);
+        state.debtToken = DebtToken(params.debtToken);
         state.crOpening = params.crOpening;
         state.crLiquidation = params.crLiquidation;
         state.collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;
         state.collateralPercentagePremiumToBorrower = params.collateralPercentagePremiumToBorrower;
+        state.protocolVault = params.protocolVault;
+        state.feeRecipient = params.feeRecipient;
 
         // NOTE Necessary so that loanIds start at 1, and 0 is reserved for SOLs
         Loan memory nullLoan;

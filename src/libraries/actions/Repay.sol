@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
-import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -18,11 +17,9 @@ struct RepayParams {
 
 library Repay {
     using LoanLibrary for Loan;
-    using VaultLibrary for Vault;
 
     function validateRepay(State storage state, RepayParams memory params) external view {
         Loan memory loan = state.loans[params.loanId];
-        User memory borrowerUser = state.users[params.borrower];
 
         // validate loanId
         if (!loan.isFOL()) {
@@ -36,8 +33,8 @@ library Repay {
         if (params.borrower != loan.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(params.borrower, loan.borrower);
         }
-        if (borrowerUser.borrowAsset.free < loan.FV) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(borrowerUser.borrowAsset.free, loan.FV);
+        if (state.borrowToken.balanceOf(params.borrower) < loan.FV) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(params.borrower), loan.FV);
         }
 
         // validate protocol
@@ -45,11 +42,9 @@ library Repay {
 
     function executeRepay(State storage state, RepayParams memory params) external {
         Loan storage loan = state.loans[params.loanId];
-        Vault storage protocolBorrowAsset = state.protocolBorrowAsset;
-        User storage borrowerUser = state.users[loan.borrower];
 
-        borrowerUser.borrowAsset.transfer(protocolBorrowAsset, loan.FV);
-        borrowerUser.totalDebtCoveredByRealCollateral -= loan.FV;
+        state.borrowToken.transferFrom(params.borrower, state.protocolVault, loan.FV);
+        state.debtToken.burn(loan.borrower, loan.FV);
         loan.repaid = true;
 
         emit Events.Repay(params.loanId, params.borrower);

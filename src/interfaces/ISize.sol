@@ -10,7 +10,7 @@ interface ISize {
     // increases borrower free cash
     // if FOL
     //  increases borrower locked eth
-    //  increases borrower totalDebtCoveredByRealCollateral
+    //  increases borrower debtAmount
     // decreases loan offer max amount
     // creates new loans
     function borrowAsMarketOrder(
@@ -46,7 +46,7 @@ interface ISize {
     // increases protocol free cash
     // increases lender claim(???)
     // decreases borrower locked eth??
-    // decreases borrower totalDebtCoveredByRealCollateral
+    // decreases borrower debtAmount
     // sets loan to repaid
     function repay(uint256 loanId) external;
 

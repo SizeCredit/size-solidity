@@ -17,9 +17,7 @@ contract ExitTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
         _lendAsLimitOrder(candy, 100e18, 12, 0.03e4, 12);
 
-        User memory aliceUserBefore = size.getUser(alice);
-        User memory bobUserBefore = size.getUser(bob);
-        User memory candyUserBefore = size.getUser(candy);
+        Vars memory _before = _state();
 
         address[] memory lendersToExitTo = new address[](1);
         lendersToExitTo[0] = candy;
@@ -34,15 +32,13 @@ contract ExitTest is BaseTest {
         Loan memory loanAfter = size.getLoan(loanId);
         uint256 loansAfter = size.activeLoans();
 
-        User memory aliceUserAfter = size.getUser(alice);
-        User memory bobUserAfter = size.getUser(bob);
-        User memory candyUserAfter = size.getUser(candy);
+        Vars memory _after = _state();
 
-        assertLt(candyUserAfter.borrowAsset.free, candyUserBefore.borrowAsset.free);
-        assertGt(aliceUserAfter.borrowAsset.free, aliceUserBefore.borrowAsset.free);
+        assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
+        assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
         assertLt(loanOfferAfter.maxAmount, loanOfferBefore.maxAmount);
         assertGt(loanAfter.amountFVExited, loanBefore.amountFVExited);
-        assertEq(bobUserBefore, bobUserAfter);
+        assertEq(_before.bob, _after.bob);
         assertGt(loansAfter, loansBefore);
     }
 
@@ -54,8 +50,7 @@ contract ExitTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 30e18, 12);
 
-        User memory aliceUserBefore = size.getUser(alice);
-        User memory bobUserBefore = size.getUser(bob);
+        Vars memory _before = _state();
 
         address[] memory lendersToExitTo = new address[](1);
         lendersToExitTo[0] = alice;
@@ -70,13 +65,12 @@ contract ExitTest is BaseTest {
         Loan memory loanAfter = size.getLoan(loanId);
         uint256 loansAfter = size.activeLoans();
 
-        User memory aliceUserAfter = size.getUser(alice);
-        User memory bobUserAfter = size.getUser(bob);
+        Vars memory _after = _state();
 
-        assertEq(aliceUserAfter, aliceUserBefore);
+        assertEq(_before.alice, _after.alice);
         assertLt(loanOfferAfter.maxAmount, loanOfferBefore.maxAmount);
         assertGt(loanAfter.amountFVExited, loanBefore.amountFVExited);
-        assertEq(bobUserBefore, bobUserAfter);
+        assertEq(_after.bob, _before.bob);
         assertGt(loansAfter, loansBefore);
     }
 }

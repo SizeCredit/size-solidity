@@ -4,25 +4,21 @@ pragma solidity 0.8.20;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {BaseTest} from "./BaseTest.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+import {UserView} from "@src/libraries/UserLibrary.sol";
 
 contract WithdrawTest is BaseTest {
     function test_SizeWithdraw_withdraw_decreases_user_balance() public {
         _deposit(alice, address(usdc), 12e6);
         _deposit(alice, address(weth), 23e18);
-        User memory aliceUser = size.getUser(alice);
-        assertEq(aliceUser.borrowAsset.free, 12e18);
-        assertEq(aliceUser.borrowAsset.locked, 0);
-        assertEq(aliceUser.collateralAsset.free, 23e18);
-        assertEq(aliceUser.collateralAsset.locked, 0);
+        UserView memory aliceUser = size.getUserView(alice);
+        assertEq(aliceUser.borrowAmount, 12e18);
+        assertEq(aliceUser.collateralAmount, 23e18);
 
         _withdraw(alice, address(usdc), 9e6);
         _withdraw(alice, address(weth), 7e18);
-        aliceUser = size.getUser(alice);
-        assertEq(aliceUser.borrowAsset.free, 3e18);
-        assertEq(aliceUser.borrowAsset.locked, 0);
-        assertEq(aliceUser.collateralAsset.free, 16e18);
-        assertEq(aliceUser.collateralAsset.locked, 0);
+        aliceUser = size.getUserView(alice);
+        assertEq(aliceUser.borrowAmount, 3e18);
+        assertEq(aliceUser.collateralAmount, 16e18);
     }
 
     function test_SizeWithdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
@@ -33,22 +29,18 @@ contract WithdrawTest is BaseTest {
 
         _deposit(alice, address(usdc), x * 1e6);
         _deposit(alice, address(weth), y * 1e18);
-        User memory aliceUser = size.getUser(alice);
-        assertEq(aliceUser.borrowAsset.free, x * 1e18);
-        assertEq(aliceUser.borrowAsset.locked, 0);
-        assertEq(aliceUser.collateralAsset.free, y * 1e18);
-        assertEq(aliceUser.collateralAsset.locked, 0);
+        UserView memory aliceUser = size.getUserView(alice);
+        assertEq(aliceUser.borrowAmount, x * 1e18);
+        assertEq(aliceUser.collateralAmount, y * 1e18);
 
         z = bound(z, 1, x);
         w = bound(w, 1, y);
 
         _withdraw(alice, address(usdc), z * 1e6);
         _withdraw(alice, address(weth), w * 1e18);
-        aliceUser = size.getUser(alice);
-        assertEq(aliceUser.borrowAsset.free, (x - z) * 1e18);
-        assertEq(aliceUser.borrowAsset.locked, 0);
-        assertEq(aliceUser.collateralAsset.free, (y - w) * 1e18);
-        assertEq(aliceUser.collateralAsset.locked, 0);
+        aliceUser = size.getUserView(alice);
+        assertEq(aliceUser.borrowAmount, (x - z) * 1e18);
+        assertEq(aliceUser.collateralAmount, (y - w) * 1e18);
     }
 
     function test_SizeWithdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
@@ -61,18 +53,14 @@ contract WithdrawTest is BaseTest {
         IERC20Metadata(usdc).approve(address(size), valueUSDC);
         IERC20Metadata(weth).approve(address(size), valueWETH);
 
-        assertEq(usdc.balanceOf(address(size)), 0);
         assertEq(usdc.balanceOf(address(alice)), valueUSDC);
-        assertEq(weth.balanceOf(address(size)), 0);
         assertEq(weth.balanceOf(address(alice)), valueWETH);
 
         size.deposit(address(usdc), valueUSDC);
         size.deposit(address(weth), valueWETH);
 
         assertEq(usdc.balanceOf(address(size)), valueUSDC);
-        assertEq(usdc.balanceOf(address(alice)), 0);
         assertEq(weth.balanceOf(address(size)), valueWETH);
-        assertEq(weth.balanceOf(address(alice)), 0);
 
         size.withdraw(address(usdc), valueUSDC);
         size.withdraw(address(weth), valueWETH);

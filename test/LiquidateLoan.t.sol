@@ -16,7 +16,7 @@ contract LiquidateLoanTest is BaseTest {
         _deposit(bob, 100e18, 100e18);
         _deposit(liquidator, 100e18, 100e18);
 
-        assertEq(size.getCollateralRatio(bob), type(uint256).max);
+        assertEq(size.collateralRatio(bob), type(uint256).max);
 
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
         uint256 amount = 15e18;
@@ -27,7 +27,7 @@ contract LiquidateLoanTest is BaseTest {
 
         assertEq(size.getAssignedCollateral(loanId), assigned);
         assertEq(size.getDebt(loanId), debt);
-        assertEq(size.getCollateralRatio(bob), assigned * 1e4 / (debt * 1));
+        assertEq(size.collateralRatio(bob), assigned * 1e4 / (debt * 1));
         assertTrue(!size.isLiquidatable(bob));
         assertTrue(!size.isLiquidatable(loanId));
 
@@ -35,7 +35,7 @@ contract LiquidateLoanTest is BaseTest {
 
         assertEq(size.getAssignedCollateral(loanId), assigned);
         assertEq(size.getDebt(loanId), debt);
-        assertEq(size.getCollateralRatio(bob), assigned * 1e4 / (debt * 5));
+        assertEq(size.collateralRatio(bob), assigned * 1e4 / (debt * 5));
         assertTrue(size.isLiquidatable(bob));
         assertTrue(size.isLiquidatable(loanId));
 
@@ -47,24 +47,25 @@ contract LiquidateLoanTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.liquidator.borrowAsset.free, _before.liquidator.borrowAsset.free - debt);
-        assertEq(_after.protocolBorrowAsset.free, _before.protocolBorrowAsset.free + debt);
+        assertEq(_after.liquidator.borrowAmount, _before.liquidator.borrowAmount - debt);
+        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + debt);
         assertEq(
-            _after.protocolCollateralAsset.free,
-            _before.protocolCollateralAsset.free
-                + collateralRemainder * size.collateralPercentagePremiumToProtocol() / PERCENT
+            _after.feeRecipientCollateralAmount,
+            _before.feeRecipientCollateralAmount
+                + collateralRemainder * size.collateralPercentagePremiumToProtocol() / PERCENT,
+            "here"
         );
         assertEq(
-            _after.bob.collateralAsset.free,
-            _before.bob.collateralAsset.free - (debt * 5)
+            _after.bob.collateralAmount,
+            _before.bob.collateralAmount - (debt * 5)
                 - collateralRemainder
                     * (size.collateralPercentagePremiumToProtocol() + size.collateralPercentagePremiumToLiquidator()) / PERCENT,
-            _before.bob.collateralAsset.free - (debt * 5) - collateralRemainder
+            _before.bob.collateralAmount - (debt * 5) - collateralRemainder
                 + collateralRemainder * size.collateralPercentagePremiumToBorrower() / PERCENT
         );
         assertEq(
-            _after.liquidator.collateralAsset.free,
-            _before.liquidator.collateralAsset.free + (debt * 5)
+            _after.liquidator.collateralAmount,
+            _before.liquidator.collateralAmount + (debt * 5)
                 + collateralRemainder * size.collateralPercentagePremiumToLiquidator() / PERCENT
         );
     }

@@ -4,10 +4,10 @@ pragma solidity 0.8.20;
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {User} from "@src/libraries/UserLibrary.sol";
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {MathLibrary} from "@src/libraries/MathLibrary.sol";
 import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
-import {VaultLibrary, Vault} from "@src/libraries/VaultLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -22,7 +22,6 @@ struct DepositParams {
 
 library Deposit {
     using LoanLibrary for Loan;
-    using VaultLibrary for Vault;
     using SafeERC20 for IERC20Metadata;
 
     function validateDeposit(State storage state, DepositParams memory params) external view {
@@ -40,13 +39,14 @@ library Deposit {
     }
 
     function executeDeposit(State storage state, DepositParams memory params) external {
-        User storage user = state.users[params.account];
-        Vault storage vault = params.token == address(state.collateralAsset) ? user.collateralAsset : user.borrowAsset;
+        NonTransferrableToken nonTransferrableToken = params.token == address(state.collateralAsset)
+            ? NonTransferrableToken(state.collateralToken)
+            : NonTransferrableToken(state.borrowToken);
         IERC20Metadata token = IERC20Metadata(params.token);
-        uint256 wad = VaultLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
+        uint256 wad = MathLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
 
-        vault.free += wad;
         token.safeTransferFrom(params.account, address(this), params.value);
+        nonTransferrableToken.mint(params.account, wad);
 
         emit Events.Deposit(params.token, wad);
     }

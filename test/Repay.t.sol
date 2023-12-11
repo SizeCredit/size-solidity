@@ -28,9 +28,9 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.totalDebtCoveredByRealCollateral, _before.bob.totalDebtCoveredByRealCollateral - FV);
-        assertEq(_after.bob.borrowAsset.free, _before.bob.borrowAsset.free - FV);
-        assertEq(_after.protocolBorrowAsset.free, _before.protocolBorrowAsset.free + FV);
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - FV);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - FV);
+        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + FV);
         assertTrue(size.getLoan(loanId).repaid);
     }
 
@@ -50,9 +50,9 @@ contract RepayTest is BaseTest {
 
         Vars memory _overdue = _state();
 
-        assertEq(_overdue.bob.totalDebtCoveredByRealCollateral, _before.bob.totalDebtCoveredByRealCollateral);
-        assertEq(_overdue.bob.borrowAsset.free, _before.bob.borrowAsset.free);
-        assertEq(_overdue.protocolBorrowAsset.free, _before.protocolBorrowAsset.free);
+        assertEq(_overdue.bob.debtAmount, _before.bob.debtAmount);
+        assertEq(_overdue.bob.borrowAmount, _before.bob.borrowAmount);
+        assertEq(_overdue.protocolBorrowAmount, _before.protocolBorrowAmount);
         assertTrue(!size.getLoan(loanId).repaid);
         assertEq(size.getLoanStatus(loanId), LoanStatus.OVERDUE);
 
@@ -60,9 +60,9 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.totalDebtCoveredByRealCollateral, _before.bob.totalDebtCoveredByRealCollateral - FV);
-        assertEq(_after.bob.borrowAsset.free, _before.bob.borrowAsset.free - FV);
-        assertEq(_after.protocolBorrowAsset.free, _before.protocolBorrowAsset.free + FV);
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - FV);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - FV);
+        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + FV);
         assertTrue(size.getLoan(loanId).repaid);
         assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
     }

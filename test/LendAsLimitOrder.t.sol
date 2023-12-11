@@ -18,8 +18,8 @@ contract LendAsLimitOrderTest is BaseTest {
 
     function test_LendAsLimitOrder_lendAsLimitOrder_adds_loanOffer_to_orderbook() public {
         _deposit(alice, 100e18, 100e18);
-        assertTrue(_state().alice.loanOffer.isNull());
+        assertTrue(_state().alice.user.loanOffer.isNull());
         _lendAsLimitOrder(alice, 50e18, 12, 1.01e4, 12);
-        assertTrue(!_state().alice.loanOffer.isNull());
+        assertTrue(!_state().alice.user.loanOffer.isNull());
     }
 }

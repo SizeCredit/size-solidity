@@ -2,19 +2,15 @@
 pragma solidity 0.8.20;
 
 import {Test} from "forge-std/Test.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+import {UserView} from "@src/libraries/UserLibrary.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
 abstract contract AssertsHelper is Test {
-    function assertEq(User memory a, User memory b) internal {
-        assertEq(a.borrowAsset.free, b.borrowAsset.free, ".borrowAsset.free");
-        assertEq(a.borrowAsset.locked, b.borrowAsset.locked, ".borrowAsset.locked");
-        assertEq(a.collateralAsset.free, b.collateralAsset.free, ".collateralAsset.free");
-        assertEq(a.collateralAsset.locked, b.collateralAsset.locked, ".collateralAsset.locked");
-        assertEq(
-            a.totalDebtCoveredByRealCollateral, b.totalDebtCoveredByRealCollateral, ".totalDebtCoveredByRealCollateral"
-        );
+    function assertEq(UserView memory a, UserView memory b) internal {
+        assertEq(a.collateralAmount, b.collateralAmount, "collateralAmount");
+        assertEq(a.borrowAmount, b.borrowAmount, "borrowAmount");
+        assertEq(a.debtAmount, b.debtAmount, "debtAmount");
     }
 
     function assertEq(uint256 a, uint256 b, uint256 c) internal {

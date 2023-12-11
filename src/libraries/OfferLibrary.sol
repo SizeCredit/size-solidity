@@ -5,6 +5,8 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
+
 struct LoanOffer {
     uint256 maxAmount;
     uint256 maxDueDate;
@@ -30,10 +32,6 @@ library OfferLibrary {
             && self.curveRelativeTime.rates.length == 0;
     }
 
-    function getFV(LoanOffer storage self, uint256 amount, uint256 dueDate) public view returns (uint256) {
-        return FixedPointMathLib.mulDivUp(PERCENT + getRate(self, dueDate), amount, PERCENT);
-    }
-
     function getRate(LoanOffer memory self, uint256 dueDate) public view returns (uint256) {
         return _getRate(self.curveRelativeTime, dueDate);
     }
@@ -43,11 +41,11 @@ library OfferLibrary {
     }
 
     function _getRate(YieldCurve memory curveRelativeTime, uint256 dueDate) internal view returns (uint256) {
-        if (dueDate < block.timestamp) revert OfferLibrary__PastDueDate();
+        if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
         uint256 deltaT = dueDate - block.timestamp;
         uint256 length = curveRelativeTime.timeBuckets.length;
         if (deltaT < curveRelativeTime.timeBuckets[0] || deltaT > curveRelativeTime.timeBuckets[length - 1]) {
-            revert OfferLibrary__DueDateOutOfRange(
+            revert Errors.DUE_DATE_OUT_OF_RANTE(
                 deltaT, curveRelativeTime.timeBuckets[0], curveRelativeTime.timeBuckets[length - 1]
             );
         } else {

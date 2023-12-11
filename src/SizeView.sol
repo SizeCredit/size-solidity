@@ -2,35 +2,33 @@
 pragma solidity 0.8.20;
 
 import {SizeStorage} from "@src/SizeStorage.sol";
-import {User, UserLibrary} from "@src/libraries/UserLibrary.sol";
+import {User, UserView} from "@src/libraries/UserLibrary.sol";
+import {LiquidateLoan} from "@src/libraries/actions/LiquidateLoan.sol";
 import {Loan, LoanStatus, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {Vault} from "@src/libraries/VaultLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 abstract contract SizeView is SizeStorage {
-    using UserLibrary for User;
     using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
     using LoanLibrary for Loan;
 
-    function getCollateralRatio(address user) public view returns (uint256) {
-        return state.users[user].collateralRatio(state.priceFeed.getPrice());
+    function collateralRatio(address user) public view returns (uint256) {
+        return LiquidateLoan.collateralRatio(state, user);
     }
 
     function isLiquidatable(address user) public view returns (bool) {
-        return state.users[user].isLiquidatable(state.priceFeed.getPrice(), state.crLiquidation);
+        return LiquidateLoan.isLiquidatable(state, user);
     }
 
     function isLiquidatable(uint256 loanId) public view returns (bool) {
         Loan memory loan = state.loans[loanId];
-        return state.users[loan.borrower].isLiquidatable(state.priceFeed.getPrice(), state.crLiquidation);
+        return LiquidateLoan.isLiquidatable(state, loan.borrower);
     }
 
     function getAssignedCollateral(uint256 loanId) public view returns (uint256) {
         Loan memory loan = state.loans[loanId];
-        User memory borrower = state.users[loan.borrower];
-        return borrower.getAssignedCollateral(loan.FV);
+        return LiquidateLoan.getAssignedCollateral(state, loan);
     }
 
     function getDebt(uint256 loanId) public view returns (uint256) {
@@ -57,12 +55,13 @@ abstract contract SizeView is SizeStorage {
         return PERCENT - (state.collateralPercentagePremiumToBorrower + state.collateralPercentagePremiumToLiquidator);
     }
 
-    function getUser(address user) public view returns (User memory) {
-        return state.users[user];
-    }
-
-    function getProtocolVault() public view returns (Vault memory, Vault memory) {
-        return (state.protocolCollateralAsset, state.protocolBorrowAsset);
+    function getUserView(address user) public view returns (UserView memory) {
+        return UserView({
+            user: state.users[user],
+            collateralAmount: state.collateralToken.balanceOf(user),
+            borrowAmount: state.borrowToken.balanceOf(user),
+            debtAmount: state.debtToken.balanceOf(user)
+        });
     }
 
     function activeLoans() public view returns (uint256) {
