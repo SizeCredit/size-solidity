@@ -67,3 +67,4 @@ References
 - Protocol does not support tokens with more than 18 decimals
 - All features except deposits/withdrawals are paused in case Chainlink oracles are stale
 - Price feeds must be redeployed and updated on the `Size` smart contract in case any chainlink configuration changes (stale price, decimals)
+
