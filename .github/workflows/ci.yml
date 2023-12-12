@@ -49,12 +49,7 @@ jobs:
           ./script/update_readme_coverage.sh
           git add README.md
           git commit -m "Update coverage [skip ci]" || true
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
+          git push
 
   slither:
     strategy:
@@ -113,11 +108,7 @@ jobs:
           git config --local user.name "Size"
           git add types/
           git commit -m "Update types [skip ci]" || true
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          git push
 
   solhint:
     strategy:
