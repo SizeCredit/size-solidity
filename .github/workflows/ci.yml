@@ -41,7 +41,7 @@ jobs:
 
       - name: Coverage
         run: |
-          forge coverage --report lcov
+          forge coverage --ir-minimum --report lcov
           lcov --remove lcov.info -o lcov.info 'test/*' 'script/*'
           genhtml lcov.info -o report --branch-coverage
         id: coverage
@@ -51,6 +51,12 @@ jobs:
         with:
           name: coverage
           path: report/
+
+      - name: Report coverage
+        uses: romeovs/lcov-reporter-action@v0.2.21
+        with:
+          lcov-file: lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   slither:
     strategy:
