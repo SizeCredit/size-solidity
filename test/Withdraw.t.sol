@@ -5,6 +5,8 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {BaseTest} from "./BaseTest.sol";
 import {UserView} from "@src/libraries/UserLibrary.sol";
+import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 contract WithdrawTest is BaseTest {
     function test_SizeWithdraw_withdraw_decreases_user_balance() public {
@@ -56,14 +58,16 @@ contract WithdrawTest is BaseTest {
         assertEq(usdc.balanceOf(address(alice)), valueUSDC);
         assertEq(weth.balanceOf(address(alice)), valueWETH);
 
-        size.deposit(address(usdc), valueUSDC);
-        size.deposit(address(weth), valueWETH);
+        size.deposit(DepositParams({token: address(usdc), amount: valueUSDC}));
+
+        size.deposit(DepositParams({token: address(weth), amount: valueWETH}));
 
         assertEq(usdc.balanceOf(address(size)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), valueWETH);
 
-        size.withdraw(address(usdc), valueUSDC);
-        size.withdraw(address(weth), valueWETH);
+        size.withdraw(WithdrawParams({token: address(usdc), amount: valueUSDC}));
+
+        size.withdraw(WithdrawParams({token: address(weth), amount: valueWETH}));
 
         assertEq(usdc.balanceOf(address(size)), 0);
         assertEq(usdc.balanceOf(address(alice)), valueUSDC);

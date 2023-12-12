@@ -4,16 +4,12 @@ pragma solidity 0.8.20;
 import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest} from "./BaseTest.sol";
-import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
 contract BorrowAsLimitOrderValidationTest is BaseTest {
     using OfferLibrary for BorrowOffer;
@@ -28,17 +24,32 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
         rates1[0] = 1.01e4;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
-        size.borrowAsLimitOrder(maxAmount, timeBuckets, rates1);
+        size.borrowAsLimitOrder(
+            BorrowAsLimitOrderParams({
+                maxAmount: maxAmount,
+                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates1})
+            })
+        );
 
         uint256[] memory empty;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
-        size.borrowAsLimitOrder(maxAmount, timeBuckets, empty);
+        size.borrowAsLimitOrder(
+            BorrowAsLimitOrderParams({
+                maxAmount: maxAmount,
+                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: empty})
+            })
+        );
 
         uint256[] memory rates = new uint256[](2);
         rates[0] = 1.01e4;
         rates[1] = 1.02e4;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        size.borrowAsLimitOrder(0, timeBuckets, rates);
+        size.borrowAsLimitOrder(
+            BorrowAsLimitOrderParams({
+                maxAmount: 0,
+                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
+            })
+        );
     }
 }

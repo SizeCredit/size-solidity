@@ -15,7 +15,6 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct ExitParams {
-    address exiter;
     uint256 loanId;
     uint256 amount;
     uint256 dueDate;
@@ -29,9 +28,9 @@ library Exit {
 
     function validateExit(State storage state, ExitParams memory params) external view {
         Loan memory loan = state.loans[params.loanId];
-        // validate exiter
-        if (loan.lender != params.exiter) {
-            revert Errors.EXITER_IS_NOT_LENDER(params.exiter, loan.lender);
+        // validate msg.sender
+        if (loan.lender != msg.sender) {
+            revert Errors.EXITER_IS_NOT_LENDER(msg.sender, loan.lender);
         }
 
         // validate loanId
@@ -64,7 +63,7 @@ library Exit {
                 revert Errors.INVALID_LOAN_OFFER(lender);
             }
             // @audit should we prevent exit to self?
-            // if (lender == params.exiter) {
+            // if (lender == msg.sender) {
             //     revert Errors.INVALID_LENDER(lender);
             // }
         }
@@ -75,7 +74,7 @@ library Exit {
     // - the other lenders are the makers
     // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
     function executeExit(State storage state, ExitParams memory params) external returns (uint256 amountInLeft) {
-        emit Events.Exit(params.exiter, params.loanId, params.amount, params.dueDate, params.lendersToExitTo);
+        emit Events.Exit(msg.sender, params.loanId, params.amount, params.dueDate, params.lendersToExitTo);
 
         amountInLeft = params.amount;
         for (uint256 i = 0; i < params.lendersToExitTo.length; ++i) {
@@ -100,8 +99,8 @@ library Exit {
                 deltaAmountOut = FixedPointMathLib.mulDivUp(deltaAmountIn, PERCENT, r);
             }
 
-            state.loans.createSOL(params.loanId, lender, params.exiter, deltaAmountIn);
-            state.borrowToken.transferFrom(lender, params.exiter, deltaAmountOut);
+            state.loans.createSOL(params.loanId, lender, msg.sender, deltaAmountIn);
+            state.borrowToken.transferFrom(lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;
         }

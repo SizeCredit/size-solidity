@@ -15,9 +15,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct WithdrawParams {
-    address account;
     address token;
-    uint256 value;
+    uint256 amount;
 }
 
 library Withdraw {
@@ -25,15 +24,15 @@ library Withdraw {
     using SafeERC20 for IERC20Metadata;
 
     function validateWithdraw(State storage state, WithdrawParams memory params) external view {
-        // validte account
+        // validte msg.sender
 
         // validate token
         if (params.token != address(state.collateralAsset) && params.token != address(state.borrowAsset)) {
             revert Errors.INVALID_TOKEN(params.token);
         }
 
-        // validate value
-        if (params.value == 0) {
+        // validate amount
+        if (params.amount == 0) {
             revert Errors.NULL_AMOUNT();
         }
     }
@@ -43,10 +42,10 @@ library Withdraw {
             ? NonTransferrableToken(state.collateralToken)
             : NonTransferrableToken(state.borrowToken);
         IERC20Metadata token = IERC20Metadata(params.token);
-        uint256 wad = MathLibrary.valueToWad(params.value, IERC20Metadata(params.token).decimals());
+        uint256 wad = MathLibrary.amountToWad(params.amount, IERC20Metadata(params.token).decimals());
 
-        nonTransferrableToken.burn(params.account, wad);
-        token.safeTransfer(params.account, params.value);
+        nonTransferrableToken.burn(msg.sender, wad);
+        token.safeTransfer(msg.sender, params.amount);
 
         emit Events.Withdraw(params.token, wad);
     }

@@ -11,7 +11,6 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct LendAsLimitOrderParams {
-    address lender;
     uint256 maxAmount;
     uint256 maxDueDate;
     YieldCurve curveRelativeTime;
@@ -19,15 +18,14 @@ struct LendAsLimitOrderParams {
 
 library LendAsLimitOrder {
     function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams memory params) external view {
-        // validate params.lender
-        // N/A
+        // validate msg.sender
 
         // validate params.maxAmount
         if (params.maxAmount == 0) {
             revert Errors.NULL_AMOUNT();
         }
-        if (params.maxAmount > state.borrowToken.balanceOf(params.lender)) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(params.lender), params.maxAmount);
+        if (params.maxAmount > state.borrowToken.balanceOf(msg.sender)) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(msg.sender), params.maxAmount);
         }
 
         // validate maxDueDate
@@ -48,7 +46,7 @@ library LendAsLimitOrder {
     }
 
     function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams memory params) external {
-        state.users[params.lender].loanOffer = LoanOffer({
+        state.users[msg.sender].loanOffer = LoanOffer({
             maxAmount: params.maxAmount,
             maxDueDate: params.maxDueDate,
             curveRelativeTime: params.curveRelativeTime

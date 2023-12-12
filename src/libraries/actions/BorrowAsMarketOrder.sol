@@ -15,12 +15,11 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct BorrowAsMarketOrderParams {
-    address borrower;
     address lender;
     uint256 amount;
     uint256 dueDate;
     bool exactAmountIn;
-    uint256[] virtualCollateralLoansIds;
+    uint256[] virtualCollateralLoanIds;
 }
 
 library BorrowAsMarketOrder {
@@ -32,8 +31,7 @@ library BorrowAsMarketOrder {
         User memory lenderUser = state.users[params.lender];
         LoanOffer memory loanOffer = lenderUser.loanOffer;
 
-        // validate params.borrower
-        // N/A
+        // validate msg.sender
 
         // validate params.lender
         if (loanOffer.isNull()) {
@@ -59,13 +57,13 @@ library BorrowAsMarketOrder {
         // validate params.exactAmountIn
         // N/A
 
-        // validate params.virtualCollateralLoansIds
-        for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {
-            uint256 loanId = params.virtualCollateralLoansIds[i];
+        // validate params.virtualCollateralLoanIds
+        for (uint256 i = 0; i < params.virtualCollateralLoanIds.length; ++i) {
+            uint256 loanId = params.virtualCollateralLoanIds[i];
             Loan memory loan = state.loans[loanId];
 
-            if (params.borrower != loan.lender) {
-                revert Errors.BORROWER_IS_NOT_LENDER(params.borrower, loan.lender);
+            if (msg.sender != loan.lender) {
+                revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, loan.lender);
             }
             if (params.dueDate < loan.getDueDate(state.loans)) {
                 revert Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(state.loans));
@@ -75,12 +73,12 @@ library BorrowAsMarketOrder {
 
     function executeBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external {
         emit Events.BorrowAsMarketOrder(
-            params.borrower,
+            msg.sender,
             params.lender,
             params.amount,
             params.dueDate,
             params.exactAmountIn,
-            params.virtualCollateralLoansIds
+            params.virtualCollateralLoanIds
         );
 
         params.amount = _borrowWithVirtualCollateral(state, params);
@@ -106,13 +104,13 @@ library BorrowAsMarketOrder {
 
         amountOutLeft = params.exactAmountIn ? FixedPointMathLib.mulDivUp(params.amount, PERCENT, r) : params.amount;
 
-        for (uint256 i = 0; i < params.virtualCollateralLoansIds.length; ++i) {
+        for (uint256 i = 0; i < params.virtualCollateralLoanIds.length; ++i) {
             // Full amount borrowed
             if (amountOutLeft == 0) {
                 break;
             }
 
-            uint256 loanId = params.virtualCollateralLoansIds[i];
+            uint256 loanId = params.virtualCollateralLoanIds[i];
             Loan memory loan = state.loans[loanId];
 
             uint256 deltaAmountIn;
@@ -125,9 +123,9 @@ library BorrowAsMarketOrder {
                 deltaAmountOut = amountOutLeft;
             }
 
-            state.loans.createSOL(loanId, params.lender, params.borrower, deltaAmountIn);
+            state.loans.createSOL(loanId, params.lender, msg.sender, deltaAmountIn);
             // NOTE: Transfer deltaAmountOut for each SOL created
-            state.borrowToken.transferFrom(params.lender, params.borrower, deltaAmountOut);
+            state.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
         }
@@ -154,9 +152,9 @@ library BorrowAsMarketOrder {
         uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
         uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, state.crOpening, state.priceFeed.getPrice());
 
-        state.collateralToken.transferFrom(params.borrower, state.protocolVault, maxCollateralToLock); // lock
-        state.debtToken.mint(params.borrower, FV);
-        state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
-        state.borrowToken.transferFrom(params.lender, params.borrower, params.amount);
+        state.collateralToken.transferFrom(msg.sender, state.protocolVault, maxCollateralToLock); // lock
+        state.debtToken.mint(msg.sender, FV);
+        state.loans.createFOL(params.lender, msg.sender, FV, params.dueDate);
+        state.borrowToken.transferFrom(params.lender, msg.sender, params.amount);
     }
 }

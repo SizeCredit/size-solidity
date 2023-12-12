@@ -1,10 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-interface ISize {
-    function deposit(address token, uint256 value) external;
+import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
+import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
+import {ExitParams} from "@src/libraries/actions/Exit.sol";
+import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {ClaimParams} from "@src/libraries/actions/Claim.sol";
+import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 
-    function withdraw(address token, uint256 value) external;
+interface ISize {
+    function deposit(DepositParams memory) external;
+
+    function withdraw(WithdrawParams memory) external;
 
     // decreases lender free cash
     // increases borrower free cash
@@ -13,24 +24,13 @@ interface ISize {
     //  increases borrower debtAmount
     // decreases loan offer max amount
     // creates new loans
-    function borrowAsMarketOrder(
-        address lender,
-        uint256 amount,
-        uint256 dueDate,
-        bool exactAmountIn,
-        uint256[] memory virtualCollateralLoansIds
-    ) external;
+    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external;
 
-    function borrowAsLimitOrder(uint256 maxAmount, uint256[] calldata timeBuckets, uint256[] calldata rates) external;
+    function borrowAsLimitOrder(BorrowAsLimitOrderParams memory params) external;
 
-    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn) external;
+    function lendAsMarketOrder(LendAsMarketOrderParams memory params) external;
 
-    function lendAsLimitOrder(
-        uint256 maxAmount,
-        uint256 maxDueDate,
-        uint256[] calldata timeBuckets,
-        uint256[] calldata rates
-    ) external;
+    function lendAsLimitOrder(LendAsLimitOrderParams memory params) external;
 
     // decreases loanOffer lender free cash
     // increases msg.sender free cash
@@ -38,9 +38,7 @@ interface ISize {
     // decreases loanOffers max amount
     // increases loan amountFVExited
     // creates a new SOL
-    function exit(uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
-        external
-        returns (uint256 amountInLeft);
+    function exit(ExitParams memory params) external returns (uint256 amountInLeft);
 
     // decreases borrower free cash
     // increases protocol free cash
@@ -48,9 +46,9 @@ interface ISize {
     // decreases borrower locked eth??
     // decreases borrower debtAmount
     // sets loan to repaid
-    function repay(uint256 loanId) external;
+    function repay(RepayParams memory params) external;
 
-    function claim(uint256 loanId) external;
+    function claim(ClaimParams memory params) external;
 
-    function liquidateLoan(uint256 loanId) external returns (uint256);
+    function liquidateLoan(LiquidateLoanParams memory params) external returns (uint256);
 }

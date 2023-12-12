@@ -12,7 +12,6 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct RepayParams {
     uint256 loanId;
-    address borrower;
 }
 
 library Repay {
@@ -21,6 +20,14 @@ library Repay {
     function validateRepay(State storage state, RepayParams memory params) external view {
         Loan memory loan = state.loans[params.loanId];
 
+        // validate msg.sender
+        if (msg.sender != loan.borrower) {
+            revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.borrower);
+        }
+        if (state.borrowToken.balanceOf(msg.sender) < loan.FV) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(msg.sender), loan.FV);
+        }
+
         // validate loanId
         if (!loan.isFOL()) {
             revert Errors.ONLY_FOL_CAN_BE_REPAID(params.loanId);
@@ -28,25 +35,15 @@ library Repay {
         if (loan.repaid) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanId);
         }
-
-        // validate borrower
-        if (params.borrower != loan.borrower) {
-            revert Errors.REPAYER_IS_NOT_BORROWER(params.borrower, loan.borrower);
-        }
-        if (state.borrowToken.balanceOf(params.borrower) < loan.FV) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(params.borrower), loan.FV);
-        }
-
-        // validate protocol
     }
 
     function executeRepay(State storage state, RepayParams memory params) external {
         Loan storage loan = state.loans[params.loanId];
 
-        state.borrowToken.transferFrom(params.borrower, state.protocolVault, loan.FV);
+        state.borrowToken.transferFrom(msg.sender, state.protocolVault, loan.FV);
         state.debtToken.burn(loan.borrower, loan.FV);
         loan.repaid = true;
 
-        emit Events.Repay(params.loanId, params.borrower);
+        emit Events.Repay(params.loanId, msg.sender);
     }
 }

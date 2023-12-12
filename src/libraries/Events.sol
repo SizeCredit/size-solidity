@@ -26,7 +26,7 @@ library Events {
         uint256 amount,
         uint256 dueDate,
         bool exactAmountIn,
-        uint256[] virtualCollateralLoansIds
+        uint256[] virtualCollateralLoanIds
     );
     event Exit(
         address indexed exiter, uint256 indexed loanId, uint256 amount, uint256 dueDate, address[] lendersToExitTo

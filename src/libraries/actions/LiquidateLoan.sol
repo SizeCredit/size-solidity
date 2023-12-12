@@ -15,7 +15,6 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct LiquidateLoanParams {
     uint256 loanId;
-    address liquidator;
 }
 
 library LiquidateLoan {
@@ -57,6 +56,8 @@ library LiquidateLoan {
         uint256 assignedCollateral = getAssignedCollateral(state, loan);
         uint256 amountCollateralDebtCoverage = (loan.getDebt() * 1e18) / state.priceFeed.getPrice();
 
+        // validate msg.sender
+
         // validate loanId
         if (!isLiquidatable(state, loan.borrower)) {
             revert Errors.LOAN_NOT_LIQUIDATABLE(params.loanId);
@@ -71,16 +72,12 @@ library LiquidateLoan {
         if (assignedCollateral < amountCollateralDebtCoverage) {
             revert Errors.LIQUIDATION_AT_LOSS(params.loanId);
         }
-
-        // validate liquidator
-
-        // validate protocol
     }
 
     function executeLiquidateLoan(State storage state, LiquidateLoanParams memory params) external returns (uint256) {
         Loan storage loan = state.loans[params.loanId];
 
-        emit Events.LiquidateLoan(params.loanId, params.liquidator);
+        emit Events.LiquidateLoan(params.loanId, msg.sender);
 
         uint256 price = state.priceFeed.getPrice();
 
@@ -97,10 +94,8 @@ library LiquidateLoan {
             collateralRemainder - collateralRemainderToLiquidator - collateralRemainderToBorrower;
 
         state.collateralToken.transferFrom(loan.borrower, state.feeRecipient, collateralRemainderToProtocol);
-        state.collateralToken.transferFrom(
-            loan.borrower, params.liquidator, collateralRemainderToLiquidator + debtCollateral
-        );
-        state.borrowToken.transferFrom(params.liquidator, state.protocolVault, debtBorrowAsset);
+        state.collateralToken.transferFrom(loan.borrower, msg.sender, collateralRemainderToLiquidator + debtCollateral);
+        state.borrowToken.transferFrom(msg.sender, state.protocolVault, debtBorrowAsset);
 
         return debtCollateral + collateralRemainderToLiquidator;
     }

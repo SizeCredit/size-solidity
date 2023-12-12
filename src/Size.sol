@@ -57,125 +57,64 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /// @inheritdoc ISize
-    function deposit(address token, uint256 value) public override(ISize) {
-        DepositParams memory params = DepositParams({account: msg.sender, token: token, value: value});
+    function deposit(DepositParams calldata params) public override(ISize) {
         state.validateDeposit(params);
         state.executeDeposit(params);
     }
 
     /// @inheritdoc ISize
-    function withdraw(address token, uint256 value) public override(ISize) {
-        WithdrawParams memory params = WithdrawParams({account: msg.sender, token: token, value: value});
+    function withdraw(WithdrawParams calldata params) public override(ISize) {
         state.validateWithdraw(params);
         state.executeWithdraw(params);
-        state.validateUserIsNotLiquidatable(params.account);
+        state.validateUserIsNotLiquidatable(msg.sender);
     }
 
     /// @inheritdoc ISize
-    function lendAsLimitOrder(
-        uint256 maxAmount,
-        uint256 maxDueDate,
-        uint256[] calldata timeBuckets,
-        uint256[] calldata rates
-    ) public override(ISize) {
-        LendAsLimitOrderParams memory params = LendAsLimitOrderParams({
-            lender: msg.sender,
-            maxAmount: maxAmount,
-            maxDueDate: maxDueDate,
-            curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
-        });
+    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) public override(ISize) {
         state.validateLendAsLimitOrder(params);
         state.executeLendAsLimitOrder(params);
     }
 
     /// @inheritdoc ISize
-    function borrowAsLimitOrder(uint256 maxAmount, uint256[] calldata timeBuckets, uint256[] calldata rates)
-        public
-        override(ISize)
-    {
-        BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({
-            borrower: msg.sender,
-            maxAmount: maxAmount,
-            curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
-        });
+    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) public override(ISize) {
         state.validateBorrowAsLimitOrder(params);
         state.executeBorrowAsLimitOrder(params);
     }
 
     /// @inheritdoc ISize
-    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn)
-        public
-        override(ISize)
-    {
-        LendAsMarketOrderParams memory params = LendAsMarketOrderParams({
-            lender: msg.sender,
-            borrower: borrower,
-            dueDate: dueDate,
-            amount: amount,
-            exactAmountIn: exactAmountIn
-        });
+    function lendAsMarketOrder(LendAsMarketOrderParams calldata params) public override(ISize) {
         state.validateLendAsMarketOrder(params);
         state.executeLendAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(params.borrower);
     }
 
     /// @inheritdoc ISize
-    function borrowAsMarketOrder(
-        address lender,
-        uint256 amount,
-        uint256 dueDate,
-        bool exactAmountIn,
-        uint256[] memory virtualCollateralLoansIds
-    ) public override(ISize) {
-        BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
-            borrower: msg.sender,
-            lender: lender,
-            amount: amount,
-            dueDate: dueDate,
-            exactAmountIn: exactAmountIn,
-            virtualCollateralLoansIds: virtualCollateralLoansIds
-        });
-
+    function borrowAsMarketOrder(BorrowAsMarketOrderParams calldata params) public override(ISize) {
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
-        state.validateUserIsNotLiquidatable(params.borrower);
+        state.validateUserIsNotLiquidatable(msg.sender);
     }
 
     /// @inheritdoc ISize
-    function exit(uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
-        public
-        override(ISize)
-        returns (uint256 amountInLeft)
-    {
-        ExitParams memory params = ExitParams({
-            exiter: msg.sender,
-            loanId: loanId,
-            amount: amount,
-            dueDate: dueDate,
-            lendersToExitTo: lendersToExitTo
-        });
-
+    function exit(ExitParams calldata params) public override(ISize) returns (uint256 amountInLeft) {
         state.validateExit(params);
         amountInLeft = state.executeExit(params);
     }
 
     /// @inheritdoc ISize
-    function repay(uint256 loanId) public override(ISize) {
-        RepayParams memory params = RepayParams({loanId: loanId, borrower: msg.sender});
+    function repay(RepayParams calldata params) public override(ISize) {
         state.validateRepay(params);
         state.executeRepay(params);
     }
 
     /// @inheritdoc ISize
-    function claim(uint256 loanId) public override(ISize) {
-        ClaimParams memory params = ClaimParams({loanId: loanId, lender: msg.sender});
+    function claim(ClaimParams calldata params) public override(ISize) {
         state.validateClaim(params);
         state.executeClaim(params);
     }
 
     /// @inheritdoc ISize
-    function liquidateLoan(uint256 loanId) public override(ISize) returns (uint256 ans) {
-        LiquidateLoanParams memory params = LiquidateLoanParams({loanId: loanId, liquidator: msg.sender});
+    function liquidateLoan(LiquidateLoanParams calldata params) public override(ISize) returns (uint256 ans) {
         state.validateLiquidateLoan(params);
         ans = state.executeLiquidateLoan(params);
     }

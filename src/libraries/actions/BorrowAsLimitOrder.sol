@@ -9,15 +9,13 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct BorrowAsLimitOrderParams {
-    address borrower;
     uint256 maxAmount;
     YieldCurve curveRelativeTime;
 }
 
 library BorrowAsLimitOrder {
     function validateBorrowAsLimitOrder(State storage, BorrowAsLimitOrderParams memory params) external pure {
-        // validate params.borrower
-        // N/A
+        // validate msg.sender
 
         // validate params.maxAmount
         if (params.maxAmount == 0) {
@@ -34,7 +32,7 @@ library BorrowAsLimitOrder {
     }
 
     function executeBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams memory params) external {
-        state.users[params.borrower].borrowOffer =
+        state.users[msg.sender].borrowOffer =
             BorrowOffer({maxAmount: params.maxAmount, curveRelativeTime: params.curveRelativeTime});
         emit Events.BorrowAsLimitOrder(params.maxAmount, params.curveRelativeTime);
     }

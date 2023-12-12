@@ -4,15 +4,13 @@ pragma solidity 0.8.20;
 import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest} from "./BaseTest.sol";
-import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {ClaimParams} from "@src/libraries/actions/Claim.sol";
+import {RepayParams} from "@src/libraries/actions/Repay.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 contract ClaimValidationTest is BaseTest {
     function test_ClaimValidation() public {
@@ -24,13 +22,13 @@ contract ClaimValidationTest is BaseTest {
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_REPAID.selector, loanId));
-        size.claim(loanId);
+        size.claim(ClaimParams({loanId: loanId}));
 
         vm.startPrank(bob);
-        size.repay(loanId);
+        size.repay(RepayParams({loanId: loanId}));
 
         vm.startPrank(candy);
         vm.expectRevert(abi.encodeWithSelector(Errors.CLAIMER_IS_NOT_LENDER.selector, candy, alice));
-        size.claim(loanId);
+        size.claim(ClaimParams({loanId: loanId}));
     }
 }

@@ -22,6 +22,17 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {USDC} from "./mocks/USDC.sol";
 
+import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
+import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
+import {ExitParams} from "@src/libraries/actions/Exit.sol";
+import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {ClaimParams} from "@src/libraries/actions/Claim.sol";
+import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+
 contract BaseTest is Test, AssertsHelper {
     event TODO();
 
@@ -101,25 +112,25 @@ contract BaseTest is Test, AssertsHelper {
         priceFeed.setPrice(1337e18);
     }
 
-    function _deposit(address user, IERC20Metadata token, uint256 value) internal {
-        _deposit(user, address(token), value);
+    function _deposit(address user, IERC20Metadata token, uint256 amount) internal {
+        _deposit(user, address(token), amount);
     }
 
-    function _deposit(address user, address token, uint256 value) internal {
-        deal(token, user, value);
+    function _deposit(address user, address token, uint256 amount) internal {
+        deal(token, user, amount);
         vm.prank(user);
-        IERC20Metadata(token).approve(address(size), value);
+        IERC20Metadata(token).approve(address(size), amount);
         vm.prank(user);
-        size.deposit(token, value);
+        size.deposit(DepositParams({token: token, amount: amount}));
     }
 
-    function _withdraw(address user, IERC20Metadata token, uint256 value) internal {
-        _withdraw(user, address(token), value);
+    function _withdraw(address user, IERC20Metadata token, uint256 amount) internal {
+        _withdraw(user, address(token), amount);
     }
 
-    function _withdraw(address user, address token, uint256 value) internal {
+    function _withdraw(address user, address token, uint256 amount) internal {
         vm.prank(user);
-        size.withdraw(token, value);
+        size.withdraw(WithdrawParams({token: token, amount: amount}));
     }
 
     function _deposit(address user, uint256 collateralAssetValue, uint256 debtAssetValue) internal {
@@ -134,9 +145,11 @@ contract BaseTest is Test, AssertsHelper {
         uint256 rate,
         uint256 timeBucketsLength
     ) internal {
-        YieldCurve memory curve = YieldCurveLibrary.getFlatRate(timeBucketsLength, rate);
+        YieldCurve memory curveRelativeTime = YieldCurveLibrary.getFlatRate(timeBucketsLength, rate);
         vm.prank(lender);
-        size.lendAsLimitOrder(maxAmount, maxDueDate, curve.timeBuckets, curve.rates);
+        size.lendAsLimitOrder(
+            LendAsLimitOrderParams({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
+        );
     }
 
     function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate)
@@ -150,8 +163,8 @@ contract BaseTest is Test, AssertsHelper {
         internal
         returns (uint256)
     {
-        uint256[] memory virtualCollateralLoansIds;
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralLoansIds);
+        uint256[] memory virtualCollateralLoanIds;
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -159,9 +172,9 @@ contract BaseTest is Test, AssertsHelper {
         address lender,
         uint256 amount,
         uint256 dueDate,
-        uint256[] memory virtualCollateralLoansIds
+        uint256[] memory virtualCollateralLoanIds
     ) internal returns (uint256) {
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralLoansIds);
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -170,10 +183,18 @@ contract BaseTest is Test, AssertsHelper {
         uint256 amount,
         uint256 dueDate,
         bool exactAmountIn,
-        uint256[] memory virtualCollateralLoansIds
+        uint256[] memory virtualCollateralLoanIds
     ) internal returns (uint256) {
         vm.prank(borrower);
-        size.borrowAsMarketOrder(lender, amount, dueDate, exactAmountIn, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: lender,
+                amount: amount,
+                dueDate: dueDate,
+                exactAmountIn: exactAmountIn,
+                virtualCollateralLoanIds: virtualCollateralLoanIds
+            })
+        );
         return size.activeLoans();
     }
 
@@ -183,8 +204,9 @@ contract BaseTest is Test, AssertsHelper {
         uint256[] memory timeBuckets,
         uint256[] memory rates
     ) internal {
+        YieldCurve memory curveRelativeTime = YieldCurve({timeBuckets: timeBuckets, rates: rates});
         vm.prank(borrower);
-        size.borrowAsLimitOrder(maxAmount, timeBuckets, rates);
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
     }
 
     function _exit(address user, uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
@@ -192,23 +214,23 @@ contract BaseTest is Test, AssertsHelper {
         returns (uint256)
     {
         vm.prank(user);
-        size.exit(loanId, amount, dueDate, lendersToExitTo);
+        size.exit(ExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo}));
         return size.activeLoans();
     }
 
     function _repay(address user, uint256 loanId) internal {
         vm.prank(user);
-        size.repay(loanId);
+        size.repay(RepayParams({loanId: loanId}));
     }
 
     function _claim(address user, uint256 loanId) internal {
         vm.prank(user);
-        size.claim(loanId);
+        size.claim(ClaimParams({loanId: loanId}));
     }
 
     function _liquidateLoan(address user, uint256 loanId) internal {
         vm.prank(user);
-        size.liquidateLoan(loanId);
+        size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
     }
 
     function _state() internal view returns (Vars memory vars) {

@@ -6,15 +6,13 @@ import {console2 as console} from "forge-std/console2.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 import {BaseTest} from "./BaseTest.sol";
-import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
-
-import {Errors} from "@src/libraries/Errors.sol";
 
 contract BorrowAsMarketOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
@@ -251,11 +249,19 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 FV = FixedPointMathLib.mulDivUp(r, amount, PERCENT);
         uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
         vm.startPrank(bob);
-        uint256[] memory virtualCollateralLoansIds;
+        uint256[] memory virtualCollateralLoanIds;
         vm.expectRevert(
             abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, bob, 0, maxCollateralToLock)
         );
-        size.borrowAsMarketOrder(alice, 100e18, 12, false, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: alice,
+                amount: 100e18,
+                dueDate: 12,
+                exactAmountIn: false,
+                virtualCollateralLoanIds: virtualCollateralLoanIds
+            })
+        );
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_lender_cannot_transfer_borrowAsset() public {
@@ -269,8 +275,16 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
 
         vm.startPrank(bob);
-        uint256[] memory virtualCollateralLoansIds;
+        uint256[] memory virtualCollateralLoanIds;
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, alice, 1e18, 10e18));
-        size.borrowAsMarketOrder(alice, amount, dueDate, false, virtualCollateralLoansIds);
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: alice,
+                amount: amount,
+                dueDate: dueDate,
+                exactAmountIn: false,
+                virtualCollateralLoanIds: virtualCollateralLoanIds
+            })
+        );
     }
 }
