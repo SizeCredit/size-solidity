@@ -1,0 +1,8 @@
+{
+  "name": "size-v2-solidity",
+  "description": "Size v2",
+  "devDependencies": {
+    "ethers": "^6.9.0",
+    "solhint": "^4.0.0"
+  }
+}
