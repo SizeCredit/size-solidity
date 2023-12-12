@@ -6,7 +6,7 @@
     "typechain": "typechain --target ethers-v5 out/Size.sol/Size.json out/PriceFeed.sol/PriceFeed.json"
   },
   "devDependencies": {
-    "ethers": "^6.9.0",
+    "@typechain/ethers-v5": "^11.1.2",
     "solhint": "^4.0.0",
     "typechain": "^8.3.2"
   }
