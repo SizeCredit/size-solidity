@@ -39,24 +39,23 @@ jobs:
           forge test -vvv
         id: test
 
-      - name: Coverage
-        run: |
-          forge coverage --ir-minimum --report lcov
-          lcov --remove lcov.info -o lcov.info 'test/*' 'script/*'
-          genhtml lcov.info -o report --branch-coverage
-        id: coverage
-
-      - name: Archive results
-        uses: actions/upload-artifact@v3
+      - uses: webfactory/ssh-agent@v0.4.1
         with:
-          name: coverage
-          path: report/
+          ssh-private-key: ${{ secrets.SIZE_BOT_SSH_KEY }}
 
       - name: Report coverage
-        uses: romeovs/lcov-reporter-action@v0.2.21
+        run: |
+          git config --local user.email "dev@size.cash"
+          git config --local user.name "Size"
+          ./script/update_readme_coverage.sh
+          git add README.md
+          git commit -m "Update coverage [skip ci]" || true
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
         with:
-          lcov-file: lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
 
   slither:
     strategy:
