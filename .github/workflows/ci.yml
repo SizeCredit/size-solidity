@@ -108,6 +108,7 @@ jobs:
 
       - name: Typechain
         run: |
+          forge build
           npm run typechain
           git add types/
           git commit -m "Update types [skip ci]" || true
