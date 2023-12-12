@@ -19,7 +19,7 @@ contract DepositTest is BaseTest {
         assertEq(weth.balanceOf(address(size)), 2e18);
     }
 
-    function test_Deposit_deposit_increases_user_balance(uint256 x, uint256 y) public {
+    function testFuzz_Deposit_deposit_increases_user_balance(uint256 x, uint256 y) public {
         x = bound(x, 1, type(uint128).max);
         y = bound(y, 1, type(uint128).max);
 

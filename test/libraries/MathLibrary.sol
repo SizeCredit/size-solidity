@@ -13,7 +13,7 @@ contract MathLibraryTest is Test {
         assertEq(wad, value);
     }
 
-    function test_MathLibrary_valueToWad_18_decimals(uint256 value) public {
+    function testFuzz_MathLibrary_valueToWad_18_decimals(uint256 value) public {
         uint256 decimals = 18;
 
         uint256 wad = MathLibrary.valueToWad(value, decimals);
@@ -28,7 +28,7 @@ contract MathLibraryTest is Test {
         assertEq(wad, 1e18);
     }
 
-    function test_MathLibrary_valueToWad_lt_18(uint256 value) public {
+    function testFuzz_MathLibrary_valueToWad_lt_18(uint256 value) public {
         value = bound(value, 0, type(uint256).max / 1e18);
         uint256 decimals = 6;
 
@@ -44,7 +44,7 @@ contract MathLibraryTest is Test {
         MathLibrary.valueToWad(value, decimals);
     }
 
-    function test_MathLibrary_valueToWad_gt_18(uint256 value) public {
+    function testFuzz_MathLibrary_valueToWad_gt_18(uint256 value) public {
         uint256 decimals = 24;
 
         vm.expectRevert();

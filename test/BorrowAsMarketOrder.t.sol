@@ -231,9 +231,6 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 30e18, 12, virtualCollateralLoanIds);
 
-        // uint256 FV = FixedPointMathLib.mulDivUp(r, amount, PERCENT);
-        // uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, size.crOpening(), priceFeed.getPrice());
-
         Vars memory _after = _state();
 
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
