@@ -38,10 +38,6 @@ jobs:
           forge test -vvv
         id: test
 
-      - uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SIZE_BOT_SSH_KEY }}
-
       - name: Report coverage
         if: github.ref == 'refs/heads/main'
         run: |
@@ -50,7 +46,10 @@ jobs:
           ./script/update_readme_coverage.sh
           git add README.md
           git commit -m "Update coverage [skip ci]" || true
-          git push origin main
+          git push https://${{ env.token }}@github.com/{{ github.event.repository.name }}.git
+        env:
+          token: ${{ secrets.SIZE_BOT_PAT }}
+
 
   slither:
     strategy:
@@ -85,10 +84,6 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: ${{ secrets.SIZE_BOT_SSH_KEY }}
-
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
@@ -110,7 +105,10 @@ jobs:
           git config --local user.name "Size"
           git add types/
           git commit -m "Update types [skip ci]" || true
-          git push
+          git push https://${{ env.token }}@github.com/{{ github.event.repository.name }}.git
+        env:
+          token: ${{ secrets.SIZE_BOT_PAT }}
+
 
   solhint:
     strategy:
