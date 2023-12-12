@@ -108,7 +108,8 @@ library LoanLibrary {
             })
         );
         if (FV > getCredit(fol)) {
-            // @audit this has 0 coverage, I believe it is already checked by _borrowWithVirtualCollateral & validateExit
+            // @audit this has 0 coverage,
+            //   I believe it is already checked by _borrowWithVirtualCollateral & validateExit
             revert Errors.NOT_ENOUGH_FREE_CASH(getCredit(fol), FV);
         }
         fol.amountFVExited += FV;
