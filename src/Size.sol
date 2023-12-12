@@ -43,7 +43,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
         _disableInitializers();
     }
 
-    function initialize(InitializeParams calldata params) public initializer {
+    function initialize(InitializeParams calldata params) external initializer {
         state.validateInitialize(params);
 
         __Ownable_init(params.owner);
@@ -57,64 +57,64 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /// @inheritdoc ISize
-    function deposit(DepositParams calldata params) public override(ISize) {
+    function deposit(DepositParams calldata params) external override(ISize) {
         state.validateDeposit(params);
         state.executeDeposit(params);
     }
 
     /// @inheritdoc ISize
-    function withdraw(WithdrawParams calldata params) public override(ISize) {
+    function withdraw(WithdrawParams calldata params) external override(ISize) {
         state.validateWithdraw(params);
         state.executeWithdraw(params);
         state.validateUserIsNotLiquidatable(msg.sender);
     }
 
     /// @inheritdoc ISize
-    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) public override(ISize) {
+    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external override(ISize) {
         state.validateLendAsLimitOrder(params);
         state.executeLendAsLimitOrder(params);
     }
 
     /// @inheritdoc ISize
-    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) public override(ISize) {
+    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) external override(ISize) {
         state.validateBorrowAsLimitOrder(params);
         state.executeBorrowAsLimitOrder(params);
     }
 
     /// @inheritdoc ISize
-    function lendAsMarketOrder(LendAsMarketOrderParams calldata params) public override(ISize) {
+    function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external override(ISize) {
         state.validateLendAsMarketOrder(params);
         state.executeLendAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(params.borrower);
     }
 
     /// @inheritdoc ISize
-    function borrowAsMarketOrder(BorrowAsMarketOrderParams calldata params) public override(ISize) {
+    function borrowAsMarketOrder(BorrowAsMarketOrderParams calldata params) external override(ISize) {
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(msg.sender);
     }
 
     /// @inheritdoc ISize
-    function exit(ExitParams calldata params) public override(ISize) returns (uint256 amountInLeft) {
+    function exit(ExitParams calldata params) external override(ISize) returns (uint256 amountInLeft) {
         state.validateExit(params);
         amountInLeft = state.executeExit(params);
     }
 
     /// @inheritdoc ISize
-    function repay(RepayParams calldata params) public override(ISize) {
+    function repay(RepayParams calldata params) external override(ISize) {
         state.validateRepay(params);
         state.executeRepay(params);
     }
 
     /// @inheritdoc ISize
-    function claim(ClaimParams calldata params) public override(ISize) {
+    function claim(ClaimParams calldata params) external override(ISize) {
         state.validateClaim(params);
         state.executeClaim(params);
     }
 
     /// @inheritdoc ISize
-    function liquidateLoan(LiquidateLoanParams calldata params) public override(ISize) returns (uint256 ans) {
+    function liquidateLoan(LiquidateLoanParams calldata params) external override(ISize) returns (uint256 ans) {
         state.validateLiquidateLoan(params);
         ans = state.executeLiquidateLoan(params);
     }
