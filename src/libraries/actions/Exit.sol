@@ -100,6 +100,7 @@ library Exit {
             }
 
             state.loans.createSOL(params.loanId, lender, msg.sender, deltaAmountIn);
+            // slither-disable-next-line calls-loop
             state.borrowToken.transferFrom(lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountInLeft -= deltaAmountIn;

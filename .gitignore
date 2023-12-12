@@ -28,3 +28,6 @@ bin/
 coverage/
 report/
 lcov.info
+
+# Npm
+node_modules
