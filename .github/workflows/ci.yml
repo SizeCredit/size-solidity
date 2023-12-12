@@ -46,7 +46,7 @@ jobs:
           ./script/update_readme_coverage.sh
           git add README.md
           git commit -m "Update coverage [skip ci]" || true
-          git push https://${{ env.token }}@github.com/${{ github.event.repository.name }}.git
+          git push https://${{ env.token }}@github.com/${{ github.event.repository.full_name }}.git
         env:
           token: ${{ secrets.SIZE_BOT_PAT }}
 
@@ -105,7 +105,7 @@ jobs:
           git config --local user.name "Size"
           git add types/
           git commit -m "Update types [skip ci]" || true
-          git push https://${{ env.token }}@github.com/${{ github.event.repository.name }}.git
+          git push https://${{ env.token }}@github.com/${{ github.event.repository.full_name }}.git
         env:
           token: ${{ secrets.SIZE_BOT_PAT }}
 
