@@ -1,12 +1,11 @@
 name: CI
 
 on:
+  pull_request:
+    types: [opened, synchronize]
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - "*"
 
 jobs:
   foundry:
