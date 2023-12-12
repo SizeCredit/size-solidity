@@ -43,13 +43,14 @@ jobs:
           ssh-private-key: ${{ secrets.SIZE_BOT_SSH_KEY }}
 
       - name: Report coverage
+        if: github.ref == 'refs/heads/main'
         run: |
           git config --local user.email "dev@size.cash"
           git config --local user.name "Size"
           ./script/update_readme_coverage.sh
           git add README.md
           git commit -m "Update coverage [skip ci]" || true
-          git push
+          git push origin main
 
   slither:
     strategy:
@@ -103,6 +104,7 @@ jobs:
         run: npm run typechain
 
       - name: Add typechain
+        if: github.ref == 'refs/heads/main'
         run: |
           git config --local user.email "dev@size.cash"
           git config --local user.name "Size"

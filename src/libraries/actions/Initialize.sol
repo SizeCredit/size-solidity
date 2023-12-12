@@ -122,6 +122,7 @@ library Initialize {
         state.feeRecipient = params.feeRecipient;
 
         // NOTE Necessary so that loanIds start at 1, and 0 is reserved for SOLs
+        // slither-disable-next-line uninitialized-local
         Loan memory nullLoan;
         state.loans.push(nullLoan);
     }

@@ -70,10 +70,7 @@ library LoanLibrary {
     }
 
     // solhint-disable-next-line var-name-mixedcase
-    function createFOL(Loan[] storage loans, address lender, address borrower, uint256 FV, uint256 dueDate)
-        public
-        returns (uint256 folId)
-    {
+    function createFOL(Loan[] storage loans, address lender, address borrower, uint256 FV, uint256 dueDate) public {
         loans.push(
             Loan({
                 FV: FV,
@@ -85,16 +82,13 @@ library LoanLibrary {
                 folId: 0
             })
         );
-        folId = loans.length - 1;
+        uint256 folId = loans.length - 1;
 
         emit Events.CreateLoan(folId, lender, borrower, 0, FV, dueDate);
     }
 
     // solhint-disable-next-line var-name-mixedcase
-    function createSOL(Loan[] storage loans, uint256 folId, address lender, address borrower, uint256 FV)
-        public
-        returns (uint256 solId)
-    {
+    function createSOL(Loan[] storage loans, uint256 folId, address lender, address borrower, uint256 FV) public {
         Loan storage fol = loans[folId];
         loans.push(
             Loan({
@@ -114,7 +108,7 @@ library LoanLibrary {
         }
         fol.amountFVExited += FV;
 
-        solId = loans.length - 1;
+        uint256 solId = loans.length - 1;
 
         emit Events.CreateLoan(solId, lender, borrower, folId, FV, fol.dueDate);
     }
