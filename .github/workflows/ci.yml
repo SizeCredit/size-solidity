@@ -38,7 +38,7 @@ jobs:
           forge test -vvv
         id: test
 
-      - uses: webfactory/ssh-agent@v0.4.1
+      - uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.SIZE_BOT_SSH_KEY }}
 
@@ -89,7 +89,7 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: webfactory/ssh-agent@v0.4.1
+      - uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.SIZE_BOT_SSH_KEY }}
 

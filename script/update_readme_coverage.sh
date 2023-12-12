@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eux
+set -eu
 
 forge coverage --ir-minimum > COVERAGE.txt
 
