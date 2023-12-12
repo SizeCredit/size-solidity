@@ -8,7 +8,7 @@ on:
       - main
 
 jobs:
-  foundry:
+  test:
     strategy:
       fail-fast: true
 
@@ -24,9 +24,6 @@ jobs:
         with:
           version: nightly
 
-      - name: Setup LCOV
-        uses: hrishikesh-kadam/setup-lcov@v1
-
       - name: Contract sizes
         run: |
           forge --version
@@ -37,19 +34,6 @@ jobs:
         run: |
           forge test -vvv
         id: test
-
-      - name: Report coverage
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git config --local user.email "dev@size.cash"
-          git config --local user.name "Size"
-          ./script/update_readme_coverage.sh
-          git add README.md
-          git commit -m "Update coverage [skip ci]" || true
-          git push https://${{ env.token }}@github.com/${{ github.event.repository.full_name }}.git
-        env:
-          token: ${{ secrets.SIZE_BOT_PAT }}
-
 
   slither:
     strategy:
@@ -73,43 +57,6 @@ jobs:
         with:
           fail-on: low
 
-  typechain:
-    strategy:
-      fail-fast: true
-
-    name: Typechain
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
-      - name: Build
-        run: forge build
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Generate types
-        run: npm run typechain
-
-      - name: Add typechain
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git config --local user.email "dev@size.cash"
-          git config --local user.name "Size"
-          git add types/
-          git commit -m "Update types [skip ci]" || true
-          git push https://${{ env.token }}@github.com/${{ github.event.repository.full_name }}.git
-        env:
-          token: ${{ secrets.SIZE_BOT_PAT }}
-
-
   solhint:
     strategy:
       fail-fast: true
@@ -126,3 +73,49 @@ jobs:
 
       - name: Run solhint
         run: npm run solhint
+
+  typechain-coverage:
+    strategy:
+      fail-fast: true
+
+    name: Typechain/Coverage
+    runs-on: ubuntu-latest
+    needs: [test, slither, solhint]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Setup git config
+        run: |
+          git config --local user.email "dev@size.cash"
+          git config --local user.name "Size"
+
+      - name: Coverage
+        run: |
+          ./script/update_readme_coverage.sh
+          git add README.md
+          git commit -m "Update coverage [skip ci]" || true
+
+      - name: Typechain
+        run: |
+          npm run typechain
+          git add types/
+          git commit -m "Update types [skip ci]" || true
+        env:
+          token: ${{ secrets.SIZE_BOT_PAT }}
+
+      - name: Push
+        run: |
+          git push https://${{ env.token }}@github.com/${{ github.event.repository.full_name }}.git
+        env:
+          token: ${{ secrets.SIZE_BOT_PAT }}
