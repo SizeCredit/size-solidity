@@ -5,6 +5,48 @@ Size V2 Solidity
 ## Coverage
 
 <!-- BEGIN_COVERAGE -->
+[33mWarning! "--ir-minimum" flag enables viaIR with minimum optimization, which can result in inaccurate source mappings.
+Only use this flag as a workaround if you are experiencing "stack too deep" errors.
+Note that "viaIR" is only available in Solidity 0.8.13 and above.
+See more:
+https://github.com/foundry-rs/foundry/issues/3357
+[0m
+installing solc version "0.8.20"
+Successfully installed solc 0.8.20
+Compiling 113 files with 0.8.20
+Solc 0.8.20 finished in 107.63s
+Compiler run [32msuccessful![0m
+Analysing contracts...
+Running tests...
+| File                                          | % Lines          | % Statements     | % Branches       | % Funcs         |
+|-----------------------------------------------|------------------|------------------|------------------|-----------------|
+| src/Size.sol                                  | 82.14% (23/28)   | 82.14% (23/28)   | 100.00% (0/0)    | 91.67% (11/12)  |
+| src/SizeView.sol                              | 100.00% (18/18)  | 100.00% (28/28)  | 100.00% (0/0)    | 100.00% (16/16) |
+| src/libraries/LoanLibrary.sol                 | 95.65% (22/23)   | 97.14% (34/35)   | 87.50% (7/8)     | 100.00% (9/9)   |
+| src/libraries/MathLibrary.sol                 | 100.00% (1/1)    | 100.00% (3/3)    | 100.00% (0/0)    | 100.00% (1/1)   |
+| src/libraries/OfferLibrary.sol                | 91.67% (22/24)   | 91.11% (41/45)   | 75.00% (6/8)     | 80.00% (4/5)    |
+| src/libraries/YieldCurveLibrary.sol           | 100.00% (5/5)    | 100.00% (7/7)    | 100.00% (0/0)    | 100.00% (1/1)   |
+| src/libraries/actions/BorrowAsLimitOrder.sol  | 100.00% (8/8)    | 100.00% (10/10)  | 100.00% (6/6)    | 100.00% (2/2)   |
+| src/libraries/actions/BorrowAsMarketOrder.sol | 98.15% (53/54)   | 98.51% (66/67)   | 80.00% (16/20)   | 100.00% (4/4)   |
+| src/libraries/actions/Claim.sol               | 100.00% (9/9)    | 100.00% (10/10)  | 75.00% (3/4)     | 100.00% (2/2)   |
+| src/libraries/actions/Deposit.sol             | 100.00% (10/10)  | 100.00% (17/17)  | 100.00% (4/4)    | 100.00% (2/2)   |
+| src/libraries/actions/Exit.sol                | 89.47% (34/38)   | 91.67% (44/48)   | 66.67% (12/18)   | 100.00% (2/2)   |
+| src/libraries/actions/Initialize.sol          | 95.45% (42/44)   | 81.48% (44/54)   | 96.67% (29/30)   | 100.00% (2/2)   |
+| src/libraries/actions/LendAsLimitOrder.sol    | 100.00% (14/14)  | 100.00% (17/17)  | 91.67% (11/12)   | 100.00% (2/2)   |
+| src/libraries/actions/LendAsMarketOrder.sol   | 0.00% (0/21)     | 0.00% (0/23)     | 0.00% (0/8)      | 0.00% (0/2)     |
+| src/libraries/actions/LiquidateLoan.sol       | 90.91% (40/44)   | 93.85% (61/65)   | 78.57% (11/14)   | 100.00% (6/6)   |
+| src/libraries/actions/Repay.sol               | 100.00% (14/14)  | 100.00% (14/14)  | 75.00% (6/8)     | 100.00% (2/2)   |
+| src/libraries/actions/Withdraw.sol            | 100.00% (10/10)  | 100.00% (17/17)  | 100.00% (4/4)    | 100.00% (2/2)   |
+| src/oracle/PriceFeed.sol                      | 100.00% (12/12)  | 100.00% (21/21)  | 100.00% (8/8)    | 100.00% (3/3)   |
+| src/token/NonTransferrableToken.sol           | 100.00% (8/8)    | 100.00% (9/9)    | 100.00% (0/0)    | 100.00% (6/6)   |
+| test/BaseTest.sol                             | 0.00% (0/64)     | 0.00% (0/73)     | 100.00% (0/0)    | 0.00% (0/18)    |
+| test/helpers/AssertsHelper.sol                | 0.00% (0/14)     | 0.00% (0/16)     | 0.00% (0/6)      | 0.00% (0/4)     |
+| test/helpers/ExperimentsHelper.sol            | 0.00% (0/11)     | 0.00% (0/14)     | 100.00% (0/0)    | 0.00% (0/1)     |
+| test/mocks/PriceFeedMock.sol                  | 100.00% (4/4)    | 100.00% (4/4)    | 100.00% (0/0)    | 100.00% (2/2)   |
+| test/mocks/SizeV2.sol                         | 100.00% (1/1)    | 100.00% (1/1)    | 100.00% (0/0)    | 100.00% (1/1)   |
+| test/mocks/USDC.sol                           | 100.00% (1/1)    | 100.00% (1/1)    | 100.00% (0/0)    | 100.00% (1/1)   |
+| test/mocks/WETH.sol                           | 0.00% (0/6)      | 0.00% (0/7)      | 0.00% (0/2)      | 0.00% (0/2)     |
+| Total                                         | 72.22% (351/486) | 74.45% (472/634) | 76.88% (123/160) | 73.64% (81/110) |
 <!-- END_COVERAGE -->
 
 ## Test
