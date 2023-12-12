@@ -1,12 +1,11 @@
 name: CI
 
 on:
+  pull_request:
+    types: [opened, synchronize]
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - "*"
 
 jobs:
   foundry:
@@ -39,24 +38,19 @@ jobs:
           forge test -vvv
         id: test
 
-      - name: Coverage
-        run: |
-          forge coverage --ir-minimum --report lcov
-          lcov --remove lcov.info -o lcov.info 'test/*' 'script/*'
-          genhtml lcov.info -o report --branch-coverage
-        id: coverage
-
-      - name: Archive results
-        uses: actions/upload-artifact@v3
+      - uses: webfactory/ssh-agent@v0.8.0
         with:
-          name: coverage
-          path: report/
+          ssh-private-key: ${{ secrets.SIZE_BOT_SSH_KEY }}
 
       - name: Report coverage
-        uses: romeovs/lcov-reporter-action@v0.2.21
-        with:
-          lcov-file: lcov.info
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "dev@size.cash"
+          git config --local user.name "Size"
+          ./script/update_readme_coverage.sh
+          git add README.md
+          git commit -m "Update coverage [skip ci]" || true
+          git push origin main
 
   slither:
     strategy:
@@ -91,6 +85,10 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SIZE_BOT_SSH_KEY }}
+
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
@@ -99,8 +97,20 @@ jobs:
       - name: Build
         run: forge build
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Generate types
-        run: npx typechain --target ethers-v5 out/Size.sol/Size.json out/PriceFeed.sol/PriceFeed.json
+        run: npm run typechain
+
+      - name: Add typechain
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config --local user.email "dev@size.cash"
+          git config --local user.name "Size"
+          git add types/
+          git commit -m "Update types [skip ci]" || true
+          git push
 
   solhint:
     strategy:
@@ -113,5 +123,8 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Run solhint
-        run: npx solhint src/**/*.sol --max-warnings 0
+        run: npm run solhint

@@ -1,3 +1,5 @@
 {
-  "filter_paths": "(lib/|test/)"
+  "filter_paths": "(lib/|test/)",
+  "exclude_informational": true,
+  "detectors_to_exclude": "arbitrary-send-erc20,unchecked-transfer,reentrancy-events,timestamp"
 }

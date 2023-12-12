@@ -2,9 +2,10 @@
 
 Size V2 Solidity
 
-## Setup
+## Coverage
 
-Install <https://github.com/0xClandestine/solplot>
+<!-- BEGIN_COVERAGE -->
+<!-- END_COVERAGE -->
 
 ## Test
 

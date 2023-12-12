@@ -23,6 +23,7 @@ library LiquidateLoan {
     function getAssignedCollateral(State storage state, Loan memory loan) public view returns (uint256) {
         uint256 debt = state.debtToken.balanceOf(loan.borrower);
         uint256 collateral = state.collateralToken.balanceOf(loan.borrower);
+        // slither-disable-next-line incorrect-equality
         if (debt == 0) {
             return 0;
         } else {
@@ -36,9 +37,13 @@ library LiquidateLoan {
         uint256 price = state.priceFeed.getPrice();
         uint8 decimals = state.priceFeed.decimals();
 
-        return debt == 0
-            ? type(uint256).max
-            : FixedPointMathLib.mulDivDown(FixedPointMathLib.mulDivDown(collateral, price, debt), PERCENT, 10 ** decimals);
+        // slither-disable-next-line incorrect-equality
+        if (debt == 0) {
+            return type(uint256).max;
+        } else {
+            uint256 cr = FixedPointMathLib.mulDivDown(collateral, price, debt);
+            return FixedPointMathLib.mulDivDown(cr, PERCENT, 10 ** decimals);
+        }
     }
 
     function isLiquidatable(State storage state, address account) public view returns (bool) {

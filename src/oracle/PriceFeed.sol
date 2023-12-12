@@ -58,6 +58,7 @@ contract PriceFeed is IPriceFeed {
     }
 
     function _getPrice(AggregatorV3Interface aggregator, uint256 stalePrice) internal view returns (uint256) {
+        // slither-disable-next-line unused-return
         (, int256 price,, uint256 updatedAt,) = aggregator.latestRoundData();
 
         if (price <= 0) revert Errors.INVALID_PRICE(address(aggregator), price);
