@@ -89,6 +89,10 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: webfactory/ssh-agent@v0.4.1
+        with:
+          ssh-private-key: ${{ secrets.SIZE_BOT_SSH_KEY }}
+
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
@@ -101,7 +105,19 @@ jobs:
         run: npm install
 
       - name: Generate types
-        run: npx typechain --target ethers-v5 out/Size.sol/Size.json out/PriceFeed.sol/PriceFeed.json
+        run: npm run typechain
+
+      - name: Add typechain
+        run: |
+          git config --local user.email "dev@size.cash"
+          git config --local user.name "Size"
+          git add types/
+          git commit -m "Update types [skip ci]" || true
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   solhint:
     strategy:
@@ -118,4 +134,4 @@ jobs:
         run: npm install
 
       - name: Run solhint
-        run: npx solhint src/**/*.sol --max-warnings 0
+        run: npm run solhint
