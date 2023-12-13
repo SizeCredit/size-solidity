@@ -11,7 +11,7 @@ PART_1=$(head -n $((BEGIN)) README.md)
 PART_3=$(tail -n +$((END)) README.md)
 
 echo "$PART_1" > README.md
-cat COVERAGE.txt >> README.md
+cat COVERAGE.txt | grep '\|' | grep -v 'test/' | grep -v '\bTotal\b' >> README.md
 echo "$PART_3" >> README.md
 
 rm COVERAGE.txt
