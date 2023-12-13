@@ -11,6 +11,7 @@ import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
 
 interface ISize {
     function deposit(DepositParams memory) external;
@@ -50,8 +51,14 @@ interface ISize {
 
     function claim(ClaimParams memory params) external;
 
+    // As soon as a fixed rate loan gets overdue, it should be transformed into a variable rate one but in reality that might not happen so if it becomes eligible for liquidation even when overdue then it is good to liquidate that.
     // decreases borrower debtAmount
     // sets loan to repaid
     // etc
     function liquidateLoan(LiquidateLoanParams memory params) external returns (uint256);
+
+    // What is not possible to do for an overdue which is eligible for liquidation is to apply the replacement because it only makes sense if there is some deltaT to cover between the liquidation time and the due date time, so for overdue that would be a negative time and therefore it does not make sense
+    function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams memory params)
+        external
+        returns (uint256);
 }

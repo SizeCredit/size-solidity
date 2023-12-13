@@ -80,25 +80,6 @@ export type DepositParamsStructOutput = [string, BigNumber] & {
   amount: BigNumber;
 };
 
-export type ExitParamsStruct = {
-  loanId: BigNumberish;
-  amount: BigNumberish;
-  dueDate: BigNumberish;
-  lendersToExitTo: string[];
-};
-
-export type ExitParamsStructOutput = [
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  string[]
-] & {
-  loanId: BigNumber;
-  amount: BigNumber;
-  dueDate: BigNumber;
-  lendersToExitTo: string[];
-};
-
 export type LoanStruct = {
   FV: BigNumberish;
   amountFVExited: BigNumberish;
@@ -266,6 +247,25 @@ export type LendAsMarketOrderParamsStructOutput = [
   exactAmountIn: boolean;
 };
 
+export type LenderExitParamsStruct = {
+  loanId: BigNumberish;
+  amount: BigNumberish;
+  dueDate: BigNumberish;
+  lendersToExitTo: string[];
+};
+
+export type LenderExitParamsStructOutput = [
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  string[]
+] & {
+  loanId: BigNumber;
+  amount: BigNumber;
+  dueDate: BigNumber;
+  lendersToExitTo: string[];
+};
+
 export type LiquidateLoanParamsStruct = { loanId: BigNumberish };
 
 export type LiquidateLoanParamsStructOutput = [BigNumber] & {
@@ -298,7 +298,6 @@ export interface SizeInterface extends utils.Interface {
     "crLiquidation()": FunctionFragment;
     "crOpening()": FunctionFragment;
     "deposit((address,uint256))": FunctionFragment;
-    "exit((uint256,uint256,uint256,address[]))": FunctionFragment;
     "getAssignedCollateral(uint256)": FunctionFragment;
     "getDebt(uint256)": FunctionFragment;
     "getLoan(uint256)": FunctionFragment;
@@ -311,6 +310,7 @@ export interface SizeInterface extends utils.Interface {
     "isLiquidatable(uint256)": FunctionFragment;
     "lendAsLimitOrder((uint256,uint256,(uint256[],uint256[])))": FunctionFragment;
     "lendAsMarketOrder((address,address,uint256,uint256,bool))": FunctionFragment;
+    "lenderExit((uint256,uint256,uint256,address[]))": FunctionFragment;
     "liquidateLoan((uint256))": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
@@ -338,7 +338,6 @@ export interface SizeInterface extends utils.Interface {
       | "crLiquidation"
       | "crOpening"
       | "deposit"
-      | "exit"
       | "getAssignedCollateral"
       | "getDebt"
       | "getLoan"
@@ -351,6 +350,7 @@ export interface SizeInterface extends utils.Interface {
       | "isLiquidatable(uint256)"
       | "lendAsLimitOrder"
       | "lendAsMarketOrder"
+      | "lenderExit"
       | "liquidateLoan"
       | "owner"
       | "pendingOwner"
@@ -413,10 +413,6 @@ export interface SizeInterface extends utils.Interface {
     values: [DepositParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "exit",
-    values: [ExitParamsStruct]
-  ): string;
-  encodeFunctionData(
     functionFragment: "getAssignedCollateral",
     values: [BigNumberish]
   ): string;
@@ -457,6 +453,10 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "lendAsMarketOrder",
     values: [LendAsMarketOrderParamsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "lenderExit",
+    values: [LenderExitParamsStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateLoan",
@@ -536,7 +536,6 @@ export interface SizeInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "crOpening", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "exit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getAssignedCollateral",
     data: BytesLike
@@ -573,6 +572,7 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "lendAsMarketOrder",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "lenderExit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "liquidateLoan",
     data: BytesLike
@@ -746,11 +746,6 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    exit(
-      params: ExitParamsStruct,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
     getAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -805,6 +800,11 @@ export interface Size extends BaseContract {
 
     lendAsMarketOrder(
       params: LendAsMarketOrderParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
+    lenderExit(
+      params: LenderExitParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -925,11 +925,6 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  exit(
-    params: ExitParamsStruct,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
   getAssignedCollateral(
     loanId: BigNumberish,
     overrides?: CallOverrides
@@ -981,6 +976,11 @@ export interface Size extends BaseContract {
 
   lendAsMarketOrder(
     params: LendAsMarketOrderParamsStruct,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
+  lenderExit(
+    params: LenderExitParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1099,11 +1099,6 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    exit(
-      params: ExitParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1160,6 +1155,11 @@ export interface Size extends BaseContract {
       params: LendAsMarketOrderParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    lenderExit(
+      params: LenderExitParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     liquidateLoan(
       params: LiquidateLoanParamsStruct,
@@ -1318,11 +1318,6 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    exit(
-      params: ExitParamsStruct,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
     getAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1374,6 +1369,11 @@ export interface Size extends BaseContract {
 
     lendAsMarketOrder(
       params: LendAsMarketOrderParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    lenderExit(
+      params: LenderExitParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -1468,11 +1468,6 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    exit(
-      params: ExitParamsStruct,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
     getAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1530,6 +1525,11 @@ export interface Size extends BaseContract {
 
     lendAsMarketOrder(
       params: LendAsMarketOrderParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    lenderExit(
+      params: LenderExitParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 

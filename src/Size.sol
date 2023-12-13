@@ -14,6 +14,10 @@ import {LenderExit, LenderExitParams} from "@src/libraries/actions/LenderExit.so
 import {Repay, RepayParams} from "@src/libraries/actions/Repay.sol";
 import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {
+    LiquidateLoanWithReplacement,
+    LiquidateLoanWithReplacementParams
+} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
 import {Withdraw, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
 
@@ -37,6 +41,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     using Repay for State;
     using Claim for State;
     using LiquidateLoan for State;
+    using LiquidateLoanWithReplacement for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -117,5 +122,16 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     function liquidateLoan(LiquidateLoanParams calldata params) external override(ISize) returns (uint256 ans) {
         state.validateLiquidateLoan(params);
         ans = state.executeLiquidateLoan(params);
+    }
+
+    /// @inheritdoc ISize
+    function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
+        external
+        override(ISize)
+        returns (uint256 ans)
+    {
+        state.validateLiquidateLoanWithReplacement(params);
+        ans = state.executeLiquidateLoanWithReplacement(params);
+        state.validateUserIsNotLiquidatable(params.borrower);
     }
 }

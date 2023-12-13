@@ -5,28 +5,6 @@ Size V2 Solidity
 ## Coverage
 
 <!-- BEGIN_COVERAGE -->
-| File                                                   | % Lines          | % Statements     | % Branches       | % Funcs         |
-|--------------------------------------------------------|------------------|------------------|------------------|-----------------|
-| src/Size.sol                                           | 82.14% (23/28)   | 82.14% (23/28)   | 100.00% (0/0)    | 91.67% (11/12)  |
-| src/SizeView.sol                                       | 100.00% (18/18)  | 100.00% (28/28)  | 100.00% (0/0)    | 100.00% (16/16) |
-| src/libraries/LoanLibrary.sol                          | 95.65% (22/23)   | 97.14% (34/35)   | 87.50% (7/8)     | 100.00% (9/9)   |
-| src/libraries/MathLibrary.sol                          | 100.00% (1/1)    | 100.00% (3/3)    | 100.00% (0/0)    | 100.00% (1/1)   |
-| src/libraries/OfferLibrary.sol                         | 91.67% (22/24)   | 91.11% (41/45)   | 75.00% (6/8)     | 80.00% (4/5)    |
-| src/libraries/YieldCurveLibrary.sol                    | 100.00% (5/5)    | 100.00% (7/7)    | 100.00% (0/0)    | 100.00% (1/1)   |
-| src/libraries/actions/BorrowAsLimitOrder.sol           | 100.00% (8/8)    | 100.00% (10/10)  | 100.00% (6/6)    | 100.00% (2/2)   |
-| src/libraries/actions/BorrowAsMarketOrder.sol          | 98.15% (53/54)   | 98.51% (66/67)   | 80.00% (16/20)   | 100.00% (4/4)   |
-| src/libraries/actions/Claim.sol                        | 100.00% (9/9)    | 100.00% (10/10)  | 75.00% (3/4)     | 100.00% (2/2)   |
-| src/libraries/actions/Deposit.sol                      | 100.00% (10/10)  | 100.00% (17/17)  | 100.00% (4/4)    | 100.00% (2/2)   |
-| src/libraries/actions/Initialize.sol                   | 95.45% (42/44)   | 81.48% (44/54)   | 96.67% (29/30)   | 100.00% (2/2)   |
-| src/libraries/actions/LendAsLimitOrder.sol             | 100.00% (14/14)  | 100.00% (17/17)  | 91.67% (11/12)   | 100.00% (2/2)   |
-| src/libraries/actions/LendAsMarketOrder.sol            | 0.00% (0/21)     | 0.00% (0/23)     | 0.00% (0/8)      | 0.00% (0/2)     |
-| src/libraries/actions/LenderExit.sol                   | 89.47% (34/38)   | 91.67% (44/48)   | 66.67% (12/18)   | 100.00% (2/2)   |
-| src/libraries/actions/LiquidateLoan.sol                | 90.91% (40/44)   | 93.85% (61/65)   | 78.57% (11/14)   | 100.00% (6/6)   |
-| src/libraries/actions/LiquidateLoanWithReplacement.sol | 0.00% (0/44)     | 0.00% (0/65)     | 0.00% (0/14)     | 0.00% (0/6)     |
-| src/libraries/actions/Repay.sol                        | 100.00% (14/14)  | 100.00% (14/14)  | 75.00% (6/8)     | 100.00% (2/2)   |
-| src/libraries/actions/Withdraw.sol                     | 100.00% (10/10)  | 100.00% (17/17)  | 100.00% (4/4)    | 100.00% (2/2)   |
-| src/oracle/PriceFeed.sol                               | 100.00% (12/12)  | 100.00% (21/21)  | 100.00% (8/8)    | 100.00% (3/3)   |
-| src/token/NonTransferrableToken.sol                    | 100.00% (8/8)    | 100.00% (9/9)    | 100.00% (0/0)    | 100.00% (6/6)   |
 <!-- END_COVERAGE -->
 
 ## Test
@@ -58,6 +36,7 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - a loan is liquidatable if a user is liquidatable (CR < LCR)
 - Taking loan with only virtual collateral does not decrease the borrower CR
 - Taking loan with real collateral decreases the borrower CR
+- the borrower debt is reduced in: repayment, standard liquidation, liquidation with replacement, self liquidation, borrower exit
 
 References
 
@@ -78,6 +57,8 @@ References
 - create helper contracts for liquidation in 1 step (deposit -> liquidate -> withdraw)
 - natspec
 - multi-erc20 tokens with different CR per tokens
+- review all input validation functions
+- review all valid output states (e.g. validateUserIsNotLiquidatable)
 
 ## Audit remarks
 
@@ -88,5 +69,8 @@ References
 - Protocol does not support rebasing tokens
 - Protocol does not support fee-on-transfer tokens
 - Protocol does not support tokens with more than 18 decimals
+- Protocol only supports tokens compliant with the IERC20Metadata interface
+- Protocol only supports pre-vetted tokens
 - All features except deposits/withdrawals are paused in case Chainlink oracles are stale
+- In cas Chainlink reports a wrong price, the protocol state cannot be guaranteed (invalid liquidations, etc)
 - Price feeds must be redeployed and updated on the `Size` smart contract in case any chainlink configuration changes (stale price, decimals)
