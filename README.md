@@ -37,6 +37,7 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - Taking loan with only virtual collateral does not decrease the borrower CR
 - Taking loan with real collateral decreases the borrower CR
 - the borrower debt is reduced in: repayment, standard liquidation, liquidation with replacement, self liquidation, borrower exit
+- you can exit a SOL (??)
 
 References
 

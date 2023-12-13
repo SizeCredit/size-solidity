@@ -77,7 +77,7 @@ contract InitializeTest is Test {
             protocolVault,
             feeRecipient
         );
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params)));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeWithSelector(Size.initialize.selector, params));
 
         assertEq(Size(address(proxy)).crLiquidation(), 1.3e4);
     }

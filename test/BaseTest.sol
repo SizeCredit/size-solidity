@@ -32,6 +32,7 @@ import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
 
 contract BaseTest is Test, AssertsHelper {
     event TODO();
@@ -238,6 +239,11 @@ contract BaseTest is Test, AssertsHelper {
     function _liquidateLoan(address user, uint256 loanId) internal {
         vm.prank(user);
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+    }
+
+    function _liquidateLoanWithReplacement(address user, uint256 loanId, address borrower) internal {
+        vm.prank(user);
+        size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
     }
 
     function _state() internal view returns (Vars memory vars) {
