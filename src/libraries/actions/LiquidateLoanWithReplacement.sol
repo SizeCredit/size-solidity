@@ -59,6 +59,7 @@ library LiquidateLoanWithReplacement {
 
         uint256 r = (PERCENT + borrowOffer.getRate(dueDate));
         uint256 amountOut = FixedPointMathLib.mulDivDown(FV, PERCENT, r);
+        uint256 liquidatorProfitBorrowAsset = FV - amountOut;
 
         borrowOffer.maxAmount -= amountOut;
 
@@ -67,8 +68,9 @@ library LiquidateLoanWithReplacement {
 
         state.debtToken.mint(params.borrower, FV);
         state.borrowToken.transferFrom(state.protocolVault, params.borrower, amountOut);
+        // TODO evaliate who gets this profit, msg.sender or state.feeRecipient
+        state.borrowToken.transferFrom(state.protocolVault, state.feeRecipient, liquidatorProfitBorrowAsset);
 
-        uint256 liquidatorProfitBorrowAsset = FV - amountOut;
         return liquidatorProfitBorrowAsset;
     }
 }

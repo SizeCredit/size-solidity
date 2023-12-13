@@ -236,14 +236,15 @@ contract BaseTest is Test, AssertsHelper {
         size.claim(ClaimParams({loanId: loanId}));
     }
 
-    function _liquidateLoan(address user, uint256 loanId) internal {
+    function _liquidateLoan(address user, uint256 loanId) internal returns (uint256) {
         vm.prank(user);
-        size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+        return size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
     }
 
-    function _liquidateLoanWithReplacement(address user, uint256 loanId, address borrower) internal {
+    function _liquidateLoanWithReplacement(address user, uint256 loanId, address borrower) internal returns (uint256) {
         vm.prank(user);
-        size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
+        return
+            size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
     }
 
     function _state() internal view returns (Vars memory vars) {
