@@ -17,7 +17,7 @@ struct LendAsLimitOrderParams {
 }
 
 library LendAsLimitOrder {
-    function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams memory params) external view {
+    function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external view {
         // validate msg.sender
 
         // validate params.maxAmount
@@ -45,7 +45,7 @@ library LendAsLimitOrder {
         }
     }
 
-    function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams memory params) external {
+    function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external {
         state.users[msg.sender].loanOffer = LoanOffer({
             maxAmount: params.maxAmount,
             maxDueDate: params.maxDueDate,

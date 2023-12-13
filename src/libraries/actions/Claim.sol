@@ -16,7 +16,7 @@ struct ClaimParams {
 library Claim {
     using LoanLibrary for Loan;
 
-    function validateClaim(State storage state, ClaimParams memory params) external view {
+    function validateClaim(State storage state, ClaimParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
 
         // validate msg.sender
@@ -33,7 +33,7 @@ library Claim {
         }
     }
 
-    function executeClaim(State storage state, ClaimParams memory params) external {
+    function executeClaim(State storage state, ClaimParams calldata params) external {
         Loan storage loan = state.loans[params.loanId];
 
         // @audit amountFVExited can increase if SOLs are created, what if claim/exit happen in different times?

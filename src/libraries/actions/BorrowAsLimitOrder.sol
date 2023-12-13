@@ -14,7 +14,7 @@ struct BorrowAsLimitOrderParams {
 }
 
 library BorrowAsLimitOrder {
-    function validateBorrowAsLimitOrder(State storage, BorrowAsLimitOrderParams memory params) external pure {
+    function validateBorrowAsLimitOrder(State storage, BorrowAsLimitOrderParams calldata params) external pure {
         // validate msg.sender
 
         // validate params.maxAmount
@@ -31,7 +31,7 @@ library BorrowAsLimitOrder {
         }
     }
 
-    function executeBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams memory params) external {
+    function executeBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams calldata params) external {
         state.users[msg.sender].borrowOffer =
             BorrowOffer({maxAmount: params.maxAmount, curveRelativeTime: params.curveRelativeTime});
         emit Events.BorrowAsLimitOrder(params.maxAmount, params.curveRelativeTime);

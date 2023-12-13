@@ -23,7 +23,7 @@ library Withdraw {
     using LoanLibrary for Loan;
     using SafeERC20 for IERC20Metadata;
 
-    function validateWithdraw(State storage state, WithdrawParams memory params) external view {
+    function validateWithdraw(State storage state, WithdrawParams calldata params) external view {
         // validte msg.sender
 
         // validate token
@@ -37,7 +37,7 @@ library Withdraw {
         }
     }
 
-    function executeWithdraw(State storage state, WithdrawParams memory params) external {
+    function executeWithdraw(State storage state, WithdrawParams calldata params) external {
         NonTransferrableToken nonTransferrableToken = params.token == address(state.collateralAsset)
             ? NonTransferrableToken(state.collateralToken)
             : NonTransferrableToken(state.borrowToken);

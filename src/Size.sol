@@ -89,7 +89,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     }
 
     /// @inheritdoc ISize
-    function borrowAsMarketOrder(BorrowAsMarketOrderParams calldata params) external override(ISize) {
+    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external override(ISize) {
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(msg.sender);

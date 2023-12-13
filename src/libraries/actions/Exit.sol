@@ -26,7 +26,7 @@ library Exit {
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
-    function validateExit(State storage state, ExitParams memory params) external view {
+    function validateExit(State storage state, ExitParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
         // validate msg.sender
         if (loan.lender != msg.sender) {
@@ -73,7 +73,7 @@ library Exit {
     // - the exiting lender is the taker
     // - the other lenders are the makers
     // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
-    function executeExit(State storage state, ExitParams memory params) external returns (uint256 amountInLeft) {
+    function executeExit(State storage state, ExitParams calldata params) external returns (uint256 amountInLeft) {
         emit Events.Exit(msg.sender, params.loanId, params.amount, params.dueDate, params.lendersToExitTo);
 
         amountInLeft = params.amount;

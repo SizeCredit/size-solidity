@@ -21,7 +21,7 @@ struct DepositParams {
 library Deposit {
     using SafeERC20 for IERC20Metadata;
 
-    function validateDeposit(State storage state, DepositParams memory params) external view {
+    function validateDeposit(State storage state, DepositParams calldata params) external view {
         // validte msg.sender
 
         // validate token
@@ -35,7 +35,7 @@ library Deposit {
         }
     }
 
-    function executeDeposit(State storage state, DepositParams memory params) external {
+    function executeDeposit(State storage state, DepositParams calldata params) external {
         NonTransferrableToken nonTransferrableToken = params.token == address(state.collateralAsset)
             ? NonTransferrableToken(state.collateralToken)
             : NonTransferrableToken(state.borrowToken);

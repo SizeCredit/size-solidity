@@ -56,7 +56,7 @@ library LiquidateLoan {
         }
     }
 
-    function validateLiquidateLoan(State storage state, LiquidateLoanParams memory params) external view {
+    function validateLiquidateLoan(State storage state, LiquidateLoanParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
         uint256 assignedCollateral = getAssignedCollateral(state, loan);
         uint256 amountCollateralDebtCoverage = (loan.getDebt() * 1e18) / state.priceFeed.getPrice();
@@ -79,7 +79,10 @@ library LiquidateLoan {
         }
     }
 
-    function executeLiquidateLoan(State storage state, LiquidateLoanParams memory params) external returns (uint256) {
+    function executeLiquidateLoan(State storage state, LiquidateLoanParams calldata params)
+        external
+        returns (uint256)
+    {
         Loan storage loan = state.loans[params.loanId];
 
         emit Events.LiquidateLoan(params.loanId, msg.sender);

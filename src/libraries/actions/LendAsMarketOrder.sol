@@ -26,7 +26,7 @@ library LendAsMarketOrder {
     using OfferLibrary for BorrowOffer;
     using LoanLibrary for Loan[];
 
-    function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) external view {
+    function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
 
         // validate lender
@@ -50,7 +50,7 @@ library LendAsMarketOrder {
         // N/A
     }
 
-    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) internal {
+    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) internal {
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
 
         emit Events.LendAsMarketOrder(

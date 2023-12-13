@@ -17,7 +17,7 @@ struct RepayParams {
 library Repay {
     using LoanLibrary for Loan;
 
-    function validateRepay(State storage state, RepayParams memory params) external view {
+    function validateRepay(State storage state, RepayParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
 
         // validate msg.sender
@@ -37,7 +37,7 @@ library Repay {
         }
     }
 
-    function executeRepay(State storage state, RepayParams memory params) external {
+    function executeRepay(State storage state, RepayParams calldata params) external {
         Loan storage loan = state.loans[params.loanId];
 
         state.borrowToken.transferFrom(msg.sender, state.protocolVault, loan.FV);
