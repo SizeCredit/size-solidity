@@ -59,7 +59,9 @@ library LiquidateLoan {
     function validateLiquidateLoan(State storage state, LiquidateLoanParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
         uint256 assignedCollateral = getAssignedCollateral(state, loan);
-        uint256 amountCollateralDebtCoverage = (loan.getDebt() * 1e18) / state.priceFeed.getPrice();
+        uint256 debtBorrowAsset = loan.getDebt();
+        uint256 debtCollateral =
+            FixedPointMathLib.mulDivDown(debtBorrowAsset, 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
 
         // validate msg.sender
 
@@ -71,10 +73,10 @@ library LiquidateLoan {
             revert Errors.ONLY_FOL_CAN_BE_LIQUIDATED(params.loanId);
         }
         // @audit is this reachable?
-        if (loan.either(state.loans, [LoanStatus.REPAID, LoanStatus.CLAIMED])) {
+        if (!loan.either(state.loans, [LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
             revert Errors.LOAN_NOT_LIQUIDATABLE(params.loanId);
         }
-        if (assignedCollateral < amountCollateralDebtCoverage) {
+        if (assignedCollateral < debtCollateral) {
             revert Errors.LIQUIDATION_AT_LOSS(params.loanId);
         }
     }
@@ -83,27 +85,28 @@ library LiquidateLoan {
         external
         returns (uint256)
     {
-        Loan storage loan = state.loans[params.loanId];
+        Loan storage fol = state.loans[params.loanId];
 
         emit Events.LiquidateLoan(params.loanId, msg.sender);
 
-        uint256 price = state.priceFeed.getPrice();
-
-        uint256 assignedCollateral = getAssignedCollateral(state, loan);
-        uint256 debtBorrowAsset = loan.getDebt();
-        uint256 debtCollateral = (debtBorrowAsset * 1e18) / price;
+        uint256 assignedCollateral = getAssignedCollateral(state, fol);
+        uint256 debtBorrowAsset = fol.getDebt();
+        uint256 debtCollateral =
+            FixedPointMathLib.mulDivDown(debtBorrowAsset, 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
         uint256 collateralRemainder = assignedCollateral - debtCollateral;
 
         uint256 collateralRemainderToLiquidator =
-            (collateralRemainder * state.collateralPercentagePremiumToLiquidator) / PERCENT;
+            FixedPointMathLib.mulDivDown(collateralRemainder, state.collateralPercentagePremiumToLiquidator, PERCENT);
         uint256 collateralRemainderToBorrower =
-            (collateralRemainder * state.collateralPercentagePremiumToBorrower) / PERCENT;
+            FixedPointMathLib.mulDivDown(collateralRemainder, state.collateralPercentagePremiumToBorrower, PERCENT);
         uint256 collateralRemainderToProtocol =
             collateralRemainder - collateralRemainderToLiquidator - collateralRemainderToBorrower;
 
-        state.collateralToken.transferFrom(loan.borrower, state.feeRecipient, collateralRemainderToProtocol);
-        state.collateralToken.transferFrom(loan.borrower, msg.sender, collateralRemainderToLiquidator + debtCollateral);
+        state.collateralToken.transferFrom(fol.borrower, state.feeRecipient, collateralRemainderToProtocol);
+        state.collateralToken.transferFrom(fol.borrower, msg.sender, collateralRemainderToLiquidator + debtCollateral);
         state.borrowToken.transferFrom(msg.sender, state.protocolVault, debtBorrowAsset);
+        state.debtToken.burn(fol.borrower, debtBorrowAsset);
+        fol.repaid = true;
 
         return debtCollateral + collateralRemainderToLiquidator;
     }

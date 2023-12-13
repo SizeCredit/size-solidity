@@ -34,4 +34,5 @@ library Events {
     event Repay(uint256 indexed loanId, address indexed borrower);
     event Claim(uint256 indexed loanId, address indexed lender);
     event LiquidateLoan(uint256 indexed loanId, address indexed liquidator);
+    event LiquidateLoanWithReplacement(uint256 indexed loanId, address indexed liquidator, address indexed borrower);
 }

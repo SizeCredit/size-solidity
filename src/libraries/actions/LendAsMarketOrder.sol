@@ -15,7 +15,6 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct LendAsMarketOrderParams {
-    address lender;
     address borrower;
     uint256 dueDate;
     uint256 amount;
@@ -29,7 +28,7 @@ library LendAsMarketOrder {
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
 
-        // validate lender
+        // validate msg.sender
 
         // validate borrower
 
@@ -42,8 +41,8 @@ library LendAsMarketOrder {
         if (params.amount > borrowOffer.maxAmount) {
             revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, borrowOffer.maxAmount);
         }
-        if (state.borrowToken.balanceOf(params.lender) < params.amount) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(params.lender), params.amount);
+        if (state.borrowToken.balanceOf(msg.sender) < params.amount) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(msg.sender), params.amount);
         }
 
         // validate exactAmountIn
@@ -53,9 +52,7 @@ library LendAsMarketOrder {
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) internal {
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
 
-        emit Events.LendAsMarketOrder(
-            params.lender, params.borrower, params.dueDate, params.amount, params.exactAmountIn
-        );
+        emit Events.LendAsMarketOrder(msg.sender, params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
         // solhint-disable-next-line var-name-mixedcase
@@ -69,10 +66,10 @@ library LendAsMarketOrder {
             amountIn = FixedPointMathLib.mulDivDown(params.amount, PERCENT, r);
         }
 
-        state.borrowToken.transferFrom(params.lender, params.borrower, amountIn);
+        state.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
         state.debtToken.mint(params.borrower, FV);
 
-        state.loans.createFOL(params.lender, params.borrower, FV, params.dueDate);
+        state.loans.createFOL(msg.sender, params.borrower, FV, params.dueDate);
         borrowOffer.maxAmount -= params.amount;
     }
 }

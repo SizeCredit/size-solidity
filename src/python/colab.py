@@ -4,6 +4,16 @@ from dataclasses import dataclass, field
 # Related Colab
 # https://colab.research.google.com/drive/1vJGucnsxFABB3BVWw6ErJ65pVIqkMrBd?usp=sharing#scrollTo=A5orSmPV-Hrr
 
+def myAssert(condition, message, withAssert=True):
+    if withAssert:
+        assert condition, message
+    else:
+        if not condition:
+            print(message)
+            return False
+    return True
+
+
 # State Changes
 # 1 --> 2
 # 1,2 --> 3
@@ -927,6 +937,42 @@ class LendingOB:
         return True, 0
 
 
+    # TODO: Finish Implementation
+    def liquidateLoanWithReplacement(self, liquidator: User, loanId: int, borrowOfferId: int, withAssert=True):
+        fol = self.activeLoans[loanId]
+        FV = fol.FV
+        dueDate = fol.getDueDate()
+        if not myAssert(self.liquidateLoan(liquidator=liquidator, loanId=loanId), "Should be able to liquidate", withAssert):
+            return False, 0
+
+        offer = self.borrowOffers[borrowOfferId]
+        if not myAssert(dueDate > self.context.time, f"Due Date need to be in the future dueDate={dueDate}, self.context.time={self.context.time}", withAssert):
+            return False, 0
+
+        temp, rate = offer.getRate(dueDate=dueDate)
+        if not temp:
+            print(f"WARNING: dueDate={dueDate} not available in the current offer")
+            return False, 0
+        r = (1 + rate)
+        amountOut = FV / r
+
+        if not myAssert(amountOut <= offer.maxAmount, "Should be able to liquidate", withAssert):
+            return False, 0
+
+        offer.maxAmount -= amountOut
+
+        replacementProfit = FV - amountOut
+        if not myAssert(replacementProfit >= 0, f"amountOut={amountOut}, FV={FV}, replacementProfit={replacementProfit}", withAssert):
+            return False, 0
+
+        if not myAssert(self.cash.transfer(creditorRealCollateral=offer.borrower.cash, amount=amountOut), "This should never happen", withAssert):
+            return False, 0
+
+        fol.borrower = offer.borrower
+        fol.repaid = False
+        fol.borrower.totDebtCoveredByRealCollateral += FV
+        return True, replacementProfit
+
 
     def liquidateLoan(self, liquidator: User, loanId: int):
         # TODO: Finish implementing
@@ -965,6 +1011,8 @@ class LendingOB:
             return False, 0
         self.usersETHTotDeposited[fol.borrower.uid] += amountCollateralToBorrower - amountCollateralDebtCoverage
         self.addUserETH(user=liquidator, amount=amountCollateralToLiquidator)
+        fol.borrower.totDebtCoveredByRealCollateral -= fol.getDebt()
+        fol.repaid = True
         return True, amountCollateralDebtCoverage + amountCollateralToLiquidator
 
 
@@ -1331,6 +1379,56 @@ class Test:
 
         temp, _ = self.ob.borrowerExit(loanId=0, borrowOfferId=0)
         assert temp, "Borrower Exit should work"
+
+
+
+    def testLiquidationWithReplacement(self):
+        self.ob.deposit(user=self.bob, amount=100, isUSDC=True)
+        assert self.bob.cash.free == 0, f"bob.cash.free = {self.bob.cash.free}"
+        assert self.ob.getUserCash(self.bob) == 100, f"userCash[self.bob.uid] = {self.ob.getUserCash(self.bob)}"
+        self.ob.lendAsLimitOrder(offer = LoanOffer(
+            context=self.context,
+            lender=self.bob,
+            maxAmount=100,
+            maxDueDate=10,
+            curveRelativeTime=YieldCurve.getFlatRate(rate=0.03, timeBuckets=range(12))
+        ))
+
+        self.ob.deposit(user=self.alice, amount=2, isUSDC=False)
+        self.ob.borrowAsMarketOrder(borrower=self.alice, lender=self.bob, amount=100, dueDate=6)
+        assert self.ob.getBorrowerCollateralRatio(borrower=self.alice) >= self.params.CROpening, f"Alice Collateral Ratio self.ob.getBorrowerCollateralRatio(borrower=self.alice)={self.ob.getBorrowerCollateralRatio(borrower=self.alice)}, CROpening={self.params.CROpening}"
+        assert not self.ob.isBorrowerLiquidatable(borrower=self.alice), f"Borrower should not be liquidatable"
+
+        # assert self.alice.collateralRatio() == self.params.CROpening, f"Alice Collateral Ratio alice.collateralRatio()={self.alice.collateralRatio()}, CROpening={self.params.CROpening}"
+        # assert not self.alice.isLiquidatable(), f"Borrower should not be liquidatable"
+        print(f"alice.collateralRatio = {self.ob.getBorrowerCollateralRatio(borrower=self.alice)}")
+
+        self.ob.deposit(user=self.candy, amount=2, isUSDC=False)
+        # assert len(self.ob.borrowOffers) == 0, f"len(self.ob.borrowOffers)={len(self.ob.borrowOffers)}"
+        self.ob.borrowAsLimitOrder(offer=BorrowOffer(
+            context=self.context,
+            borrower=self.candy,
+            maxAmount=100,
+            curveRelativeTime=YieldCurve.getFlatRate(rate=0.03, timeBuckets=range(12))
+        ))
+        # assert len(self.ob.borrowOffers) == 1, f"len(self.ob.borrowOffers)={len(self.ob.borrowOffers)}"
+
+        self.context.update(newTime=self.context.time + 1, newPrice=60)
+        assert self.ob.isBorrowerLiquidatable(borrower=self.alice), "Borrower should be eligible"
+        assert self.ob.isLoanLiquidatable(loanId=0), "Loan should be liquidatable"
+
+        fol = self.ob.activeLoans[0]
+        assert(fol.borrower.uid == self.alice.uid), "Alice should be the borrower"
+        assert(self.alice.totDebtCoveredByRealCollateral == fol.getDebt()), "Alice should have all her debt covered by real collateral"
+        assert(self.candy.totDebtCoveredByRealCollateral == 0), "Candy"
+        assert not fol.repaid, "Loan should not be repaid before"
+        temp, _ = self.ob.liquidateLoanWithReplacement(liquidator=self.liquidator, loanId=0, borrowOfferId=0)
+        assert temp, "Loan should be liquidated"
+        assert(fol.borrower.uid == self.candy.uid), "Candy should be the borrower"
+        assert(self.candy.totDebtCoveredByRealCollateral == fol.getDebt()), "Candy should have all her debt covered by real collateral"
+        assert(self.alice.totDebtCoveredByRealCollateral == 0), "Alice"
+        assert not fol.repaid, "Loan should not be repaid after"
+
 
 
 

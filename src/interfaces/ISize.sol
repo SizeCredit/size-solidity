@@ -50,5 +50,8 @@ interface ISize {
 
     function claim(ClaimParams memory params) external;
 
+    // decreases borrower debtAmount
+    // sets loan to repaid
+    // etc
     function liquidateLoan(LiquidateLoanParams memory params) external returns (uint256);
 }

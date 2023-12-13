@@ -6,6 +6,7 @@ import {console2 as console} from "forge-std/console2.sol";
 import {BaseTest} from "./BaseTest.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {LoanStatus, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
 contract LiquidateLoanTest is BaseTest {
@@ -68,5 +69,50 @@ contract LiquidateLoanTest is BaseTest {
             _before.liquidator.collateralAmount + (debt * 5)
                 + collateralRemainder * size.collateralPercentagePremiumToLiquidator() / PERCENT
         );
+    }
+
+    function test_LiquidateLoan_liquidateLoan_repays_loan() public {
+        _setPrice(1e18);
+
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _deposit(liquidator, 100e18, 100e18);
+
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
+
+        _setPrice(0.2e18);
+
+        assertTrue(size.isLiquidatable(loanId));
+        assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
+
+        _liquidateLoan(liquidator, loanId);
+
+        assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
+    }
+
+    function test_LiquidateLoan_liquidateLoan_reduces_borrower_debt() public {
+        _setPrice(1e18);
+
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _deposit(liquidator, 100e18, 100e18);
+
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        uint256 amount = 15e18;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
+
+        _setPrice(0.2e18);
+
+        assertTrue(size.isLiquidatable(loanId));
+
+        Vars memory _before = _state();
+
+        _liquidateLoan(liquidator, loanId);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt, 0);
     }
 }
