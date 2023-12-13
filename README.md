@@ -14,7 +14,7 @@ https://github.com/foundry-rs/foundry/issues/3357
 installing solc version "0.8.20"
 Successfully installed solc 0.8.20
 Compiling 114 files with 0.8.20
-Solc 0.8.20 finished in 89.41s
+Solc 0.8.20 finished in 107.45s
 Compiler run [32msuccessful![0m
 Analysing contracts...
 Running tests...
@@ -30,10 +30,10 @@ Running tests...
 | src/libraries/actions/BorrowAsMarketOrder.sol | 98.15% (53/54)   | 98.51% (66/67)   | 80.00% (16/20)   | 100.00% (4/4)   |
 | src/libraries/actions/Claim.sol               | 100.00% (9/9)    | 100.00% (10/10)  | 75.00% (3/4)     | 100.00% (2/2)   |
 | src/libraries/actions/Deposit.sol             | 100.00% (10/10)  | 100.00% (17/17)  | 100.00% (4/4)    | 100.00% (2/2)   |
-| src/libraries/actions/Exit.sol                | 89.47% (34/38)   | 91.67% (44/48)   | 66.67% (12/18)   | 100.00% (2/2)   |
 | src/libraries/actions/Initialize.sol          | 95.45% (42/44)   | 81.48% (44/54)   | 96.67% (29/30)   | 100.00% (2/2)   |
 | src/libraries/actions/LendAsLimitOrder.sol    | 100.00% (14/14)  | 100.00% (17/17)  | 91.67% (11/12)   | 100.00% (2/2)   |
 | src/libraries/actions/LendAsMarketOrder.sol   | 0.00% (0/21)     | 0.00% (0/23)     | 0.00% (0/8)      | 0.00% (0/2)     |
+| src/libraries/actions/LenderExit.sol          | 89.47% (34/38)   | 91.67% (44/48)   | 66.67% (12/18)   | 100.00% (2/2)   |
 | src/libraries/actions/LiquidateLoan.sol       | 90.91% (40/44)   | 93.85% (61/65)   | 78.57% (11/14)   | 100.00% (6/6)   |
 | src/libraries/actions/Repay.sol               | 100.00% (14/14)  | 100.00% (14/14)  | 75.00% (6/8)     | 100.00% (2/2)   |
 | src/libraries/actions/Withdraw.sol            | 100.00% (10/10)  | 100.00% (17/17)  | 100.00% (4/4)    | 100.00% (2/2)   |
