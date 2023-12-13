@@ -8,7 +8,9 @@ import {Loan, LoanStatus, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
-abstract contract SizeView is SizeStorage {
+import {ISizeView} from "@src/interfaces/ISizeView.sol";
+
+abstract contract SizeView is SizeStorage, ISizeView {
     using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
     using LoanLibrary for Loan;
@@ -76,7 +78,7 @@ abstract contract SizeView is SizeStorage {
         return state.loans[loanId];
     }
 
-    function getLoanStatus(uint256 loanId) public view returns (LoanStatus) {
+    function getLoanStatus(uint256 loanId) public view override(ISizeView) returns (LoanStatus) {
         return state.loans[loanId].getLoanStatus(state.loans);
     }
 
