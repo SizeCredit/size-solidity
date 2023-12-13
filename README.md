@@ -14,7 +14,7 @@ https://github.com/foundry-rs/foundry/issues/3357
 installing solc version "0.8.20"
 Successfully installed solc 0.8.20
 Compiling 113 files with 0.8.20
-Solc 0.8.20 finished in 107.63s
+Solc 0.8.20 finished in 109.90s
 Compiler run [32msuccessful![0m
 Analysing contracts...
 Running tests...
@@ -39,14 +39,6 @@ Running tests...
 | src/libraries/actions/Withdraw.sol            | 100.00% (10/10)  | 100.00% (17/17)  | 100.00% (4/4)    | 100.00% (2/2)   |
 | src/oracle/PriceFeed.sol                      | 100.00% (12/12)  | 100.00% (21/21)  | 100.00% (8/8)    | 100.00% (3/3)   |
 | src/token/NonTransferrableToken.sol           | 100.00% (8/8)    | 100.00% (9/9)    | 100.00% (0/0)    | 100.00% (6/6)   |
-| test/BaseTest.sol                             | 0.00% (0/64)     | 0.00% (0/73)     | 100.00% (0/0)    | 0.00% (0/18)    |
-| test/helpers/AssertsHelper.sol                | 0.00% (0/14)     | 0.00% (0/16)     | 0.00% (0/6)      | 0.00% (0/4)     |
-| test/helpers/ExperimentsHelper.sol            | 0.00% (0/11)     | 0.00% (0/14)     | 100.00% (0/0)    | 0.00% (0/1)     |
-| test/mocks/PriceFeedMock.sol                  | 100.00% (4/4)    | 100.00% (4/4)    | 100.00% (0/0)    | 100.00% (2/2)   |
-| test/mocks/SizeV2.sol                         | 100.00% (1/1)    | 100.00% (1/1)    | 100.00% (0/0)    | 100.00% (1/1)   |
-| test/mocks/USDC.sol                           | 100.00% (1/1)    | 100.00% (1/1)    | 100.00% (0/0)    | 100.00% (1/1)   |
-| test/mocks/WETH.sol                           | 0.00% (0/6)      | 0.00% (0/7)      | 0.00% (0/2)      | 0.00% (0/2)     |
-| Total                                         | 72.22% (351/486) | 74.45% (472/634) | 76.88% (123/160) | 73.64% (81/110) |
 <!-- END_COVERAGE -->
 
 ## Test
