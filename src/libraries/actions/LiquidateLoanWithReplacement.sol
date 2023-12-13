@@ -29,11 +29,21 @@ library LiquidateLoanWithReplacement {
         State storage state,
         LiquidateLoanWithReplacementParams calldata params
     ) external view {
-        // validate loanId
-        //   validate liquidateLoan
+        Loan memory loan = state.loans[params.loanId];
+        BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
+
+        // validate liquidateLoan
         LiquidateLoan.validateLiquidateLoan(state, LiquidateLoanParams({loanId: params.loanId}));
 
+        // validate loanId
+        if (loan.getLoanStatus(state.loans) != LoanStatus.ACTIVE) {
+            revert Errors.INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(state.loans), LoanStatus.ACTIVE);
+        }
+
         // validate borrower
+        if (borrowOffer.isNull()) {
+            revert Errors.INVALID_BORROW_OFFER(params.borrower);
+        }
     }
 
     function executeLiquidateLoanWithReplacement(
@@ -53,7 +63,7 @@ library LiquidateLoanWithReplacement {
         borrowOffer.maxAmount -= amountOut;
 
         fol.borrower = params.borrower;
-        fol.repaid = false; // @audit is it possible to repay already repaid? is this necessary?
+        fol.repaid = false;
 
         state.debtToken.mint(params.borrower, FV);
         state.borrowToken.transferFrom(state.protocolVault, params.borrower, amountOut);

@@ -102,8 +102,8 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
 
     /// @inheritdoc ISize
     function lenderExit(LenderExitParams calldata params) external override(ISize) returns (uint256 amountInLeft) {
-        state.validateExit(params);
-        amountInLeft = state.executeExit(params);
+        state.validateLenderExit(params);
+        amountInLeft = state.executeLenderExit(params);
     }
 
     /// @inheritdoc ISize

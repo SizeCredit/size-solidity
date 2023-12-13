@@ -203,6 +203,14 @@ contract BaseTest is Test, AssertsHelper {
         size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
     }
 
+    function _borrowAsLimitOrder(address borrower, uint256 maxAmount, uint256 rate, uint256 timeBucketsLength)
+        internal
+    {
+        YieldCurve memory curveRelativeTime = YieldCurveLibrary.getFlatRate(timeBucketsLength, rate);
+        vm.prank(borrower);
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
+    }
+
     function _lenderExit(
         address user,
         uint256 loanId,

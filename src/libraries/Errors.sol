@@ -22,6 +22,7 @@ library Errors {
     error DUE_DATE_OUT_OF_RANTE(uint256 dueDate, uint256 minDueDate, uint256 maxDueDate);
     error INVALID_LENDER(address account);
     error INVALID_LOAN_OFFER(address lender);
+    error INVALID_BORROW_OFFER(address borrower);
     error INVALID_LOAN_STATUS(uint256 loanId, LoanStatus actual, LoanStatus expected);
 
     error AMOUNT_GREATER_THAN_MAX_AMOUNT(uint256 amount, uint256 maxAmount);

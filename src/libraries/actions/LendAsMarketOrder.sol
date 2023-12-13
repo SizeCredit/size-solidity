@@ -31,6 +31,9 @@ library LendAsMarketOrder {
         // validate msg.sender
 
         // validate borrower
+        if (!borrowOffer.isNull()) {
+            revert Errors.INVALID_BORROW_OFFER(params.borrower);
+        }
 
         // validate dueDate
         if (params.dueDate < block.timestamp) {
