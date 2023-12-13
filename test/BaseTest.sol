@@ -28,7 +28,7 @@ import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOr
 import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
-import {ExitParams} from "@src/libraries/actions/Exit.sol";
+import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
@@ -87,13 +87,7 @@ contract BaseTest is Test, AssertsHelper {
             protocolVault: protocolVault,
             feeRecipient: feeRecipient
         });
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            address(new SizeMock()),
-            abi.encodeCall(
-                Size.initialize,
-                (params)
-            )
-        );
+        ERC1967Proxy proxy = new ERC1967Proxy(address(new SizeMock()), abi.encodeCall(Size.initialize, (params)));
         protocol = address(proxy);
 
         collateralToken.transferOwnership(protocol);
@@ -209,12 +203,17 @@ contract BaseTest is Test, AssertsHelper {
         size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
     }
 
-    function _exit(address user, uint256 loanId, uint256 amount, uint256 dueDate, address[] memory lendersToExitTo)
-        internal
-        returns (uint256)
-    {
+    function _lenderExit(
+        address user,
+        uint256 loanId,
+        uint256 amount,
+        uint256 dueDate,
+        address[] memory lendersToExitTo
+    ) internal returns (uint256) {
         vm.prank(user);
-        size.exit(ExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo}));
+        size.lenderExit(
+            LenderExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
+        );
         return size.activeLoans();
     }
 

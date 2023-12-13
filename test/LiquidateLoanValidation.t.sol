@@ -24,7 +24,7 @@ contract LiquidateLoanValidationTest is BaseTest {
         address[] memory lendersToExitTo = new address[](1);
         lendersToExitTo[0] = candy;
 
-        _exit(alice, loanId, 10e18, 12, lendersToExitTo);
+        _lenderExit(alice, loanId, 10e18, 12, lendersToExitTo);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId));
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));

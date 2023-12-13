@@ -7,7 +7,7 @@ import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOr
 import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
-import {ExitParams} from "@src/libraries/actions/Exit.sol";
+import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
@@ -38,7 +38,7 @@ interface ISize {
     // decreases loanOffers max amount
     // increases loan amountFVExited
     // creates a new SOL
-    function exit(ExitParams memory params) external returns (uint256 amountInLeft);
+    function lenderExit(LenderExitParams memory params) external returns (uint256 amountInLeft);
 
     // decreases borrower free cash
     // increases protocol free cash

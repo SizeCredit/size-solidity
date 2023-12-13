@@ -10,7 +10,7 @@ import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/act
 import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {Exit, ExitParams} from "@src/libraries/actions/Exit.sol";
+import {LenderExit, LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {Repay, RepayParams} from "@src/libraries/actions/Repay.sol";
 import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
@@ -33,7 +33,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     using BorrowAsLimitOrder for State;
     using LendAsMarketOrder for State;
     using LendAsLimitOrder for State;
-    using Exit for State;
+    using LenderExit for State;
     using Repay for State;
     using Claim for State;
     using LiquidateLoan for State;
@@ -96,7 +96,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     }
 
     /// @inheritdoc ISize
-    function exit(ExitParams calldata params) external override(ISize) returns (uint256 amountInLeft) {
+    function lenderExit(LenderExitParams calldata params) external override(ISize) returns (uint256 amountInLeft) {
         state.validateExit(params);
         amountInLeft = state.executeExit(params);
     }

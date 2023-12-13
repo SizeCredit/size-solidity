@@ -44,7 +44,7 @@ contract ClaimTest is BaseTest {
         lendersToExitTo[0] = candy;
 
         uint256 amountFVExited = 10e18;
-        _exit(alice, loanId, amountFVExited, 12, lendersToExitTo);
+        _lenderExit(alice, loanId, amountFVExited, 12, lendersToExitTo);
         _repay(bob, loanId);
 
         Vars memory _before = _state();

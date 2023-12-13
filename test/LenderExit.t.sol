@@ -26,7 +26,7 @@ contract ExitTest is BaseTest {
         Loan memory loanBefore = size.getLoan(loanId);
         uint256 loansBefore = size.activeLoans();
 
-        _exit(alice, loanId, 10e18, 12, lendersToExitTo);
+        _lenderExit(alice, loanId, 10e18, 12, lendersToExitTo);
 
         LoanOffer memory loanOfferAfter = size.getLoanOffer(candy);
         Loan memory loanAfter = size.getLoan(loanId);
@@ -59,7 +59,7 @@ contract ExitTest is BaseTest {
         Loan memory loanBefore = size.getLoan(loanId);
         uint256 loansBefore = size.activeLoans();
 
-        _exit(alice, loanId, 30e18, 12, lendersToExitTo);
+        _lenderExit(alice, loanId, 30e18, 12, lendersToExitTo);
 
         LoanOffer memory loanOfferAfter = size.getLoanOffer(alice);
         Loan memory loanAfter = size.getLoan(loanId);

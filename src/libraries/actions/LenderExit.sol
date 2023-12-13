@@ -14,19 +14,19 @@ import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-struct ExitParams {
+struct LenderExitParams {
     uint256 loanId;
     uint256 amount;
     uint256 dueDate;
     address[] lendersToExitTo;
 }
 
-library Exit {
+library LenderExit {
     using OfferLibrary for LoanOffer;
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
-    function validateExit(State storage state, ExitParams calldata params) external view {
+    function validateExit(State storage state, LenderExitParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
         // validate msg.sender
         if (loan.lender != msg.sender) {
@@ -73,8 +73,11 @@ library Exit {
     // - the exiting lender is the taker
     // - the other lenders are the makers
     // The swap traverses the `loanOfferIds` as they if they were ticks with liquidity in an orderbook
-    function executeExit(State storage state, ExitParams calldata params) external returns (uint256 amountInLeft) {
-        emit Events.Exit(msg.sender, params.loanId, params.amount, params.dueDate, params.lendersToExitTo);
+    function executeExit(State storage state, LenderExitParams calldata params)
+        external
+        returns (uint256 amountInLeft)
+    {
+        emit Events.LenderExit(msg.sender, params.loanId, params.amount, params.dueDate, params.lendersToExitTo);
 
         amountInLeft = params.amount;
         for (uint256 i = 0; i < params.lendersToExitTo.length; ++i) {

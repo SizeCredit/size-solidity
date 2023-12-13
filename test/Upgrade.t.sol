@@ -34,7 +34,7 @@ contract UpgradeTest is Test {
         weth = new WETH();
         usdc = new USDC();
         collateralToken = new CollateralToken(address(this), "Size ETH", "szETH");
-        borrowToken = new BorrowToken( address(this), "Size USDC", "szUSDC");
+        borrowToken = new BorrowToken(address(this), "Size USDC", "szUSDC");
         debtToken = new DebtToken(address(this), "Size Debt Token", "szDebt");
         protocolVault = makeAddr("protocolVault");
         feeRecipient = makeAddr("feeRecipient");
@@ -58,13 +58,7 @@ contract UpgradeTest is Test {
             protocolVault,
             feeRecipient
         );
-        proxy = new ERC1967Proxy(
-            address(v1),
-            abi.encodeCall(
-                Size.initialize,
-                (params)
-            )
-        );
+        proxy = new ERC1967Proxy(address(v1), abi.encodeCall(Size.initialize, (params)));
         v2 = new SizeV2();
 
         UUPSUpgradeable(address(proxy)).upgradeToAndCall(address(v2), "");
@@ -88,13 +82,7 @@ contract UpgradeTest is Test {
             protocolVault,
             feeRecipient
         );
-        proxy = new ERC1967Proxy(
-            address(v1),
-            abi.encodeCall(
-                Size.initialize,
-                (params)
-            )
-        );
+        proxy = new ERC1967Proxy(address(v1), abi.encodeCall(Size.initialize, (params)));
         v2 = new SizeV2();
 
         Size(address(proxy)).upgradeToAndCall(address(v2), "");

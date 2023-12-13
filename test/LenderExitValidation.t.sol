@@ -6,7 +6,7 @@ import {console2 as console} from "forge-std/console2.sol";
 import {BaseTest} from "./BaseTest.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {ExitParams} from "@src/libraries/actions/Exit.sol";
+import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
@@ -28,30 +28,42 @@ contract ExitValidationTest is BaseTest {
         uint256 dueDate = 12;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.EXITER_IS_NOT_LENDER.selector, address(this), alice));
-        size.exit(ExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo}));
+        size.lenderExit(
+            LenderExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
+        );
 
         vm.startPrank(alice);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        size.exit(ExitParams({loanId: loanId, amount: 0, dueDate: dueDate, lendersToExitTo: lendersToExitTo}));
+        size.lenderExit(
+            LenderExitParams({loanId: loanId, amount: 0, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
+        );
 
         uint256 r = PERCENT + 0.03e4;
         uint256 FV = FixedPointMathLib.mulDivUp(r, 100e18, PERCENT);
         vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_LOAN_CREDIT.selector, FV + 1, FV));
-        size.exit(ExitParams({loanId: loanId, amount: FV + 1, dueDate: dueDate, lendersToExitTo: lendersToExitTo}));
+        size.lenderExit(
+            LenderExitParams({loanId: loanId, amount: FV + 1, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
+        );
 
         lendersToExitTo[0] = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        size.exit(ExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo}));
+        size.lenderExit(
+            LenderExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
+        );
 
         lendersToExitTo[0] = bob;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, bob));
-        size.exit(ExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo}));
+        size.lenderExit(
+            LenderExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
+        );
 
         vm.warp(block.timestamp + 12);
         vm.expectRevert(
             abi.encodeWithSelector(Errors.INVALID_LOAN_STATUS.selector, loanId, LoanStatus.OVERDUE, LoanStatus.ACTIVE)
         );
-        size.exit(ExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo}));
+        size.lenderExit(
+            LenderExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
+        );
     }
 }

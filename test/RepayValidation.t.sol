@@ -27,7 +27,7 @@ contract RepayValidationTest is BaseTest {
         address[] memory lendersToExitTo = new address[](1);
         lendersToExitTo[0] = candy;
 
-        uint256 solId = _exit(alice, loanId, 10e18, 12, lendersToExitTo);
+        uint256 solId = _lenderExit(alice, loanId, 10e18, 12, lendersToExitTo);
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.REPAYER_IS_NOT_BORROWER.selector, alice, bob));

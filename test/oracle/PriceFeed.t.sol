@@ -20,13 +20,7 @@ contract PriceFeedTest is Test {
     function setUp() public {
         ethToUsd = new MockV3Aggregator(ETH_TO_USD_DECIMALS, ETH_TO_USD);
         usdcToUsd = new MockV3Aggregator(USDC_TO_USD_DECIMALS, USDC_TO_USD);
-        priceFeed = new PriceFeed(
-            address(ethToUsd),
-            address(usdcToUsd),
-            18,
-            3600,
-            86400
-        );
+        priceFeed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 18, 3600, 86400);
     }
 
     function test_PriceFeed_validations() public {
@@ -108,25 +102,13 @@ contract PriceFeedTest is Test {
     }
 
     function test_PriceFeed_getPrice_low_decimals() public {
-        PriceFeed feed = new PriceFeed(
-            address(ethToUsd),
-            address(usdcToUsd),
-            2,
-            3600,
-            86400
-        );
+        PriceFeed feed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 2, 3600, 86400);
 
         assertEq(feed.getPrice(), uint256(220012) * 100 / uint256(99));
     }
 
     function test_PriceFeed_getPrice_8_decimals() public {
-        PriceFeed feed = new PriceFeed(
-            address(ethToUsd),
-            address(usdcToUsd),
-            8,
-            3600,
-            86400
-        );
+        PriceFeed feed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 8, 3600, 86400);
 
         assertEq(feed.getPrice(), uint256(2200.12e8) * 1e8 / uint256(0.9999e8));
     }
