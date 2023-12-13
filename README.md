@@ -5,6 +5,19 @@ Size V2 Solidity
 ## Coverage
 
 <!-- BEGIN_COVERAGE -->
+[33mWarning! "--ir-minimum" flag enables viaIR with minimum optimization, which can result in inaccurate source mappings.
+Only use this flag as a workaround if you are experiencing "stack too deep" errors.
+Note that "viaIR" is only available in Solidity 0.8.13 and above.
+See more:
+https://github.com/foundry-rs/foundry/issues/3357
+[0m
+installing solc version "0.8.20"
+Successfully installed solc 0.8.20
+Compiling 114 files with 0.8.20
+Solc 0.8.20 finished in 89.41s
+Compiler run [32msuccessful![0m
+Analysing contracts...
+Running tests...
 | File                                          | % Lines          | % Statements     | % Branches       | % Funcs         |
 |-----------------------------------------------|------------------|------------------|------------------|-----------------|
 | src/Size.sol                                  | 82.14% (23/28)   | 82.14% (23/28)   | 100.00% (0/0)    | 91.67% (11/12)  |
