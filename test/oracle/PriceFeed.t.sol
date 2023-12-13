@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 import {Test} from "forge-std/Test.sol";
+
+import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
+import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {PriceFeed} from "@src/oracle/PriceFeed.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -44,7 +46,7 @@ contract PriceFeedTest is Test {
     }
 
     function test_PriceFeed_getPrice_success() public {
-        assertEq(priceFeed.getPrice(), (uint256(2200.12e18) * 1e18) / uint256(0.9999e18));
+        assertEq(priceFeed.getPrice(), FixedPointMathLib.mulDivDown(uint256(2200.12e18), 1e18, uint256(0.9999e18)));
     }
 
     function test_PriceFeed_getPrice_reverts_null_price() public {
@@ -89,7 +91,7 @@ contract PriceFeedTest is Test {
         priceFeed.getPrice();
 
         ethToUsd.updateAnswer((ETH_TO_USD * 1.1e8) / 1e8);
-        assertEq(priceFeed.getPrice(), (uint256(2200.12e18) * 1.1e18) / uint256(0.9999e18));
+        assertEq(priceFeed.getPrice(), FixedPointMathLib.mulDivDown(uint256(2200.12e18), 1.1e18, uint256(0.9999e18)));
 
         vm.warp(updatedAt + 86400 + 1);
         ethToUsd.updateAnswer(ETH_TO_USD);
@@ -104,12 +106,12 @@ contract PriceFeedTest is Test {
     function test_PriceFeed_getPrice_low_decimals() public {
         PriceFeed feed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 2, 3600, 86400);
 
-        assertEq(feed.getPrice(), uint256(220012) * 100 / uint256(99));
+        assertEq(feed.getPrice(), FixedPointMathLib.mulDivDown(uint256(220012), 100, uint256(99)));
     }
 
     function test_PriceFeed_getPrice_8_decimals() public {
         PriceFeed feed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 8, 3600, 86400);
 
-        assertEq(feed.getPrice(), uint256(2200.12e8) * 1e8 / uint256(0.9999e8));
+        assertEq(feed.getPrice(), FixedPointMathLib.mulDivDown(uint256(2200.12e8), 1e8, uint256(0.9999e8)));
     }
 }

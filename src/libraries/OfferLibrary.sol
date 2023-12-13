@@ -63,6 +63,7 @@ library OfferLibrary {
             uint256 y0 = curveRelativeTime.rates[minIndex];
             uint256 x1 = curveRelativeTime.timeBuckets[maxIndex];
             uint256 y1 = curveRelativeTime.rates[maxIndex];
+            // @audit review this equation to avoid precision loss
             uint256 y = x1 != x0 ? (y0 * (x1 - x0) + (y1 - y0) * (deltaT - x0)) / (x1 - x0) : y0;
             return y;
         }
