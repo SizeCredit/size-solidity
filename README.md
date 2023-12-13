@@ -13,8 +13,8 @@ https://github.com/foundry-rs/foundry/issues/3357
 [0m
 installing solc version "0.8.20"
 Successfully installed solc 0.8.20
-Compiling 113 files with 0.8.20
-Solc 0.8.20 finished in 109.90s
+Compiling 114 files with 0.8.20
+Solc 0.8.20 finished in 112.19s
 Compiler run [32msuccessful![0m
 Analysing contracts...
 Running tests...
