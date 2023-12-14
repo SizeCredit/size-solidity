@@ -53,4 +53,44 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         vm.expectRevert();
         _claim(alice, 0);
     }
+
+    function test_Experiments_test3() public {
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowAmount, 100e18);
+        _lendAsLimitOrder(bob, 100e18, 10, 0.03e18, 12);
+        _deposit(alice, weth, 2e18);
+        _borrowAsMarketOrder(alice, bob, 100e18, 6);
+        assertGe(size.collateralRatio(alice), size.crOpening());
+        assertTrue(!size.isLiquidatable(alice), "borrower should not be liquidatable");
+        vm.warp(block.timestamp + 1);
+        _setPrice(60e18);
+
+        assertTrue(size.isLiquidatable(alice), "borrower should be liquidatable");
+        assertTrue(size.isLiquidatable(0), "loan should be liquidatable");
+
+        _deposit(liquidator, usdc, 10_000e6);
+        console.log("loan should be liquidated");
+        _liquidateLoan(liquidator, 0);
+    }
+
+    function test_Experiments_testBasicExit1() public {
+    }
+
+    function test_Experiments_testBorrowWithExit1() public {
+    }
+
+    function test_Experiments_testLoanMove1() public {
+    }
+
+    function test_Experiments_testSL1() public {
+    }
+
+    function test_Experiments_testLendAsLimitOrder1() public {
+    }
+
+    function test_Experiments_testBorrowerExit1() public {
+    }
+
+    function test_Experiments_testLiquidationWithReplacement() public {
+    }
 }
