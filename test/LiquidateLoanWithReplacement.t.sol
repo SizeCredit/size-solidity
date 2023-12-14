@@ -16,7 +16,9 @@ import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/Liquida
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract LiquidateLoanWithReplacementTest is BaseTest {
-    function test_LiquidateLoanWithReplacement_liquidateLoanWithReplacement_updates_new_borrower_borrowOffer() public {
+    function test_LiquidateLoanWithReplacement_liquidateLoanWithReplacement_updates_new_borrower_borrowOffer_same_rate()
+        public
+    {
         _setPrice(1e18);
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
@@ -27,6 +29,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
+        uint256 delta = debt - amount;
 
         _setPrice(0.2e18);
 
@@ -47,10 +50,54 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         assertEq(_after.alice, _before.alice);
         assertEq(_after.candy.debtAmount, _before.candy.debtAmount + debt);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + amount);
+        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount, 0);
+        assertEq(_after.feeRecipientBorrowAmount, _before.feeRecipientBorrowAmount + delta);
         assertEq(loanAfter.borrower, candy);
         assertEq(loanAfter.repaid, false);
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
         assertEq(borrowOfferAfter.maxAmount, borrowOfferBefore.maxAmount - amount);
+    }
+
+    function test_LiquidateLoanWithReplacement_liquidateLoanWithReplacement_updates_new_borrower_borrowOffer_different_rate(
+    ) public {
+        _setPrice(1e18);
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _deposit(candy, 1000e18, 100e18);
+        _deposit(liquidator, 100e18, 100e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        _borrowAsLimitOrder(candy, 100e18, 0.01e4, 12);
+        uint256 amount = 15e18;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
+        uint256 newAmount = FixedPointMathLib.mulDivDown(debt, PERCENT, (PERCENT + 0.01e4));
+        uint256 delta = debt - newAmount;
+
+        _setPrice(0.2e18);
+
+        BorrowOffer memory borrowOfferBefore = size.getBorrowOffer(candy);
+        Loan memory loanBefore = size.getLoan(loanId);
+        Vars memory _before = _state();
+
+        assertEq(loanBefore.borrower, bob);
+        assertEq(loanBefore.repaid, false);
+        assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
+
+        _liquidateLoanWithReplacement(liquidator, loanId, candy);
+
+        BorrowOffer memory borrowOfferAfter = size.getBorrowOffer(candy);
+        Loan memory loanAfter = size.getLoan(loanId);
+        Vars memory _after = _state();
+
+        assertEq(_after.alice, _before.alice);
+        assertEq(_after.candy.debtAmount, _before.candy.debtAmount + debt);
+        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + newAmount);
+        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount, 0);
+        assertEq(_after.feeRecipientBorrowAmount, _before.feeRecipientBorrowAmount + delta);
+        assertEq(loanAfter.borrower, candy);
+        assertEq(loanAfter.repaid, false);
+        assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
+        assertEq(borrowOfferAfter.maxAmount, borrowOfferBefore.maxAmount - newAmount);
     }
 
     function test_LiquidateLoanWithReplacement_liquidateLoanWithReplacement_cannot_leave_new_borrower_liquidatable()
