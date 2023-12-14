@@ -4,6 +4,8 @@ pragma solidity 0.8.20;
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
+uint256 constant RESERVED_FOL_ID = type(uint256).max;
+
 struct Loan {
     // solhint-disable-next-line var-name-mixedcase
     uint256 FV;
@@ -32,7 +34,7 @@ library LoanLibrary {
     error LoanLibrary__InvalidAmount(uint256 amount, uint256 maxExit);
 
     function isFOL(Loan memory self) public pure returns (bool) {
-        return self.folId == 0;
+        return self.folId == RESERVED_FOL_ID;
     }
 
     function getLoanStatus(Loan memory self, Loan[] memory loans) public view returns (LoanStatus) {
@@ -79,12 +81,12 @@ library LoanLibrary {
                 borrower: borrower,
                 dueDate: dueDate,
                 repaid: false,
-                folId: 0
+                folId: RESERVED_FOL_ID
             })
         );
         uint256 folId = loans.length - 1;
 
-        emit Events.CreateLoan(folId, lender, borrower, 0, FV, dueDate);
+        emit Events.CreateLoan(folId, lender, borrower, RESERVED_FOL_ID, FV, dueDate);
     }
 
     // solhint-disable-next-line var-name-mixedcase

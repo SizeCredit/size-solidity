@@ -69,7 +69,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     function activeLoans() public view returns (uint256) {
-        return state.loans.length - 1;
+        return state.loans.length;
     }
 
     function isFOL(uint256 loanId) public view returns (bool) {

@@ -194,7 +194,7 @@ contract BaseTest is Test, AssertsHelper {
                 virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
-        return size.activeLoans();
+        return size.activeLoans() - 1;
     }
 
     function _borrowAsLimitOrder(
@@ -227,7 +227,7 @@ contract BaseTest is Test, AssertsHelper {
         size.lenderExit(
             LenderExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
         );
-        return size.activeLoans();
+        return size.activeLoans() - 1;
     }
 
     function _repay(address user, uint256 loanId) internal {
