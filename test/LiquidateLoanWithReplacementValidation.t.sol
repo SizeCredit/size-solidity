@@ -23,7 +23,7 @@ contract LiquidateLoanWithReplacementValidationTest is BaseTest {
         _borrowAsLimitOrder(candy, 100e18, 0.03e18, 4);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
 
-        _setPrice(0.25e18);
+        _setPrice(0.2e18);
 
         vm.startPrank(liquidator);
 

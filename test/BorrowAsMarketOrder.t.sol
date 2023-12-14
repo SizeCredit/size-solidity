@@ -6,6 +6,7 @@ import {console2 as console} from "forge-std/console2.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 import {BaseTest} from "./BaseTest.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
@@ -38,13 +39,15 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtOpening = FixedPointMathLib.mulDivUp(debt, size.crOpening(), PERCENT);
-        uint256 ethLocked = FixedPointMathLib.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 minimumCollateral =
+            FixedPointMathLib.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
         LoanOffer memory offerAfter = size.getLoanOffer(alice);
 
+        assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount + amount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount + ethLocked);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
         assertEq(_after.bob.debtAmount, debt);
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
@@ -73,13 +76,15 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + rate), PERCENT);
         uint256 debtOpening = FixedPointMathLib.mulDivUp(debt, size.crOpening(), PERCENT);
-        uint256 ethLocked = FixedPointMathLib.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 minimumCollateral =
+            FixedPointMathLib.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
         LoanOffer memory offerAfter = size.getLoanOffer(alice);
 
+        assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount + amount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount + ethLocked);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
         assertEq(_after.bob.debtAmount, debt);
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
@@ -167,12 +172,13 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         uint256 FV = FixedPointMathLib.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
         uint256 FVOpening = FixedPointMathLib.mulDivUp(FV, size.crOpening(), PERCENT);
-        uint256 maxCollateralToLock =
+        uint256 minimumCollateral =
             FixedPointMathLib.mulDivUp(FVOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
+        assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
         assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount + maxCollateralToLock);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + FV);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
@@ -209,13 +215,13 @@ contract BorrowAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
 
         uint256 FVOpening = FixedPointMathLib.mulDivUp(FV, size.crOpening(), PERCENT);
-        uint256 maxCollateralToLock =
+        uint256 minimumCollateralAmount =
             FixedPointMathLib.mulDivUp(FVOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
+        assertGt(_before.bob.collateralAmount, minimumCollateralAmount);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
         assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertGt(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount + maxCollateralToLock);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + FV);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
@@ -259,9 +265,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
             FixedPointMathLib.mulDivUp(FVOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         vm.startPrank(bob);
         uint256[] memory virtualCollateralLoanIds;
-        vm.expectRevert(
-            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, bob, 0, maxCollateralToLock)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.INSUFFICIENT_COLLATERAL.selector, 0, maxCollateralToLock));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,

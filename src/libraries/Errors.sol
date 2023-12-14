@@ -14,6 +14,7 @@ library Errors {
     error INVALID_COLLATERAL_RATIO(uint256 cr);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM(uint256 percentage);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(uint256 sum);
+    error INSUFFICIENT_COLLATERAL(uint256 collateral, uint256 requiredCollateral);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error PAST_DUE_DATE(uint256 dueDate);
     error PAST_MAX_DUE_DATE(uint256 dueDate);
