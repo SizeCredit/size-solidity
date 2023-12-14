@@ -155,15 +155,20 @@ contract BaseTest is Test, AssertsHelper {
         internal
         returns (uint256)
     {
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false);
+        uint256[] memory virtualCollateralLoanIds;
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralLoanIds);
     }
 
-    function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate, bool exactAmountIn)
-        internal
-        returns (uint256)
-    {
-        uint256[] memory virtualCollateralLoanIds;
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralLoanIds);
+    function _borrowAsMarketOrder(
+        address borrower,
+        address lender,
+        uint256 amount,
+        uint256 dueDate,
+        uint256[1] memory ids
+    ) internal returns (uint256) {
+        uint256[] memory virtualCollateralLoanIds = new uint256[](1);
+        virtualCollateralLoanIds[0] = ids[0];
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralLoanIds);
     }
 
     function _borrowAsMarketOrder(

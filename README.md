@@ -49,7 +49,6 @@ References
 
 ## TODOs
 
-- loan id MAX --> SOL
 - 100% coverage
 - dust amount for loans
 - add experiments as tests
