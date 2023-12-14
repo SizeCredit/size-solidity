@@ -14,9 +14,9 @@ contract LiquidateLoanValidationTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.03e4, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId));
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));

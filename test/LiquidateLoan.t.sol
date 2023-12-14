@@ -20,10 +20,10 @@ contract LiquidateLoanTest is BaseTest {
 
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
+        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtOpening = FixedPointMathLib.mulDivUp(debt, size.crOpening(), PERCENT);
         uint256 lock = FixedPointMathLib.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         uint256 assigned = 100e18 - lock;
@@ -82,7 +82,7 @@ contract LiquidateLoanTest is BaseTest {
         _deposit(bob, 100e18, 100e18);
         _deposit(liquidator, 100e18, 100e18);
 
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
 
         _setPrice(0.25e18);
@@ -102,10 +102,10 @@ contract LiquidateLoanTest is BaseTest {
         _deposit(bob, 100e18, 100e18);
         _deposit(liquidator, 100e18, 100e18);
 
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
+        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
 
         _setPrice(0.25e18);
 

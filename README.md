@@ -13,6 +13,10 @@ Size V2 Solidity
 forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 ```
 
+## Documentation
+
+- Inside the protocol, all values are expressed in WAD (18 decimals), including price feed decimals and percentages
+
 ## Invariants
 
 | Property | Category    | Description                                                                              |

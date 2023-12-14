@@ -15,7 +15,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     function test_Experiments_1() public {
         _deposit(alice, usdc, 100e6);
         assertEq(_state().alice.borrowAmount, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 10, 0.03e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 10, 0.03e18, 12);
         _deposit(james, weth, 50e18);
         assertEq(_state().james.collateralAmount, 50e18);
 

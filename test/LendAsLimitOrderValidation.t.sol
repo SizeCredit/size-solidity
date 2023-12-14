@@ -23,7 +23,7 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         timeBuckets[0] = 1 days;
         timeBuckets[1] = 2 days;
         uint256[] memory rates1 = new uint256[](1);
-        rates1[0] = 1.01e4;
+        rates1[0] = 1.01e18;
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
@@ -47,8 +47,8 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         );
 
         uint256[] memory rates = new uint256[](2);
-        rates[0] = 1.01e4;
-        rates[1] = 1.02e4;
+        rates[0] = 1.01e18;
+        rates[1] = 1.02e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({

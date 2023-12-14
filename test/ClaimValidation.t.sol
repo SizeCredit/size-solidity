@@ -18,7 +18,7 @@ contract ClaimValidationTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
 
         vm.startPrank(alice);

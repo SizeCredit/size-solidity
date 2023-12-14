@@ -21,10 +21,10 @@ contract RepayValidationTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 10e18, 12);
-        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e4, 10e18, PERCENT);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.03e4, 12);
+        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, 10e18, PERCENT);
+        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
 
         address[] memory lendersToExitTo = new address[](1);
         lendersToExitTo[0] = candy;

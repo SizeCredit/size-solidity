@@ -85,10 +85,10 @@ contract BaseTest is Test, AssertsHelper {
             collateralToken: address(collateralToken),
             borrowToken: address(borrowToken),
             debtToken: address(debtToken),
-            crOpening: 1.5e4,
-            crLiquidation: 1.3e4,
-            collateralPercentagePremiumToLiquidator: 0.3e4,
-            collateralPercentagePremiumToBorrower: 0.1e4,
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            collateralPercentagePremiumToLiquidator: 0.3e18,
+            collateralPercentagePremiumToBorrower: 0.1e18,
             protocolVault: protocolVault,
             feeRecipient: feeRecipient
         });

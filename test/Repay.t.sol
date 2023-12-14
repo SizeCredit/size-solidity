@@ -18,10 +18,10 @@ contract RepayTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
-        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e4, amountLoanId1, PERCENT);
+        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
 
         Vars memory _before = _state();
 
@@ -39,10 +39,10 @@ contract RepayTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
-        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e4, amountLoanId1, PERCENT);
+        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
 
         Vars memory _before = _state();
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);

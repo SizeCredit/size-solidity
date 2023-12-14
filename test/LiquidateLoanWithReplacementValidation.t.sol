@@ -19,8 +19,8 @@ contract LiquidateLoanWithReplacementValidationTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.03e4, 4);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 4);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
 
         _setPrice(0.25e18);

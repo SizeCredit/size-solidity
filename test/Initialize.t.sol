@@ -49,10 +49,10 @@ contract InitializeTest is Test {
             collateralToken: address(collateralToken),
             borrowToken: address(borrowToken),
             debtToken: address(debtToken),
-            crOpening: 1.5e4,
-            crLiquidation: 1.3e4,
-            collateralPercentagePremiumToLiquidator: 0.3e4,
-            collateralPercentagePremiumToBorrower: 0.1e4,
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            collateralPercentagePremiumToLiquidator: 0.3e18,
+            collateralPercentagePremiumToBorrower: 0.1e18,
             protocolVault: protocolVault,
             feeRecipient: feeRecipient
         });
@@ -71,15 +71,15 @@ contract InitializeTest is Test {
             address(collateralToken),
             address(borrowToken),
             address(debtToken),
-            1.5e4,
-            1.3e4,
-            0.3e4,
-            0.1e4,
+            1.5e18,
+            1.3e18,
+            0.3e18,
+            0.1e18,
             protocolVault,
             feeRecipient
         );
         proxy = new ERC1967Proxy(address(implementation), abi.encodeWithSelector(Size.initialize.selector, params));
 
-        assertEq(Size(address(proxy)).crLiquidation(), 1.3e4);
+        assertEq(Size(address(proxy)).crLiquidation(), 1.3e18);
     }
 }

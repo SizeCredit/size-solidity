@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-uint256 constant PERCENT = 1e4;
+uint256 constant PERCENT = 1e18;
 
 library MathLibrary {
     function amountToWad(uint256 amount, uint256 decimals) public pure returns (uint256) {

@@ -15,12 +15,12 @@ contract ClaimTest is BaseTest {
     function test_Claim_claim_gets_loan_FV_back() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         _repay(bob, loanId);
 
-        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e4, amountLoanId1, PERCENT);
+        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
 
         Vars memory _before = _state();
 
@@ -37,9 +37,9 @@ contract ClaimTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.03e4, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
 
         address[] memory lendersToExitTo = new address[](1);
         lendersToExitTo[0] = candy;
@@ -55,7 +55,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.03e4, 100e18, PERCENT);
+        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.03e18, 100e18, PERCENT);
         uint256 credit = FV - amountFVExited;
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + credit);
         assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);

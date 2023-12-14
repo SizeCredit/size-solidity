@@ -20,9 +20,9 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
-        _lendAsLimitOrder(bob, 100e18, 5, 0.03e4, 5);
-        _lendAsLimitOrder(candy, 100e18, 10, 0.03e4, 10);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 100e18, 5, 0.03e18, 5);
+        _lendAsLimitOrder(candy, 100e18, 10, 0.03e18, 10);
         uint256 loanId = _borrowAsMarketOrder(alice, candy, 1e18, 10);
 
         uint256 amount = 10e18;

@@ -49,10 +49,10 @@ contract InitializeValidationTest is Test {
             collateralToken: address(collateralToken),
             borrowToken: address(borrowToken),
             debtToken: address(debtToken),
-            crOpening: 1.5e4,
-            crLiquidation: 1.3e4,
-            collateralPercentagePremiumToLiquidator: 0.3e4,
-            collateralPercentagePremiumToBorrower: 0.1e4,
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            collateralPercentagePremiumToLiquidator: 0.3e18,
+            collateralPercentagePremiumToBorrower: 0.1e18,
             protocolVault: protocolVault,
             feeRecipient: feeRecipient
         });
@@ -92,39 +92,39 @@ contract InitializeValidationTest is Test {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params)));
         params.debtToken = address(debtToken);
 
-        params.crOpening = 0.5e4;
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 0.5e4));
+        params.crOpening = 0.5e18;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 0.5e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params)));
-        params.crOpening = 1.5e4;
+        params.crOpening = 1.5e18;
 
-        params.crLiquidation = 0.3e4;
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 0.3e4));
+        params.crLiquidation = 0.3e18;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 0.3e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params)));
-        params.crLiquidation = 1.3e4;
+        params.crLiquidation = 1.3e18;
 
-        params.crLiquidation = 1.5e4;
-        params.crOpening = 1.3e4;
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO.selector, 1.3e4, 1.5e4));
+        params.crLiquidation = 1.5e18;
+        params.crOpening = 1.3e18;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO.selector, 1.3e18, 1.5e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params)));
-        params.crLiquidation = 1.3e4;
-        params.crOpening = 1.5e4;
+        params.crLiquidation = 1.3e18;
+        params.crOpening = 1.5e18;
 
-        params.collateralPercentagePremiumToLiquidator = 1.1e4;
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e4));
+        params.collateralPercentagePremiumToLiquidator = 1.1e18;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params)));
-        params.collateralPercentagePremiumToLiquidator = 0.3e4;
+        params.collateralPercentagePremiumToLiquidator = 0.3e18;
 
-        params.collateralPercentagePremiumToBorrower = 1.2e4;
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e4));
+        params.collateralPercentagePremiumToBorrower = 1.2e18;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params)));
-        params.collateralPercentagePremiumToBorrower = 0.1e4;
+        params.collateralPercentagePremiumToBorrower = 0.1e18;
 
-        params.collateralPercentagePremiumToLiquidator = 0.6e4;
-        params.collateralPercentagePremiumToBorrower = 0.6e4;
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e4));
+        params.collateralPercentagePremiumToLiquidator = 0.6e18;
+        params.collateralPercentagePremiumToBorrower = 0.6e18;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params)));
-        params.collateralPercentagePremiumToLiquidator = 0.3e4;
-        params.collateralPercentagePremiumToBorrower = 0.1e4;
+        params.collateralPercentagePremiumToLiquidator = 0.3e18;
+        params.collateralPercentagePremiumToBorrower = 0.1e18;
 
         params.protocolVault = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));

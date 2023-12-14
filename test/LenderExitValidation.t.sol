@@ -19,9 +19,9 @@ contract ExitValidationTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.03e4, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
 
         address[] memory lendersToExitTo = new address[](1);
         lendersToExitTo[0] = candy;
@@ -40,7 +40,7 @@ contract ExitValidationTest is BaseTest {
             LenderExitParams({loanId: loanId, amount: 0, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
         );
 
-        uint256 r = PERCENT + 0.03e4;
+        uint256 r = PERCENT + 0.03e18;
         uint256 FV = FixedPointMathLib.mulDivUp(r, 100e18, PERCENT);
         vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_LOAN_CREDIT.selector, FV + 1, FV));
         size.lenderExit(

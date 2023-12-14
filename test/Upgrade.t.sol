@@ -52,10 +52,10 @@ contract UpgradeTest is Test {
             address(collateralToken),
             address(borrowToken),
             address(debtToken),
-            1.5e4,
-            1.3e4,
-            0.3e4,
-            0.1e4,
+            1.5e18,
+            1.3e18,
+            0.3e18,
+            0.1e18,
             protocolVault,
             feeRecipient
         );
@@ -76,10 +76,10 @@ contract UpgradeTest is Test {
             address(collateralToken),
             address(borrowToken),
             address(debtToken),
-            1.5e4,
-            1.3e4,
-            0.3e4,
-            0.1e4,
+            1.5e18,
+            1.3e18,
+            0.3e18,
+            0.1e18,
             protocolVault,
             feeRecipient
         );

@@ -24,11 +24,11 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 1000e18, 100e18);
         _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.03e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
+        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 delta = debt - amount;
 
         _setPrice(0.25e18);
@@ -65,12 +65,12 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 1000e18, 100e18);
         _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.01e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e18, 0.01e18, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
-        uint256 newAmount = FixedPointMathLib.mulDivDown(debt, PERCENT, (PERCENT + 0.01e4));
+        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        uint256 newAmount = FixedPointMathLib.mulDivDown(debt, PERCENT, (PERCENT + 0.01e18));
         uint256 delta = debt - newAmount;
 
         _setPrice(0.25e18);
@@ -107,8 +107,8 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.03e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
 
         _setPrice(0.25e18);
@@ -127,8 +127,8 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 1000e18, 100e18);
         _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.03e4, 12);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
 
         _setPrice(0.25e18);
