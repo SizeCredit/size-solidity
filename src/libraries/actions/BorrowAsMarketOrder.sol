@@ -116,11 +116,11 @@ library BorrowAsMarketOrder {
 
             uint256 deltaAmountIn;
             uint256 deltaAmountOut;
-            if (FixedPointMathLib.mulDivUp(r, amountOutLeft, PERCENT) > loan.getCredit()) {
+            if (FixedPointMathLib.mulDivUp(amountOutLeft, r, PERCENT) > loan.getCredit()) {
                 deltaAmountIn = loan.getCredit();
                 deltaAmountOut = FixedPointMathLib.mulDivUp(loan.getCredit(), PERCENT, r);
             } else {
-                deltaAmountIn = FixedPointMathLib.mulDivUp(r, amountOutLeft, PERCENT);
+                deltaAmountIn = FixedPointMathLib.mulDivUp(amountOutLeft, r, PERCENT);
                 deltaAmountOut = amountOutLeft;
             }
 
@@ -150,7 +150,7 @@ library BorrowAsMarketOrder {
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         // solhint-disable-next-line var-name-mixedcase
-        uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
+        uint256 FV = FixedPointMathLib.mulDivUp(params.amount, r, PERCENT);
         uint256 minimumCollateralOpening = FixedPointMathLib.mulDivUp(FV, state.crOpening, state.priceFeed.getPrice());
 
         if (state.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {

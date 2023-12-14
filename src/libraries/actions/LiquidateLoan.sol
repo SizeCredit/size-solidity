@@ -23,11 +23,10 @@ library LiquidateLoan {
     function getAssignedCollateral(State storage state, Loan memory loan) public view returns (uint256) {
         uint256 debt = state.debtToken.balanceOf(loan.borrower);
         uint256 collateral = state.collateralToken.balanceOf(loan.borrower);
-        // slither-disable-next-line incorrect-equality
-        if (debt == 0) {
-            return 0;
-        } else {
+        if (debt > 0) {
             return FixedPointMathLib.mulDivDown(collateral, loan.FV, debt);
+        } else {
+            return 0;
         }
     }
 
@@ -36,11 +35,10 @@ library LiquidateLoan {
         uint256 debt = state.debtToken.balanceOf(account);
         uint256 price = state.priceFeed.getPrice();
 
-        // slither-disable-next-line incorrect-equality
-        if (debt == 0) {
-            return type(uint256).max;
-        } else {
+        if (debt > 0) {
             return FixedPointMathLib.mulDivDown(collateral, price, debt);
+        } else {
+            return type(uint256).max;
         }
     }
 

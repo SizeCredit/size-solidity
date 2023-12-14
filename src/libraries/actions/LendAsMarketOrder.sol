@@ -63,7 +63,7 @@ library LendAsMarketOrder {
         uint256 FV;
         uint256 amountIn;
         if (params.exactAmountIn) {
-            FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
+            FV = FixedPointMathLib.mulDivUp(params.amount, r, PERCENT);
             amountIn = params.amount;
         } else {
             FV = params.amount;

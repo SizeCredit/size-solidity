@@ -96,7 +96,7 @@ library LenderExit {
             uint256 deltaAmountOut;
             // @audit check rounding direction
             if (amountInLeft > loanOffer.maxAmount) {
-                deltaAmountIn = FixedPointMathLib.mulDivUp(r, loanOffer.maxAmount, PERCENT);
+                deltaAmountIn = FixedPointMathLib.mulDivUp(loanOffer.maxAmount, r, PERCENT);
                 deltaAmountOut = loanOffer.maxAmount;
             } else {
                 deltaAmountIn = amountInLeft;
