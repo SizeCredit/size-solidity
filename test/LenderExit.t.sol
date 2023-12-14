@@ -2,11 +2,12 @@
 pragma solidity 0.8.20;
 
 import {BaseTest} from "./BaseTest.sol";
-import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+
+import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
-import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
+import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
 contract ExitTest is BaseTest {
     function test_Exit_exit_transfer_cash_from_loanOffer_to_sender_properties() public {

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Test} from "forge-std/Test.sol";
 import {Plot} from "@solplot/Plot.sol";
+import {Test} from "forge-std/Test.sol";
 
 abstract contract ExperimentsHelper is Test, Plot {
     function plot(string memory filename, uint256[] memory data) internal {

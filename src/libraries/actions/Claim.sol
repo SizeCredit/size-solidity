@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {Loan} from "@src/libraries/LoanLibrary.sol";
-import {LoanLibrary, LoanStatus, Loan} from "@src/libraries/LoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 

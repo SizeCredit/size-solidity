@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
-import {OfferLibrary, LoanOffer} from "@src/libraries/OfferLibrary.sol";
-import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
+
+import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 

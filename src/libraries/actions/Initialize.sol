@@ -3,10 +3,11 @@ pragma solidity 0.8.20;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
+
 import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";

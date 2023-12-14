@@ -2,11 +2,12 @@
 pragma solidity 0.8.20;
 
 import {BaseTest} from "./BaseTest.sol";
-import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+
+import {Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
-import {Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
+import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 

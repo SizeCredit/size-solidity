@@ -4,9 +4,10 @@ pragma solidity 0.8.20;
 import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest} from "./BaseTest.sol";
+
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
-import {LoanStatus, LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

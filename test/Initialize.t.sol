@@ -5,14 +5,15 @@ import {Test} from "forge-std/Test.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
+import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
+
+import {USDC} from "./mocks/USDC.sol";
+import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
 import {InitializeParams} from "@src/libraries/actions/Initialize.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
-import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
-import {WETH} from "./mocks/WETH.sol";
-import {USDC} from "./mocks/USDC.sol";
 
 contract InitializeTest is Test {
     Size public implementation;

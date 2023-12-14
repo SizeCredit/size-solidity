@@ -4,14 +4,15 @@ pragma solidity 0.8.20;
 import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest} from "./BaseTest.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
 import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 contract ExitValidationTest is BaseTest {
     function test_ExitValidation() public {

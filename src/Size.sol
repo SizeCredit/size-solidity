@@ -5,21 +5,21 @@ import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/acces
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import {Initialize, InitializeParams} from "@src/libraries/actions/Initialize.sol";
-import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
 import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
+import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
+import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {Initialize, InitializeParams} from "@src/libraries/actions/Initialize.sol";
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
 import {LenderExit, LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
-import {Repay, RepayParams} from "@src/libraries/actions/Repay.sol";
-import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 import {
     LiquidateLoanWithReplacement,
     LiquidateLoanWithReplacementParams
 } from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
+import {Repay, RepayParams} from "@src/libraries/actions/Repay.sol";
 import {Withdraw, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
-import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 

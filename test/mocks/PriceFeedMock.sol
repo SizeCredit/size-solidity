@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "../../src/oracle/IPriceFeed.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract PriceFeedMock is IPriceFeed, Ownable {
     uint256 public price;

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Test} from "forge-std/Test.sol";
 import {MathLibrary} from "@src/libraries/MathLibrary.sol";
+import {Test} from "forge-std/Test.sol";
 
 contract MathLibraryTest is Test {
     function test_MathLibrary_valueToWad_18_decimals() public {

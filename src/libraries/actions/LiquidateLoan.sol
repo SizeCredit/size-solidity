@@ -3,10 +3,10 @@ pragma solidity 0.8.20;
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-import {User} from "@src/libraries/UserLibrary.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
-import {LoanLibrary, LoanStatus, Loan} from "@src/libraries/LoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 

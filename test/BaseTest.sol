@@ -6,33 +6,37 @@ import {Test, console2 as console} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {Size} from "@src/Size.sol";
-import {InitializeParams} from "@src/libraries/actions/Initialize.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {BorrowToken} from "@src/token/BorrowToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
-import {SizeMock} from "./mocks/SizeMock.sol";
-import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {AssertsHelper} from "./helpers/AssertsHelper.sol";
-import {User, UserView} from "@src/libraries/UserLibrary.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {BorrowToken} from "@src/token/BorrowToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
-import {WETH} from "./mocks/WETH.sol";
-import {USDC} from "./mocks/USDC.sol";
+import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
+import {SizeMock} from "./mocks/SizeMock.sol";
 
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
-import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+import {USDC} from "./mocks/USDC.sol";
+import {WETH} from "./mocks/WETH.sol";
+import {Size} from "@src/Size.sol";
+import {User, UserView} from "@src/libraries/UserLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+import {InitializeParams} from "@src/libraries/actions/Initialize.sol";
+import {BorrowToken} from "@src/token/BorrowToken.sol";
+
+import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {CollateralToken} from "@src/token/CollateralToken.sol";
+import {CollateralToken} from "@src/token/CollateralToken.sol";
+import {DebtToken} from "@src/token/DebtToken.sol";
+
+import {DebtToken} from "@src/token/DebtToken.sol";
+
 import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
-import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
+import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
+import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
+import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
+import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 contract BaseTest is Test, AssertsHelper {
     event TODO();

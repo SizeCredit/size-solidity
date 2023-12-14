@@ -3,18 +3,19 @@ pragma solidity 0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {InitializeParams} from "@src/libraries/actions/Initialize.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {BorrowToken} from "@src/token/BorrowToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
-import {Size} from "@src/Size.sol";
-import {SizeV2} from "./mocks/SizeV2.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
-import {WETH} from "./mocks/WETH.sol";
+import {SizeV2} from "./mocks/SizeV2.sol";
+
 import {USDC} from "./mocks/USDC.sol";
+import {WETH} from "./mocks/WETH.sol";
+import {Size} from "@src/Size.sol";
+import {InitializeParams} from "@src/libraries/actions/Initialize.sol";
+import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {CollateralToken} from "@src/token/CollateralToken.sol";
+import {DebtToken} from "@src/token/DebtToken.sol";
 
 contract UpgradeTest is Test {
     Size public v1;

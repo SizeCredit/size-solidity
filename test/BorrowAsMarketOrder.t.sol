@@ -6,10 +6,11 @@ import {console2 as console} from "forge-std/console2.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 import {BaseTest} from "./BaseTest.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";

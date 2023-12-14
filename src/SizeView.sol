@@ -2,11 +2,13 @@
 pragma solidity 0.8.20;
 
 import {SizeStorage} from "@src/SizeStorage.sol";
+
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User, UserView} from "@src/libraries/UserLibrary.sol";
 import {LiquidateLoan} from "@src/libraries/actions/LiquidateLoan.sol";
-import {Loan, LoanStatus, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
-import {LoanOffer, BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 

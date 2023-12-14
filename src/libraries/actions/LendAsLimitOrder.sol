@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {User} from "@src/libraries/UserLibrary.sol";
 import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";

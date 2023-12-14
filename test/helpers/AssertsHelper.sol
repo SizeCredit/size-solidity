@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Test} from "forge-std/Test.sol";
-import {UserView} from "@src/libraries/UserLibrary.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {UserView} from "@src/libraries/UserLibrary.sol";
+import {Test} from "forge-std/Test.sol";
 
 abstract contract AssertsHelper is Test {
     function assertEq(UserView memory a, UserView memory b) internal {

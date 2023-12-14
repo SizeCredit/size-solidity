@@ -4,9 +4,11 @@ pragma solidity 0.8.20;
 import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest} from "./BaseTest.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+
 import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";

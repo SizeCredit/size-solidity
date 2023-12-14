@@ -4,10 +4,11 @@ pragma solidity 0.8.20;
 import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest} from "./BaseTest.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {LoanStatus, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
 
 contract LiquidateLoanTest is BaseTest {
     function test_LiquidateLoan_liquidateLoan_seizes_borrower_collateral() public {

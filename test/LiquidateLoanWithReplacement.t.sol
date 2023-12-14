@@ -4,11 +4,13 @@ pragma solidity 0.8.20;
 import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest} from "./BaseTest.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
-import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
-import {LoanStatus, Loan} from "@src/libraries/LoanLibrary.sol";
+
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
+import {User} from "@src/libraries/UserLibrary.sol";
+
 import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";

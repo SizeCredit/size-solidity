@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
-import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
-import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
+import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
+import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
+import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
+import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 interface ISize {
     function deposit(DepositParams memory) external;
