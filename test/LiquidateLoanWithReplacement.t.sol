@@ -31,7 +31,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
         uint256 delta = debt - amount;
 
-        _setPrice(0.2e18);
+        _setPrice(0.25e18);
 
         BorrowOffer memory borrowOfferBefore = size.getBorrowOffer(candy);
         Loan memory loanBefore = size.getLoan(loanId);
@@ -73,7 +73,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         uint256 newAmount = FixedPointMathLib.mulDivDown(debt, PERCENT, (PERCENT + 0.01e4));
         uint256 delta = debt - newAmount;
 
-        _setPrice(0.2e18);
+        _setPrice(0.25e18);
 
         BorrowOffer memory borrowOfferBefore = size.getBorrowOffer(candy);
         Loan memory loanBefore = size.getLoan(loanId);
@@ -111,7 +111,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         _borrowAsLimitOrder(candy, 100e18, 0.03e4, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
 
-        _setPrice(0.2e18);
+        _setPrice(0.25e18);
 
         vm.startPrank(liquidator);
 
@@ -131,7 +131,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         _borrowAsLimitOrder(candy, 100e18, 0.03e4, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
 
-        _setPrice(0.2e18);
+        _setPrice(0.25e18);
 
         assertTrue(size.isLiquidatable(loanId));
 

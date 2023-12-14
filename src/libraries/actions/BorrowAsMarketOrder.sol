@@ -151,7 +151,9 @@ library BorrowAsMarketOrder {
 
         // solhint-disable-next-line var-name-mixedcase
         uint256 FV = FixedPointMathLib.mulDivUp(r, params.amount, PERCENT);
-        uint256 maxCollateralToLock = FixedPointMathLib.mulDivUp(FV, state.crOpening, state.priceFeed.getPrice());
+        uint256 FVOpening = FixedPointMathLib.mulDivUp(FV, state.crOpening, PERCENT);
+        uint256 maxCollateralToLock =
+            FixedPointMathLib.mulDivUp(FVOpening, 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
 
         state.collateralToken.transferFrom(msg.sender, state.protocolVault, maxCollateralToLock); // lock
         state.debtToken.mint(msg.sender, FV);

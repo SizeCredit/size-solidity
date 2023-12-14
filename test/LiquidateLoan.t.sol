@@ -24,7 +24,8 @@ contract LiquidateLoanTest is BaseTest {
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
-        uint256 lock = FixedPointMathLib.mulDivUp(debt, size.crOpening(), priceFeed.getPrice());
+        uint256 debtOpening = FixedPointMathLib.mulDivUp(debt, size.crOpening(), PERCENT);
+        uint256 lock = FixedPointMathLib.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         uint256 assigned = 100e18 - lock;
 
         assertEq(size.getAssignedCollateral(loanId), assigned);
@@ -33,11 +34,11 @@ contract LiquidateLoanTest is BaseTest {
         assertTrue(!size.isLiquidatable(bob));
         assertTrue(!size.isLiquidatable(loanId));
 
-        _setPrice(0.2e18);
+        _setPrice(0.25e18);
 
         assertEq(size.getAssignedCollateral(loanId), assigned);
         assertEq(size.getDebt(loanId), debt);
-        assertEq(size.collateralRatio(bob), FixedPointMathLib.mulDivDown(assigned, PERCENT, (debt * 5)));
+        assertEq(size.collateralRatio(bob), FixedPointMathLib.mulDivDown(assigned, PERCENT, (debt * 4)));
         assertTrue(size.isLiquidatable(bob));
         assertTrue(size.isLiquidatable(loanId));
 
@@ -45,7 +46,7 @@ contract LiquidateLoanTest is BaseTest {
 
         _liquidateLoan(liquidator, loanId);
 
-        uint256 collateralRemainder = assigned - (debt * 5);
+        uint256 collateralRemainder = assigned - (debt * 4);
 
         Vars memory _after = _state();
 
@@ -58,18 +59,18 @@ contract LiquidateLoanTest is BaseTest {
         );
         assertEq(
             _after.bob.collateralAmount,
-            _before.bob.collateralAmount - (debt * 5)
+            _before.bob.collateralAmount - (debt * 4)
                 - FixedPointMathLib.mulDivDown(
                     collateralRemainder,
                     (size.collateralPercentagePremiumToProtocol() + size.collateralPercentagePremiumToLiquidator()),
                     PERCENT
                 ),
-            _before.bob.collateralAmount - (debt * 5) - collateralRemainder
+            _before.bob.collateralAmount - (debt * 4) - collateralRemainder
                 + FixedPointMathLib.mulDivDown(collateralRemainder, size.collateralPercentagePremiumToBorrower(), PERCENT)
         );
         assertEq(
             _after.liquidator.collateralAmount,
-            _before.liquidator.collateralAmount + (debt * 5)
+            _before.liquidator.collateralAmount + (debt * 4)
                 + FixedPointMathLib.mulDivDown(collateralRemainder, size.collateralPercentagePremiumToLiquidator(), PERCENT)
         );
     }
@@ -84,7 +85,7 @@ contract LiquidateLoanTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e4, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
 
-        _setPrice(0.2e18);
+        _setPrice(0.25e18);
 
         assertTrue(size.isLiquidatable(loanId));
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
@@ -106,7 +107,7 @@ contract LiquidateLoanTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e4), PERCENT);
 
-        _setPrice(0.2e18);
+        _setPrice(0.25e18);
 
         assertTrue(size.isLiquidatable(loanId));
 

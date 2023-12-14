@@ -53,6 +53,7 @@ References
 - refactor tests following Sablier v2 naming conventions: `test_Foo`, `testFuzz_Foo`, `test_RevertWhen_Foo`, `testFuzz_RevertWhen_Foo`, `testFork_...`
 - test libraries (OfferLibrary.getRate, etc)
 - test liquidator profits
+- test liquiadtion library collateralRate, etc, and others, for important decimals/etc, hardcoded values
 
 ## Later
 

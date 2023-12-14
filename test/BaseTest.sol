@@ -70,7 +70,7 @@ contract BaseTest is Test, AssertsHelper {
         uint256 feeRecipientBorrowAmount;
     }
 
-    function setUp() public {
+    function setUp() public virtual {
         priceFeed = new PriceFeedMock(address(this));
         weth = new WETH();
         usdc = new USDC();
