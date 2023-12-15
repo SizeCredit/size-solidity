@@ -194,7 +194,72 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(size.activeLoans(), 1, "There should be one active loan after lending");
     }
 
-    function test_Experiments_testBorrowerExit1() public {}
+    function test_Experiments_testBorrowerExit1() public {
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowAmount, 100e18);
 
-    function test_Experiments_testLiquidationWithReplacement() public {}
+        // Bob lends as limit order
+        _lendAsLimitOrder(bob, 100e18, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+
+        // Candy deposits in WETH
+        _deposit(candy, weth, 2e18);
+
+        // Candy places a borrow limit order
+        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
+
+        // Alice deposits in WETH and USDC
+        _deposit(alice, weth, 50e18);
+        _deposit(alice, usdc, 200e6);
+        assertEq(_state().alice.borrowAmount, 200e18);
+
+        // Alice borrows from Bob's offer
+        _borrowAsMarketOrder(alice, bob, 70e18, 5);
+
+        // Borrower (Alice) exits the loan to the offer made by Candy
+        // _borrowerExit(0, candy);
+        // TODO
+    }
+
+    function test_Experiments_testLiquidationWithReplacement() public {
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowAmount, 100e18);
+
+        // Bob lends as limit order
+        _lendAsLimitOrder(bob, 100e18, 10, 0.03e18, 12);
+
+        // Alice deposits in WETH
+        _deposit(alice, weth, 2e18);
+
+        // Alice borrows as market order from Bob
+        _borrowAsMarketOrder(alice, bob, 100e18, 6);
+
+        // Assert conditions for Alice's borrowing
+        assertGe(size.collateralRatio(alice), size.crOpening(), "Alice should be above CR opening");
+        assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
+
+        // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
+        _deposit(candy, weth, 4e18);
+        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
+
+        // Update the context (time and price)
+        vm.warp(block.timestamp + 1);
+        _setPrice(60e18);
+
+        // Assert conditions for liquidation
+        assertTrue(size.isLiquidatable(alice), "Borrower should be liquidatable");
+        assertTrue(size.isLiquidatable(0), "Loan should be liquidatable");
+
+        Loan memory fol = size.getLoan(0);
+        assertEq(fol.borrower, alice, "Alice should be the borrower");
+        assertEq(_state().alice.debtAmount, fol.getDebt(), "Alice should have the debt");
+
+        assertEq(_state().candy.debtAmount, 0, "Candy should have no debt");
+        // Perform the liquidation with replacement
+        _deposit(liquidator, usdc, 10_000e6);
+        _liquidateLoanWithReplacement(liquidator, 0, candy);
+        assertEq(_state().alice.debtAmount, 0, "Alice should have no debt after");
+        assertEq(_state().candy.debtAmount, fol.getDebt(), "Candy should have the debt after");
+    }
 }

@@ -51,7 +51,11 @@ References
 
 - add experiments as tests
 - convert experiments into fuzz tests
+
 - lendAsLimitOrder
+- borrowerExit
+- selfLiquidate
+
 - variable pool
 - dust amount for loans
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
