@@ -5,6 +5,8 @@ import {BaseTest} from "./BaseTest.sol";
 import {ExperimentsHelper} from "./helpers/ExperimentsHelper.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+
+import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {Test} from "forge-std/Test.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
@@ -13,6 +15,7 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     using LoanLibrary for Loan;
+    using OfferLibrary for LoanOffer;
 
     function setUp() public override {
         super.setUp();
@@ -119,7 +122,52 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(fol.getCredit(), fol.FV - amountToExit, "Should be able to exit the full amount");
     }
 
-    function test_Experiments_testBorrowWithExit1() public {}
+    function test_Experiments_testBorrowWithExit1() public {
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowAmount, 100e18);
+
+        // Bob lends as limit order
+        _lendAsLimitOrder(bob, 100e18, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+
+        // James deposits in USDC
+        _deposit(james, usdc, 100e6);
+        assertEq(_state().james.borrowAmount, 100e18);
+
+        // James lends as limit order
+        _lendAsLimitOrder(james, 100e18, 12, 0.05e18, 12);
+
+        // Alice deposits in ETH and USDC
+        _deposit(alice, weth, 50e18);
+
+        // Alice borrows from Bob using real collateral
+        _borrowAsMarketOrder(alice, bob, 70e18, 5);
+
+        // Check conditions after Alice borrows from Bob
+        assertEq(_state().bob.borrowAmount, 100e18 - 70e18, "Bob should have 30e18 left to borrow");
+        assertEq(size.activeLoans(), 1, "Expected one active loan");
+        Loan memory loan_Bob_Alice = size.getLoan(0);
+        assertTrue(loan_Bob_Alice.lender == bob, "Bob should be the lender");
+        assertTrue(loan_Bob_Alice.borrower == alice, "Alice should be the borrower");
+        LoanOffer memory loanOffer = size.getLoanOffer(bob);
+        uint256 rate = loanOffer.getRate(5);
+        assertEq(loan_Bob_Alice.FV, FixedPointMathLib.mulDivUp(70e18, (PERCENT + rate), PERCENT), "Check loan FV");
+        assertEq(size.getDueDate(0), 5, "Check loan due date");
+
+        // Bob borrows using the loan as virtual collateral
+        _borrowAsMarketOrder(bob, james, 35e18, 10, [uint256(0)]);
+
+        // Check conditions after Bob borrows
+        assertEq(_state().bob.borrowAmount, 100e18 - 70e18 + 35e18, "Bob should have borrowed 35e18");
+        assertEq(size.activeLoans(), 2, "Expected two active loans");
+        Loan memory loan_James_Bob = size.getLoan(1);
+        assertEq(loan_James_Bob.lender, james, "James should be the lender");
+        assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
+        LoanOffer memory loanOffer2 = size.getLoanOffer(james);
+        uint256 rate2 = loanOffer2.getRate(size.getDueDate(0));
+        assertEq(loan_James_Bob.FV, FixedPointMathLib.mulDivUp(35e18, PERCENT + rate2, PERCENT), "Check loan FV");
+        assertEq(size.getDueDate(0), size.getDueDate(1), "Check loan due date");
+    }
 
     function test_Experiments_testLoanMove1() public {}
 

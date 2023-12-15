@@ -91,4 +91,8 @@ abstract contract SizeView is SizeStorage, ISizeView {
     function getBorrowOffer(address account) public view returns (BorrowOffer memory) {
         return state.users[account].borrowOffer;
     }
+
+    function getDueDate(uint256 loanId) public view returns (uint256) {
+        return state.loans[loanId].getDueDate(state.loans);
+    }
 }

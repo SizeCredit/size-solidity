@@ -141,10 +141,36 @@ contract BaseTest is Test, AssertsHelper {
         address lender,
         uint256 maxAmount,
         uint256 maxDueDate,
+        uint256[2] memory ratesArray,
+        uint256[2] memory timeBucketsArray
+    ) internal {
+        uint256[] memory rates = new uint256[](2);
+        uint256[] memory timeBuckets = new uint256[](2);
+        rates[0] = ratesArray[0];
+        rates[1] = ratesArray[1];
+        timeBuckets[0] = timeBucketsArray[0];
+        timeBuckets[1] = timeBucketsArray[1];
+        YieldCurve memory curveRelativeTime = YieldCurve({timeBuckets: timeBuckets, rates: rates});
+        return _lendAsLimitOrder(lender, maxAmount, maxDueDate, curveRelativeTime);
+    }
+
+    function _lendAsLimitOrder(
+        address lender,
+        uint256 maxAmount,
+        uint256 maxDueDate,
         uint256 rate,
         uint256 timeBucketsLength
     ) internal {
         YieldCurve memory curveRelativeTime = YieldCurveLibrary.getFlatRate(timeBucketsLength, rate);
+        return _lendAsLimitOrder(lender, maxAmount, maxDueDate, curveRelativeTime);
+    }
+
+    function _lendAsLimitOrder(
+        address lender,
+        uint256 maxAmount,
+        uint256 maxDueDate,
+        YieldCurve memory curveRelativeTime
+    ) internal {
         vm.prank(lender);
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
