@@ -19,6 +19,8 @@ interface ISize {
 
     function withdraw(WithdrawParams memory) external;
 
+    // In -> future cash flow -> round up, the borrower needs to pay more
+    // Out -> cash, zero risk -> round down, the borrower gets less
     // decreases lender free cash
     // increases borrower free cash
     // if FOL
@@ -30,6 +32,11 @@ interface ISize {
 
     function borrowAsLimitOrder(BorrowAsLimitOrderParams memory params) external;
 
+    // The lender is the one "actively" taking a market order,
+    //   so should he be the one penalized with rounding
+    // In this case, maybe he should be the one receiving less future cash flow
+    //   because he chose to take this offer from the borrower orderbook
+    // This means following the logic of penalizing the active part to protect the passive part
     function lendAsMarketOrder(LendAsMarketOrderParams memory params) external;
 
     function lendAsLimitOrder(LendAsLimitOrderParams memory params) external;

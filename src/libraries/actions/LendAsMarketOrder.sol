@@ -63,11 +63,11 @@ library LendAsMarketOrder {
         uint256 FV;
         uint256 amountIn;
         if (params.exactAmountIn) {
-            FV = FixedPointMathLib.mulDivUp(params.amount, r, PERCENT);
+            FV = FixedPointMathLib.mulDivDown(params.amount, r, PERCENT);
             amountIn = params.amount;
         } else {
             FV = params.amount;
-            amountIn = FixedPointMathLib.mulDivDown(params.amount, PERCENT, r);
+            amountIn = FixedPointMathLib.mulDivUp(params.amount, PERCENT, r);
         }
 
         state.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);

@@ -205,7 +205,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 r = PERCENT + size.getLoanOffer(candy).getRate(dueDate);
         uint256 deltaAmountOut = (
             FixedPointMathLib.mulDivUp(r, amountLoanId2, PERCENT) > size.getLoan(loanId1).getCredit()
-        ) ? FixedPointMathLib.mulDivUp(size.getLoan(loanId1).getCredit(), PERCENT, r) : amountLoanId2;
+        ) ? FixedPointMathLib.mulDivDown(size.getLoan(loanId1).getCredit(), PERCENT, r) : amountLoanId2;
         uint256 FV = FixedPointMathLib.mulDivUp(r, amountLoanId2 - deltaAmountOut, PERCENT);
 
         Vars memory _before = _state();

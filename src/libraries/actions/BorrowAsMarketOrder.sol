@@ -103,7 +103,7 @@ library BorrowAsMarketOrder {
 
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
-        amountOutLeft = params.exactAmountIn ? FixedPointMathLib.mulDivUp(params.amount, PERCENT, r) : params.amount;
+        amountOutLeft = params.exactAmountIn ? FixedPointMathLib.mulDivDown(params.amount, PERCENT, r) : params.amount;
 
         for (uint256 i = 0; i < params.virtualCollateralLoanIds.length; ++i) {
             // Full amount borrowed
@@ -118,14 +118,13 @@ library BorrowAsMarketOrder {
             uint256 deltaAmountOut;
             if (FixedPointMathLib.mulDivUp(amountOutLeft, r, PERCENT) > loan.getCredit()) {
                 deltaAmountIn = loan.getCredit();
-                deltaAmountOut = FixedPointMathLib.mulDivUp(loan.getCredit(), PERCENT, r);
+                deltaAmountOut = FixedPointMathLib.mulDivDown(loan.getCredit(), PERCENT, r);
             } else {
                 deltaAmountIn = FixedPointMathLib.mulDivUp(amountOutLeft, r, PERCENT);
                 deltaAmountOut = amountOutLeft;
             }
 
             state.loans.createSOL(loanId, params.lender, msg.sender, deltaAmountIn);
-            // NOTE: Transfer deltaAmountOut for each SOL created
             state.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
