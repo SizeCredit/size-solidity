@@ -33,7 +33,8 @@ library SelfLiquidateLoan {
         }
 
         // validate loanId
-        // @audit is this necessary? seems redundant with the check `assignedCollateral > debtCollateral` below, as CR < CRL ==> CR <= 100%
+        // @audit is this necessary? seems redundant with the check `assignedCollateral > debtCollateral` below,
+        //   as CR < CRL ==> CR <= 100%
         if (!LiquidateLoan.isLiquidatable(state, loan.borrower)) {
             revert Errors.LOAN_NOT_LIQUIDATABLE(params.loanId);
         }
