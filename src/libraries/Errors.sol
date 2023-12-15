@@ -30,6 +30,7 @@ library Errors {
     error AMOUNT_GREATER_THAN_LOAN_CREDIT(uint256 amount, uint256 loanCredit);
 
     error BORROWER_IS_NOT_LENDER(address borrower, address lender);
+    error LIQUIDATOR_IS_NOT_BORROWER(address liquidator, address borrower);
     error EXITER_IS_NOT_LENDER(address exiter, address lender);
     error REPAYER_IS_NOT_BORROWER(address repayer, address borrower);
     error CLAIMER_IS_NOT_LENDER(address claimer, address lender);
@@ -48,6 +49,7 @@ library Errors {
     error NOT_LIQUIDATABLE(address account);
     error LOAN_NOT_LIQUIDATABLE(uint256 loanId);
     error LIQUIDATION_AT_LOSS(uint256 loanId);
+    error LIQUIDATION_NOT_AT_LOSS(uint256 loanId);
 
     error INVALID_DECIMALS(uint8 decimals);
     error INVALID_PRICE(address aggregator, int256 price);

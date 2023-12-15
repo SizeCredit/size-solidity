@@ -10,8 +10,10 @@ import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.so
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
 import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+
 import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 interface ISize {
@@ -66,6 +68,8 @@ interface ISize {
     // sets loan to repaid
     // etc
     function liquidateLoan(LiquidateLoanParams memory params) external returns (uint256);
+
+    function selfLiquidateLoan(SelfLiquidateLoanParams memory params) external;
 
     // What is not possible to do for an overdue which is eligible for liquidation is to apply
     //   the replacement because it only makes sense if there is some deltaT to cover between

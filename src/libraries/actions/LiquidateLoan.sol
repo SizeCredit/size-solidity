@@ -55,9 +55,8 @@ library LiquidateLoan {
     function validateLiquidateLoan(State storage state, LiquidateLoanParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
         uint256 assignedCollateral = getAssignedCollateral(state, loan);
-        uint256 debtBorrowAsset = loan.getDebt();
         uint256 debtCollateral =
-            FixedPointMathLib.mulDivDown(debtBorrowAsset, 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
+            FixedPointMathLib.mulDivDown(loan.getDebt(), 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
 
         // validate msg.sender
 
