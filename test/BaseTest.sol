@@ -260,6 +260,19 @@ contract BaseTest is Test, AssertsHelper {
         size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
     }
 
+    function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate) internal {
+        return _lendAsMarketOrder(lender, borrower, amount, dueDate, false);
+    }
+
+    function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate, bool exactAmountIn)
+        internal
+    {
+        vm.prank(lender);
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({borrower: borrower, amount: amount, dueDate: dueDate, exactAmountIn: exactAmountIn})
+        );
+    }
+
     function _lenderExit(
         address user,
         uint256 loanId,

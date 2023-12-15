@@ -51,7 +51,8 @@ References
 
 - add experiments as tests
 - convert experiments into fuzz tests
-- 100% coverage
+- lendAsLimitOrder
+- variable pool
 - dust amount for loans
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
 - test events
@@ -59,6 +60,7 @@ References
 - test libraries (OfferLibrary.getRate, etc)
 - test liquidator profits
 - test liquiadtion library collateralRate, etc, and others, for important decimals/etc, hardcoded values
+- 100% coverage
 
 ## Later
 

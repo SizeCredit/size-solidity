@@ -173,7 +173,26 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
     function test_Experiments_testSL1() public {}
 
-    function test_Experiments_testLendAsLimitOrder1() public {}
+    function test_Experiments_testLendAsLimitOrder1() public {
+        // Alice deposits in WETH
+        _deposit(alice, weth, 2e18);
+
+        // Alice places a borrow limit order
+        _borrowAsLimitOrder(alice, 100e18, 0.03e18, 12);
+
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowAmount, 100e18);
+
+        // Assert there are no active loans initially
+        assertEq(size.activeLoans(), 0, "There should be no active loans initially");
+
+        // Bob lends to Alice's offer in the market order
+        _lendAsMarketOrder(bob, alice, 70e18, 5);
+
+        // Assert a loan is active after lending
+        assertEq(size.activeLoans(), 1, "There should be one active loan after lending");
+    }
 
     function test_Experiments_testBorrowerExit1() public {}
 
