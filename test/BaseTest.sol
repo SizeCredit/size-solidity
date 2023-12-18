@@ -275,6 +275,15 @@ contract BaseTest is Test, AssertsHelper {
         );
     }
 
+    function _lenderExit(address user, uint256 loanId, uint256 amount, uint256 dueDate, address[1] memory lenders)
+        internal
+        returns (uint256)
+    {
+        address[] memory lendersToExitTo = new address[](1);
+        lendersToExitTo[0] = lenders[0];
+        return _lenderExit(user, loanId, amount, dueDate, lendersToExitTo);
+    }
+
     function _lenderExit(
         address user,
         uint256 loanId,
