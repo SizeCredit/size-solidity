@@ -62,14 +62,14 @@ library LiquidateLoan {
 
         // validate loanId
         if (!isLiquidatable(state, loan.borrower)) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE(params.loanId);
+            revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, collateralRatio(state, loan.borrower));
         }
         if (!loan.isFOL()) {
             revert Errors.ONLY_FOL_CAN_BE_LIQUIDATED(params.loanId);
         }
         // @audit is this reachable?
         if (!loan.either(state.loans, [LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE(params.loanId);
+            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, loan.getLoanStatus(state.loans));
         }
         if (assignedCollateral < debtCollateral) {
             revert Errors.LIQUIDATION_AT_LOSS(params.loanId);

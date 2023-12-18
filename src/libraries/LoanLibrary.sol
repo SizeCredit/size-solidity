@@ -37,6 +37,10 @@ library LoanLibrary {
         return self.folId == RESERVED_FOL_ID;
     }
 
+    function getFOL(Loan storage self, Loan[] storage loans) public view returns (Loan storage) {
+        return isFOL(self) ? self : loans[self.folId];
+    }
+
     function getLoanStatus(Loan memory self, Loan[] memory loans) public view returns (LoanStatus) {
         if (self.repaid) {
             if (self.amountFVExited == self.FV) {

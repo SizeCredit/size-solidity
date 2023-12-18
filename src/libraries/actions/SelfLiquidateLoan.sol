@@ -36,21 +36,18 @@ library SelfLiquidateLoan {
         // @audit is this necessary? seems redundant with the check `assignedCollateral > debtCollateral` below,
         //   as CR < CRL ==> CR <= 100%
         if (!LiquidateLoan.isLiquidatable(state, loan.borrower)) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE(params.loanId);
+            revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, LiquidateLoan.collateralRatio(state, loan.borrower));
         }
         // @audit is this reachable?
         if (!loan.either(state.loans, [LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE(params.loanId);
+            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, loan.getLoanStatus(state.loans));
         }
         if (assignedCollateral > debtCollateral) {
             revert Errors.LIQUIDATION_NOT_AT_LOSS(params.loanId);
         }
     }
 
-    function executeSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params)
-        external
-        returns (uint256)
-    {
+    function executeSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params) external {
         emit Events.SelfLiquidateLoan(params.loanId);
 
         Loan storage loan = state.loans[params.loanId];
@@ -59,15 +56,15 @@ library SelfLiquidateLoan {
         state.collateralToken.transferFrom(msg.sender, loan.lender, assignedCollateral);
 
         uint256 deltaFV = loan.getCredit();
-        if (loan.isFOL()) {
-            loan.FV -= deltaFV;
-        } else {
-            // @audit should FOL also decrease deltaFV?
-            // @audit no totDebt reduced?
-            loan.FV -= deltaFV;
+        loan.FV -= deltaFV;
 
+        address folBorrower = loan.getFOL(state.loans).borrower;
+        state.debtToken.burn(folBorrower, deltaFV);
+
+        if (!loan.isFOL()) {
             Loan storage fol = state.loans[loan.folId];
             fol.FV -= deltaFV;
+            fol.amountFVExited -= deltaFV;
         }
     }
 }

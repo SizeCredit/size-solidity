@@ -28,9 +28,10 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 
 - SOL(loanId).FV <= FOL(loanId).FV
 - SUM(SOL(loanId).FV) == FOL(loanId).FV
+- FOL.amountFVExited = SUM(SOL.getCredit)
 - fol.FV = SUM(Loan.FV - Loan.ExitedAmount) for all SOLs, FOL
 - loan.amountFVExited <= self.FV
-- loan.FV == 0 && isFOL(loan) <==> loan.repaid
+- loan.FV == 0 && isFOL(loan) <==> loan.repaid (incorrect)
 - loan.repaid ==> !isFOL(loan)
 - upon repayment, the money is locked from the lender until due date, and the protocol earns yield meanwhile
 - cash.free + cash.locked ?= deposits
@@ -42,6 +43,7 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - Taking loan with real collateral decreases the borrower CR
 - the borrower debt is reduced in: repayment, standard liquidation, liquidation with replacement, self liquidation, borrower exit
 - you can exit a SOL (??)
+- if isLiquidatable && liquidator has enough cash, the liquidation should always succeed (requires adding more checks to isLiquidatable)
 
 References
 
@@ -55,7 +57,8 @@ References
 - test_Experiments_testBorrowerExit1
 - convert experiments into fuzz tests
 - variable pool
-- dust amount for loans
+- dust amount for loans (creation & updating of FV)
+- simplify Loan struct
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
 - test events
 - refactor tests following Sablier v2 naming conventions: `test_Foo`, `testFuzz_Foo`, `test_RevertWhen_Foo`, `testFuzz_RevertWhen_Foo`, `testFork_...`

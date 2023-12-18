@@ -4,6 +4,8 @@ pragma solidity 0.8.20;
 import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest} from "./BaseTest.sol";
+
+import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 
@@ -17,8 +19,11 @@ contract LiquidateLoanValidationTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
         _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
+        _borrowAsMarketOrder(bob, candy, 90e18, 12);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, size.collateralRatio(bob))
+        );
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
 
         address[] memory lendersToExitTo = new address[](1);
@@ -26,7 +31,9 @@ contract LiquidateLoanValidationTest is BaseTest {
 
         _lenderExit(alice, loanId, 10e18, 12, lendersToExitTo);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, size.collateralRatio(bob))
+        );
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
 
         _setPrice(0.01e18);
@@ -36,10 +43,11 @@ contract LiquidateLoanValidationTest is BaseTest {
 
         _setPrice(100e18);
         _repay(bob, loanId);
+        _withdraw(bob, weth, 98e18);
 
         _setPrice(0.2e18);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_STATUS.selector, loanId, LoanStatus.REPAID));
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
     }
 }

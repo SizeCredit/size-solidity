@@ -47,7 +47,8 @@ library Errors {
     error INVALID_PARTIAL_REPAY_AMOUNT(uint256 amount, uint256 fv);
 
     error NOT_LIQUIDATABLE(address account);
-    error LOAN_NOT_LIQUIDATABLE(uint256 loanId);
+    error LOAN_NOT_LIQUIDATABLE_STATUS(uint256 loanId, LoanStatus status);
+    error LOAN_NOT_LIQUIDATABLE_CR(uint256 loanId, uint256 cr);
     error LIQUIDATION_AT_LOSS(uint256 loanId);
     error LIQUIDATION_NOT_AT_LOSS(uint256 loanId);
 

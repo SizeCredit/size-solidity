@@ -34,8 +34,10 @@ import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.so
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
 import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+
 import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 contract BaseTest is Test, AssertsHelper {
@@ -300,6 +302,11 @@ contract BaseTest is Test, AssertsHelper {
     function _liquidateLoan(address user, uint256 loanId) internal returns (uint256) {
         vm.prank(user);
         return size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+    }
+
+    function _selfLiquidateLoan(address user, uint256 loanId) internal {
+        vm.prank(user);
+        return size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
     }
 
     function _liquidateLoanWithReplacement(address user, uint256 loanId, address borrower) internal returns (uint256) {
