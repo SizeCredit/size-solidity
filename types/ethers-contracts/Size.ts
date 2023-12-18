@@ -80,6 +80,16 @@ export type DepositParamsStructOutput = [string, BigNumber] & {
   amount: BigNumber;
 };
 
+export type BorrowOfferStruct = {
+  maxAmount: BigNumberish;
+  curveRelativeTime: YieldCurveStruct;
+};
+
+export type BorrowOfferStructOutput = [BigNumber, YieldCurveStructOutput] & {
+  maxAmount: BigNumber;
+  curveRelativeTime: YieldCurveStructOutput;
+};
+
 export type LoanStruct = {
   FV: BigNumberish;
   amountFVExited: BigNumberish;
@@ -121,16 +131,6 @@ export type LoanOfferStructOutput = [
 ] & {
   maxAmount: BigNumber;
   maxDueDate: BigNumber;
-  curveRelativeTime: YieldCurveStructOutput;
-};
-
-export type BorrowOfferStruct = {
-  maxAmount: BigNumberish;
-  curveRelativeTime: YieldCurveStruct;
-};
-
-export type BorrowOfferStructOutput = [BigNumber, YieldCurveStructOutput] & {
-  maxAmount: BigNumber;
   curveRelativeTime: YieldCurveStructOutput;
 };
 
@@ -226,7 +226,6 @@ export type LendAsLimitOrderParamsStructOutput = [
 };
 
 export type LendAsMarketOrderParamsStruct = {
-  lender: string;
   borrower: string;
   dueDate: BigNumberish;
   amount: BigNumberish;
@@ -235,12 +234,10 @@ export type LendAsMarketOrderParamsStruct = {
 
 export type LendAsMarketOrderParamsStructOutput = [
   string,
-  string,
   BigNumber,
   BigNumber,
   boolean
 ] & {
-  lender: string;
   borrower: string;
   dueDate: BigNumber;
   amount: BigNumber;
@@ -272,9 +269,25 @@ export type LiquidateLoanParamsStructOutput = [BigNumber] & {
   loanId: BigNumber;
 };
 
+export type LiquidateLoanWithReplacementParamsStruct = {
+  loanId: BigNumberish;
+  borrower: string;
+};
+
+export type LiquidateLoanWithReplacementParamsStructOutput = [
+  BigNumber,
+  string
+] & { loanId: BigNumber; borrower: string };
+
 export type RepayParamsStruct = { loanId: BigNumberish };
 
 export type RepayParamsStructOutput = [BigNumber] & { loanId: BigNumber };
+
+export type SelfLiquidateLoanParamsStruct = { loanId: BigNumberish };
+
+export type SelfLiquidateLoanParamsStructOutput = [BigNumber] & {
+  loanId: BigNumber;
+};
 
 export type WithdrawParamsStruct = { token: string; amount: BigNumberish };
 
@@ -299,7 +312,9 @@ export interface SizeInterface extends utils.Interface {
     "crOpening()": FunctionFragment;
     "deposit((address,uint256))": FunctionFragment;
     "getAssignedCollateral(uint256)": FunctionFragment;
+    "getBorrowOffer(address)": FunctionFragment;
     "getDebt(uint256)": FunctionFragment;
+    "getDueDate(uint256)": FunctionFragment;
     "getLoan(uint256)": FunctionFragment;
     "getLoanOffer(address)": FunctionFragment;
     "getLoanStatus(uint256)": FunctionFragment;
@@ -309,14 +324,16 @@ export interface SizeInterface extends utils.Interface {
     "isLiquidatable(address)": FunctionFragment;
     "isLiquidatable(uint256)": FunctionFragment;
     "lendAsLimitOrder((uint256,uint256,(uint256[],uint256[])))": FunctionFragment;
-    "lendAsMarketOrder((address,address,uint256,uint256,bool))": FunctionFragment;
+    "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
     "lenderExit((uint256,uint256,uint256,address[]))": FunctionFragment;
     "liquidateLoan((uint256))": FunctionFragment;
+    "liquidateLoanWithReplacement((uint256,address))": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "repay((uint256))": FunctionFragment;
+    "selfLiquidateLoan((uint256))": FunctionFragment;
     "state()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "upgradeToAndCall(address,bytes)": FunctionFragment;
@@ -339,7 +356,9 @@ export interface SizeInterface extends utils.Interface {
       | "crOpening"
       | "deposit"
       | "getAssignedCollateral"
+      | "getBorrowOffer"
       | "getDebt"
+      | "getDueDate"
       | "getLoan"
       | "getLoanOffer"
       | "getLoanStatus"
@@ -352,11 +371,13 @@ export interface SizeInterface extends utils.Interface {
       | "lendAsMarketOrder"
       | "lenderExit"
       | "liquidateLoan"
+      | "liquidateLoanWithReplacement"
       | "owner"
       | "pendingOwner"
       | "proxiableUUID"
       | "renounceOwnership"
       | "repay"
+      | "selfLiquidateLoan"
       | "state"
       | "transferOwnership"
       | "upgradeToAndCall"
@@ -417,7 +438,15 @@ export interface SizeInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getBorrowOffer",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getDebt",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDueDate",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -462,6 +491,10 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "liquidateLoan",
     values: [LiquidateLoanParamsStruct]
   ): string;
+  encodeFunctionData(
+    functionFragment: "liquidateLoanWithReplacement",
+    values: [LiquidateLoanWithReplacementParamsStruct]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "pendingOwner",
@@ -478,6 +511,10 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "repay",
     values: [RepayParamsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "selfLiquidateLoan",
+    values: [SelfLiquidateLoanParamsStruct]
   ): string;
   encodeFunctionData(functionFragment: "state", values?: undefined): string;
   encodeFunctionData(
@@ -540,7 +577,12 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "getAssignedCollateral",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getBorrowOffer",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getDebt", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getDueDate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getLoan", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getLoanOffer",
@@ -577,6 +619,10 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "liquidateLoan",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "liquidateLoanWithReplacement",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "pendingOwner",
@@ -591,6 +637,10 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "repay", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "selfLiquidateLoan",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "state", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
@@ -751,7 +801,17 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    getBorrowOffer(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<[BorrowOfferStructOutput]>;
+
     getDebt(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getDueDate(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -813,6 +873,11 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    liquidateLoanWithReplacement(
+      params: LiquidateLoanWithReplacementParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     pendingOwner(overrides?: CallOverrides): Promise<[string]>;
@@ -825,6 +890,11 @@ export interface Size extends BaseContract {
 
     repay(
       params: RepayParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
+    selfLiquidateLoan(
+      params: SelfLiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -930,7 +1000,17 @@ export interface Size extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getBorrowOffer(
+    account: string,
+    overrides?: CallOverrides
+  ): Promise<BorrowOfferStructOutput>;
+
   getDebt(loanId: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+  getDueDate(
+    loanId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   getLoan(
     loanId: BigNumberish,
@@ -989,6 +1069,11 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
+  liquidateLoanWithReplacement(
+    params: LiquidateLoanWithReplacementParamsStruct,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
   pendingOwner(overrides?: CallOverrides): Promise<string>;
@@ -1001,6 +1086,11 @@ export interface Size extends BaseContract {
 
   repay(
     params: RepayParamsStruct,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
+  selfLiquidateLoan(
+    params: SelfLiquidateLoanParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1104,7 +1194,17 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getBorrowOffer(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BorrowOfferStructOutput>;
+
     getDebt(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDueDate(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1166,6 +1266,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    liquidateLoanWithReplacement(
+      params: LiquidateLoanWithReplacementParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     pendingOwner(overrides?: CallOverrides): Promise<string>;
@@ -1175,6 +1280,11 @@ export interface Size extends BaseContract {
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
     repay(params: RepayParamsStruct, overrides?: CallOverrides): Promise<void>;
+
+    selfLiquidateLoan(
+      params: SelfLiquidateLoanParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     state(
       overrides?: CallOverrides
@@ -1323,7 +1433,17 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getBorrowOffer(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getDebt(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDueDate(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1382,6 +1502,11 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
+    liquidateLoanWithReplacement(
+      params: LiquidateLoanWithReplacementParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1394,6 +1519,11 @@ export interface Size extends BaseContract {
 
     repay(
       params: RepayParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    selfLiquidateLoan(
+      params: SelfLiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -1473,7 +1603,17 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getBorrowOffer(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getDebt(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getDueDate(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1538,6 +1678,11 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
+    liquidateLoanWithReplacement(
+      params: LiquidateLoanWithReplacementParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1550,6 +1695,11 @@ export interface Size extends BaseContract {
 
     repay(
       params: RepayParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    selfLiquidateLoan(
+      params: SelfLiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
