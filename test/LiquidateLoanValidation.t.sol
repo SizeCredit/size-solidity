@@ -16,10 +16,18 @@ contract LiquidateLoanValidationTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
+        _deposit(james, 100e18, 100e18);
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        _lendAsLimitOrder(bob, 100e18, 12, 0.03e18, 12);
         _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(james, 100e18, 12, 0.03e18, 12);
         _borrowAsMarketOrder(bob, candy, 90e18, 12);
+
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, james, 1, 12, [loanId]);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, solId, type(uint256).max));
+        size.liquidateLoan(LiquidateLoanParams({loanId: solId}));
 
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, size.collateralRatio(bob))
@@ -30,6 +38,7 @@ contract LiquidateLoanValidationTest is BaseTest {
         lendersToExitTo[0] = candy;
 
         _lenderExit(alice, loanId, 10e18, 12, lendersToExitTo);
+        _borrowAsMarketOrder(alice, james, 50e18, 12);
 
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, size.collateralRatio(bob))
@@ -40,6 +49,9 @@ contract LiquidateLoanValidationTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_AT_LOSS.selector, loanId));
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_LIQUIDATED.selector, solId));
+        size.liquidateLoan(LiquidateLoanParams({loanId: solId}));
 
         _setPrice(100e18);
         _repay(bob, loanId);

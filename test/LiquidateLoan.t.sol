@@ -46,7 +46,7 @@ contract LiquidateLoanTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _liquidateLoan(liquidator, loanId);
+        uint256 liquidatorProfit = _liquidateLoan(liquidator, loanId);
 
         uint256 collateralRemainder = assigned - (debt * 5);
 
@@ -70,11 +70,10 @@ contract LiquidateLoanTest is BaseTest {
             _before.bob.collateralAmount - (debt * 5) - collateralRemainder
                 + FixedPointMathLib.mulDivDown(collateralRemainder, size.collateralPercentagePremiumToBorrower(), PERCENT)
         );
-        assertEq(
-            _after.liquidator.collateralAmount,
-            _before.liquidator.collateralAmount + (debt * 5)
-                + FixedPointMathLib.mulDivDown(collateralRemainder, size.collateralPercentagePremiumToLiquidator(), PERCENT)
-        );
+        uint256 liquidatorProfitAmount = (debt * 5)
+            + FixedPointMathLib.mulDivDown(collateralRemainder, size.collateralPercentagePremiumToLiquidator(), PERCENT);
+        assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount + liquidatorProfitAmount);
+        assertEq(liquidatorProfit, liquidatorProfitAmount);
     }
 
     function test_LiquidateLoan_liquidateLoan_repays_loan() public {

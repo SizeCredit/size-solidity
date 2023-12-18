@@ -122,9 +122,13 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     }
 
     /// @inheritdoc ISize
-    function liquidateLoan(LiquidateLoanParams calldata params) external override(ISize) returns (uint256 ans) {
+    function liquidateLoan(LiquidateLoanParams calldata params)
+        external
+        override(ISize)
+        returns (uint256 liquidatorProfitCollateralAsset)
+    {
         state.validateLiquidateLoan(params);
-        ans = state.executeLiquidateLoan(params);
+        liquidatorProfitCollateralAsset = state.executeLiquidateLoan(params);
     }
 
     /// @inheritdoc ISize
@@ -137,10 +141,10 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
         external
         override(ISize)
-        returns (uint256 ans)
+        returns (uint256 liquidatorProfitBorrowAsset)
     {
         state.validateLiquidateLoanWithReplacement(params);
-        ans = state.executeLiquidateLoanWithReplacement(params);
+        liquidatorProfitBorrowAsset = state.executeLiquidateLoanWithReplacement(params);
         state.validateUserIsNotLiquidatable(params.borrower);
     }
 }
