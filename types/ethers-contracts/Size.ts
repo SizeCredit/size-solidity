@@ -69,6 +69,25 @@ export type BorrowAsMarketOrderParamsStructOutput = [
   virtualCollateralLoanIds: BigNumber[];
 };
 
+export type BorrowerExitParamsStruct = {
+  loanId: BigNumberish;
+  amount: BigNumberish;
+  dueDate: BigNumberish;
+  borrowersToExitTo: string[];
+};
+
+export type BorrowerExitParamsStructOutput = [
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  string[]
+] & {
+  loanId: BigNumber;
+  amount: BigNumber;
+  dueDate: BigNumber;
+  borrowersToExitTo: string[];
+};
+
 export type ClaimParamsStruct = { loanId: BigNumberish };
 
 export type ClaimParamsStructOutput = [BigNumber] & { loanId: BigNumber };
@@ -303,6 +322,7 @@ export interface SizeInterface extends utils.Interface {
     "activeLoans()": FunctionFragment;
     "borrowAsLimitOrder((uint256,(uint256[],uint256[])))": FunctionFragment;
     "borrowAsMarketOrder((address,uint256,uint256,bool,uint256[]))": FunctionFragment;
+    "borrowerExit((uint256,uint256,uint256,address[]))": FunctionFragment;
     "claim((uint256))": FunctionFragment;
     "collateralPercentagePremiumToBorrower()": FunctionFragment;
     "collateralPercentagePremiumToLiquidator()": FunctionFragment;
@@ -347,6 +367,7 @@ export interface SizeInterface extends utils.Interface {
       | "activeLoans"
       | "borrowAsLimitOrder"
       | "borrowAsMarketOrder"
+      | "borrowerExit"
       | "claim"
       | "collateralPercentagePremiumToBorrower"
       | "collateralPercentagePremiumToLiquidator"
@@ -403,6 +424,10 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "borrowAsMarketOrder",
     values: [BorrowAsMarketOrderParamsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "borrowerExit",
+    values: [BorrowerExitParamsStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "claim",
@@ -548,6 +573,10 @@ export interface SizeInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "borrowAsMarketOrder",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "borrowerExit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
@@ -765,6 +794,11 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    borrowerExit(
+      params: BorrowerExitParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
     claim(
       params: ClaimParamsStruct,
       overrides?: Overrides & { from?: string }
@@ -967,6 +1001,11 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
+  borrowerExit(
+    params: BorrowerExitParamsStruct,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
   claim(
     params: ClaimParamsStruct,
     overrides?: Overrides & { from?: string }
@@ -1160,6 +1199,11 @@ export interface Size extends BaseContract {
       params: BorrowAsMarketOrderParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    borrowerExit(
+      params: BorrowerExitParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     claim(params: ClaimParamsStruct, overrides?: CallOverrides): Promise<void>;
 
@@ -1397,6 +1441,11 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
+    borrowerExit(
+      params: BorrowerExitParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
     claim(
       params: ClaimParamsStruct,
       overrides?: Overrides & { from?: string }
@@ -1564,6 +1613,11 @@ export interface Size extends BaseContract {
 
     borrowAsMarketOrder(
       params: BorrowAsMarketOrderParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    borrowerExit(
+      params: BorrowerExitParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
