@@ -75,10 +75,6 @@ References
 
 ## TODOs
 
-- lendAsLimitOrder TESTS
-- borrowerExit IMPL + TESTS
-- test_Experiments_testBorrowerExit1
-
 - convert experiments into fuzz tests
 - variable pool
 - dust amount for loans (creation & updating of FV)

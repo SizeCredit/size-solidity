@@ -217,8 +217,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(alice, bob, 70e18, 5);
 
         // Borrower (Alice) exits the loan to the offer made by Candy
-        // _borrowerExit(0, candy);
-        // TODO
+        _borrowerExit(alice, 0, candy);
     }
 
     function test_Experiments_testLiquidationWithReplacement() public {
