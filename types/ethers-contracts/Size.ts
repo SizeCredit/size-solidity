@@ -71,21 +71,12 @@ export type BorrowAsMarketOrderParamsStructOutput = [
 
 export type BorrowerExitParamsStruct = {
   loanId: BigNumberish;
-  amount: BigNumberish;
-  dueDate: BigNumberish;
-  borrowersToExitTo: string[];
+  borrowerToExitTo: string;
 };
 
-export type BorrowerExitParamsStructOutput = [
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  string[]
-] & {
+export type BorrowerExitParamsStructOutput = [BigNumber, string] & {
   loanId: BigNumber;
-  amount: BigNumber;
-  dueDate: BigNumber;
-  borrowersToExitTo: string[];
+  borrowerToExitTo: string;
 };
 
 export type ClaimParamsStruct = { loanId: BigNumberish };
@@ -322,7 +313,7 @@ export interface SizeInterface extends utils.Interface {
     "activeLoans()": FunctionFragment;
     "borrowAsLimitOrder((uint256,(uint256[],uint256[])))": FunctionFragment;
     "borrowAsMarketOrder((address,uint256,uint256,bool,uint256[]))": FunctionFragment;
-    "borrowerExit((uint256,uint256,uint256,address[]))": FunctionFragment;
+    "borrowerExit((uint256,address))": FunctionFragment;
     "claim((uint256))": FunctionFragment;
     "collateralPercentagePremiumToBorrower()": FunctionFragment;
     "collateralPercentagePremiumToLiquidator()": FunctionFragment;
@@ -683,7 +674,7 @@ export interface SizeInterface extends utils.Interface {
 
   events: {
     "Initialized(uint64)": EventFragment;
-    "LendAsMarketOrder(address,address,uint256,uint256,bool)": EventFragment;
+    "LendAsMarketOrder(address,uint256,uint256,bool)": EventFragment;
     "OwnershipTransferStarted(address,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Upgraded(address)": EventFragment;
@@ -704,14 +695,13 @@ export type InitializedEvent = TypedEvent<[BigNumber], InitializedEventObject>;
 export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
 
 export interface LendAsMarketOrderEventObject {
-  lender: string;
   borrower: string;
   dueDate: BigNumber;
   amount: BigNumber;
   exactAmountIn: boolean;
 }
 export type LendAsMarketOrderEvent = TypedEvent<
-  [string, string, BigNumber, BigNumber, boolean],
+  [string, BigNumber, BigNumber, boolean],
   LendAsMarketOrderEventObject
 >;
 
@@ -1203,7 +1193,7 @@ export interface Size extends BaseContract {
     borrowerExit(
       params: BorrowerExitParamsStruct,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<void>;
 
     claim(params: ClaimParamsStruct, overrides?: CallOverrides): Promise<void>;
 
@@ -1385,15 +1375,13 @@ export interface Size extends BaseContract {
     "Initialized(uint64)"(version?: null): InitializedEventFilter;
     Initialized(version?: null): InitializedEventFilter;
 
-    "LendAsMarketOrder(address,address,uint256,uint256,bool)"(
-      lender?: string | null,
+    "LendAsMarketOrder(address,uint256,uint256,bool)"(
       borrower?: string | null,
       dueDate?: null,
       amount?: null,
       exactAmountIn?: null
     ): LendAsMarketOrderEventFilter;
     LendAsMarketOrder(
-      lender?: string | null,
       borrower?: string | null,
       dueDate?: null,
       amount?: null,
