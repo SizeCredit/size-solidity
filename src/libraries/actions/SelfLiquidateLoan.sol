@@ -39,8 +39,8 @@ library SelfLiquidateLoan {
             revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, LiquidateLoan.collateralRatio(state, loan.borrower));
         }
         // @audit is this reachable?
-        if (!loan.either(state.loans, [LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, loan.getLoanStatus(state.loans));
+        if (!loan.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
+            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, loan.getLoanStatus());
         }
         if (assignedCollateral > debtCollateral) {
             revert Errors.LIQUIDATION_NOT_AT_LOSS(params.loanId);

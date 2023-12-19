@@ -28,7 +28,7 @@ library Claim {
         // NOTE: Both ACTIVE and OVERDUE loans can't be claimed because the money is not in the protocol yet
         // NOTE: The CLAIMED can't be claimed either because its credit has already been consumed entirely
         //    either by a previous claim or by exiting before
-        if (loan.getLoanStatus(state.loans) != LoanStatus.REPAID) {
+        if (loan.getLoanStatus() != LoanStatus.REPAID) {
             revert Errors.LOAN_NOT_REPAID(params.loanId);
         }
     }
@@ -40,6 +40,6 @@ library Claim {
         state.borrowToken.transferFrom(state.protocolVault, msg.sender, loan.getCredit());
         loan.amountFVExited = loan.FV;
 
-        emit Events.Claim(params.loanId, msg.sender);
+        emit Events.Claim(params.loanId);
     }
 }

@@ -32,6 +32,7 @@ library Errors {
     error BORROWER_IS_NOT_LENDER(address borrower, address lender);
     error LIQUIDATOR_IS_NOT_BORROWER(address liquidator, address borrower);
     error EXITER_IS_NOT_LENDER(address exiter, address lender);
+    error EXITER_IS_NOT_BORROWER(address exiter, address borrower);
     error REPAYER_IS_NOT_BORROWER(address repayer, address borrower);
     error CLAIMER_IS_NOT_LENDER(address claimer, address lender);
     error LOAN_ALREADY_CLAIMED(uint256 loanId);
@@ -40,6 +41,7 @@ library Errors {
     error NOT_ENOUGH_LOCKED_CASH(uint256 locked, uint256 amount);
 
     error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
+    error ONLY_FOL_CAN_BE_EXITED(uint256 loanId);
     error ONLY_FOL_CAN_BE_LIQUIDATED(uint256 loanId);
     error LOAN_ALREADY_REPAID(uint256 loanId);
     error LOAN_NOT_REPAID(uint256 loanId);

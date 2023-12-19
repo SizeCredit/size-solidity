@@ -35,8 +35,8 @@ library LenderExit {
         }
 
         // validate loanId
-        if (loan.getLoanStatus(state.loans) != LoanStatus.ACTIVE) {
-            revert Errors.INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(state.loans), LoanStatus.ACTIVE);
+        if (loan.getLoanStatus() != LoanStatus.ACTIVE) {
+            revert Errors.INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(), LoanStatus.ACTIVE);
         }
 
         // validate amount
@@ -48,8 +48,8 @@ library LenderExit {
         }
 
         // validate dueDate
-        if (params.dueDate < loan.getDueDate(state.loans)) {
-            revert Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(state.loans));
+        if (params.dueDate < loan.dueDate) {
+            revert Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.dueDate);
         }
 
         // validate lendersToExitTo
@@ -78,7 +78,7 @@ library LenderExit {
         external
         returns (uint256 amountInLeft)
     {
-        emit Events.LenderExit(msg.sender, params.loanId, params.amount, params.dueDate, params.lendersToExitTo);
+        emit Events.LenderExit(params.loanId, params.amount, params.dueDate, params.lendersToExitTo);
 
         amountInLeft = params.amount;
         for (uint256 i = 0; i < params.lendersToExitTo.length; ++i) {

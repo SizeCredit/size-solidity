@@ -36,8 +36,8 @@ library LiquidateLoanWithReplacement {
         LiquidateLoan.validateLiquidateLoan(state, LiquidateLoanParams({loanId: params.loanId}));
 
         // validate loanId
-        if (loan.getLoanStatus(state.loans) != LoanStatus.ACTIVE) {
-            revert Errors.INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(state.loans), LoanStatus.ACTIVE);
+        if (loan.getLoanStatus() != LoanStatus.ACTIVE) {
+            revert Errors.INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(), LoanStatus.ACTIVE);
         }
 
         // validate borrower
@@ -53,7 +53,7 @@ library LiquidateLoanWithReplacement {
         Loan storage fol = state.loans[params.loanId];
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
         uint256 FV = fol.FV;
-        uint256 dueDate = fol.getDueDate(state.loans);
+        uint256 dueDate = fol.dueDate;
 
         LiquidateLoan.executeLiquidateLoan(state, LiquidateLoanParams({loanId: params.loanId}));
 

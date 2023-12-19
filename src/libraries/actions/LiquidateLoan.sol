@@ -68,8 +68,8 @@ library LiquidateLoan {
             revert Errors.ONLY_FOL_CAN_BE_LIQUIDATED(params.loanId);
         }
         // @audit is this reachable?
-        if (!loan.either(state.loans, [LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, loan.getLoanStatus(state.loans));
+        if (!loan.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
+            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, loan.getLoanStatus());
         }
         if (assignedCollateral < debtCollateral) {
             revert Errors.LIQUIDATION_AT_LOSS(params.loanId);
@@ -80,9 +80,9 @@ library LiquidateLoan {
         external
         returns (uint256)
     {
-        Loan storage fol = state.loans[params.loanId];
+        emit Events.LiquidateLoan(params.loanId);
 
-        emit Events.LiquidateLoan(params.loanId, msg.sender);
+        Loan storage fol = state.loans[params.loanId];
 
         uint256 assignedCollateral = getAssignedCollateral(state, fol);
         uint256 debtBorrowAsset = fol.getDebt();

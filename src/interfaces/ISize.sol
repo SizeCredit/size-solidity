@@ -52,7 +52,7 @@ interface ISize {
     // creates a new SOL
     function lenderExit(LenderExitParams memory params) external returns (uint256 amountInLeft);
 
-    function borrowerExit(BorrowerExitParams memory params) external returns (uint256 amountInLeft);
+    function borrowerExit(BorrowerExitParams memory params) external;
 
     // decreases borrower free cash
     // increases protocol free cash

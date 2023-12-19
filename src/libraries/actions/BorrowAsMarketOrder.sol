@@ -66,8 +66,8 @@ library BorrowAsMarketOrder {
             if (msg.sender != loan.lender) {
                 revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, loan.lender);
             }
-            if (params.dueDate < loan.getDueDate(state.loans)) {
-                revert Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.getDueDate(state.loans));
+            if (params.dueDate < loan.dueDate) {
+                revert Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, loan.dueDate);
             }
         }
     }

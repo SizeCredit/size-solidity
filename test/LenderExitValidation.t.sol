@@ -14,8 +14,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
-contract ExitValidationTest is BaseTest {
-    function test_ExitValidation() public {
+contract LenderExitValidationTest is BaseTest {
+    function test_LenderExitValidation() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);

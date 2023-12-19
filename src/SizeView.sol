@@ -81,7 +81,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     function getLoanStatus(uint256 loanId) public view override(ISizeView) returns (LoanStatus) {
-        return state.loans[loanId].getLoanStatus(state.loans);
+        return state.loans[loanId].getLoanStatus();
     }
 
     function getLoanOffer(address account) public view returns (LoanOffer memory) {
@@ -93,6 +93,6 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     function getDueDate(uint256 loanId) public view returns (uint256) {
-        return state.loans[loanId].getDueDate(state.loans);
+        return state.loans[loanId].dueDate;
     }
 }

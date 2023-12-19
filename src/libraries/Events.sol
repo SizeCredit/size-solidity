@@ -9,9 +9,7 @@ library Events {
     event Withdraw(address indexed token, uint256 wad);
     event LendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve curveRelativeTime);
     event BorrowAsLimitOrder(uint256 maxAmount, YieldCurve curveRelativeTime);
-    event LendAsMarketOrder(
-        address indexed lender, address indexed borrower, uint256 dueDate, uint256 amount, bool exactAmountIn
-    );
+    event LendAsMarketOrder(address indexed borrower, uint256 dueDate, uint256 amount, bool exactAmountIn);
     event CreateLoan(
         uint256 indexed loanId,
         address indexed lender,
@@ -28,12 +26,11 @@ library Events {
         bool exactAmountIn,
         uint256[] virtualCollateralLoanIds
     );
-    event LenderExit(
-        address indexed exiter, uint256 indexed loanId, uint256 amount, uint256 dueDate, address[] lendersToExitTo
-    );
-    event Repay(uint256 indexed loanId, address indexed borrower);
-    event Claim(uint256 indexed loanId, address indexed lender);
-    event LiquidateLoan(uint256 indexed loanId, address indexed liquidator);
+    event BorrowerExit(uint256 indexed loanId, address lendersToExitTo);
+    event LenderExit(uint256 indexed loanId, uint256 amount, uint256 dueDate, address[] lendersToExitTo);
+    event Repay(uint256 indexed loanId);
+    event Claim(uint256 indexed loanId);
+    event LiquidateLoan(uint256 indexed loanId);
     event SelfLiquidateLoan(uint256 indexed loanId);
     event LiquidateLoanWithReplacement(uint256 indexed loanId, address indexed liquidator, address indexed borrower);
 }

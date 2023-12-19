@@ -44,6 +44,6 @@ library Repay {
         state.debtToken.burn(loan.borrower, loan.FV);
         loan.repaid = true;
 
-        emit Events.Repay(params.loanId, msg.sender);
+        emit Events.Repay(params.loanId);
     }
 }

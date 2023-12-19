@@ -9,8 +9,8 @@ import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
-contract ExitTest is BaseTest {
-    function test_Exit_exit_transfer_cash_from_loanOffer_to_sender_properties() public {
+contract LenderExitTest is BaseTest {
+    function test_LenderExit_lenderExit_transfer_cash_from_loanOffer_to_sender_properties() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
@@ -44,7 +44,7 @@ contract ExitTest is BaseTest {
     }
 
     // @audit exit to self decreases the maxAmount of the loanOffer and increases the amountFVExited of the loan (apparently, no benefit to the lender)
-    function test_Exit_exit_to_self_is_possible_properties() public {
+    function test_LenderExit_lenderExit_to_self_is_possible_properties() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);

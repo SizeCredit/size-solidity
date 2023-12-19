@@ -41,22 +41,22 @@ library LoanLibrary {
         return isFOL(self) ? self : loans[self.folId];
     }
 
-    function getLoanStatus(Loan memory self, Loan[] memory loans) public view returns (LoanStatus) {
+    function getLoanStatus(Loan memory self) public view returns (LoanStatus) {
         if (self.repaid) {
             if (self.amountFVExited == self.FV) {
                 return LoanStatus.CLAIMED;
             } else {
                 return LoanStatus.REPAID;
             }
-        } else if (isOverdue(self, loans)) {
+        } else if (block.timestamp >= self.dueDate) {
             return LoanStatus.OVERDUE;
         } else {
             return LoanStatus.ACTIVE;
         }
     }
 
-    function either(Loan memory self, Loan[] memory loans, LoanStatus[2] memory status) public view returns (bool) {
-        return getLoanStatus(self, loans) == status[0] || getLoanStatus(self, loans) == status[1];
+    function either(Loan memory self, LoanStatus[2] memory status) public view returns (bool) {
+        return getLoanStatus(self) == status[0] || getLoanStatus(self) == status[1];
     }
 
     function getCredit(Loan memory self) public pure returns (uint256) {
@@ -65,14 +65,6 @@ library LoanLibrary {
 
     function getDebt(Loan memory self) public pure returns (uint256) {
         return self.FV;
-    }
-
-    function getDueDate(Loan memory self, Loan[] memory loans) public pure returns (uint256) {
-        return isFOL(self) ? self.dueDate : loans[self.folId].dueDate;
-    }
-
-    function isOverdue(Loan memory self, Loan[] memory loans) public view returns (bool) {
-        return block.timestamp >= getDueDate(self, loans);
     }
 
     // solhint-disable-next-line var-name-mixedcase

@@ -28,6 +28,7 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
 
+import {BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
@@ -296,6 +297,11 @@ contract BaseTest is Test, AssertsHelper {
             LenderExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
         );
         return size.activeLoans() - 1;
+    }
+
+    function _borrowerExit(address user, uint256 loanId, address borrowerToExitTo) internal {
+        vm.prank(user);
+        size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
     }
 
     function _repay(address user, uint256 loanId) internal {

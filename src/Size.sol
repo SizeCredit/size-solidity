@@ -113,9 +113,10 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     }
 
     /// @inheritdoc ISize
-    function borrowerExit(BorrowerExitParams calldata params) external override(ISize) returns (uint256 ans) {
+    function borrowerExit(BorrowerExitParams calldata params) external override(ISize) {
         state.validateBorrowerExit(params);
-        ans = state.executeBorrowerExit(params);
+        state.executeBorrowerExit(params);
+        state.validateUserIsNotLiquidatable(params.borrowerToExitTo);
     }
 
     /// @inheritdoc ISize

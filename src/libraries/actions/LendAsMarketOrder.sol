@@ -56,7 +56,7 @@ library LendAsMarketOrder {
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) internal {
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
 
-        emit Events.LendAsMarketOrder(msg.sender, params.borrower, params.dueDate, params.amount, params.exactAmountIn);
+        emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
         // solhint-disable-next-line var-name-mixedcase
