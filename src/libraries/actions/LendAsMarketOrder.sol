@@ -29,12 +29,12 @@ library LendAsMarketOrder {
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
 
+        uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
+        uint256 amountIn = params.exactAmountIn ? params.amount : FixedPointMathLib.mulDivUp(params.amount, PERCENT, r);
+
         // validate msg.sender
 
         // validate borrower
-        if (borrowOffer.isNull()) {
-            revert Errors.INVALID_BORROW_OFFER(params.borrower);
-        }
 
         // validate dueDate
         if (params.dueDate < block.timestamp) {
@@ -42,11 +42,11 @@ library LendAsMarketOrder {
         }
 
         // validate amount
-        if (params.amount > borrowOffer.maxAmount) {
-            revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, borrowOffer.maxAmount);
+        if (amountIn > borrowOffer.maxAmount) {
+            revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(amountIn, borrowOffer.maxAmount);
         }
-        if (state.borrowToken.balanceOf(msg.sender) < params.amount) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(msg.sender), params.amount);
+        if (state.borrowToken.balanceOf(msg.sender) < amountIn) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(msg.sender), amountIn);
         }
 
         // validate exactAmountIn
@@ -54,9 +54,9 @@ library LendAsMarketOrder {
     }
 
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) internal {
-        BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
-
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
+
+        BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
         // solhint-disable-next-line var-name-mixedcase
@@ -74,6 +74,6 @@ library LendAsMarketOrder {
         state.debtToken.mint(params.borrower, FV);
 
         state.loans.createFOL(msg.sender, params.borrower, FV, params.dueDate);
-        borrowOffer.maxAmount -= params.amount;
+        borrowOffer.maxAmount -= amountIn;
     }
 }

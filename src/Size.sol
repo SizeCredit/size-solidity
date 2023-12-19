@@ -27,8 +27,6 @@ import {Withdraw, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
-
 import {State} from "@src/SizeStorage.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
