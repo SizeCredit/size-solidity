@@ -7,6 +7,8 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+
+import {BorrowerExit, BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
 import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {Initialize, InitializeParams} from "@src/libraries/actions/Initialize.sol";
@@ -40,6 +42,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     using LendAsMarketOrder for State;
     using LendAsLimitOrder for State;
     using LenderExit for State;
+    using BorrowerExit for State;
     using Repay for State;
     using Claim for State;
     using LiquidateLoan for State;
@@ -107,6 +110,12 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     function lenderExit(LenderExitParams calldata params) external override(ISize) returns (uint256 amountInLeft) {
         state.validateLenderExit(params);
         amountInLeft = state.executeLenderExit(params);
+    }
+
+    /// @inheritdoc ISize
+    function borrowerExit(BorrowerExitParams calldata params) external override(ISize) returns (uint256 ans) {
+        state.validateBorrowerExit(params);
+        ans = state.executeBorrowerExit(params);
     }
 
     /// @inheritdoc ISize

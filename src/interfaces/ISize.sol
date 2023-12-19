@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
 
+import {BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
@@ -50,6 +51,8 @@ interface ISize {
     // increases loan amountFVExited
     // creates a new SOL
     function lenderExit(LenderExitParams memory params) external returns (uint256 amountInLeft);
+
+    function borrowerExit(BorrowerExitParams memory params) external returns (uint256 amountInLeft);
 
     // decreases borrower free cash
     // increases protocol free cash
