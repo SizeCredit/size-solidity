@@ -7,7 +7,7 @@ Size V2 Solidity
 <!-- BEGIN_COVERAGE -->
 | File                                                   | % Lines          | % Statements     | % Branches       | % Funcs         |
 |--------------------------------------------------------|------------------|------------------|------------------|-----------------|
-| src/Size.sol                                           | 93.94% (31/33)   | 93.94% (31/33)   | 100.00% (0/0)    | 100.00% (14/14) |
+| src/Size.sol                                           | 88.57% (31/35)   | 88.57% (31/35)   | 100.00% (0/0)    | 93.33% (14/15)  |
 | src/SizeView.sol                                       | 100.00% (20/20)  | 100.00% (30/30)  | 100.00% (0/0)    | 100.00% (18/18) |
 | src/libraries/LoanLibrary.sol                          | 95.83% (23/24)   | 97.30% (36/37)   | 87.50% (7/8)     | 100.00% (10/10) |
 | src/libraries/MathLibrary.sol                          | 100.00% (1/1)    | 100.00% (3/3)    | 100.00% (0/0)    | 100.00% (1/1)   |
@@ -15,6 +15,7 @@ Size V2 Solidity
 | src/libraries/YieldCurveLibrary.sol                    | 100.00% (5/5)    | 100.00% (7/7)    | 100.00% (0/0)    | 100.00% (1/1)   |
 | src/libraries/actions/BorrowAsLimitOrder.sol           | 100.00% (8/8)    | 100.00% (10/10)  | 100.00% (6/6)    | 100.00% (2/2)   |
 | src/libraries/actions/BorrowAsMarketOrder.sol          | 98.18% (54/55)   | 98.55% (68/69)   | 77.27% (17/22)   | 100.00% (4/4)   |
+| src/libraries/actions/BorrowerExit.sol                 | 100.00% (0/0)    | 100.00% (0/0)    | 100.00% (0/0)    | 0.00% (0/2)     |
 | src/libraries/actions/Claim.sol                        | 100.00% (9/9)    | 100.00% (10/10)  | 75.00% (3/4)     | 100.00% (2/2)   |
 | src/libraries/actions/Deposit.sol                      | 100.00% (10/10)  | 100.00% (17/17)  | 100.00% (4/4)    | 100.00% (2/2)   |
 | src/libraries/actions/Initialize.sol                   | 95.24% (40/42)   | 80.77% (42/52)   | 96.67% (29/30)   | 100.00% (2/2)   |
