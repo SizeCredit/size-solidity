@@ -20,13 +20,11 @@ contract BorrowerExitTest is BaseTest {
 
         Vars memory _before = _state();
 
-        address borrowerToExitTo = candy;
-
         BorrowOffer memory borrowOfferBefore = size.getBorrowOffer(candy);
         Loan memory loanBefore = size.getLoan(loanId);
         uint256 loansBefore = size.activeLoans();
 
-        _borrowerExit(bob, loanId, borrowerToExitTo);
+        _borrowerExit(bob, loanId, candy);
 
         BorrowOffer memory borrowOfferAfter = size.getBorrowOffer(candy);
         Loan memory loanAfter = size.getLoan(loanId);
@@ -40,6 +38,8 @@ contract BorrowerExitTest is BaseTest {
         assertLt(_after.bob.debtAmount, _before.bob.debtAmount);
         assertLt(borrowOfferAfter.maxAmount, borrowOfferBefore.maxAmount);
         assertEq(loanAfter.amountFVExited, loanBefore.amountFVExited);
+        assertEq(loanBefore.borrower, bob);
+        assertEq(loanAfter.borrower, candy);
         assertEq(_before.alice, _after.alice);
         assertEq(loansAfter, loansBefore);
     }
