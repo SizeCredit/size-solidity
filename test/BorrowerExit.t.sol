@@ -5,7 +5,6 @@ import {BaseTest} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
 
