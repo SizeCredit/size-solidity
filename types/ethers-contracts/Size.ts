@@ -289,6 +289,12 @@ export type LiquidateLoanWithReplacementParamsStructOutput = [
   string
 ] & { loanId: BigNumber; borrower: string };
 
+export type MoveToVariablePoolParamsStruct = { loanId: BigNumberish };
+
+export type MoveToVariablePoolParamsStructOutput = [BigNumber] & {
+  loanId: BigNumber;
+};
+
 export type RepayParamsStruct = { loanId: BigNumberish };
 
 export type RepayParamsStructOutput = [BigNumber] & { loanId: BigNumber };
@@ -311,6 +317,7 @@ export interface SizeInterface extends utils.Interface {
     "UPGRADE_INTERFACE_VERSION()": FunctionFragment;
     "acceptOwnership()": FunctionFragment;
     "activeLoans()": FunctionFragment;
+    "activeVariableLoans()": FunctionFragment;
     "borrowAsLimitOrder((uint256,(uint256[],uint256[])))": FunctionFragment;
     "borrowAsMarketOrder((address,uint256,uint256,bool,uint256[]))": FunctionFragment;
     "borrowerExit((uint256,address))": FunctionFragment;
@@ -339,6 +346,7 @@ export interface SizeInterface extends utils.Interface {
     "lenderExit((uint256,uint256,uint256,address[]))": FunctionFragment;
     "liquidateLoan((uint256))": FunctionFragment;
     "liquidateLoanWithReplacement((uint256,address))": FunctionFragment;
+    "moveToVariablePool((uint256))": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
@@ -356,6 +364,7 @@ export interface SizeInterface extends utils.Interface {
       | "UPGRADE_INTERFACE_VERSION"
       | "acceptOwnership"
       | "activeLoans"
+      | "activeVariableLoans"
       | "borrowAsLimitOrder"
       | "borrowAsMarketOrder"
       | "borrowerExit"
@@ -384,6 +393,7 @@ export interface SizeInterface extends utils.Interface {
       | "lenderExit"
       | "liquidateLoan"
       | "liquidateLoanWithReplacement"
+      | "moveToVariablePool"
       | "owner"
       | "pendingOwner"
       | "proxiableUUID"
@@ -406,6 +416,10 @@ export interface SizeInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "activeLoans",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "activeVariableLoans",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -511,6 +525,10 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "liquidateLoanWithReplacement",
     values: [LiquidateLoanWithReplacementParamsStruct]
   ): string;
+  encodeFunctionData(
+    functionFragment: "moveToVariablePool",
+    values: [MoveToVariablePoolParamsStruct]
+  ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "pendingOwner",
@@ -556,6 +574,10 @@ export interface SizeInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "activeLoans",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "activeVariableLoans",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -641,6 +663,10 @@ export interface SizeInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "liquidateLoanWithReplacement",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "moveToVariablePool",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -774,6 +800,8 @@ export interface Size extends BaseContract {
 
     activeLoans(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    activeVariableLoans(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
       overrides?: Overrides & { from?: string }
@@ -902,6 +930,11 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    moveToVariablePool(
+      params: MoveToVariablePoolParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     pendingOwner(overrides?: CallOverrides): Promise<[string]>;
@@ -936,7 +969,6 @@ export interface Size extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        BigNumber,
         string,
         string
       ] & {
@@ -946,7 +978,6 @@ export interface Size extends BaseContract {
         collateralToken: string;
         borrowToken: string;
         debtToken: string;
-        maxTime: BigNumber;
         crOpening: BigNumber;
         crLiquidation: BigNumber;
         collateralPercentagePremiumToLiquidator: BigNumber;
@@ -980,6 +1011,8 @@ export interface Size extends BaseContract {
   ): Promise<ContractTransaction>;
 
   activeLoans(overrides?: CallOverrides): Promise<BigNumber>;
+
+  activeVariableLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
   borrowAsLimitOrder(
     params: BorrowAsLimitOrderParamsStruct,
@@ -1103,6 +1136,11 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
+  moveToVariablePool(
+    params: MoveToVariablePoolParamsStruct,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
   pendingOwner(overrides?: CallOverrides): Promise<string>;
@@ -1137,7 +1175,6 @@ export interface Size extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      BigNumber,
       string,
       string
     ] & {
@@ -1147,7 +1184,6 @@ export interface Size extends BaseContract {
       collateralToken: string;
       borrowToken: string;
       debtToken: string;
-      maxTime: BigNumber;
       crOpening: BigNumber;
       crLiquidation: BigNumber;
       collateralPercentagePremiumToLiquidator: BigNumber;
@@ -1179,6 +1215,8 @@ export interface Size extends BaseContract {
     acceptOwnership(overrides?: CallOverrides): Promise<void>;
 
     activeLoans(overrides?: CallOverrides): Promise<BigNumber>;
+
+    activeVariableLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
@@ -1305,6 +1343,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    moveToVariablePool(
+      params: MoveToVariablePoolParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     pendingOwner(overrides?: CallOverrides): Promise<string>;
@@ -1334,7 +1377,6 @@ export interface Size extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        BigNumber,
         string,
         string
       ] & {
@@ -1344,7 +1386,6 @@ export interface Size extends BaseContract {
         collateralToken: string;
         borrowToken: string;
         debtToken: string;
-        maxTime: BigNumber;
         crOpening: BigNumber;
         crLiquidation: BigNumber;
         collateralPercentagePremiumToLiquidator: BigNumber;
@@ -1418,6 +1459,8 @@ export interface Size extends BaseContract {
     ): Promise<BigNumber>;
 
     activeLoans(overrides?: CallOverrides): Promise<BigNumber>;
+
+    activeVariableLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
@@ -1544,6 +1587,11 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
+    moveToVariablePool(
+      params: MoveToVariablePoolParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1593,6 +1641,10 @@ export interface Size extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     activeLoans(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    activeVariableLoans(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
@@ -1722,6 +1774,11 @@ export interface Size extends BaseContract {
 
     liquidateLoanWithReplacement(
       params: LiquidateLoanWithReplacementParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    moveToVariablePool(
+      params: MoveToVariablePoolParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
