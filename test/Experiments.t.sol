@@ -228,22 +228,19 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         vm.warp(block.timestamp + 1);
         _setPrice(30e18);
 
-        console.log(size.collateralRatio(alice) < size.crLiquidation());
-
         // Assert conditions for liquidation
         assertTrue(size.isLiquidatable(alice), "Borrower should be liquidatable");
         assertTrue(size.isLiquidatable(0), "Loan should be liquidatable");
 
         // Perform self liquidation
-        Loan memory loan = size.getLoan(0);
-        assertGt(loan.FV, 0, "Loan FV should be greater than 0");
+        assertGt(size.getLoan(0).FV, 0, "Loan FV should be greater than 0");
         assertEq(_state().bob.collateralAmount, 0, "Bob should have no free ETH initially");
 
         _selfLiquidateLoan(alice, 0);
 
         // Assert post-liquidation conditions
         assertGt(_state().bob.collateralAmount, 0, "Bob should have free ETH after self liquidation");
-        assertEq(loan.FV, 0, "Loan FV should be 0 after self liquidation");
+        assertEq(size.getLoan(0).FV, 0, "Loan FV should be 0 after self liquidation");
     }
 
     function test_Experiments_testLendAsLimitOrder1() public {

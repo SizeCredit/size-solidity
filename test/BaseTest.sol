@@ -59,7 +59,6 @@ contract BaseTest is Test, AssertsHelper {
     address public liquidator = address(0x50000);
     address public protocolVault = address(0x60000);
     address public feeRecipient = address(0x70000);
-    address public protocol;
 
     struct Vars {
         UserView alice;
@@ -96,20 +95,17 @@ contract BaseTest is Test, AssertsHelper {
             feeRecipient: feeRecipient
         });
         ERC1967Proxy proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params)));
-        protocol = address(proxy);
-
-        collateralToken.transferOwnership(protocol);
-        borrowToken.transferOwnership(protocol);
-        debtToken.transferOwnership(protocol);
-
         size = Size(address(proxy));
+
+        collateralToken.transferOwnership(address(size));
+        borrowToken.transferOwnership(address(size));
+        debtToken.transferOwnership(address(size));
 
         vm.label(alice, "alice");
         vm.label(bob, "bob");
         vm.label(candy, "candy");
         vm.label(james, "james");
         vm.label(liquidator, "liquidator");
-        vm.label(protocol, "protocol");
 
         priceFeed.setPrice(1337e18);
     }
