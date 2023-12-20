@@ -76,7 +76,7 @@ References
 ## TODOs
 
 - convert experiments into fuzz tests
-- differential testing for lenderExit & borrowWith
+- differential testing for lenderExit & borrowAsMarketOrder
 - dust amount for loans (creation & updating of FV)
 - rename FV to faceValue
 - simplify Loan struct
