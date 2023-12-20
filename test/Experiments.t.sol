@@ -207,7 +207,44 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(aliceCollateralAfter, 0, "Alice should have locked ETH after moving to variable pool");
     }
 
-    function test_Experiments_testSL1() public {}
+    function test_Experiments_testSL1() public {
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowAmount, 100e18);
+
+        // Bob lends as limit order
+        _lendAsLimitOrder(bob, 100e18, 10, 0.03e18, 12);
+
+        // Alice deposits in WETH
+        _deposit(alice, weth, 2e18);
+
+        // Alice borrows as market order from Bob
+        _borrowAsMarketOrder(alice, bob, 100e18, 6);
+
+        // Assert conditions for Alice's borrowing
+        assertGe(size.collateralRatio(alice), size.crOpening());
+        assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
+
+        vm.warp(block.timestamp + 1);
+        _setPrice(30e18);
+
+        console.log(size.collateralRatio(alice) < size.crLiquidation());
+
+        // Assert conditions for liquidation
+        assertTrue(size.isLiquidatable(alice), "Borrower should be liquidatable");
+        assertTrue(size.isLiquidatable(0), "Loan should be liquidatable");
+
+        // Perform self liquidation
+        Loan memory loan = size.getLoan(0);
+        assertGt(loan.FV, 0, "Loan FV should be greater than 0");
+        assertEq(_state().bob.collateralAmount, 0, "Bob should have no free ETH initially");
+
+        _selfLiquidateLoan(alice, 0);
+
+        // Assert post-liquidation conditions
+        assertGt(_state().bob.collateralAmount, 0, "Bob should have free ETH after self liquidation");
+        assertEq(loan.FV, 0, "Loan FV should be 0 after self liquidation");
+    }
 
     function test_Experiments_testLendAsLimitOrder1() public {
         // Alice deposits in WETH

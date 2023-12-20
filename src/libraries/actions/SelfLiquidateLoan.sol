@@ -5,7 +5,6 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
 
 import {LiquidateLoan} from "@src/libraries/actions/LiquidateLoan.sol";
 
