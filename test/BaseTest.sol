@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Test, console2 as console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {AssertsHelper} from "./helpers/AssertsHelper.sol";
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
-import {SizeMock} from "./mocks/SizeMock.sol";
 
 import {USDC} from "./mocks/USDC.sol";
 import {WETH} from "./mocks/WETH.sol";
@@ -35,6 +34,7 @@ import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.so
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
 import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 
 import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
@@ -44,7 +44,7 @@ import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 contract BaseTest is Test, AssertsHelper {
     event TODO();
 
-    SizeMock public size;
+    Size public size;
     PriceFeedMock public priceFeed;
     WETH public weth;
     USDC public usdc;
@@ -95,14 +95,14 @@ contract BaseTest is Test, AssertsHelper {
             protocolVault: protocolVault,
             feeRecipient: feeRecipient
         });
-        ERC1967Proxy proxy = new ERC1967Proxy(address(new SizeMock()), abi.encodeCall(Size.initialize, (params)));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params)));
         protocol = address(proxy);
 
         collateralToken.transferOwnership(protocol);
         borrowToken.transferOwnership(protocol);
         debtToken.transferOwnership(protocol);
 
-        size = SizeMock(address(proxy));
+        size = Size(address(proxy));
 
         vm.label(alice, "alice");
         vm.label(bob, "bob");
@@ -333,6 +333,11 @@ contract BaseTest is Test, AssertsHelper {
         vm.prank(user);
         return
             size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
+    }
+
+    function _moveToVariablePool(address user, uint256 loanId) internal {
+        vm.prank(user);
+        size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
     }
 
     function _state() internal view returns (Vars memory vars) {

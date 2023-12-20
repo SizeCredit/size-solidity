@@ -16,6 +16,7 @@ import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/actions/L
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
 import {LenderExit, LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {MoveToVariablePool, MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 
 import {
     LiquidateLoanWithReplacement,
@@ -46,6 +47,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     using LiquidateLoan for State;
     using SelfLiquidateLoan for State;
     using LiquidateLoanWithReplacement for State;
+    using MoveToVariablePool for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -154,5 +156,11 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
         state.validateLiquidateLoanWithReplacement(params);
         liquidatorProfitBorrowAsset = state.executeLiquidateLoanWithReplacement(params);
         state.validateUserIsNotLiquidatable(params.borrower);
+    }
+
+    /// @inheritdoc ISize
+    function moveToVariablePool(MoveToVariablePoolParams calldata params) external override(ISize) {
+        state.validateMoveToVariablePool(params);
+        state.executeMoveToVariablePool(params);
     }
 }

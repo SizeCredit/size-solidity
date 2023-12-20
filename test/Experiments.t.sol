@@ -10,7 +10,7 @@ import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {Test} from "forge-std/Test.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
@@ -169,7 +169,43 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(size.getDueDate(0), size.getDueDate(1), "Check loan due date");
     }
 
-    function test_Experiments_testLoanMove1() public {}
+    function test_Experiments_testLoanMove1() public {
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowAmount, 100e18);
+
+        // Bob lends as limit order
+        _lendAsLimitOrder(bob, 100e18, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+
+        // Alice deposits in WETH
+        _deposit(alice, weth, 50e18);
+
+        // Alice borrows as market order from Bob
+        _borrowAsMarketOrder(alice, bob, 70e18, 5);
+
+        // Move forward the clock as the loan is overdue
+        vm.warp(block.timestamp + 6);
+
+        // Assert loan conditions
+        Loan memory fol = size.getLoan(0);
+        assertEq(fol.getLoanStatus(), LoanStatus.OVERDUE, "Loan should be overdue");
+        assertEq(size.activeLoans(), 1, "Expect one active loan");
+
+        assertTrue(!fol.repaid, "Loan should not be repaid before moving to the variable pool");
+        uint256 aliceCollateralBefore = _state().alice.collateralAmount;
+        assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
+
+        // Move to variable pool
+        _moveToVariablePool(liquidator, 0);
+
+        fol = size.getLoan(0);
+        uint256 aliceCollateralAfter = _state().alice.collateralAmount;
+
+        // Assert post-move conditions
+        assertTrue(fol.repaid, "Loan should be repaid by moving into the variable pool");
+        assertEq(size.activeVariableLoans(), 1, "Expect one active loan in variable pool");
+        assertEq(aliceCollateralAfter, 0, "Alice should have locked ETH after moving to variable pool");
+    }
 
     function test_Experiments_testSL1() public {}
 

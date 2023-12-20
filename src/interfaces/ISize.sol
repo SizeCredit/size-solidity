@@ -15,6 +15,8 @@ import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
+
+import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 interface ISize {
@@ -81,4 +83,6 @@ interface ISize {
     function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams memory params)
         external
         returns (uint256);
+
+    function moveToVariablePool(MoveToVariablePoolParams memory params) external;
 }

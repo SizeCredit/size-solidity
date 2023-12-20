@@ -43,6 +43,7 @@ library Errors {
     error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
     error ONLY_FOL_CAN_BE_EXITED(uint256 loanId);
     error ONLY_FOL_CAN_BE_LIQUIDATED(uint256 loanId);
+    error ONLY_FOL_CAN_BE_MOVED_TO_VP(uint256 loanId);
     error LOAN_ALREADY_REPAID(uint256 loanId);
     error LOAN_NOT_REPAID(uint256 loanId);
     error LOAN_NOT_DUE(uint256 loanId);

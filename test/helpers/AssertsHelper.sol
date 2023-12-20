@@ -22,6 +22,10 @@ abstract contract AssertsHelper is Test {
 
     function assertEq(LoanStatus a, LoanStatus b) internal {
         string memory reason = string.concat("Expected ", str(a), " to be equal to ", str(b));
+        return assertEq(a, b, reason);
+    }
+
+    function assertEq(LoanStatus a, LoanStatus b, string memory reason) internal {
         assertTrue(uint256(a) == uint256(b), reason);
     }
 

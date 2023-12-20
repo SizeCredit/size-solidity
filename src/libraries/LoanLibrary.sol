@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
+
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
@@ -28,11 +32,11 @@ struct VariableLoan {
     address borrower;
     uint256 amountBorrowAssetLentOut;
     uint256 amountCollateral;
+    uint256 startTime;
+    bool repaid;
 }
 
 library LoanLibrary {
-    error LoanLibrary__InvalidAmount(uint256 amount, uint256 maxExit);
-
     function isFOL(Loan memory self) public pure returns (bool) {
         return self.folId == RESERVED_FOL_ID;
     }
@@ -109,5 +113,36 @@ library LoanLibrary {
         uint256 solId = loans.length - 1;
 
         emit Events.CreateLoan(solId, lender, borrower, folId, FV, fol.dueDate);
+    }
+
+    function createVariableLoan(
+        VariableLoan[] storage variableLoans,
+        address borrower,
+        uint256 amountBorrowAssetLentOut,
+        uint256 amountCollateral
+    ) public {
+        variableLoans.push(
+            VariableLoan({
+                borrower: borrower,
+                amountBorrowAssetLentOut: amountBorrowAssetLentOut,
+                amountCollateral: amountCollateral,
+                startTime: block.timestamp,
+                repaid: false
+            })
+        );
+    }
+
+    function getDebtCurrent(VariableLoan storage self, uint256 ratePerUnitTime) internal view returns (uint256) {
+        uint256 r = PERCENT + ratePerUnitTime * (block.timestamp - self.startTime);
+        return FixedPointMathLib.mulDivUp(self.amountBorrowAssetLentOut, r, PERCENT);
+    }
+
+    function getCollateralRatio(VariableLoan storage self, uint256 ratePerUnitTime, uint256 price)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 debt = getDebtCurrent(self, ratePerUnitTime);
+        return FixedPointMathLib.mulDivDown(self.amountCollateral, price, debt);
     }
 }
