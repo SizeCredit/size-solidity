@@ -36,9 +36,9 @@ library Claim {
     function executeClaim(State storage state, ClaimParams calldata params) external {
         Loan storage loan = state.loans[params.loanId];
 
-        // @audit amountFVExited can increase if SOLs are created, what if claim/exit happen in different times?
+        // @audit faceValueExited can increase if SOLs are created, what if claim/exit happen in different times?
         state.borrowToken.transferFrom(state.protocolVault, msg.sender, loan.getCredit());
-        loan.amountFVExited = loan.FV;
+        loan.faceValueExited = loan.faceValue;
 
         emit Events.Claim(params.loanId);
     }

@@ -28,7 +28,7 @@ contract MoveToVariablePoolTest is BaseTest {
         Loan memory loanBefore = size.getLoan(loanId);
 
         uint256 assignedCollateral =
-            FixedPointMathLib.mulDivDown(_before.bob.collateralAmount, loanBefore.FV, _before.bob.debtAmount);
+            FixedPointMathLib.mulDivDown(_before.bob.collateralAmount, loanBefore.faceValue, _before.bob.debtAmount);
 
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
 

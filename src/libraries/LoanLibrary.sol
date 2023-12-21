@@ -12,8 +12,8 @@ uint256 constant RESERVED_FOL_ID = type(uint256).max;
 
 struct Loan {
     // solhint-disable-next-line var-name-mixedcase
-    uint256 FV; // FOL/SOL
-    uint256 amountFVExited; // FOL
+    uint256 faceValue; // FOL/SOL
+    uint256 faceValueExited; // FOL
     address lender; // FOL/SOL
     address borrower; // FOL/SOL
     uint256 dueDate; // FOL
@@ -46,7 +46,7 @@ library LoanLibrary {
     }
 
     function getLoanStatus(Loan memory self) public view returns (LoanStatus) {
-        if (self.amountFVExited == self.FV) {
+        if (self.faceValueExited == self.faceValue) {
             return LoanStatus.CLAIMED;
             // @audit If this is a SOL, should I get the .repaid information from the FOL?
         } else if (self.repaid) {
@@ -63,19 +63,21 @@ library LoanLibrary {
     }
 
     function getCredit(Loan memory self) public pure returns (uint256) {
-        return self.FV - self.amountFVExited;
+        return self.faceValue - self.faceValueExited;
     }
 
     function getDebt(Loan memory self) public pure returns (uint256) {
-        return self.FV;
+        return self.faceValue;
     }
 
     // solhint-disable-next-line var-name-mixedcase
-    function createFOL(Loan[] storage loans, address lender, address borrower, uint256 FV, uint256 dueDate) public {
+    function createFOL(Loan[] storage loans, address lender, address borrower, uint256 faceValue, uint256 dueDate)
+        public
+    {
         loans.push(
             Loan({
-                FV: FV,
-                amountFVExited: 0,
+                faceValue: faceValue,
+                faceValueExited: 0,
                 lender: lender,
                 borrower: borrower,
                 dueDate: dueDate,
@@ -85,16 +87,18 @@ library LoanLibrary {
         );
         uint256 folId = loans.length - 1;
 
-        emit Events.CreateLoan(folId, lender, borrower, RESERVED_FOL_ID, FV, dueDate);
+        emit Events.CreateLoan(folId, lender, borrower, RESERVED_FOL_ID, faceValue, dueDate);
     }
 
     // solhint-disable-next-line var-name-mixedcase
-    function createSOL(Loan[] storage loans, uint256 folId, address lender, address borrower, uint256 FV) public {
+    function createSOL(Loan[] storage loans, uint256 folId, address lender, address borrower, uint256 faceValue)
+        public
+    {
         Loan storage fol = loans[folId];
         loans.push(
             Loan({
-                FV: FV,
-                amountFVExited: 0,
+                faceValue: faceValue,
+                faceValueExited: 0,
                 lender: lender,
                 borrower: borrower,
                 dueDate: fol.dueDate,
@@ -102,16 +106,16 @@ library LoanLibrary {
                 folId: folId
             })
         );
-        if (FV > getCredit(fol)) {
+        if (faceValue > getCredit(fol)) {
             // @audit this has 0 coverage,
             //   I believe it is already checked by _borrowWithVirtualCollateral & validateExit
-            revert Errors.NOT_ENOUGH_FREE_CASH(getCredit(fol), FV);
+            revert Errors.NOT_ENOUGH_FREE_CASH(getCredit(fol), faceValue);
         }
-        fol.amountFVExited += FV;
+        fol.faceValueExited += faceValue;
 
         uint256 solId = loans.length - 1;
 
-        emit Events.CreateLoan(solId, lender, borrower, folId, FV, fol.dueDate);
+        emit Events.CreateLoan(solId, lender, borrower, folId, faceValue, fol.dueDate);
     }
 
     function createVariableLoan(

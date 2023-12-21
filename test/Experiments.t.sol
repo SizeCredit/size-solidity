@@ -33,8 +33,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(james, alice, 100e18, 6);
         assertGt(size.activeLoans(), 0);
         Loan memory loan = size.getLoan(0);
-        assertEq(loan.FV, 100e18 * 1.03e18 / 1e18);
-        assertEq(loan.getCredit(), loan.FV);
+        assertEq(loan.faceValue, 100e18 * 1.03e18 / 1e18);
+        assertEq(loan.getCredit(), loan.faceValue);
 
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e18);
@@ -46,7 +46,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         vm.expectRevert();
         _claim(alice, 0);
 
-        _deposit(james, usdc, loan.FV);
+        _deposit(james, usdc, loan.faceValue);
         console.log("loan is repaid");
         _repay(james, 0);
         loan = size.getLoan(0);
@@ -109,7 +109,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(fol.isFOL(), "The first loan should be FOL");
 
         // Calculate amount to exit
-        uint256 amountToExit = FixedPointMathLib.mulDivDown(fol.FV, amountToExitPercent, PERCENT);
+        uint256 amountToExit = FixedPointMathLib.mulDivDown(fol.faceValue, amountToExitPercent, PERCENT);
 
         // Lender exiting using borrow as market order
         _borrowAsMarketOrder(bob, candy, amountToExit, dueDate, true, [uint256(0)]);
@@ -117,9 +117,9 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(size.activeLoans(), 2, "Expected two active loans after lender exit");
         Loan memory sol = size.getLoan(1);
         assertTrue(!sol.isFOL(), "The second loan should be SOL");
-        assertEq(sol.FV, amountToExit, "Amount to Exit should match");
+        assertEq(sol.faceValue, amountToExit, "Amount to Exit should match");
         fol = size.getLoan(0);
-        assertEq(fol.getCredit(), fol.FV - amountToExit, "Should be able to exit the full amount");
+        assertEq(fol.getCredit(), fol.faceValue - amountToExit, "Should be able to exit the full amount");
     }
 
     function test_Experiments_testBorrowWithExit1() public {
@@ -151,7 +151,11 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(loan_Bob_Alice.borrower == alice, "Alice should be the borrower");
         LoanOffer memory loanOffer = size.getLoanOffer(bob);
         uint256 rate = loanOffer.getRate(5);
-        assertEq(loan_Bob_Alice.FV, FixedPointMathLib.mulDivUp(70e18, (PERCENT + rate), PERCENT), "Check loan FV");
+        assertEq(
+            loan_Bob_Alice.faceValue,
+            FixedPointMathLib.mulDivUp(70e18, (PERCENT + rate), PERCENT),
+            "Check loan faceValue"
+        );
         assertEq(size.getDueDate(0), 5, "Check loan due date");
 
         // Bob borrows using the loan as virtual collateral
@@ -165,7 +169,11 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
         LoanOffer memory loanOffer2 = size.getLoanOffer(james);
         uint256 rate2 = loanOffer2.getRate(size.getDueDate(0));
-        assertEq(loan_James_Bob.FV, FixedPointMathLib.mulDivUp(35e18, PERCENT + rate2, PERCENT), "Check loan FV");
+        assertEq(
+            loan_James_Bob.faceValue,
+            FixedPointMathLib.mulDivUp(35e18, PERCENT + rate2, PERCENT),
+            "Check loan faceValue"
+        );
         assertEq(size.getDueDate(0), size.getDueDate(1), "Check loan due date");
     }
 
@@ -233,14 +241,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(size.isLiquidatable(0), "Loan should be liquidatable");
 
         // Perform self liquidation
-        assertGt(size.getLoan(0).FV, 0, "Loan FV should be greater than 0");
+        assertGt(size.getLoan(0).faceValue, 0, "Loan faceValue should be greater than 0");
         assertEq(_state().bob.collateralAmount, 0, "Bob should have no free ETH initially");
 
         _selfLiquidateLoan(alice, 0);
 
         // Assert post-liquidation conditions
         assertGt(_state().bob.collateralAmount, 0, "Bob should have free ETH after self liquidation");
-        assertEq(size.getLoan(0).FV, 0, "Loan FV should be 0 after self liquidation");
+        assertEq(size.getLoan(0).faceValue, 0, "Loan faceValue should be 0 after self liquidation");
     }
 
     function test_Experiments_testLendAsLimitOrder1() public {

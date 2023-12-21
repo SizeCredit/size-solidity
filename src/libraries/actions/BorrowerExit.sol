@@ -31,8 +31,8 @@ library BorrowerExit {
 
         uint256 rate = borrowOffer.getRate(fol.dueDate);
         uint256 r = PERCENT + rate;
-        uint256 FV = fol.FV;
-        uint256 amountIn = FixedPointMathLib.mulDivUp(FV, PERCENT, r);
+        uint256 faceValue = fol.faceValue;
+        uint256 amountIn = FixedPointMathLib.mulDivUp(faceValue, PERCENT, r);
 
         // validate msg.sender
         if (msg.sender != fol.borrower) {
@@ -64,11 +64,11 @@ library BorrowerExit {
 
         uint256 rate = borrowOffer.getRate(fol.dueDate);
         uint256 r = PERCENT + rate;
-        uint256 FV = fol.FV;
-        uint256 amountIn = FixedPointMathLib.mulDivUp(FV, PERCENT, r);
+        uint256 faceValue = fol.faceValue;
+        uint256 amountIn = FixedPointMathLib.mulDivUp(faceValue, PERCENT, r);
 
         state.borrowToken.transferFrom(msg.sender, params.borrowerToExitTo, amountIn);
-        state.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, FV);
+        state.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
         fol.borrower = params.borrowerToExitTo;
         borrowOffer.maxAmount -= amountIn;
     }

@@ -36,7 +36,7 @@ contract BorrowerExitTest is BaseTest {
         assertGt(_after.candy.debtAmount, _before.candy.debtAmount);
         assertLt(_after.bob.debtAmount, _before.bob.debtAmount);
         assertLt(borrowOfferAfter.maxAmount, borrowOfferBefore.maxAmount);
-        assertEq(loanAfter.amountFVExited, loanBefore.amountFVExited);
+        assertEq(loanAfter.faceValueExited, loanBefore.faceValueExited);
         assertEq(loanBefore.borrower, bob);
         assertEq(loanAfter.borrower, candy);
         assertEq(_before.alice, _after.alice);
@@ -68,7 +68,7 @@ contract BorrowerExitTest is BaseTest {
         Vars memory _after = _state();
 
         assertLt(borrowOfferAfter.maxAmount, borrowOfferBefore.maxAmount);
-        assertEq(loanAfter.amountFVExited, loanBefore.amountFVExited);
+        assertEq(loanAfter.faceValueExited, loanBefore.faceValueExited);
         assertEq(_before.alice, _after.alice);
         assertEq(_before.bob, _after.bob);
         assertEq(loansAfter, loansBefore);

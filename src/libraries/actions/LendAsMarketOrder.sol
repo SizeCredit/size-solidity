@@ -60,20 +60,20 @@ library LendAsMarketOrder {
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
         // solhint-disable-next-line var-name-mixedcase
-        uint256 FV;
+        uint256 faceValue;
         uint256 amountIn;
         if (params.exactAmountIn) {
-            FV = FixedPointMathLib.mulDivDown(params.amount, r, PERCENT);
+            faceValue = FixedPointMathLib.mulDivDown(params.amount, r, PERCENT);
             amountIn = params.amount;
         } else {
-            FV = params.amount;
+            faceValue = params.amount;
             amountIn = FixedPointMathLib.mulDivUp(params.amount, PERCENT, r);
         }
 
         state.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
-        state.debtToken.mint(params.borrower, FV);
+        state.debtToken.mint(params.borrower, faceValue);
 
-        state.loans.createFOL(msg.sender, params.borrower, FV, params.dueDate);
+        state.loans.createFOL(msg.sender, params.borrower, faceValue, params.dueDate);
         borrowOffer.maxAmount -= amountIn;
     }
 }

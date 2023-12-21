@@ -21,7 +21,7 @@ contract RepayTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
-        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
+        uint256 faceValue = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
 
         Vars memory _before = _state();
 
@@ -29,9 +29,9 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - FV);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - FV);
-        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + FV);
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue);
+        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + faceValue);
         assertTrue(size.getLoan(loanId).repaid);
     }
 
@@ -42,7 +42,7 @@ contract RepayTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
-        uint256 FV = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
+        uint256 faceValue = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
 
         Vars memory _before = _state();
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
@@ -61,9 +61,9 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - FV);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - FV);
-        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + FV);
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue);
+        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + faceValue);
         assertTrue(size.getLoan(loanId).repaid);
         assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
     }

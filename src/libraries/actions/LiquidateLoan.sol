@@ -24,7 +24,7 @@ library LiquidateLoan {
         uint256 debt = state.debtToken.balanceOf(loan.borrower);
         uint256 collateral = state.collateralToken.balanceOf(loan.borrower);
         if (debt > 0) {
-            return FixedPointMathLib.mulDivDown(collateral, loan.FV, debt);
+            return FixedPointMathLib.mulDivDown(collateral, loan.faceValue, debt);
         } else {
             return 0;
         }

@@ -28,8 +28,8 @@ library BorrowAsMarketOrder {
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
 
-    function getMinimumCollateralOpening(State storage state, uint256 FV) public view returns (uint256) {
-        return FixedPointMathLib.mulDivUp(FV, state.crOpening, state.priceFeed.getPrice());
+    function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
+        return FixedPointMathLib.mulDivUp(faceValue, state.crOpening, state.priceFeed.getPrice());
     }
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
@@ -152,15 +152,15 @@ library BorrowAsMarketOrder {
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         // solhint-disable-next-line var-name-mixedcase
-        uint256 FV = FixedPointMathLib.mulDivUp(params.amount, r, PERCENT);
-        uint256 minimumCollateralOpening = getMinimumCollateralOpening(state, FV);
+        uint256 faceValue = FixedPointMathLib.mulDivUp(params.amount, r, PERCENT);
+        uint256 minimumCollateralOpening = getMinimumCollateralOpening(state, faceValue);
 
         if (state.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {
             revert Errors.INSUFFICIENT_COLLATERAL(state.collateralToken.balanceOf(msg.sender), minimumCollateralOpening);
         }
 
-        state.debtToken.mint(msg.sender, FV);
-        state.loans.createFOL(params.lender, msg.sender, FV, params.dueDate);
+        state.debtToken.mint(msg.sender, faceValue);
+        state.loans.createFOL(params.lender, msg.sender, faceValue, params.dueDate);
         state.borrowToken.transferFrom(params.lender, msg.sender, params.amount);
     }
 }

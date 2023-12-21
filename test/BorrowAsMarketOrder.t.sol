@@ -170,8 +170,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
 
-        uint256 FV = FixedPointMathLib.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
-        uint256 FVOpening = FixedPointMathLib.mulDivUp(FV, size.crOpening(), PERCENT);
+        uint256 faceValue = FixedPointMathLib.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
+        uint256 FVOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
         uint256 minimumCollateral =
             FixedPointMathLib.mulDivUp(FVOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
@@ -179,10 +179,10 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
         assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
         assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + FV);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
-        assertEq(loan2.FV, FV);
+        assertEq(loan2.faceValue, faceValue);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_and_real_collateral(
@@ -206,7 +206,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 deltaAmountOut = (
             FixedPointMathLib.mulDivUp(r, amountLoanId2, PERCENT) > size.getLoan(loanId1).getCredit()
         ) ? FixedPointMathLib.mulDivDown(size.getLoan(loanId1).getCredit(), PERCENT, r) : amountLoanId2;
-        uint256 FV = FixedPointMathLib.mulDivUp(r, amountLoanId2 - deltaAmountOut, PERCENT);
+        uint256 faceValue = FixedPointMathLib.mulDivUp(r, amountLoanId2 - deltaAmountOut, PERCENT);
 
         Vars memory _before = _state();
 
@@ -214,7 +214,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 FVOpening = FixedPointMathLib.mulDivUp(FV, size.crOpening(), PERCENT);
+        uint256 FVOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
         uint256 minimumCollateralAmount =
             FixedPointMathLib.mulDivUp(FVOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
@@ -222,10 +222,10 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
         assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
         assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + FV);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
-        assertEq(size.getLoan(loanId2).FV, FV);
+        assertEq(size.getLoan(loanId2).faceValue, faceValue);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_properties() public {
@@ -259,8 +259,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 amount = 100e18;
         uint256 dueDate = 12;
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
-        uint256 FV = FixedPointMathLib.mulDivUp(r, amount, PERCENT);
-        uint256 FVOpening = FixedPointMathLib.mulDivUp(FV, size.crOpening(), PERCENT);
+        uint256 faceValue = FixedPointMathLib.mulDivUp(r, amount, PERCENT);
+        uint256 FVOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
         uint256 maxCollateralToLock =
             FixedPointMathLib.mulDivUp(FVOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         vm.startPrank(bob);

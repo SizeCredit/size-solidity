@@ -21,15 +21,15 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(bob, 100e18, 100e18);
         _borrowAsLimitOrder(alice, 100e18, 0.03e18, 12);
 
-        uint256 FV = 10e18;
+        uint256 faceValue = 10e18;
         uint256 dueDate = 12;
-        uint256 amountIn = FixedPointMathLib.mulDivUp(FV, PERCENT, PERCENT + 0.03e18);
+        uint256 amountIn = FixedPointMathLib.mulDivUp(faceValue, PERCENT, PERCENT + 0.03e18);
 
         Vars memory _before = _state();
         BorrowOffer memory offerBefore = size.getBorrowOffer(alice);
         uint256 loansBefore = size.activeLoans();
 
-        uint256 loanId = _lendAsMarketOrder(bob, alice, FV, dueDate);
+        uint256 loanId = _lendAsMarketOrder(bob, alice, faceValue, dueDate);
         Loan memory loan = size.getLoan(loanId);
 
         Vars memory _after = _state();
@@ -38,10 +38,10 @@ contract LendAsMarketOrderTest is BaseTest {
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + FV);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue);
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amountIn);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(loan.FV, FV);
+        assertEq(loan.faceValue, faceValue);
         assertEq(loan.dueDate, dueDate);
         assertTrue(loan.isFOL());
     }
@@ -53,7 +53,7 @@ contract LendAsMarketOrderTest is BaseTest {
 
         uint256 amountIn = 10e18;
         uint256 dueDate = 12;
-        uint256 FV = FixedPointMathLib.mulDivDown(amountIn, PERCENT + 0.03e18, PERCENT);
+        uint256 faceValue = FixedPointMathLib.mulDivDown(amountIn, PERCENT + 0.03e18, PERCENT);
 
         Vars memory _before = _state();
         BorrowOffer memory offerBefore = size.getBorrowOffer(alice);
@@ -68,10 +68,10 @@ contract LendAsMarketOrderTest is BaseTest {
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + FV);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue);
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amountIn);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(loan.FV, FV);
+        assertEq(loan.faceValue, faceValue);
         assertEq(loan.dueDate, dueDate);
         assertTrue(loan.isFOL());
     }

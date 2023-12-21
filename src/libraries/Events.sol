@@ -15,7 +15,7 @@ library Events {
         address indexed lender,
         address indexed borrower,
         uint256 folId,
-        uint256 FV,
+        uint256 faceValue,
         uint256 dueDate
     );
     event BorrowAsMarketOrder(

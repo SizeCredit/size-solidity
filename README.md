@@ -51,12 +51,12 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 | C-03     | Collateral  | A user cannot make an operation that leaves them underwater |
 | L-01     | Liquidation | A borrower is eligible to liquidation if it is underwater or if the due date has reached |
 
-- SOL(loanId).FV <= FOL(loanId).FV
-- SUM(SOL(loanId).FV) == FOL(loanId).FV
-- FOL.amountFVExited = SUM(SOL.getCredit)
-- fol.FV = SUM(Loan.FV - Loan.ExitedAmount) for all SOLs, FOL
-- loan.amountFVExited <= self.FV
-- loan.FV == 0 && isFOL(loan) <==> loan.repaid (incorrect)
+- SOL(loanId).faceValue <= FOL(loanId).faceValue
+- SUM(SOL(loanId).faceValue) == FOL(loanId).faceValue
+- FOL.faceValueExited = SUM(SOL.getCredit)
+- fol.faceValue = SUM(Loan.faceValue - Loan.faceValueExited) for all SOLs, FOL
+- loan.faceValueExited <= self.faceValue
+- loan.faceValue == 0 && isFOL(loan) <==> loan.repaid (incorrect)
 - loan.repaid ==> !isFOL(loan)
 - upon repayment, the money is locked from the lender until due date, and the protocol earns yield meanwhile
 - cash.free + cash.locked ?= deposits
@@ -76,9 +76,8 @@ References
 
 ## TODOs
 
+- dust amount for loans (creation & updating of faceValue)
 - convert experiments into fuzz tests
-- dust amount for loans (creation & updating of FV)
-- rename FV to faceValue
 - use named parameters for 3+ args fun
 - simplify Loan struct
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;

@@ -55,14 +55,14 @@ library SelfLiquidateLoan {
         state.collateralToken.transferFrom(msg.sender, loan.lender, assignedCollateral);
 
         uint256 deltaFV = loan.getCredit();
-        loan.FV -= deltaFV;
+        loan.faceValue -= deltaFV;
 
         Loan storage fol = loan.getFOL(state.loans);
         state.debtToken.burn(fol.borrower, deltaFV);
 
         if (!loan.isFOL()) {
-            fol.FV -= deltaFV;
-            fol.amountFVExited -= deltaFV;
+            fol.faceValue -= deltaFV;
+            fol.faceValueExited -= deltaFV;
         }
     }
 }

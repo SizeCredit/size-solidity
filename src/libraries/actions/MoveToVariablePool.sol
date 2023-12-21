@@ -37,7 +37,7 @@ library MoveToVariablePool {
 
         // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
         uint256 assignedCollateral = LiquidateLoan.getAssignedCollateral(state, loan);
-        uint256 minimumCollateralOpening = BorrowAsMarketOrder.getMinimumCollateralOpening(state, loan.FV);
+        uint256 minimumCollateralOpening = BorrowAsMarketOrder.getMinimumCollateralOpening(state, loan.faceValue);
 
         if (assignedCollateral < minimumCollateralOpening) {
             revert Errors.INSUFFICIENT_COLLATERAL(assignedCollateral, minimumCollateralOpening);
@@ -45,6 +45,6 @@ library MoveToVariablePool {
 
         state.collateralToken.transferFrom(loan.borrower, state.protocolVault, assignedCollateral);
         loan.repaid = true;
-        state.variableLoans.createVariableLoan(loan.borrower, loan.FV, assignedCollateral);
+        state.variableLoans.createVariableLoan(loan.borrower, loan.faceValue, assignedCollateral);
     }
 }
