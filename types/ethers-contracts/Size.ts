@@ -101,8 +101,8 @@ export type BorrowOfferStructOutput = [BigNumber, YieldCurveStructOutput] & {
 };
 
 export type LoanStruct = {
-  FV: BigNumberish;
-  amountFVExited: BigNumberish;
+  faceValue: BigNumberish;
+  faceValueExited: BigNumberish;
   lender: string;
   borrower: string;
   dueDate: BigNumberish;
@@ -119,8 +119,8 @@ export type LoanStructOutput = [
   boolean,
   BigNumber
 ] & {
-  FV: BigNumber;
-  amountFVExited: BigNumber;
+  faceValue: BigNumber;
+  faceValueExited: BigNumber;
   lender: string;
   borrower: string;
   dueDate: BigNumber;
@@ -254,25 +254,6 @@ export type LendAsMarketOrderParamsStructOutput = [
   exactAmountIn: boolean;
 };
 
-export type LenderExitParamsStruct = {
-  loanId: BigNumberish;
-  amount: BigNumberish;
-  dueDate: BigNumberish;
-  lendersToExitTo: string[];
-};
-
-export type LenderExitParamsStructOutput = [
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  string[]
-] & {
-  loanId: BigNumber;
-  amount: BigNumber;
-  dueDate: BigNumber;
-  lendersToExitTo: string[];
-};
-
 export type LiquidateLoanParamsStruct = { loanId: BigNumberish };
 
 export type LiquidateLoanParamsStructOutput = [BigNumber] & {
@@ -343,7 +324,6 @@ export interface SizeInterface extends utils.Interface {
     "isLiquidatable(uint256)": FunctionFragment;
     "lendAsLimitOrder((uint256,uint256,(uint256[],uint256[])))": FunctionFragment;
     "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
-    "lenderExit((uint256,uint256,uint256,address[]))": FunctionFragment;
     "liquidateLoan((uint256))": FunctionFragment;
     "liquidateLoanWithReplacement((uint256,address))": FunctionFragment;
     "moveToVariablePool((uint256))": FunctionFragment;
@@ -390,7 +370,6 @@ export interface SizeInterface extends utils.Interface {
       | "isLiquidatable(uint256)"
       | "lendAsLimitOrder"
       | "lendAsMarketOrder"
-      | "lenderExit"
       | "liquidateLoan"
       | "liquidateLoanWithReplacement"
       | "moveToVariablePool"
@@ -512,10 +491,6 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "lendAsMarketOrder",
     values: [LendAsMarketOrderParamsStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "lenderExit",
-    values: [LenderExitParamsStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "liquidateLoan",
@@ -656,7 +631,6 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "lendAsMarketOrder",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "lenderExit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "liquidateLoan",
     data: BytesLike
@@ -915,11 +889,6 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    lenderExit(
-      params: LenderExitParamsStruct,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
     liquidateLoan(
       params: LiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
@@ -1118,11 +1087,6 @@ export interface Size extends BaseContract {
 
   lendAsMarketOrder(
     params: LendAsMarketOrderParamsStruct,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
-  lenderExit(
-    params: LenderExitParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1327,11 +1291,6 @@ export interface Size extends BaseContract {
       params: LendAsMarketOrderParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    lenderExit(
-      params: LenderExitParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     liquidateLoan(
       params: LiquidateLoanParamsStruct,
@@ -1572,11 +1531,6 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    lenderExit(
-      params: LenderExitParamsStruct,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
     liquidateLoan(
       params: LiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
@@ -1759,11 +1713,6 @@ export interface Size extends BaseContract {
 
     lendAsMarketOrder(
       params: LendAsMarketOrderParamsStruct,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    lenderExit(
-      params: LenderExitParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
