@@ -6,7 +6,7 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+import {Common} from "@src/libraries/actions/Common.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -19,6 +19,7 @@ struct LiquidateLoanParams {
 
 library LiquidateLoan {
     using LoanLibrary for Loan;
+    using Common for State;
 
     function getAssignedCollateral(State storage state, Loan memory loan) public view returns (uint256) {
         uint256 debt = state.debtToken.balanceOf(loan.borrower);
@@ -68,8 +69,8 @@ library LiquidateLoan {
             revert Errors.ONLY_FOL_CAN_BE_LIQUIDATED(params.loanId);
         }
         // @audit is this reachable?
-        if (!loan.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, loan.getLoanStatus());
+        if (!state.either(loan, [LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
+            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, state.getLoanStatus(loan));
         }
         if (assignedCollateral < debtCollateral) {
             revert Errors.LIQUIDATION_AT_LOSS(params.loanId);

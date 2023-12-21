@@ -9,6 +9,8 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User, UserView} from "@src/libraries/UserLibrary.sol";
 import {LiquidateLoan} from "@src/libraries/actions/LiquidateLoan.sol";
+import {Common} from "@src/libraries/actions/Common.sol";
+import {State} from "@src/SizeStorage.sol";
 
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 
@@ -16,6 +18,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
     using LoanLibrary for Loan;
+    using Common for State;
 
     function collateralRatio(address user) public view returns (uint256) {
         return LiquidateLoan.collateralRatio(state, user);
@@ -85,7 +88,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     function getLoanStatus(uint256 loanId) public view override(ISizeView) returns (LoanStatus) {
-        return state.loans[loanId].getLoanStatus();
+        return state.getLoanStatus(state.loans[loanId]);
     }
 
     function getLoanOffer(address account) public view returns (LoanOffer memory) {

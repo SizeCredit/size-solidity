@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Loan, LoanLibrary, VariableLoan} from "@src/libraries/LoanLibrary.sol";
+import {Common} from "@src/libraries/actions/Common.sol";
 
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {BorrowAsMarketOrder} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
@@ -17,6 +18,7 @@ library MoveToVariablePool {
     using LoanLibrary for Loan;
     using LoanLibrary for VariableLoan;
     using LoanLibrary for VariableLoan[];
+    using Common for State;
 
     function validateMoveToVariablePool(State storage state, MoveToVariablePoolParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
@@ -27,8 +29,8 @@ library MoveToVariablePool {
         if (!loan.isFOL()) {
             revert Errors.ONLY_FOL_CAN_BE_MOVED_TO_VP(params.loanId);
         }
-        if (loan.getLoanStatus() != LoanStatus.OVERDUE) {
-            revert Errors.INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(), LoanStatus.OVERDUE);
+        if (state.getLoanStatus(loan) != LoanStatus.OVERDUE) {
+            revert Errors.INVALID_LOAN_STATUS(params.loanId, state.getLoanStatus(loan), LoanStatus.OVERDUE);
         }
     }
 
@@ -45,6 +47,6 @@ library MoveToVariablePool {
 
         state.collateralToken.transferFrom(loan.borrower, state.protocolVault, assignedCollateral);
         loan.repaid = true;
-        state.variableLoans.createVariableLoan(loan.borrower, loan.faceValue, assignedCollateral);
+        state.createVariableLoan(loan.borrower, loan.faceValue, assignedCollateral);
     }
 }

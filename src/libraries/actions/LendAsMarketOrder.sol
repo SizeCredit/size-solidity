@@ -6,7 +6,7 @@ import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+import {Common} from "@src/libraries/actions/Common.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
@@ -25,6 +25,7 @@ struct LendAsMarketOrderParams {
 library LendAsMarketOrder {
     using OfferLibrary for BorrowOffer;
     using LoanLibrary for Loan[];
+    using Common for State;
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
@@ -73,7 +74,7 @@ library LendAsMarketOrder {
         state.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
         state.debtToken.mint(params.borrower, faceValue);
 
-        state.loans.createFOL(msg.sender, params.borrower, faceValue, params.dueDate);
+        state.createFOL(msg.sender, params.borrower, faceValue, params.dueDate);
         borrowOffer.maxAmount -= amountIn;
     }
 }

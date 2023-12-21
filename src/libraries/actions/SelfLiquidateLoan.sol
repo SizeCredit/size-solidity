@@ -7,6 +7,7 @@ import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
 import {LiquidateLoan} from "@src/libraries/actions/LiquidateLoan.sol";
+import {Common} from "@src/libraries/actions/Common.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -19,6 +20,7 @@ struct SelfLiquidateLoanParams {
 
 library SelfLiquidateLoan {
     using LoanLibrary for Loan;
+    using Common for State;
 
     function validateSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
@@ -38,8 +40,8 @@ library SelfLiquidateLoan {
             revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, LiquidateLoan.collateralRatio(state, loan.borrower));
         }
         // @audit is this reachable?
-        if (!loan.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, loan.getLoanStatus());
+        if (!state.either(loan, [LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
+            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, state.getLoanStatus(loan));
         }
         if (assignedCollateral > debtCollateral) {
             revert Errors.LIQUIDATION_NOT_AT_LOSS(params.loanId);
@@ -57,7 +59,7 @@ library SelfLiquidateLoan {
         uint256 deltaFV = loan.getCredit();
         loan.faceValue -= deltaFV;
 
-        Loan storage fol = loan.getFOL(state.loans);
+        Loan storage fol = state.getFOL(loan);
         state.debtToken.burn(fol.borrower, deltaFV);
 
         if (!loan.isFOL()) {

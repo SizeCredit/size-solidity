@@ -10,6 +10,6 @@ interface ISizeView {
     //   otherwise it is eligible for liquidation but if the CR < 100% then it will remain in
     //   the overdue state until the CR is > 100% or the lenders perform self liquidation
     // When the loan is repaid either by the borrower or by the liquidator, it is in REPAID status
-    // When the loan is claimed by the lender, it is in CLAIMED status
+    // When the loan is claimed by the lender or if it has been fully exited, it is in CLAIMED status
     function getLoanStatus(uint256 loanId) external returns (LoanStatus);
 }

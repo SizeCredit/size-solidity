@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
+import {Common} from "@src/libraries/actions/Common.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -15,6 +16,7 @@ struct ClaimParams {
 
 library Claim {
     using LoanLibrary for Loan;
+    using Common for State;
 
     function validateClaim(State storage state, ClaimParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
@@ -28,7 +30,7 @@ library Claim {
         // NOTE: Both ACTIVE and OVERDUE loans can't be claimed because the money is not in the protocol yet
         // NOTE: The CLAIMED can't be claimed either because its credit has already been consumed entirely
         //    either by a previous claim or by exiting before
-        if (loan.getLoanStatus() != LoanStatus.REPAID) {
+        if (state.getLoanStatus(loan) != LoanStatus.REPAID) {
             revert Errors.LOAN_NOT_REPAID(params.loanId);
         }
     }

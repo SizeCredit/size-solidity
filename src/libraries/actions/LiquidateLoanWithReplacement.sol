@@ -7,7 +7,7 @@ import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+import {Common} from "@src/libraries/actions/Common.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -24,6 +24,7 @@ struct LiquidateLoanWithReplacementParams {
 library LiquidateLoanWithReplacement {
     using LoanLibrary for Loan;
     using OfferLibrary for BorrowOffer;
+    using Common for State;
 
     function validateLiquidateLoanWithReplacement(
         State storage state,
@@ -36,8 +37,8 @@ library LiquidateLoanWithReplacement {
         LiquidateLoan.validateLiquidateLoan(state, LiquidateLoanParams({loanId: params.loanId}));
 
         // validate loanId
-        if (loan.getLoanStatus() != LoanStatus.ACTIVE) {
-            revert Errors.INVALID_LOAN_STATUS(params.loanId, loan.getLoanStatus(), LoanStatus.ACTIVE);
+        if (state.getLoanStatus(loan) != LoanStatus.ACTIVE) {
+            revert Errors.INVALID_LOAN_STATUS(params.loanId, state.getLoanStatus(loan), LoanStatus.ACTIVE);
         }
 
         // validate borrower

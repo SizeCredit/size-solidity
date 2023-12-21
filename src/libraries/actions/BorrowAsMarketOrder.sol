@@ -10,6 +10,7 @@ import {User} from "@src/libraries/UserLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
+import {Common} from "@src/libraries/actions/Common.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -27,6 +28,7 @@ library BorrowAsMarketOrder {
     using OfferLibrary for LoanOffer;
     using LoanLibrary for Loan;
     using LoanLibrary for Loan[];
+    using Common for State;
 
     function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
         return FixedPointMathLib.mulDivUp(faceValue, state.crOpening, state.priceFeed.getPrice());
@@ -127,7 +129,7 @@ library BorrowAsMarketOrder {
                 deltaAmountOut = amountOutLeft;
             }
 
-            state.loans.createSOL(loanId, params.lender, msg.sender, deltaAmountIn);
+            state.createSOL(loanId, params.lender, msg.sender, deltaAmountIn);
             state.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
@@ -159,7 +161,7 @@ library BorrowAsMarketOrder {
         }
 
         state.debtToken.mint(msg.sender, faceValue);
-        state.loans.createFOL(params.lender, msg.sender, faceValue, params.dueDate);
+        state.createFOL(params.lender, msg.sender, faceValue, params.dueDate);
         state.borrowToken.transferFrom(params.lender, msg.sender, params.amount);
     }
 }

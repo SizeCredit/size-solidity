@@ -196,7 +196,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         // Assert loan conditions
         Loan memory fol = size.getLoan(0);
-        assertEq(fol.getLoanStatus(), LoanStatus.OVERDUE, "Loan should be overdue");
+        assertEq(size.getLoanStatus(0), LoanStatus.OVERDUE, "Loan should be overdue");
         assertEq(size.activeLoans(), 1, "Expect one active loan");
 
         assertTrue(!fol.repaid, "Loan should not be repaid before moving to the variable pool");
