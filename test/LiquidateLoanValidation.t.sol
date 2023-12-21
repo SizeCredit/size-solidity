@@ -34,10 +34,7 @@ contract LiquidateLoanValidationTest is BaseTest {
         );
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
 
-        address[] memory lendersToExitTo = new address[](1);
-        lendersToExitTo[0] = candy;
-
-        _lenderExit(alice, loanId, 10e18, 12, lendersToExitTo);
+        _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
         _borrowAsMarketOrder(alice, james, 50e18, 12);
 
         vm.expectRevert(

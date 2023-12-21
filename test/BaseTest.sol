@@ -32,7 +32,6 @@ import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 
@@ -273,29 +272,6 @@ contract BaseTest is Test, AssertsHelper {
         vm.prank(lender);
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: borrower, amount: amount, dueDate: dueDate, exactAmountIn: exactAmountIn})
-        );
-        return size.activeLoans() - 1;
-    }
-
-    function _lenderExit(address user, uint256 loanId, uint256 amount, uint256 dueDate, address[1] memory lenders)
-        internal
-        returns (uint256)
-    {
-        address[] memory lendersToExitTo = new address[](1);
-        lendersToExitTo[0] = lenders[0];
-        return _lenderExit(user, loanId, amount, dueDate, lendersToExitTo);
-    }
-
-    function _lenderExit(
-        address user,
-        uint256 loanId,
-        uint256 amount,
-        uint256 dueDate,
-        address[] memory lendersToExitTo
-    ) internal returns (uint256) {
-        vm.prank(user);
-        size.lenderExit(
-            LenderExitParams({loanId: loanId, amount: amount, dueDate: dueDate, lendersToExitTo: lendersToExitTo})
         );
         return size.activeLoans() - 1;
     }

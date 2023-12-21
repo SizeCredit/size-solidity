@@ -118,13 +118,12 @@ library BorrowAsMarketOrder {
             uint256 loanId = params.virtualCollateralLoanIds[i];
             Loan memory loan = state.loans[loanId];
 
-            uint256 deltaAmountIn;
-            uint256 deltaAmountOut;
-            if (FixedPointMathLib.mulDivUp(amountOutLeft, r, PERCENT) > loan.getCredit()) {
+            uint256 deltaAmountIn = FixedPointMathLib.mulDivUp(amountOutLeft, r, PERCENT);
+            uint256 deltaAmountOut = amountOutLeft;
+            if (deltaAmountIn > loan.getCredit()) {
                 deltaAmountIn = loan.getCredit();
                 deltaAmountOut = FixedPointMathLib.mulDivDown(loan.getCredit(), PERCENT, r);
             } else {
-                deltaAmountIn = FixedPointMathLib.mulDivUp(amountOutLeft, r, PERCENT);
                 deltaAmountOut = amountOutLeft;
             }
 

@@ -77,9 +77,9 @@ References
 ## TODOs
 
 - convert experiments into fuzz tests
-- differential testing for lenderExit & borrowAsMarketOrder
 - dust amount for loans (creation & updating of FV)
 - rename FV to faceValue
+- use named parameters for 3+ args fun
 - simplify Loan struct
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
 - test events

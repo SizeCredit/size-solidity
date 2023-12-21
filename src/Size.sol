@@ -14,7 +14,6 @@ import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {Initialize, InitializeParams} from "@src/libraries/actions/Initialize.sol";
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LenderExit, LenderExitParams} from "@src/libraries/actions/LenderExit.sol";
 import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 import {MoveToVariablePool, MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 
@@ -40,7 +39,6 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     using BorrowAsLimitOrder for State;
     using LendAsMarketOrder for State;
     using LendAsLimitOrder for State;
-    using LenderExit for State;
     using BorrowerExit for State;
     using Repay for State;
     using Claim for State;
@@ -104,12 +102,6 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(msg.sender);
-    }
-
-    /// @inheritdoc ISize
-    function lenderExit(LenderExitParams calldata params) external override(ISize) returns (uint256 amountInLeft) {
-        state.validateLenderExit(params);
-        amountInLeft = state.executeLenderExit(params);
     }
 
     /// @inheritdoc ISize
