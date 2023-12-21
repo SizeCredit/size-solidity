@@ -30,10 +30,6 @@ library BorrowAsMarketOrder {
     using LoanLibrary for Loan[];
     using Common for State;
 
-    function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
-        return FixedPointMathLib.mulDivUp(faceValue, state.crOpening, state.priceFeed.getPrice());
-    }
-
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
         User memory lenderUser = state.users[params.lender];
         LoanOffer memory loanOffer = lenderUser.loanOffer;
@@ -154,7 +150,7 @@ library BorrowAsMarketOrder {
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         uint256 faceValue = FixedPointMathLib.mulDivUp(params.amount, r, PERCENT);
-        uint256 minimumCollateralOpening = getMinimumCollateralOpening(state, faceValue);
+        uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(faceValue);
 
         if (state.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {
             revert Errors.INSUFFICIENT_COLLATERAL(state.collateralToken.balanceOf(msg.sender), minimumCollateralOpening);

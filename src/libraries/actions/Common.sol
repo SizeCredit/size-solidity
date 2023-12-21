@@ -130,4 +130,8 @@ library Common {
             revert Errors.USER_IS_LIQUIDATABLE(account, collateralRatio(state, account));
         }
     }
+
+    function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
+        return FixedPointMathLib.mulDivUp(faceValue, state.crOpening, state.priceFeed.getPrice());
+    }
 }
