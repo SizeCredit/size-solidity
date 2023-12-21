@@ -218,14 +218,23 @@ class GenericLoan:
 
     def getState(self):
         assert self.amountFVExited <= self.FV, "This should never happen"
+        if self.amountFVExited == self.FV:
+            return LoanStates.CLAIMED
         if self.isRepaid():
-            if self.amountFVExited == self.FV:
-                return LoanStates.CLAIMED
             return LoanStates.REPAID
         if self.isOverdue():
             return LoanStates.OVERDUE
         else:
             return LoanStates.ACTIVE
+
+        # if self.isRepaid():
+        #     if self.amountFVExited == self.FV:
+        #         return LoanStates.CLAIMED
+        #     return LoanStates.REPAID
+        # if self.isOverdue():
+        #     return LoanStates.OVERDUE
+        # else:
+        #     return LoanStates.ACTIVE
 
     # def getAssignedCollateral(self):
     #     return self.borrower.eth.locked * self.FV / self.borrower.totDebtCoveredByRealCollateral if self.borrower.totDebtCoveredByRealCollateral != 0 else 0
@@ -930,9 +939,18 @@ class LendingOB:
 
             # NOTE: Reduce debt process
             deltaFV = loan.getCredit()
+            loan.FV -= deltaFV
+            assert loan.getCredit() == 0, "This should never happen"
+            loan.getFOL().borrower.totDebtCoveredByRealCollateral -= deltaFV
+
             if not loan.isFOL():
-                loan.FV -= deltaFV
-            loan.getFOL().FV -= deltaFV
+                fol = loan.getFOL()
+                creditBefore = fol.getCredit()
+                fol.FV -= deltaFV
+                assert fol.FV >= 0, "This should never happen"
+                fol.amountFVExited -= deltaFV
+                assert fol.amountFVExited >= 0, "This should never happen"
+                assert fol.getCredit() == creditBefore, "This should never happen"
 
         return True, 0
 
@@ -971,6 +989,9 @@ class LendingOB:
         fol.borrower = offer.borrower
         fol.repaid = False
         fol.borrower.totDebtCoveredByRealCollateral += FV
+        if not myAssert(not self.isLoanLiquidatable(loanId=loanId), f"The loanId={loanId} should not be liquidatable", withAssert):
+            return False, 0
+        print("LiquidateWithReplacement() Success")
         return True, replacementProfit
 
 
@@ -1048,7 +1069,7 @@ class Test:
             uid="Candy",
             context=self.context,
                           cash=RealCollateral(free=100, locked=0),
-                          eth=RealCollateral())
+                          eth=RealCollateral(free=1000, locked=0))
 
         self.liquidator = User(uid="Liquidator1", context=self.context, cash=RealCollateral(free=10000, locked=0), eth=RealCollateral(free=0, locked=0))
 
@@ -1309,6 +1330,9 @@ class Test:
         print(f"alice.collateralRatio = {self.ob.getBorrowerCollateralRatio(borrower=self.alice)}")
 
         self.context.update(newTime=self.context.time + 1, newPrice=30)
+
+        print(f"alice.collateralRatio = {self.ob.getBorrowerCollateralRatio(borrower=self.alice)}")
+
         assert self.ob.isBorrowerLiquidatable(borrower=self.alice), "Borrower should be eligible"
         fol = self.ob.activeLoans[0]
         assert self.ob.isLoanLiquidatable(loanId=0), "Loan should be liquidatable"
@@ -1403,7 +1427,8 @@ class Test:
         # assert not self.alice.isLiquidatable(), f"Borrower should not be liquidatable"
         print(f"alice.collateralRatio = {self.ob.getBorrowerCollateralRatio(borrower=self.alice)}")
 
-        self.ob.deposit(user=self.candy, amount=2, isUSDC=False)
+        self.ob.deposit(user=self.candy, amount=200, isUSDC=False)
+        assert self.ob.getUserFreeETH(self.candy) == 200, f"candy.eth.free={self.ob.getUserFreeETH(self.candy)}"
         # assert len(self.ob.borrowOffers) == 0, f"len(self.ob.borrowOffers)={len(self.ob.borrowOffers)}"
         self.ob.borrowAsLimitOrder(offer=BorrowOffer(
             context=self.context,
@@ -1422,8 +1447,11 @@ class Test:
         assert(self.alice.totDebtCoveredByRealCollateral == fol.getDebt()), "Alice should have all her debt covered by real collateral"
         assert(self.candy.totDebtCoveredByRealCollateral == 0), "Candy"
         assert not fol.repaid, "Loan should not be repaid before"
-        temp, _ = self.ob.liquidateLoanWithReplacement(liquidator=self.liquidator, loanId=0, borrowOfferId=0)
-        assert temp, "Loan should be liquidated"
+        temp1, temp2 = self.ob.liquidateLoanWithReplacement(liquidator=self.liquidator, loanId=0, borrowOfferId=0)
+        print(f"New Borrower CR = {self.ob.getBorrowerCollateralRatio(borrower=self.candy)}")
+        print(f"temp1={temp1}")
+        print(f"temp2={temp2}")
+        assert temp1, "Loan should be liquidated"
         assert(fol.borrower.uid == self.candy.uid), "Candy should be the borrower"
         assert(self.candy.totDebtCoveredByRealCollateral == fol.getDebt()), "Candy should have all her debt covered by real collateral"
         assert(self.alice.totDebtCoveredByRealCollateral == 0), "Alice"

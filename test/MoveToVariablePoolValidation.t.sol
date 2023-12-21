@@ -20,7 +20,7 @@ contract MoveToVariablePoolValidationTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 100e18, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e18, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, alice, 50e18, 12, false, [loanId]);
+        uint256 solId = _borrowAsMarketOrder(alice, alice, 40e18, 12, false, [loanId]);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_MOVED_TO_VP.selector, solId));
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: solId}));

@@ -12,13 +12,13 @@ uint256 constant RESERVED_FOL_ID = type(uint256).max;
 
 struct Loan {
     // solhint-disable-next-line var-name-mixedcase
-    uint256 FV;
-    uint256 amountFVExited;
-    address lender;
-    address borrower;
-    uint256 dueDate;
-    bool repaid;
-    uint256 folId; // non-null for SOLs
+    uint256 FV; // FOL/SOL
+    uint256 amountFVExited; // FOL
+    address lender; // FOL/SOL
+    address borrower; // FOL/SOL
+    uint256 dueDate; // FOL
+    bool repaid; // FOL
+    uint256 folId; // SOL
 }
 
 enum LoanStatus {
@@ -46,12 +46,11 @@ library LoanLibrary {
     }
 
     function getLoanStatus(Loan memory self) public view returns (LoanStatus) {
-        if (self.repaid) {
-            if (self.amountFVExited == self.FV) {
-                return LoanStatus.CLAIMED;
-            } else {
-                return LoanStatus.REPAID;
-            }
+        if (self.amountFVExited == self.FV) {
+            return LoanStatus.CLAIMED;
+            // @audit If this is a SOL, should I get the .repaid information from the FOL?
+        } else if (self.repaid) {
+            return LoanStatus.REPAID;
         } else if (block.timestamp >= self.dueDate) {
             return LoanStatus.OVERDUE;
         } else {

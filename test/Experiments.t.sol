@@ -309,7 +309,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
-        _deposit(candy, weth, 4e18);
+        _deposit(candy, weth, 200e18);
+        assertEq(_state().candy.collateralAmount, 200e18);
         _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
 
         // Update the context (time and price)

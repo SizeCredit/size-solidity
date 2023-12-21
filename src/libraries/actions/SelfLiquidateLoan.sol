@@ -57,11 +57,10 @@ library SelfLiquidateLoan {
         uint256 deltaFV = loan.getCredit();
         loan.FV -= deltaFV;
 
-        address folBorrower = loan.getFOL(state.loans).borrower;
-        state.debtToken.burn(folBorrower, deltaFV);
+        Loan storage fol = loan.getFOL(state.loans);
+        state.debtToken.burn(fol.borrower, deltaFV);
 
         if (!loan.isFOL()) {
-            Loan storage fol = state.loans[loan.folId];
             fol.FV -= deltaFV;
             fol.amountFVExited -= deltaFV;
         }
