@@ -14,7 +14,7 @@ import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
 import {User, UserView} from "@src/libraries/UserLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
-import {InitializeParams} from "@src/libraries/actions/Initialize.sol";
+import {InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 
 import {BorrowToken} from "@src/token/BorrowToken.sol";
@@ -86,14 +86,19 @@ contract BaseTest is Test, AssertsHelper {
             collateralToken: address(collateralToken),
             borrowToken: address(borrowToken),
             debtToken: address(debtToken),
+            protocolVault: protocolVault,
+            feeRecipient: feeRecipient
+        });
+
+        InitializeExtraParams memory extraParams = InitializeExtraParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             collateralPercentagePremiumToLiquidator: 0.3e18,
             collateralPercentagePremiumToBorrower: 0.1e18,
-            protocolVault: protocolVault,
-            feeRecipient: feeRecipient
+            minimumFaceValue: 5e18
         });
-        ERC1967Proxy proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params)));
+        ERC1967Proxy proxy =
+            new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params, extraParams)));
         size = Size(address(proxy));
 
         collateralToken.transferOwnership(address(size));

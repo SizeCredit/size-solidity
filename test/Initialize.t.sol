@@ -10,7 +10,7 @@ import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 import {USDC} from "./mocks/USDC.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
-import {InitializeParams} from "@src/libraries/actions/Initialize.sol";
+import {InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
@@ -26,6 +26,8 @@ contract InitializeTest is Test {
     DebtToken public debtToken;
     address public protocolVault;
     address public feeRecipient;
+    InitializeParams public params;
+    InitializeExtraParams public extraParams;
 
     function setUp() public {
         priceFeed = new PriceFeedMock(address(this));
@@ -36,12 +38,7 @@ contract InitializeTest is Test {
         debtToken = new DebtToken(address(this), "Size Debt Token", "szDebt");
         protocolVault = makeAddr("protocolVault");
         feeRecipient = makeAddr("feeRecipient");
-    }
-
-    function test_SizeInitialize_implementation_cannot_be_initialized() public {
-        implementation = new Size();
-        vm.expectRevert();
-        InitializeParams memory params = InitializeParams({
+        params = InitializeParams({
             owner: address(this),
             priceFeed: address(priceFeed),
             collateralAsset: address(weth),
@@ -49,36 +46,31 @@ contract InitializeTest is Test {
             collateralToken: address(collateralToken),
             borrowToken: address(borrowToken),
             debtToken: address(debtToken),
+            protocolVault: protocolVault,
+            feeRecipient: feeRecipient
+        });
+        extraParams = InitializeExtraParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             collateralPercentagePremiumToLiquidator: 0.3e18,
             collateralPercentagePremiumToBorrower: 0.1e18,
-            protocolVault: protocolVault,
-            feeRecipient: feeRecipient
+            minimumFaceValue: 5e18
         });
-        implementation.initialize(params);
+    }
+
+    function test_SizeInitialize_implementation_cannot_be_initialized() public {
+        implementation = new Size();
+        vm.expectRevert();
+        implementation.initialize(params, extraParams);
 
         assertEq(implementation.crLiquidation(), 0);
     }
 
     function test_SizeInitialize_proxy_can_be_initialized() public {
         implementation = new Size();
-        InitializeParams memory params = InitializeParams(
-            address(this),
-            address(priceFeed),
-            address(weth),
-            address(usdc),
-            address(collateralToken),
-            address(borrowToken),
-            address(debtToken),
-            1.5e18,
-            1.3e18,
-            0.3e18,
-            0.1e18,
-            protocolVault,
-            feeRecipient
+        proxy = new ERC1967Proxy(
+            address(implementation), abi.encodeWithSelector(Size.initialize.selector, params, extraParams)
         );
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeWithSelector(Size.initialize.selector, params));
 
         assertEq(Size(address(proxy)).crLiquidation(), 1.3e18);
     }

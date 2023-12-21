@@ -11,7 +11,7 @@ import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/act
 import {BorrowerExit, BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
 import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
-import {Initialize, InitializeParams} from "@src/libraries/actions/Initialize.sol";
+import {Initialize, InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
 import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
@@ -52,14 +52,17 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
         _disableInitializers();
     }
 
-    function initialize(InitializeParams calldata params) external initializer {
-        state.validateInitialize(params);
+    function initialize(InitializeParams calldata params, InitializeExtraParams calldata extraParams)
+        external
+        initializer
+    {
+        state.validateInitialize(params, extraParams);
 
         __Ownable_init(params.owner);
         __Ownable2Step_init();
         __UUPSUpgradeable_init();
 
-        state.executeInitialize(params);
+        state.executeInitialize(params, extraParams);
     }
 
     // solhint-disable-next-line no-empty-blocks
