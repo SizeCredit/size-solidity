@@ -21,49 +21,17 @@ library LiquidateLoan {
     using LoanLibrary for Loan;
     using Common for State;
 
-    function getAssignedCollateral(State storage state, Loan memory loan) public view returns (uint256) {
-        uint256 debt = state.debtToken.balanceOf(loan.borrower);
-        uint256 collateral = state.collateralToken.balanceOf(loan.borrower);
-        if (debt > 0) {
-            return FixedPointMathLib.mulDivDown(collateral, loan.faceValue, debt);
-        } else {
-            return 0;
-        }
-    }
-
-    function collateralRatio(State storage state, address account) public view returns (uint256) {
-        uint256 collateral = state.collateralToken.balanceOf(account);
-        uint256 debt = state.debtToken.balanceOf(account);
-        uint256 price = state.priceFeed.getPrice();
-
-        if (debt > 0) {
-            return FixedPointMathLib.mulDivDown(collateral, price, debt);
-        } else {
-            return type(uint256).max;
-        }
-    }
-
-    function isLiquidatable(State storage state, address account) public view returns (bool) {
-        return collateralRatio(state, account) < state.crLiquidation;
-    }
-
-    function validateUserIsNotLiquidatable(State storage state, address account) external view {
-        if (isLiquidatable(state, account)) {
-            revert Errors.USER_IS_LIQUIDATABLE(account, collateralRatio(state, account));
-        }
-    }
-
     function validateLiquidateLoan(State storage state, LiquidateLoanParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
-        uint256 assignedCollateral = getAssignedCollateral(state, loan);
+        uint256 assignedCollateral = state.getAssignedCollateral(loan);
         uint256 debtCollateral =
             FixedPointMathLib.mulDivDown(loan.getDebt(), 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
 
         // validate msg.sender
 
         // validate loanId
-        if (!isLiquidatable(state, loan.borrower)) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, collateralRatio(state, loan.borrower));
+        if (!state.isLiquidatable(loan.borrower)) {
+            revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, state.collateralRatio(loan.borrower));
         }
         if (!loan.isFOL()) {
             revert Errors.ONLY_FOL_CAN_BE_LIQUIDATED(params.loanId);
@@ -85,7 +53,7 @@ library LiquidateLoan {
 
         Loan storage fol = state.loans[params.loanId];
 
-        uint256 assignedCollateral = getAssignedCollateral(state, fol);
+        uint256 assignedCollateral = state.getAssignedCollateral(fol);
         uint256 debtBorrowAsset = fol.getDebt();
         uint256 debtCollateral =
             FixedPointMathLib.mulDivDown(debtBorrowAsset, 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());

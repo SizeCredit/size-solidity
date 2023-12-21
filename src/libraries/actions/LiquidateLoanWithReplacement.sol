@@ -25,6 +25,7 @@ library LiquidateLoanWithReplacement {
     using LoanLibrary for Loan;
     using OfferLibrary for BorrowOffer;
     using Common for State;
+    using LiquidateLoan for State;
 
     function validateLiquidateLoanWithReplacement(
         State storage state,
@@ -34,7 +35,7 @@ library LiquidateLoanWithReplacement {
         BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
 
         // validate liquidateLoan
-        LiquidateLoan.validateLiquidateLoan(state, LiquidateLoanParams({loanId: params.loanId}));
+        state.validateLiquidateLoan(LiquidateLoanParams({loanId: params.loanId}));
 
         // validate loanId
         if (state.getLoanStatus(loan) != LoanStatus.ACTIVE) {
@@ -56,7 +57,7 @@ library LiquidateLoanWithReplacement {
         uint256 faceValue = fol.faceValue;
         uint256 dueDate = fol.dueDate;
 
-        LiquidateLoan.executeLiquidateLoan(state, LiquidateLoanParams({loanId: params.loanId}));
+        state.executeLiquidateLoan(LiquidateLoanParams({loanId: params.loanId}));
 
         uint256 r = (PERCENT + borrowOffer.getRate(dueDate));
         uint256 amountOut = FixedPointMathLib.mulDivDown(faceValue, PERCENT, r);

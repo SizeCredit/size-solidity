@@ -43,7 +43,7 @@ import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 contract BaseTest is Test, AssertsHelper {
     event TODO();
 
-ERC1967Proxy public proxy;
+    ERC1967Proxy public proxy;
     Size public size;
     PriceFeedMock public priceFeed;
     WETH public weth;
@@ -99,8 +99,7 @@ ERC1967Proxy public proxy;
             collateralPercentagePremiumToBorrower: 0.1e18,
             minimumFaceValue: 5e18
         });
-        proxy =
-            new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params, extraParams)));
+        proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params, extraParams)));
         size = Size(address(proxy));
 
         collateralToken.transferOwnership(address(size));

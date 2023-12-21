@@ -38,7 +38,7 @@ library MoveToVariablePool {
         Loan storage loan = state.loans[params.loanId];
 
         // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
-        uint256 assignedCollateral = LiquidateLoan.getAssignedCollateral(state, loan);
+        uint256 assignedCollateral = state.getAssignedCollateral(loan);
         uint256 minimumCollateralOpening = BorrowAsMarketOrder.getMinimumCollateralOpening(state, loan.faceValue);
 
         if (assignedCollateral < minimumCollateralOpening) {

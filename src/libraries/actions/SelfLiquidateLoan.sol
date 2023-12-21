@@ -6,7 +6,6 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
-import {LiquidateLoan} from "@src/libraries/actions/LiquidateLoan.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -24,7 +23,7 @@ library SelfLiquidateLoan {
 
     function validateSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
-        uint256 assignedCollateral = LiquidateLoan.getAssignedCollateral(state, loan);
+        uint256 assignedCollateral = state.getAssignedCollateral(loan);
         uint256 debtCollateral =
             FixedPointMathLib.mulDivDown(loan.getDebt(), 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
 
@@ -36,8 +35,8 @@ library SelfLiquidateLoan {
         // validate loanId
         // @audit is this necessary? seems redundant with the check `assignedCollateral > debtCollateral` below,
         //   as CR < CRL ==> CR <= 100%
-        if (!LiquidateLoan.isLiquidatable(state, loan.borrower)) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, LiquidateLoan.collateralRatio(state, loan.borrower));
+        if (!state.isLiquidatable(loan.borrower)) {
+            revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, state.collateralRatio(loan.borrower));
         }
         // @audit is this reachable?
         if (!state.either(loan, [LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
@@ -53,7 +52,7 @@ library SelfLiquidateLoan {
 
         Loan storage loan = state.loans[params.loanId];
 
-        uint256 assignedCollateral = LiquidateLoan.getAssignedCollateral(state, loan);
+        uint256 assignedCollateral = state.getAssignedCollateral(loan);
         state.collateralToken.transferFrom(msg.sender, loan.lender, assignedCollateral);
 
         uint256 deltaFV = loan.getCredit();

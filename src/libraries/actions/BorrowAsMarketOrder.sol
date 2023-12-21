@@ -10,8 +10,8 @@ import {User} from "@src/libraries/UserLibrary.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
-import {Common} from "@src/libraries/actions/Common.sol";
 import {State} from "@src/SizeStorage.sol";
+import {Common} from "@src/libraries/actions/Common.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";

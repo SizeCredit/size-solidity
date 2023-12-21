@@ -17,6 +17,7 @@ import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions
 import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 import {MoveToVariablePool, MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 
+import {Common} from "@src/libraries/actions/Common.sol";
 import {
     LiquidateLoanWithReplacement,
     LiquidateLoanWithReplacementParams
@@ -46,6 +47,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     using SelfLiquidateLoan for State;
     using LiquidateLoanWithReplacement for State;
     using MoveToVariablePool for State;
+    using Common for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {

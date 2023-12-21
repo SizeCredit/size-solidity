@@ -5,12 +5,11 @@ import {SizeStorage} from "@src/SizeStorage.sol";
 
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
+import {State} from "@src/SizeStorage.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User, UserView} from "@src/libraries/UserLibrary.sol";
-import {LiquidateLoan} from "@src/libraries/actions/LiquidateLoan.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
-import {State} from "@src/SizeStorage.sol";
 
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 
@@ -21,21 +20,21 @@ abstract contract SizeView is SizeStorage, ISizeView {
     using Common for State;
 
     function collateralRatio(address user) public view returns (uint256) {
-        return LiquidateLoan.collateralRatio(state, user);
+        return state.collateralRatio(user);
     }
 
     function isLiquidatable(address user) public view returns (bool) {
-        return LiquidateLoan.isLiquidatable(state, user);
+        return state.isLiquidatable(user);
     }
 
     function isLiquidatable(uint256 loanId) public view returns (bool) {
         Loan memory loan = state.loans[loanId];
-        return LiquidateLoan.isLiquidatable(state, loan.borrower);
+        return state.isLiquidatable(loan.borrower);
     }
 
     function getAssignedCollateral(uint256 loanId) public view returns (uint256) {
         Loan memory loan = state.loans[loanId];
-        return LiquidateLoan.getAssignedCollateral(state, loan);
+        return state.getAssignedCollateral(loan);
     }
 
     function getDebt(uint256 loanId) public view returns (uint256) {

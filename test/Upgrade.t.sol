@@ -8,8 +8,8 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 import {SizeV2} from "./mocks/SizeV2.sol";
 
-import {Size} from "@src/Size.sol";
 import {BaseTest} from "./BaseTest.sol";
+import {Size} from "@src/Size.sol";
 
 contract UpgradeTest is Test, BaseTest {
     function test_SizeUpgrade_proxy_can_be_upgraded_with_uups_casting() public {

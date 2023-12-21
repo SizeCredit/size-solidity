@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {State} from "@src/SizeStorage.sol";
-import {Loan, VariableLoan, LoanLibrary, LoanStatus, RESERVED_FOL_ID} from "@src/libraries/LoanLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
+import {Loan, LoanLibrary, LoanStatus, RESERVED_FOL_ID, VariableLoan} from "@src/libraries/LoanLibrary.sol";
 
 library Common {
     using LoanLibrary for Loan;
@@ -74,7 +75,6 @@ library Common {
         );
     }
 
-
     function _getFOL(State storage state, Loan memory self) internal view returns (Loan memory) {
         return self.isFOL() ? self : state.loans[self.folId];
     }
@@ -99,4 +99,35 @@ library Common {
         return getLoanStatus(state, self) == status[0] || getLoanStatus(state, self) == status[1];
     }
 
+    function getAssignedCollateral(State storage state, Loan memory loan) public view returns (uint256) {
+        uint256 debt = state.debtToken.balanceOf(loan.borrower);
+        uint256 collateral = state.collateralToken.balanceOf(loan.borrower);
+        if (debt > 0) {
+            return FixedPointMathLib.mulDivDown(collateral, loan.faceValue, debt);
+        } else {
+            return 0;
+        }
+    }
+
+    function collateralRatio(State storage state, address account) public view returns (uint256) {
+        uint256 collateral = state.collateralToken.balanceOf(account);
+        uint256 debt = state.debtToken.balanceOf(account);
+        uint256 price = state.priceFeed.getPrice();
+
+        if (debt > 0) {
+            return FixedPointMathLib.mulDivDown(collateral, price, debt);
+        } else {
+            return type(uint256).max;
+        }
+    }
+
+    function isLiquidatable(State storage state, address account) public view returns (bool) {
+        return collateralRatio(state, account) < state.crLiquidation;
+    }
+
+    function validateUserIsNotLiquidatable(State storage state, address account) external view {
+        if (isLiquidatable(state, account)) {
+            revert Errors.USER_IS_LIQUIDATABLE(account, collateralRatio(state, account));
+        }
+    }
 }
