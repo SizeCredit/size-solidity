@@ -11,7 +11,6 @@ import {Events} from "@src/libraries/Events.sol";
 uint256 constant RESERVED_FOL_ID = type(uint256).max;
 
 struct Loan {
-    // solhint-disable-next-line var-name-mixedcase
     uint256 faceValue; // FOL/SOL
     uint256 faceValueExited; // FOL
     address lender; // FOL/SOL

@@ -151,7 +151,6 @@ library BorrowAsMarketOrder {
 
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
-        // solhint-disable-next-line var-name-mixedcase
         uint256 faceValue = FixedPointMathLib.mulDivUp(params.amount, r, PERCENT);
         uint256 minimumCollateralOpening = getMinimumCollateralOpening(state, faceValue);
 
