@@ -64,6 +64,7 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - repay should never DoS due to underflow
 - only FOLs can be claimed(??)
 - a loan is liquidatable if a user is liquidatable (CR < LCR)
+- no loan can have a faceValue below the minimumFaceValue
 - Taking loan with only virtual collateral does not decrease the borrower CR
 - Taking loan with real collateral decreases the borrower CR
 - the borrower debt is reduced in: repayment, standard liquidation, liquidation with replacement, self liquidation, borrower exit

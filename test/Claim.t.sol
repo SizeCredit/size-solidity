@@ -40,9 +40,11 @@ contract ClaimTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
         _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
+        uint256 r = PERCENT + 0.03e18;
 
         uint256 faceValueExited = 10e18;
-        _borrowAsMarketOrder(alice, candy, faceValueExited, 12, false, [loanId]);
+        uint256 amount = FixedPointMathLib.mulDivDown(faceValueExited, PERCENT, r);
+        _borrowAsMarketOrder(alice, candy, amount, 12, [loanId]);
         _repay(bob, loanId);
 
         Vars memory _before = _state();
@@ -52,10 +54,8 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 r = PERCENT + 0.03e18;
         uint256 faceValue = FixedPointMathLib.mulDivUp(100e18, r, PERCENT);
-        uint256 deltaAmountOut = FixedPointMathLib.mulDivDown(faceValueExited, r, PERCENT);
-        uint256 credit = faceValue - deltaAmountOut;
+        uint256 credit = faceValue - faceValueExited;
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + credit);
         assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);
     }
