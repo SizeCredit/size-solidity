@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {console2 as console} from "forge-std/console2.sol";
 
-import {BaseTest} from "./BaseTest.sol";
+import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
@@ -62,7 +62,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         _lendAsLimitOrder(james, 100e18, 12, 0, 12);
         uint256 folId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 100e18, 12, [folId]);
-        _borrowAsMarketOrder(alice, james, 100e18, 12, [folId]);
+        _borrowAsMarketOrder(alice, james, 100e18, 12);
 
         assertEq(size.getAssignedCollateral(folId), 150e18);
         assertEq(size.getDebt(folId), 100e18);

@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {BaseTest} from "./BaseTest.sol";
+import {BaseTest, Vars} from "./BaseTest.sol";
 import {UserView} from "@src/libraries/UserLibrary.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";

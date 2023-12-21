@@ -108,11 +108,6 @@ library BorrowAsMarketOrder {
         amountOutLeft = params.exactAmountIn ? FixedPointMathLib.mulDivDown(params.amount, PERCENT, r) : params.amount;
 
         for (uint256 i = 0; i < params.virtualCollateralLoanIds.length; ++i) {
-            // Full amount borrowed
-            if (amountOutLeft == 0) {
-                break;
-            }
-
             uint256 loanId = params.virtualCollateralLoanIds[i];
             Loan memory loan = state.loans[loanId];
 
@@ -123,6 +118,11 @@ library BorrowAsMarketOrder {
                 deltaAmountOut = FixedPointMathLib.mulDivDown(loan.getCredit(), PERCENT, r);
             } else {
                 deltaAmountOut = amountOutLeft;
+            }
+
+            // Full amount borrowed
+            if (deltaAmountIn == 0 || deltaAmountOut == 0) {
+                break;
             }
 
             state.createSOL(loanId, params.lender, msg.sender, deltaAmountIn);

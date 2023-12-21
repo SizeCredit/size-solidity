@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {BaseTest} from "./BaseTest.sol";
+import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";

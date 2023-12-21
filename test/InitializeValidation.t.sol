@@ -7,7 +7,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 
-import {BaseTest} from "./BaseTest.sol";
+import {BaseTest, Vars} from "./BaseTest.sol";
 import {USDC} from "./mocks/USDC.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";

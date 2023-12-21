@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {BaseTest} from "./BaseTest.sol";
+import {BaseTest, Vars} from "./BaseTest.sol";
 import {ExperimentsHelper} from "./helpers/ExperimentsHelper.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";

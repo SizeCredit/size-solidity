@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {console2 as console} from "forge-std/console2.sol";
 
-import {BaseTest} from "./BaseTest.sol";
+import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";

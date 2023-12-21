@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {console2 as console} from "forge-std/console2.sol";
 
-import {BaseTest} from "./BaseTest.sol";
+import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";

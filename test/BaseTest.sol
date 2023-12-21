@@ -40,6 +40,18 @@ import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
+struct Vars {
+    UserView alice;
+    UserView bob;
+    UserView candy;
+    UserView james;
+    UserView liquidator;
+    uint256 protocolCollateralAmount;
+    uint256 protocolBorrowAmount;
+    uint256 feeRecipientCollateralAmount;
+    uint256 feeRecipientBorrowAmount;
+}
+
 contract BaseTest is Test, AssertsHelper {
     event TODO();
 
@@ -61,18 +73,6 @@ contract BaseTest is Test, AssertsHelper {
     address public liquidator = address(0x50000);
     address public protocolVault = address(0x60000);
     address public feeRecipient = address(0x70000);
-
-    struct Vars {
-        UserView alice;
-        UserView bob;
-        UserView candy;
-        UserView james;
-        UserView liquidator;
-        uint256 protocolCollateralAmount;
-        uint256 protocolBorrowAmount;
-        uint256 feeRecipientCollateralAmount;
-        uint256 feeRecipientBorrowAmount;
-    }
 
     function setUp() public virtual {
         priceFeed = new PriceFeedMock(address(this));

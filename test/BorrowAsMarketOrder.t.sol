@@ -5,7 +5,7 @@ import {console2 as console} from "forge-std/console2.sol";
 
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
-import {BaseTest} from "./BaseTest.sol";
+import {BaseTest, Vars} from "./BaseTest.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
@@ -171,9 +171,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
 
         uint256 faceValue = FixedPointMathLib.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
-        uint256 FVOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
+        uint256 faceValueOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
         uint256 minimumCollateral =
-            FixedPointMathLib.mulDivUp(FVOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+            FixedPointMathLib.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
@@ -214,9 +214,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 FVOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
+        uint256 faceValueOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
         uint256 minimumCollateralAmount =
-            FixedPointMathLib.mulDivUp(FVOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+            FixedPointMathLib.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         assertGt(_before.bob.collateralAmount, minimumCollateralAmount);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
@@ -260,9 +260,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
         uint256 faceValue = FixedPointMathLib.mulDivUp(r, amount, PERCENT);
-        uint256 FVOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
+        uint256 faceValueOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
         uint256 maxCollateralToLock =
-            FixedPointMathLib.mulDivUp(FVOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+            FixedPointMathLib.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         vm.startPrank(bob);
         uint256[] memory virtualCollateralLoanIds;
         vm.expectRevert(abi.encodeWithSelector(Errors.INSUFFICIENT_COLLATERAL.selector, 0, maxCollateralToLock));
@@ -299,5 +299,37 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
+    }
+
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_does_not_create_new_SOL_if_lender_tries_to_exit_fully_exited_SOL(
+    ) public {
+        _setPrice(1e18);
+
+        _deposit(alice, weth, 200e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 200e18);
+        _deposit(candy, usdc, 100e6);
+        _deposit(james, usdc, 100e6);
+        _deposit(liquidator, usdc, 10_000e6);
+
+        assertEq(size.collateralRatio(bob), type(uint256).max);
+
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(james, 100e18, 12, 0.03e18, 12);
+        uint256 folId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        _borrowAsMarketOrder(alice, candy, 100e18, 12, [folId]);
+
+        uint256 loansBefore = size.activeLoans();
+        Vars memory _before = _state();
+
+        _borrowAsMarketOrder(alice, james, 100e18, 12, [folId]);
+
+        uint256 loansAfter = size.activeLoans();
+        Vars memory _after = _state();
+
+        assertEq(loansAfter, loansBefore + 1);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 100e18);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + 103e18);
     }
 }

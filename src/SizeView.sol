@@ -101,4 +101,8 @@ abstract contract SizeView is SizeStorage, ISizeView {
     function getDueDate(uint256 loanId) public view returns (uint256) {
         return state.loans[loanId].dueDate;
     }
+
+    function minimumFaceValue() public view returns (uint256) {
+        return state.minimumFaceValue;
+    }
 }

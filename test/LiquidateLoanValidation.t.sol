@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {console2 as console} from "forge-std/console2.sol";
 
-import {BaseTest} from "./BaseTest.sol";
+import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
@@ -24,7 +24,7 @@ contract LiquidateLoanValidationTest is BaseTest {
         _borrowAsMarketOrder(bob, candy, 90e18, 12);
 
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, james, 1, 12, [loanId]);
+        uint256 solId = _borrowAsMarketOrder(alice, james, 5e18, 12, [loanId]);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, solId, type(uint256).max));
         size.liquidateLoan(LiquidateLoanParams({loanId: solId}));

@@ -14,6 +14,10 @@ library Common {
     function createFOL(State storage state, address lender, address borrower, uint256 faceValue, uint256 dueDate)
         public
     {
+        if (faceValue < state.minimumFaceValue) {
+            revert Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE(faceValue, state.minimumFaceValue);
+        }
+
         state.loans.push(
             Loan({
                 faceValue: faceValue,
@@ -35,6 +39,16 @@ library Common {
         public
     {
         Loan storage fol = state.loans[folId];
+
+        if (faceValue < state.minimumFaceValue) {
+            revert Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE(faceValue, state.minimumFaceValue);
+        }
+        if (faceValue > fol.getCredit()) {
+            // @audit this has 0 coverage,
+            //   I believe it is already checked by _borrowWithVirtualCollateral & validateExit
+            revert Errors.NOT_ENOUGH_FREE_CASH(fol.getCredit(), faceValue);
+        }
+
         state.loans.push(
             Loan({
                 faceValue: faceValue,
@@ -46,11 +60,6 @@ library Common {
                 folId: folId
             })
         );
-        if (faceValue > fol.getCredit()) {
-            // @audit this has 0 coverage,
-            //   I believe it is already checked by _borrowWithVirtualCollateral & validateExit
-            revert Errors.NOT_ENOUGH_FREE_CASH(fol.getCredit(), faceValue);
-        }
         fol.faceValueExited += faceValue;
 
         uint256 solId = state.loans.length - 1;
