@@ -9,6 +9,7 @@ import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 
+import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract LiquidateLoanValidationTest is BaseTest {
@@ -44,7 +45,12 @@ contract LiquidateLoanValidationTest is BaseTest {
 
         _setPrice(0.01e18);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_AT_LOSS.selector, loanId));
+        uint256 assignedCollateral = size.getAssignedCollateral(loanId);
+        uint256 debtCollateral =
+            FixedPointMathLib.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.LIQUIDATION_AT_LOSS.selector, loanId, assignedCollateral, debtCollateral)
+        );
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_LIQUIDATED.selector, solId));

@@ -43,7 +43,7 @@ library SelfLiquidateLoan {
             revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, state.getLoanStatus(loan));
         }
         if (assignedCollateral > debtCollateral) {
-            revert Errors.LIQUIDATION_NOT_AT_LOSS(params.loanId);
+            revert Errors.LIQUIDATION_NOT_AT_LOSS(params.loanId, assignedCollateral, debtCollateral);
         }
     }
 
@@ -55,15 +55,23 @@ library SelfLiquidateLoan {
         uint256 assignedCollateral = state.getAssignedCollateral(loan);
         state.collateralToken.transferFrom(msg.sender, loan.lender, assignedCollateral);
 
-        uint256 deltaFV = loan.getCredit();
-        loan.faceValue -= deltaFV;
-
+        uint256 credit = loan.getCredit();
         Loan storage fol = state.getFOL(loan);
-        state.debtToken.burn(fol.borrower, deltaFV);
+        state.debtToken.burn(fol.borrower, credit);
 
-        if (!loan.isFOL()) {
-            fol.faceValue -= deltaFV;
-            fol.faceValueExited -= deltaFV;
+        if (loan.isFOL()) {
+            // loan.faceValue = loan.faceValue - (loan.faceValue - loan.faceValueExited) = loan.faceValueExited
+            // since sol.faceValueExited == 0 (no exits) or loan.faceValueExited >= state.minimumFaceValue always (by construction, see createSOL)
+            // we don't need to call state.validateMinimumFaceValueFOL(loan.faceValue);
+            loan.faceValue -= credit;
+        } else {
+            loan.faceValue -= credit; // loan.faceValue will be 0
+
+            fol.faceValue -= credit;
+            fol.faceValueExited -= credit;
+            if (fol.faceValue > 0) {
+                state.validateMinimumFaceValueSOL(fol.faceValue);
+            }
         }
     }
 }

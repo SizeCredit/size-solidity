@@ -41,7 +41,7 @@ library LiquidateLoan {
             revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, state.getLoanStatus(loan));
         }
         if (assignedCollateral < debtCollateral) {
-            revert Errors.LIQUIDATION_AT_LOSS(params.loanId);
+            revert Errors.LIQUIDATION_AT_LOSS(params.loanId, assignedCollateral, debtCollateral);
         }
     }
 

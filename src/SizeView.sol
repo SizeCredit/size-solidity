@@ -41,6 +41,10 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return state.loans[loanId].getDebt();
     }
 
+    function getCredit(uint256 loanId) public view returns (uint256) {
+        return state.loans[loanId].getCredit();
+    }
+
     function crOpening() external view returns (uint256) {
         return state.crOpening;
     }

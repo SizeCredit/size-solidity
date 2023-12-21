@@ -39,7 +39,8 @@ library Errors {
 
     error NOT_ENOUGH_FREE_CASH(uint256 free, uint256 amount);
     error NOT_ENOUGH_LOCKED_CASH(uint256 locked, uint256 amount);
-    error FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE(uint256 faceValue, uint256 minimumFaceValue);
+    error FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE_FOL(uint256 faceValue, uint256 minimumFaceValue);
+    error FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE_SOL(uint256 faceValue, uint256 minimumFaceValue);
 
     error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
     error ONLY_FOL_CAN_BE_EXITED(uint256 loanId);
@@ -53,8 +54,8 @@ library Errors {
     error NOT_LIQUIDATABLE(address account);
     error LOAN_NOT_LIQUIDATABLE_STATUS(uint256 loanId, LoanStatus status);
     error LOAN_NOT_LIQUIDATABLE_CR(uint256 loanId, uint256 cr);
-    error LIQUIDATION_AT_LOSS(uint256 loanId);
-    error LIQUIDATION_NOT_AT_LOSS(uint256 loanId);
+    error LIQUIDATION_AT_LOSS(uint256 loanId, uint256 assignedCollateral, uint256 debtCollateral);
+    error LIQUIDATION_NOT_AT_LOSS(uint256 loanId, uint256 assignedCollateral, uint256 debtCollateral);
 
     error INVALID_DECIMALS(uint8 decimals);
     error INVALID_PRICE(address aggregator, int256 price);

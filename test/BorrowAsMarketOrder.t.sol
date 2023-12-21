@@ -8,7 +8,7 @@ import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.so
 import {BaseTest, Vars} from "./BaseTest.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {Loan, LoanLibrary, RESERVED_FOL_ID} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
@@ -331,5 +331,29 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(loansAfter, loansBefore + 1);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 100e18);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + 103e18);
+    }
+
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_SOL_of_SOL_creates_with_correct_folId() public {
+        _setPrice(1e18);
+
+        _deposit(alice, weth, 150e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 150e18);
+        _deposit(candy, usdc, 100e6);
+        _deposit(james, usdc, 200e6);
+        _deposit(liquidator, usdc, 10_000e6);
+        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(bob, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(james, 200e18, 12, 0, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 49e18, 12, [loanId]);
+        uint256 solId2 = _borrowAsMarketOrder(candy, bob, 47e18, 12, [solId]);
+
+        assertEq(size.getLoan(loanId).folId, RESERVED_FOL_ID);
+        assertEq(size.getLoan(solId).folId, loanId);
+        assertEq(size.getLoan(solId2).folId, loanId);
     }
 }

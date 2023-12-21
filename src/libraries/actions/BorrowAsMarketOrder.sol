@@ -110,6 +110,7 @@ library BorrowAsMarketOrder {
         for (uint256 i = 0; i < params.virtualCollateralLoanIds.length; ++i) {
             uint256 loanId = params.virtualCollateralLoanIds[i];
             Loan memory loan = state.loans[loanId];
+            uint256 folId = loan.isFOL() ? loanId : loan.folId;
 
             uint256 deltaAmountIn = FixedPointMathLib.mulDivUp(amountOutLeft, r, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
@@ -125,7 +126,7 @@ library BorrowAsMarketOrder {
                 break;
             }
 
-            state.createSOL(loanId, params.lender, msg.sender, deltaAmountIn);
+            state.createSOL(folId, params.lender, msg.sender, deltaAmountIn);
             state.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;

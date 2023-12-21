@@ -10,13 +10,23 @@ import {Loan, LoanLibrary, LoanStatus, RESERVED_FOL_ID, VariableLoan} from "@src
 library Common {
     using LoanLibrary for Loan;
 
+    function validateMinimumFaceValueFOL(State storage state, uint256 faceValue) public view {
+        if (faceValue < state.minimumFaceValue) {
+            revert Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE_FOL(faceValue, state.minimumFaceValue);
+        }
+    }
+
+    function validateMinimumFaceValueSOL(State storage state, uint256 faceValue) public view {
+        if (faceValue < state.minimumFaceValue) {
+            revert Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE_SOL(faceValue, state.minimumFaceValue);
+        }
+    }
+
     // solhint-disable-next-line var-name-mixedcase
     function createFOL(State storage state, address lender, address borrower, uint256 faceValue, uint256 dueDate)
         public
     {
-        if (faceValue < state.minimumFaceValue) {
-            revert Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE(faceValue, state.minimumFaceValue);
-        }
+        validateMinimumFaceValueFOL(state, faceValue);
 
         state.loans.push(
             Loan({
@@ -39,10 +49,7 @@ library Common {
         public
     {
         Loan storage fol = state.loans[folId];
-
-        if (faceValue < state.minimumFaceValue) {
-            revert Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE(faceValue, state.minimumFaceValue);
-        }
+        validateMinimumFaceValueSOL(state, faceValue);
         if (faceValue > fol.getCredit()) {
             // @audit this has 0 coverage,
             //   I believe it is already checked by _borrowWithVirtualCollateral & validateExit

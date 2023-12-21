@@ -88,7 +88,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE.selector, 1.03e18, size.minimumFaceValue()
+                Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE_FOL.selector, 1.03e18, size.minimumFaceValue()
             )
         );
         size.borrowAsMarketOrder(

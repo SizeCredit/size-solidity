@@ -69,6 +69,7 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - the borrower debt is reduced in: repayment, standard liquidation, liquidation with replacement, self liquidation, borrower exit
 - you can exit a SOL (??)
 - if isLiquidatable && liquidator has enough cash, the liquidation should always succeed (requires adding more checks to isLiquidatable)
+- When a user self liquidates a SOL, it will improve the collateralization ratio of other SOLs. This is because self liquidating decreases the FOL's face value, so it decreases all SOL's debt
 
 References
 
@@ -76,7 +77,6 @@ References
 
 ## TODOs
 
-- dust amount for loans (creation & updating of faceValue)
 - convert experiments into fuzz tests
 - use named parameters for 3+ args fun
 - simplify Loan struct

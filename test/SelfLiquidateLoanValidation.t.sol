@@ -10,6 +10,7 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 
+import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract SelfLiquidateLoanValidationTest is BaseTest {
@@ -36,8 +37,14 @@ contract SelfLiquidateLoanValidationTest is BaseTest {
 
         _setPrice(0.75e18);
 
+        uint256 assignedCollateral = size.getAssignedCollateral(loanId);
+        uint256 debtCollateral =
+            FixedPointMathLib.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
+
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, loanId));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, loanId, assignedCollateral, debtCollateral)
+        );
         size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
         vm.stopPrank();
 
