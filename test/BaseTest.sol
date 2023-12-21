@@ -43,6 +43,7 @@ import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 contract BaseTest is Test, AssertsHelper {
     event TODO();
 
+ERC1967Proxy public proxy;
     Size public size;
     PriceFeedMock public priceFeed;
     WETH public weth;
@@ -50,6 +51,8 @@ contract BaseTest is Test, AssertsHelper {
     CollateralToken public collateralToken;
     BorrowToken public borrowToken;
     DebtToken public debtToken;
+    InitializeParams public params;
+    InitializeExtraParams public extraParams;
 
     address public alice = address(0x10000);
     address public bob = address(0x20000);
@@ -77,8 +80,8 @@ contract BaseTest is Test, AssertsHelper {
         usdc = new USDC();
         collateralToken = new CollateralToken(address(this), "Size ETH", "szETH");
         borrowToken = new BorrowToken(address(this), "Size USDC", "szUSDC");
-        debtToken = new DebtToken(address(this), "Size Debt Token", "szDebt");
-        InitializeParams memory params = InitializeParams({
+        debtToken = new DebtToken(address(this), "Size Debt", "szDebt");
+        params = InitializeParams({
             owner: address(this),
             priceFeed: address(priceFeed),
             collateralAsset: address(weth),
@@ -89,15 +92,14 @@ contract BaseTest is Test, AssertsHelper {
             protocolVault: protocolVault,
             feeRecipient: feeRecipient
         });
-
-        InitializeExtraParams memory extraParams = InitializeExtraParams({
+        extraParams = InitializeExtraParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             collateralPercentagePremiumToLiquidator: 0.3e18,
             collateralPercentagePremiumToBorrower: 0.1e18,
             minimumFaceValue: 5e18
         });
-        ERC1967Proxy proxy =
+        proxy =
             new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params, extraParams)));
         size = Size(address(proxy));
 

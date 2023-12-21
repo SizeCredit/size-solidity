@@ -10,58 +10,16 @@ import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 import {USDC} from "./mocks/USDC.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
-import {InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
+import {BaseTest} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-contract InitializeValidationTest is Test {
-    Size public implementation;
-    ERC1967Proxy public proxy;
-    PriceFeedMock public priceFeed;
-    WETH public weth;
-    USDC public usdc;
-    CollateralToken public collateralToken;
-    BorrowToken public borrowToken;
-    DebtToken public debtToken;
-    address public protocolVault;
-    address public feeRecipient;
-
-    function setUp() public {
-        priceFeed = new PriceFeedMock(address(this));
-        weth = new WETH();
-        usdc = new USDC();
-        collateralToken = new CollateralToken(address(this), "Size ETH", "szETH");
-        borrowToken = new BorrowToken(address(this), "Size USDC", "szUSDC");
-        debtToken = new DebtToken(address(this), "Size Debt Token", "szDebt");
-        protocolVault = makeAddr("protocolVault");
-        feeRecipient = makeAddr("feeRecipient");
-    }
-
+contract InitializeValidationTest is Test, BaseTest {
     function test_SizeInitializeValidation() public {
-        implementation = new Size();
-
-        InitializeParams memory params = InitializeParams({
-            owner: address(this),
-            priceFeed: address(priceFeed),
-            collateralAsset: address(weth),
-            borrowAsset: address(usdc),
-            collateralToken: address(collateralToken),
-            borrowToken: address(borrowToken),
-            debtToken: address(debtToken),
-            protocolVault: protocolVault,
-            feeRecipient: feeRecipient
-        });
-
-        InitializeExtraParams memory extraParams = InitializeExtraParams({
-            crOpening: 1.5e18,
-            crLiquidation: 1.3e18,
-            collateralPercentagePremiumToLiquidator: 0.3e18,
-            collateralPercentagePremiumToBorrower: 0.1e18,
-            minimumFaceValue: 5e18
-        });
+        Size implementation = new Size();
 
         params.owner = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
