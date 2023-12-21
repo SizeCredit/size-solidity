@@ -322,6 +322,7 @@ export interface SizeInterface extends utils.Interface {
     "deposit((address,uint256))": FunctionFragment;
     "getAssignedCollateral(uint256)": FunctionFragment;
     "getBorrowOffer(address)": FunctionFragment;
+    "getCredit(uint256)": FunctionFragment;
     "getDebt(uint256)": FunctionFragment;
     "getDueDate(uint256)": FunctionFragment;
     "getLoan(uint256)": FunctionFragment;
@@ -336,6 +337,7 @@ export interface SizeInterface extends utils.Interface {
     "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
     "liquidateLoan((uint256))": FunctionFragment;
     "liquidateLoanWithReplacement((uint256,address))": FunctionFragment;
+    "minimumFaceValue()": FunctionFragment;
     "moveToVariablePool((uint256))": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
@@ -368,6 +370,7 @@ export interface SizeInterface extends utils.Interface {
       | "deposit"
       | "getAssignedCollateral"
       | "getBorrowOffer"
+      | "getCredit"
       | "getDebt"
       | "getDueDate"
       | "getLoan"
@@ -382,6 +385,7 @@ export interface SizeInterface extends utils.Interface {
       | "lendAsMarketOrder"
       | "liquidateLoan"
       | "liquidateLoanWithReplacement"
+      | "minimumFaceValue"
       | "moveToVariablePool"
       | "owner"
       | "pendingOwner"
@@ -461,6 +465,10 @@ export interface SizeInterface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "getCredit",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getDebt",
     values: [BigNumberish]
   ): string;
@@ -509,6 +517,10 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "liquidateLoanWithReplacement",
     values: [LiquidateLoanWithReplacementParamsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "minimumFaceValue",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "moveToVariablePool",
@@ -608,6 +620,7 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "getBorrowOffer",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getCredit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDebt", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDueDate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getLoan", data: BytesLike): Result;
@@ -647,6 +660,10 @@ export interface SizeInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "liquidateLoanWithReplacement",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "minimumFaceValue",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -842,6 +859,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BorrowOfferStructOutput]>;
 
+    getCredit(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     getDebt(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -909,6 +931,8 @@ export interface Size extends BaseContract {
       params: LiquidateLoanWithReplacementParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
+
+    minimumFaceValue(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     moveToVariablePool(
       params: MoveToVariablePoolParamsStruct,
@@ -1049,6 +1073,11 @@ export interface Size extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BorrowOfferStructOutput>;
 
+  getCredit(
+    loanId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   getDebt(loanId: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   getDueDate(
@@ -1113,6 +1142,8 @@ export interface Size extends BaseContract {
     params: LiquidateLoanWithReplacementParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
+
+  minimumFaceValue(overrides?: CallOverrides): Promise<BigNumber>;
 
   moveToVariablePool(
     params: MoveToVariablePoolParamsStruct,
@@ -1251,6 +1282,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BorrowOfferStructOutput>;
 
+    getCredit(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getDebt(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1318,6 +1354,8 @@ export interface Size extends BaseContract {
       params: LiquidateLoanWithReplacementParamsStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    minimumFaceValue(overrides?: CallOverrides): Promise<BigNumber>;
 
     moveToVariablePool(
       params: MoveToVariablePoolParamsStruct,
@@ -1496,6 +1534,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getCredit(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getDebt(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1560,6 +1603,8 @@ export interface Size extends BaseContract {
       params: LiquidateLoanWithReplacementParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
+
+    minimumFaceValue(overrides?: CallOverrides): Promise<BigNumber>;
 
     moveToVariablePool(
       params: MoveToVariablePoolParamsStruct,
@@ -1676,6 +1721,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getCredit(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getDebt(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1746,6 +1796,8 @@ export interface Size extends BaseContract {
       params: LiquidateLoanWithReplacementParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
+
+    minimumFaceValue(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     moveToVariablePool(
       params: MoveToVariablePoolParamsStruct,
