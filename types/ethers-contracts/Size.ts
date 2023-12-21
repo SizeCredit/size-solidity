@@ -181,10 +181,6 @@ export type InitializeParamsStruct = {
   collateralToken: string;
   borrowToken: string;
   debtToken: string;
-  crOpening: BigNumberish;
-  crLiquidation: BigNumberish;
-  collateralPercentagePremiumToLiquidator: BigNumberish;
-  collateralPercentagePremiumToBorrower: BigNumberish;
   protocolVault: string;
   feeRecipient: string;
 };
@@ -197,10 +193,6 @@ export type InitializeParamsStructOutput = [
   string,
   string,
   string,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
   string,
   string
 ] & {
@@ -211,12 +203,30 @@ export type InitializeParamsStructOutput = [
   collateralToken: string;
   borrowToken: string;
   debtToken: string;
+  protocolVault: string;
+  feeRecipient: string;
+};
+
+export type InitializeExtraParamsStruct = {
+  crOpening: BigNumberish;
+  crLiquidation: BigNumberish;
+  collateralPercentagePremiumToLiquidator: BigNumberish;
+  collateralPercentagePremiumToBorrower: BigNumberish;
+  minimumFaceValue: BigNumberish;
+};
+
+export type InitializeExtraParamsStructOutput = [
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber
+] & {
   crOpening: BigNumber;
   crLiquidation: BigNumber;
   collateralPercentagePremiumToLiquidator: BigNumber;
   collateralPercentagePremiumToBorrower: BigNumber;
-  protocolVault: string;
-  feeRecipient: string;
+  minimumFaceValue: BigNumber;
 };
 
 export type LendAsLimitOrderParamsStruct = {
@@ -318,7 +328,7 @@ export interface SizeInterface extends utils.Interface {
     "getLoanOffer(address)": FunctionFragment;
     "getLoanStatus(uint256)": FunctionFragment;
     "getUserView(address)": FunctionFragment;
-    "initialize((address,address,address,address,address,address,address,uint256,uint256,uint256,uint256,address,address))": FunctionFragment;
+    "initialize((address,address,address,address,address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
     "isFOL(uint256)": FunctionFragment;
     "isLiquidatable(address)": FunctionFragment;
     "isLiquidatable(uint256)": FunctionFragment;
@@ -473,7 +483,7 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "getUserView", values: [string]): string;
   encodeFunctionData(
     functionFragment: "initialize",
-    values: [InitializeParamsStruct]
+    values: [InitializeParamsStruct, InitializeExtraParamsStruct]
   ): string;
   encodeFunctionData(functionFragment: "isFOL", values: [BigNumberish]): string;
   encodeFunctionData(
@@ -864,6 +874,7 @@ export interface Size extends BaseContract {
 
     initialize(
       params: InitializeParamsStruct,
+      extraParams: InitializeExtraParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -939,7 +950,8 @@ export interface Size extends BaseContract {
         BigNumber,
         BigNumber,
         string,
-        string
+        string,
+        BigNumber
       ] & {
         priceFeed: string;
         collateralAsset: string;
@@ -953,6 +965,7 @@ export interface Size extends BaseContract {
         collateralPercentagePremiumToBorrower: BigNumber;
         protocolVault: string;
         feeRecipient: string;
+        minimumFaceValue: BigNumber;
       }
     >;
 
@@ -1065,6 +1078,7 @@ export interface Size extends BaseContract {
 
   initialize(
     params: InitializeParamsStruct,
+    extraParams: InitializeExtraParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1140,7 +1154,8 @@ export interface Size extends BaseContract {
       BigNumber,
       BigNumber,
       string,
-      string
+      string,
+      BigNumber
     ] & {
       priceFeed: string;
       collateralAsset: string;
@@ -1154,6 +1169,7 @@ export interface Size extends BaseContract {
       collateralPercentagePremiumToBorrower: BigNumber;
       protocolVault: string;
       feeRecipient: string;
+      minimumFaceValue: BigNumber;
     }
   >;
 
@@ -1267,6 +1283,7 @@ export interface Size extends BaseContract {
 
     initialize(
       params: InitializeParamsStruct,
+      extraParams: InitializeExtraParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1337,7 +1354,8 @@ export interface Size extends BaseContract {
         BigNumber,
         BigNumber,
         string,
-        string
+        string,
+        BigNumber
       ] & {
         priceFeed: string;
         collateralAsset: string;
@@ -1351,6 +1369,7 @@ export interface Size extends BaseContract {
         collateralPercentagePremiumToBorrower: BigNumber;
         protocolVault: string;
         feeRecipient: string;
+        minimumFaceValue: BigNumber;
       }
     >;
 
@@ -1506,6 +1525,7 @@ export interface Size extends BaseContract {
 
     initialize(
       params: InitializeParamsStruct,
+      extraParams: InitializeExtraParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -1688,6 +1708,7 @@ export interface Size extends BaseContract {
 
     initialize(
       params: InitializeParamsStruct,
+      extraParams: InitializeExtraParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
