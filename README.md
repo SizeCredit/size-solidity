@@ -17,7 +17,7 @@ Size V2 Solidity
 | src/libraries/actions/BorrowAsMarketOrder.sol          | 100.00% (55/55)  | 100.00% (71/71)  | 86.36% (19/22)   | 100.00% (4/4)    |
 | src/libraries/actions/BorrowerExit.sol                 | 96.30% (26/27)   | 97.06% (33/34)   | 70.00% (7/10)    | 100.00% (2/2)    |
 | src/libraries/actions/Claim.sol                        | 100.00% (9/9)    | 100.00% (10/10)  | 75.00% (3/4)     | 100.00% (2/2)    |
-| src/libraries/actions/Common.sol                       | 97.62% (41/42)   | 98.36% (60/61)   | 94.44% (17/18)   | 100.00% (14/14)  |
+| src/libraries/actions/Common.sol                       | 100.00% (44/44)  | 100.00% (65/65)  | 100.00% (16/16)  | 100.00% (13/13)  |
 | src/libraries/actions/Deposit.sol                      | 100.00% (10/10)  | 100.00% (17/17)  | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/libraries/actions/Initialize.sol                   | 100.00% (45/45)  | 85.45% (47/55)   | 100.00% (32/32)  | 100.00% (2/2)    |
 | src/libraries/actions/LendAsLimitOrder.sol             | 100.00% (14/14)  | 100.00% (17/17)  | 91.67% (11/12)   | 100.00% (2/2)    |
@@ -26,7 +26,7 @@ Size V2 Solidity
 | src/libraries/actions/LiquidateLoanWithReplacement.sol | 100.00% (22/22)  | 100.00% (25/25)  | 50.00% (2/4)     | 100.00% (2/2)    |
 | src/libraries/actions/MoveToVariablePool.sol           | 100.00% (13/13)  | 100.00% (16/16)  | 66.67% (4/6)     | 100.00% (2/2)    |
 | src/libraries/actions/Repay.sol                        | 100.00% (14/14)  | 100.00% (14/14)  | 75.00% (6/8)     | 100.00% (2/2)    |
-| src/libraries/actions/SelfLiquidateLoan.sol            | 100.00% (26/26)  | 100.00% (30/30)  | 66.67% (8/12)    | 100.00% (2/2)    |
+| src/libraries/actions/SelfLiquidateLoan.sol            | 100.00% (24/24)  | 100.00% (28/28)  | 70.00% (7/10)    | 100.00% (2/2)    |
 | src/libraries/actions/Withdraw.sol                     | 100.00% (10/10)  | 100.00% (17/17)  | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/oracle/PriceFeed.sol                               | 100.00% (12/12)  | 100.00% (21/21)  | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/token/NonTransferrableToken.sol                    | 100.00% (8/8)    | 100.00% (9/9)    | 100.00% (0/0)    | 100.00% (6/6)    |
