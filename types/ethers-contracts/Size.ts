@@ -212,7 +212,7 @@ export type InitializeExtraParamsStruct = {
   crLiquidation: BigNumberish;
   collateralPercentagePremiumToLiquidator: BigNumberish;
   collateralPercentagePremiumToBorrower: BigNumberish;
-  minimumFaceValue: BigNumberish;
+  minimumCredit: BigNumberish;
 };
 
 export type InitializeExtraParamsStructOutput = [
@@ -226,7 +226,7 @@ export type InitializeExtraParamsStructOutput = [
   crLiquidation: BigNumber;
   collateralPercentagePremiumToLiquidator: BigNumber;
   collateralPercentagePremiumToBorrower: BigNumber;
-  minimumFaceValue: BigNumber;
+  minimumCredit: BigNumber;
 };
 
 export type LendAsLimitOrderParamsStruct = {
@@ -337,7 +337,7 @@ export interface SizeInterface extends utils.Interface {
     "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
     "liquidateLoan((uint256))": FunctionFragment;
     "liquidateLoanWithReplacement((uint256,address))": FunctionFragment;
-    "minimumFaceValue()": FunctionFragment;
+    "minimumCredit()": FunctionFragment;
     "moveToVariablePool((uint256))": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
@@ -385,7 +385,7 @@ export interface SizeInterface extends utils.Interface {
       | "lendAsMarketOrder"
       | "liquidateLoan"
       | "liquidateLoanWithReplacement"
-      | "minimumFaceValue"
+      | "minimumCredit"
       | "moveToVariablePool"
       | "owner"
       | "pendingOwner"
@@ -519,7 +519,7 @@ export interface SizeInterface extends utils.Interface {
     values: [LiquidateLoanWithReplacementParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "minimumFaceValue",
+    functionFragment: "minimumCredit",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -663,7 +663,7 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "minimumFaceValue",
+    functionFragment: "minimumCredit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -932,7 +932,7 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    minimumFaceValue(overrides?: CallOverrides): Promise<[BigNumber]>;
+    minimumCredit(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     moveToVariablePool(
       params: MoveToVariablePoolParamsStruct,
@@ -989,7 +989,7 @@ export interface Size extends BaseContract {
         collateralPercentagePremiumToBorrower: BigNumber;
         protocolVault: string;
         feeRecipient: string;
-        minimumFaceValue: BigNumber;
+        minimumCredit: BigNumber;
       }
     >;
 
@@ -1143,7 +1143,7 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  minimumFaceValue(overrides?: CallOverrides): Promise<BigNumber>;
+  minimumCredit(overrides?: CallOverrides): Promise<BigNumber>;
 
   moveToVariablePool(
     params: MoveToVariablePoolParamsStruct,
@@ -1200,7 +1200,7 @@ export interface Size extends BaseContract {
       collateralPercentagePremiumToBorrower: BigNumber;
       protocolVault: string;
       feeRecipient: string;
-      minimumFaceValue: BigNumber;
+      minimumCredit: BigNumber;
     }
   >;
 
@@ -1355,7 +1355,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    minimumFaceValue(overrides?: CallOverrides): Promise<BigNumber>;
+    minimumCredit(overrides?: CallOverrides): Promise<BigNumber>;
 
     moveToVariablePool(
       params: MoveToVariablePoolParamsStruct,
@@ -1407,7 +1407,7 @@ export interface Size extends BaseContract {
         collateralPercentagePremiumToBorrower: BigNumber;
         protocolVault: string;
         feeRecipient: string;
-        minimumFaceValue: BigNumber;
+        minimumCredit: BigNumber;
       }
     >;
 
@@ -1604,7 +1604,7 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    minimumFaceValue(overrides?: CallOverrides): Promise<BigNumber>;
+    minimumCredit(overrides?: CallOverrides): Promise<BigNumber>;
 
     moveToVariablePool(
       params: MoveToVariablePoolParamsStruct,
@@ -1797,7 +1797,7 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    minimumFaceValue(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    minimumCredit(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     moveToVariablePool(
       params: MoveToVariablePoolParamsStruct,
