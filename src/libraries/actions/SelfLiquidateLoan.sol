@@ -55,23 +55,25 @@ library SelfLiquidateLoan {
         uint256 assignedCollateral = state.getAssignedCollateral(loan);
         state.collateralToken.transferFrom(msg.sender, loan.lender, assignedCollateral);
 
+        // credit := faceValue - exited :>= state.minimumCredit (by construction, see createSOL)
         uint256 credit = loan.getCredit();
         Loan storage fol = state.getFOL(loan);
         state.debtToken.burn(fol.borrower, credit);
 
         if (loan.isFOL()) {
-            // loan.faceValue = loan.faceValue - (loan.faceValue - loan.faceValueExited) = loan.faceValueExited
-            // since sol.faceValueExited == 0 (no exits) or loan.faceValueExited >= state.minimumFaceValue always (by construction, see createSOL)
-            // we don't need to call state.validateMinimumFaceValueFOL(loan.faceValue);
+            // loan.faceValue := loan.faceValueExited
+            //                 = 0, if no exits
+            //                >= state.minimumCredit, if at least 1 exit
             loan.faceValue -= credit;
         } else {
-            loan.faceValue -= credit; // loan.faceValue will be 0
+            // same
+            loan.faceValue -= credit;
 
+            // deducting faceValue and faceValueExited by the same amount does not change the credit,
+            //   since it is the difference between these two values
+            // so fol.getCredit() >= state.minimumCredit still
             fol.faceValue -= credit;
             fol.faceValueExited -= credit;
-            if (fol.faceValue > 0) {
-                state.validateMinimumFaceValueSOL(fol.faceValue);
-            }
         }
     }
 }

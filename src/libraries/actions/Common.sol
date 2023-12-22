@@ -5,20 +5,14 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
-import {Loan, LoanLibrary, LoanStatus, RESERVED_FOL_ID, VariableLoan} from "@src/libraries/LoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus, RESERVED_ID, VariableLoan} from "@src/libraries/LoanLibrary.sol";
 
 library Common {
     using LoanLibrary for Loan;
 
-    function validateMinimumFaceValueFOL(State storage state, uint256 faceValue) public view {
-        if (faceValue < state.minimumFaceValue) {
-            revert Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE_FOL(faceValue, state.minimumFaceValue);
-        }
-    }
-
-    function validateMinimumFaceValueSOL(State storage state, uint256 faceValue) public view {
-        if (faceValue < state.minimumFaceValue) {
-            revert Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE_SOL(faceValue, state.minimumFaceValue);
+    function validateMinimumCredit(State storage state, uint256 credit) public view {
+        if (credit < state.minimumCredit) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.minimumCredit);
         }
     }
 
@@ -26,52 +20,57 @@ library Common {
     function createFOL(State storage state, address lender, address borrower, uint256 faceValue, uint256 dueDate)
         public
     {
-        validateMinimumFaceValueFOL(state, faceValue);
+        Loan memory fol = Loan({
+            faceValue: faceValue,
+            faceValueExited: 0,
+            lender: lender,
+            borrower: borrower,
+            dueDate: dueDate,
+            repaid: false,
+            folId: RESERVED_ID
+        });
+        validateMinimumCredit(state, fol.getCredit());
 
-        state.loans.push(
-            Loan({
-                faceValue: faceValue,
-                faceValueExited: 0,
-                lender: lender,
-                borrower: borrower,
-                dueDate: dueDate,
-                repaid: false,
-                folId: RESERVED_FOL_ID
-            })
-        );
+        state.loans.push(fol);
         uint256 folId = state.loans.length - 1;
 
-        emit Events.CreateLoan(folId, lender, borrower, RESERVED_FOL_ID, faceValue, dueDate);
+        emit Events.CreateLoan(folId, lender, borrower, RESERVED_ID, RESERVED_ID, faceValue, dueDate);
     }
 
     // solhint-disable-next-line var-name-mixedcase
-    function createSOL(State storage state, uint256 folId, address lender, address borrower, uint256 faceValue)
-        public
-    {
-        Loan storage fol = state.loans[folId];
-        validateMinimumFaceValueSOL(state, faceValue);
-        if (faceValue > fol.getCredit()) {
-            // @audit this has 0 coverage,
-            //   I believe it is already checked by _borrowWithVirtualCollateral & validateExit
-            revert Errors.NOT_ENOUGH_FREE_CASH(fol.getCredit(), faceValue);
-        }
+    function createSOL(
+        State storage state,
+        uint256 originatorId,
+        uint256 folId,
+        address lender,
+        address borrower,
+        uint256 faceValue
+    ) public {
+        Loan memory fol = state.loans[folId];
 
-        state.loans.push(
-            Loan({
-                faceValue: faceValue,
-                faceValueExited: 0,
-                lender: lender,
-                borrower: borrower,
-                dueDate: fol.dueDate,
-                repaid: false,
-                folId: folId
-            })
-        );
-        fol.faceValueExited += faceValue;
+        Loan memory sol = Loan({
+            faceValue: faceValue,
+            faceValueExited: 0,
+            lender: lender,
+            borrower: borrower,
+            dueDate: fol.dueDate,
+            repaid: false,
+            folId: folId
+        });
 
+        validateMinimumCredit(state, sol.getCredit());
+        state.loans.push(sol);
         uint256 solId = state.loans.length - 1;
 
-        emit Events.CreateLoan(solId, lender, borrower, folId, faceValue, fol.dueDate);
+        Loan storage originator = state.loans[originatorId];
+        originator.faceValueExited += faceValue;
+        uint256 originatorCredit = originator.getCredit();
+
+        if (originatorCredit > 0) {
+            validateMinimumCredit(state, originatorCredit);
+        }
+
+        emit Events.CreateLoan(solId, lender, borrower, originatorId, folId, faceValue, fol.dueDate);
     }
 
     function createVariableLoan(

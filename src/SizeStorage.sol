@@ -26,7 +26,7 @@ struct State {
     uint256 collateralPercentagePremiumToBorrower;
     address protocolVault;
     address feeRecipient;
-    uint256 minimumFaceValue;
+    uint256 minimumCredit;
 }
 
 abstract contract SizeStorage {

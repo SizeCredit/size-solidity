@@ -32,7 +32,7 @@ struct InitializeExtraParams {
     uint256 crLiquidation;
     uint256 collateralPercentagePremiumToLiquidator;
     uint256 collateralPercentagePremiumToBorrower;
-    uint256 minimumFaceValue;
+    uint256 minimumCredit;
 }
 
 library Initialize {
@@ -116,8 +116,8 @@ library Initialize {
             );
         }
 
-        // validate minimumFaceValue
-        if (extraParams.minimumFaceValue == 0) {
+        // validate minimumCredit
+        if (extraParams.minimumCredit == 0) {
             revert Errors.NULL_AMOUNT();
         }
     }
@@ -140,6 +140,6 @@ library Initialize {
         state.crLiquidation = extraParams.crLiquidation;
         state.collateralPercentagePremiumToLiquidator = extraParams.collateralPercentagePremiumToLiquidator;
         state.collateralPercentagePremiumToBorrower = extraParams.collateralPercentagePremiumToBorrower;
-        state.minimumFaceValue = extraParams.minimumFaceValue;
+        state.minimumCredit = extraParams.minimumCredit;
     }
 }

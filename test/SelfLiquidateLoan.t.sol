@@ -149,7 +149,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         _lendAsLimitOrder(james, 200e18, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 49e18, 12, [loanId]);
-        uint256 solId2 = _borrowAsMarketOrder(candy, bob, 47e18, 12, [solId]);
+        uint256 solId2 = _borrowAsMarketOrder(candy, bob, 44e18, 12, [solId]);
         _borrowAsMarketOrder(alice, james, 60e18, 12);
         _borrowAsMarketOrder(candy, james, 80e18, 12);
 
@@ -157,13 +157,10 @@ contract SelfLiquidateLoanTest is BaseTest {
 
         _selfLiquidateLoan(alice, solId);
 
-        vm.startPrank(candy);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE_SOL.selector, 4e18, size.minimumFaceValue()
-            )
-        );
-        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: solId2}));
-        vm.stopPrank();
+        assertEq(size.getCredit(solId), 0);
+
+        _selfLiquidateLoan(candy, solId2);
+
+        assertEq(size.getCredit(solId2), 0);
     }
 }

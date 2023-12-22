@@ -5,11 +5,11 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
-uint256 constant RESERVED_FOL_ID = type(uint256).max;
+uint256 constant RESERVED_ID = type(uint256).max;
 
 struct Loan {
     uint256 faceValue; // FOL/SOL
-    uint256 faceValueExited; // FOL
+    uint256 faceValueExited; // FOL/SOL
     address lender; // FOL/SOL
     address borrower; // FOL/SOL
     uint256 dueDate; // FOL
@@ -34,7 +34,7 @@ struct VariableLoan {
 
 library LoanLibrary {
     function isFOL(Loan memory self) public pure returns (bool) {
-        return self.folId == RESERVED_FOL_ID;
+        return self.folId == RESERVED_ID;
     }
 
     function getCredit(Loan memory self) public pure returns (uint256) {

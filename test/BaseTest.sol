@@ -97,7 +97,7 @@ contract BaseTest is Test, AssertsHelper {
             crLiquidation: 1.3e18,
             collateralPercentagePremiumToLiquidator: 0.3e18,
             collateralPercentagePremiumToBorrower: 0.1e18,
-            minimumFaceValue: 5e18
+            minimumCredit: 5e18
         });
         proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params, extraParams)));
         size = Size(address(proxy));

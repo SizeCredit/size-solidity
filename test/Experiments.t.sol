@@ -40,7 +40,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e18);
         _lendAsLimitOrder(bob, 100e18, 10, 0.02e18, 12);
         console.log("alice borrows form bob using virtual collateral");
-        _borrowAsMarketOrder(alice, bob, 100e18, 6, [uint256(0)]);
+        console.log("(do not use full SOL credit)");
+        _borrowAsMarketOrder(alice, bob, 50e18, 6, [uint256(0)]);
 
         console.log("should not be able to claim");
         vm.expectRevert();

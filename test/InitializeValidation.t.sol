@@ -100,9 +100,9 @@ contract InitializeValidationTest is Test, BaseTest {
         extraParams.collateralPercentagePremiumToLiquidator = 0.3e18;
         extraParams.collateralPercentagePremiumToBorrower = 0.1e18;
 
-        extraParams.minimumFaceValue = 0;
+        extraParams.minimumCredit = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.minimumFaceValue = 5e18;
+        extraParams.minimumCredit = 5e18;
     }
 }

@@ -126,7 +126,7 @@ library BorrowAsMarketOrder {
                 break;
             }
 
-            state.createSOL(folId, params.lender, msg.sender, deltaAmountIn);
+            state.createSOL(loanId, folId, params.lender, msg.sender, deltaAmountIn);
             state.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;

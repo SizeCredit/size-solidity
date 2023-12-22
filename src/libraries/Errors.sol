@@ -39,8 +39,7 @@ library Errors {
 
     error NOT_ENOUGH_FREE_CASH(uint256 free, uint256 amount);
     error NOT_ENOUGH_LOCKED_CASH(uint256 locked, uint256 amount);
-    error FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE_FOL(uint256 faceValue, uint256 minimumFaceValue);
-    error FACE_VALUE_LOWER_THAN_MINIMUM_FACE_VALUE_SOL(uint256 faceValue, uint256 minimumFaceValue);
+    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCredit);
 
     error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
     error ONLY_FOL_CAN_BE_EXITED(uint256 loanId);
