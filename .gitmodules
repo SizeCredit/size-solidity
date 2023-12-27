@@ -19,3 +19,6 @@
 [submodule "lib/chimera"]
 	path = lib/chimera
 	url = https://github.com/Recon-Fuzz/chimera
+[submodule "lib/properties"]
+	path = lib/properties
+	url = https://github.com/crytic/properties

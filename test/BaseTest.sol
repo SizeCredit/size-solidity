@@ -3,18 +3,15 @@ pragma solidity 0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {AssertsHelper} from "./helpers/AssertsHelper.sol";
-import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 
 import {USDC} from "./mocks/USDC.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
 import {User, UserView} from "@src/libraries/UserLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
-import {InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 
 import {BorrowToken} from "@src/token/BorrowToken.sol";
@@ -40,6 +37,8 @@ import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
+import {Deploy} from "./Deploy.sol";
+
 struct Vars {
     UserView alice;
     UserView bob;
@@ -52,67 +51,23 @@ struct Vars {
     uint256 feeRecipientBorrowAmount;
 }
 
-contract BaseTest is Test, AssertsHelper {
-    event TODO();
-
-    ERC1967Proxy public proxy;
-    Size public size;
-    PriceFeedMock public priceFeed;
-    WETH public weth;
-    USDC public usdc;
-    CollateralToken public collateralToken;
-    BorrowToken public borrowToken;
-    DebtToken public debtToken;
-    InitializeParams public params;
-    InitializeExtraParams public extraParams;
-
-    address public alice = address(0x10000);
-    address public bob = address(0x20000);
-    address public candy = address(0x30000);
-    address public james = address(0x40000);
-    address public liquidator = address(0x50000);
-    address public protocolVault = address(0x60000);
-    address public feeRecipient = address(0x70000);
+contract BaseTest is Test, Deploy, AssertsHelper {
+    address internal alice = address(0x10000);
+    address internal bob = address(0x20000);
+    address internal candy = address(0x30000);
+    address internal james = address(0x40000);
+    address internal liquidator = address(0x50000);
+    address internal protocolVault = address(0x60000);
+    address internal feeRecipient = address(0x70000);
 
     function setUp() public virtual {
-        priceFeed = new PriceFeedMock(address(this));
-        weth = new WETH();
-        usdc = new USDC(address(this));
-        collateralToken = new CollateralToken(address(this), "Size ETH", "szETH");
-        borrowToken = new BorrowToken(address(this), "Size USDC", "szUSDC");
-        debtToken = new DebtToken(address(this), "Size Debt", "szDebt");
-        params = InitializeParams({
-            owner: address(this),
-            priceFeed: address(priceFeed),
-            collateralAsset: address(weth),
-            borrowAsset: address(usdc),
-            collateralToken: address(collateralToken),
-            borrowToken: address(borrowToken),
-            debtToken: address(debtToken),
-            protocolVault: protocolVault,
-            feeRecipient: feeRecipient
-        });
-        extraParams = InitializeExtraParams({
-            crOpening: 1.5e18,
-            crLiquidation: 1.3e18,
-            collateralPercentagePremiumToLiquidator: 0.3e18,
-            collateralPercentagePremiumToBorrower: 0.1e18,
-            minimumCredit: 5e18
-        });
-        proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params, extraParams)));
-        size = Size(address(proxy));
-
-        collateralToken.transferOwnership(address(size));
-        borrowToken.transferOwnership(address(size));
-        debtToken.transferOwnership(address(size));
+        setup(address(this), protocolVault, feeRecipient);
 
         vm.label(alice, "alice");
         vm.label(bob, "bob");
         vm.label(candy, "candy");
         vm.label(james, "james");
         vm.label(liquidator, "liquidator");
-
-        priceFeed.setPrice(1337e18);
     }
 
     function _deposit(address user, IERC20Metadata token, uint256 amount) internal {

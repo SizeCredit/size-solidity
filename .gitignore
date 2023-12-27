@@ -31,3 +31,6 @@ lcov.info
 
 # Npm
 node_modules
+
+# Crytic
+crytic-export

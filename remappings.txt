@@ -5,3 +5,5 @@
 @src=src
 @test=test
 @solmate=lib/solmate/src
+@chimera=lib/chimera/src
+@crytic/properties=lib/properties
