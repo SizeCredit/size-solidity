@@ -8,13 +8,16 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 uint256 constant RESERVED_ID = type(uint256).max;
 
 struct Loan {
-    uint256 faceValue; // FOL/SOL
-    uint256 faceValueExited; // FOL/SOL
-    address lender; // FOL/SOL
-    address borrower; // FOL/SOL
-    uint256 dueDate; // FOL
-    bool repaid; // FOL
-    uint256 folId; // SOL
+    // generic
+    uint256 faceValue;
+    uint256 faceValueExited;
+    address lender;
+    address borrower;
+    // FOL-specific
+    uint256 dueDate;
+    bool repaid;
+    // SOL-specific
+    uint256 folId;
 }
 
 enum LoanStatus {

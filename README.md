@@ -83,7 +83,6 @@ References
 ## TODOs
 
 - invariant tests
-- simplify Loan struct
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
 - test events
 - refactor tests following Sablier v2 naming conventions: `test_Foo`, `testFuzz_Foo`, `test_RevertWhen_Foo`, `testFuzz_RevertWhen_Foo`, `testFork_...`
@@ -99,6 +98,8 @@ References
 - multi-erc20 tokens with different CR per tokens
 - review all input validation functions
 - review all valid output states (e.g. validateUserIsNotLiquidatable)
+- gas optimizations
+- separate Loan struct
 
 ## Audit remarks
 
