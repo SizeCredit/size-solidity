@@ -2,3 +2,11 @@ testMode: "assertion"
 prefix: "invariant_"
 coverage: true
 corpusDir: "echidna"
+balanceAddr: 0x1043561a8829300000
+balanceContract: 0x1043561a8829300000
+# (j=$((0x10)); find src/libraries -type f | sed 's/.*\///' | sed 's/\.sol//' | while read i; do echo -n "($i,$(printf "0x%x" $j)),";j=$((j+1));done)
+cryticArgs: ["--compile-libraries=(OfferLibrary,0x10),(Errors,0x11),(Events,0x12),(LoanLibrary,0x13),(MathLibrary,0x14),(Claim,0x15),(Deposit,0x16),(MoveToVariablePool,0x17),(BorrowAsMarketOrder,0x18),(Withdraw,0x19),(Repay,0x1a),(LiquidateLoan,0x1b),(Initialize,0x1c),(BorrowerExit,0x1d),(LendAsLimitOrder,0x1e),(LiquidateLoanWithReplacement,0x1f),(Common,0x20),(SelfLiquidateLoan,0x21),(LendAsMarketOrder,0x22),(BorrowAsLimitOrder,0x23),(UserLibrary,0x24),(YieldCurveLibrary,0x25)"]
+# (j=$((0x10)); find src/libraries -type f | sed 's/.*\///' | sed 's/\.sol//' | while read i; do echo -n "[\"$(printf "0x%x" $j)\", \"$i\"],";j=$((j+1));done)
+deployContracts: [
+  ["0x10", "OfferLibrary"],["0x11", "Errors"],["0x12", "Events"],["0x13", "LoanLibrary"],["0x14", "MathLibrary"],["0x15", "Claim"],["0x16", "Deposit"],["0x17", "MoveToVariablePool"],["0x18", "BorrowAsMarketOrder"],["0x19", "Withdraw"],["0x1a", "Repay"],["0x1b", "LiquidateLoan"],["0x1c", "Initialize"],["0x1d", "BorrowerExit"],["0x1e", "LendAsLimitOrder"],["0x1f", "LiquidateLoanWithReplacement"],["0x20", "Common"],["0x21", "SelfLiquidateLoan"],["0x22", "LendAsMarketOrder"],["0x23", "BorrowAsLimitOrder"],["0x24", "UserLibrary"],["0x25", "YieldCurveLibrary"]
+]

@@ -27,14 +27,8 @@ import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 abstract contract TargetFunctions is BaseTargetFunctions, Deploy, PropertiesConstants, Properties {
-    address internal owner;
-    address internal protocolVault;
-    address internal feeRecipient;
-
     function setup() internal override {
-        owner = address(this);
-
-        setup(owner, address(size), owner);
+        setup(address(this), address(0x1), address(this));
         address[] memory users = new address[](3);
         users[0] = USER1;
         users[1] = USER2;

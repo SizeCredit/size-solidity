@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";

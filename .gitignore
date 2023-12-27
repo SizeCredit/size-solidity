@@ -34,3 +34,4 @@ node_modules
 
 # Crytic
 crytic-export
+echidna

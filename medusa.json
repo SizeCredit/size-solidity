@@ -10,7 +10,7 @@
 		"targetContracts": [
 			"CryticTester"
 		],
-		"targetContractsBalances": [],
+		"targetContractsBalances": ["0x1043561a8829300000"],
 		"constructorArgs": {},
 		"deployerAddress": "0x30000",
 		"senderAddresses": [

@@ -14,3 +14,7 @@ struct UserView {
     uint256 borrowAmount;
     uint256 debtAmount;
 }
+
+library UserLibrary {
+
+}
