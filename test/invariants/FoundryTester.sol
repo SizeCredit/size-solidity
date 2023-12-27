@@ -12,6 +12,13 @@ contract FoundryTester is TargetFunctions, FoundryAsserts {
         setup();
     }
 
+    modifier getUser() override {
+        user = uint160(msg.sender) % 3 == 0
+            ? address(USER1)
+            : uint160(msg.sender) % 3 == 1 ? address(USER2) : address(USER3);
+        _;
+    }
+
     function invariant() public {
         t(true, "invariant");
     }

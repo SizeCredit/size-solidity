@@ -11,18 +11,24 @@ abstract contract BeforeAfter is Deploy {
         uint256 senderBorrowAmount;
     }
 
-    Vars _before;
-    Vars _after;
+    address internal user;
+    Vars internal _before;
+    Vars internal _after;
+
+    modifier getUser() virtual {
+        user = msg.sender;
+        _;
+    }
 
     function __before() internal {
-        _before.user = size.getUserView(msg.sender);
-        _before.senderCollateralAmount = weth.balanceOf(msg.sender);
-        _before.senderBorrowAmount = usdc.balanceOf(msg.sender);
+        _before.user = size.getUserView(user);
+        _before.senderCollateralAmount = weth.balanceOf(user);
+        _before.senderBorrowAmount = usdc.balanceOf(user);
     }
 
     function __after() internal {
-        _after.user = size.getUserView(msg.sender);
-        _after.senderCollateralAmount = weth.balanceOf(msg.sender);
-        _after.senderBorrowAmount = usdc.balanceOf(msg.sender);
+        _after.user = size.getUserView(user);
+        _after.senderCollateralAmount = weth.balanceOf(user);
+        _after.senderBorrowAmount = usdc.balanceOf(user);
     }
 }

@@ -45,15 +45,15 @@ abstract contract TargetFunctions is BaseTargetFunctions, Deploy, PropertiesCons
         }
     }
 
-    function deposit(address token, uint256 amount) public {
+    function deposit(address token, uint256 amount) public getUser {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
-        amount = between(amount, 0, IERC20Metadata(token).balanceOf(msg.sender));
+        amount = between(amount, 0, IERC20Metadata(token).balanceOf(user));
 
         __before();
 
-        hevm.prank(msg.sender);
+        hevm.prank(user);
         IERC20Metadata(token).approve(address(size), amount);
-        hevm.prank(msg.sender);
+        hevm.prank(user);
         size.deposit(DepositParams({token: token, amount: amount}));
 
         __after();
@@ -67,7 +67,7 @@ abstract contract TargetFunctions is BaseTargetFunctions, Deploy, PropertiesCons
         }
     }
 
-    function withdraw(address token, uint256 amount) public {
+    function withdraw(address token, uint256 amount) public getUser {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
 
         __before();
@@ -80,7 +80,7 @@ abstract contract TargetFunctions is BaseTargetFunctions, Deploy, PropertiesCons
         }
 
         amount = between(amount, 0, maxAmount);
-        hevm.prank(msg.sender);
+        hevm.prank(user);
         size.withdraw(WithdrawParams({token: token, amount: amount}));
 
         __after();
