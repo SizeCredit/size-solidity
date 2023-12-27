@@ -15,6 +15,4 @@ struct UserView {
     uint256 debtAmount;
 }
 
-library UserLibrary {
-
-}
+library UserLibrary {}
