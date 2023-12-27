@@ -8,8 +8,6 @@ import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesC
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Deploy} from "@test/Deploy.sol";
 
-import {BeforeAfter} from "./BeforeAfter.sol";
-
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
@@ -28,7 +26,7 @@ import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
-abstract contract TargetFunctions is BaseTargetFunctions, Deploy, PropertiesConstants, Properties, BeforeAfter {
+abstract contract TargetFunctions is Deploy, PropertiesConstants, Properties, BaseTargetFunctions {
     event L(address);
 
     function setup() internal override {
@@ -92,5 +90,42 @@ abstract contract TargetFunctions is BaseTargetFunctions, Deploy, PropertiesCons
             eq(_after.user.borrowAmount, _before.user.borrowAmount - amount * 1e12, WITHDRAW_01);
             eq(_after.senderBorrowAmount, _before.senderBorrowAmount + amount, WITHDRAW_01);
         }
+    }
+
+    function lendAsLimitOrder(
+        uint256 maxAmount,
+        uint256 maxDueDate,
+        uint256[] memory timeBuckets,
+        uint256[] memory rates
+    ) public getUser {
+        hevm.prank(user);
+        size.lendAsLimitOrder(
+            LendAsLimitOrderParams({
+                maxAmount: maxAmount,
+                maxDueDate: maxDueDate,
+                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
+            })
+        );
+    }
+
+    function borrowAsMarketOrder(address lender, uint256 amount, uint256 dueDate, bool exactAmountIn) public getUser {
+        uint256[] memory virtualCollateralLoanIds;
+
+        hevm.prank(user);
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: lender,
+                amount: amount,
+                dueDate: dueDate,
+                exactAmountIn: exactAmountIn,
+                virtualCollateralLoanIds: virtualCollateralLoanIds
+            })
+        );
+    }
+
+    function setPrice(uint256 price) public {
+        price = between(price, priceFeed.getPrice() / 2, priceFeed.getPrice() * 2);
+
+        priceFeed.setPrice(price);
     }
 }
