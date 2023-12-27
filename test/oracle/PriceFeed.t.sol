@@ -6,10 +6,11 @@ import {Test} from "forge-std/Test.sol";
 import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {PriceFeed} from "@src/oracle/PriceFeed.sol";
+import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-contract PriceFeedTest is Test {
+contract PriceFeedTest is Test, AssertsHelper {
     PriceFeed public priceFeed;
     MockV3Aggregator public ethToUsd;
     MockV3Aggregator public usdcToUsd;
@@ -113,5 +114,12 @@ contract PriceFeedTest is Test {
         PriceFeed feed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 8, 3600, 86400);
 
         assertEq(feed.getPrice(), FixedPointMathLib.mulDivDown(uint256(2200.12e8), 1e8, uint256(0.9999e8)));
+    }
+
+    function test_PriceFeed_getPrice_is_consistent() public {
+        uint256 price_1 = priceFeed.getPrice();
+        uint256 price_2 = priceFeed.getPrice();
+        uint256 price_3 = priceFeed.getPrice();
+        assertEq(price_1, price_2, price_3);
     }
 }
