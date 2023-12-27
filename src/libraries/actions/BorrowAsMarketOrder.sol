@@ -126,7 +126,13 @@ library BorrowAsMarketOrder {
                 break;
             }
 
-            state.createSOL(loanId, folId, params.lender, msg.sender, deltaAmountIn);
+            state.createSOL({
+                exiterId: loanId,
+                folId: folId,
+                lender: params.lender,
+                borrower: msg.sender,
+                faceValue: deltaAmountIn
+            });
             state.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
@@ -158,7 +164,7 @@ library BorrowAsMarketOrder {
         }
 
         state.debtToken.mint(msg.sender, faceValue);
-        state.createFOL(params.lender, msg.sender, faceValue, params.dueDate);
+        state.createFOL({lender: params.lender, borrower: msg.sender, faceValue: faceValue, dueDate: params.dueDate});
         state.borrowToken.transferFrom(params.lender, msg.sender, params.amount);
     }
 }

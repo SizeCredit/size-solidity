@@ -77,7 +77,7 @@ contract BaseTest is Test, AssertsHelper {
     function setUp() public virtual {
         priceFeed = new PriceFeedMock(address(this));
         weth = new WETH();
-        usdc = new USDC();
+        usdc = new USDC(address(this));
         collateralToken = new CollateralToken(address(this), "Size ETH", "szETH");
         borrowToken = new BorrowToken(address(this), "Size USDC", "szUSDC");
         debtToken = new DebtToken(address(this), "Size Debt", "szDebt");

@@ -40,7 +40,7 @@ library Common {
     // solhint-disable-next-line var-name-mixedcase
     function createSOL(
         State storage state,
-        uint256 originatorId,
+        uint256 exiterId,
         uint256 folId,
         address lender,
         address borrower,
@@ -62,15 +62,15 @@ library Common {
         state.loans.push(sol);
         uint256 solId = state.loans.length - 1;
 
-        Loan storage originator = state.loans[originatorId];
-        originator.faceValueExited += faceValue;
-        uint256 originatorCredit = originator.getCredit();
+        Loan storage exiter = state.loans[exiterId];
+        exiter.faceValueExited += faceValue;
+        uint256 exiterCredit = exiter.getCredit();
 
-        if (originatorCredit > 0) {
-            validateMinimumCredit(state, originatorCredit);
+        if (exiterCredit > 0) {
+            validateMinimumCredit(state, exiterCredit);
         }
 
-        emit Events.CreateLoan(solId, lender, borrower, originatorId, folId, faceValue, fol.dueDate);
+        emit Events.CreateLoan(solId, lender, borrower, exiterId, folId, faceValue, fol.dueDate);
     }
 
     function createVariableLoan(

@@ -47,6 +47,10 @@ library MoveToVariablePool {
 
         state.collateralToken.transferFrom(loan.borrower, state.protocolVault, assignedCollateral);
         loan.repaid = true;
-        state.createVariableLoan(loan.borrower, loan.faceValue, assignedCollateral);
+        state.createVariableLoan({
+            borrower: loan.borrower,
+            amountBorrowAssetLentOut: loan.faceValue,
+            amountCollateral: assignedCollateral
+        });
     }
 }

@@ -19,9 +19,9 @@ import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePoo
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 interface ISize {
-    function deposit(DepositParams memory) external;
+    function deposit(DepositParams calldata) external;
 
-    function withdraw(WithdrawParams memory) external;
+    function withdraw(WithdrawParams calldata) external;
 
     // In -> future cash flow -> round up, the borrower needs to pay more
     // Out -> cash, zero risk -> round down, the borrower gets less
@@ -32,20 +32,21 @@ interface ISize {
     //  increases borrower debtAmount
     // decreases loan offer max amount
     // creates new loans
+    // NOTE: the `amount` parameter is altered by the function
     function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external;
 
-    function borrowAsLimitOrder(BorrowAsLimitOrderParams memory params) external;
+    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) external;
 
     // The lender is the one "actively" taking a market order,
     //   so should he be the one penalized with rounding
     // In this case, maybe he should be the one receiving less future cash flow
     //   because he chose to take this offer from the borrower orderbook
     // This means following the logic of penalizing the active part to protect the passive part
-    function lendAsMarketOrder(LendAsMarketOrderParams memory params) external;
+    function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external;
 
-    function lendAsLimitOrder(LendAsLimitOrderParams memory params) external;
+    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external;
 
-    function borrowerExit(BorrowerExitParams memory params) external;
+    function borrowerExit(BorrowerExitParams calldata params) external;
 
     // decreases borrower free cash
     // increases protocol free cash
@@ -53,9 +54,9 @@ interface ISize {
     // decreases borrower locked eth??
     // decreases borrower debtAmount
     // sets loan to repaid
-    function repay(RepayParams memory params) external;
+    function repay(RepayParams calldata params) external;
 
-    function claim(ClaimParams memory params) external;
+    function claim(ClaimParams calldata params) external;
 
     // As soon as a fixed rate loan gets overdue, it should be transformed into a
     //   variable rate one but in reality that might not happen so if it becomes eligible
@@ -63,17 +64,17 @@ interface ISize {
     // decreases borrower debtAmount
     // sets loan to repaid
     // etc
-    function liquidateLoan(LiquidateLoanParams memory params) external returns (uint256);
+    function liquidateLoan(LiquidateLoanParams calldata params) external returns (uint256);
 
-    function selfLiquidateLoan(SelfLiquidateLoanParams memory params) external;
+    function selfLiquidateLoan(SelfLiquidateLoanParams calldata params) external;
 
     // What is not possible to do for an overdue which is eligible for liquidation is to apply
     //   the replacement because it only makes sense if there is some deltaT to cover between
     //   the liquidation time and the due date time, so for overdue that would be a negative
     //   time and therefore it does not make sense
-    function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams memory params)
+    function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
         external
         returns (uint256);
 
-    function moveToVariablePool(MoveToVariablePoolParams memory params) external;
+    function moveToVariablePool(MoveToVariablePoolParams calldata params) external;
 }

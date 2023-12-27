@@ -14,7 +14,7 @@ library Events {
         uint256 indexed loanId,
         address indexed lender,
         address indexed borrower,
-        uint256 originatorId,
+        uint256 exiterId,
         uint256 folId,
         uint256 faceValue,
         uint256 dueDate

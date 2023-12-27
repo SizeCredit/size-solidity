@@ -82,8 +82,7 @@ References
 
 ## TODOs
 
-- convert experiments into fuzz tests
-- use named parameters for 3+ args fun
+- invariant tests
 - simplify Loan struct
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
 - test events

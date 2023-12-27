@@ -54,7 +54,7 @@ library LendAsMarketOrder {
         // N/A
     }
 
-    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) internal {
+    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) internal {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
@@ -74,7 +74,7 @@ library LendAsMarketOrder {
         state.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
         state.debtToken.mint(params.borrower, faceValue);
 
-        state.createFOL(msg.sender, params.borrower, faceValue, params.dueDate);
+        state.createFOL({lender: msg.sender, borrower: params.borrower, faceValue: faceValue, dueDate: params.dueDate});
         borrowOffer.maxAmount -= amountIn;
     }
 }
