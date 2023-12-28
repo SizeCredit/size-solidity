@@ -10,6 +10,8 @@ abstract contract BeforeAfter is Deploy {
         bool isLiquidatable;
         uint256 senderCollateralAmount;
         uint256 senderBorrowAmount;
+        uint256 activeLoans;
+        uint256 protocolBorrowAmount;
     }
 
     address internal user;
@@ -26,6 +28,8 @@ abstract contract BeforeAfter is Deploy {
         _before.isLiquidatable = size.isLiquidatable(user);
         _before.senderCollateralAmount = weth.balanceOf(user);
         _before.senderBorrowAmount = usdc.balanceOf(user);
+        _before.activeLoans = size.activeLoans();
+        (_before.protocolBorrowAmount,,) = size.protocolVault();
     }
 
     function __after() internal {
@@ -33,5 +37,7 @@ abstract contract BeforeAfter is Deploy {
         _after.isLiquidatable = size.isLiquidatable(user);
         _after.senderCollateralAmount = weth.balanceOf(user);
         _after.senderBorrowAmount = usdc.balanceOf(user);
+        _after.activeLoans = size.activeLoans();
+        (_after.protocolBorrowAmount,,) = size.protocolVault();
     }
 }

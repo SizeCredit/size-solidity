@@ -6,8 +6,23 @@ import {Asserts} from "@chimera/Asserts.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 
 abstract contract Properties is BeforeAfter, Asserts {
-    string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit must credit the sender in wad";
-    string internal constant WITHDRAW_01 = "WITHDRAW_01: Withdraw must deduct from the sender in wad";
+    string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender in wad";
+
+    string internal constant WITHDRAW_01 = "WITHDRAW_01: Withdraw deducts from the sender in wad";
+
+    string internal constant BORROW_01 = "BORROW_01: Borrow increases the borrower cash";
+    string internal constant BORROW_02 = "BORROW_02: Borrow increases the number of loans";
+
+    string internal constant CLAIM_01 = "CLAIM_01: Claim does not decrease the sender cash";
+
+    string internal constant LIQUIDATE_01 = "LIQUIDATE_01: Liquidate increases the sender collateral";
+    string internal constant LIQUIDATE_02 = "LIQUIDATE_01: Liquidate decreases the sender cash";
+
+    string internal constant SELF_LIQUIDATE_01 = "SELF_LIQUIDATE_01: Self-Liquidate decreases the sender collateral";
+    string internal constant SELF_LIQUIDATE_02 = "SELF_LIQUIDATE_02: Self-Liquidate decreases the sender debt";
+
+    string internal constant REPAY_01 = "REPAY_01: Repay transfers cash from the sender to the protocol";
+    string internal constant REPAY_02 = "REPAY_02: Repay decreases the sender debt";
 
     string internal constant LOAN_01 = "LOAN_01: loan.faceValue <= FOL(loan).faceValue";
     string internal constant LOAN_02 = "LOAN_02: SUM(loan.credit) foreach loan in FOL.loans = FOL(loan).faceValue";

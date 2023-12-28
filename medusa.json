@@ -71,7 +71,7 @@
 			"target": ".",
 			"solcVersion": "",
 			"exportDirectory": "",
-			"args": ["--compile-libraries=(OfferLibrary,0x10),(Errors,0x11),(Events,0x12),(LoanLibrary,0x13),(MathLibrary,0x14),(Claim,0x15),(Deposit,0x16),(MoveToVariablePool,0x17),(BorrowAsMarketOrder,0x18),(Withdraw,0x19),(Repay,0x1a),(LiquidateLoan,0x1b),(Initialize,0x1c),(BorrowerExit,0x1d),(LendAsLimitOrder,0x1e),(LiquidateLoanWithReplacement,0x1f),(Common,0x20),(SelfLiquidateLoan,0x21),(LendAsMarketOrder,0x22),(BorrowAsLimitOrder,0x23),(UserLibrary,0x24),(YieldCurveLibrary,0x25)"]
+			"args": ["--compile-libraries=(OfferLibrary,0x10),(Errors,0x11),(Events,0x12),(LoanLibrary,0x13),(MathLibrary,0x14),(Claim,0x15),(Deposit,0x16),(MoveToVariablePool,0x17),(BorrowAsMarketOrder,0x18),(Withdraw,0x19),(Repay,0x1a),(LiquidateLoan,0x1b),(Initialize,0x1c),(BorrowerExit,0x1d),(LendAsLimitOrder,0x1e),(LiquidateLoanWithReplacement,0x1f),(Common,0x20),(SelfLiquidateLoan,0x21),(LendAsMarketOrder,0x22),(BorrowAsLimitOrder,0x23),(UserLibrary,0x24),(YieldCurveLibrary,0x25),(YieldCurveHelper,0x26)"]
 		}
 	},
 	"logging": {

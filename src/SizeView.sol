@@ -109,4 +109,12 @@ abstract contract SizeView is SizeStorage, ISizeView {
     function minimumCredit() public view returns (uint256) {
         return state.minimumCredit;
     }
+
+    function protocolVault() public view returns (uint256, uint256, uint256) {
+        return (
+            state.collateralToken.balanceOf(state.protocolVault),
+            state.borrowToken.balanceOf(state.protocolVault),
+            state.debtToken.balanceOf(state.protocolVault)
+        );
+    }
 }
