@@ -46,20 +46,10 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 
 ## Invariants
 
-| Property | Category    | Description                                                                              |
-| -------- | ----------- | ---------------------------------------------------------------------------------------- |
-| C-01     | Collateral  | Locked cash in the user account can't be withdrawn                                       |
-| C-02     | Collateral  | The sum of all free and locked collateral is equal to the token balance of the orderbook |
-| C-03     | Collateral  | A user cannot make an operation that leaves them underwater |
-| L-01     | Liquidation | A borrower is eligible to liquidation if it is underwater or if the due date has reached |
-
-- SOL(loanId).faceValue <= FOL(loanId).faceValue
 - SUM(SOL(loanId).faceValue) == FOL(loanId).faceValue
 - FOL.faceValueExited = SUM(SOL.getCredit)
 - fol.faceValue = SUM(Loan.faceValue - Loan.faceValueExited) for all SOLs, FOL
-- loan.faceValueExited <= self.faceValue
 - loan.faceValue == 0 && isFOL(loan) <==> loan.repaid (incorrect)
-- loan.repaid ==> !isFOL(loan)
 - upon repayment, the money is locked from the lender until due date, and the protocol earns yield meanwhile
 - cash.free + cash.locked ?= deposits
 - creating a FOL/SOL decreases a loanOffer maxAmount

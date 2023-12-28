@@ -7,6 +7,7 @@ import {Deploy} from "@test/Deploy.sol";
 abstract contract BeforeAfter is Deploy {
     struct Vars {
         UserView user;
+        bool isLiquidatable;
         uint256 senderCollateralAmount;
         uint256 senderBorrowAmount;
     }
@@ -22,12 +23,14 @@ abstract contract BeforeAfter is Deploy {
 
     function __before() internal {
         _before.user = size.getUserView(user);
+        _before.isLiquidatable = size.isLiquidatable(user);
         _before.senderCollateralAmount = weth.balanceOf(user);
         _before.senderBorrowAmount = usdc.balanceOf(user);
     }
 
     function __after() internal {
         _after.user = size.getUserView(user);
+        _after.isLiquidatable = size.isLiquidatable(user);
         _after.senderCollateralAmount = weth.balanceOf(user);
         _after.senderBorrowAmount = usdc.balanceOf(user);
     }
