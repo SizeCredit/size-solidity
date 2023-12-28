@@ -91,21 +91,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, uint256 yieldCurveSeed) public getUser {
-        __before();
-
-        maxAmount = between(maxAmount, 0, MAX_AMOUNT_USDC);
-        maxDueDate = between(maxDueDate, 0, MAX_TIMESTAMP);
-        YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
-
-        hevm.prank(user);
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
-        );
-
-        __after();
-    }
-
     function borrowAsMarketOrder(address lender, uint256 amount, uint256 dueDate, bool exactAmountIn) public getUser {
         __before();
 
@@ -125,6 +110,127 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
+
+        __after();
+    }
+
+    function borrowAsLimitOrder(uint256 maxAmount, uint256 yieldCurveSeed) public getUser {
+        __before();
+
+        maxAmount = between(maxAmount, 0, MAX_AMOUNT_USDC);
+        YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
+
+        hevm.prank(user);
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
+
+        __after();
+    }
+
+    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn) public getUser {
+        __before();
+
+        borrower = _getRandomUser(borrower);
+        dueDate = between(dueDate, 0, MAX_TIMESTAMP);
+        amount = between(amount, 0, MAX_AMOUNT_USDC);
+
+        hevm.prank(user);
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({borrower: borrower, dueDate: dueDate, amount: amount, exactAmountIn: exactAmountIn})
+        );
+
+        __after();
+    }
+
+    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, uint256 yieldCurveSeed) public getUser {
+        __before();
+
+        maxAmount = between(maxAmount, 0, MAX_AMOUNT_USDC);
+        maxDueDate = between(maxDueDate, 0, MAX_TIMESTAMP);
+        YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
+
+        hevm.prank(user);
+        size.lendAsLimitOrder(
+            LendAsLimitOrderParams({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
+        );
+
+        __after();
+    }
+
+    function borrowerExit(uint256 loanId, address borrowerToExitTo) public getUser {
+        __before();
+
+        loanId = between(loanId, 0, size.activeLoans());
+        borrowerToExitTo = _getRandomUser(borrowerToExitTo);
+
+        hevm.prank(user);
+        size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
+
+        __after();
+    }
+
+    function repay(uint256 loanId) public getUser {
+        __before();
+
+        loanId = between(loanId, 0, size.activeLoans());
+
+        hevm.prank(user);
+        size.repay(RepayParams({loanId: loanId}));
+
+        __after();
+    }
+
+    function claim(uint256 loanId) public getUser {
+        __before();
+
+        loanId = between(loanId, 0, size.activeLoans());
+
+        hevm.prank(user);
+        size.claim(ClaimParams({loanId: loanId}));
+
+        __after();
+    }
+
+    function liquidateLoan(uint256 loanId) public getUser {
+        __before();
+
+        loanId = between(loanId, 0, size.activeLoans());
+
+        hevm.prank(user);
+        size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+
+        __after();
+    }
+
+    function selfLiquidateLoan(uint256 loanId) public getUser {
+        __before();
+
+        loanId = between(loanId, 0, size.activeLoans());
+
+        hevm.prank(user);
+        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+
+        __after();
+    }
+
+    function liquidateLoanWithReplacement(uint256 loanId, address borrower) public getUser {
+        __before();
+
+        loanId = between(loanId, 0, size.activeLoans());
+        borrower = _getRandomUser(borrower);
+
+        hevm.prank(user);
+        size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
+
+        __after();
+    }
+
+    function moveToVariablePool(uint256 loanId) public getUser {
+        __before();
+
+        loanId = between(loanId, 0, size.activeLoans());
+
+        hevm.prank(user);
+        size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
 
         __after();
     }
