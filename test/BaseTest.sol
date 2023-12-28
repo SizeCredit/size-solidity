@@ -12,8 +12,9 @@ import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
 import {User, UserView} from "@src/libraries/UserLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
-import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
+
 import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";

@@ -20,12 +20,7 @@ library Events {
         uint256 dueDate
     );
     event BorrowAsMarketOrder(
-        address indexed borrower,
-        address indexed lender,
-        uint256 amount,
-        uint256 dueDate,
-        bool exactAmountIn,
-        uint256[] virtualCollateralLoanIds
+        address indexed lender, uint256 amount, uint256 dueDate, bool exactAmountIn, uint256[] virtualCollateralLoanIds
     );
     event BorrowerExit(uint256 indexed loanId, address lendersToExitTo);
     event LenderExit(uint256 indexed loanId, uint256 amount, uint256 dueDate, address[] lendersToExitTo);

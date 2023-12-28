@@ -27,12 +27,6 @@ import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
-    uint256 constant MAX_AMOUNT_USDC = 3 * 100_000e6;
-    uint256 constant MAX_AMOUNT_WETH = 3 * 100e18;
-    uint256 constant MAX_TIMESTAMP = 2 * 365 days;
-    uint256 constant MAX_RATE = 2e18;
-    uint256 constant MAX_TIME_BUCKETS = 24;
-
     function setup() internal override {
         setup(address(this), address(0x1), address(this));
         address[] memory users = new address[](3);
@@ -40,10 +34,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         users[1] = USER2;
         users[2] = USER3;
         for (uint256 i = 0; i < users.length; i++) {
-            usdc.mint(users[i], 100_000e6);
+            usdc.mint(users[i], MAX_AMOUNT_USDC / 3);
 
             hevm.prank(users[i]);
-            weth.deposit{value: 100e18}();
+            weth.deposit{value: MAX_AMOUNT_WETH / 3}();
         }
     }
 
@@ -91,14 +85,22 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function borrowAsMarketOrder(address lender, uint256 amount, uint256 dueDate, bool exactAmountIn) public getUser {
+    function borrowAsMarketOrder(
+        address lender,
+        uint256 amount,
+        uint256 dueDate,
+        bool exactAmountIn,
+        uint256 n,
+        uint256 seedVirtualCollateralLoanIds
+    ) public getUser {
         __before();
 
         lender = _getRandomUser(lender);
         amount = between(amount, 0, MAX_AMOUNT_USDC);
         dueDate = between(dueDate, 0, MAX_TIMESTAMP);
 
-        uint256[] memory virtualCollateralLoanIds;
+        n = between(n, 0, size.activeLoans());
+        uint256[] memory virtualCollateralLoanIds = _getRandomVirtualCollateralLoanIds(n, seedVirtualCollateralLoanIds);
 
         hevm.prank(user);
         size.borrowAsMarketOrder(

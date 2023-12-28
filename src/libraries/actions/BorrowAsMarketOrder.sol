@@ -76,12 +76,7 @@ library BorrowAsMarketOrder {
 
     function executeBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external {
         emit Events.BorrowAsMarketOrder(
-            msg.sender,
-            params.lender,
-            params.amount,
-            params.dueDate,
-            params.exactAmountIn,
-            params.virtualCollateralLoanIds
+            params.lender, params.amount, params.dueDate, params.exactAmountIn, params.virtualCollateralLoanIds
         );
 
         params.amount = _borrowWithVirtualCollateral(state, params);

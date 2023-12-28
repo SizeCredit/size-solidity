@@ -6,5 +6,4 @@ struct YieldCurve {
     uint256[] rates;
 }
 
-library YieldCurveLibrary {
-}
+library YieldCurveLibrary {}
