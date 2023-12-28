@@ -92,6 +92,7 @@ References
 - review all valid output states (e.g. validateUserIsNotLiquidatable)
 - gas optimizations
 - separate Loan struct
+- use solady for tokens or other simple primitives
 
 ## Audit remarks
 

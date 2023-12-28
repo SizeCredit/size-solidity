@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {Helper} from "./Helper.sol";
 import {Properties} from "./Properties.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 import "@crytic/properties/contracts/util/Hevm.sol";
-import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Deploy} from "@test/Deploy.sol";
 
@@ -26,8 +26,12 @@ import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
-abstract contract TargetFunctions is Deploy, PropertiesConstants, Properties, BaseTargetFunctions {
-    event L(address);
+abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
+    uint256 constant MAX_AMOUNT_USDC = 3 * 100_000e6;
+    uint256 constant MAX_AMOUNT_WETH = 3 * 100e18;
+    uint256 constant MAX_TIMESTAMP = 2 * 365 days;
+    uint256 constant MAX_RATE = 2e18;
+    uint256 constant MAX_TIME_BUCKETS = 24;
 
     function setup() internal override {
         setup(address(this), address(0x1), address(this));
@@ -45,7 +49,8 @@ abstract contract TargetFunctions is Deploy, PropertiesConstants, Properties, Ba
 
     function deposit(address token, uint256 amount) public getUser {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
-        amount = between(amount, 0, IERC20Metadata(token).balanceOf(user));
+        uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
+        amount = between(amount, 0, maxAmount);
 
         __before();
 
@@ -70,13 +75,7 @@ abstract contract TargetFunctions is Deploy, PropertiesConstants, Properties, Ba
 
         __before();
 
-        uint256 maxAmount;
-        if (token == address(weth)) {
-            maxAmount = _before.user.collateralAmount;
-        } else {
-            maxAmount = _before.user.borrowAmount / 1e12;
-        }
-
+        uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
         amount = between(amount, 0, maxAmount);
         hevm.prank(user);
         size.withdraw(WithdrawParams({token: token, amount: amount}));
@@ -92,23 +91,28 @@ abstract contract TargetFunctions is Deploy, PropertiesConstants, Properties, Ba
         }
     }
 
-    function lendAsLimitOrder(
-        uint256 maxAmount,
-        uint256 maxDueDate,
-        uint256[] memory timeBuckets,
-        uint256[] memory rates
-    ) public getUser {
+    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, uint256 yieldCurveSeed) public getUser {
+        __before();
+
+        maxAmount = between(maxAmount, 0, MAX_AMOUNT_USDC);
+        maxDueDate = between(maxDueDate, 0, MAX_TIMESTAMP);
+        YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
+
         hevm.prank(user);
         size.lendAsLimitOrder(
-            LendAsLimitOrderParams({
-                maxAmount: maxAmount,
-                maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
-            })
+            LendAsLimitOrderParams({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
         );
+
+        __after();
     }
 
     function borrowAsMarketOrder(address lender, uint256 amount, uint256 dueDate, bool exactAmountIn) public getUser {
+        __before();
+
+        lender = _getRandomUser(lender);
+        amount = between(amount, 0, MAX_AMOUNT_USDC);
+        dueDate = between(dueDate, 0, MAX_TIMESTAMP);
+
         uint256[] memory virtualCollateralLoanIds;
 
         hevm.prank(user);
@@ -121,6 +125,8 @@ abstract contract TargetFunctions is Deploy, PropertiesConstants, Properties, Ba
                 virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
+
+        __after();
     }
 
     function setPrice(uint256 price) public {
