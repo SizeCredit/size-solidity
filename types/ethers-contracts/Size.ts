@@ -341,6 +341,7 @@ export interface SizeInterface extends utils.Interface {
     "moveToVariablePool((uint256))": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
+    "protocolVault()": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "repay((uint256))": FunctionFragment;
@@ -389,6 +390,7 @@ export interface SizeInterface extends utils.Interface {
       | "moveToVariablePool"
       | "owner"
       | "pendingOwner"
+      | "protocolVault"
       | "proxiableUUID"
       | "renounceOwnership"
       | "repay"
@@ -529,6 +531,10 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "pendingOwner",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "protocolVault",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -673,6 +679,10 @@ export interface SizeInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "pendingOwner",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "protocolVault",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -943,6 +953,10 @@ export interface Size extends BaseContract {
 
     pendingOwner(overrides?: CallOverrides): Promise<[string]>;
 
+    protocolVault(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber, BigNumber]>;
+
     proxiableUUID(overrides?: CallOverrides): Promise<[string]>;
 
     renounceOwnership(
@@ -1153,6 +1167,10 @@ export interface Size extends BaseContract {
   owner(overrides?: CallOverrides): Promise<string>;
 
   pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+  protocolVault(
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
   proxiableUUID(overrides?: CallOverrides): Promise<string>;
 
@@ -1365,6 +1383,10 @@ export interface Size extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+    protocolVault(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<string>;
 
@@ -1615,6 +1637,8 @@ export interface Size extends BaseContract {
 
     pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
 
+    protocolVault(overrides?: CallOverrides): Promise<BigNumber>;
+
     proxiableUUID(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(
@@ -1807,6 +1831,8 @@ export interface Size extends BaseContract {
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    protocolVault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
