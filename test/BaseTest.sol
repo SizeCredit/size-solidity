@@ -11,7 +11,8 @@ import {USDC} from "./mocks/USDC.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
 import {User, UserView} from "@src/libraries/UserLibrary.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 
 import {BorrowToken} from "@src/token/BorrowToken.sol";
@@ -120,7 +121,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         uint256 rate,
         uint256 timeBucketsLength
     ) internal {
-        YieldCurve memory curveRelativeTime = YieldCurveLibrary.getFlatRate(timeBucketsLength, rate);
+        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(timeBucketsLength, rate);
         return _lendAsLimitOrder(lender, maxAmount, maxDueDate, curveRelativeTime);
     }
 
@@ -214,7 +215,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     function _borrowAsLimitOrder(address borrower, uint256 maxAmount, uint256 rate, uint256 timeBucketsLength)
         internal
     {
-        YieldCurve memory curveRelativeTime = YieldCurveLibrary.getFlatRate(timeBucketsLength, rate);
+        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(timeBucketsLength, rate);
         vm.prank(borrower);
         size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
     }

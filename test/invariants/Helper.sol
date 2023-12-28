@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
-import {YieldCurveHelper} from "@test/helpers/YieldCurveHelper.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 abstract contract Helper is PropertiesConstants {
     function _getRandomUser(address user) internal pure returns (address) {

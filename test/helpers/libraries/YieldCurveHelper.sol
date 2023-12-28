@@ -4,6 +4,16 @@ pragma solidity 0.8.20;
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 library YieldCurveHelper {
+    function getFlatRate(uint256 timeBucketsLength, uint256 rate) public pure returns (YieldCurve memory curve) {
+        curve.rates = new uint256[](timeBucketsLength);
+        curve.timeBuckets = new uint256[](timeBucketsLength);
+
+        for (uint256 i = 0; i < timeBucketsLength; ++i) {
+            curve.rates[i] = rate;
+            curve.timeBuckets[i] = i;
+        }
+    }
+
     // -----------  CURVES -------------
 
     // Normal Yield Curve: This is the most common shape, where
