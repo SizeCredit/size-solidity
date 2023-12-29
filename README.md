@@ -65,6 +65,11 @@ References
 ## TODOs
 
 - invariant tests
+- add more unit tests where block.timestamp is e.g. "December 29, 2023", so that it is more realistic
+- add tests with other types of yield curves (not only flat)
+- also add buckets of different sizes, not only spaced by 1 (second), but also 30 days, 1 week, etc etc
+- add test for dueDate NOW
+- borrowing from yourself you increase your debt without getting any cash, and can put you closer to liquidation
 - should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
 - test events
 - refactor tests following Sablier v2 naming conventions: `test_Foo`, `testFuzz_Foo`, `test_RevertWhen_Foo`, `testFuzz_RevertWhen_Foo`, `testFork_...`

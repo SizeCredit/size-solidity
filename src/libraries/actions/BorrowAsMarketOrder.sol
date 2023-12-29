@@ -18,7 +18,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct BorrowAsMarketOrderParams {
     address lender;
-    uint256 amount;
+    uint256 amount; // in WAD (e.g. 1_000e18 for 1000 BorrowToken)
     uint256 dueDate;
     bool exactAmountIn;
     uint256[] virtualCollateralLoanIds;

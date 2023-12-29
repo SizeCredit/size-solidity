@@ -52,11 +52,11 @@ library YieldCurveHelper {
         rates[3] = 0.04e18;
         rates[4] = 0.04e18;
 
-        timeBuckets[0] = 30 days;
-        timeBuckets[1] = 60 days;
-        timeBuckets[2] = 90 days;
-        timeBuckets[3] = 120 days;
-        timeBuckets[4] = 150 days;
+        timeBuckets[0] = 0 days;
+        timeBuckets[1] = 30 days;
+        timeBuckets[2] = 60 days;
+        timeBuckets[3] = 90 days;
+        timeBuckets[4] = 120 days;
 
         return YieldCurve({timeBuckets: timeBuckets, rates: rates});
     }
@@ -75,11 +75,11 @@ library YieldCurveHelper {
         rates[3] = 0.02e18;
         rates[4] = 0.04e18;
 
-        timeBuckets[0] = 30 days;
-        timeBuckets[1] = 60 days;
-        timeBuckets[2] = 90 days;
+        timeBuckets[0] = 15 days;
+        timeBuckets[1] = 30 days;
+        timeBuckets[2] = 60 days;
         timeBuckets[3] = 120 days;
-        timeBuckets[4] = 150 days;
+        timeBuckets[4] = 240 days;
 
         return YieldCurve({timeBuckets: timeBuckets, rates: rates});
     }
@@ -99,11 +99,11 @@ library YieldCurveHelper {
         rates[3] = 0.02e18;
         rates[4] = 0.01e18;
 
-        timeBuckets[0] = 30 days;
-        timeBuckets[1] = 60 days;
-        timeBuckets[2] = 90 days;
-        timeBuckets[3] = 120 days;
-        timeBuckets[4] = 150 days;
+        timeBuckets[0] = 1 weeks;
+        timeBuckets[1] = 2 weeks;
+        timeBuckets[2] = 3 weeks;
+        timeBuckets[3] = 4 weeks;
+        timeBuckets[4] = 5 weeks;
 
         return YieldCurve({timeBuckets: timeBuckets, rates: rates});
     }
@@ -123,11 +123,11 @@ library YieldCurveHelper {
         rates[3] = 0.02e18;
         rates[4] = 0.01e18;
 
-        timeBuckets[0] = 30 days;
-        timeBuckets[1] = 60 days;
-        timeBuckets[2] = 90 days;
-        timeBuckets[3] = 120 days;
-        timeBuckets[4] = 150 days;
+        timeBuckets[0] = 1 hours;
+        timeBuckets[1] = 12 hours;
+        timeBuckets[2] = 24 days;
+        timeBuckets[3] = 48 days;
+        timeBuckets[4] = 96 days;
 
         return YieldCurve({timeBuckets: timeBuckets, rates: rates});
     }
@@ -147,11 +147,11 @@ library YieldCurveHelper {
         rates[3] = 0.02e18;
         rates[4] = 0.01e18;
 
-        timeBuckets[0] = 30 days;
+        timeBuckets[0] = 0 days;
         timeBuckets[1] = 60 days;
-        timeBuckets[2] = 90 days;
-        timeBuckets[3] = 120 days;
-        timeBuckets[4] = 150 days;
+        timeBuckets[2] = 180 days;
+        timeBuckets[3] = 360 days;
+        timeBuckets[4] = 720 days;
 
         return YieldCurve({timeBuckets: timeBuckets, rates: rates});
     }

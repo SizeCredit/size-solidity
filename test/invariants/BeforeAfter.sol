@@ -31,7 +31,7 @@ abstract contract BeforeAfter is Deploy {
     function __before(uint256 loanId) internal {
         Loan memory l;
         UserView memory e;
-        Loan memory loan = loanId == RESERVED_ID ? size.getLoan(loanId) : l;
+        Loan memory loan = loanId == RESERVED_ID ? l : size.getLoan(loanId);
         _before.sender = size.getUserView(sender);
         _before.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.borrower);
         _before.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.lender);
@@ -46,7 +46,7 @@ abstract contract BeforeAfter is Deploy {
     function __after(uint256 loanId) internal {
         Loan memory l;
         UserView memory e;
-        Loan memory loan = loanId == RESERVED_ID ? size.getLoan(loanId) : l;
+        Loan memory loan = loanId == RESERVED_ID ? l : size.getLoan(loanId);
         _after.sender = size.getUserView(sender);
         _after.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.borrower);
         _after.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.lender);

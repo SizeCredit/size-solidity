@@ -9,7 +9,7 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 abstract contract Helper is Deploy, PropertiesConstants {
     uint256 internal constant MAX_AMOUNT_USDC = 3 * 100_000e6;
     uint256 internal constant MAX_AMOUNT_WETH = 3 * 100e18;
-    uint256 internal constant MAX_TIMESTAMP = 2 * 365 days;
+    uint256 internal constant MAX_DURATION = 180 days;
     uint256 internal constant MAX_RATE = 2e18;
     uint256 internal constant MAX_TIME_BUCKETS = 24;
 
@@ -18,22 +18,18 @@ abstract contract Helper is Deploy, PropertiesConstants {
     }
 
     function _getRandomYieldCurve(uint256 seed) internal pure returns (YieldCurve memory) {
-        if (seed % 6 == 0) {
+        if (seed % 5 == 0) {
             return YieldCurveHelper.normalCurve();
-        } else if (seed % 6 == 1) {
+        } else if (seed % 5 == 1) {
             return YieldCurveHelper.flatCurve();
-        } else if (seed % 6 == 2) {
+        } else if (seed % 5 == 2) {
             return YieldCurveHelper.invertedCurve();
-        } else if (seed % 6 == 3) {
+        } else if (seed % 5 == 3) {
             return YieldCurveHelper.humpedCurve();
-        } else if (seed % 6 == 4) {
+        } else if (seed % 5 == 4) {
             return YieldCurveHelper.steepCurve();
-        } else if (seed % 6 == 5) {
-            return YieldCurveHelper.negativeCurve();
         } else {
-            uint256 timeBucketsLength = seed % MAX_TIME_BUCKETS;
-            uint256 rate = seed % MAX_RATE;
-            return YieldCurveHelper.getFlatRate(timeBucketsLength, rate);
+            return YieldCurveHelper.negativeCurve();
         }
     }
 

@@ -15,7 +15,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct DepositParams {
     address token;
-    uint256 amount;
+    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC or 1_000e18 for 1000 WETH)
 }
 
 library Deposit {
