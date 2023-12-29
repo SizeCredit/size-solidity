@@ -10,7 +10,7 @@ Size V2 Solidity
 | script/BaseScript.sol                                  | 0.00% (0/24)     | 0.00% (0/33)      | 0.00% (0/2)      | 0.00% (0/4)      |
 | script/Deploy.s.sol                                    | 0.00% (0/22)     | 0.00% (0/22)      | 100.00% (0/0)    | 0.00% (0/2)      |
 | src/Size.sol                                           | 94.44% (34/36)   | 94.44% (34/36)    | 100.00% (0/0)    | 100.00% (15/15)  |
-| src/SizeView.sol                                       | 95.83% (23/24)   | 97.06% (33/34)    | 100.00% (0/0)    | 95.45% (21/22)   |
+| src/SizeView.sol                                       | 100.00% (25/25)  | 100.00% (35/35)   | 100.00% (0/0)    | 100.00% (23/23)  |
 | src/libraries/LoanLibrary.sol                          | 42.86% (3/7)     | 35.71% (5/14)     | 100.00% (0/0)    | 60.00% (3/5)     |
 | src/libraries/MathLibrary.sol                          | 100.00% (1/1)    | 100.00% (3/3)     | 100.00% (0/0)    | 100.00% (1/1)    |
 | src/libraries/OfferLibrary.sol                         | 95.83% (23/24)   | 97.78% (44/45)    | 87.50% (7/8)     | 100.00% (5/5)    |
@@ -21,10 +21,10 @@ Size V2 Solidity
 | src/libraries/actions/Common.sol                       | 100.00% (44/44)  | 100.00% (65/65)   | 100.00% (16/16)  | 100.00% (13/13)  |
 | src/libraries/actions/Deposit.sol                      | 100.00% (10/10)  | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/libraries/actions/Initialize.sol                   | 100.00% (45/45)  | 85.45% (47/55)    | 100.00% (32/32)  | 100.00% (2/2)    |
-| src/libraries/actions/LendAsLimitOrder.sol             | 100.00% (14/14)  | 100.00% (17/17)   | 100.00% (12/12)  | 100.00% (2/2)    |
-| src/libraries/actions/LendAsMarketOrder.sol            | 26.09% (6/23)    | 35.71% (10/28)    | 37.50% (3/8)     | 50.00% (1/2)     |
+| src/libraries/actions/LendAsLimitOrder.sol             | 100.00% (14/14)  | 100.00% (17/17)   | 91.67% (11/12)   | 100.00% (2/2)    |
+| src/libraries/actions/LendAsMarketOrder.sol            | 86.96% (20/23)   | 89.29% (25/28)    | 62.50% (5/8)     | 100.00% (2/2)    |
 | src/libraries/actions/LiquidateLoan.sol                | 96.88% (31/32)   | 97.37% (37/38)    | 62.50% (5/8)     | 100.00% (2/2)    |
-| src/libraries/actions/LiquidateLoanWithReplacement.sol | 100.00% (22/22)  | 100.00% (25/25)   | 50.00% (2/4)     | 100.00% (2/2)    |
+| src/libraries/actions/LiquidateLoanWithReplacement.sol | 100.00% (23/23)  | 100.00% (26/26)   | 50.00% (2/4)     | 100.00% (2/2)    |
 | src/libraries/actions/MoveToVariablePool.sol           | 100.00% (13/13)  | 100.00% (16/16)   | 66.67% (4/6)     | 100.00% (2/2)    |
 | src/libraries/actions/Repay.sol                        | 100.00% (14/14)  | 100.00% (14/14)   | 75.00% (6/8)     | 100.00% (2/2)    |
 | src/libraries/actions/SelfLiquidateLoan.sol            | 100.00% (24/24)  | 100.00% (28/28)   | 70.00% (7/10)    | 100.00% (2/2)    |
