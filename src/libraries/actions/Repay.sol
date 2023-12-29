@@ -41,7 +41,7 @@ library Repay {
         Loan storage loan = state.loans[params.loanId];
 
         state.borrowToken.transferFrom(msg.sender, state.protocolVault, loan.faceValue);
-        state.debtToken.burn(loan.borrower, loan.faceValue);
+        state.debtToken.burn(msg.sender, loan.faceValue);
         loan.repaid = true;
 
         emit Events.Repay(params.loanId);

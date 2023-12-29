@@ -28,6 +28,8 @@ import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
+    event L4(uint256 a, uint256 b, uint256 c, uint256 d);
+
     function setup() internal override {
         setup(address(this), address(0x1), address(this));
         address[] memory users = new address[](3);
@@ -185,54 +187,58 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after(RESERVED_ID);
     }
 
-    // function borrowerExit(uint256 loanId, address borrowerToExitTo) public getSender {
-    //     __before(loanId);
+    function borrowerExit(uint256 loanId, address borrowerToExitTo) public getSender {
+        __before(loanId);
 
-    //     precondition(_before.activeLoans > 0);
+        precondition(_before.activeLoans > 0);
 
-    //     loanId = between(loanId, 0, _before.activeLoans - 1);
-    //     borrowerToExitTo = _getRandomSender(borrowerToExitTo);
+        loanId = between(loanId, 0, _before.activeLoans - 1);
+        borrowerToExitTo = _getRandomSender(borrowerToExitTo);
 
-    //     hevm.prank(sender);
-    //     size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
+        hevm.prank(sender);
+        size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
 
-    //     __after(loanId);
+        __after(loanId);
 
-    //     lt(_after.sender.debtAmount, _before.sender.debtAmount, BORROWER_EXIT_01);
-    // }
+        if (borrowerToExitTo == sender) {
+            eq(_after.sender.debtAmount, _before.sender.debtAmount, BORROWER_EXIT_01);
+        } else {
+            lt(_after.sender.debtAmount, _before.sender.debtAmount, BORROWER_EXIT_01);
+        }
+    }
 
-    // function repay(uint256 loanId) public getSender {
-    //     __before(loanId);
+    function repay(uint256 loanId) public getSender {
+        __before(loanId);
 
-    //     precondition(_before.activeLoans > 0);
+        precondition(_before.activeLoans > 0);
 
-    //     loanId = between(loanId, 0, _before.activeLoans - 1);
+        loanId = between(loanId, 0, _before.activeLoans - 1);
 
-    //     hevm.prank(sender);
-    //     size.repay(RepayParams({loanId: loanId}));
+        hevm.prank(sender);
+        size.repay(RepayParams({loanId: loanId}));
 
-    //     __after(loanId);
+        __after(loanId);
 
-    //     lt(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
-    //     gt(_after.protocolBorrowAmount, _before.protocolBorrowAmount, REPAY_01);
-    //     lt(_after.sender.debtAmount, _before.sender.debtAmount, REPAY_02);
-    // }
+        lt(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
+        gt(_after.protocolBorrowAmount, _before.protocolBorrowAmount, REPAY_01);
+        lt(_after.sender.debtAmount, _before.sender.debtAmount, REPAY_02);
+    }
 
-    // function claim(uint256 loanId) public getSender {
-    //     __before(loanId);
+    function claim(uint256 loanId) public getSender {
+        __before(loanId);
 
-    //     precondition(_before.activeLoans > 0);
+        precondition(_before.activeLoans > 0);
 
-    //     loanId = between(loanId, 0, _before.activeLoans - 1);
+        loanId = between(loanId, 0, _before.activeLoans - 1);
 
-    //     hevm.prank(sender);
-    //     size.claim(ClaimParams({loanId: loanId}));
+        hevm.prank(sender);
+        size.claim(ClaimParams({loanId: loanId}));
 
-    //     __after(loanId);
+        __after(loanId);
 
-    //     gte(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
-    //     t(size.isFOL(loanId), CLAIM_02);
-    // }
+        gte(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
+        t(size.isFOL(loanId), CLAIM_02);
+    }
 
     // function liquidateLoan(uint256 loanId) public getSender {
     //     __before(loanId);
