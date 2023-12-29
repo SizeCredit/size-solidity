@@ -14,7 +14,7 @@ COVERAGE_BEGIN=$(grep -n '\bFile\b' COVERAGE.txt | cut -d : -f 1)
 COVERAGE=$(tail -n +$((COVERAGE_BEGIN)) COVERAGE.txt)
 
 echo "$PART_1" > README.md
-echo "$COVERAGE" | grep -v 'test/' | grep -v '\bTotal\b' >> README.md
+echo "$COVERAGE" | grep -v 'test/' | grep -v 'script/' | grep -v '\bTotal\b' >> README.md
 echo "$PART_3" >> README.md
 
 rm COVERAGE.txt
