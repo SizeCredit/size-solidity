@@ -325,9 +325,11 @@ export interface SizeInterface extends utils.Interface {
     "getCredit(uint256)": FunctionFragment;
     "getDebt(uint256)": FunctionFragment;
     "getDueDate(uint256)": FunctionFragment;
+    "getFeeRecipient()": FunctionFragment;
     "getLoan(uint256)": FunctionFragment;
     "getLoanOffer(address)": FunctionFragment;
     "getLoanStatus(uint256)": FunctionFragment;
+    "getProtocolVault()": FunctionFragment;
     "getUserView(address)": FunctionFragment;
     "initialize((address,address,address,address,address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
     "isFOL(uint256)": FunctionFragment;
@@ -341,7 +343,6 @@ export interface SizeInterface extends utils.Interface {
     "moveToVariablePool((uint256))": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
-    "protocolVault()": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "repay((uint256))": FunctionFragment;
@@ -374,9 +375,11 @@ export interface SizeInterface extends utils.Interface {
       | "getCredit"
       | "getDebt"
       | "getDueDate"
+      | "getFeeRecipient"
       | "getLoan"
       | "getLoanOffer"
       | "getLoanStatus"
+      | "getProtocolVault"
       | "getUserView"
       | "initialize"
       | "isFOL"
@@ -390,7 +393,6 @@ export interface SizeInterface extends utils.Interface {
       | "moveToVariablePool"
       | "owner"
       | "pendingOwner"
-      | "protocolVault"
       | "proxiableUUID"
       | "renounceOwnership"
       | "repay"
@@ -479,6 +481,10 @@ export interface SizeInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getFeeRecipient",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getLoan",
     values: [BigNumberish]
   ): string;
@@ -489,6 +495,10 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getLoanStatus",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getProtocolVault",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "getUserView", values: [string]): string;
   encodeFunctionData(
@@ -531,10 +541,6 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "pendingOwner",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "protocolVault",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -629,6 +635,10 @@ export interface SizeInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "getCredit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDebt", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDueDate", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getFeeRecipient",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getLoan", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getLoanOffer",
@@ -636,6 +646,10 @@ export interface SizeInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getLoanStatus",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getProtocolVault",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -682,10 +696,6 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "protocolVault",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "proxiableUUID",
     data: BytesLike
   ): Result;
@@ -711,14 +721,12 @@ export interface SizeInterface extends utils.Interface {
 
   events: {
     "Initialized(uint64)": EventFragment;
-    "LendAsMarketOrder(address,uint256,uint256,bool)": EventFragment;
     "OwnershipTransferStarted(address,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Upgraded(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LendAsMarketOrder"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferStarted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Upgraded"): EventFragment;
@@ -730,20 +738,6 @@ export interface InitializedEventObject {
 export type InitializedEvent = TypedEvent<[BigNumber], InitializedEventObject>;
 
 export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
-
-export interface LendAsMarketOrderEventObject {
-  borrower: string;
-  dueDate: BigNumber;
-  amount: BigNumber;
-  exactAmountIn: boolean;
-}
-export type LendAsMarketOrderEvent = TypedEvent<
-  [string, BigNumber, BigNumber, boolean],
-  LendAsMarketOrderEventObject
->;
-
-export type LendAsMarketOrderEventFilter =
-  TypedEventFilter<LendAsMarketOrderEvent>;
 
 export interface OwnershipTransferStartedEventObject {
   previousOwner: string;
@@ -884,6 +878,10 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    getFeeRecipient(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber, BigNumber]>;
+
     getLoan(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -898,6 +896,10 @@ export interface Size extends BaseContract {
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[number]>;
+
+    getProtocolVault(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     getUserView(
       user: string,
@@ -952,10 +954,6 @@ export interface Size extends BaseContract {
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     pendingOwner(overrides?: CallOverrides): Promise<[string]>;
-
-    protocolVault(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<[string]>;
 
@@ -1099,6 +1097,10 @@ export interface Size extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  getFeeRecipient(
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, BigNumber, BigNumber]>;
+
   getLoan(
     loanId: BigNumberish,
     overrides?: CallOverrides
@@ -1113,6 +1115,10 @@ export interface Size extends BaseContract {
     loanId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<number>;
+
+  getProtocolVault(
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
   getUserView(
     user: string,
@@ -1167,10 +1173,6 @@ export interface Size extends BaseContract {
   owner(overrides?: CallOverrides): Promise<string>;
 
   pendingOwner(overrides?: CallOverrides): Promise<string>;
-
-  protocolVault(
-    overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
   proxiableUUID(overrides?: CallOverrides): Promise<string>;
 
@@ -1315,6 +1317,10 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getFeeRecipient(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber, BigNumber]>;
+
     getLoan(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1329,6 +1335,10 @@ export interface Size extends BaseContract {
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<number>;
+
+    getProtocolVault(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     getUserView(
       user: string,
@@ -1371,7 +1381,12 @@ export interface Size extends BaseContract {
     liquidateLoanWithReplacement(
       params: LiquidateLoanWithReplacementParamsStruct,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<
+      [BigNumber, BigNumber] & {
+        liquidatorProfitCollateralAsset: BigNumber;
+        liquidatorProfitBorrowAsset: BigNumber;
+      }
+    >;
 
     minimumCredit(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1383,10 +1398,6 @@ export interface Size extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     pendingOwner(overrides?: CallOverrides): Promise<string>;
-
-    protocolVault(
-      overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber, BigNumber]>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<string>;
 
@@ -1453,19 +1464,6 @@ export interface Size extends BaseContract {
   filters: {
     "Initialized(uint64)"(version?: null): InitializedEventFilter;
     Initialized(version?: null): InitializedEventFilter;
-
-    "LendAsMarketOrder(address,uint256,uint256,bool)"(
-      borrower?: string | null,
-      dueDate?: null,
-      amount?: null,
-      exactAmountIn?: null
-    ): LendAsMarketOrderEventFilter;
-    LendAsMarketOrder(
-      borrower?: string | null,
-      dueDate?: null,
-      amount?: null,
-      exactAmountIn?: null
-    ): LendAsMarketOrderEventFilter;
 
     "OwnershipTransferStarted(address,address)"(
       previousOwner?: string | null,
@@ -1571,6 +1569,8 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getFeeRecipient(overrides?: CallOverrides): Promise<BigNumber>;
+
     getLoan(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1585,6 +1585,8 @@ export interface Size extends BaseContract {
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getProtocolVault(overrides?: CallOverrides): Promise<BigNumber>;
 
     getUserView(user: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1636,8 +1638,6 @@ export interface Size extends BaseContract {
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
     pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    protocolVault(overrides?: CallOverrides): Promise<BigNumber>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1760,6 +1760,8 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getFeeRecipient(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getLoan(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1774,6 +1776,8 @@ export interface Size extends BaseContract {
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    getProtocolVault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getUserView(
       user: string,
@@ -1831,8 +1835,6 @@ export interface Size extends BaseContract {
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    protocolVault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
