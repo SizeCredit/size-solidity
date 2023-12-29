@@ -264,7 +264,10 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         return size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
     }
 
-    function _liquidateLoanWithReplacement(address user, uint256 loanId, address borrower) internal returns (uint256) {
+    function _liquidateLoanWithReplacement(address user, uint256 loanId, address borrower)
+        internal
+        returns (uint256, uint256)
+    {
         vm.prank(user);
         return
             size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));

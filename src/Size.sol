@@ -148,10 +148,11 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
     function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
         external
         override(ISize)
-        returns (uint256 liquidatorProfitBorrowAsset)
+        returns (uint256 liquidatorProfitCollateralAsset, uint256 liquidatorProfitBorrowAsset)
     {
         state.validateLiquidateLoanWithReplacement(params);
-        liquidatorProfitBorrowAsset = state.executeLiquidateLoanWithReplacement(params);
+        (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
+            state.executeLiquidateLoanWithReplacement(params);
         state.validateUserIsNotLiquidatable(params.borrower);
     }
 

@@ -34,7 +34,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant LOAN_02 = "LOAN_02: SUM(loan.credit) foreach loan in FOL.loans = FOL(loan).faceValue";
     string internal constant LOAN_03 = "LOAN_03: loan.faceValueExited <= loan.faceValue";
     string internal constant LOAN_04 = "LOAN_04: loan.repaid => !loan.isFOL()";
-    string internal constant LOAN_05 = "LOAN_05: loan.faceValue >= minimumFaceValue ";
+    string internal constant LOAN_05 = "LOAN_05: loan.credit >= minimumCredit ";
 
     string internal constant TOKENS_01 = "TOKENS_01: The sum of all tokens is constant";
     string internal constant TOKENS_02 =
@@ -44,6 +44,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
 
     function invariant_LOAN() public returns (bool) {
+        uint256 minimumCredit = size.minimumCredit();
         uint256 activeLoans = size.activeLoans();
         uint256[] memory credits = new uint256[](activeLoans);
         uint256[] memory faceValues = new uint256[](activeLoans);
@@ -70,7 +71,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 return false;
             }
 
-            if (!(loan.faceValue >= minimumFaceValue)) {
+            if (!(size.getCredit(loanId) >= minimumCredit)) {
                 t(false, LOAN_05);
                 return false;
             }
@@ -94,21 +95,15 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     }
 
     function invariant_TOKENS_01() public returns (bool) {
-        // TODO also add debt (debt.totalSupply <= borrowTokens.totalSupply)
         address[] memory users = new address[](3);
         users[0] = USER1;
         users[1] = USER2;
         users[2] = USER3;
 
-        uint256 usdcAmount;
-        uint256 wethAmount;
         uint256 borrowAmount;
         uint256 collateralAmount;
 
         for (uint256 i = 0; i < users.length; i++) {
-            usdcAmount += usdc.balanceOf(users[i]);
-            wethAmount += weth.balanceOf(users[i]);
-
             UserView memory userView = size.getUserView(users[i]);
             borrowAmount += userView.borrowAmount;
             collateralAmount += userView.collateralAmount;
@@ -124,8 +119,8 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         borrowAmount += borrowTemp;
 
         if (
-            (usdc.balanceOf(address(size)) + usdcAmount + (borrowAmount / 1e12)) != usdc.totalSupply()
-                || (weth.balanceOf(address(size)) + wethAmount + collateralAmount) != weth.totalSupply()
+            (usdc.balanceOf(address(size)) != (borrowAmount / 1e12))
+                || (weth.balanceOf(address(size)) != collateralAmount)
         ) {
             t(false, TOKENS_01);
             return false;

@@ -51,13 +51,14 @@ library LiquidateLoanWithReplacement {
     function executeLiquidateLoanWithReplacement(
         State storage state,
         LiquidateLoanWithReplacementParams calldata params
-    ) external returns (uint256) {
+    ) external returns (uint256, uint256) {
         Loan storage fol = state.loans[params.loanId];
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
         uint256 faceValue = fol.faceValue;
         uint256 dueDate = fol.dueDate;
 
-        state.executeLiquidateLoan(LiquidateLoanParams({loanId: params.loanId}));
+        uint256 liquidatorProfitCollateralAsset =
+            state.executeLiquidateLoan(LiquidateLoanParams({loanId: params.loanId}));
 
         uint256 r = (PERCENT + borrowOffer.getRate(dueDate));
         uint256 amountOut = FixedPointMathLib.mulDivDown(faceValue, PERCENT, r);
@@ -73,6 +74,6 @@ library LiquidateLoanWithReplacement {
         // TODO evaliate who gets this profit, msg.sender or state.feeRecipient
         state.borrowToken.transferFrom(state.protocolVault, state.feeRecipient, liquidatorProfitBorrowAsset);
 
-        return liquidatorProfitBorrowAsset;
+        return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }
 }

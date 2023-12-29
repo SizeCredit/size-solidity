@@ -3,12 +3,14 @@ pragma solidity 0.8.20;
 
 import {TargetFunctions} from "./TargetFunctions.sol";
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
+import {Test} from "forge-std/Test.sol";
 
-contract FoundryTester is TargetFunctions, FoundryAsserts {
-    function setUp() public {
+contract Handler is TargetFunctions, FoundryAsserts {
+    constructor() {
         vm.deal(address(USER1), 100e18);
         vm.deal(address(USER2), 100e18);
         vm.deal(address(USER3), 100e18);
+
         setup();
     }
 
@@ -17,5 +19,21 @@ contract FoundryTester is TargetFunctions, FoundryAsserts {
             ? address(USER1)
             : uint160(msg.sender) % 3 == 1 ? address(USER2) : address(USER3);
         _;
+    }
+}
+
+contract FoundryTester is Test {
+    Handler public handler;
+
+    function setUp() public {
+        handler = new Handler();
+        targetContract(address(handler));
+    }
+
+    function invariant() public {
+        assertTrue(handler.invariant_LOAN(), "LOAN");
+        assertTrue(handler.invariant_LIQUIDATION_01(), "LIQUIDATION_01");
+        assertTrue(handler.invariant_TOKENS_01(), "TOKENS_01");
+        assertTrue(handler.invariant_TOKENS_02(), "TOKENS_02");
     }
 }

@@ -74,7 +74,7 @@ interface ISize {
     //   time and therefore it does not make sense
     function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
         external
-        returns (uint256);
+        returns (uint256, uint256);
 
     function moveToVariablePool(MoveToVariablePoolParams calldata params) external;
 }

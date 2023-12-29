@@ -66,14 +66,14 @@ library LiquidateLoan {
         uint256 collateralRemainderToProtocol =
             collateralRemainder - collateralRemainderToLiquidator - collateralRemainderToBorrower;
 
-        uint256 liquidatorProfitCollateral = debtCollateral + collateralRemainderToLiquidator;
+        uint256 liquidatorProfitCollateralAsset = debtCollateral + collateralRemainderToLiquidator;
 
         state.collateralToken.transferFrom(fol.borrower, state.feeRecipient, collateralRemainderToProtocol);
-        state.collateralToken.transferFrom(fol.borrower, msg.sender, liquidatorProfitCollateral);
+        state.collateralToken.transferFrom(fol.borrower, msg.sender, liquidatorProfitCollateralAsset);
         state.borrowToken.transferFrom(msg.sender, state.protocolVault, debtBorrowAsset);
         state.debtToken.burn(fol.borrower, debtBorrowAsset);
         fol.repaid = true;
 
-        return liquidatorProfitCollateral;
+        return liquidatorProfitCollateralAsset;
     }
 }
