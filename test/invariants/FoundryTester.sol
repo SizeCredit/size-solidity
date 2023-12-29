@@ -18,8 +18,4 @@ contract FoundryTester is TargetFunctions, FoundryAsserts {
             : uint160(msg.sender) % 3 == 1 ? address(USER2) : address(USER3);
         _;
     }
-
-    function invariant() public {
-        t(true, "invariant");
-    }
 }

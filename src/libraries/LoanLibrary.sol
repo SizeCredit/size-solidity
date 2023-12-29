@@ -25,6 +25,7 @@ enum LoanStatus {
     OVERDUE, // eligible to liquidation
     REPAID, // by borrower or liquidator
     CLAIMED // by lender
+
 }
 
 struct VariableLoan {

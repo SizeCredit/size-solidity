@@ -5,6 +5,9 @@ libs = ["lib"]
 fs_permissions = [{access = "read-write", path = "./deployments"}]
 no_match_contract = 'CryticTester'
 
+[invariant]
+runs = 10000
+
 [rpc_endpoints]
 anvil = "http://127.0.0.1:8545"
 

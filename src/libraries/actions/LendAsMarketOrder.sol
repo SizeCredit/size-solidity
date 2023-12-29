@@ -54,13 +54,12 @@ library LendAsMarketOrder {
         // N/A
     }
 
-    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) internal {
+    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) external {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
-        // solhint-disable-next-line var-name-mixedcase
         uint256 faceValue;
         uint256 amountIn;
         if (params.exactAmountIn) {
@@ -71,10 +70,9 @@ library LendAsMarketOrder {
             amountIn = FixedPointMathLib.mulDivUp(params.amount, PERCENT, r);
         }
 
-        state.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
         state.debtToken.mint(params.borrower, faceValue);
-
         state.createFOL({lender: msg.sender, borrower: params.borrower, faceValue: faceValue, dueDate: params.dueDate});
+        state.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
         borrowOffer.maxAmount -= amountIn;
     }
 }

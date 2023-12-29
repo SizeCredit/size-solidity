@@ -46,21 +46,17 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 
 ## Invariants
 
+- creating a FOL/SOL decreases a offer maxAmount
+- you can exit a SOL
+
 - SUM(SOL(loanId).faceValue) == FOL(loanId).faceValue
 - FOL.faceValueExited = SUM(SOL.getCredit)
 - fol.faceValue = SUM(Loan.faceValue - Loan.faceValueExited) for all SOLs, FOL
-- loan.faceValue == 0 && isFOL(loan) <==> loan.repaid (incorrect)
 - upon repayment, the money is locked from the lender until due date, and the protocol earns yield meanwhile
-- cash.free + cash.locked ?= deposits
-- creating a FOL/SOL decreases a loanOffer maxAmount
 - repay should never DoS due to underflow
-- only FOLs can be claimed(??)
-- a loan is liquidatable if a user is liquidatable (CR < LCR)
-- no loan can have a faceValue below the minimumFaceValue
 - Taking loan with only virtual collateral does not decrease the borrower CR
 - Taking loan with real collateral decreases the borrower CR
 - the borrower debt is reduced in: repayment, standard liquidation, liquidation with replacement, self liquidation, borrower exit
-- you can exit a SOL (??)
 - if isLiquidatable && liquidator has enough cash, the liquidation should always succeed (requires adding more checks to isLiquidatable)
 - When a user self liquidates a SOL, it will improve the collateralization ratio of other SOLs. This is because self liquidating decreases the FOL's face value, so it decreases all SOL's debt
 - A self liquidation of a FOL will never leave it as a dust loan

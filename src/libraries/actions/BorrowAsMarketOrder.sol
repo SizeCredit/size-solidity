@@ -147,8 +147,6 @@ library BorrowAsMarketOrder {
 
         LoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        loanOffer.maxAmount -= params.amount;
-
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
         uint256 faceValue = FixedPointMathLib.mulDivUp(params.amount, r, PERCENT);
@@ -161,5 +159,6 @@ library BorrowAsMarketOrder {
         state.debtToken.mint(msg.sender, faceValue);
         state.createFOL({lender: params.lender, borrower: msg.sender, faceValue: faceValue, dueDate: params.dueDate});
         state.borrowToken.transferFrom(params.lender, msg.sender, params.amount);
+        loanOffer.maxAmount -= params.amount;
     }
 }

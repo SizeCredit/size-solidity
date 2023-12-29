@@ -213,6 +213,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
 
         gte(_after.user.borrowAmount, _before.user.borrowAmount, BORROW_01);
+        t(size.isFOL(loanId), CLAIM_02);
     }
 
     function liquidateLoan(uint256 loanId) public getUser {
@@ -229,6 +230,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         gt(_after.user.collateralAmount, _before.user.collateralAmount, LIQUIDATE_01);
         lt(_after.user.borrowAmount, _before.user.borrowAmount, LIQUIDATE_02);
+        t(_before.isLiquidatable, LIQUIDATE_03);
     }
 
     function selfLiquidateLoan(uint256 loanId) public getUser {
