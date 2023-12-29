@@ -14,8 +14,8 @@ contract Handler is TargetFunctions, FoundryAsserts {
         setup();
     }
 
-    modifier getUser() override {
-        user = uint160(msg.sender) % 3 == 0
+    modifier getSender() override {
+        sender = uint160(msg.sender) % 3 == 0
             ? address(USER1)
             : uint160(msg.sender) % 3 == 1 ? address(USER2) : address(USER3);
         _;

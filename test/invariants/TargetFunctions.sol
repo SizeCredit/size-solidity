@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Helper} from "./Helper.sol";
 import {Properties} from "./Properties.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
@@ -41,46 +42,46 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function deposit(address token, uint256 amount) public getUser {
+    function deposit(address token, uint256 amount) public getSender {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
         uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
         amount = between(amount, 0, maxAmount);
 
-        __before();
+        __before(RESERVED_ID);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         IERC20Metadata(token).approve(address(size), amount);
-        hevm.prank(user);
+        hevm.prank(sender);
         size.deposit(DepositParams({token: token, amount: amount}));
 
-        __after();
+        __after(RESERVED_ID);
 
         if (token == address(weth)) {
-            eq(_after.user.collateralAmount, _before.user.collateralAmount + amount, DEPOSIT_01);
+            eq(_after.sender.collateralAmount, _before.sender.collateralAmount + amount, DEPOSIT_01);
             eq(_after.senderCollateralAmount, _before.senderCollateralAmount - amount, DEPOSIT_01);
         } else {
-            eq(_after.user.borrowAmount, _before.user.borrowAmount + amount * 1e12, DEPOSIT_01);
+            eq(_after.sender.borrowAmount, _before.sender.borrowAmount + amount * 1e12, DEPOSIT_01);
             eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
         }
     }
 
-    function withdraw(address token, uint256 amount) public getUser {
+    function withdraw(address token, uint256 amount) public getSender {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
 
-        __before();
+        __before(RESERVED_ID);
 
         uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
         amount = between(amount, 0, maxAmount);
-        hevm.prank(user);
+        hevm.prank(sender);
         size.withdraw(WithdrawParams({token: token, amount: amount}));
 
-        __after();
+        __after(RESERVED_ID);
 
         if (token == address(weth)) {
-            eq(_after.user.collateralAmount, _before.user.collateralAmount - amount, WITHDRAW_01);
+            eq(_after.sender.collateralAmount, _before.sender.collateralAmount - amount, WITHDRAW_01);
             eq(_after.senderCollateralAmount, _before.senderCollateralAmount + amount, WITHDRAW_01);
         } else {
-            eq(_after.user.borrowAmount, _before.user.borrowAmount - amount * 1e12, WITHDRAW_01);
+            eq(_after.sender.borrowAmount, _before.sender.borrowAmount - amount * 1e12, WITHDRAW_01);
             eq(_after.senderBorrowAmount, _before.senderBorrowAmount + amount, WITHDRAW_01);
         }
     }
@@ -92,10 +93,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         bool exactAmountIn,
         uint256 n,
         uint256 seedVirtualCollateralLoanIds
-    ) public getUser {
-        __before();
+    ) public getSender {
+        __before(RESERVED_ID);
 
-        lender = _getRandomUser(lender);
+        lender = _getRandomSender(lender);
         amount = between(amount, 0, MAX_AMOUNT_USDC);
         dueDate = between(dueDate, 0, MAX_TIMESTAMP);
 
@@ -107,7 +108,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             n = 0;
         }
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: lender,
@@ -118,162 +119,167 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             })
         );
 
-        __after();
+        __after(RESERVED_ID);
 
-        gt(_after.user.borrowAmount, _before.user.borrowAmount, BORROW_01);
+        gt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
         eq(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
     }
 
-    function borrowAsLimitOrder(uint256 maxAmount, uint256 yieldCurveSeed) public getUser {
-        __before();
+    function borrowAsLimitOrder(uint256 maxAmount, uint256 yieldCurveSeed) public getSender {
+        __before(RESERVED_ID);
 
         maxAmount = between(maxAmount, 0, MAX_AMOUNT_USDC);
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
 
-        __after();
+        __after(RESERVED_ID);
     }
 
-    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn) public getUser {
-        __before();
+    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn) public getSender {
+        __before(RESERVED_ID);
 
-        borrower = _getRandomUser(borrower);
+        borrower = _getRandomSender(borrower);
         dueDate = between(dueDate, 0, MAX_TIMESTAMP);
         amount = between(amount, 0, MAX_AMOUNT_USDC);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: borrower, dueDate: dueDate, amount: amount, exactAmountIn: exactAmountIn})
         );
 
-        __after();
+        __after(RESERVED_ID);
 
-        lt(_after.user.borrowAmount, _before.user.borrowAmount, BORROW_01);
+        lt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
         eq(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
     }
 
-    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, uint256 yieldCurveSeed) public getUser {
-        __before();
+    function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, uint256 yieldCurveSeed) public getSender {
+        __before(RESERVED_ID);
 
-        maxAmount = between(maxAmount, 0, _before.user.borrowAmount);
+        maxAmount = between(maxAmount, 0, _before.sender.borrowAmount);
         maxDueDate = between(maxDueDate, 0, MAX_TIMESTAMP);
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
         );
 
-        __after();
+        __after(RESERVED_ID);
     }
 
-    function borrowerExit(uint256 loanId, address borrowerToExitTo) public getUser {
-        __before();
+    function borrowerExit(uint256 loanId, address borrowerToExitTo) public getSender {
+        __before(loanId);
 
         precondition(_before.activeLoans > 0);
 
         loanId = between(loanId, 0, _before.activeLoans - 1);
-        borrowerToExitTo = _getRandomUser(borrowerToExitTo);
+        borrowerToExitTo = _getRandomSender(borrowerToExitTo);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
 
-        __after();
+        __after(loanId);
+
+        lt(_after.sender.debtAmount, _before.sender.debtAmount, BORROWER_EXIT_01);
     }
 
-    function repay(uint256 loanId) public getUser {
-        __before();
+    function repay(uint256 loanId) public getSender {
+        __before(loanId);
 
         precondition(_before.activeLoans > 0);
 
         loanId = between(loanId, 0, _before.activeLoans - 1);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.repay(RepayParams({loanId: loanId}));
 
-        __after();
+        __after(loanId);
 
-        lt(_after.user.borrowAmount, _before.user.borrowAmount, REPAY_01);
+        lt(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
         gt(_after.protocolBorrowAmount, _before.protocolBorrowAmount, REPAY_01);
-        lt(_after.user.debtAmount, _before.user.debtAmount, REPAY_02);
+        lt(_after.sender.debtAmount, _before.sender.debtAmount, REPAY_02);
     }
 
-    function claim(uint256 loanId) public getUser {
-        __before();
+    function claim(uint256 loanId) public getSender {
+        __before(loanId);
 
         precondition(_before.activeLoans > 0);
 
         loanId = between(loanId, 0, _before.activeLoans - 1);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.claim(ClaimParams({loanId: loanId}));
 
-        __after();
+        __after(loanId);
 
-        gte(_after.user.borrowAmount, _before.user.borrowAmount, BORROW_01);
+        gte(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
         t(size.isFOL(loanId), CLAIM_02);
     }
 
-    function liquidateLoan(uint256 loanId) public getUser {
-        __before();
+    function liquidateLoan(uint256 loanId) public getSender {
+        __before(loanId);
 
         precondition(_before.activeLoans > 0);
 
         loanId = between(loanId, 0, _before.activeLoans - 1);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
 
-        __after();
+        __after(loanId);
 
-        gt(_after.user.collateralAmount, _before.user.collateralAmount, LIQUIDATE_01);
-        lt(_after.user.borrowAmount, _before.user.borrowAmount, LIQUIDATE_02);
-        t(_before.isLiquidatable, LIQUIDATE_03);
+        gt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
+        lt(_after.sender.borrowAmount, _before.sender.borrowAmount, LIQUIDATE_02);
+        lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
+        t(_before.isSenderLiquidatable, LIQUIDATE_03);
     }
 
-    function selfLiquidateLoan(uint256 loanId) public getUser {
-        __before();
+    function selfLiquidateLoan(uint256 loanId) public getSender {
+        __before(loanId);
 
         precondition(_before.activeLoans > 0);
 
         loanId = between(loanId, 0, _before.activeLoans - 1);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
 
-        __after();
+        __after(loanId);
 
-        lt(_after.user.collateralAmount, _before.user.collateralAmount, LIQUIDATE_01);
-        lt(_after.user.debtAmount, _before.user.debtAmount, LIQUIDATE_02);
+        lt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
+        lt(_after.sender.debtAmount, _before.sender.debtAmount, LIQUIDATE_02);
     }
 
-    function liquidateLoanWithReplacement(uint256 loanId, address borrower) public getUser {
-        __before();
+    function liquidateLoanWithReplacement(uint256 loanId, address borrower) public getSender {
+        __before(loanId);
 
         precondition(_before.activeLoans > 0);
 
         loanId = between(loanId, 0, _before.activeLoans - 1);
-        borrower = _getRandomUser(borrower);
+        borrower = _getRandomSender(borrower);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
 
-        __after();
+        __after(loanId);
+
+        lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
     }
 
-    function moveToVariablePool(uint256 loanId) public getUser {
-        __before();
+    function moveToVariablePool(uint256 loanId) public getSender {
+        __before(loanId);
 
         precondition(_before.activeLoans > 0);
 
         loanId = between(loanId, 0, _before.activeLoans - 1);
 
-        hevm.prank(user);
+        hevm.prank(sender);
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
 
-        __after();
+        __after(loanId);
     }
 
     function setPrice(uint256 price) public {

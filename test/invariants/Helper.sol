@@ -13,8 +13,8 @@ abstract contract Helper is Deploy, PropertiesConstants {
     uint256 internal constant MAX_RATE = 2e18;
     uint256 internal constant MAX_TIME_BUCKETS = 24;
 
-    function _getRandomUser(address user) internal pure returns (address) {
-        return uint160(user) % 3 == 0 ? USER1 : uint160(user) % 3 == 1 ? USER2 : USER3;
+    function _getRandomSender(address sender) internal pure returns (address) {
+        return uint160(sender) % 3 == 0 ? USER1 : uint160(sender) % 3 == 1 ? USER2 : USER3;
     }
 
     function _getRandomYieldCurve(uint256 seed) internal pure returns (YieldCurve memory) {
