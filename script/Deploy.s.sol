@@ -22,10 +22,10 @@ contract DeployScript is BaseScript, Deploy {
     function setUp() public {}
 
     function run() public {
-        uint256 deployerPk = setupLocalhostEnv(0);
-        uint256 borrowerPk = setupLocalhostEnv(1);
-        uint256 lenderPk = setupLocalhostEnv(2);
-        uint256 liquidatorPk = setupLocalhostEnv(3);
+        uint32 deployerPk = setupLocalhostEnv(0);
+        uint32 borrowerPk = setupLocalhostEnv(1);
+        uint32 lenderPk = setupLocalhostEnv(2);
+        uint32 liquidatorPk = setupLocalhostEnv(3);
 
         vm.startBroadcast(deployerPk);
 
