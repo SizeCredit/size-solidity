@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {console2 as console} from "forge-std/Script.sol";
 
 import {Size} from "@src/Size.sol";
 
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
+import {SizeAdapter} from "@test/mocks/SizeAdapter.sol";
 
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
@@ -46,11 +48,8 @@ contract DeployScript is BaseScript, Deploy {
         usdc.mint(liquidator, 100_000e6);
         priceFeed.setPrice(2200e18);
 
-        collateralToken.transferOwnership(address(size));
-        borrowToken.transferOwnership(address(size));
-        debtToken.transferOwnership(address(size));
-
         vm.stopBroadcast();
+
         vm.startBroadcast(lenderPk);
         usdc.approve(address(size), type(uint256).max);
         vm.stopBroadcast();
