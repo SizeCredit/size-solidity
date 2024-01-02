@@ -18,6 +18,7 @@ import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/Liquida
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
 import {Size} from "@src/Size.sol";
 
