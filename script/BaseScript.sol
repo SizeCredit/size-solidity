@@ -17,12 +17,12 @@ contract BaseScript is Script {
     string path;
     Deployment[] public deployments;
 
-    function setupLocalhostEnv() internal returns (uint256 localhostPrivateKey) {
+    function setupLocalhostEnv(uint32 index) internal returns (uint256 localhostPrivateKey) {
         if (block.chainid == 31337) {
             root = vm.projectRoot();
             path = string.concat(root, "/localhost.json");
             string memory mnemonic = "test test test test test test test test test test test junk";
-            return vm.deriveKey(mnemonic, 0);
+            return vm.deriveKey(mnemonic, index);
         } else {
             return vm.envUint("DEPLOYER_PRIVATE_KEY");
         }
