@@ -62,6 +62,7 @@ References
 
 ## TODOs
 
+- TODO: add updateConfig tests
 - TODO: claim available to anyone
 - TODO: liquidation has a parameter for CR in case they/bot wants
 - Claim only before due date?

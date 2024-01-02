@@ -11,11 +11,13 @@ import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/act
 import {BorrowerExit, BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
 import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
+
 import {Initialize, InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
 import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 import {MoveToVariablePool, MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
+import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
 import {Common} from "@src/libraries/actions/Common.sol";
 import {
@@ -34,6 +36,7 @@ import {ISize} from "@src/interfaces/ISize.sol";
 
 contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
     using Initialize for State;
+    using UpdateConfig for State;
     using Deposit for State;
     using Withdraw for State;
     using BorrowAsMarketOrder for State;
@@ -69,6 +72,11 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
 
     // solhint-disable-next-line no-empty-blocks
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    function updateConfig(UpdateConfigParams calldata params) external onlyOwner {
+        state.validateUpdateConfig(params);
+        state.executeUpdateConfig(params);
+    }
 
     /// @inheritdoc ISize
     function deposit(DepositParams calldata params) external override(ISize) {
