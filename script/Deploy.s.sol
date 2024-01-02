@@ -22,10 +22,10 @@ contract DeployScript is BaseScript, Deploy {
     function setUp() public {}
 
     function run() public {
-        uint32 deployerPk = setupLocalhostEnv(0);
-        uint32 borrowerPk = setupLocalhostEnv(1);
-        uint32 lenderPk = setupLocalhostEnv(2);
-        uint32 liquidatorPk = setupLocalhostEnv(3);
+        uint256 deployerPk = setupLocalhostEnv(0);
+        uint256 borrowerPk = setupLocalhostEnv(1);
+        uint256 lenderPk = setupLocalhostEnv(2);
+        uint256 liquidatorPk = setupLocalhostEnv(3);
 
         vm.startBroadcast(deployerPk);
 
@@ -37,6 +37,8 @@ contract DeployScript is BaseScript, Deploy {
         console.log("Deploying Size LOCAL");
 
         setup(deployer, protocolVault, deployer);
+        proxy = new ERC1967Proxy(address(new SizeAdapter()), abi.encodeCall(Size.initialize, (params, extraParams)));
+        size = Size(address(proxy));
 
         weth.deposit{value: 10e18}();
         weth.transfer(borrower, 10e18);
