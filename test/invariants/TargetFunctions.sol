@@ -101,7 +101,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         lender = _getRandomSender(lender);
         amount = between(amount, 0, MAX_AMOUNT_USDC * 1e12);
         dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
-        bool exactAmountIn = false;
 
         uint256[] memory virtualCollateralLoanIds;
         if (_before.activeLoans > 0) {
