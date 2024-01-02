@@ -22,12 +22,17 @@ contract DeployScript is BaseScript, Deploy {
     function setUp() public {}
 
     function run() public {
-        vm.startBroadcast(setupLocalhostEnv(0));
+        uint256 deployerPk = setupLocalhostEnv(0);
+        uint256 borrowerPk = setupLocalhostEnv(1);
+        uint256 lenderPk = setupLocalhostEnv(2);
+        uint256 liquidatorPk = setupLocalhostEnv(3);
 
-        address deployer = vm.addr(setupLocalhostEnv(0));
-        address borrower = vm.addr(setupLocalhostEnv(1));
-        address lender = vm.addr(setupLocalhostEnv(2));
-        address liquidator = vm.addr(setupLocalhostEnv(3));
+        vm.startBroadcast(deployerPk);
+
+        address deployer = vm.addr(deployerPk);
+        address borrower = vm.addr(borrowerPk);
+        address lender = vm.addr(lenderPk);
+        address liquidator = vm.addr(liquidatorPk);
 
         console.log("Deploying Size LOCAL");
 
@@ -39,12 +44,12 @@ contract DeployScript is BaseScript, Deploy {
         usdc.mint(liquidator, 100_000e6);
         priceFeed.setPrice(2200e18);
 
-        vm.prank(lender);
+        vm.startBroadcast(lenderPk)
         usdc.approve(address(size), type(uint256).max);
-        vm.prank(liquidator);
+        vm.startBroadcast(liquidatorPk)
         usdc.approve(address(size), type(uint256).max);
 
-        vm.prank(borrower);
+        vm.startBroadcast(borrowerPk)
         weth.approve(address(size), type(uint256).max);
 
         collateralToken.transferOwnership(address(size));
