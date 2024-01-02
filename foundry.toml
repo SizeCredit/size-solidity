@@ -10,7 +10,7 @@ runs = 1000
 fail_on_revert = false
 
 [rpc_endpoints]
-localhost = "http://127.0.0.1:8545"
+anvil = "http://127.0.0.1:8545"
 
 [fmt]
 sort_imports = true
