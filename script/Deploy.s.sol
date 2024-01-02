@@ -44,12 +44,12 @@ contract DeployScript is BaseScript, Deploy {
         usdc.mint(liquidator, 100_000e6);
         priceFeed.setPrice(2200e18);
 
-        vm.startBroadcast(lenderPk)
+        vm.startBroadcast(lenderPk);
         usdc.approve(address(size), type(uint256).max);
-        vm.startBroadcast(liquidatorPk)
+        vm.startBroadcast(liquidatorPk);
         usdc.approve(address(size), type(uint256).max);
 
-        vm.startBroadcast(borrowerPk)
+        vm.startBroadcast(borrowerPk);
         weth.approve(address(size), type(uint256).max);
 
         collateralToken.transferOwnership(address(size));
