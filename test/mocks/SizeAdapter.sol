@@ -99,12 +99,32 @@ contract SizeAdapter is Size {
         _selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
     }
 
-    function liquidateLoanWithReplacement(uint256 loanId, address borrower) external returns (uint256,uint256) {
+    function liquidateLoanWithReplacement(uint256 loanId, address borrower) external returns (uint256, uint256) {
         return _liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
     }
 
     function moveToVariablePool(uint256 loanId) external {
         _moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
+    }
+
+    function updateConfig(
+        address feeRecipient,
+        uint256 crOpening,
+        uint256 crLiquidation,
+        uint256 collateralPercentagePremiumToLiquidator,
+        uint256 collateralPercentagePremiumToBorrower,
+        uint256 minimumCredit
+    ) external {
+        _updateConfig(
+            UpdateConfigParams({
+                feeRecipient: feeRecipient,
+                crOpening: crOpening,
+                crLiquidation: crLiquidation,
+                collateralPercentagePremiumToLiquidator: collateralPercentagePremiumToLiquidator,
+                collateralPercentagePremiumToBorrower: collateralPercentagePremiumToBorrower,
+                minimumCredit: minimumCredit
+            })
+        );
     }
 */
 }

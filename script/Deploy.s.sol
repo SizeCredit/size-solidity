@@ -6,9 +6,9 @@ import {console2 as console} from "forge-std/Script.sol";
 
 import {Size} from "@src/Size.sol";
 
+import {SizeAdapter} from "@test/mocks/SizeAdapter.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
-import {SizeAdapter} from "@test/mocks/SizeAdapter.sol";
 
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
