@@ -99,7 +99,7 @@ contract SizeAdapter is Size {
         _selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
     }
 
-    function liquidateLoanWithReplacement(uint256 loanId, address borrower) external returns (uint256) {
+    function liquidateLoanWithReplacement(uint256 loanId, address borrower) external returns (uint256,uint256) {
         return _liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
     }
 
