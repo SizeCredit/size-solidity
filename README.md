@@ -68,7 +68,6 @@ References
 - TODO: add updateConfig tests
 - TODO: multicall
 - TODO: liquidation has a parameter for CR in case they/bot wants
-- TODO: claim available to anyone
 - TODO: origination fee & loan fee
 - TODO: loan fee
 

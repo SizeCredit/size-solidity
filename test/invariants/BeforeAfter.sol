@@ -57,4 +57,12 @@ abstract contract BeforeAfter is Deploy {
         _after.activeLoans = size.activeLoans();
         (, _after.protocolBorrowAmount,) = size.getProtocolVault();
     }
+
+    function __before() internal {
+        return __before(RESERVED_ID);
+    }
+
+    function __after() internal {
+        return __after(RESERVED_ID);
+    }
 }

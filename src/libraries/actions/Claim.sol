@@ -22,9 +22,6 @@ library Claim {
         Loan memory loan = state.loans[params.loanId];
 
         // validate msg.sender
-        if (msg.sender != loan.lender) {
-            revert Errors.CLAIMER_IS_NOT_LENDER(msg.sender, loan.lender);
-        }
 
         // validate loanId
         // NOTE: Both ACTIVE and OVERDUE loans can't be claimed because the money is not in the protocol yet
@@ -38,7 +35,6 @@ library Claim {
     function executeClaim(State storage state, ClaimParams calldata params) external {
         Loan storage loan = state.loans[params.loanId];
 
-        // @audit faceValueExited can increase if SOLs are created, what if claim/exit happen in different times?
         state.borrowToken.transferFrom(state.protocolVault, msg.sender, loan.getCredit());
         loan.faceValueExited = loan.faceValue;
 

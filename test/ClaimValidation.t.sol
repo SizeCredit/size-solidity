@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
-
-import {BaseTest, Vars} from "./BaseTest.sol";
-
-import {Loan} from "@src/libraries/LoanLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+import {BaseTest} from "./BaseTest.sol";
 
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
@@ -27,9 +22,5 @@ contract ClaimValidationTest is BaseTest {
 
         vm.startPrank(bob);
         size.repay(RepayParams({loanId: loanId}));
-
-        vm.startPrank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Errors.CLAIMER_IS_NOT_LENDER.selector, candy, alice));
-        size.claim(ClaimParams({loanId: loanId}));
     }
 }

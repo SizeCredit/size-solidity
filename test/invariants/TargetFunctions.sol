@@ -49,14 +49,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH / 3 : MAX_AMOUNT_USDC / 3;
         amount = between(amount, maxAmount / 2, maxAmount);
 
-        __before(RESERVED_ID);
+        __before();
 
         hevm.prank(sender);
         IERC20Metadata(token).approve(address(size), amount);
         hevm.prank(sender);
         size.deposit(DepositParams({token: token, amount: amount}));
 
-        __after(RESERVED_ID);
+        __after();
 
         if (token == address(weth)) {
             eq(_after.sender.collateralAmount, _before.sender.collateralAmount + amount, DEPOSIT_01);
@@ -70,14 +70,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     // function withdraw(address token, uint256 amount) public getSender {
     //     token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
 
-    //     __before(RESERVED_ID);
+    //     __before();
 
     //     uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
     //     amount = between(amount, 0, maxAmount);
     //     hevm.prank(sender);
     //     size.withdraw(WithdrawParams({token: token, amount: amount}));
 
-    //     __after(RESERVED_ID);
+    //     __after();
 
     //     if (token == address(weth)) {
     //         eq(_after.sender.collateralAmount, _before.sender.collateralAmount - amount, WITHDRAW_01);
@@ -96,7 +96,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         uint256 n,
         uint256 seedVirtualCollateralLoanIds
     ) public getSender {
-        __before(RESERVED_ID);
+        __before();
 
         lender = _getRandomSender(lender);
         amount = between(amount, 0, MAX_AMOUNT_USDC * 1e12);
@@ -119,7 +119,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             })
         );
 
-        __after(RESERVED_ID);
+        __after();
 
         if (lender == sender) {
             eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
@@ -135,7 +135,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     }
 
     function borrowAsLimitOrder(uint256 maxAmount, uint256 yieldCurveSeed) public getSender {
-        __before(RESERVED_ID);
+        __before();
 
         maxAmount = between(maxAmount, 0, MAX_AMOUNT_USDC * 1e12);
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
@@ -143,14 +143,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         hevm.prank(sender);
         size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
 
-        __after(RESERVED_ID);
+        __after();
     }
 
     function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn)
         public
         getSender
     {
-        __before(RESERVED_ID);
+        __before();
 
         borrower = _getRandomSender(borrower);
         dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
@@ -161,7 +161,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             LendAsMarketOrderParams({borrower: borrower, dueDate: dueDate, amount: amount, exactAmountIn: exactAmountIn})
         );
 
-        __after(RESERVED_ID);
+        __after();
 
         if (sender == borrower) {
             eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
@@ -172,7 +172,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     }
 
     function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, uint256 yieldCurveSeed) public getSender {
-        __before(RESERVED_ID);
+        __before();
 
         maxAmount = between(maxAmount, _before.sender.borrowAmount / 2, _before.sender.borrowAmount);
         maxDueDate = between(maxDueDate, block.timestamp, block.timestamp + MAX_DURATION);
@@ -183,7 +183,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             LendAsLimitOrderParams({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
         );
 
-        __after(RESERVED_ID);
+        __after();
     }
 
     function borrowerExit(uint256 loanId, address borrowerToExitTo) public getSender {
