@@ -296,6 +296,31 @@ export type SelfLiquidateLoanParamsStructOutput = [BigNumber] & {
   loanId: BigNumber;
 };
 
+export type UpdateConfigParamsStruct = {
+  feeRecipient: string;
+  crOpening: BigNumberish;
+  crLiquidation: BigNumberish;
+  collateralPercentagePremiumToLiquidator: BigNumberish;
+  collateralPercentagePremiumToBorrower: BigNumberish;
+  minimumCredit: BigNumberish;
+};
+
+export type UpdateConfigParamsStructOutput = [
+  string,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber
+] & {
+  feeRecipient: string;
+  crOpening: BigNumber;
+  crLiquidation: BigNumber;
+  collateralPercentagePremiumToLiquidator: BigNumber;
+  collateralPercentagePremiumToBorrower: BigNumber;
+  minimumCredit: BigNumber;
+};
+
 export type WithdrawParamsStruct = { token: string; amount: BigNumberish };
 
 export type WithdrawParamsStructOutput = [string, BigNumber] & {
@@ -349,6 +374,7 @@ export interface SizeInterface extends utils.Interface {
     "selfLiquidateLoan((uint256))": FunctionFragment;
     "state()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
+    "updateConfig((address,uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
     "upgradeToAndCall(address,bytes)": FunctionFragment;
     "withdraw((address,uint256))": FunctionFragment;
   };
@@ -399,6 +425,7 @@ export interface SizeInterface extends utils.Interface {
       | "selfLiquidateLoan"
       | "state"
       | "transferOwnership"
+      | "updateConfig"
       | "upgradeToAndCall"
       | "withdraw"
   ): FunctionFragment;
@@ -565,6 +592,10 @@ export interface SizeInterface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "updateConfig",
+    values: [UpdateConfigParamsStruct]
+  ): string;
+  encodeFunctionData(
     functionFragment: "upgradeToAndCall",
     values: [string, BytesLike]
   ): string;
@@ -711,6 +742,10 @@ export interface SizeInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "state", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "updateConfig",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -1010,6 +1045,11 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    updateConfig(
+      params: UpdateConfigParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
     upgradeToAndCall(
       newImplementation: string,
       data: BytesLike,
@@ -1226,6 +1266,11 @@ export interface Size extends BaseContract {
 
   transferOwnership(
     newOwner: string,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
+  updateConfig(
+    params: UpdateConfigParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1449,6 +1494,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    updateConfig(
+      params: UpdateConfigParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     upgradeToAndCall(
       newImplementation: string,
       data: BytesLike,
@@ -1662,6 +1712,11 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
+    updateConfig(
+      params: UpdateConfigParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
     upgradeToAndCall(
       newImplementation: string,
       data: BytesLike,
@@ -1856,6 +1911,11 @@ export interface Size extends BaseContract {
 
     transferOwnership(
       newOwner: string,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    updateConfig(
+      params: UpdateConfigParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
