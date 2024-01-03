@@ -46,31 +46,32 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     function crOpening() external view returns (uint256) {
-        return state.crOpening;
+        return state.config.crOpening;
     }
 
     function crLiquidation() external view returns (uint256) {
-        return state.crLiquidation;
+        return state.config.crLiquidation;
     }
 
     function collateralPercentagePremiumToLiquidator() external view returns (uint256) {
-        return state.collateralPercentagePremiumToLiquidator;
+        return state.config.collateralPercentagePremiumToLiquidator;
     }
 
     function collateralPercentagePremiumToBorrower() external view returns (uint256) {
-        return state.collateralPercentagePremiumToBorrower;
+        return state.config.collateralPercentagePremiumToBorrower;
     }
 
     function collateralPercentagePremiumToProtocol() external view returns (uint256) {
-        return PERCENT - (state.collateralPercentagePremiumToBorrower + state.collateralPercentagePremiumToLiquidator);
+        return PERCENT
+            - (state.config.collateralPercentagePremiumToBorrower + state.config.collateralPercentagePremiumToLiquidator);
     }
 
     function getUserView(address user) public view returns (UserView memory) {
         return UserView({
             user: state.users[user],
-            collateralAmount: state.collateralToken.balanceOf(user),
-            borrowAmount: state.borrowToken.balanceOf(user),
-            debtAmount: state.debtToken.balanceOf(user)
+            collateralAmount: state.tokens.collateralToken.balanceOf(user),
+            borrowAmount: state.tokens.borrowToken.balanceOf(user),
+            debtAmount: state.tokens.debtToken.balanceOf(user)
         });
     }
 
@@ -107,22 +108,22 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     function minimumCredit() public view returns (uint256) {
-        return state.minimumCredit;
+        return state.config.minimumCredit;
     }
 
     function getProtocolVault() public view returns (uint256, uint256, uint256) {
         return (
-            state.collateralToken.balanceOf(state.protocolVault),
-            state.borrowToken.balanceOf(state.protocolVault),
-            state.debtToken.balanceOf(state.protocolVault)
+            state.tokens.collateralToken.balanceOf(state.vaults.protocol),
+            state.tokens.borrowToken.balanceOf(state.vaults.protocol),
+            state.tokens.debtToken.balanceOf(state.vaults.protocol)
         );
     }
 
     function getFeeRecipient() public view returns (uint256, uint256, uint256) {
         return (
-            state.collateralToken.balanceOf(state.feeRecipient),
-            state.borrowToken.balanceOf(state.feeRecipient),
-            state.debtToken.balanceOf(state.feeRecipient)
+            state.tokens.collateralToken.balanceOf(state.config.feeRecipient),
+            state.tokens.borrowToken.balanceOf(state.config.feeRecipient),
+            state.tokens.debtToken.balanceOf(state.config.feeRecipient)
         );
     }
 }

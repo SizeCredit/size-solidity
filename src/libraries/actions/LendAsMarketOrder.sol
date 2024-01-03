@@ -46,8 +46,8 @@ library LendAsMarketOrder {
         if (amountIn > borrowOffer.maxAmount) {
             revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(amountIn, borrowOffer.maxAmount);
         }
-        if (state.borrowToken.balanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(msg.sender), amountIn);
+        if (state.tokens.borrowToken.balanceOf(msg.sender) < amountIn) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.tokens.borrowToken.balanceOf(msg.sender), amountIn);
         }
 
         // validate exactAmountIn
@@ -70,9 +70,9 @@ library LendAsMarketOrder {
             amountIn = FixedPointMathLib.mulDivUp(params.amount, PERCENT, r);
         }
 
-        state.debtToken.mint(params.borrower, faceValue);
+        state.tokens.debtToken.mint(params.borrower, faceValue);
         state.createFOL({lender: msg.sender, borrower: params.borrower, faceValue: faceValue, dueDate: params.dueDate});
-        state.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
+        state.tokens.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
         borrowOffer.maxAmount -= amountIn;
     }
 }

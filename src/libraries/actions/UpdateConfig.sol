@@ -58,11 +58,11 @@ library UpdateConfig {
     }
 
     function executeUpdateConfig(State storage state, UpdateConfigParams memory params) external {
-        state.feeRecipient = params.feeRecipient;
-        state.crOpening = params.crOpening;
-        state.crLiquidation = params.crLiquidation;
-        state.collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;
-        state.collateralPercentagePremiumToBorrower = params.collateralPercentagePremiumToBorrower;
-        state.minimumCredit = params.minimumCredit;
+        state.config.feeRecipient = params.feeRecipient;
+        state.config.crOpening = params.crOpening;
+        state.config.crLiquidation = params.crLiquidation;
+        state.config.collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;
+        state.config.collateralPercentagePremiumToBorrower = params.collateralPercentagePremiumToBorrower;
+        state.config.minimumCredit = params.minimumCredit;
     }
 }

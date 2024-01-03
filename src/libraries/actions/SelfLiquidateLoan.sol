@@ -24,8 +24,9 @@ library SelfLiquidateLoan {
     function validateSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
         uint256 assignedCollateral = state.getAssignedCollateral(loan);
-        uint256 debtCollateral =
-            FixedPointMathLib.mulDivDown(loan.getDebt(), 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
+        uint256 debtCollateral = FixedPointMathLib.mulDivDown(
+            loan.getDebt(), 10 ** state.config.priceFeed.decimals(), state.config.priceFeed.getPrice()
+        );
 
         // validate msg.sender
         if (msg.sender != loan.lender) {
@@ -52,18 +53,18 @@ library SelfLiquidateLoan {
 
         Loan storage loan = state.loans[params.loanId];
 
-        // credit := faceValue - exited :>= state.minimumCredit (by construction, see createSOL)
+        // credit := faceValue - exited :>= state.config.minimumCredit (by construction, see createSOL)
         uint256 credit = loan.getCredit();
         Loan storage fol = state.getFOL(loan);
 
         uint256 assignedCollateral = state.getAssignedCollateral(loan);
-        state.collateralToken.transferFrom(fol.borrower, msg.sender, assignedCollateral);
-        state.debtToken.burn(fol.borrower, credit);
+        state.tokens.collateralToken.transferFrom(fol.borrower, msg.sender, assignedCollateral);
+        state.tokens.debtToken.burn(fol.borrower, credit);
 
         if (loan.isFOL()) {
             // loan.faceValue := loan.faceValueExited
             //                 = 0, if no exits
-            //                >= state.minimumCredit, if at least 1 exit
+            //                >= state.config.minimumCredit, if at least 1 exit
             loan.faceValue -= credit;
         } else {
             // same
@@ -71,7 +72,7 @@ library SelfLiquidateLoan {
 
             // deducting faceValue and faceValueExited by the same amount does not change the credit,
             //   since it is the difference between these two values
-            // so fol.getCredit() >= state.minimumCredit still
+            // so fol.getCredit() >= state.config.minimumCredit still
             fol.faceValue -= credit;
             fol.faceValueExited -= credit;
         }

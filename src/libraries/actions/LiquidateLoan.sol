@@ -24,8 +24,9 @@ library LiquidateLoan {
     function validateLiquidateLoan(State storage state, LiquidateLoanParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
         uint256 assignedCollateral = state.getAssignedCollateral(loan);
-        uint256 debtCollateral =
-            FixedPointMathLib.mulDivDown(loan.getDebt(), 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
+        uint256 debtCollateral = FixedPointMathLib.mulDivDown(
+            loan.getDebt(), 10 ** state.config.priceFeed.decimals(), state.config.priceFeed.getPrice()
+        );
 
         // validate msg.sender
 
@@ -55,23 +56,28 @@ library LiquidateLoan {
 
         uint256 assignedCollateral = state.getAssignedCollateral(fol);
         uint256 debtBorrowAsset = fol.getDebt();
-        uint256 debtCollateral =
-            FixedPointMathLib.mulDivDown(debtBorrowAsset, 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
+        uint256 debtCollateral = FixedPointMathLib.mulDivDown(
+            debtBorrowAsset, 10 ** state.config.priceFeed.decimals(), state.config.priceFeed.getPrice()
+        );
         uint256 collateralRemainder = assignedCollateral - debtCollateral;
 
-        uint256 collateralRemainderToLiquidator =
-            FixedPointMathLib.mulDivDown(collateralRemainder, state.collateralPercentagePremiumToLiquidator, PERCENT);
-        uint256 collateralRemainderToBorrower =
-            FixedPointMathLib.mulDivDown(collateralRemainder, state.collateralPercentagePremiumToBorrower, PERCENT);
+        uint256 collateralRemainderToLiquidator = FixedPointMathLib.mulDivDown(
+            collateralRemainder, state.config.collateralPercentagePremiumToLiquidator, PERCENT
+        );
+        uint256 collateralRemainderToBorrower = FixedPointMathLib.mulDivDown(
+            collateralRemainder, state.config.collateralPercentagePremiumToBorrower, PERCENT
+        );
         uint256 collateralRemainderToProtocol =
             collateralRemainder - collateralRemainderToLiquidator - collateralRemainderToBorrower;
 
         uint256 liquidatorProfitCollateralAsset = debtCollateral + collateralRemainderToLiquidator;
 
-        state.collateralToken.transferFrom(fol.borrower, state.feeRecipient, collateralRemainderToProtocol);
-        state.collateralToken.transferFrom(fol.borrower, msg.sender, liquidatorProfitCollateralAsset);
-        state.borrowToken.transferFrom(msg.sender, state.protocolVault, debtBorrowAsset);
-        state.debtToken.burn(fol.borrower, debtBorrowAsset);
+        state.tokens.collateralToken.transferFrom(
+            fol.borrower, state.config.feeRecipient, collateralRemainderToProtocol
+        );
+        state.tokens.collateralToken.transferFrom(fol.borrower, msg.sender, liquidatorProfitCollateralAsset);
+        state.tokens.borrowToken.transferFrom(msg.sender, state.vaults.protocol, debtBorrowAsset);
+        state.tokens.debtToken.burn(fol.borrower, debtBorrowAsset);
         fol.repaid = true;
 
         return liquidatorProfitCollateralAsset;

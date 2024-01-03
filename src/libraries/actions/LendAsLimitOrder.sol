@@ -24,8 +24,8 @@ library LendAsLimitOrder {
         if (params.maxAmount == 0) {
             revert Errors.NULL_AMOUNT();
         }
-        if (params.maxAmount > state.borrowToken.balanceOf(msg.sender)) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(msg.sender), params.maxAmount);
+        if (params.maxAmount > state.tokens.borrowToken.balanceOf(msg.sender)) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.tokens.borrowToken.balanceOf(msg.sender), params.maxAmount);
         }
 
         // validate maxDueDate

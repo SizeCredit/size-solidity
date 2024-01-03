@@ -35,7 +35,7 @@ library Claim {
     function executeClaim(State storage state, ClaimParams calldata params) external {
         Loan storage loan = state.loans[params.loanId];
 
-        state.borrowToken.transferFrom(state.protocolVault, msg.sender, loan.getCredit());
+        state.tokens.borrowToken.transferFrom(state.vaults.protocol, msg.sender, loan.getCredit());
         loan.faceValueExited = loan.faceValue;
 
         emit Events.Claim(params.loanId);

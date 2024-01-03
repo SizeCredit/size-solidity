@@ -69,10 +69,12 @@ library LiquidateLoanWithReplacement {
         fol.borrower = params.borrower;
         fol.repaid = false;
 
-        state.debtToken.mint(params.borrower, faceValue);
-        state.borrowToken.transferFrom(state.protocolVault, params.borrower, amountOut);
-        // TODO evaliate who gets this profit, msg.sender or state.feeRecipient
-        state.borrowToken.transferFrom(state.protocolVault, state.feeRecipient, liquidatorProfitBorrowAsset);
+        state.tokens.debtToken.mint(params.borrower, faceValue);
+        state.tokens.borrowToken.transferFrom(state.vaults.protocol, params.borrower, amountOut);
+        // TODO evaliate who gets this profit, msg.sender or state.config.feeRecipient
+        state.tokens.borrowToken.transferFrom(
+            state.vaults.protocol, state.config.feeRecipient, liquidatorProfitBorrowAsset
+        );
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

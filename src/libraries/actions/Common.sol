@@ -11,8 +11,8 @@ library Common {
     using LoanLibrary for Loan;
 
     function validateMinimumCredit(State storage state, uint256 credit) public view {
-        if (credit < state.minimumCredit) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.minimumCredit);
+        if (credit < state.config.minimumCredit) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.config.minimumCredit);
         }
     }
 
@@ -115,8 +115,8 @@ library Common {
     }
 
     function getAssignedCollateral(State storage state, Loan memory loan) public view returns (uint256) {
-        uint256 debt = state.debtToken.balanceOf(loan.borrower);
-        uint256 collateral = state.collateralToken.balanceOf(loan.borrower);
+        uint256 debt = state.tokens.debtToken.balanceOf(loan.borrower);
+        uint256 collateral = state.tokens.collateralToken.balanceOf(loan.borrower);
         if (debt > 0) {
             return FixedPointMathLib.mulDivDown(collateral, loan.faceValue, debt);
         } else {
@@ -125,9 +125,9 @@ library Common {
     }
 
     function collateralRatio(State storage state, address account) public view returns (uint256) {
-        uint256 collateral = state.collateralToken.balanceOf(account);
-        uint256 debt = state.debtToken.balanceOf(account);
-        uint256 price = state.priceFeed.getPrice();
+        uint256 collateral = state.tokens.collateralToken.balanceOf(account);
+        uint256 debt = state.tokens.debtToken.balanceOf(account);
+        uint256 price = state.config.priceFeed.getPrice();
 
         if (debt > 0) {
             return FixedPointMathLib.mulDivDown(collateral, price, debt);
@@ -137,7 +137,7 @@ library Common {
     }
 
     function isLiquidatable(State storage state, address account) public view returns (bool) {
-        return collateralRatio(state, account) < state.crLiquidation;
+        return collateralRatio(state, account) < state.config.crLiquidation;
     }
 
     function validateUserIsNotLiquidatable(State storage state, address account) external view {
@@ -147,6 +147,6 @@ library Common {
     }
 
     function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
-        return FixedPointMathLib.mulDivUp(faceValue, state.crOpening, state.priceFeed.getPrice());
+        return FixedPointMathLib.mulDivUp(faceValue, state.config.crOpening, state.config.priceFeed.getPrice());
     }
 }

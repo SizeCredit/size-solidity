@@ -100,13 +100,13 @@ library Initialize {
         InitializeParams memory params,
         InitializeExtraParams memory extraParams
     ) external {
-        state.priceFeed = IPriceFeed(params.priceFeed);
-        state.collateralAsset = IERC20Metadata(params.collateralAsset);
-        state.borrowAsset = IERC20Metadata(params.borrowAsset);
-        state.collateralToken = CollateralToken(params.collateralToken);
-        state.borrowToken = BorrowToken(params.borrowToken);
-        state.debtToken = DebtToken(params.debtToken);
-        state.protocolVault = params.protocolVault;
+        state.config.priceFeed = IPriceFeed(params.priceFeed);
+        state.tokens.collateralAsset = IERC20Metadata(params.collateralAsset);
+        state.tokens.borrowAsset = IERC20Metadata(params.borrowAsset);
+        state.tokens.collateralToken = CollateralToken(params.collateralToken);
+        state.tokens.borrowToken = BorrowToken(params.borrowToken);
+        state.tokens.debtToken = DebtToken(params.debtToken);
+        state.vaults.protocol = params.protocolVault;
 
         state.executeUpdateConfig(
             UpdateConfigParams({

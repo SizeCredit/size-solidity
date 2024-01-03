@@ -10,23 +10,40 @@ import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
-struct State {
-    mapping(address => User) users;
-    Loan[] loans;
-    VariableLoan[] variableLoans;
-    IPriceFeed priceFeed;
+struct Tokens {
     IERC20Metadata collateralAsset;
     IERC20Metadata borrowAsset;
     CollateralToken collateralToken;
     BorrowToken borrowToken;
     DebtToken debtToken;
+}
+
+struct Vaults {
+    address protocol;
+    address insurance;
+}
+
+struct Config {
+    IPriceFeed priceFeed;
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 collateralPercentagePremiumToLiquidator;
     uint256 collateralPercentagePremiumToBorrower;
-    address protocolVault;
-    address feeRecipient;
     uint256 minimumCredit;
+    address feeRecipient;
+}
+
+struct State {
+    // slot 0
+    mapping(address => User) users;
+    // slot 1
+    Loan[] loans;
+    // slot 2
+    VariableLoan[] variableLoans;
+    // slot
+    Tokens tokens;
+    Vaults vaults;
+    Config config;
 }
 
 abstract contract SizeStorage {

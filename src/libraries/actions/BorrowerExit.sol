@@ -38,8 +38,8 @@ library BorrowerExit {
         if (msg.sender != fol.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, fol.borrower);
         }
-        if (state.borrowToken.balanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowToken.balanceOf(msg.sender), amountIn);
+        if (state.tokens.borrowToken.balanceOf(msg.sender) < amountIn) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.tokens.borrowToken.balanceOf(msg.sender), amountIn);
         }
 
         // validate loanId
@@ -67,8 +67,8 @@ library BorrowerExit {
         uint256 faceValue = fol.faceValue;
         uint256 amountIn = FixedPointMathLib.mulDivUp(faceValue, PERCENT, r);
 
-        state.borrowToken.transferFrom(msg.sender, params.borrowerToExitTo, amountIn);
-        state.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
+        state.tokens.borrowToken.transferFrom(msg.sender, params.borrowerToExitTo, amountIn);
+        state.tokens.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
         fol.borrower = params.borrowerToExitTo;
         borrowOffer.maxAmount -= amountIn;
     }

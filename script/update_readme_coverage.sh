@@ -2,7 +2,7 @@
 
 set -eu
 
-forge coverage --ir-minimum > COVERAGE.txt
+forge coverage > COVERAGE.txt
 
 BEGIN=$(grep -n BEGIN_COVERAGE README.md | cut -d : -f 1)
 END=$(grep -n END_COVERAGE README.md | cut -d : -f 1)

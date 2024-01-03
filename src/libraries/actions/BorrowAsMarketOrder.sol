@@ -128,7 +128,7 @@ library BorrowAsMarketOrder {
                 borrower: msg.sender,
                 faceValue: deltaAmountIn
             });
-            state.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
+            state.tokens.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
         }
@@ -152,13 +152,15 @@ library BorrowAsMarketOrder {
         uint256 faceValue = FixedPointMathLib.mulDivUp(params.amount, r, PERCENT);
         uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(faceValue);
 
-        if (state.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {
-            revert Errors.INSUFFICIENT_COLLATERAL(state.collateralToken.balanceOf(msg.sender), minimumCollateralOpening);
+        if (state.tokens.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {
+            revert Errors.INSUFFICIENT_COLLATERAL(
+                state.tokens.collateralToken.balanceOf(msg.sender), minimumCollateralOpening
+            );
         }
 
-        state.debtToken.mint(msg.sender, faceValue);
+        state.tokens.debtToken.mint(msg.sender, faceValue);
         state.createFOL({lender: params.lender, borrower: msg.sender, faceValue: faceValue, dueDate: params.dueDate});
-        state.borrowToken.transferFrom(params.lender, msg.sender, params.amount);
+        state.tokens.borrowToken.transferFrom(params.lender, msg.sender, params.amount);
         loanOffer.maxAmount -= params.amount;
     }
 }
