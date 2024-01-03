@@ -31,6 +31,7 @@ library Errors {
 
     error BORROWER_IS_NOT_LENDER(address borrower, address lender);
     error LIQUIDATOR_IS_NOT_BORROWER(address liquidator, address borrower);
+    error LIQUIDATOR_IS_NOT_LENDER(address liquidator, address lender);
     error EXITER_IS_NOT_LENDER(address exiter, address lender);
     error EXITER_IS_NOT_BORROWER(address exiter, address borrower);
     error REPAYER_IS_NOT_BORROWER(address repayer, address borrower);

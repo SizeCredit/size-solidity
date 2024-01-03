@@ -65,7 +65,8 @@ References
 - TODO: add updateConfig tests
 - TODO: claim available to anyone
 - TODO: liquidation has a parameter for CR in case they/bot wants
-- Claim only before due date?
+- TODO: origination fee
+- TODO: multicall
 
 - invariant tests
 - add more unit tests where block.timestamp is e.g. "December 29, 2023", so that it is more realistic

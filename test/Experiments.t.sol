@@ -245,7 +245,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertGt(size.getLoan(0).faceValue, 0, "Loan faceValue should be greater than 0");
         assertEq(_state().bob.collateralAmount, 0, "Bob should have no free ETH initially");
 
-        _selfLiquidateLoan(alice, 0);
+        _selfLiquidateLoan(bob, 0);
 
         // Assert post-liquidation conditions
         assertGt(_state().bob.collateralAmount, 0, "Bob should have free ETH after self liquidation");

@@ -26,11 +26,11 @@ contract SelfLiquidateLoanValidationTest is BaseTest {
         _borrowAsMarketOrder(bob, candy, 100e18, 12);
 
         vm.startPrank(james);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATOR_IS_NOT_BORROWER.selector, james, bob));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATOR_IS_NOT_LENDER.selector, james, alice));
         size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
         vm.stopPrank();
 
-        vm.startPrank(bob);
+        vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, 1.5e18));
         size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
         vm.stopPrank();
@@ -41,7 +41,7 @@ contract SelfLiquidateLoanValidationTest is BaseTest {
         uint256 debtCollateral =
             FixedPointMathLib.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
-        vm.startPrank(bob);
+        vm.startPrank(alice);
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, loanId, assignedCollateral, debtCollateral)
         );
@@ -51,7 +51,7 @@ contract SelfLiquidateLoanValidationTest is BaseTest {
         _repay(bob, loanId);
         _setPrice(0.25e18);
 
-        vm.startPrank(bob);
+        vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_STATUS.selector, loanId, LoanStatus.REPAID));
         size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
         vm.stopPrank();

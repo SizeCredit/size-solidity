@@ -2,10 +2,6 @@
 pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
-import {console2 as console} from "forge-std/console2.sol";
-
-import {Errors} from "@src/libraries/Errors.sol";
-import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 
 contract SelfLiquidateLoanTest is BaseTest {
     function test_SelfLiquidateLoan_selfliquidateLoan_rapays_with_collateral() public {
@@ -34,7 +30,7 @@ contract SelfLiquidateLoanTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _selfLiquidateLoan(bob, loanId);
+        _selfLiquidateLoan(alice, loanId);
 
         Vars memory _after = _state();
 
@@ -76,11 +72,11 @@ contract SelfLiquidateLoanTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _selfLiquidateLoan(alice, solId);
+        _selfLiquidateLoan(candy, solId);
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.collateralAmount, _before.alice.collateralAmount - 150e18, 0);
+        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - 150e18, 0);
         assertEq(_after.candy.collateralAmount, _before.candy.collateralAmount + 150e18);
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e18);
     }
@@ -95,7 +91,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
 
         _setPrice(0.0001e18);
-        _selfLiquidateLoan(bob, loanId);
+        _selfLiquidateLoan(alice, loanId);
     }
 
     function test_SelfLiquidateLoan_selfliquidateLoan_FOL_should_not_leave_dust_loan_when_exits() public {
@@ -125,7 +121,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(size.getLoan(loanId).faceValueExited, 5e18);
         assertEq(size.getCredit(loanId), 45e18);
 
-        _selfLiquidateLoan(bob, loanId);
+        _selfLiquidateLoan(alice, loanId);
 
         assertEq(size.getLoan(loanId).faceValue, 5e18);
         assertEq(size.getLoan(loanId).faceValueExited, 5e18);
@@ -137,7 +133,7 @@ contract SelfLiquidateLoanTest is BaseTest {
 
         _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 150e18);
+        _deposit(bob, weth, 300e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
         _deposit(candy, usdc, 100e6);
@@ -155,11 +151,11 @@ contract SelfLiquidateLoanTest is BaseTest {
 
         _setPrice(0.25e18);
 
-        _selfLiquidateLoan(alice, solId);
+        _selfLiquidateLoan(candy, solId);
 
         assertEq(size.getCredit(solId), 0);
 
-        _selfLiquidateLoan(candy, solId2);
+        _selfLiquidateLoan(bob, solId2);
 
         assertEq(size.getCredit(solId2), 0);
     }

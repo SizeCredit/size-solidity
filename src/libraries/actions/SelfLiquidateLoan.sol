@@ -28,8 +28,8 @@ library SelfLiquidateLoan {
             FixedPointMathLib.mulDivDown(loan.getDebt(), 10 ** state.priceFeed.decimals(), state.priceFeed.getPrice());
 
         // validate msg.sender
-        if (msg.sender != loan.borrower) {
-            revert Errors.LIQUIDATOR_IS_NOT_BORROWER(msg.sender, loan.borrower);
+        if (msg.sender != loan.lender) {
+            revert Errors.LIQUIDATOR_IS_NOT_LENDER(msg.sender, loan.lender);
         }
 
         // validate loanId
@@ -52,12 +52,12 @@ library SelfLiquidateLoan {
 
         Loan storage loan = state.loans[params.loanId];
 
-        uint256 assignedCollateral = state.getAssignedCollateral(loan);
-        state.collateralToken.transferFrom(msg.sender, loan.lender, assignedCollateral);
-
         // credit := faceValue - exited :>= state.minimumCredit (by construction, see createSOL)
         uint256 credit = loan.getCredit();
         Loan storage fol = state.getFOL(loan);
+
+        uint256 assignedCollateral = state.getAssignedCollateral(loan);
+        state.collateralToken.transferFrom(fol.borrower, msg.sender, assignedCollateral);
         state.debtToken.burn(fol.borrower, credit);
 
         if (loan.isFOL()) {
