@@ -7,8 +7,6 @@ import {Loan, LoanLibrary, VariableLoan} from "@src/libraries/LoanLibrary.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
 
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {BorrowAsMarketOrder} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
-import {LiquidateLoan} from "@src/libraries/actions/LiquidateLoan.sol";
 
 struct MoveToVariablePoolParams {
     uint256 loanId;
