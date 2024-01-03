@@ -76,7 +76,7 @@ library LiquidateLoan {
             fol.borrower, state.config.feeRecipient, collateralRemainderToProtocol
         );
         state.tokens.collateralToken.transferFrom(fol.borrower, msg.sender, liquidatorProfitCollateralAsset);
-        state.tokens.borrowToken.transferFrom(msg.sender, state.vaults.protocol, debtBorrowAsset);
+        state.tokens.borrowToken.transferFrom(msg.sender, state.vaults.variablePool, debtBorrowAsset);
         state.tokens.debtToken.burn(fol.borrower, debtBorrowAsset);
         fol.repaid = true;
 

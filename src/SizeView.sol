@@ -113,9 +113,9 @@ abstract contract SizeView is SizeStorage, ISizeView {
 
     function getProtocolVault() public view returns (uint256, uint256, uint256) {
         return (
-            state.tokens.collateralToken.balanceOf(state.vaults.protocol),
-            state.tokens.borrowToken.balanceOf(state.vaults.protocol),
-            state.tokens.debtToken.balanceOf(state.vaults.protocol)
+            state.tokens.collateralToken.balanceOf(state.vaults.variablePool),
+            state.tokens.borrowToken.balanceOf(state.vaults.variablePool),
+            state.tokens.debtToken.balanceOf(state.vaults.variablePool)
         );
     }
 

@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
-import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {State} from "@src/SizeStorage.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

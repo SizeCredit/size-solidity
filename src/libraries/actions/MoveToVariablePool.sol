@@ -43,7 +43,7 @@ library MoveToVariablePool {
             revert Errors.INSUFFICIENT_COLLATERAL(assignedCollateral, minimumCollateralOpening);
         }
 
-        state.tokens.collateralToken.transferFrom(loan.borrower, state.vaults.protocol, assignedCollateral);
+        state.tokens.collateralToken.transferFrom(loan.borrower, state.vaults.variablePool, assignedCollateral);
         loan.repaid = true;
         state.createVariableLoan({
             borrower: loan.borrower,

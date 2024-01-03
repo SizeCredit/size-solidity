@@ -277,25 +277,8 @@ class SOL(GenericLoan):
     amountFVExited: float = 0
 
 
-class VariablePool:
-    pass
-
-@dataclass
 class VariableLoan:
-    context: Context
-    pool: VariablePool
-    borrower: User
-    amountUSDCLentOut: float
-    amountCollateral: float
-    startTime: int
-    repaid: bool = False
-
-    def getDebtCurrent(self):
-        return self.amountUSDCLentOut * (1 + self.pool.getRatePerUnitTime() * (self.context.time - self.startTime))
-
-    def getCollateralRatio(self):
-        return self.amountCollateral * self.context.price / self.getDebtCurrent()
-
+    pass
 
 @dataclass
 class VariablePool:
@@ -303,57 +286,149 @@ class VariablePool:
     minCollateralRatio: float
     cash: RealCollateral
     eth: RealCollateral
-    activeLoans: Dict[int, VariableLoan] = field(default_factory=dict)
+    deposits: Dict[User, float] = field(default_factory=dict)
+    loans: Dict[int, VariableLoan] = field(default_factory=dict)
     uidLoans: int = 0
+    # Using the same accounting technique of Aave V3
+    liquidityIndex = 1
+    totDeposits: float = 0
+    totLentOut: float = 0
+    minRate: float = 0.1
+    maxRate: float = 1
+    slope: float = 0.1
+    turningPoint: float = 0.9
 
     def setLendingOB(self, ob):
         self.ob = ob
 
-    # NOTE: Rate per time unit
-    def getRatePerUnitTime(self):
-        # TODO: Fix this
-        return 1 / 1 + np.exp(- self.cash.free)
+    def getUtilizationRatio(self):
+        res = self.totLentOut / self.totDeposits if self.totDeposits != 0 else 0
+        assert res >= 0 and res <= 1, "This should never happen"
+        return res
+    def getInterestRate(self):
+        ur = self.getUtilizationRatio()
+        maxLowSlopeRate = self.minRate + self.slope * ur
+        if ur <= self.turningPoint:
+            return maxLowSlopeRate
+        else:
+            slopeHigh = (self.maxRate - maxLowSlopeRate) / (1 - self.turningPoint)
+            return maxLowSlopeRate + slopeHigh * (ur - self.turningPoint)
 
-    # TODO: Finish implementing and fix this
-    def takeLoan(self, borrower: User, amountUSDC: float, amountETH: float, dryRun=False):
-        if  not self.cash.transfer(creditorRealCollateral=borrower.cash, amount=amountUSDC, dryRun=True):
-            print(f"No enough reserves amountUSDC={amountUSDC}, self.cash.free={self.cash.free}")
-            return False, 0
-        if not borrower.eth.lock(amount=amountETH, dryRun=True):
-            print(f"No enough reserves amountETH={amountETH}, borrower.eth.free={borrower.eth.free}")
-            return False, 0
-        if (amountUSDC * self.getRatePerUnitTime()) * self.minCollateralRatio > amountETH * self.context.price:
-            print(f"Collateral not enough amountUSDC={amountUSDC}, amountETH={amountETH}, self.context.price={self.context.price}")
-            return False, 0
-        if dryRun:
-            return True, 0
-        self.cash.transfer(creditorRealCollateral=borrower.cash, amount=amountUSDC)
-        borrower.eth.lock(amount=amountETH)
-        self.activeLoans[self.uidLoans] = VariableLoan(
-            context=self.context,
+    def borrow(self, borrower: User, amountLent: float, amountCollateral: float, recipientOfCash=None, providerOfCollateral=None, withAssert=True):
+        if not myAssert(amountLent > 0, "Can't borrow 0", withAssert):
+            return False
+        BorrowerCROpening = amountCollateral * self.context.price / amountLent
+        CROpening = self.context.params.CROpening
+        if not myAssert(BorrowerCROpening >= CROpening, f"BorrowerCROpening={BorrowerCROpening}, CROpening={CROpening}", withAssert):
+            return False
+        recipient = borrower if recipientOfCash is None else recipientOfCash
+        provider = borrower if providerOfCollateral is None else providerOfCollateral
+        if not myAssert(self.cash.transfer(creditorRealCollateral=recipient.cash, amount=amountLent, dryRun=False), "Not enough reserves", withAssert):
+            return False
+        if not myAssert(provider.eth.transfer(creditorRealCollateral=self.eth, amount=amountCollateral, dryRun=False), "Not enough collateral", withAssert):
+            return False
+        loan = VariableLoan(
             pool=self,
             borrower=borrower,
-            amountUSDCLentOut=amountUSDC,
-            amountCollateral=amountETH,
-            startTime=self.context.time)
+            amountUSDCLentOut=amountLent,
+            scaledAmountUSDCLentOut=amountLent / self.liquidityIndex,
+            amountCollateral=amountCollateral,
+            startTime=self.context.time
+        )
+        self.loans[self.uidLoans] = loan
         self.uidLoans += 1
-        return True, self.uidLoans-1
+        return True
+
+    def isLiquidatable(self, loanId: int):
+        loan = self.loans[loanId]
+        return (loan.repaid == False) and (loan.getCollateralRatio() < self.context.params.CRLiquidation)
 
     def repay(self, loanId: int):
-        loan = self.activeLoans[loanId]
-        if loan.repaid:
-            print(f"Loan already repaid loanId={loanId}")
-            return False
-        if not loan.borrower.cash.transfer(creditorRealCollateral=self.cash, amount=loan.getDentCurrent(), dryRun=True):
-            print(f"Not enough cash to repay loanId={loanId}")
-            return False
-        if not loan.borrower.eth.unlock(amount=loan.amountCollateral, dryRun=True):
-            print(f"Not enough ETH to repay loanId={loanId}")
-            return False
-        loan.borrower.cash.transfer(creditorRealCollateral=self.cash, amount=loan.getDentCurrent())
-        loan.borrower.eth.unlock(amount=loan.amountCollateral)
+        loan = self.loans[loanId]
+        assert loan.repaid == False, "Loan already repaid"
+        assert loan.borrower.cash.transfer(creditorRealCollateral=self.cash, amount=loan.getDebtCurrent(), dryRun=False), "Not enough cash"
+        assert self.eth.transfer(creditorRealCollateral=loan.borrower.eth, amount=loan.amountCollateral, dryRun=False), "Not enough collateral"
         loan.repaid = True
         return True
+
+
+@dataclass
+class VariableLoan:
+    pool: VariablePool
+    borrower: User
+
+    amountUSDCLentOut: float            # Ghost parameter, unnecessary but useful for debugging
+
+    scaledAmountUSDCLentOut: float
+    amountCollateral: float
+    startTime: int
+    repaid: bool = False
+
+    def getDebtCurrent(self):
+        return self.scaledAmountUSDCLentOut * self.pool.liquidityIndex
+
+    def getCollateralRatio(self):
+        return self.amountCollateral * self.context.price / self.getDebtCurrent()
+
+
+
+# @dataclass
+# class VariablePool:
+#     context: Context
+#     minCollateralRatio: float
+#     cash: RealCollateral
+#     eth: RealCollateral
+#     activeLoans: Dict[int, VariableLoan] = field(default_factory=dict)
+#     uidLoans: int = 0
+#
+#     def setLendingOB(self, ob):
+#         self.ob = ob
+#
+#     # NOTE: Rate per time unit
+#     def getRatePerUnitTime(self):
+#         # TODO: Fix this
+#         return 1 / 1 + np.exp(- self.cash.free)
+#
+#     # TODO: Finish implementing and fix this
+#     def takeLoan(self, borrower: User, amountUSDC: float, amountETH: float, dryRun=False):
+#         if  not self.cash.transfer(creditorRealCollateral=borrower.cash, amount=amountUSDC, dryRun=True):
+#             print(f"No enough reserves amountUSDC={amountUSDC}, self.cash.free={self.cash.free}")
+#             return False, 0
+#         if not borrower.eth.lock(amount=amountETH, dryRun=True):
+#             print(f"No enough reserves amountETH={amountETH}, borrower.eth.free={borrower.eth.free}")
+#             return False, 0
+#         if (amountUSDC * self.getRatePerUnitTime()) * self.minCollateralRatio > amountETH * self.context.price:
+#             print(f"Collateral not enough amountUSDC={amountUSDC}, amountETH={amountETH}, self.context.price={self.context.price}")
+#             return False, 0
+#         if dryRun:
+#             return True, 0
+#         self.cash.transfer(creditorRealCollateral=borrower.cash, amount=amountUSDC)
+#         borrower.eth.lock(amount=amountETH)
+#         self.activeLoans[self.uidLoans] = VariableLoan(
+#             context=self.context,
+#             pool=self,
+#             borrower=borrower,
+#             amountUSDCLentOut=amountUSDC,
+#             amountCollateral=amountETH,
+#             startTime=self.context.time)
+#         self.uidLoans += 1
+#         return True, self.uidLoans-1
+#
+#     def repay(self, loanId: int):
+#         loan = self.activeLoans[loanId]
+#         if loan.repaid:
+#             print(f"Loan already repaid loanId={loanId}")
+#             return False
+#         if not loan.borrower.cash.transfer(creditorRealCollateral=self.cash, amount=loan.getDentCurrent(), dryRun=True):
+#             print(f"Not enough cash to repay loanId={loanId}")
+#             return False
+#         if not loan.borrower.eth.unlock(amount=loan.amountCollateral, dryRun=True):
+#             print(f"Not enough ETH to repay loanId={loanId}")
+#             return False
+#         loan.borrower.cash.transfer(creditorRealCollateral=self.cash, amount=loan.getDentCurrent())
+#         loan.borrower.eth.unlock(amount=loan.amountCollateral)
+#         loan.repaid = True
+#         return True
 
 @dataclass
 class AMM:
@@ -846,7 +921,21 @@ class LendingOB:
             self.vp.uidLoans += 1
         return True
 
-    def moveToVariablePool(self, loanId: int, dryRun=True):
+    def moveToVariablePool(self, loanId: int, dryRun=True, withAssert=True):
+        fol = self.activeLoans[loanId]
+        if not fol.isFOL():
+            print(f"WARNING: Invalid loan type")
+            return False
+        # NOTE: In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
+        assignedCollateral = self.getAssignedCollateral(loanId=loanId)
+        # NOTE: Checking Opening Collateral Ratio
+        if not myAssert(self.vp.borrow(borrower=fol.borrower, amountLent=fol.getDebt(), amountCollateral=assignedCollateral, recipientOfCash=self, providerOfCollateral=self, withAssert=withAssert),
+                        "It is not possible to convert the loan from fixed to variable", withAssert):
+            return False
+        fol.repaid = True
+        return True
+
+    def moveToVariablePool1(self, loanId: int, dryRun=True):
         fol = self.activeLoans[loanId]
         if not fol.isFOL():
             print(f"WARNING: Invalid loan type")
@@ -1298,14 +1387,15 @@ class Test:
         self.context.time = 6
         fol = self.ob.activeLoans[0]
         assert fol.isOverdue(), "Loan should be overdue"
-        assert len(self.vp.activeLoans) == 0, "No active VP Loan before"
+        assert len(self.vp.loans) == 0, "No active VP Loan before"
         assert not fol.repaid, "Loan should not be repaid before moving to the variable pool"
         assert self.ob.getUserLockedETH(self.alice) == 0, f"alice.eth.locked={self.ob.getUserLockedETH(self.alice)}"
         temp = self.ob.moveToVariablePool(loanId=0, dryRun=False)
         assert temp, f"Move to variable pool"
         assert fol.repaid, "Loan should be repaid by moving into the variable pool"
-        assert len(self.vp.activeLoans) == 1, "New VP Loan Created"
-        assert self.ob.getUserLockedETH(self.alice) > 0, f"alice.eth.locked={self.ob.getUserLockedETH(self.alice)}"
+        assert len(self.vp.loans) == 1, "New VP Loan Created"
+        # TODO: Update check
+        # assert self.ob.getUserLockedETH(self.alice) > 0, f"alice.eth.locked={self.ob.getUserLockedETH(self.alice)}"
 
 
     def testSL1(self):
@@ -1330,9 +1420,6 @@ class Test:
         print(f"alice.collateralRatio = {self.ob.getBorrowerCollateralRatio(borrower=self.alice)}")
 
         self.context.update(newTime=self.context.time + 1, newPrice=30)
-
-        print(f"alice.collateralRatio = {self.ob.getBorrowerCollateralRatio(borrower=self.alice)}")
-
         assert self.ob.isBorrowerLiquidatable(borrower=self.alice), "Borrower should be eligible"
         fol = self.ob.activeLoans[0]
         assert self.ob.isLoanLiquidatable(loanId=0), "Loan should be liquidatable"
