@@ -15,7 +15,7 @@ Size V2 Solidity
 | src/libraries/actions/BorrowAsLimitOrder.sol           | 100.00% (8/8)    | 100.00% (10/10)   | 100.00% (6/6)    | 100.00% (2/2)    |
 | src/libraries/actions/BorrowAsMarketOrder.sol          | 100.00% (55/55)  | 100.00% (71/71)   | 86.36% (19/22)   | 100.00% (4/4)    |
 | src/libraries/actions/BorrowerExit.sol                 | 96.30% (26/27)   | 97.06% (33/34)    | 70.00% (7/10)    | 100.00% (2/2)    |
-| src/libraries/actions/Claim.sol                        | 100.00% (9/9)    | 100.00% (10/10)   | 75.00% (3/4)     | 100.00% (2/2)    |
+| src/libraries/actions/Claim.sol                        | 100.00% (7/7)    | 100.00% (8/8)     | 50.00% (1/2)     | 100.00% (2/2)    |
 | src/libraries/actions/Common.sol                       | 100.00% (44/44)  | 100.00% (65/65)   | 100.00% (16/16)  | 100.00% (13/13)  |
 | src/libraries/actions/Deposit.sol                      | 100.00% (10/10)  | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/libraries/actions/Initialize.sol                   | 100.00% (25/25)  | 78.79% (26/33)    | 100.00% (16/16)  | 100.00% (2/2)    |
