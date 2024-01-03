@@ -24,15 +24,16 @@ struct Vaults {
 }
 
 struct Config {
-    IPriceFeed priceFeed;
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 collateralPercentagePremiumToLiquidator;
     uint256 collateralPercentagePremiumToBorrower;
     uint256 minimumCredit;
+    IPriceFeed priceFeed;
     address feeRecipient;
 }
 
+// NOTE: changing any of these structs will change the storage layout
 struct State {
     // slot 0
     mapping(address => User) users;

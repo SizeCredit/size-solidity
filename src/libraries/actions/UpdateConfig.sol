@@ -3,11 +3,13 @@ pragma solidity 0.8.20;
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
 struct UpdateConfigParams {
+    address priceFeed;
     address feeRecipient;
     uint256 crOpening;
     uint256 crLiquidation;
@@ -18,6 +20,11 @@ struct UpdateConfigParams {
 
 library UpdateConfig {
     function validateUpdateConfig(State storage, UpdateConfigParams memory params) external pure {
+        // validate price feed
+        if (params.priceFeed == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
         // validate feeRecipient
         if (params.feeRecipient == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -58,11 +65,12 @@ library UpdateConfig {
     }
 
     function executeUpdateConfig(State storage state, UpdateConfigParams memory params) external {
-        state.config.feeRecipient = params.feeRecipient;
         state.config.crOpening = params.crOpening;
         state.config.crLiquidation = params.crLiquidation;
         state.config.collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;
         state.config.collateralPercentagePremiumToBorrower = params.collateralPercentagePremiumToBorrower;
         state.config.minimumCredit = params.minimumCredit;
+        state.config.priceFeed = IPriceFeed(params.priceFeed);
+        state.config.feeRecipient = params.feeRecipient;
     }
 }

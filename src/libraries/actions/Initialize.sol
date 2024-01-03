@@ -9,8 +9,6 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
-import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -48,11 +46,6 @@ library Initialize {
             revert Errors.NULL_ADDRESS();
         }
 
-        // validate price feed
-        if (params.priceFeed == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
         // validate collateral asset
         if (params.collateralAsset == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -85,6 +78,7 @@ library Initialize {
 
         state.validateUpdateConfig(
             UpdateConfigParams({
+                priceFeed: params.priceFeed,
                 feeRecipient: params.feeRecipient,
                 crOpening: extraParams.crOpening,
                 crLiquidation: extraParams.crLiquidation,
@@ -100,7 +94,6 @@ library Initialize {
         InitializeParams memory params,
         InitializeExtraParams memory extraParams
     ) external {
-        state.config.priceFeed = IPriceFeed(params.priceFeed);
         state.tokens.collateralAsset = IERC20Metadata(params.collateralAsset);
         state.tokens.borrowAsset = IERC20Metadata(params.borrowAsset);
         state.tokens.collateralToken = CollateralToken(params.collateralToken);
@@ -110,6 +103,7 @@ library Initialize {
 
         state.executeUpdateConfig(
             UpdateConfigParams({
+                priceFeed: params.priceFeed,
                 feeRecipient: params.feeRecipient,
                 crOpening: extraParams.crOpening,
                 crLiquidation: extraParams.crLiquidation,
