@@ -24,7 +24,7 @@ contract UpdateConfigTest is BaseTest {
                 crOpening: config.crOpening,
                 crLiquidation: config.crLiquidation,
                 collateralPercentagePremiumToLiquidator: config.collateralPercentagePremiumToLiquidator,
-                collateralPercentagePremiumToBorrower: config.collateralPercentagePremiumToBorrower,
+                collateralPercentagePremiumToProtocol: config.collateralPercentagePremiumToProtocol,
                 minimumCredit: 1e18
             })
         );
@@ -43,7 +43,7 @@ contract UpdateConfigTest is BaseTest {
                 crOpening: config.crOpening,
                 crLiquidation: config.crLiquidation,
                 collateralPercentagePremiumToLiquidator: config.collateralPercentagePremiumToLiquidator,
-                collateralPercentagePremiumToBorrower: config.collateralPercentagePremiumToBorrower,
+                collateralPercentagePremiumToProtocol: config.collateralPercentagePremiumToProtocol,
                 minimumCredit: 1e18
             })
         );

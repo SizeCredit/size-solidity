@@ -255,8 +255,12 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     }
 
     function _liquidateLoan(address user, uint256 loanId) internal returns (uint256) {
+        return _liquidateLoan(user, loanId, 1e18);
+    }
+
+    function _liquidateLoan(address user, uint256 loanId, uint256 minimumCollateralRatio) internal returns (uint256) {
         vm.prank(user);
-        return size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+        return size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
     }
 
     function _selfLiquidateLoan(address user, uint256 loanId) internal {
@@ -268,9 +272,23 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         internal
         returns (uint256, uint256)
     {
+        return _liquidateLoanWithReplacement(user, loanId, borrower, 1e18);
+    }
+
+    function _liquidateLoanWithReplacement(
+        address user,
+        uint256 loanId,
+        address borrower,
+        uint256 minimumCollateralRatio
+    ) internal returns (uint256, uint256) {
         vm.prank(user);
-        return
-            size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
+        return size.liquidateLoanWithReplacement(
+            LiquidateLoanWithReplacementParams({
+                loanId: loanId,
+                borrower: borrower,
+                minimumCollateralRatio: minimumCollateralRatio
+            })
+        );
     }
 
     function _moveToVariablePool(address user, uint256 loanId) internal {

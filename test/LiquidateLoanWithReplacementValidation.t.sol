@@ -22,19 +22,32 @@ contract LiquidateLoanWithReplacementValidationTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
         _borrowAsLimitOrder(candy, 100e18, 0.03e18, 4);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
+        uint256 minimumCollateralRatio = 1e18;
 
         _setPrice(0.2e18);
 
         vm.startPrank(liquidator);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, james));
-        size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: james}));
+        size.liquidateLoanWithReplacement(
+            LiquidateLoanWithReplacementParams({
+                loanId: loanId,
+                borrower: james,
+                minimumCollateralRatio: minimumCollateralRatio
+            })
+        );
 
         vm.warp(block.timestamp + 12);
 
         vm.expectRevert(
             abi.encodeWithSelector(Errors.INVALID_LOAN_STATUS.selector, loanId, LoanStatus.OVERDUE, LoanStatus.ACTIVE)
         );
-        size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: candy}));
+        size.liquidateLoanWithReplacement(
+            LiquidateLoanWithReplacementParams({
+                loanId: loanId,
+                borrower: candy,
+                minimumCollateralRatio: minimumCollateralRatio
+            })
+        );
     }
 }

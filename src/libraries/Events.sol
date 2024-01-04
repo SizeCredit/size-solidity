@@ -26,7 +26,7 @@ library Events {
     event LenderExit(uint256 indexed loanId, uint256 amount, uint256 dueDate, address[] lendersToExitTo);
     event Repay(uint256 indexed loanId);
     event Claim(uint256 indexed loanId);
-    event LiquidateLoan(uint256 indexed loanId);
+    event LiquidateLoan(uint256 indexed loanId, uint256 assignedCollateral, uint256 debtCollateral);
     event SelfLiquidateLoan(uint256 indexed loanId);
-    event LiquidateLoanWithReplacement(uint256 indexed loanId, address indexed liquidator, address indexed borrower);
+    event LiquidateLoanWithReplacement(uint256 indexed loanId, address indexed borrower);
 }

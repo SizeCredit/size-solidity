@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
-
 import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
-import {LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
 
 contract LiquidateLoanTest is BaseTest {
     function test_LiquidateLoan_liquidateLoan_seizes_borrower_collateral() public {
@@ -119,5 +116,31 @@ contract LiquidateLoanTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt, 0);
+    }
+
+    function test_LiquidateLoan_liquidateLoan_can_be_called_unprofitably() public {
+        _setPrice(1e18);
+
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _deposit(liquidator, 1000e18, 1000e18);
+
+        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        uint256 amount = 15e18;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
+
+        _setPrice(0.1e18);
+
+        assertTrue(size.isLiquidatable(loanId));
+        uint256 assignedCollateral = size.getAssignedCollateral(loanId);
+        uint256 debtCollateral =
+            FixedPointMathLib.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
+
+        uint256 liquidatorProfit = _liquidateLoan(liquidator, loanId, 0);
+
+        assertLt(liquidatorProfit, debtCollateral);
+        assertEq(liquidatorProfit, assignedCollateral);
+        assertEq(size.getAssignedCollateral(loanId), 0);
+        assertEq(size.getUserView(bob).collateralAmount, 0);
     }
 }

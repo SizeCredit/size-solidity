@@ -19,6 +19,7 @@ import {Events} from "@src/libraries/Events.sol";
 struct LiquidateLoanWithReplacementParams {
     uint256 loanId;
     address borrower;
+    uint256 minimumCollateralRatio;
 }
 
 library LiquidateLoanWithReplacement {
@@ -35,7 +36,9 @@ library LiquidateLoanWithReplacement {
         BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
 
         // validate liquidateLoan
-        state.validateLiquidateLoan(LiquidateLoanParams({loanId: params.loanId}));
+        state.validateLiquidateLoan(
+            LiquidateLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
+        );
 
         // validate loanId
         if (state.getLoanStatus(loan) != LoanStatus.ACTIVE) {
@@ -57,8 +60,9 @@ library LiquidateLoanWithReplacement {
         uint256 faceValue = fol.faceValue;
         uint256 dueDate = fol.dueDate;
 
-        uint256 liquidatorProfitCollateralAsset =
-            state.executeLiquidateLoan(LiquidateLoanParams({loanId: params.loanId}));
+        uint256 liquidatorProfitCollateralAsset = state.executeLiquidateLoan(
+            LiquidateLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
+        );
 
         uint256 r = (PERCENT + borrowOffer.getRate(dueDate));
         uint256 amountOut = FixedPointMathLib.mulDivDown(faceValue, PERCENT, r);

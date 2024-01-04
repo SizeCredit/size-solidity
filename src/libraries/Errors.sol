@@ -52,7 +52,7 @@ library Errors {
     error NOT_LIQUIDATABLE(address account);
     error LOAN_NOT_LIQUIDATABLE_STATUS(uint256 loanId, LoanStatus status);
     error LOAN_NOT_LIQUIDATABLE_CR(uint256 loanId, uint256 cr);
-    error LIQUIDATION_AT_LOSS(uint256 loanId, uint256 assignedCollateral, uint256 debtCollateral);
+    error COLLATERAL_RATIO_BELOW_MINIMUM_COLLATERAL_RATIO(uint256 collateralRatio, uint256 minimumCollateralRatio);
     error LIQUIDATION_NOT_AT_LOSS(uint256 loanId, uint256 assignedCollateral, uint256 debtCollateral);
 
     error INVALID_DECIMALS(uint8 decimals);

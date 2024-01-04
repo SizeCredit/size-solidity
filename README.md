@@ -64,10 +64,8 @@ References
 
 ## TODOs
 
-- TODO: multicall
-- TODO: liquidation has a parameter for CR in case they/bot wants
+- TODO: more scenarios
 - TODO: origination fee & loan fee
-- TODO: loan fee
 - TODO: VP updates
 
 - invariant tests

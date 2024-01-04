@@ -29,7 +29,7 @@ struct InitializeExtraParams {
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 collateralPercentagePremiumToLiquidator;
-    uint256 collateralPercentagePremiumToBorrower;
+    uint256 collateralPercentagePremiumToProtocol;
     uint256 minimumCredit;
 }
 
@@ -83,7 +83,7 @@ library Initialize {
                 crOpening: extraParams.crOpening,
                 crLiquidation: extraParams.crLiquidation,
                 collateralPercentagePremiumToLiquidator: extraParams.collateralPercentagePremiumToLiquidator,
-                collateralPercentagePremiumToBorrower: extraParams.collateralPercentagePremiumToBorrower,
+                collateralPercentagePremiumToProtocol: extraParams.collateralPercentagePremiumToProtocol,
                 minimumCredit: extraParams.minimumCredit
             })
         );
@@ -108,7 +108,7 @@ library Initialize {
                 crOpening: extraParams.crOpening,
                 crLiquidation: extraParams.crLiquidation,
                 collateralPercentagePremiumToLiquidator: extraParams.collateralPercentagePremiumToLiquidator,
-                collateralPercentagePremiumToBorrower: extraParams.collateralPercentagePremiumToBorrower,
+                collateralPercentagePremiumToProtocol: extraParams.collateralPercentagePremiumToProtocol,
                 minimumCredit: extraParams.minimumCredit
             })
         );

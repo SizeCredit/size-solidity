@@ -57,13 +57,13 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return state.config.collateralPercentagePremiumToLiquidator;
     }
 
-    function collateralPercentagePremiumToBorrower() external view returns (uint256) {
-        return state.config.collateralPercentagePremiumToBorrower;
+    function collateralPercentagePremiumToProtocol() external view returns (uint256) {
+        return state.config.collateralPercentagePremiumToProtocol;
     }
 
-    function collateralPercentagePremiumToProtocol() external view returns (uint256) {
-        return PERCENT
-            - (state.config.collateralPercentagePremiumToBorrower + state.config.collateralPercentagePremiumToLiquidator);
+    function collateralPercentagePremiumToBorrower() external view returns (uint256) {
+        return PERCENT - state.config.collateralPercentagePremiumToProtocol
+            - state.config.collateralPercentagePremiumToLiquidator;
     }
 
     function getUserView(address user) public view returns (UserView memory) {

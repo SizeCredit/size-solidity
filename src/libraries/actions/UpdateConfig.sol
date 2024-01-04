@@ -14,7 +14,7 @@ struct UpdateConfigParams {
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 collateralPercentagePremiumToLiquidator;
-    uint256 collateralPercentagePremiumToBorrower;
+    uint256 collateralPercentagePremiumToProtocol;
     uint256 minimumCredit;
 }
 
@@ -48,13 +48,13 @@ library UpdateConfig {
             revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(params.collateralPercentagePremiumToLiquidator);
         }
 
-        // validate collateralPercentagePremiumToBorrower
-        if (params.collateralPercentagePremiumToBorrower > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(params.collateralPercentagePremiumToBorrower);
+        // validate collateralPercentagePremiumToProtocol
+        if (params.collateralPercentagePremiumToProtocol > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(params.collateralPercentagePremiumToProtocol);
         }
-        if (params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToBorrower > PERCENT) {
+        if (params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToProtocol > PERCENT) {
             revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToBorrower
+                params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToProtocol
             );
         }
 
@@ -68,7 +68,7 @@ library UpdateConfig {
         state.config.crOpening = params.crOpening;
         state.config.crLiquidation = params.crLiquidation;
         state.config.collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;
-        state.config.collateralPercentagePremiumToBorrower = params.collateralPercentagePremiumToBorrower;
+        state.config.collateralPercentagePremiumToProtocol = params.collateralPercentagePremiumToProtocol;
         state.config.minimumCredit = params.minimumCredit;
         state.config.priceFeed = IPriceFeed(params.priceFeed);
         state.config.feeRecipient = params.feeRecipient;

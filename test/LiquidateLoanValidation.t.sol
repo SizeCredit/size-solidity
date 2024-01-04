@@ -26,14 +26,15 @@ contract LiquidateLoanValidationTest is BaseTest {
 
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
         uint256 solId = _borrowAsMarketOrder(alice, james, 5e18, 12, [loanId]);
+        uint256 minimumCollateralRatio = 1e18;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, solId, type(uint256).max));
-        size.liquidateLoan(LiquidateLoanParams({loanId: solId}));
+        size.liquidateLoan(LiquidateLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio}));
 
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, size.collateralRatio(bob))
         );
-        size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
 
         _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
         _borrowAsMarketOrder(alice, james, 50e18, 12);
@@ -41,20 +42,12 @@ contract LiquidateLoanValidationTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, size.collateralRatio(bob))
         );
-        size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
 
         _setPrice(0.01e18);
 
-        uint256 assignedCollateral = size.getAssignedCollateral(loanId);
-        uint256 debtCollateral =
-            FixedPointMathLib.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.LIQUIDATION_AT_LOSS.selector, loanId, assignedCollateral, debtCollateral)
-        );
-        size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
-
         vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_LIQUIDATED.selector, solId));
-        size.liquidateLoan(LiquidateLoanParams({loanId: solId}));
+        size.liquidateLoan(LiquidateLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio}));
 
         _setPrice(100e18);
         _repay(bob, loanId);
@@ -63,6 +56,6 @@ contract LiquidateLoanValidationTest is BaseTest {
         _setPrice(0.2e18);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_STATUS.selector, loanId, LoanStatus.REPAID));
-        size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
     }
 }

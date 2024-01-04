@@ -15,6 +15,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct LiquidateLoanParams {
     uint256 loanId;
+    uint256 minimumCollateralRatio;
 }
 
 library LiquidateLoan {
@@ -23,10 +24,6 @@ library LiquidateLoan {
 
     function validateLiquidateLoan(State storage state, LiquidateLoanParams calldata params) external view {
         Loan memory loan = state.loans[params.loanId];
-        uint256 assignedCollateral = state.getAssignedCollateral(loan);
-        uint256 debtCollateral = FixedPointMathLib.mulDivDown(
-            loan.getDebt(), 10 ** state.config.priceFeed.decimals(), state.config.priceFeed.getPrice()
-        );
 
         // validate msg.sender
 
@@ -41,8 +38,12 @@ library LiquidateLoan {
         if (!state.either(loan, [LoanStatus.ACTIVE, LoanStatus.OVERDUE])) {
             revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, state.getLoanStatus(loan));
         }
-        if (assignedCollateral < debtCollateral) {
-            revert Errors.LIQUIDATION_AT_LOSS(params.loanId, assignedCollateral, debtCollateral);
+
+        // validate minimumCollateralRatio
+        if (state.collateralRatio(loan.borrower) < params.minimumCollateralRatio) {
+            revert Errors.COLLATERAL_RATIO_BELOW_MINIMUM_COLLATERAL_RATIO(
+                state.collateralRatio(loan.borrower), params.minimumCollateralRatio
+            );
         }
     }
 
@@ -50,8 +51,6 @@ library LiquidateLoan {
         external
         returns (uint256)
     {
-        emit Events.LiquidateLoan(params.loanId);
-
         Loan storage fol = state.loans[params.loanId];
 
         uint256 assignedCollateral = state.getAssignedCollateral(fol);
@@ -59,22 +58,29 @@ library LiquidateLoan {
         uint256 debtCollateral = FixedPointMathLib.mulDivDown(
             debtBorrowAsset, 10 ** state.config.priceFeed.decimals(), state.config.priceFeed.getPrice()
         );
-        uint256 collateralRemainder = assignedCollateral - debtCollateral;
 
-        uint256 collateralRemainderToLiquidator = FixedPointMathLib.mulDivDown(
-            collateralRemainder, state.config.collateralPercentagePremiumToLiquidator, PERCENT
-        );
-        uint256 collateralRemainderToBorrower = FixedPointMathLib.mulDivDown(
-            collateralRemainder, state.config.collateralPercentagePremiumToBorrower, PERCENT
-        );
-        uint256 collateralRemainderToProtocol =
-            collateralRemainder - collateralRemainderToLiquidator - collateralRemainderToBorrower;
+        emit Events.LiquidateLoan(params.loanId, assignedCollateral, debtCollateral);
 
-        uint256 liquidatorProfitCollateralAsset = debtCollateral + collateralRemainderToLiquidator;
+        uint256 liquidatorProfitCollateralAsset;
+        if (assignedCollateral > debtCollateral) {
+            // split remaining collateral between liquidator and protocol
+            uint256 collateralRemainder = assignedCollateral - debtCollateral;
 
-        state.tokens.collateralToken.transferFrom(
-            fol.borrower, state.config.feeRecipient, collateralRemainderToProtocol
-        );
+            uint256 collateralRemainderToLiquidator = FixedPointMathLib.mulDivDown(
+                collateralRemainder, state.config.collateralPercentagePremiumToLiquidator, PERCENT
+            );
+            uint256 collateralRemainderToProtocol = FixedPointMathLib.mulDivDown(
+                collateralRemainder, state.config.collateralPercentagePremiumToProtocol, PERCENT
+            );
+
+            liquidatorProfitCollateralAsset = debtCollateral + collateralRemainderToLiquidator;
+            state.tokens.collateralToken.transferFrom(
+                fol.borrower, state.config.feeRecipient, collateralRemainderToProtocol
+            );
+        } else {
+            liquidatorProfitCollateralAsset = assignedCollateral;
+        }
+
         state.tokens.collateralToken.transferFrom(fol.borrower, msg.sender, liquidatorProfitCollateralAsset);
         state.tokens.borrowToken.transferFrom(msg.sender, state.config.variablePool, debtBorrowAsset);
         state.tokens.debtToken.burn(fol.borrower, debtBorrowAsset);

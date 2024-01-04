@@ -88,17 +88,17 @@ contract InitializeValidationTest is Test, BaseTest {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
         extraParams.collateralPercentagePremiumToLiquidator = 0.3e18;
 
-        extraParams.collateralPercentagePremiumToBorrower = 1.2e18;
+        extraParams.collateralPercentagePremiumToProtocol = 1.2e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.collateralPercentagePremiumToBorrower = 0.1e18;
+        extraParams.collateralPercentagePremiumToProtocol = 0.1e18;
 
         extraParams.collateralPercentagePremiumToLiquidator = 0.6e18;
-        extraParams.collateralPercentagePremiumToBorrower = 0.6e18;
+        extraParams.collateralPercentagePremiumToProtocol = 0.6e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
         extraParams.collateralPercentagePremiumToLiquidator = 0.3e18;
-        extraParams.collateralPercentagePremiumToBorrower = 0.1e18;
+        extraParams.collateralPercentagePremiumToProtocol = 0.1e18;
 
         extraParams.minimumCredit = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
