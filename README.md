@@ -31,6 +31,7 @@ Size V2 Solidity
 | src/oracle/PriceFeed.sol                               | 100.00% (12/12)  | 100.00% (21/21)   | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/token/NonTransferrableToken.sol                    | 100.00% (8/8)    | 100.00% (9/9)     | 100.00% (0/0)    | 100.00% (6/6)    |
 
+```markdown
 ┌──────────────────────────────┬────────┐
 │           (index)            │ Values │
 ├──────────────────────────────┼────────┤
@@ -59,6 +60,7 @@ Size V2 Solidity
 │         UpdateConfig         │   2    │
 │           Withdraw           │   1    │
 └──────────────────────────────┴────────┘
+```
 <!-- END_COVERAGE -->
 
 ## Test

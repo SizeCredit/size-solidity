@@ -14,7 +14,9 @@ SCENARIOS=$(node -e "
     scenarios[feature] = scenarios[feature] || 0;
     scenarios[feature]++;
   }
+  console.log('\`\`\`markdown');
   console.table(scenarios);
+  console.log('\`\`\`');
 " "$TESTS")
 
 BEGIN=$(grep -n BEGIN_COVERAGE README.md | cut -d : -f 1)
