@@ -296,6 +296,57 @@ export type SelfLiquidateLoanParamsStructOutput = [BigNumber] & {
   loanId: BigNumber;
 };
 
+export type TokensStruct = {
+  collateralAsset: string;
+  borrowAsset: string;
+  collateralToken: string;
+  borrowToken: string;
+  debtToken: string;
+};
+
+export type TokensStructOutput = [string, string, string, string, string] & {
+  collateralAsset: string;
+  borrowAsset: string;
+  collateralToken: string;
+  borrowToken: string;
+  debtToken: string;
+};
+
+export type VaultsStruct = { protocol: string; insurance: string };
+
+export type VaultsStructOutput = [string, string] & {
+  protocol: string;
+  insurance: string;
+};
+
+export type ConfigStruct = {
+  priceFeed: string;
+  crOpening: BigNumberish;
+  crLiquidation: BigNumberish;
+  collateralPercentagePremiumToLiquidator: BigNumberish;
+  collateralPercentagePremiumToBorrower: BigNumberish;
+  minimumCredit: BigNumberish;
+  feeRecipient: string;
+};
+
+export type ConfigStructOutput = [
+  string,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  string
+] & {
+  priceFeed: string;
+  crOpening: BigNumber;
+  crLiquidation: BigNumber;
+  collateralPercentagePremiumToLiquidator: BigNumber;
+  collateralPercentagePremiumToBorrower: BigNumber;
+  minimumCredit: BigNumber;
+  feeRecipient: string;
+};
+
 export type UpdateConfigParamsStruct = {
   feeRecipient: string;
   crOpening: BigNumberish;
@@ -1009,34 +1060,10 @@ export interface Size extends BaseContract {
     state(
       overrides?: CallOverrides
     ): Promise<
-      [
-        string,
-        string,
-        string,
-        string,
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        string,
-        string,
-        BigNumber
-      ] & {
-        priceFeed: string;
-        collateralAsset: string;
-        borrowAsset: string;
-        collateralToken: string;
-        borrowToken: string;
-        debtToken: string;
-        crOpening: BigNumber;
-        crLiquidation: BigNumber;
-        collateralPercentagePremiumToLiquidator: BigNumber;
-        collateralPercentagePremiumToBorrower: BigNumber;
-        protocolVault: string;
-        feeRecipient: string;
-        minimumCredit: BigNumber;
+      [TokensStructOutput, VaultsStructOutput, ConfigStructOutput] & {
+        tokens: TokensStructOutput;
+        vaults: VaultsStructOutput;
+        config: ConfigStructOutput;
       }
     >;
 
@@ -1233,34 +1260,10 @@ export interface Size extends BaseContract {
   state(
     overrides?: CallOverrides
   ): Promise<
-    [
-      string,
-      string,
-      string,
-      string,
-      string,
-      string,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      string,
-      string,
-      BigNumber
-    ] & {
-      priceFeed: string;
-      collateralAsset: string;
-      borrowAsset: string;
-      collateralToken: string;
-      borrowToken: string;
-      debtToken: string;
-      crOpening: BigNumber;
-      crLiquidation: BigNumber;
-      collateralPercentagePremiumToLiquidator: BigNumber;
-      collateralPercentagePremiumToBorrower: BigNumber;
-      protocolVault: string;
-      feeRecipient: string;
-      minimumCredit: BigNumber;
+    [TokensStructOutput, VaultsStructOutput, ConfigStructOutput] & {
+      tokens: TokensStructOutput;
+      vaults: VaultsStructOutput;
+      config: ConfigStructOutput;
     }
   >;
 
@@ -1458,34 +1461,10 @@ export interface Size extends BaseContract {
     state(
       overrides?: CallOverrides
     ): Promise<
-      [
-        string,
-        string,
-        string,
-        string,
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        string,
-        string,
-        BigNumber
-      ] & {
-        priceFeed: string;
-        collateralAsset: string;
-        borrowAsset: string;
-        collateralToken: string;
-        borrowToken: string;
-        debtToken: string;
-        crOpening: BigNumber;
-        crLiquidation: BigNumber;
-        collateralPercentagePremiumToLiquidator: BigNumber;
-        collateralPercentagePremiumToBorrower: BigNumber;
-        protocolVault: string;
-        feeRecipient: string;
-        minimumCredit: BigNumber;
+      [TokensStructOutput, VaultsStructOutput, ConfigStructOutput] & {
+        tokens: TokensStructOutput;
+        vaults: VaultsStructOutput;
+        config: ConfigStructOutput;
       }
     >;
 
