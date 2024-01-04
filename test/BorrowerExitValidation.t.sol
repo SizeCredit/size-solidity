@@ -8,7 +8,7 @@ import {BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract BorrowerExitValidationTest is BaseTest {
-    function test_BorrowerExitValidation() public {
+    function test_BorrowerExit_validation() public {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 100e6);

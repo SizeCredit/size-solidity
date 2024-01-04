@@ -26,7 +26,7 @@ contract PriceFeedTest is Test, AssertsHelper {
         priceFeed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 18, 3600, 86400);
     }
 
-    function test_PriceFeed_validations() public {
+    function test_PriceFeed__validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         new PriceFeed(address(0), address(usdcToUsd), 18, 3600, 86400);
 

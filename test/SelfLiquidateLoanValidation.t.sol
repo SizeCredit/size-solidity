@@ -14,7 +14,7 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract SelfLiquidateLoanValidationTest is BaseTest {
-    function test_SelfLiquidateLoanValidation() public {
+    function test_SelfLiquidateLoan_validation() public {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 100e6);

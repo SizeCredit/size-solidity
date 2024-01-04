@@ -9,7 +9,7 @@ import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract ClaimValidationTest is BaseTest {
-    function test_ClaimValidation() public {
+    function test_Claim_validation() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);

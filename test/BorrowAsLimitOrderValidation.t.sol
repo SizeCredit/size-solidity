@@ -16,7 +16,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract BorrowAsLimitOrderValidationTest is BaseTest {
     using OfferLibrary for BorrowOffer;
 
-    function test_BorrowAsLimitOrderValidation() public {
+    function test_BorrowAsLimitOrder_validation() public {
         _deposit(alice, 100e18, 100e18);
         uint256 maxAmount = 100e18;
         uint256[] memory timeBuckets = new uint256[](2);

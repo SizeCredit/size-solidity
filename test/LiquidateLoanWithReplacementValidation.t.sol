@@ -14,7 +14,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract LiquidateLoanWithReplacementValidationTest is BaseTest {
     using LoanLibrary for Loan;
 
-    function test_LiquidateLoanWithReplacementValidation() public {
+    function test_LiquidateLoanWithReplacement_validation() public {
         _setPrice(1e18);
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);

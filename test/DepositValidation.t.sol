@@ -8,7 +8,7 @@ import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract DepositValidationTest is BaseTest {
-    function test_DepositValidation() public {
+    function test_Deposit_validation() public {
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TOKEN.selector, address(0)));
         size.deposit(DepositParams({token: address(0), amount: 1}));

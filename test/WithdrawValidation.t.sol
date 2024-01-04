@@ -8,7 +8,7 @@ import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract WithdrawValidationTest is BaseTest {
-    function test_WithdrawValidation() public {
+    function test_Withdraw_validation() public {
         _deposit(alice, address(usdc), 1e6);
 
         vm.startPrank(alice);

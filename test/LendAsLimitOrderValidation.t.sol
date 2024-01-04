@@ -15,7 +15,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract LendAsLimitOrderValidationTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
-    function test_LendAsLimitOrderValidation() public {
+    function test_LendAsLimitOrder_validation() public {
         _deposit(alice, address(usdc), 100e6);
         uint256 maxAmount = 100e18;
         uint256 maxDueDate = 12;

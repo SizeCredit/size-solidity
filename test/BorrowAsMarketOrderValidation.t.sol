@@ -16,7 +16,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
     using OfferLibrary for LoanOffer;
     using LoanLibrary for Loan;
 
-    function test_BorrowAsMarketOrderValidation() public {
+    function test_BorrowAsMarketOrder_validation() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);

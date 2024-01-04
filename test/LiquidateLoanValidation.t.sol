@@ -13,7 +13,7 @@ import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract LiquidateLoanValidationTest is BaseTest {
-    function test_LiquidateLoanValidation() public {
+    function test_LiquidateLoan_validation() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);

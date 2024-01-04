@@ -12,7 +12,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract MoveToVariablePoolValidationTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
-    function test_MoveToVariablePoolValidation() public {
+    function test_MoveToVariablePool_validation() public {
         _setPrice(1e18);
         _deposit(alice, address(usdc), 100e6);
         _deposit(bob, address(weth), 150e18);
