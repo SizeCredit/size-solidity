@@ -11,7 +11,7 @@ Size V2 Solidity
 | src/SizeView.sol                                       | 100.00% (26/26)  | 100.00% (37/37)   | 100.00% (0/0)    | 100.00% (24/24)  |
 | src/libraries/LoanLibrary.sol                          | 100.00% (3/3)    | 100.00% (5/5)     | 100.00% (0/0)    | 100.00% (3/3)    |
 | src/libraries/MathLibrary.sol                          | 100.00% (1/1)    | 100.00% (3/3)     | 100.00% (0/0)    | 100.00% (1/1)    |
-| src/libraries/OfferLibrary.sol                         | 100.00% (24/24)  | 100.00% (45/45)   | 87.50% (7/8)     | 100.00% (5/5)    |
+| src/libraries/OfferLibrary.sol                         | 95.83% (23/24)   | 97.78% (44/45)    | 75.00% (6/8)     | 100.00% (5/5)    |
 | src/libraries/actions/BorrowAsLimitOrder.sol           | 100.00% (8/8)    | 100.00% (10/10)   | 100.00% (6/6)    | 100.00% (2/2)    |
 | src/libraries/actions/BorrowAsMarketOrder.sol          | 100.00% (55/55)  | 100.00% (71/71)   | 90.91% (20/22)   | 100.00% (4/4)    |
 | src/libraries/actions/BorrowerExit.sol                 | 96.30% (26/27)   | 97.06% (33/34)    | 80.00% (8/10)    | 100.00% (2/2)    |
@@ -30,6 +30,35 @@ Size V2 Solidity
 | src/libraries/actions/Withdraw.sol                     | 100.00% (10/10)  | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/oracle/PriceFeed.sol                               | 100.00% (12/12)  | 100.00% (21/21)   | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/token/NonTransferrableToken.sol                    | 100.00% (8/8)    | 100.00% (9/9)     | 100.00% (0/0)    | 100.00% (6/6)    |
+
+┌──────────────────────────────┬────────┐
+│           (index)            │ Values │
+├──────────────────────────────┼────────┤
+│      BorrowAsLimitOrder      │   2    │
+│     BorrowAsMarketOrder      │   14   │
+│         BorrowerExit         │   4    │
+│            Claim             │   3    │
+│           Deposit            │   2    │
+│         Experiments          │   9    │
+│          Initialize          │   2    │
+│       LendAsLimitOrder       │   2    │
+│      LendAsMarketOrder       │   4    │
+│ LiquidateLoanWithReplacement │   5    │
+│        LiquidateLoan         │   5    │
+│         MathLibrary          │   3    │
+│      MoveToVariablePool      │   2    │
+│          Multicall           │   2    │
+│    NonTransferrableToken     │   7    │
+│         Ownable2Step         │   4    │
+│          PriceFeed           │   8    │
+│            Repay             │   3    │
+│      SelfLiquidateLoan       │   6    │
+│        SizeInitialize        │   1    │
+│         SizeUpgrade          │   2    │
+│         SizeWithdraw         │   2    │
+│         UpdateConfig         │   2    │
+│           Withdraw           │   1    │
+└──────────────────────────────┴────────┘
 <!-- END_COVERAGE -->
 
 ## Test

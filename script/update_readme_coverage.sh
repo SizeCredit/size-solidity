@@ -3,6 +3,19 @@
 set -eu
 
 forge coverage > COVERAGE.txt
+forge test > TEST.txt
+
+TESTS=$(cat TEST.txt | grep -o 'test_\w\+' | sort | paste -sd' ' -)
+SCENARIOS=$(node -e "
+  const tests = process.argv[1].split(' ');
+  const scenarios = {}
+  for (const test of tests) {
+    const feature = test.split('_')[1];
+    scenarios[feature] = scenarios[feature] || 0;
+    scenarios[feature]++;
+  }
+  console.table(scenarios);
+" "$TESTS")
 
 BEGIN=$(grep -n BEGIN_COVERAGE README.md | cut -d : -f 1)
 END=$(grep -n END_COVERAGE README.md | cut -d : -f 1)
@@ -15,6 +28,9 @@ COVERAGE=$(tail -n +$((COVERAGE_BEGIN)) COVERAGE.txt)
 
 echo "$PART_1" > README.md
 echo "$COVERAGE" | grep -v 'test/' | grep -v 'script/' | grep -v '\bTotal\b' >> README.md
+echo "" >> README.md
+echo "$SCENARIOS" >> README.md
 echo "$PART_3" >> README.md
 
 rm COVERAGE.txt
+rm TEST.txt
