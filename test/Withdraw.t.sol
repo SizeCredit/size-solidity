@@ -11,7 +11,7 @@ import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 contract WithdrawTest is BaseTest {
-    function test_SizeWithdraw_withdraw_decreases_user_balance() public {
+    function test_Withdraw_withdraw_decreases_user_balance() public {
         _deposit(alice, address(usdc), 12e6);
         _deposit(alice, address(weth), 23e18);
         UserView memory aliceUser = size.getUserView(alice);
@@ -77,7 +77,7 @@ contract WithdrawTest is BaseTest {
         assertEq(weth.balanceOf(address(alice)), valueWETH);
     }
 
-    function test_SizeWithdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
+    function test_Withdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);

@@ -18,7 +18,7 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract InitializeValidationTest is Test, BaseTest {
-    function test_SizeInitialize_validation() public {
+    function test_Initialize_validation() public {
         Size implementation = new Size();
 
         params.owner = address(0);
