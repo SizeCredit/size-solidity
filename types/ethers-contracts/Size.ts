@@ -100,6 +100,40 @@ export type BorrowOfferStructOutput = [BigNumber, YieldCurveStructOutput] & {
   curveRelativeTime: YieldCurveStructOutput;
 };
 
+export type ConfigStruct = {
+  crOpening: BigNumberish;
+  crLiquidation: BigNumberish;
+  collateralPercentagePremiumToLiquidator: BigNumberish;
+  collateralPercentagePremiumToProtocol: BigNumberish;
+  minimumCredit: BigNumberish;
+  priceFeed: string;
+  variablePool: string;
+  insurance: string;
+  feeRecipient: string;
+};
+
+export type ConfigStructOutput = [
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  string,
+  string,
+  string,
+  string
+] & {
+  crOpening: BigNumber;
+  crLiquidation: BigNumber;
+  collateralPercentagePremiumToLiquidator: BigNumber;
+  collateralPercentagePremiumToProtocol: BigNumber;
+  minimumCredit: BigNumber;
+  priceFeed: string;
+  variablePool: string;
+  insurance: string;
+  feeRecipient: string;
+};
+
 export type LoanStruct = {
   faceValue: BigNumberish;
   faceValueExited: BigNumberish;
@@ -211,7 +245,7 @@ export type InitializeExtraParamsStruct = {
   crOpening: BigNumberish;
   crLiquidation: BigNumberish;
   collateralPercentagePremiumToLiquidator: BigNumberish;
-  collateralPercentagePremiumToBorrower: BigNumberish;
+  collateralPercentagePremiumToProtocol: BigNumberish;
   minimumCredit: BigNumberish;
 };
 
@@ -225,7 +259,7 @@ export type InitializeExtraParamsStructOutput = [
   crOpening: BigNumber;
   crLiquidation: BigNumber;
   collateralPercentagePremiumToLiquidator: BigNumber;
-  collateralPercentagePremiumToBorrower: BigNumber;
+  collateralPercentagePremiumToProtocol: BigNumber;
   minimumCredit: BigNumber;
 };
 
@@ -264,21 +298,27 @@ export type LendAsMarketOrderParamsStructOutput = [
   exactAmountIn: boolean;
 };
 
-export type LiquidateLoanParamsStruct = { loanId: BigNumberish };
+export type LiquidateLoanParamsStruct = {
+  loanId: BigNumberish;
+  minimumCollateralRatio: BigNumberish;
+};
 
-export type LiquidateLoanParamsStructOutput = [BigNumber] & {
+export type LiquidateLoanParamsStructOutput = [BigNumber, BigNumber] & {
   loanId: BigNumber;
+  minimumCollateralRatio: BigNumber;
 };
 
 export type LiquidateLoanWithReplacementParamsStruct = {
   loanId: BigNumberish;
   borrower: string;
+  minimumCollateralRatio: BigNumberish;
 };
 
 export type LiquidateLoanWithReplacementParamsStructOutput = [
   BigNumber,
-  string
-] & { loanId: BigNumber; borrower: string };
+  string,
+  BigNumber
+] & { loanId: BigNumber; borrower: string; minimumCollateralRatio: BigNumber };
 
 export type MoveToVariablePoolParamsStruct = { loanId: BigNumberish };
 
@@ -312,51 +352,18 @@ export type TokensStructOutput = [string, string, string, string, string] & {
   debtToken: string;
 };
 
-export type VaultsStruct = { protocol: string; insurance: string };
-
-export type VaultsStructOutput = [string, string] & {
-  protocol: string;
-  insurance: string;
-};
-
-export type ConfigStruct = {
-  priceFeed: string;
-  crOpening: BigNumberish;
-  crLiquidation: BigNumberish;
-  collateralPercentagePremiumToLiquidator: BigNumberish;
-  collateralPercentagePremiumToBorrower: BigNumberish;
-  minimumCredit: BigNumberish;
-  feeRecipient: string;
-};
-
-export type ConfigStructOutput = [
-  string,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  string
-] & {
-  priceFeed: string;
-  crOpening: BigNumber;
-  crLiquidation: BigNumber;
-  collateralPercentagePremiumToLiquidator: BigNumber;
-  collateralPercentagePremiumToBorrower: BigNumber;
-  minimumCredit: BigNumber;
-  feeRecipient: string;
-};
-
 export type UpdateConfigParamsStruct = {
+  priceFeed: string;
   feeRecipient: string;
   crOpening: BigNumberish;
   crLiquidation: BigNumberish;
   collateralPercentagePremiumToLiquidator: BigNumberish;
-  collateralPercentagePremiumToBorrower: BigNumberish;
+  collateralPercentagePremiumToProtocol: BigNumberish;
   minimumCredit: BigNumberish;
 };
 
 export type UpdateConfigParamsStructOutput = [
+  string,
   string,
   BigNumber,
   BigNumber,
@@ -364,11 +371,12 @@ export type UpdateConfigParamsStructOutput = [
   BigNumber,
   BigNumber
 ] & {
+  priceFeed: string;
   feeRecipient: string;
   crOpening: BigNumber;
   crLiquidation: BigNumber;
   collateralPercentagePremiumToLiquidator: BigNumber;
-  collateralPercentagePremiumToBorrower: BigNumber;
+  collateralPercentagePremiumToProtocol: BigNumber;
   minimumCredit: BigNumber;
 };
 
@@ -398,6 +406,7 @@ export interface SizeInterface extends utils.Interface {
     "deposit((address,uint256))": FunctionFragment;
     "getAssignedCollateral(uint256)": FunctionFragment;
     "getBorrowOffer(address)": FunctionFragment;
+    "getConfig()": FunctionFragment;
     "getCredit(uint256)": FunctionFragment;
     "getDebt(uint256)": FunctionFragment;
     "getDueDate(uint256)": FunctionFragment;
@@ -413,10 +422,11 @@ export interface SizeInterface extends utils.Interface {
     "isLiquidatable(uint256)": FunctionFragment;
     "lendAsLimitOrder((uint256,uint256,(uint256[],uint256[])))": FunctionFragment;
     "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
-    "liquidateLoan((uint256))": FunctionFragment;
-    "liquidateLoanWithReplacement((uint256,address))": FunctionFragment;
+    "liquidateLoan((uint256,uint256))": FunctionFragment;
+    "liquidateLoanWithReplacement((uint256,address,uint256))": FunctionFragment;
     "minimumCredit()": FunctionFragment;
     "moveToVariablePool((uint256))": FunctionFragment;
+    "multicall(bytes[])": FunctionFragment;
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
@@ -425,7 +435,7 @@ export interface SizeInterface extends utils.Interface {
     "selfLiquidateLoan((uint256))": FunctionFragment;
     "state()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
-    "updateConfig((address,uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
+    "updateConfig((address,address,uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
     "upgradeToAndCall(address,bytes)": FunctionFragment;
     "withdraw((address,uint256))": FunctionFragment;
   };
@@ -449,6 +459,7 @@ export interface SizeInterface extends utils.Interface {
       | "deposit"
       | "getAssignedCollateral"
       | "getBorrowOffer"
+      | "getConfig"
       | "getCredit"
       | "getDebt"
       | "getDueDate"
@@ -468,6 +479,7 @@ export interface SizeInterface extends utils.Interface {
       | "liquidateLoanWithReplacement"
       | "minimumCredit"
       | "moveToVariablePool"
+      | "multicall"
       | "owner"
       | "pendingOwner"
       | "proxiableUUID"
@@ -546,6 +558,7 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "getBorrowOffer",
     values: [string]
   ): string;
+  encodeFunctionData(functionFragment: "getConfig", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getCredit",
     values: [BigNumberish]
@@ -615,6 +628,10 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "moveToVariablePool",
     values: [MoveToVariablePoolParamsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "multicall",
+    values: [BytesLike[]]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -714,6 +731,7 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "getBorrowOffer",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getConfig", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getCredit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDebt", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDueDate", data: BytesLike): Result;
@@ -772,6 +790,7 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "moveToVariablePool",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "multicall", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "pendingOwner",
@@ -949,6 +968,8 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BorrowOfferStructOutput]>;
 
+    getConfig(overrides?: CallOverrides): Promise<[ConfigStructOutput]>;
+
     getCredit(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1037,6 +1058,11 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    multicall(
+      data: BytesLike[],
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
     owner(overrides?: CallOverrides): Promise<[string]>;
 
     pendingOwner(overrides?: CallOverrides): Promise<[string]>;
@@ -1060,9 +1086,8 @@ export interface Size extends BaseContract {
     state(
       overrides?: CallOverrides
     ): Promise<
-      [TokensStructOutput, VaultsStructOutput, ConfigStructOutput] & {
+      [TokensStructOutput, ConfigStructOutput] & {
         tokens: TokensStructOutput;
-        vaults: VaultsStructOutput;
         config: ConfigStructOutput;
       }
     >;
@@ -1152,6 +1177,8 @@ export interface Size extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BorrowOfferStructOutput>;
 
+  getConfig(overrides?: CallOverrides): Promise<ConfigStructOutput>;
+
   getCredit(
     loanId: BigNumberish,
     overrides?: CallOverrides
@@ -1237,6 +1264,11 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
+  multicall(
+    data: BytesLike[],
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
   owner(overrides?: CallOverrides): Promise<string>;
 
   pendingOwner(overrides?: CallOverrides): Promise<string>;
@@ -1260,9 +1292,8 @@ export interface Size extends BaseContract {
   state(
     overrides?: CallOverrides
   ): Promise<
-    [TokensStructOutput, VaultsStructOutput, ConfigStructOutput] & {
+    [TokensStructOutput, ConfigStructOutput] & {
       tokens: TokensStructOutput;
-      vaults: VaultsStructOutput;
       config: ConfigStructOutput;
     }
   >;
@@ -1349,6 +1380,8 @@ export interface Size extends BaseContract {
       account: string,
       overrides?: CallOverrides
     ): Promise<BorrowOfferStructOutput>;
+
+    getConfig(overrides?: CallOverrides): Promise<ConfigStructOutput>;
 
     getCredit(
       loanId: BigNumberish,
@@ -1443,6 +1476,8 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    multicall(data: BytesLike[], overrides?: CallOverrides): Promise<string[]>;
+
     owner(overrides?: CallOverrides): Promise<string>;
 
     pendingOwner(overrides?: CallOverrides): Promise<string>;
@@ -1461,9 +1496,8 @@ export interface Size extends BaseContract {
     state(
       overrides?: CallOverrides
     ): Promise<
-      [TokensStructOutput, VaultsStructOutput, ConfigStructOutput] & {
+      [TokensStructOutput, ConfigStructOutput] & {
         tokens: TokensStructOutput;
-        vaults: VaultsStructOutput;
         config: ConfigStructOutput;
       }
     >;
@@ -1583,6 +1617,8 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getConfig(overrides?: CallOverrides): Promise<BigNumber>;
+
     getCredit(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1661,6 +1697,11 @@ export interface Size extends BaseContract {
 
     moveToVariablePool(
       params: MoveToVariablePoolParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    multicall(
+      data: BytesLike[],
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -1779,6 +1820,8 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getConfig(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getCredit(
       loanId: BigNumberish,
       overrides?: CallOverrides
@@ -1863,6 +1906,11 @@ export interface Size extends BaseContract {
 
     moveToVariablePool(
       params: MoveToVariablePoolParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    multicall(
+      data: BytesLike[],
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
