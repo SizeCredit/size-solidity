@@ -3,7 +3,9 @@ pragma solidity 0.8.20;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {BaseTest, Vars} from "./BaseTest.sol";
+import {BaseTest} from "./BaseTest.sol";
+
+import {Errors} from "@src/libraries/Errors.sol";
 import {UserView} from "@src/libraries/UserLibrary.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
@@ -75,6 +77,19 @@ contract WithdrawTest is BaseTest {
         assertEq(weth.balanceOf(address(alice)), valueWETH);
     }
 
-    // function test_SizeWithdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
-    // }
+    function test_SizeWithdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
+        _setPrice(1e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
+        _borrowAsMarketOrder(bob, alice, 100e18, 12);
+
+        vm.startPrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, bob, 0));
+        size.withdraw(WithdrawParams({token: address(weth), amount: 150e18}));
+
+        vm.startPrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, bob, 0.01e18));
+        size.withdraw(WithdrawParams({token: address(weth), amount: 149e18}));
+    }
 }
