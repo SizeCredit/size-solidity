@@ -26,10 +26,14 @@ PART_1=$(head -n $((BEGIN)) README.md)
 PART_3=$(tail -n +$((END)) README.md)
 
 COVERAGE_BEGIN=$(grep -n '\bFile\b' COVERAGE.txt | cut -d : -f 1)
-COVERAGE=$(tail -n +$((COVERAGE_BEGIN)) COVERAGE.txt)
+COVERAGE=$(tail -n +$((COVERAGE_BEGIN)) COVERAGE.txt | grep -v 'test/' | grep -v 'script/' | grep -v '\bTotal\b')
 
 echo "$PART_1" > README.md
-echo "$COVERAGE" | grep -v 'test/' | grep -v 'script/' | grep -v '\bTotal\b' >> README.md
+echo "### FIles" >> README.md
+echo "" >> README.md
+echo "$COVERAGE" >> README.md
+echo "" >> README.md
+echo "### Scenarios" >> README.md
 echo "" >> README.md
 echo "$SCENARIOS" >> README.md
 echo "$PART_3" >> README.md

@@ -5,6 +5,8 @@ Size V2 Solidity
 ## Coverage
 
 <!-- BEGIN_COVERAGE -->
+### FIles
+
 | File                                                   | % Lines          | % Statements      | % Branches       | % Funcs          |
 |--------------------------------------------------------|------------------|-------------------|------------------|------------------|
 | src/Size.sol                                           | 100.00% (39/39)  | 100.00% (39/39)   | 100.00% (0/0)    | 100.00% (16/16)  |
@@ -30,6 +32,8 @@ Size V2 Solidity
 | src/libraries/actions/Withdraw.sol                     | 100.00% (10/10)  | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/oracle/PriceFeed.sol                               | 100.00% (12/12)  | 100.00% (21/21)   | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/token/NonTransferrableToken.sol                    | 100.00% (8/8)    | 100.00% (9/9)     | 100.00% (0/0)    | 100.00% (6/6)    |
+
+### Scenarios
 
 ```markdown
 ┌──────────────────────────────┬────────┐
@@ -63,12 +67,6 @@ Size V2 Solidity
 ```
 <!-- END_COVERAGE -->
 
-## Test
-
-```bash
-forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
-```
-
 ## Documentation
 
 - Inside the protocol, all values are expressed in WAD (18 decimals), including price feed decimals and percentages
@@ -89,17 +87,14 @@ forge test --match-test test_experiment_dynamic -vv --via-ir --ffi --watch
 - $Credit(i) = FV(i) - \sum\limits_{j~where~Exiter(j)=i}{FV(j)}$ /// For example, when a loan i exits to another j, Exiter(j) = i. This isn't tracked anywhere on-chain, as it's not necessary under the correct accounting conditions, as the loan structure only tracks the folId, not the "originator". But the originator can also be a SOL, when a SOL exits to another SOL. But it can be emitted, which may be used for off-chain metrics, so I guess I'll add that to the event. Also, when doing fuzzing/formal verification, we can also add "ghost variables" to track the "originator", so no need to add it to the protocol, but this concept can be useful in assessing the correct behavior of the exit logic
 - The VP utilization ratio should never be greater than 1
 
-References
-
-- <https://hackmd.io/lWCjLs9NSiORaEzaWRJdsQ?view>
-
 ## TODOs
 
 - TODO: more scenarios
+- TODO: debt compensation
 - TODO: origination fee & loan fee
 - TODO: VP updates
 
-- invariant tests
+- finish invariant tests
 - add more unit tests where block.timestamp is e.g. "December 29, 2023", so that it is more realistic
 - add tests with other types of yield curves (not only flat)
 - also add buckets of different sizes, not only spaced by 1 (second), but also 30 days, 1 week, etc etc
@@ -111,15 +106,9 @@ References
 - test libraries (OfferLibrary.getRate, etc)
 - test liquidator profits
 - test liquiadtion library collateralRate, etc, and others, for important decimals/etc, hardcoded values
-- 100% coverage
-
-## Later
-
-- create helper contracts for liquidation in 1 step (deposit -> liquidate -> withdraw)
 - natspec
 - multi-erc20 tokens with different CR per tokens
 - review all input validation functions
-- review all valid output states (e.g. validateUserIsNotLiquidatable)
 - gas optimizations
 - separate Loan struct
 - use solady for tokens or other simple primitives
