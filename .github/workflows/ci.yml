@@ -24,6 +24,12 @@ jobs:
         with:
           version: nightly
 
+      - name: Format
+        run: |
+          forge fmt
+          [[ $(git status --porcelain | wc -l) -eq 0 ]]
+        id: fmt
+
       - name: Contract sizes
         run: |
           forge --version
