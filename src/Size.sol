@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 
 import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
@@ -34,7 +35,7 @@ import {State} from "@src/SizeStorage.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
-contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, MulticallUpgradeable, UUPSUpgradeable {
     using Initialize for State;
     using UpdateConfig for State;
     using Deposit for State;
@@ -65,6 +66,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, UUPSUp
 
         __Ownable_init(params.owner);
         __Ownable2Step_init();
+        __Multicall_init();
         __UUPSUpgradeable_init();
 
         state.executeInitialize(params, extraParams);

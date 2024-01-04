@@ -64,7 +64,6 @@ References
 
 ## TODOs
 
-- TODO: add updateConfig tests
 - TODO: multicall
 - TODO: liquidation has a parameter for CR in case they/bot wants
 - TODO: origination fee & loan fee

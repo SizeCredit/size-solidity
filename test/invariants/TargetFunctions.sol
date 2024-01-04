@@ -6,7 +6,6 @@ import {Properties} from "./Properties.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 import "@crytic/properties/contracts/util/Hevm.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Deploy} from "@test/Deploy.sol";
 
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
