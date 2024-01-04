@@ -52,6 +52,7 @@ contract BorrowerExitValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 200e18, 1));
         size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
 
+        // @audit-info BE-01
         vm.warp(block.timestamp + 12);
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 12));
         size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));

@@ -47,6 +47,7 @@ library BorrowerExit {
             revert Errors.ONLY_FOL_CAN_BE_EXITED(params.loanId);
         }
         if (fol.dueDate <= block.timestamp) {
+            // @audit-info BE-01 This line is not marked on the coverage report due to https://github.com/foundry-rs/foundry/issues/4854
             revert Errors.PAST_DUE_DATE(fol.dueDate);
         }
 

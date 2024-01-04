@@ -71,6 +71,6 @@ library UpdateConfig {
         state.config.collateralPercentagePremiumToBorrower = params.collateralPercentagePremiumToBorrower;
         state.config.minimumCredit = params.minimumCredit;
         state.config.priceFeed = IPriceFeed(params.priceFeed);
-        state.config.feeRecipient = params.feeRecipient;
+        state.vaults.feeRecipient = params.feeRecipient;
     }
 }

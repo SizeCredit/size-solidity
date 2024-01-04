@@ -64,7 +64,6 @@ References
 
 ## TODOs
 
-- TODO: fix coverage
 - TODO: add updateConfig tests
 - TODO: multicall
 - TODO: liquidation has a parameter for CR in case they/bot wants

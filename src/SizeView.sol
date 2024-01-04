@@ -121,9 +121,9 @@ abstract contract SizeView is SizeStorage, ISizeView {
 
     function getFeeRecipient() public view returns (uint256, uint256, uint256) {
         return (
-            state.tokens.collateralToken.balanceOf(state.config.feeRecipient),
-            state.tokens.borrowToken.balanceOf(state.config.feeRecipient),
-            state.tokens.debtToken.balanceOf(state.config.feeRecipient)
+            state.tokens.collateralToken.balanceOf(state.vaults.feeRecipient),
+            state.tokens.borrowToken.balanceOf(state.vaults.feeRecipient),
+            state.tokens.debtToken.balanceOf(state.vaults.feeRecipient)
         );
     }
 }

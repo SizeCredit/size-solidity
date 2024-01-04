@@ -20,11 +20,6 @@ struct Tokens {
     DebtToken debtToken;
 }
 
-struct Vaults {
-    address variablePool;
-    address insurance;
-}
-
 struct Config {
     uint256 crOpening;
     uint256 crLiquidation;
@@ -32,6 +27,11 @@ struct Config {
     uint256 collateralPercentagePremiumToBorrower;
     uint256 minimumCredit;
     IPriceFeed priceFeed;
+}
+
+struct Vaults {
+    address variablePool;
+    address insurance;
     address feeRecipient;
 }
 
@@ -45,12 +45,12 @@ struct State {
     VariableLoan[] variableLoans;
     // slot
     Tokens tokens;
-    Vaults vaults;
     Config config;
-    // WIP
-    VariablePoolConfig variablePoolConfig;
-    VariablePoolState variablePoolState;
+    Vaults vaults;
 }
+// WIP
+// VariablePoolConfig variablePoolConfig;
+// VariablePoolState variablePoolState;
 
 abstract contract SizeStorage {
     State public state;

@@ -39,6 +39,7 @@ library LendAsMarketOrder {
 
         // validate dueDate
         if (params.dueDate < block.timestamp) {
+            // @audit-info LAMO-01 This line is not marked on the coverage report due to https://github.com/foundry-rs/foundry/issues/4854
             revert Errors.PAST_DUE_DATE(params.dueDate);
         }
 
@@ -51,7 +52,6 @@ library LendAsMarketOrder {
         }
 
         // validate exactAmountIn
-        // N/A
     }
 
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) external {

@@ -48,18 +48,4 @@ library LoanLibrary {
     function getDebt(Loan memory self) public pure returns (uint256) {
         return self.faceValue;
     }
-
-    function getDebtCurrent(VariableLoan storage self, uint256 ratePerUnitTime) internal view returns (uint256) {
-        uint256 r = PERCENT + ratePerUnitTime * (block.timestamp - self.startTime);
-        return FixedPointMathLib.mulDivUp(self.amountBorrowAssetLentOut, r, PERCENT);
-    }
-
-    function getCollateralRatio(VariableLoan storage self, uint256 ratePerUnitTime, uint256 price)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 debt = getDebtCurrent(self, ratePerUnitTime);
-        return FixedPointMathLib.mulDivDown(self.amountCollateral, price, debt);
-    }
 }

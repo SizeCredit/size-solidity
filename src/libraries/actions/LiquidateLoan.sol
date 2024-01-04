@@ -73,7 +73,7 @@ library LiquidateLoan {
         uint256 liquidatorProfitCollateralAsset = debtCollateral + collateralRemainderToLiquidator;
 
         state.tokens.collateralToken.transferFrom(
-            fol.borrower, state.config.feeRecipient, collateralRemainderToProtocol
+            fol.borrower, state.vaults.feeRecipient, collateralRemainderToProtocol
         );
         state.tokens.collateralToken.transferFrom(fol.borrower, msg.sender, liquidatorProfitCollateralAsset);
         state.tokens.borrowToken.transferFrom(msg.sender, state.vaults.variablePool, debtBorrowAsset);

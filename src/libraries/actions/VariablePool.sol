@@ -19,7 +19,8 @@ struct VariablePoolState {
 }
 
 library VariablePool {
-    // WIP
+// WIP
+/*
     function getUtilizationRatio(State storage state) internal view returns (uint256) {
         uint256 totalBorrowed = state.variablePoolState.totalBorrowed;
         uint256 totalDeposits = state.tokens.borrowAsset.balanceOf(state.vaults.variablePool);
@@ -50,4 +51,5 @@ library VariablePool {
                 );
         }
     }
+*/
 }
