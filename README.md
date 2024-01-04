@@ -64,13 +64,13 @@ References
 
 ## TODOs
 
-- TODO: VP updates
 - TODO: fix coverage
 - TODO: add updateConfig tests
 - TODO: multicall
 - TODO: liquidation has a parameter for CR in case they/bot wants
 - TODO: origination fee & loan fee
 - TODO: loan fee
+- TODO: VP updates
 
 - invariant tests
 - add more unit tests where block.timestamp is e.g. "December 29, 2023", so that it is more realistic
