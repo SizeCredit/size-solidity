@@ -45,7 +45,7 @@ Size V2 Solidity
 │            Claim             │   3    │
 │           Deposit            │   2    │
 │         Experiments          │   9    │
-│          Initialize          │   2    │
+│          Initialize          │   3    │
 │       LendAsLimitOrder       │   2    │
 │      LendAsMarketOrder       │   4    │
 │ LiquidateLoanWithReplacement │   5    │
@@ -58,11 +58,9 @@ Size V2 Solidity
 │          PriceFeed           │   8    │
 │            Repay             │   3    │
 │      SelfLiquidateLoan       │   6    │
-│        SizeInitialize        │   1    │
-│         SizeUpgrade          │   2    │
-│         SizeWithdraw         │   2    │
 │         UpdateConfig         │   2    │
-│           Withdraw           │   1    │
+│           Upgrade            │   2    │
+│           Withdraw           │   3    │
 └──────────────────────────────┴────────┘
 ```
 <!-- END_COVERAGE -->
