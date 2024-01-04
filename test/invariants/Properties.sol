@@ -59,7 +59,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         uint256[] memory folFaceValuesSum = new uint256[](activeLoans);
         for (uint256 loanId; loanId < activeLoans; loanId++) {
             Loan memory loan = size.getLoan(loanId);
-            uint256 folId = loanId == RESERVED_ID ? loanId : loan.folId;
+            uint256 folId = loanId == RESERVED_ID ? loan.folId : loanId;
             Loan memory fol = size.getLoan(folId);
 
             folCreditsSum[folId] += size.getCredit(loanId);
