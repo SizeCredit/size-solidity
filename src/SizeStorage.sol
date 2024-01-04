@@ -27,9 +27,6 @@ struct Config {
     uint256 collateralPercentagePremiumToBorrower;
     uint256 minimumCredit;
     IPriceFeed priceFeed;
-}
-
-struct Vaults {
     address variablePool;
     address insurance;
     address feeRecipient;
@@ -46,7 +43,6 @@ struct State {
     // slot
     Tokens tokens;
     Config config;
-    Vaults vaults;
 }
 // WIP
 // VariablePoolConfig variablePoolConfig;

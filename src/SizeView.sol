@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {SizeStorage} from "@src/SizeStorage.sol";
+import {Config, SizeStorage} from "@src/SizeStorage.sol";
 
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
@@ -113,17 +113,21 @@ abstract contract SizeView is SizeStorage, ISizeView {
 
     function getProtocolVault() public view returns (uint256, uint256, uint256) {
         return (
-            state.tokens.collateralToken.balanceOf(state.vaults.variablePool),
-            state.tokens.borrowToken.balanceOf(state.vaults.variablePool),
-            state.tokens.debtToken.balanceOf(state.vaults.variablePool)
+            state.tokens.collateralToken.balanceOf(state.config.variablePool),
+            state.tokens.borrowToken.balanceOf(state.config.variablePool),
+            state.tokens.debtToken.balanceOf(state.config.variablePool)
         );
     }
 
     function getFeeRecipient() public view returns (uint256, uint256, uint256) {
         return (
-            state.tokens.collateralToken.balanceOf(state.vaults.feeRecipient),
-            state.tokens.borrowToken.balanceOf(state.vaults.feeRecipient),
-            state.tokens.debtToken.balanceOf(state.vaults.feeRecipient)
+            state.tokens.collateralToken.balanceOf(state.config.feeRecipient),
+            state.tokens.borrowToken.balanceOf(state.config.feeRecipient),
+            state.tokens.debtToken.balanceOf(state.config.feeRecipient)
         );
+    }
+
+    function getConfig() public view returns (Config memory) {
+        return state.config;
     }
 }

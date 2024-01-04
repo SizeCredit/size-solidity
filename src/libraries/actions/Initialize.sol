@@ -99,7 +99,7 @@ library Initialize {
         state.tokens.collateralToken = CollateralToken(params.collateralToken);
         state.tokens.borrowToken = BorrowToken(params.borrowToken);
         state.tokens.debtToken = DebtToken(params.debtToken);
-        state.vaults.variablePool = params.protocolVault;
+        state.config.variablePool = params.protocolVault;
 
         state.executeUpdateConfig(
             UpdateConfigParams({

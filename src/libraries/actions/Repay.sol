@@ -40,7 +40,7 @@ library Repay {
     function executeRepay(State storage state, RepayParams calldata params) external {
         Loan storage loan = state.loans[params.loanId];
 
-        state.tokens.borrowToken.transferFrom(msg.sender, state.vaults.variablePool, loan.faceValue);
+        state.tokens.borrowToken.transferFrom(msg.sender, state.config.variablePool, loan.faceValue);
         state.tokens.debtToken.burn(msg.sender, loan.faceValue);
         loan.repaid = true;
 

@@ -23,7 +23,7 @@ library VariablePool {
 /*
     function getUtilizationRatio(State storage state) internal view returns (uint256) {
         uint256 totalBorrowed = state.variablePoolState.totalBorrowed;
-        uint256 totalDeposits = state.tokens.borrowAsset.balanceOf(state.vaults.variablePool);
+        uint256 totalDeposits = state.tokens.borrowAsset.balanceOf(state.config.variablePool);
 
         if (totalDeposits > 0) {
             return FixedPointMathLib.mulDivDown(totalBorrowed, PERCENT, totalDeposits);
