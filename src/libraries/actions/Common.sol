@@ -17,7 +17,15 @@ library Common {
         }
 
         loan.faceValue -= amount;
-        state.tokens.debtToken.burn(loan.borrower, amount);
+
+        if (loan.isFOL()) {
+            // @audit Check this logic
+            state.tokens.debtToken.burn(loan.borrower, amount);
+        } else {
+            Loan storage fol = state.loans[loan.folId];
+            fol.faceValue -= amount;
+            fol.faceValueExited -= amount;
+        }
     }
 
     function validateMinimumCredit(State storage state, uint256 credit) public view {

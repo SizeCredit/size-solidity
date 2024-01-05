@@ -81,7 +81,7 @@ contract CompensateTest is BaseTest {
         uint256 compensatedLoanCreditAfter = size.getLoan(solId2).getCredit();
 
         assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 10e18);
-        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 0e18);
+        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 10e18);
         assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
     }
 }
