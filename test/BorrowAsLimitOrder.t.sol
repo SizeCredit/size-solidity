@@ -13,7 +13,7 @@ import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 contract BorrowAsLimitOrderTest is BaseTest {
     using OfferLibrary for BorrowOffer;

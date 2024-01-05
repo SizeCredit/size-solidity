@@ -30,12 +30,14 @@ library Errors {
     error AMOUNT_GREATER_THAN_LOAN_CREDIT(uint256 amount, uint256 loanCredit);
 
     error BORROWER_IS_NOT_LENDER(address borrower, address lender);
+    error COMPENSATOR_IS_NOT_BORROWER(address compensator, address borrower);
     error LIQUIDATOR_IS_NOT_LENDER(address liquidator, address lender);
     error EXITER_IS_NOT_LENDER(address exiter, address lender);
     error EXITER_IS_NOT_BORROWER(address exiter, address borrower);
     error REPAYER_IS_NOT_BORROWER(address repayer, address borrower);
     error LOAN_ALREADY_CLAIMED(uint256 loanId);
 
+    error NOT_ENOUGH_CREDIT(uint256 credit, uint256 amount);
     error NOT_ENOUGH_FREE_CASH(uint256 free, uint256 amount);
     error NOT_ENOUGH_LOCKED_CASH(uint256 locked, uint256 amount);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCredit);

@@ -1,17 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
-
-import {BaseTest, Vars} from "./BaseTest.sol";
+import {BaseTest} from "./BaseTest.sol";
 
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
 import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 contract SelfLiquidateLoanValidationTest is BaseTest {
     function test_SelfLiquidateLoan_validation() public {
@@ -37,9 +33,8 @@ contract SelfLiquidateLoanValidationTest is BaseTest {
 
         _setPrice(0.75e18);
 
-        uint256 assignedCollateral = size.getAssignedCollateral(loanId);
-        uint256 debtCollateral =
-            FixedPointMathLib.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 assignedCollateral = size.getFOLAssignedCollateral(loanId);
+        uint256 debtCollateral = Math.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         vm.startPrank(alice);
         vm.expectRevert(

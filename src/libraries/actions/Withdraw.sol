@@ -7,7 +7,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
-import {MathLibrary} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -44,7 +44,7 @@ library Withdraw {
             ? NonTransferrableToken(state.tokens.collateralToken)
             : NonTransferrableToken(state.tokens.borrowToken);
         IERC20Metadata token = IERC20Metadata(params.token);
-        uint256 wad = MathLibrary.amountToWad(params.amount, token.decimals());
+        uint256 wad = Math.amountToWad(params.amount, token.decimals());
 
         nonTransferrableToken.burn(msg.sender, wad);
         token.safeTransfer(msg.sender, params.amount);

@@ -10,9 +10,6 @@
 [submodule "lib/solplot"]
 	path = lib/solplot
 	url = https://github.com/aviggiano/solplot
-[submodule "lib/solmate"]
-	path = lib/solmate
-	url = https://github.com/transmissions11/solmate
 [submodule "lib/chainlink"]
 	path = lib/chainlink
 	url = https://github.com/smartcontractkit/chainlink
@@ -22,3 +19,6 @@
 [submodule "lib/properties"]
 	path = lib/properties
 	url = https://github.com/crytic/properties
+[submodule "lib/solady"]
+	path = lib/solady
+	url = https://github.com/vectorized/solady

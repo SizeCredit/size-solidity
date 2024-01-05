@@ -16,7 +16,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
 
-        assertEq(size.getAssignedCollateral(loanId), 150e18);
+        assertEq(size.getFOLAssignedCollateral(loanId), 150e18);
         assertEq(size.getDebt(loanId), 100e18);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isLiquidatable(bob));
@@ -58,7 +58,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         uint256 solId = _borrowAsMarketOrder(alice, candy, 100e18, 12, [folId]);
         _borrowAsMarketOrder(alice, james, 100e18, 12);
 
-        assertEq(size.getAssignedCollateral(folId), 150e18);
+        assertEq(size.getFOLAssignedCollateral(folId), 150e18);
         assertEq(size.getDebt(folId), 100e18);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isLiquidatable(bob));

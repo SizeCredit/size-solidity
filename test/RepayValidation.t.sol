@@ -14,7 +14,7 @@ import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 contract RepayValidationTest is BaseTest {
     function test_Repay_validation() public {
@@ -23,7 +23,7 @@ contract RepayValidationTest is BaseTest {
         _deposit(candy, 100e18, 100e18);
         _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e18, 12);
-        uint256 faceValue = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, 20e18, PERCENT);
+        uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, 20e18, PERCENT);
         _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
 
         uint256 solId = _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);

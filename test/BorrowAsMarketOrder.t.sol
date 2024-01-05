@@ -14,7 +14,7 @@ import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 contract BorrowAsMarketOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
@@ -37,10 +37,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
 
-        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 debtOpening = FixedPointMathLib.mulDivUp(debt, size.crOpening(), PERCENT);
-        uint256 minimumCollateral =
-            FixedPointMathLib.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debt, size.crOpening(), PERCENT);
+        uint256 minimumCollateral = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
         LoanOffer memory offerAfter = size.getLoanOffer(alice);
 
@@ -74,10 +73,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
         Vars memory _before = _state();
 
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
-        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + rate), PERCENT);
-        uint256 debtOpening = FixedPointMathLib.mulDivUp(debt, size.crOpening(), PERCENT);
-        uint256 minimumCollateral =
-            FixedPointMathLib.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debt, size.crOpening(), PERCENT);
+        uint256 minimumCollateral = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
         LoanOffer memory offerAfter = size.getLoanOffer(alice);
 
@@ -170,10 +168,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
 
-        uint256 faceValue = FixedPointMathLib.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
-        uint256 faceValueOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
-        uint256 minimumCollateral =
-            FixedPointMathLib.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 faceValue = Math.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.crOpening(), PERCENT);
+        uint256 minimumCollateral = Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
@@ -203,10 +200,10 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         uint256 dueDate = 12;
         uint256 r = PERCENT + size.getLoanOffer(candy).getRate(dueDate);
-        uint256 deltaAmountOut = (
-            FixedPointMathLib.mulDivUp(r, amountLoanId2, PERCENT) > size.getLoan(loanId1).getCredit()
-        ) ? FixedPointMathLib.mulDivDown(size.getLoan(loanId1).getCredit(), PERCENT, r) : amountLoanId2;
-        uint256 faceValue = FixedPointMathLib.mulDivUp(r, amountLoanId2 - deltaAmountOut, PERCENT);
+        uint256 deltaAmountOut = (Math.mulDivUp(r, amountLoanId2, PERCENT) > size.getLoan(loanId1).getCredit())
+            ? Math.mulDivDown(size.getLoan(loanId1).getCredit(), PERCENT, r)
+            : amountLoanId2;
+        uint256 faceValue = Math.mulDivUp(r, amountLoanId2 - deltaAmountOut, PERCENT);
 
         Vars memory _before = _state();
 
@@ -214,9 +211,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 faceValueOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.crOpening(), PERCENT);
         uint256 minimumCollateralAmount =
-            FixedPointMathLib.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+            Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         assertGt(_before.bob.collateralAmount, minimumCollateralAmount);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
@@ -259,10 +256,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 amount = 100e18;
         uint256 dueDate = 12;
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
-        uint256 faceValue = FixedPointMathLib.mulDivUp(r, amount, PERCENT);
-        uint256 faceValueOpening = FixedPointMathLib.mulDivUp(faceValue, size.crOpening(), PERCENT);
-        uint256 maxCollateralToLock =
-            FixedPointMathLib.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 faceValue = Math.mulDivUp(r, amount, PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.crOpening(), PERCENT);
+        uint256 maxCollateralToLock = Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         vm.startPrank(bob);
         uint256[] memory virtualCollateralLoanIds;
         vm.expectRevert(abi.encodeWithSelector(Errors.INSUFFICIENT_COLLATERAL.selector, 0, maxCollateralToLock));

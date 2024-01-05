@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {IPriceFeed} from "./IPriceFeed.sol";
 import {Errors} from "@src/libraries/Errors.sol";
@@ -52,9 +52,7 @@ contract PriceFeed is IPriceFeed {
     }
 
     function getPrice() external view returns (uint256) {
-        return FixedPointMathLib.mulDivDown(
-            _getPrice(base, baseStalePrice), 10 ** decimals, _getPrice(quote, quoteStalePrice)
-        );
+        return Math.mulDivDown(_getPrice(base, baseStalePrice), 10 ** decimals, _getPrice(quote, quoteStalePrice));
     }
 
     function _getPrice(AggregatorV3Interface aggregator, uint256 stalePrice) internal view returns (uint256) {

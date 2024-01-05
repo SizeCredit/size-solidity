@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
@@ -32,8 +32,8 @@ library LiquidateLoanWithReplacement {
         State storage state,
         LiquidateLoanWithReplacementParams calldata params
     ) external view {
-        Loan memory loan = state.loans[params.loanId];
-        BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
+        Loan storage loan = state.loans[params.loanId];
+        BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
 
         // validate liquidateLoan
         state.validateLiquidateLoan(
@@ -65,7 +65,7 @@ library LiquidateLoanWithReplacement {
         );
 
         uint256 r = (PERCENT + borrowOffer.getRate(dueDate));
-        uint256 amountOut = FixedPointMathLib.mulDivDown(faceValue, PERCENT, r);
+        uint256 amountOut = Math.mulDivDown(faceValue, PERCENT, r);
         uint256 liquidatorProfitBorrowAsset = faceValue - amountOut;
 
         borrowOffer.maxAmount -= amountOut;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
@@ -22,11 +22,10 @@ library SelfLiquidateLoan {
     using Common for State;
 
     function validateSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params) external view {
-        Loan memory loan = state.loans[params.loanId];
-        uint256 assignedCollateral = state.getAssignedCollateral(loan);
-        uint256 debtCollateral = FixedPointMathLib.mulDivDown(
-            loan.getDebt(), 10 ** state.config.priceFeed.decimals(), state.config.priceFeed.getPrice()
-        );
+        Loan storage loan = state.loans[params.loanId];
+        uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
+        uint256 debtCollateral =
+            Math.mulDivDown(loan.getDebt(), 10 ** state.config.priceFeed.decimals(), state.config.priceFeed.getPrice());
 
         // validate msg.sender
         if (msg.sender != loan.lender) {
@@ -57,7 +56,7 @@ library SelfLiquidateLoan {
         uint256 credit = loan.getCredit();
         Loan storage fol = state.getFOL(loan);
 
-        uint256 assignedCollateral = state.getAssignedCollateral(loan);
+        uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
         state.tokens.collateralToken.transferFrom(fol.borrower, msg.sender, assignedCollateral);
         state.tokens.debtToken.burn(fol.borrower, credit);
 

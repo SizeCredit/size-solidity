@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 
@@ -28,7 +28,7 @@ contract MoveToVariablePoolTest is BaseTest {
         Loan memory loanBefore = size.getLoan(loanId);
 
         uint256 assignedCollateral =
-            FixedPointMathLib.mulDivDown(_before.bob.collateralAmount, loanBefore.faceValue, _before.bob.debtAmount);
+            Math.mulDivDown(_before.bob.collateralAmount, loanBefore.faceValue, _before.bob.debtAmount);
 
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
 

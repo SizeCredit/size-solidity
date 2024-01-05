@@ -34,6 +34,7 @@ import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 
+import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
@@ -294,6 +295,13 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     function _moveToVariablePool(address user, uint256 loanId) internal {
         vm.prank(user);
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
+    }
+
+    function _compensate(address user, uint256 loanToRepayId, uint256 loanToCompensateId, uint256 amount) internal {
+        vm.prank(user);
+        size.compensate(
+            CompensateParams({loanToRepayId: loanToRepayId, loanToCompensateId: loanToCompensateId, amount: amount})
+        );
     }
 
     function _state() internal view returns (Vars memory vars) {

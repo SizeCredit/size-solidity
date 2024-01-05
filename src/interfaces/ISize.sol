@@ -15,6 +15,7 @@ import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/Liquida
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
 
+import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
@@ -77,4 +78,8 @@ interface ISize {
         returns (uint256, uint256);
 
     function moveToVariablePool(MoveToVariablePoolParams calldata params) external;
+
+    // The borrower compensate his debt in `loanToRepayId` with his credit in `loanToCompensateId`
+    // The compensation can not exceed both 1) the credit the lender of `loanToRepayId` to the borrower and 2) the credit the lender of `loanToCompensateId` there
+    function compensate(CompensateParams calldata params) external;
 }

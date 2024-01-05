@@ -4,6 +4,6 @@
 @solplot=lib/solplot/src
 @src=src
 @test=test
-@solmate=lib/solmate/src
+@solady=lib/solady/src
 @chimera=lib/chimera/src
 @crytic/properties=lib/properties

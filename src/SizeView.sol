@@ -32,9 +32,9 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return state.isLiquidatable(loan.borrower);
     }
 
-    function getAssignedCollateral(uint256 loanId) public view returns (uint256) {
+    function getFOLAssignedCollateral(uint256 loanId) public view returns (uint256) {
         Loan memory loan = state.loans[loanId];
-        return state.getAssignedCollateral(loan);
+        return state.getFOLAssignedCollateral(loan);
     }
 
     function getDebt(uint256 loanId) public view returns (uint256) {

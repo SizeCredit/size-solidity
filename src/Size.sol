@@ -21,6 +21,8 @@ import {MoveToVariablePool, MoveToVariablePoolParams} from "@src/libraries/actio
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
 import {Common} from "@src/libraries/actions/Common.sol";
+
+import {Compensate, CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {
     LiquidateLoanWithReplacement,
     LiquidateLoanWithReplacementParams
@@ -51,6 +53,7 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, Multic
     using SelfLiquidateLoan for State;
     using LiquidateLoanWithReplacement for State;
     using MoveToVariablePool for State;
+    using Compensate for State;
     using Common for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -170,5 +173,11 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, Multic
     function moveToVariablePool(MoveToVariablePoolParams calldata params) external override(ISize) {
         state.validateMoveToVariablePool(params);
         state.executeMoveToVariablePool(params);
+    }
+
+    /// @inheritdoc ISize
+    function compensate(CompensateParams calldata params) external override(ISize) {
+        state.validateCompensate(params);
+        state.executeCompensate(params);
     }
 }

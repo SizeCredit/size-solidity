@@ -9,8 +9,8 @@ import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 contract LiquidateLoanValidationTest is BaseTest {
     function test_LiquidateLoan_validation() public {

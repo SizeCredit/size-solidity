@@ -8,7 +8,7 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -32,7 +32,7 @@ library BorrowerExit {
         uint256 rate = borrowOffer.getRate(fol.dueDate);
         uint256 r = PERCENT + rate;
         uint256 faceValue = fol.faceValue;
-        uint256 amountIn = FixedPointMathLib.mulDivUp(faceValue, PERCENT, r);
+        uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
 
         // validate msg.sender
         if (msg.sender != fol.borrower) {
@@ -66,7 +66,7 @@ library BorrowerExit {
         uint256 rate = borrowOffer.getRate(fol.dueDate);
         uint256 r = PERCENT + rate;
         uint256 faceValue = fol.faceValue;
-        uint256 amountIn = FixedPointMathLib.mulDivUp(faceValue, PERCENT, r);
+        uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
 
         state.tokens.borrowToken.transferFrom(msg.sender, params.borrowerToExitTo, amountIn);
         state.tokens.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);

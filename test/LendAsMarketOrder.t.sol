@@ -10,7 +10,7 @@ import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 contract LendAsMarketOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
@@ -23,7 +23,7 @@ contract LendAsMarketOrderTest is BaseTest {
 
         uint256 faceValue = 10e18;
         uint256 dueDate = 12;
-        uint256 amountIn = FixedPointMathLib.mulDivUp(faceValue, PERCENT, PERCENT + 0.03e18);
+        uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + 0.03e18);
 
         Vars memory _before = _state();
         BorrowOffer memory offerBefore = size.getBorrowOffer(alice);
@@ -53,7 +53,7 @@ contract LendAsMarketOrderTest is BaseTest {
 
         uint256 amountIn = 10e18;
         uint256 dueDate = 12;
-        uint256 faceValue = FixedPointMathLib.mulDivDown(amountIn, PERCENT + 0.03e18, PERCENT);
+        uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + 0.03e18, PERCENT);
 
         Vars memory _before = _state();
         BorrowOffer memory offerBefore = size.getBorrowOffer(alice);

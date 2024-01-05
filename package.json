@@ -2,7 +2,8 @@
   "name": "size-v2-solidity",
   "description": "Size v2",
   "scripts": {
-    "solhint": "solhint \"src/**/*.sol\" --max-warnings 0",
+    "solhint": "solhint \"src/**/*.sol\" \"test/**/*.sol\" \"script/**/*.sol\"  --max-warnings 0",
+    "coverage": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*' 'script/*' && genhtml lcov.info -o report --branch-coverage && open report/index.html",
     "typechain": "typechain --target ethers-v5 out/Size.sol/Size.json out/PriceFeed.sol/PriceFeed.json"
   },
   "devDependencies": {

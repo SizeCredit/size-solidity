@@ -8,7 +8,7 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -31,7 +31,7 @@ library LendAsMarketOrder {
         BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
-        uint256 amountIn = params.exactAmountIn ? params.amount : FixedPointMathLib.mulDivUp(params.amount, PERCENT, r);
+        uint256 amountIn = params.exactAmountIn ? params.amount : Math.mulDivUp(params.amount, PERCENT, r);
 
         // validate msg.sender
 
@@ -63,11 +63,11 @@ library LendAsMarketOrder {
         uint256 faceValue;
         uint256 amountIn;
         if (params.exactAmountIn) {
-            faceValue = FixedPointMathLib.mulDivDown(params.amount, r, PERCENT);
+            faceValue = Math.mulDivDown(params.amount, r, PERCENT);
             amountIn = params.amount;
         } else {
             faceValue = params.amount;
-            amountIn = FixedPointMathLib.mulDivUp(params.amount, PERCENT, r);
+            amountIn = Math.mulDivUp(params.amount, PERCENT, r);
         }
 
         state.tokens.debtToken.mint(params.borrower, faceValue);

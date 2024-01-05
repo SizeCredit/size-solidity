@@ -19,7 +19,7 @@ library MoveToVariablePool {
     using Common for State;
 
     function validateMoveToVariablePool(State storage state, MoveToVariablePoolParams calldata params) external view {
-        Loan memory loan = state.loans[params.loanId];
+        Loan storage loan = state.loans[params.loanId];
 
         // validate msg.sender
 
@@ -36,7 +36,7 @@ library MoveToVariablePool {
         Loan storage loan = state.loans[params.loanId];
 
         // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
-        uint256 assignedCollateral = state.getAssignedCollateral(loan);
+        uint256 assignedCollateral = state.getFOLAssignedCollateral(loan);
         uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(loan.faceValue);
 
         if (assignedCollateral < minimumCollateralOpening) {

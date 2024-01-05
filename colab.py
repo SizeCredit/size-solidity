@@ -248,6 +248,20 @@ class GenericLoan:
             assert self.amountFVExited <= self.FV, "This should never happen"
         return True
 
+    def reduceDebt(self, amount: float, dryRun=False):
+        if amount > self.getCredit():
+            print(f"WARNING: amount={amount} is too big, self.getDebt()={self.getDebt()}")
+            return False
+        if not dryRun:
+            self.FV -= amount
+            # NOTE: This guarantees that `loan.FV >= loan.amountFVExited` is always true
+            # NOTE: Even after debt reduction, it should be guaranteed that `FOL.FV == Sum of all SOL.credit()`
+            assert self.getCredit() >= 0, "This should never happen"
+
+            self.borrower.totDebtCoveredByRealCollateral -= amount
+            assert self.borrower.totDebtCoveredByRealCollateral >= 0, "This should never happen"
+        return True
+
 
 
 
@@ -542,9 +556,22 @@ class LendingOB:
         loansIds = [loanId for loanId in self.activeLoans if loanId.lender == lender and loanId.getDueDate() <= dueDate]
         return sum([self.activeLoans[loanId].getCredit() for loanId in loansIds])
 
-    def getAssignedCollateral(self, loanId: int):
+
+    def _getFOLAssignedCollateral(self, fol: FOL):
+        return self.getUserFreeETH(fol.borrower) * fol.FV / fol.borrower.totDebtCoveredByRealCollateral if fol.borrower.totDebtCoveredByRealCollateral != 0 else 0
+
+    # NOTE: It computes the collateral assigned to the FOL
+    def getFOLAssignedCollateral(self, loanId: int):
         loan = self.activeLoans[loanId]
-        return self.getUserFreeETH(loan.borrower) * loan.FV / loan.borrower.totDebtCoveredByRealCollateral if loan.borrower.totDebtCoveredByRealCollateral != 0 else 0
+        assert loan.isFOL(), "This should never happen"
+        return self._getFOLAssignedCollateral(loan)
+        # return self.getUserFreeETH(loan.borrower) * loan.FV / loan.borrower.totDebtCoveredByRealCollateral if loan.borrower.totDebtCoveredByRealCollateral != 0 else 0
+
+    def getProRataAssignedCollateral(self, loanId: int):
+        loan = self.activeLoans[loanId]
+        fol = loan.getFOL()
+        folCollateral = self._getFOLAssignedCollateral(fol=fol)
+        return folCollateral * loan.getCredit() / fol.getDebt()
 
 
     def deposit(self, user: User, amount: float, isUSDC: bool):
@@ -888,6 +915,38 @@ class LendingOB:
         fol.repaid = True
         return True
 
+    # NOTE: The borrower compensate his debt in `loanToRepayId` with his credit in `loanToCompensateId`
+    # NOTE: The compensation can not exceed both 1) the credit the lender of `loanToRepayId` to the borrower and 2) the credit the lender of `loanToCompensateId` there
+    def compensate(self, loanToRepayId: int, loanToCompensateId: int, amount = None):
+        loanToRepay = self.activeLoans[loanToRepayId]
+        loanToCompensate = self.activeLoans[loanToCompensateId]
+        if loanToCompensate.lender.uid != loanToRepay.borrower.uid:
+            print("compensate() Invalid lender")
+            return False
+        if loanToRepay.repaid:
+            print("compensate() Nothing to compensate")
+            return False
+        if loanToCompensate.repaid:
+            print("compensate() Nothing to compensate")
+            return False
+        if loanToRepay.getDueDate() < loanToCompensate.getDueDate():
+            print("compensate() Due date not compatible")
+            return False
+
+        temp = min(loanToRepay.getCredit(), loanToCompensate.getCredit())
+        amountToCompensate = amount if amount is not None else temp
+        if amountToCompensate > temp:
+            print("compensate() Amount too big")
+            return False
+        # NOTE: Debt Reduction
+        assert loanToRepay.reduceDebt(amountToCompensate), "This should never happen"
+        # NOTE: Exiting the same amount
+        assert loanToCompensate.lock(amountToCompensate), "This should never happen"
+        # NOTE: Transfering the credit
+        self.createSOL(fol=loanToCompensate.getFOL(), lender=loanToRepay.lender, borrower=loanToRepay.borrower, FV=amountToCompensate)
+        return True
+
+
     def _moveToVariablePool(self, loanId: int, dryRun=True):
         fol = self.activeLoans[loanId]
         if not fol.isFOL():
@@ -895,7 +954,7 @@ class LendingOB:
             return False
         # NOTE: In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
 
-        assignedCollateral = self.getAssignedCollateral(loanId=loanId)
+        assignedCollateral = self.getFOLAssignedCollateral(loanId=loanId)
         # NOTE: Checking Opening Collateral Ratio
         openingCollateralRequested = (fol.FV / self.context.price) * self.generalParams.CROpening
         if not (assignedCollateral >= openingCollateralRequested):
@@ -927,7 +986,7 @@ class LendingOB:
             print(f"WARNING: Invalid loan type")
             return False
         # NOTE: In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
-        assignedCollateral = self.getAssignedCollateral(loanId=loanId)
+        assignedCollateral = self.getFOLAssignedCollateral(loanId=loanId)
         # NOTE: Checking Opening Collateral Ratio
         if not myAssert(self.vp.borrow(borrower=fol.borrower, amountLent=fol.getDebt(), amountCollateral=assignedCollateral, recipientOfCash=self, providerOfCollateral=self, withAssert=withAssert),
                         "It is not possible to convert the loan from fixed to variable", withAssert):
@@ -944,7 +1003,7 @@ class LendingOB:
             print(f"WARNING: Loan is not overdue")
             return False
         # NOTE: In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
-        assignedCollateral = self.getAssignedCollateral(loanId=loanId)
+        assignedCollateral = self.getFOLAssignedCollateral(loanId=loanId)
         # NOTE: Checking Opening Collateral Ratio
         openingCollateralRequested = (fol.FV / self.context.price) * self.generalParams.CROpening
         if not (assignedCollateral >= openingCollateralRequested):
@@ -1011,7 +1070,8 @@ class LendingOB:
         # if not self.isLoanLiquidatable(loanId=loanId):
         #     print(f"WARNING: Loan is not liquidatable")
         #     return False, 0
-        assignedCollateral = self.getAssignedCollateral(loanId=loanId)
+        # assignedCollateral = self.getFOLAssignedCollateral(loanId=loanId)
+        assignedCollateral = self.getProRataAssignedCollateral(loanId=loanId)
         amountCollateralDebtCoverage = loan.getDebt(inCollateral=True)
 
         # NOTE: Atm we only allow self liquidation at loss but we can think of allowing it even when the loan is not underwater but eligible for liquidation
@@ -1093,7 +1153,7 @@ class LendingOB:
         if not self.isLoanLiquidatable(loanId=loanId):
             print(f"WARNING: Loan is not liquidatable")
             return False, 0
-        assignedCollateral = self.getAssignedCollateral(loanId=loanId)
+        assignedCollateral = self.getFOLAssignedCollateral(loanId=loanId)
         amountCollateralDebtCoverage = fol.getDebt(inCollateral=True)
         if assignedCollateral < amountCollateralDebtCoverage:
             # Liquidation at loss, we can prevent it for now since it can save the liquidator from MEV
@@ -1551,6 +1611,62 @@ class Test:
 
 
 
+    def testBasicCompensate1(self, amountToExitPerc=0.1):
+        self.ob.deposit(user=self.bob, amount=100, isUSDC=True)
+        assert self.bob.cash.free == 0, f"bob.cash.free = {self.bob.cash.free}"
+        assert self.ob.getUserCash(self.bob) == 100, f"userCash[self.bob.uid] = {self.ob.getUserCash(self.bob)}"
+        self.ob.lendAsLimitOrder(offer = LoanOffer(
+            context=self.context,
+            lender=self.bob,
+            maxAmount=100,
+            maxDueDate=10,
+            curveRelativeTime=YieldCurve.getFlatRate(rate=0.03, timeBuckets=range(12))
+        ))
+
+        self.ob.deposit(user=self.candy, amount=100, isUSDC=True)
+        assert self.candy.cash.free == 0, f"candy.cash.free = {self.candy.cash.free}"
+        assert self.ob.getUserCash(self.candy) == 100, f"userCash[self.candy.uid] = {self.ob.getUserCash(self.candy)}"
+        self.ob.lendAsLimitOrder(offer = LoanOffer(
+            context=self.context,
+            lender=self.candy,
+            maxAmount=100,
+            maxDueDate=10,
+            curveRelativeTime=YieldCurve.getFlatRate(rate=0.05, timeBuckets=range(12))
+        ))
+
+        self.ob.deposit(user=self.alice, amount=50, isUSDC=False)
+        dueDate = 6
+        temp, _ = self.ob.borrowAsMarketOrder(borrower=self.alice, lender=self.bob, amount=50, dueDate=dueDate)
+        assert temp, "borrowAsMarketOrder failed"
+
+        assert len(self.ob.activeLoans) == 1, f"Checking num of loans before len(self.ob.activeLoans)={len(self.ob.activeLoans)}"
+        assert self.ob.activeLoans[0].isFOL(), "The first loan has be FOL"
+
+        fol = self.ob.activeLoans[0]
+
+        amountToBorrow = fol.FV / 10
+
+        self.ob.deposit(user=self.bob, amount=50, isUSDC=False)
+        # NOTE: Lender exiting using borrow as market order
+        bobDebtBefore = self.bob.totDebtCoveredByRealCollateral
+        temp, amountInLeft = self.ob.borrowAsMarketOrder(borrower=self.bob, lender=self.candy, amount=amountToBorrow, dueDate=dueDate)
+        assert temp, "borrowAsMarketOrder failed"
+        # temp, amountInLeft = self.ob.lenderExit(exitingLender=self.bob, loanId=0, amount=amountToExit, lendersToExitTo=[self.candy])
+        bobDebtAfter = self.bob.totDebtCoveredByRealCollateral
+        assert bobDebtAfter > bobDebtBefore, f"bobDebtAfter - bobDebtBefore = {bobDebtAfter - bobDebtBefore}, expected = {amountToBorrow}"
+
+
+        temp = self.ob.compensate(loanToRepayId=1, loanToCompensateId=0)
+        assert temp, "Compensation should work"
+        assert self.bob.totDebtCoveredByRealCollateral == bobDebtBefore, f"bob.totDebtCoveredByRealCollateral={self.bob.totDebtCoveredByRealCollateral}, expected={bobDebtBefore}"
+
+        # NOTE: Bob is both borrower with Candy and lender with Alice, so he should be able to repay the loan with Candy by using the credit Alice loan.
+
+        # assert len(self.ob.activeLoans) == 2, "Checking num of loans after"
+        # assert not self.ob.activeLoans[1].isFOL(), "The second loan has be SOL"
+        # sol = self.ob.activeLoans[1]
+        # assert sol.FV == amountToExit, "Amount to Exit should be the same"
+        # assert amountInLeft == 0, f"Should be able to exit the full amount amountInLeft={amountInLeft}"
 
 
 

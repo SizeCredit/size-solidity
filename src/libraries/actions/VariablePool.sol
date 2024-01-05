@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {State} from "@src/SizeStorage.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
@@ -26,7 +26,7 @@ library VariablePool {
         uint256 totalDeposits = state.tokens.borrowAsset.balanceOf(state.config.variablePool);
 
         if (totalDeposits > 0) {
-            return FixedPointMathLib.mulDivDown(totalBorrowed, PERCENT, totalDeposits);
+            return Math.mulDivDown(totalBorrowed, PERCENT, totalDeposits);
         } else {
             return 0;
         }
@@ -35,18 +35,18 @@ library VariablePool {
     function getInterestRate(State storage state) internal view returns (uint256) {
         uint256 utilizationRatio = getUtilizationRatio(state);
         uint256 maxLowSlopeRate = state.variablePoolConfig.minRate
-            - FixedPointMathLib.mulDivDown(state.variablePoolConfig.slope, utilizationRatio, PERCENT);
+            - Math.mulDivDown(state.variablePoolConfig.slope, utilizationRatio, PERCENT);
 
         if (utilizationRatio <= state.variablePoolConfig.turningPoint) {
             return maxLowSlopeRate;
         } else {
-            uint256 slopeHigh = FixedPointMathLib.mulDivDown(
+            uint256 slopeHigh = Math.mulDivDown(
                 state.variablePoolConfig.maxRate - maxLowSlopeRate,
                 PERCENT,
                 PERCENT - state.variablePoolConfig.turningPoint
             );
             return maxLowSlopeRate
-                + FixedPointMathLib.mulDivDown(
+                + Math.mulDivDown(
                     slopeHigh, (utilizationRatio - state.variablePoolConfig.turningPoint), PERCENT
                 );
         }

@@ -9,7 +9,7 @@ import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 contract ClaimTest is BaseTest {
     function test_Claim_claim_gets_loan_FV_back() public {
@@ -20,7 +20,7 @@ contract ClaimTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         _repay(bob, loanId);
 
-        uint256 faceValue = FixedPointMathLib.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
+        uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
 
         Vars memory _before = _state();
 
@@ -43,7 +43,7 @@ contract ClaimTest is BaseTest {
         uint256 r = PERCENT + 0.03e18;
 
         uint256 faceValueExited = 10e18;
-        uint256 amount = FixedPointMathLib.mulDivDown(faceValueExited, PERCENT, r);
+        uint256 amount = Math.mulDivDown(faceValueExited, PERCENT, r);
         _borrowAsMarketOrder(alice, candy, amount, 12, [loanId]);
         _repay(bob, loanId);
 
@@ -54,7 +54,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 faceValue = FixedPointMathLib.mulDivUp(100e18, r, PERCENT);
+        uint256 faceValue = Math.mulDivUp(100e18, r, PERCENT);
         uint256 credit = faceValue - faceValueExited;
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + credit);
         assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);

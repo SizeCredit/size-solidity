@@ -8,7 +8,7 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
@@ -100,18 +100,17 @@ library BorrowAsMarketOrder {
 
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
-        amountOutLeft = params.exactAmountIn ? FixedPointMathLib.mulDivDown(params.amount, PERCENT, r) : params.amount;
+        amountOutLeft = params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, r) : params.amount;
 
         for (uint256 i = 0; i < params.virtualCollateralLoanIds.length; ++i) {
             uint256 loanId = params.virtualCollateralLoanIds[i];
             Loan memory loan = state.loans[loanId];
-            uint256 folId = loan.isFOL() ? loanId : loan.folId;
 
-            uint256 deltaAmountIn = FixedPointMathLib.mulDivUp(amountOutLeft, r, PERCENT);
+            uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, r, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
             if (deltaAmountIn > loan.getCredit()) {
                 deltaAmountIn = loan.getCredit();
-                deltaAmountOut = FixedPointMathLib.mulDivDown(loan.getCredit(), PERCENT, r);
+                deltaAmountOut = Math.mulDivDown(loan.getCredit(), PERCENT, r);
             } else {
                 deltaAmountOut = amountOutLeft;
             }
@@ -121,13 +120,7 @@ library BorrowAsMarketOrder {
                 break;
             }
 
-            state.createSOL({
-                exiterId: loanId,
-                folId: folId,
-                lender: params.lender,
-                borrower: msg.sender,
-                faceValue: deltaAmountIn
-            });
+            state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, faceValue: deltaAmountIn});
             state.tokens.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
@@ -149,7 +142,7 @@ library BorrowAsMarketOrder {
 
         uint256 r = PERCENT + loanOffer.getRate(params.dueDate);
 
-        uint256 faceValue = FixedPointMathLib.mulDivUp(params.amount, r, PERCENT);
+        uint256 faceValue = Math.mulDivUp(params.amount, r, PERCENT);
         uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(faceValue);
 
         if (state.tokens.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {

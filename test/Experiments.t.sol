@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {BaseTest, Vars} from "./BaseTest.sol";
+import {BaseTest} from "./BaseTest.sol";
 import {ExperimentsHelper} from "./helpers/ExperimentsHelper.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {Test} from "forge-std/Test.sol";
@@ -110,7 +110,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(fol.isFOL(), "The first loan should be FOL");
 
         // Calculate amount to exit
-        uint256 amountToExit = FixedPointMathLib.mulDivDown(fol.faceValue, amountToExitPercent, PERCENT);
+        uint256 amountToExit = Math.mulDivDown(fol.faceValue, amountToExitPercent, PERCENT);
 
         // Lender exiting using borrow as market order
         _borrowAsMarketOrder(bob, candy, amountToExit, dueDate, true, [uint256(0)]);
@@ -152,11 +152,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(loan_Bob_Alice.borrower == alice, "Alice should be the borrower");
         LoanOffer memory loanOffer = size.getLoanOffer(bob);
         uint256 rate = loanOffer.getRate(5);
-        assertEq(
-            loan_Bob_Alice.faceValue,
-            FixedPointMathLib.mulDivUp(70e18, (PERCENT + rate), PERCENT),
-            "Check loan faceValue"
-        );
+        assertEq(loan_Bob_Alice.faceValue, Math.mulDivUp(70e18, (PERCENT + rate), PERCENT), "Check loan faceValue");
         assertEq(size.getDueDate(0), 5, "Check loan due date");
 
         // Bob borrows using the loan as virtual collateral
@@ -170,11 +166,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
         LoanOffer memory loanOffer2 = size.getLoanOffer(james);
         uint256 rate2 = loanOffer2.getRate(size.getDueDate(0));
-        assertEq(
-            loan_James_Bob.faceValue,
-            FixedPointMathLib.mulDivUp(35e18, PERCENT + rate2, PERCENT),
-            "Check loan faceValue"
-        );
+        assertEq(loan_James_Bob.faceValue, Math.mulDivUp(35e18, PERCENT + rate2, PERCENT), "Check loan faceValue");
         assertEq(size.getDueDate(0), size.getDueDate(1), "Check loan due date");
     }
 
@@ -340,5 +332,55 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _liquidateLoanWithReplacement(liquidator, 0, candy);
         assertEq(_state().alice.debtAmount, 0, "Alice should have no debt after");
         assertEq(_state().candy.debtAmount, fol.getDebt(), "Candy should have the debt after");
+    }
+
+    function test_Experiments_testBasicCompensate1() public {
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowAmount, 100e18, "Bob's borrow amount should be 100e18");
+
+        // Bob lends as limit order
+        _lendAsLimitOrder(bob, 100e18, 10, 0.03e18, 12);
+
+        // Candy deposits in USDC
+        _deposit(candy, usdc, 100e6);
+        assertEq(_state().candy.borrowAmount, 100e18, "Candy's borrow amount should be 100e18");
+
+        // Candy lends as limit order
+        _lendAsLimitOrder(candy, 100e18, 10, 0.05e18, 12);
+
+        // Alice deposits in WETH
+        _deposit(alice, weth, 50e18);
+        uint256 dueDate = 6;
+
+        // Alice borrows as market order from Bob
+        uint256 loanId = _borrowAsMarketOrder(alice, bob, 50e18, dueDate);
+        assertEq(size.activeLoans(), 1, "There should be one active loan");
+        assertTrue(size.getLoan(loanId).isFOL(), "The first loan should be FOL");
+
+        Loan memory fol = size.getLoan(loanId);
+
+        // Calculate amount to borrow
+        uint256 amountToBorrow = fol.faceValue / 10;
+
+        // Bob deposits in WETH
+        _deposit(bob, weth, 50e18);
+
+        // Bob borrows as market order from Candy
+        uint256 bobDebtBefore = _state().bob.debtAmount;
+        uint256 loanId2 = _borrowAsMarketOrder(bob, candy, amountToBorrow, dueDate);
+        uint256 bobDebtAfter = _state().bob.debtAmount;
+        assertGt(bobDebtAfter, bobDebtBefore, "Bob's debt should increase");
+
+        // Bob compensates
+        uint256 loanToRepayId = loanId2;
+        uint256 loanToCompensateId = loanId;
+        _compensate(bob, loanToRepayId, loanToCompensateId, type(uint256).max);
+
+        assertEq(
+            _state().bob.debtAmount,
+            bobDebtBefore,
+            "Bob's total debt covered by real collateral should revert to previous state"
+        );
     }
 }

@@ -85,35 +85,35 @@ Size V2 Solidity
 - $Credit(i) = FV(i) - \sum\limits_{j~where~Exiter(j)=i}{FV(j)}$ /// For example, when a loan i exits to another j, Exiter(j) = i. This isn't tracked anywhere on-chain, as it's not necessary under the correct accounting conditions, as the loan structure only tracks the folId, not the "originator". But the originator can also be a SOL, when a SOL exits to another SOL. But it can be emitted, which may be used for off-chain metrics, so I guess I'll add that to the event. Also, when doing fuzzing/formal verification, we can also add "ghost variables" to track the "originator", so no need to add it to the protocol, but this concept can be useful in assessing the correct behavior of the exit logic
 - The VP utilization ratio should never be greater than 1
 
-## TODOs
+## TODO before testnet
 
-- TODO: more scenarios
-- TODO: debt compensation
-- TODO: origination fee & loan fee
-- TODO: VP updates
-
+- more scenarios
+- origination fee & loan fee
+- more unit tests where block.timestamp is e.g. "December 29, 2023", so that it is more realistic
+- buckets of different sizes, not only spaced by 1 (second), but also 30 days, 1 week, etc etc
+- tests with other types of yield curves (not only flat)
+- debt compensation
+- test for dueDate NOW
+- VP
 - finish invariant tests
-- add more unit tests where block.timestamp is e.g. "December 29, 2023", so that it is more realistic
-- add tests with other types of yield curves (not only flat)
-- also add buckets of different sizes, not only spaced by 1 (second), but also 30 days, 1 week, etc etc
-- add test for dueDate NOW
-- borrowing from yourself you increase your debt without getting any cash, and can put you closer to liquidation
-- should withdraw update BorrowOffer? if (user.borrowAsset.free < user.loanOffer.maxAmount) user.loanOffer.maxAmount = user.borrowAsset.free;
-- test events
-- refactor tests following Sablier v2 naming conventions: `test_Foo`, `testFuzz_Foo`, `test_RevertWhen_Foo`, `testFuzz_RevertWhen_Foo`, `testFork_...`
+- events
 - test libraries (OfferLibrary.getRate, etc)
-- test liquidator profits
-- test liquiadtion library collateralRate, etc, and others, for important decimals/etc, hardcoded values
-- natspec
-- multi-erc20 tokens with different CR per tokens
+
+## TODO before audit
+
 - review all input validation functions
-- gas optimizations
+- natspec
+
+## Gas optimizations
+
 - separate Loan struct
+- refactor tests following Sablier v2 naming conventions: `test_Foo`, `testFuzz_Foo`, `test_RevertWhen_Foo`, `testFuzz_RevertWhen_Foo`, `testFork_...`
 - use solady for tokens or other simple primitives
 
-## Audit remarks
+## Notes for auditors
 
-- Check rounding direction of `mulDiv`
+- // @audit Check rounding direction of `FixedPointMath.mulDiv*`
+- // @audit Check if borrower == lender == liquidator may cause any issues
 
 ## Known limitations
 

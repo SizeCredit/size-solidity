@@ -19,7 +19,7 @@ library Claim {
     using Common for State;
 
     function validateClaim(State storage state, ClaimParams calldata params) external view {
-        Loan memory loan = state.loans[params.loanId];
+        Loan storage loan = state.loans[params.loanId];
 
         // validate msg.sender
 

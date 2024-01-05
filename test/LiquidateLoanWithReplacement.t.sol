@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
 import {Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 
@@ -25,7 +25,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 delta = debt - amount;
 
         _setPrice(0.2e18);
@@ -66,8 +66,8 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         _borrowAsLimitOrder(candy, 100e18, 0.01e18, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = FixedPointMathLib.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 newAmount = FixedPointMathLib.mulDivDown(debt, PERCENT, (PERCENT + 0.01e18));
+        uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        uint256 newAmount = Math.mulDivDown(debt, PERCENT, (PERCENT + 0.01e18));
         uint256 delta = debt - newAmount;
 
         _setPrice(0.2e18);

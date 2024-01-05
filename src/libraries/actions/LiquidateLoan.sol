@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {FixedPointMathLib} from "@solmate/utils/FixedPointMathLib.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
@@ -23,7 +23,7 @@ library LiquidateLoan {
     using Common for State;
 
     function validateLiquidateLoan(State storage state, LiquidateLoanParams calldata params) external view {
-        Loan memory loan = state.loans[params.loanId];
+        Loan storage loan = state.loans[params.loanId];
 
         // validate msg.sender
 
@@ -53,11 +53,10 @@ library LiquidateLoan {
     {
         Loan storage fol = state.loans[params.loanId];
 
-        uint256 assignedCollateral = state.getAssignedCollateral(fol);
+        uint256 assignedCollateral = state.getFOLAssignedCollateral(fol);
         uint256 debtBorrowAsset = fol.getDebt();
-        uint256 debtCollateral = FixedPointMathLib.mulDivDown(
-            debtBorrowAsset, 10 ** state.config.priceFeed.decimals(), state.config.priceFeed.getPrice()
-        );
+        uint256 debtCollateral =
+            Math.mulDivDown(debtBorrowAsset, 10 ** state.config.priceFeed.decimals(), state.config.priceFeed.getPrice());
 
         emit Events.LiquidateLoan(params.loanId, assignedCollateral, debtCollateral);
 
@@ -66,12 +65,10 @@ library LiquidateLoan {
             // split remaining collateral between liquidator and protocol
             uint256 collateralRemainder = assignedCollateral - debtCollateral;
 
-            uint256 collateralRemainderToLiquidator = FixedPointMathLib.mulDivDown(
-                collateralRemainder, state.config.collateralPercentagePremiumToLiquidator, PERCENT
-            );
-            uint256 collateralRemainderToProtocol = FixedPointMathLib.mulDivDown(
-                collateralRemainder, state.config.collateralPercentagePremiumToProtocol, PERCENT
-            );
+            uint256 collateralRemainderToLiquidator =
+                Math.mulDivDown(collateralRemainder, state.config.collateralPercentagePremiumToLiquidator, PERCENT);
+            uint256 collateralRemainderToProtocol =
+                Math.mulDivDown(collateralRemainder, state.config.collateralPercentagePremiumToProtocol, PERCENT);
 
             liquidatorProfitCollateralAsset = debtCollateral + collateralRemainderToLiquidator;
             state.tokens.collateralToken.transferFrom(
