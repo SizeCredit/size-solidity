@@ -297,6 +297,10 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
     }
 
+    function _compensate(address user, uint256 loanToRepayId, uint256 loanToCompensateId) internal {
+        return _compensate(user, loanToRepayId, loanToCompensateId, type(uint256).max);
+    }
+
     function _compensate(address user, uint256 loanToRepayId, uint256 loanToCompensateId, uint256 amount) internal {
         vm.prank(user);
         size.compensate(
