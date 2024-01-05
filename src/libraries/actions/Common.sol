@@ -12,17 +12,15 @@ library Common {
 
     function reduceDebt(State storage state, uint256 loanId, uint256 amount) public {
         Loan storage loan = state.loans[loanId];
+        Loan storage fol = getFOL(state, loan);
         if (amount > loan.getCredit()) {
             revert Errors.NOT_ENOUGH_CREDIT(loan.getCredit(), amount);
         }
 
-        loan.faceValue -= amount;
+        state.tokens.debtToken.burn(fol.borrower, amount);
 
-        if (loan.isFOL()) {
-            // @audit Check this logic
-            state.tokens.debtToken.burn(loan.borrower, amount);
-        } else {
-            Loan storage fol = state.loans[loan.folId];
+        loan.faceValue -= amount;
+        if (!loan.isFOL()) {
             fol.faceValue -= amount;
             fol.faceValueExited -= amount;
         }

@@ -58,22 +58,6 @@ library SelfLiquidateLoan {
 
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
         state.tokens.collateralToken.transferFrom(fol.borrower, msg.sender, assignedCollateral);
-        state.tokens.debtToken.burn(fol.borrower, credit);
-
-        if (loan.isFOL()) {
-            // loan.faceValue := loan.faceValueExited
-            //                 = 0, if no exits
-            //                >= state.config.minimumCredit, if at least 1 exit
-            loan.faceValue -= credit;
-        } else {
-            // same
-            loan.faceValue -= credit;
-
-            // deducting faceValue and faceValueExited by the same amount does not change the credit,
-            //   since it is the difference between these two values
-            // so fol.getCredit() >= state.config.minimumCredit still
-            fol.faceValue -= credit;
-            fol.faceValueExited -= credit;
-        }
+        state.reduceDebt(params.loanId, credit);
     }
 }
