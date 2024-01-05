@@ -83,6 +83,18 @@ export type ClaimParamsStruct = { loanId: BigNumberish };
 
 export type ClaimParamsStructOutput = [BigNumber] & { loanId: BigNumber };
 
+export type CompensateParamsStruct = {
+  loanToRepayId: BigNumberish;
+  loanToCompensateId: BigNumberish;
+  amount: BigNumberish;
+};
+
+export type CompensateParamsStructOutput = [BigNumber, BigNumber, BigNumber] & {
+  loanToRepayId: BigNumber;
+  loanToCompensateId: BigNumber;
+  amount: BigNumber;
+};
+
 export type DepositParamsStruct = { token: string; amount: BigNumberish };
 
 export type DepositParamsStructOutput = [string, BigNumber] & {
@@ -401,15 +413,16 @@ export interface SizeInterface extends utils.Interface {
     "collateralPercentagePremiumToLiquidator()": FunctionFragment;
     "collateralPercentagePremiumToProtocol()": FunctionFragment;
     "collateralRatio(address)": FunctionFragment;
+    "compensate((uint256,uint256,uint256))": FunctionFragment;
     "crLiquidation()": FunctionFragment;
     "crOpening()": FunctionFragment;
     "deposit((address,uint256))": FunctionFragment;
-    "getAssignedCollateral(uint256)": FunctionFragment;
     "getBorrowOffer(address)": FunctionFragment;
     "getConfig()": FunctionFragment;
     "getCredit(uint256)": FunctionFragment;
     "getDebt(uint256)": FunctionFragment;
     "getDueDate(uint256)": FunctionFragment;
+    "getFOLAssignedCollateral(uint256)": FunctionFragment;
     "getFeeRecipient()": FunctionFragment;
     "getLoan(uint256)": FunctionFragment;
     "getLoanOffer(address)": FunctionFragment;
@@ -454,15 +467,16 @@ export interface SizeInterface extends utils.Interface {
       | "collateralPercentagePremiumToLiquidator"
       | "collateralPercentagePremiumToProtocol"
       | "collateralRatio"
+      | "compensate"
       | "crLiquidation"
       | "crOpening"
       | "deposit"
-      | "getAssignedCollateral"
       | "getBorrowOffer"
       | "getConfig"
       | "getCredit"
       | "getDebt"
       | "getDueDate"
+      | "getFOLAssignedCollateral"
       | "getFeeRecipient"
       | "getLoan"
       | "getLoanOffer"
@@ -542,6 +556,10 @@ export interface SizeInterface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "compensate",
+    values: [CompensateParamsStruct]
+  ): string;
+  encodeFunctionData(
     functionFragment: "crLiquidation",
     values?: undefined
   ): string;
@@ -549,10 +567,6 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "deposit",
     values: [DepositParamsStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAssignedCollateral",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getBorrowOffer",
@@ -569,6 +583,10 @@ export interface SizeInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getDueDate",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getFOLAssignedCollateral",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -717,16 +735,13 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "collateralRatio",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "compensate", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "crLiquidation",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "crOpening", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getAssignedCollateral",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "getBorrowOffer",
     data: BytesLike
@@ -735,6 +750,10 @@ export interface SizeInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "getCredit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDebt", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDueDate", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getFOLAssignedCollateral",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getFeeRecipient",
     data: BytesLike
@@ -949,6 +968,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    compensate(
+      params: CompensateParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
     crLiquidation(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     crOpening(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -957,11 +981,6 @@ export interface Size extends BaseContract {
       params: DepositParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
-
-    getAssignedCollateral(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
 
     getBorrowOffer(
       account: string,
@@ -981,6 +1000,11 @@ export interface Size extends BaseContract {
     ): Promise<[BigNumber]>;
 
     getDueDate(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getFOLAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -1158,6 +1182,11 @@ export interface Size extends BaseContract {
 
   collateralRatio(user: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+  compensate(
+    params: CompensateParamsStruct,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
   crLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
 
   crOpening(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1166,11 +1195,6 @@ export interface Size extends BaseContract {
     params: DepositParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
-
-  getAssignedCollateral(
-    loanId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   getBorrowOffer(
     account: string,
@@ -1187,6 +1211,11 @@ export interface Size extends BaseContract {
   getDebt(loanId: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   getDueDate(
+    loanId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getFOLAssignedCollateral(
     loanId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -1362,6 +1391,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    compensate(
+      params: CompensateParamsStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     crLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
 
     crOpening(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1370,11 +1404,6 @@ export interface Size extends BaseContract {
       params: DepositParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    getAssignedCollateral(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     getBorrowOffer(
       account: string,
@@ -1394,6 +1423,11 @@ export interface Size extends BaseContract {
     ): Promise<BigNumber>;
 
     getDueDate(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFOLAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1598,6 +1632,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    compensate(
+      params: CompensateParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
     crLiquidation(overrides?: CallOverrides): Promise<BigNumber>;
 
     crOpening(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1605,11 +1644,6 @@ export interface Size extends BaseContract {
     deposit(
       params: DepositParamsStruct,
       overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
-    getAssignedCollateral(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getBorrowOffer(
@@ -1630,6 +1664,11 @@ export interface Size extends BaseContract {
     ): Promise<BigNumber>;
 
     getDueDate(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getFOLAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1801,6 +1840,11 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    compensate(
+      params: CompensateParamsStruct,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
     crLiquidation(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     crOpening(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1808,11 +1852,6 @@ export interface Size extends BaseContract {
     deposit(
       params: DepositParamsStruct,
       overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
-    getAssignedCollateral(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getBorrowOffer(
@@ -1833,6 +1872,11 @@ export interface Size extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getDueDate(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getFOLAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
