@@ -134,11 +134,16 @@ contract LiquidateLoanTest is BaseTest {
         assertTrue(size.isLiquidatable(loanId));
         uint256 assignedCollateral = size.getFOLAssignedCollateral(loanId);
         uint256 debtCollateral = Math.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        (uint256 feeRecipientCollateralAssetBefore, uint256 feeRecipientBorrowAssetBefore,) = size.getFeeRecipient();
 
         uint256 liquidatorProfit = _liquidateLoan(liquidator, loanId, 0);
 
+        (uint256 feeRecipientCollateralAssetAfter, uint256 feeRecipientBorrowAssetAfter,) = size.getFeeRecipient();
+
         assertLt(liquidatorProfit, debtCollateral);
         assertEq(liquidatorProfit, assignedCollateral);
+        assertEq(feeRecipientBorrowAssetBefore, feeRecipientBorrowAssetAfter, 0);
+        assertEq(feeRecipientCollateralAssetBefore, feeRecipientCollateralAssetAfter, 0);
         assertEq(size.getFOLAssignedCollateral(loanId), 0);
         assertEq(size.getUserView(bob).collateralAmount, 0);
     }

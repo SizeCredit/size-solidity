@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Math} from "@src/libraries/MathLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 
 struct YieldCurve {
     uint256[] timeBuckets;

@@ -90,14 +90,18 @@ Size V2 Solidity
 
 ## TODO before testnet
 
-- more scenarios
-- there are 3 different borrowers taking 3 loans 
-  - one is repaid 
-  - one is liquidated 
-  - one is self liquidated 
-- more unit tests where block.timestamp is e.g. "December 29, 2023", so that it is more realistic
-- buckets of different sizes, not only spaced by 1 (second), but also 30 days, 1 week, etc etc
-- tests with other types of yield curves (not only flat)
+- more tests:
+  - claim
+  - lendAsMarketOrder
+  - repay
+    - more unit tests where block.timestamp is e.g. "December 29, 2023", so that it is more realistic
+    - buckets of different sizes, not only spaced by 1 (second), but also 30 days, 1 week, etc etc
+    - tests with other types of yield curves (not only flat)
+- there are 3 different borrowers taking 3 loans
+  - one is repaid
+  - one is liquidated
+  - one is self liquidated
+
 - origination fee & loan fee
 - debt compensation
 - test for dueDate NOW
