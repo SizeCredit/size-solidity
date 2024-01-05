@@ -25,4 +25,33 @@ library YieldCurveLibrary {
             lastTimeBucket = self.timeBuckets[i - 1];
         }
     }
+
+    function getRate(YieldCurve memory curveRelativeTime, uint256 dueDate) public view returns (uint256) {
+        if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
+        uint256 deltaT = dueDate - block.timestamp;
+        uint256 length = curveRelativeTime.timeBuckets.length;
+        if (deltaT < curveRelativeTime.timeBuckets[0] || deltaT > curveRelativeTime.timeBuckets[length - 1]) {
+            revert Errors.DUE_DATE_OUT_OF_RANGE(
+                deltaT, curveRelativeTime.timeBuckets[0], curveRelativeTime.timeBuckets[length - 1]
+            );
+        } else {
+            uint256 minIndex = type(uint256).max;
+            uint256 maxIndex = type(uint256).max;
+            for (uint256 i = 0; i < length; ++i) {
+                if (curveRelativeTime.timeBuckets[i] <= deltaT) {
+                    minIndex = i;
+                }
+                if (curveRelativeTime.timeBuckets[i] >= deltaT && maxIndex == type(uint256).max) {
+                    maxIndex = i;
+                }
+            }
+            uint256 x0 = curveRelativeTime.timeBuckets[minIndex];
+            uint256 y0 = curveRelativeTime.rates[minIndex];
+            uint256 x1 = curveRelativeTime.timeBuckets[maxIndex];
+            uint256 y1 = curveRelativeTime.rates[maxIndex];
+            // @audit review this equation to avoid precision loss
+            uint256 y = x1 != x0 ? (y0 * (x1 - x0) + (y1 - y0) * (deltaT - x0)) / (x1 - x0) : y0;
+            return y;
+        }
+    }
 }

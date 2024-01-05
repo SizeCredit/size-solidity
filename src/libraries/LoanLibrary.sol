@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Math} from "@src/libraries/MathLibrary.sol";
-
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
-
 uint256 constant RESERVED_ID = type(uint256).max;
 
 struct Loan {

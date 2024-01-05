@@ -4,11 +4,14 @@ pragma solidity 0.8.20;
 import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Math} from "@src/libraries/MathLibrary.sol";
 
@@ -86,6 +89,44 @@ contract LendAsMarketOrderTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, alice, 1.5e18 / 2));
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 200e18, exactAmountIn: false})
+        );
+    }
+
+    function test_LendAsMarketOrder_lendAsMarketOrder_reverts_if_dueDate_out_of_range() public {
+        _setPrice(1e18);
+        _deposit(alice, weth, 150e18);
+        _deposit(bob, usdc, 200e6);
+        YieldCurve memory curve = YieldCurveHelper.normalCurve();
+        _borrowAsLimitOrder(alice, 200e18, curve.timeBuckets, curve.rates);
+
+        vm.startPrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({
+                borrower: alice,
+                dueDate: block.timestamp + 6 days,
+                amount: 10e18,
+                exactAmountIn: false
+            })
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_OUT_OF_RANGE.selector, 151 days, 30 days, 150 days));
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({
+                borrower: alice,
+                dueDate: block.timestamp + 151 days,
+                amount: 10e18,
+                exactAmountIn: false
+            })
+        );
+
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({
+                borrower: alice,
+                dueDate: block.timestamp + 150 days,
+                amount: 10e18,
+                exactAmountIn: false
+            })
         );
     }
 }

@@ -3,10 +3,9 @@ pragma solidity 0.8.20;
 
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
 
 import {Math} from "@src/libraries/MathLibrary.sol";
 
