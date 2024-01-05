@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {Math} from "@src/libraries/MathLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 struct YieldCurve {
@@ -49,9 +50,11 @@ library YieldCurveLibrary {
             uint256 y0 = curveRelativeTime.rates[minIndex];
             uint256 x1 = curveRelativeTime.timeBuckets[maxIndex];
             uint256 y1 = curveRelativeTime.rates[maxIndex];
-            // @audit review this equation to avoid precision loss
-            uint256 y = x1 != x0 ? (y0 * (x1 - x0) + (y1 - y0) * (deltaT - x0)) / (x1 - x0) : y0;
-            return y;
+            if (x1 != x0) {
+                return y0 + Math.mulDivDown(y1 - y0, deltaT - x0, x1 - x0);
+            } else {
+                return y0;
+            }
         }
     }
 }
