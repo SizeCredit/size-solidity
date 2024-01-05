@@ -9,6 +9,7 @@ library Errors {
     error NULL_AMOUNT();
     error NULL_MAX_DUE_DATE();
     error NULL_ARRAY();
+    error TIME_BUCKETS_NOT_STRICTLY_INCREASING();
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
     error INVALID_COLLATERAL_RATIO(uint256 cr);

@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
 import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -17,18 +17,13 @@ library BorrowAsLimitOrder {
     function validateBorrowAsLimitOrder(State storage, BorrowAsLimitOrderParams calldata params) external pure {
         // validate msg.sender
 
-        // validate params.maxAmount
+        // validate maxAmount
         if (params.maxAmount == 0) {
             revert Errors.NULL_AMOUNT();
         }
 
-        // validate params.curveRelativeTime
-        if (params.curveRelativeTime.timeBuckets.length == 0 || params.curveRelativeTime.rates.length == 0) {
-            revert Errors.NULL_ARRAY();
-        }
-        if (params.curveRelativeTime.timeBuckets.length != params.curveRelativeTime.rates.length) {
-            revert Errors.ARRAY_LENGTHS_MISMATCH();
-        }
+        // validate curveRelativeTime
+        YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime);
     }
 
     function executeBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams calldata params) external {

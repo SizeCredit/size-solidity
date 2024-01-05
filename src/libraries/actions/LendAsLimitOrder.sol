@@ -2,8 +2,7 @@
 pragma solidity 0.8.20;
 
 import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -37,12 +36,7 @@ library LendAsLimitOrder {
         }
 
         // validate params.curveRelativeTime
-        if (params.curveRelativeTime.timeBuckets.length == 0 || params.curveRelativeTime.rates.length == 0) {
-            revert Errors.NULL_ARRAY();
-        }
-        if (params.curveRelativeTime.timeBuckets.length != params.curveRelativeTime.rates.length) {
-            revert Errors.ARRAY_LENGTHS_MISMATCH();
-        }
+        YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime);
     }
 
     function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external {

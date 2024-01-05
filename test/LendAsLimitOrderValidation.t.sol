@@ -58,6 +58,20 @@ contract LendAsLimitOrderValidationTest is BaseTest {
             })
         );
 
+        timeBuckets[0] = 2 days;
+        timeBuckets[1] = 1 days;
+        vm.expectRevert(abi.encodeWithSelector(Errors.TIME_BUCKETS_NOT_STRICTLY_INCREASING.selector));
+        size.lendAsLimitOrder(
+            LendAsLimitOrderParams({
+                maxAmount: maxAmount,
+                maxDueDate: maxDueDate,
+                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
+            })
+        );
+
+        timeBuckets[0] = 1 days;
+        timeBuckets[1] = 2 days;
+
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 100e18, 100e18 + 1));
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({

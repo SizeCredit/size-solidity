@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {LoanLibrary, Loan} from "@src/libraries/LoanLibrary.sol";
 import {BaseTest} from "./BaseTest.sol";
+import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 
 contract CompensateTest is BaseTest {
     using LoanLibrary for Loan;
+
     function test_Compensate_compensate_reduces_repaid_loan_debt_and_compensated_loan_credit() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
@@ -26,7 +27,7 @@ contract CompensateTest is BaseTest {
         uint256 repaidLoanDebtAfter = size.getLoan(loanId3).getDebt();
         uint256 compensatedLoanCreditAfter = size.getLoan(loanId).getCredit();
 
-        assertEq(repaidLoanDebtAfter , repaidLoanDebtBefore - 2 * 20e18);
+        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e18);
         assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 2 * 20e18);
         assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
     }
@@ -52,7 +53,7 @@ contract CompensateTest is BaseTest {
         uint256 repaidLoanDebtAfter = size.getLoan(solId).getDebt();
         uint256 compensatedLoanCreditAfter = size.getLoan(loanId).getCredit();
 
-        assertEq(repaidLoanDebtAfter , repaidLoanDebtBefore - 15e18);
+        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 15e18);
         assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 15e18);
         assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
     }
@@ -79,7 +80,7 @@ contract CompensateTest is BaseTest {
         uint256 repaidLoanDebtAfter = size.getLoan(solId).getDebt();
         uint256 compensatedLoanCreditAfter = size.getLoan(solId2).getCredit();
 
-        assertEq(repaidLoanDebtAfter , repaidLoanDebtBefore - 10e18);
+        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 10e18);
         assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 0e18);
         assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
     }

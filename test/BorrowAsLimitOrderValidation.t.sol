@@ -53,5 +53,15 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
                 curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
             })
         );
+
+        timeBuckets[0] = 2 days;
+        timeBuckets[1] = 1 days;
+        vm.expectRevert(abi.encodeWithSelector(Errors.TIME_BUCKETS_NOT_STRICTLY_INCREASING.selector));
+        size.borrowAsLimitOrder(
+            BorrowAsLimitOrderParams({
+                maxAmount: maxAmount,
+                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
+            })
+        );
     }
 }

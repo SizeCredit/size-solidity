@@ -1,19 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
+import {BaseTest} from "./BaseTest.sol";
 
-import {BaseTest, Vars} from "./BaseTest.sol";
-
-import {ISize} from "@src/interfaces/ISize.sol";
-
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
-import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
-
-import {Math} from "@src/libraries/MathLibrary.sol";
 
 contract BorrowAsLimitOrderTest is BaseTest {
     using OfferLibrary for BorrowOffer;
@@ -29,5 +20,22 @@ contract BorrowAsLimitOrderTest is BaseTest {
         assertTrue(_state().alice.user.borrowOffer.isNull());
         _borrowAsLimitOrder(alice, 50e18, timeBuckets, rates);
         assertTrue(!_state().alice.user.borrowOffer.isNull());
+    }
+
+    function test_BorrowAsLimitOrder_borrowAsLimitOrder_adds_borrowOffer_to_orderbook(
+        uint256 maxAmount,
+        uint256 buckets,
+        bytes32 seed
+    ) public {
+        maxAmount = bound(maxAmount, 1, type(uint256).max);
+        buckets = bound(buckets, 1, 365);
+        uint256[] memory timeBuckets = new uint256[](buckets);
+        uint256[] memory rates = new uint256[](buckets);
+
+        for (uint256 i = 0; i < buckets; i++) {
+            timeBuckets[i] = i * 1 days;
+            rates[i] = bound(uint256(keccak256(abi.encode(seed, i))), 0, 10e18);
+        }
+        _borrowAsLimitOrder(alice, maxAmount, timeBuckets, rates);
     }
 }
