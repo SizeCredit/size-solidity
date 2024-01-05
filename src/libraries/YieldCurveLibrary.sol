@@ -51,6 +51,7 @@ library YieldCurveLibrary {
             uint256 x1 = curveRelativeTime.timeBuckets[maxIndex];
             uint256 y1 = curveRelativeTime.rates[maxIndex];
             if (x1 != x0) {
+                // @audit Check the rounding direction, as this may lead debt rounding down
                 return y0 + Math.mulDivDown(y1 - y0, deltaT - x0, x1 - x0);
             } else {
                 return y0;
