@@ -44,8 +44,8 @@ Size V2 Solidity
 │      BorrowAsLimitOrder      │   3    │
 │     BorrowAsMarketOrder      │   14   │
 │         BorrowerExit         │   4    │
-│            Claim             │   3    │
-│          Compensate          │   4    │
+│            Claim             │   4    │
+│          Compensate          │   6    │
 │           Deposit            │   2    │
 │         Experiments          │   10   │
 │          Initialize          │   3    │
