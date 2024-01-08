@@ -79,10 +79,8 @@ Size V2 Solidity
 - Taking loan with only virtual collateral does not decrease the borrower CR
 - Taking loan with real collateral decreases the borrower CR
 
-- Repay should never DoS due to underflow
 - If isLiquidatable && liquidator has enough cash, the liquidation should always succeed (requires adding more checks to isLiquidatable)
 - When a user self liquidates a SOL, it will improve the collateralization ratio of other SOLs. This is because self liquidating decreases the FOL's face value, so it decreases all SOL's debt
-- A self liquidation of a FOL will never leave it as a dust loan
 - No loan (FOL/SOL) can ever become a dust loan
 - the protocol vault is always solvent (how to check for that?)
 - $Credit(i) = FV(i) - \sum\limits_{j~where~Exiter(j)=i}{FV(j)}$ /// For example, when a loan i exits to another j, Exiter(j) = i. This isn't tracked anywhere on-chain, as it's not necessary under the correct accounting conditions, as the loan structure only tracks the folId, not the "originator". But the originator can also be a SOL, when a SOL exits to another SOL. But it can be emitted, which may be used for off-chain metrics, so I guess I'll add that to the event. Also, when doing fuzzing/formal verification, we can also add "ghost variables" to track the "originator", so no need to add it to the protocol, but this concept can be useful in assessing the correct behavior of the exit logic

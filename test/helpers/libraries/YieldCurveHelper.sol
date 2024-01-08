@@ -118,10 +118,10 @@ library YieldCurveHelper {
         uint256[] memory rates = new uint256[](5);
 
         rates[0] = 0.01e18;
-        rates[1] = 0.02e18;
-        rates[2] = 0.03e18;
-        rates[3] = 0.02e18;
-        rates[4] = 0.01e18;
+        rates[1] = 0.05e18;
+        rates[2] = 0.06e18;
+        rates[3] = 0.07e18;
+        rates[4] = 0.08e18;
 
         timeBuckets[0] = 1 hours;
         timeBuckets[1] = 12 hours;
@@ -160,9 +160,9 @@ library YieldCurveHelper {
     // test your code with different values that offered by
     // the above the patterns.
     // m1 = 31 days
-    // r1 = 100 [1% in BPS]
+    // r1 = 0.01e18
     // m2 = 60 days
-    // r2 = 300 [3% in BPS]
+    // r2 = 0.03e18
     function customCurve(uint128 m1, uint24 r1, uint128 m2, uint24 r2) public pure returns (YieldCurve memory) {
         uint256[] memory timeBuckets = new uint256[](2);
         uint256[] memory rates = new uint256[](2);

@@ -31,7 +31,12 @@ library LendAsMarketOrder {
         BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
-        uint256 amountIn = params.exactAmountIn ? params.amount : Math.mulDivUp(params.amount, PERCENT, r);
+        uint256 amountIn;
+        if (params.exactAmountIn) {
+            amountIn = params.amount;
+        } else {
+            amountIn = Math.mulDivUp(params.amount, PERCENT, r);
+        }
 
         // validate msg.sender
 
