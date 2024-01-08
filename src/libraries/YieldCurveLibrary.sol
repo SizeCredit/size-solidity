@@ -50,12 +50,21 @@ library YieldCurveLibrary {
             uint256 y0 = curveRelativeTime.rates[minIndex];
             uint256 x1 = curveRelativeTime.timeBuckets[maxIndex];
             uint256 y1 = curveRelativeTime.rates[maxIndex];
+            // @audit Check the rounding direction, as this may lead debt rounding down
             if (x1 != x0) {
-                // @audit Check the rounding direction, as this may lead debt rounding down
-                return y0 + Math.mulDivDown(y1 - y0, deltaT - x0, x1 - x0);
+                if (y1 >= y0) {
+                    return y0 + Math.mulDivDown(y1 - y0, deltaT - x0, x1 - x0);
+                } else {
+                    return y0 - Math.mulDivDown(y0 - y1, deltaT - x0, x1 - x0);
+                }
             } else {
                 return y0;
             }
         }
     }
 }
+
+/*
+                (x1,y1)
+    (x0,y0)
+*/

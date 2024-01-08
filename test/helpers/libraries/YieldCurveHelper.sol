@@ -175,4 +175,20 @@ library YieldCurveHelper {
 
         return YieldCurve({timeBuckets: timeBuckets, rates: rates});
     }
+
+    function getRandomYieldCurve(uint256 seed) public pure returns (YieldCurve memory) {
+        if (seed % 5 == 0) {
+            return normalCurve();
+        } else if (seed % 5 == 1) {
+            return flatCurve();
+        } else if (seed % 5 == 2) {
+            return invertedCurve();
+        } else if (seed % 5 == 3) {
+            return humpedCurve();
+        } else if (seed % 5 == 4) {
+            return steepCurve();
+        } else {
+            return negativeCurve();
+        }
+    }
 }

@@ -18,19 +18,7 @@ abstract contract Helper is Deploy, PropertiesConstants {
     }
 
     function _getRandomYieldCurve(uint256 seed) internal pure returns (YieldCurve memory) {
-        if (seed % 5 == 0) {
-            return YieldCurveHelper.normalCurve();
-        } else if (seed % 5 == 1) {
-            return YieldCurveHelper.flatCurve();
-        } else if (seed % 5 == 2) {
-            return YieldCurveHelper.invertedCurve();
-        } else if (seed % 5 == 3) {
-            return YieldCurveHelper.humpedCurve();
-        } else if (seed % 5 == 4) {
-            return YieldCurveHelper.steepCurve();
-        } else {
-            return YieldCurveHelper.negativeCurve();
-        }
+        return YieldCurveHelper.getRandomYieldCurve(seed);
     }
 
     function _getRandomVirtualCollateralLoanIds(uint256 n, uint256 seed)
