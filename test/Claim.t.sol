@@ -117,4 +117,26 @@ contract ClaimTest is BaseTest {
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e18);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e18);
     }
+
+    function test_Claim_claim_of_liquidated_loan_retrieves_borrow_amount() public {
+        _setPrice(1e18);
+
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 300e18);
+        _deposit(liquidator, usdc, 10000e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+
+        _setPrice(0.75e18);
+
+        _liquidateLoan(liquidator, loanId);
+
+        Vars memory _before = _state();
+
+        _claim(alice, loanId);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 2 * 100e18);
+    }
 }

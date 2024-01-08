@@ -46,5 +46,12 @@ contract RepayValidationTest is BaseTest {
         size.repay(RepayParams({loanId: loanId}));
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId));
         size.repay(RepayParams({loanId: loanId}));
+        vm.stopPrank();
+
+        _claim(bob, loanId);
+
+        vm.startPrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId));
+        size.repay(RepayParams({loanId: loanId}));
     }
 }

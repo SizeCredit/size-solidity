@@ -1,15 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
-
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {Loan, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {Errors} from "@src/libraries/Errors.sol";
+import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
-import {YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {Math} from "@src/libraries/MathLibrary.sol";
 
@@ -66,5 +62,28 @@ contract RepayTest is BaseTest {
         assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + faceValue);
         assertTrue(size.getLoan(loanId).repaid);
         assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
+    }
+
+    function test_Repay_repay_claimed_should_revert() public {
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _deposit(candy, 100e18, 100e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        _borrowAsMarketOrder(bob, candy, 100e18, 12);
+
+        Vars memory _before = _state();
+
+        _repay(bob, loanId);
+        _claim(bob, loanId);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e18);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e18);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId));
+        _repay(bob, loanId);
     }
 }

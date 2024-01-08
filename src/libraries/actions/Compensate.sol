@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -20,8 +20,8 @@ library Compensate {
     using LoanLibrary for Loan;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
-        Loan memory loanToRepay = state.loans[params.loanToRepayId];
-        Loan memory loanToCompensate = state.loans[params.loanToCompensateId];
+        Loan storage loanToRepay = state.loans[params.loanToRepayId];
+        Loan storage loanToCompensate = state.loans[params.loanToCompensateId];
 
         // validate msg.sender
         if (msg.sender != loanToRepay.borrower) {
@@ -29,12 +29,12 @@ library Compensate {
         }
 
         // validate loanToRepayId
-        if (loanToRepay.repaid) {
+        if (state.getLoanStatus(loanToRepay) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanToRepayId);
         }
 
         // validate loanToCompensateId
-        if (loanToCompensate.repaid) {
+        if (state.getLoanStatus(loanToCompensate) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanToCompensateId);
         }
         if (loanToCompensate.lender != loanToRepay.borrower) {

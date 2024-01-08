@@ -28,26 +28,41 @@ contract LiquidateLoanValidationTest is BaseTest {
         uint256 solId = _borrowAsMarketOrder(alice, james, 5e18, 12, [loanId]);
         uint256 minimumCollateralRatio = 1e18;
 
+        vm.startPrank(liquidator);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, 103e18));
+        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
+        vm.stopPrank();
+
+        _deposit(liquidator, usdc, 10_000e18);
+
+        vm.startPrank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, solId, type(uint256).max));
         size.liquidateLoan(LiquidateLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio}));
+        vm.stopPrank();
 
+        vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, size.collateralRatio(bob))
         );
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
+        vm.stopPrank();
 
         _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
         _borrowAsMarketOrder(alice, james, 50e18, 12);
 
+        vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, size.collateralRatio(bob))
         );
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
+        vm.stopPrank();
 
         _setPrice(0.01e18);
 
+        vm.startPrank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_LIQUIDATED.selector, solId));
         size.liquidateLoan(LiquidateLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio}));
+        vm.stopPrank();
 
         _setPrice(100e18);
         _repay(bob, loanId);
@@ -55,7 +70,9 @@ contract LiquidateLoanValidationTest is BaseTest {
 
         _setPrice(0.2e18);
 
+        vm.startPrank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_STATUS.selector, loanId, LoanStatus.REPAID));
         size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
+        vm.stopPrank();
     }
 }

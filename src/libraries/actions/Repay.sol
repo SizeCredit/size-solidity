@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Loan} from "@src/libraries/LoanLibrary.sol";
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
-
 import {State} from "@src/SizeStorage.sol";
+import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {Common} from "@src/libraries/actions/Common.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -15,9 +15,10 @@ struct RepayParams {
 
 library Repay {
     using LoanLibrary for Loan;
+    using Common for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
-        Loan memory loan = state.loans[params.loanId];
+        Loan storage loan = state.loans[params.loanId];
 
         // validate msg.sender
         if (msg.sender != loan.borrower) {
@@ -31,7 +32,7 @@ library Repay {
         if (!loan.isFOL()) {
             revert Errors.ONLY_FOL_CAN_BE_REPAID(params.loanId);
         }
-        if (loan.repaid) {
+        if (state.either(loan, [LoanStatus.REPAID, LoanStatus.CLAIMED])) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanId);
         }
     }

@@ -2,6 +2,8 @@
 pragma solidity 0.8.20;
 
 import {BaseTest} from "./BaseTest.sol";
+
+import {Errors} from "@src/libraries/Errors.sol";
 import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 
 contract CompensateTest is BaseTest {
@@ -97,11 +99,11 @@ contract CompensateTest is BaseTest {
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 20e18, 12);
 
         _repay(alice, loanId2);
-        vm.expectRevert();
-        _compensate(alice, loanId, loanId2);
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId2));
+        _compensate(alice, loanId2, loanId);
     }
 
-    function test_Compensate_compensate_SOL_repaid_FOL_works() public {
+    function test_Compensate_compensate_SOL_repaid_FOL_reverts() public {
         _deposit(alice, 200e18, 200e18);
         _deposit(bob, 200e18, 200e18);
         _deposit(candy, 200e18, 200e18);
@@ -119,16 +121,7 @@ contract CompensateTest is BaseTest {
 
         _repay(bob, loanId);
 
-        uint256 repaidLoanDebtBefore = size.getLoan(solId).getDebt();
-        uint256 compensatedLoanCreditBefore = size.getLoan(loanId2).getCredit();
-
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, solId));
         _compensate(alice, solId, loanId2);
-
-        uint256 repaidLoanDebtAfter = size.getLoan(solId).getDebt();
-        uint256 compensatedLoanCreditAfter = size.getLoan(loanId2).getCredit();
-
-        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 15e18);
-        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 15e18);
-        assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
     }
 }
