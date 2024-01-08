@@ -22,6 +22,7 @@ library Claim {
         Loan storage loan = state.loans[params.loanId];
 
         // validate msg.sender
+        // @audit Check if this should be permissioned
 
         // validate loanId
         if (state.getLoanStatus(loan) != LoanStatus.REPAID) {
@@ -32,7 +33,7 @@ library Claim {
     function executeClaim(State storage state, ClaimParams calldata params) external {
         Loan storage loan = state.loans[params.loanId];
 
-        state.tokens.borrowToken.transferFrom(state.config.variablePool, msg.sender, loan.getCredit());
+        state.tokens.borrowToken.transferFrom(state.config.variablePool, loan.lender, loan.getCredit());
         loan.faceValueExited = loan.faceValue;
 
         emit Events.Claim(params.loanId);
