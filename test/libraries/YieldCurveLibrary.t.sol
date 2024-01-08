@@ -76,31 +76,68 @@ contract YieldCurveTest is Test {
         assertEq(rate, curve.rates[3]);
     }
 
-    function test_YieldCurve_getRate_point_interpolated_slope_eq_0(uint256 interval) public {
+    function test_YieldCurve_getRate_point_interpolated_slope_eq_0(
+        uint256 p0,
+        uint256 p1,
+        uint256 ip,
+        uint256 q0,
+        uint256 q1,
+        uint256 iq
+    ) public {
         YieldCurve memory curve = YieldCurveHelper.flatCurve();
-        interval = bound(interval, curve.timeBuckets[0], curve.timeBuckets[curve.timeBuckets.length - 1]);
-        uint256 rate = YieldCurveLibrary.getRate(curve, block.timestamp + interval);
-        assertEq(rate, curve.rates[0]);
+        p0 = bound(p0, 0, curve.timeBuckets.length - 1);
+        p1 = bound(p1, p0, curve.timeBuckets.length - 1);
+        ip = bound(ip, curve.timeBuckets[p0], curve.timeBuckets[p1]);
+        uint256 rate0 = YieldCurveLibrary.getRate(curve, block.timestamp + ip);
+
+        q0 = bound(q0, 0, curve.timeBuckets.length - 1);
+        q1 = bound(q1, q0, curve.timeBuckets.length - 1);
+        iq = bound(ip, curve.timeBuckets[q0], curve.timeBuckets[q1]);
+        uint256 rate1 = YieldCurveLibrary.getRate(curve, block.timestamp + iq);
+        assertEq(rate1, rate0);
+        assertEq(rate0, curve.rates[0]);
     }
 
-    function test_YieldCurve_getRate_point_interpolated_slope_lt_0(uint256 interval1, uint256 interval0) public {
-        YieldCurve memory curve = YieldCurveHelper.invertedCurve();
-        interval0 = bound(interval0, curve.timeBuckets[0], curve.timeBuckets[1]);
-        uint256 rate0 = YieldCurveLibrary.getRate(curve, block.timestamp + interval0);
+    function test_YieldCurve_getRate_point_interpolated_slope_lt_0(
+        uint256 p0,
+        uint256 p1,
+        uint256 ip,
+        uint256 q0,
+        uint256 q1,
+        uint256 iq
+    ) public {
+        YieldCurve memory curve = YieldCurveHelper.negativeCurve();
+        p0 = bound(p0, 0, curve.timeBuckets.length - 1);
+        p1 = bound(p1, p0, curve.timeBuckets.length - 1);
+        ip = bound(ip, curve.timeBuckets[p0], curve.timeBuckets[p1]);
+        uint256 rate0 = YieldCurveLibrary.getRate(curve, block.timestamp + ip);
 
-        interval1 = bound(interval1, curve.timeBuckets[3], curve.timeBuckets[4]);
-        uint256 rate1 = YieldCurveLibrary.getRate(curve, block.timestamp + interval1);
-        assertLt(rate1, rate0);
+        q0 = bound(q0, p1, curve.timeBuckets.length - 1);
+        q1 = bound(q1, q0, curve.timeBuckets.length - 1);
+        iq = bound(ip, curve.timeBuckets[q0], curve.timeBuckets[q1]);
+        uint256 rate1 = YieldCurveLibrary.getRate(curve, block.timestamp + iq);
+        assertLe(rate1, rate0);
     }
 
-    function test_YieldCurve_getRate_point_interpolated_slope_gt_0(uint256 interval0, uint256 interval1) public {
+    function test_YieldCurve_getRate_point_interpolated_slope_gt_0(
+        uint256 p0,
+        uint256 p1,
+        uint256 ip,
+        uint256 q0,
+        uint256 q1,
+        uint256 iq
+    ) public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        interval0 = bound(interval0, curve.timeBuckets[0], curve.timeBuckets[1]);
-        uint256 rate0 = YieldCurveLibrary.getRate(curve, block.timestamp + interval0);
+        p0 = bound(p0, 0, curve.timeBuckets.length - 1);
+        p1 = bound(p1, p0, curve.timeBuckets.length - 1);
+        ip = bound(ip, curve.timeBuckets[p0], curve.timeBuckets[p1]);
+        uint256 rate0 = YieldCurveLibrary.getRate(curve, block.timestamp + ip);
 
-        interval1 = bound(interval1, curve.timeBuckets[3], curve.timeBuckets[4]);
-        uint256 rate1 = YieldCurveLibrary.getRate(curve, block.timestamp + interval1);
-        assertGt(rate1, rate0);
+        q0 = bound(q0, p1, curve.timeBuckets.length - 1);
+        q1 = bound(q1, q0, curve.timeBuckets.length - 1);
+        iq = bound(ip, curve.timeBuckets[q0], curve.timeBuckets[q1]);
+        uint256 rate1 = YieldCurveLibrary.getRate(curve, block.timestamp + iq);
+        assertGe(rate1, rate0);
     }
 
     function test_YieldCurve_getRate_full_random_does_not_revert(uint256 seed, uint256 p0, uint256 p1, uint256 interval)
@@ -110,6 +147,19 @@ contract YieldCurveTest is Test {
         p0 = bound(p0, 0, curve.timeBuckets.length - 1);
         p1 = bound(p1, p0, curve.timeBuckets.length - 1);
         interval = bound(interval, curve.timeBuckets[p0], curve.timeBuckets[p1]);
-        YieldCurveLibrary.getRate(curve, block.timestamp + interval);
+        uint256 min = type(uint256).max;
+        uint256 max = 0;
+        for (uint256 i = 0; i < curve.rates.length; i++) {
+            uint256 rate = curve.rates[i];
+            if (rate < min) {
+                min = rate;
+            }
+            if (rate > max) {
+                max = rate;
+            }
+        }
+        uint256 r = YieldCurveLibrary.getRate(curve, block.timestamp + interval);
+        assertGe(r, min);
+        assertLe(r, max);
     }
 }

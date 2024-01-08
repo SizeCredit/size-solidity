@@ -89,20 +89,11 @@ Size V2 Solidity
 
 ## TODO before testnet
 
-- more tests:
-  - more unit tests where block.timestamp is e.g. "December 29, 2023", so that it is more realistic
-  - buckets of different sizes, not only spaced by 1 (second), but also 30 days, 1 week, etc etc
-  - tests with other types of yield curves (not only flat)
-- there are 3 different borrowers taking 3 loans
-  - one is repaid
-  - one is liquidated
-  - one is self liquidated
-
+- implement YieldCurve.getRate as binary search
+- finish invariant tests
 - origination fee & loan fee
-- debt compensation
 - test for dueDate NOW
 - VP
-- finish invariant tests
 - events
 - test libraries (OfferLibrary.getRate, etc)
 
