@@ -20,15 +20,15 @@ Size V2 Solidity
 | src/libraries/actions/BorrowerExit.sol                 | 96.30% (26/27)   | 97.06% (33/34)    | 80.00% (8/10)    | 100.00% (2/2)    |
 | src/libraries/actions/Claim.sol                        | 100.00% (7/7)    | 100.00% (8/8)     | 100.00% (2/2)    | 100.00% (2/2)    |
 | src/libraries/actions/Common.sol                       | 100.00% (58/58)  | 98.82% (84/85)    | 85.00% (17/20)   | 86.67% (13/15)   |
-| src/libraries/actions/Compensate.sol                   | 100.00% (17/17)  | 100.00% (16/16)   | 100.00% (10/10)  | 100.00% (2/2)    |
+| src/libraries/actions/Compensate.sol                   | 100.00% (17/17)  | 100.00% (20/20)   | 100.00% (10/10)  | 100.00% (2/2)    |
 | src/libraries/actions/Deposit.sol                      | 100.00% (10/10)  | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/libraries/actions/Initialize.sol                   | 100.00% (22/22)  | 100.00% (29/29)   | 100.00% (14/14)  | 100.00% (2/2)    |
 | src/libraries/actions/LendAsLimitOrder.sol             | 100.00% (11/11)  | 100.00% (12/12)   | 87.50% (7/8)     | 100.00% (2/2)    |
 | src/libraries/actions/LendAsMarketOrder.sol            | 95.65% (22/23)   | 96.43% (27/28)    | 62.50% (5/8)     | 100.00% (2/2)    |
-| src/libraries/actions/LiquidateLoan.sol                | 100.00% (30/30)  | 100.00% (34/34)   | 60.00% (6/10)    | 100.00% (2/2)    |
+| src/libraries/actions/LiquidateLoan.sol                | 100.00% (33/33)  | 100.00% (39/39)   | 58.33% (7/12)    | 100.00% (2/2)    |
 | src/libraries/actions/LiquidateLoanWithReplacement.sol | 100.00% (22/22)  | 100.00% (26/26)   | 75.00% (3/4)     | 100.00% (2/2)    |
 | src/libraries/actions/MoveToVariablePool.sol           | 100.00% (13/13)  | 100.00% (16/16)   | 83.33% (5/6)     | 100.00% (2/2)    |
-| src/libraries/actions/Repay.sol                        | 100.00% (14/14)  | 100.00% (14/14)   | 87.50% (7/8)     | 100.00% (2/2)    |
+| src/libraries/actions/Repay.sol                        | 100.00% (14/14)  | 100.00% (15/15)   | 87.50% (7/8)     | 100.00% (2/2)    |
 | src/libraries/actions/SelfLiquidateLoan.sol            | 100.00% (19/19)  | 100.00% (23/23)   | 75.00% (6/8)     | 100.00% (2/2)    |
 | src/libraries/actions/UpdateConfig.sol                 | 100.00% (25/25)  | 100.00% (28/28)   | 100.00% (18/18)  | 100.00% (2/2)    |
 | src/libraries/actions/Withdraw.sol                     | 100.00% (10/10)  | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (2/2)    |
@@ -44,7 +44,7 @@ Size V2 Solidity
 │      BorrowAsLimitOrder      │   3    │
 │     BorrowAsMarketOrder      │   14   │
 │         BorrowerExit         │   4    │
-│            Claim             │   4    │
+│            Claim             │   7    │
 │          Compensate          │   6    │
 │           Deposit            │   2    │
 │         Experiments          │   10   │
@@ -59,7 +59,7 @@ Size V2 Solidity
 │    NonTransferrableToken     │   7    │
 │         Ownable2Step         │   4    │
 │          PriceFeed           │   8    │
-│            Repay             │   3    │
+│            Repay             │   4    │
 │      SelfLiquidateLoan       │   6    │
 │         UpdateConfig         │   2    │
 │           Upgrade            │   2    │
