@@ -24,9 +24,6 @@ library Claim {
         // validate msg.sender
 
         // validate loanId
-        // NOTE: Both ACTIVE and OVERDUE loans can't be claimed because the money is not in the protocol yet
-        // NOTE: The CLAIMED can't be claimed either because its credit has already been consumed entirely
-        //    either by a previous claim or by exiting before
         if (state.getLoanStatus(loan) != LoanStatus.REPAID) {
             revert Errors.LOAN_NOT_REPAID(params.loanId);
         }

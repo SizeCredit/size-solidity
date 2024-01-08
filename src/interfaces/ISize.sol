@@ -57,6 +57,9 @@ interface ISize {
     // sets loan to repaid
     function repay(RepayParams calldata params) external;
 
+    // Both ACTIVE and OVERDUE loans can't be claimed because the money is not in the protocol yet
+    // The CLAIMED can't be claimed either because its credit has already been consumed entirely
+    //    either by a previous claim or by exiting before
     function claim(ClaimParams calldata params) external;
 
     // As soon as a fixed rate loan gets overdue, it should be transformed into a

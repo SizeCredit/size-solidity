@@ -83,4 +83,52 @@ contract CompensateTest is BaseTest {
         assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 10e18);
         assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
     }
+
+    function test_Compensate_compensate_FOL_repaid_FOL_reverts() public {
+        _deposit(alice, 200e18, 200e18);
+        _deposit(bob, 200e18, 200e18);
+        _deposit(candy, 200e18, 200e18);
+        _deposit(james, 200e18, 200e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(bob, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(james, 100e18, 12, 0, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e18, 12);
+        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 20e18, 12);
+
+        _repay(alice, loanId2);
+        vm.expectRevert();
+        _compensate(alice, loanId, loanId2);
+    }
+
+    function test_Compensate_compensate_SOL_repaid_FOL_works() public {
+        _deposit(alice, 200e18, 200e18);
+        _deposit(bob, 200e18, 200e18);
+        _deposit(candy, 200e18, 200e18);
+        _deposit(james, 200e18, 200e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(bob, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(james, 100e18, 12, 0, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e18, 12);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 20e18, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 15e18, 12, [loanId]);
+        _borrowAsMarketOrder(bob, james, 40e18, 12);
+
+        assertEq(size.activeLoans(), 4);
+
+        _repay(bob, loanId);
+
+        uint256 repaidLoanDebtBefore = size.getLoan(solId).getDebt();
+        uint256 compensatedLoanCreditBefore = size.getLoan(loanId2).getCredit();
+
+        _compensate(alice, solId, loanId2);
+
+        uint256 repaidLoanDebtAfter = size.getLoan(solId).getDebt();
+        uint256 compensatedLoanCreditAfter = size.getLoan(loanId2).getCredit();
+
+        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 15e18);
+        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 15e18);
+        assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
+    }
 }
