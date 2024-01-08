@@ -64,7 +64,7 @@ Size V2 Solidity
 │         UpdateConfig         │   2    │
 │           Upgrade            │   2    │
 │           Withdraw           │   3    │
-│          YieldCurve          │   1    │
+│          YieldCurve          │   12   │
 └──────────────────────────────┴────────┘
 ```
 <!-- END_COVERAGE -->
