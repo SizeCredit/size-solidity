@@ -89,7 +89,6 @@ Size V2 Solidity
 ## TODO before testnet
 
 - more tests:
-  - lendAsMarketOrder
     - more unit tests where block.timestamp is e.g. "December 29, 2023", so that it is more realistic
     - buckets of different sizes, not only spaced by 1 (second), but also 30 days, 1 week, etc etc
     - tests with other types of yield curves (not only flat)

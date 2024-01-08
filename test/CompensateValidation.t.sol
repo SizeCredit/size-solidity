@@ -57,5 +57,12 @@ contract CompensateValidationTest is BaseTest {
             CompensateParams({loanToRepayId: loanId3, loanToCompensateId: loanId, amount: type(uint256).max})
         );
         vm.stopPrank();
+
+        uint256 l1 = _borrowAsMarketOrder(bob, alice, 20e18, 12);
+        uint256 l2 = _borrowAsMarketOrder(alice, james, 20e18, 6);
+        vm.startPrank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_NOT_COMPATIBLE.selector, l2, l1));
+        size.compensate(CompensateParams({loanToRepayId: l2, loanToCompensateId: l1, amount: type(uint256).max}));
+        vm.stopPrank();
     }
 }

@@ -37,6 +37,11 @@ library Compensate {
         if (state.getLoanStatus(loanToCompensate) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanToCompensateId);
         }
+        if (
+            state.getLoanStatus(loanToCompensate) != LoanStatus.REPAID && loanToRepay.dueDate < loanToCompensate.dueDate
+        ) {
+            revert Errors.DUE_DATE_NOT_COMPATIBLE(params.loanToRepayId, params.loanToCompensateId);
+        }
         if (loanToCompensate.lender != loanToRepay.borrower) {
             revert Errors.INVALID_LENDER(loanToCompensate.lender);
         }

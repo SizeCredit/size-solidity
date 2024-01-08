@@ -20,6 +20,7 @@ library Errors {
     error PAST_DUE_DATE(uint256 dueDate);
     error PAST_MAX_DUE_DATE(uint256 dueDate);
     error DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(uint256 dueDate, uint256 loanDueDate);
+    error DUE_DATE_NOT_COMPATIBLE(uint256 loanToRepayId, uint256 loanToCompensateId);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error DUE_DATE_OUT_OF_RANGE(uint256 dueDate, uint256 minDueDate, uint256 maxDueDate);
     error INVALID_LENDER(address account);
