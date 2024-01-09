@@ -338,9 +338,12 @@ export type MoveToVariablePoolParamsStructOutput = [BigNumber] & {
   loanId: BigNumber;
 };
 
-export type RepayParamsStruct = { loanId: BigNumberish };
+export type RepayParamsStruct = { loanId: BigNumberish; amount: BigNumberish };
 
-export type RepayParamsStructOutput = [BigNumber] & { loanId: BigNumber };
+export type RepayParamsStructOutput = [BigNumber, BigNumber] & {
+  loanId: BigNumber;
+  amount: BigNumber;
+};
 
 export type SelfLiquidateLoanParamsStruct = { loanId: BigNumberish };
 
@@ -444,7 +447,7 @@ export interface SizeInterface extends utils.Interface {
     "pendingOwner()": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "repay((uint256))": FunctionFragment;
+    "repay((uint256,uint256))": FunctionFragment;
     "selfLiquidateLoan((uint256))": FunctionFragment;
     "state()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
