@@ -2,6 +2,7 @@
 pragma solidity 0.8.20;
 
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
+import {console2 as console} from "forge-std/console2.sol";
 
 uint256 constant PERCENT = 1e18;
 
@@ -26,5 +27,24 @@ library Math {
 
     function mulDivDown(uint256 x, uint256 y, uint256 z) public pure returns (uint256) {
         return FixedPointMathLib.mulDiv(x, y, z);
+    }
+
+    function binarySearch(uint256[] memory array, uint256 value) public view returns (uint256 low, uint256 high) {
+        low = 0;
+        high = array.length - 1;
+        if (value < array[low] || value > array[high]) {
+            return (type(uint256).max, type(uint256).max);
+        }
+        while (low <= high) {
+            uint256 mid = (low + high) / 2;
+            if (array[mid] == value) {
+                return (mid, mid);
+            } else if (array[mid] < value) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+        return (high, low);
     }
 }

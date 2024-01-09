@@ -89,7 +89,6 @@ Size V2 Solidity
 
 ## TODO before testnet
 
-- implement YieldCurve.getRate as binary search
 - finish invariant tests
 - origination fee & loan fee
 - test for dueDate NOW
