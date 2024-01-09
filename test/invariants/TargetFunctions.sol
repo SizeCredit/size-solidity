@@ -205,7 +205,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function repay(uint256 loanId) public getSender {
+    function repay(uint256 loanId, uint256 amount) public getSender {
         __before(loanId);
 
         precondition(_before.activeLoans > 0);
@@ -213,7 +213,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         loanId = between(loanId, 0, _before.activeLoans - 1);
 
         hevm.prank(sender);
-        size.repay(RepayParams({loanId: loanId}));
+        size.repay(RepayParams({loanId: loanId, amount: amount}));
 
         __after(loanId);
 

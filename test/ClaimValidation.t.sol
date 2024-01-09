@@ -21,6 +21,7 @@ contract ClaimValidationTest is BaseTest {
         size.claim(ClaimParams({loanId: loanId}));
 
         vm.startPrank(bob);
-        size.repay(RepayParams({loanId: loanId}));
+        size.repay(RepayParams({loanId: loanId, amount: type(uint256).max}));
+        size.claim(ClaimParams({loanId: loanId}));
     }
 }

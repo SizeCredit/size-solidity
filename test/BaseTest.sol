@@ -246,8 +246,12 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     }
 
     function _repay(address user, uint256 loanId) internal {
+        return _repay(user, loanId, type(uint256).max);
+    }
+
+    function _repay(address user, uint256 loanId, uint256 amount) internal {
         vm.prank(user);
-        size.repay(RepayParams({loanId: loanId}));
+        size.repay(RepayParams({loanId: loanId, amount: amount}));
     }
 
     function _claim(address user, uint256 loanId) internal {

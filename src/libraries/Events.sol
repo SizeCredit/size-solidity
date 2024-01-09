@@ -23,7 +23,7 @@ library Events {
         uint256 dueDate
     );
     event BorrowerExit(uint256 indexed loanId, address borrowerExitedTo);
-    event Repay(uint256 indexed loanId);
+    event Repay(uint256 indexed loanId, uint256 amount);
     event Claim(uint256 indexed loanId);
     event LiquidateLoan(
         uint256 indexed loanId,

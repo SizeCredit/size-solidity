@@ -10,14 +10,14 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 
 contract RepayTest is BaseTest {
-    function test_Repay_repay_reduces_debt() public {
+    function test_Repay_repay_full_FOL() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
         _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
-        uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
+        uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
 
         Vars memory _before = _state();
 
@@ -31,6 +31,27 @@ contract RepayTest is BaseTest {
         assertTrue(size.getLoan(loanId).repaid);
     }
 
+    function test_Repay_repay_partial_FOL() public {
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _deposit(candy, 100e18, 100e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
+        uint256 amountLoanId1 = 10e18;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
+
+        Vars memory _before = _state();
+
+        _repay(bob, loanId, faceValue / 2);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue / 2);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue / 2);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + faceValue / 2);
+        assertTrue(!size.getLoan(loanId).repaid);
+    }
+
     function test_Repay_overdue_does_not_increase_debt() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
@@ -38,7 +59,7 @@ contract RepayTest is BaseTest {
         _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
-        uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
+        uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
 
         Vars memory _before = _state();
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
@@ -85,5 +106,52 @@ contract RepayTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId));
         _repay(bob, loanId);
+    }
+
+    function test_Repay_repay_full_of_SOL() public {
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _deposit(candy, 100e18, 100e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 0.05e18, 12);
+        uint256 amountLoanId1 = 10e18;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
+        uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
+
+        Vars memory _before = _state();
+
+        _repay(alice, solId);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount);
+        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + faceValue);
+        // @audit this is not correct
+        assertTrue(!size.getLoan(loanId).repaid);
+    }
+
+    function test_Repay_repay_partial_of_SOL() public {
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _deposit(candy, 100e18, 100e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 100e18, 12, 0.05e18, 12);
+        uint256 amountLoanId1 = 10e18;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
+        uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
+
+        Vars memory _before = _state();
+
+        _repay(alice, solId, faceValue / 2);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue / 2);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount);
+        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + faceValue / 2);
+        assertTrue(!size.getLoan(loanId).repaid);
     }
 }

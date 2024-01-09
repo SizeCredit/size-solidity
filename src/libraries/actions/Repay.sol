@@ -2,8 +2,10 @@
 pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
+
 import {Loan} from "@src/libraries/LoanLibrary.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {Math} from "@src/libraries/MathLibrary.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -11,6 +13,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct RepayParams {
     uint256 loanId;
+    uint256 amount;
 }
 
 library Repay {
@@ -29,21 +32,29 @@ library Repay {
         }
 
         // validate loanId
-        if (!loan.isFOL()) {
-            revert Errors.ONLY_FOL_CAN_BE_REPAID(params.loanId);
-        }
         if (state.either(loan, [LoanStatus.REPAID, LoanStatus.CLAIMED])) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanId);
+        }
+
+        // validate amount
+        if (params.amount == 0) {
+            revert Errors.NULL_AMOUNT();
         }
     }
 
     function executeRepay(State storage state, RepayParams calldata params) external {
         Loan storage loan = state.loans[params.loanId];
+        uint256 repayAmount = Math.min(loan.faceValue, params.amount);
 
-        state.tokens.borrowToken.transferFrom(msg.sender, state.config.variablePool, loan.faceValue);
-        state.tokens.debtToken.burn(msg.sender, loan.faceValue);
-        loan.repaid = true;
+        if (repayAmount == loan.faceValue && loan.isFOL()) {
+            state.tokens.borrowToken.transferFrom(msg.sender, state.config.variablePool, repayAmount);
+            state.tokens.debtToken.burn(msg.sender, repayAmount);
+            loan.repaid = true;
+        } else {
+            state.tokens.borrowToken.transferFrom(msg.sender, loan.lender, repayAmount);
+            state.reduceDebt(params.loanId, repayAmount);
+        }
 
-        emit Events.Repay(params.loanId);
+        emit Events.Repay(params.loanId, repayAmount);
     }
 }
