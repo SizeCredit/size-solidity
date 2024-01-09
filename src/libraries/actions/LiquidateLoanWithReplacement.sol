@@ -55,6 +55,8 @@ library LiquidateLoanWithReplacement {
         State storage state,
         LiquidateLoanWithReplacementParams calldata params
     ) external returns (uint256, uint256) {
+        emit Events.LiquidateLoanWithReplacement(params.loanId, params.borrower, params.minimumCollateralRatio);
+
         Loan storage fol = state.loans[params.loanId];
         BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
         uint256 faceValue = fol.faceValue;

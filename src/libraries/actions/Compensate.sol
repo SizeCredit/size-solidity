@@ -7,6 +7,7 @@ import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
 
 struct CompensateParams {
@@ -53,6 +54,8 @@ library Compensate {
     }
 
     function executeCompensate(State storage state, CompensateParams calldata params) external {
+        emit Events.Compensate(params.loanToRepayId, params.loanToCompensateId, params.amount);
+
         Loan storage loanToRepay = state.loans[params.loanToRepayId];
         Loan storage loanToCompensate = state.loans[params.loanToCompensateId];
         // @audit Check the implications of a user-provided compensation amount

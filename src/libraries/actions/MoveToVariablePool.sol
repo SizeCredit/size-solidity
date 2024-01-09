@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 import {Loan, LoanLibrary, VariableLoan} from "@src/libraries/LoanLibrary.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
 
@@ -33,6 +34,8 @@ library MoveToVariablePool {
     }
 
     function executeMoveToVariablePool(State storage state, MoveToVariablePoolParams calldata params) external {
+        emit Events.MoveToVariablePool(params.loanId);
+
         Loan storage loan = state.loans[params.loanId];
 
         // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed

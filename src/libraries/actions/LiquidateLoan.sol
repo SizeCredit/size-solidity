@@ -62,7 +62,9 @@ library LiquidateLoan {
         uint256 debtInCollateralToken =
             Math.mulDivDown(debtBorrowToken, 10 ** state.config.priceFeed.decimals(), state.config.priceFeed.getPrice());
 
-        emit Events.LiquidateLoan(params.loanId, assignedCollateral, debtInCollateralToken);
+        emit Events.LiquidateLoan(
+            params.loanId, params.minimumCollateralRatio, assignedCollateral, debtInCollateralToken
+        );
 
         uint256 liquidatorProfitCollateralToken;
         if (assignedCollateral > debtInCollateralToken) {
