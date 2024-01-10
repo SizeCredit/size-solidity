@@ -90,11 +90,10 @@ Size V2 Solidity
 ## TODO before testnet
 
 - finish invariant tests
-- origination fee & loan fee
 - test for dueDate NOW
+- events tests
+- origination fee & loan fee
 - VP
-- events
-- test libraries (OfferLibrary.getRate, etc)
 
 ## TODO before audit
 
