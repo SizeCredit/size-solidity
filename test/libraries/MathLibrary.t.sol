@@ -52,6 +52,50 @@ contract MathTest is Test {
     }
 
     // @audit TODO test Math_wadToAmount
+    function test_Math_wadToAmount_18_decimals() public {
+        uint256 amount = 1e18;
+        uint8 decimals = 18;
+
+        uint256 wad = Math.wadToAmount(amount, decimals);
+        assertEq(wad, amount);
+    }
+
+    function testFuzz_Math_wadToAmount_18_decimals(uint256 amount) public {
+        uint8 decimals = 18;
+
+        uint256 wad = Math.wadToAmount(amount, decimals);
+        assertEq(wad, amount);
+    }
+
+    function test_Math_wadToAmount_lt_18() public {
+        uint256 amount = 1e18;
+        uint8 decimals = 6;
+
+        uint256 wad = Math.wadToAmount(amount, decimals);
+        assertEq(wad, 1e6);
+    }
+
+    function testFuzz_Math_wadToAmount_lt_18(uint256 amount) public {
+        uint8 decimals = 6;
+
+        uint256 wad = Math.wadToAmount(amount, decimals);
+        assertEq(wad, amount / 1e12);
+    }
+
+    function test_Math_wadToAmount_gt_18() public {
+        uint256 amount = 1e24;
+        uint8 decimals = 24;
+
+        vm.expectRevert();
+        Math.wadToAmount(amount, decimals);
+    }
+
+    function testFuzz_Math_wadToAmount_gt_18(uint256 amount) public {
+        uint8 decimals = 24;
+
+        vm.expectRevert();
+        Math.wadToAmount(amount, decimals);
+    }
 
     function test_Math_min() public {
         assertEq(Math.min(4, 5, 6), 4);
