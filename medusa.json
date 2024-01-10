@@ -47,7 +47,7 @@
 			"propertyTesting": {
 				"enabled": true,
 				"testPrefixes": [
-					"property_"
+					"invariant_"
 				]
 			},
 			"optimizationTesting": {

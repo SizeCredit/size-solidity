@@ -2,14 +2,18 @@
 pragma solidity 0.8.20;
 
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
-import {console2 as console} from "forge-std/console2.sol";
 
 uint256 constant PERCENT = 1e18;
 
 library Math {
-    function amountToWad(uint256 amount, uint256 decimals) public pure returns (uint256) {
+    function amountToWad(uint256 amount, uint8 decimals) public pure returns (uint256) {
         // @audit-info The protocol does not support tokens with more than 18 decimals
         return amount * 10 ** (18 - decimals);
+    }
+
+    function wadToAmount(uint256 wad, uint8 decimals) public pure returns (uint256) {
+        // @audit-info The protocol does not support tokens with more than 18 decimals
+        return wad / 10 ** (18 - decimals);
     }
 
     function min(uint256 a, uint256 b) public pure returns (uint256) {
@@ -29,7 +33,7 @@ library Math {
         return FixedPointMathLib.mulDiv(x, y, z);
     }
 
-    function binarySearch(uint256[] memory array, uint256 value) public view returns (uint256 low, uint256 high) {
+    function binarySearch(uint256[] memory array, uint256 value) public pure returns (uint256 low, uint256 high) {
         low = 0;
         high = array.length - 1;
         if (value < array[low] || value > array[high]) {

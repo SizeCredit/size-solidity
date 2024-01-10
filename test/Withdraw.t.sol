@@ -6,6 +6,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {BaseTest} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
 import {UserView} from "@src/libraries/UserLibrary.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
@@ -91,5 +92,50 @@ contract WithdrawTest is BaseTest {
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, bob, 0.01e18));
         size.withdraw(WithdrawParams({token: address(weth), amount: 149e18}));
+    }
+
+    function test_Withdraw_withdraw_everything() public {
+        _setPrice(1e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
+
+        uint256 beforeUSDC = usdc.balanceOf(address(alice));
+        uint256 beforeWETH = weth.balanceOf(address(bob));
+
+        _withdraw(alice, usdc, type(uint256).max);
+        _withdraw(bob, weth, type(uint256).max);
+
+        uint256 afterUSDC = usdc.balanceOf(address(alice));
+        uint256 afterWETH = weth.balanceOf(address(bob));
+
+        assertEq(beforeUSDC, 0);
+        assertEq(beforeWETH, 0);
+        assertEq(afterUSDC, 100e6);
+        assertEq(afterWETH, 150e18);
+    }
+
+    function test_Withdraw_withdraw_everything_may_leave_dust_due_to_wad_conversion() public {
+        _setPrice(1e18);
+        uint256 liquidatorAmount = 10_000e6;
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
+        _deposit(liquidator, usdc, 10_000e6);
+        uint256 rate = 1;
+        _lendAsLimitOrder(alice, 100e18, 12, rate, 12);
+        uint256 amount = 15e18;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
+        uint256 debtUSDC = Math.mulDivUp(debt, 1e6, 1e18);
+        uint256 dust = Math.amountToWad(debtUSDC, usdc.decimals()) - debt;
+
+        _setPrice(0.125e18);
+
+        _liquidateLoan(liquidator, loanId);
+        _withdraw(liquidator, usdc, type(uint256).max);
+
+        uint256 a = usdc.balanceOf(liquidator);
+        assertEq(a, liquidatorAmount - debtUSDC);
+        assertEq(_state().liquidator.borrowAmount, dust);
+        assertGt(_state().liquidator.borrowAmount, 0);
     }
 }

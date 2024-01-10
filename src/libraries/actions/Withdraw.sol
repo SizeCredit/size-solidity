@@ -44,10 +44,16 @@ library Withdraw {
             ? NonTransferrableToken(state.tokens.collateralToken)
             : NonTransferrableToken(state.tokens.borrowToken);
         IERC20Metadata token = IERC20Metadata(params.token);
-        uint256 wad = Math.amountToWad(params.amount, token.decimals());
+        uint8 decimals = token.decimals();
+
+        uint256 userBalanceWad = nonTransferrableToken.balanceOf(msg.sender);
+        uint256 userBalanceAmount = Math.wadToAmount(userBalanceWad, decimals);
+
+        uint256 withdrawAmount = Math.min(params.amount, userBalanceAmount);
+        uint256 wad = Math.amountToWad(withdrawAmount, decimals);
 
         nonTransferrableToken.burn(msg.sender, wad);
-        token.safeTransfer(msg.sender, params.amount);
+        token.safeTransfer(msg.sender, withdrawAmount);
 
         emit Events.Withdraw(params.token, wad);
     }

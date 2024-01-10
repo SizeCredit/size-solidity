@@ -81,6 +81,7 @@ library LiquidateLoan {
                 loan.borrower, state.config.feeRecipient, collateralRemainderToProtocol
             );
         } else {
+            // unprofitable liquidation
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 

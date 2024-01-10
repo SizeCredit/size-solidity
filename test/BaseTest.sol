@@ -73,14 +73,22 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.label(liquidator, "liquidator");
     }
 
+    function _mint(address token, address user, uint256 amount) internal {
+        deal(token, user, amount);
+    }
+
+    function _approve(address user, address token, address spender, uint256 amount) internal {
+        vm.prank(user);
+        IERC20Metadata(token).approve(spender, amount);
+    }
+
     function _deposit(address user, IERC20Metadata token, uint256 amount) internal {
         _deposit(user, address(token), amount);
     }
 
     function _deposit(address user, address token, uint256 amount) internal {
-        deal(token, user, amount);
-        vm.prank(user);
-        IERC20Metadata(token).approve(address(size), amount);
+        _mint(token, user, amount);
+        _approve(user, token, address(size), amount);
         vm.prank(user);
         size.deposit(DepositParams({token: token, amount: amount}));
     }
