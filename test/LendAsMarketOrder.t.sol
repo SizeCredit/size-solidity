@@ -29,14 +29,14 @@ contract LendAsMarketOrderTest is BaseTest {
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + 0.03e18);
 
         Vars memory _before = _state();
-        BorrowOffer memory offerBefore = size.getBorrowOffer(alice);
+        BorrowOffer memory offerBefore = size.getUserView(alice).user.borrowOffer;
         uint256 loansBefore = size.activeLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, faceValue, dueDate);
         Loan memory loan = size.getLoan(loanId);
 
         Vars memory _after = _state();
-        BorrowOffer memory offerAfter = size.getBorrowOffer(alice);
+        BorrowOffer memory offerAfter = size.getUserView(alice).user.borrowOffer;
         uint256 loansAfter = size.activeLoans();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
@@ -59,14 +59,14 @@ contract LendAsMarketOrderTest is BaseTest {
         uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + 0.03e18, PERCENT);
 
         Vars memory _before = _state();
-        BorrowOffer memory offerBefore = size.getBorrowOffer(alice);
+        BorrowOffer memory offerBefore = size.getUserView(alice).user.borrowOffer;
         uint256 loansBefore = size.activeLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
         Loan memory loan = size.getLoan(loanId);
 
         Vars memory _after = _state();
-        BorrowOffer memory offerAfter = size.getBorrowOffer(alice);
+        BorrowOffer memory offerAfter = size.getUserView(alice).user.borrowOffer;
         uint256 loansAfter = size.activeLoans();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
@@ -91,14 +91,14 @@ contract LendAsMarketOrderTest is BaseTest {
         uint256 faceValue = Math.mulDivDown(amountIn, r, PERCENT);
 
         Vars memory _before = _state();
-        BorrowOffer memory offerBefore = size.getBorrowOffer(alice);
+        BorrowOffer memory offerBefore = size.getUserView(alice).user.borrowOffer;
         uint256 loansBefore = size.activeLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
         Loan memory loan = size.getLoan(loanId);
 
         Vars memory _after = _state();
-        BorrowOffer memory offerAfter = size.getBorrowOffer(alice);
+        BorrowOffer memory offerAfter = size.getUserView(alice).user.borrowOffer;
         uint256 loansAfter = size.activeLoans();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);

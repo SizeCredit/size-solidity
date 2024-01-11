@@ -28,7 +28,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        LoanOffer memory offerBefore = size.getLoanOffer(alice);
+        LoanOffer memory offerBefore = size.getUserView(alice).user.loanOffer;
 
         Vars memory _before = _state();
 
@@ -38,10 +38,10 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
 
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 debtOpening = Math.mulDivUp(debt, size.crOpening(), PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
         uint256 minimumCollateral = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
-        LoanOffer memory offerAfter = size.getLoanOffer(alice);
+        LoanOffer memory offerAfter = size.getUserView(alice).user.loanOffer;
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
@@ -68,16 +68,16 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(bob, MAX_AMOUNT, MAX_AMOUNT);
 
         _lendAsLimitOrder(alice, MAX_AMOUNT, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
-        LoanOffer memory offerBefore = size.getLoanOffer(alice);
+        LoanOffer memory offerBefore = size.getUserView(alice).user.loanOffer;
 
         Vars memory _before = _state();
 
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
-        uint256 debtOpening = Math.mulDivUp(debt, size.crOpening(), PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
         uint256 minimumCollateral = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
-        LoanOffer memory offerAfter = size.getLoanOffer(alice);
+        LoanOffer memory offerAfter = size.getUserView(alice).user.loanOffer;
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
@@ -153,7 +153,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(candy, 100e18, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
-        LoanOffer memory loanOffer = size.getLoanOffer(candy);
+        LoanOffer memory loanOffer = size.getUserView(candy).user.loanOffer;
         uint256[] memory virtualCollateralLoanIds = new uint256[](1);
         virtualCollateralLoanIds[0] = loanId;
 
@@ -169,7 +169,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
 
         uint256 faceValue = Math.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
-        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.crOpening(), PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.config().crOpening, PERCENT);
         uint256 minimumCollateral = Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
@@ -199,7 +199,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         virtualCollateralLoanIds[0] = loanId1;
 
         uint256 dueDate = 12;
-        uint256 r = PERCENT + size.getLoanOffer(candy).getRate(dueDate);
+        uint256 r = PERCENT + size.getUserView(candy).user.loanOffer.getRate(dueDate);
         uint256 deltaAmountOut = (Math.mulDivUp(r, amountLoanId2, PERCENT) > size.getLoan(loanId1).getCredit())
             ? Math.mulDivDown(size.getLoan(loanId1).getCredit(), PERCENT, r)
             : amountLoanId2;
@@ -211,7 +211,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.crOpening(), PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.config().crOpening, PERCENT);
         uint256 minimumCollateralAmount =
             Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
@@ -252,12 +252,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_free_eth_is_lower_than_locked_amount() public {
         _deposit(alice, 100e18, 100e18);
         _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        LoanOffer memory loanOffer = size.getLoanOffer(alice);
+        LoanOffer memory loanOffer = size.getUserView(alice).user.loanOffer;
         uint256 amount = 100e18;
         uint256 dueDate = 12;
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
         uint256 faceValue = Math.mulDivUp(r, amount, PERCENT);
-        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.crOpening(), PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.config().crOpening, PERCENT);
         uint256 maxCollateralToLock = Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         vm.startPrank(bob);
         uint256[] memory virtualCollateralLoanIds;

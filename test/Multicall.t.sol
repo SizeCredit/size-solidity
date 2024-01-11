@@ -23,7 +23,7 @@ contract MulticallTest is BaseTest {
         IERC20Metadata(token).approve(address(size), amount);
 
         assertEq(size.getUserView(alice).borrowAmount, 0);
-        assertEq(size.getLoanOffer(alice).maxAmount, 0);
+        assertEq(size.getUserView(alice).user.loanOffer.maxAmount, 0);
 
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount})));
@@ -38,7 +38,7 @@ contract MulticallTest is BaseTest {
         size.multicall(data);
 
         assertEq(size.getUserView(alice).borrowAmount, amount * 1e12, "x");
-        assertEq(size.getLoanOffer(alice).maxAmount, amount * 1e12 / 2, "a");
+        assertEq(size.getUserView(alice).user.loanOffer.maxAmount, amount * 1e12 / 2, "a");
     }
 
     function test_Multicall_multicall_cannot_execute_unauthorized_actions() public {

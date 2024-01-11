@@ -19,13 +19,13 @@ contract BorrowerExitTest is BaseTest {
 
         Vars memory _before = _state();
 
-        BorrowOffer memory borrowOfferBefore = size.getBorrowOffer(candy);
+        BorrowOffer memory borrowOfferBefore = size.getUserView(candy).user.borrowOffer;
         Loan memory loanBefore = size.getLoan(loanId);
         uint256 loansBefore = size.activeLoans();
 
         _borrowerExit(bob, loanId, candy);
 
-        BorrowOffer memory borrowOfferAfter = size.getBorrowOffer(candy);
+        BorrowOffer memory borrowOfferAfter = size.getUserView(candy).user.borrowOffer;
         Loan memory loanAfter = size.getLoan(loanId);
         uint256 loansAfter = size.activeLoans();
 
@@ -55,13 +55,13 @@ contract BorrowerExitTest is BaseTest {
 
         address borrowerToExitTo = bob;
 
-        BorrowOffer memory borrowOfferBefore = size.getBorrowOffer(bob);
+        BorrowOffer memory borrowOfferBefore = size.getUserView(bob).user.borrowOffer;
         Loan memory loanBefore = size.getLoan(loanId);
         uint256 loansBefore = size.activeLoans();
 
         _borrowerExit(bob, loanId, borrowerToExitTo);
 
-        BorrowOffer memory borrowOfferAfter = size.getBorrowOffer(bob);
+        BorrowOffer memory borrowOfferAfter = size.getUserView(bob).user.borrowOffer;
         Loan memory loanAfter = size.getLoan(loanId);
         uint256 loansAfter = size.activeLoans();
 

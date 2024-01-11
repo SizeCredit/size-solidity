@@ -67,7 +67,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _lendAsLimitOrder(bob, 100e18, 10, 0.03e18, 12);
         _deposit(alice, weth, 2e18);
         _borrowAsMarketOrder(alice, bob, 100e18, 6);
-        assertGe(size.collateralRatio(alice), size.crOpening());
+        assertGe(size.collateralRatio(alice), size.config().crOpening);
         assertTrue(!size.isLiquidatable(alice), "borrower should not be liquidatable");
         vm.warp(block.timestamp + 1);
         _setPrice(60e18);
@@ -150,10 +150,10 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         Loan memory loan_Bob_Alice = size.getLoan(0);
         assertTrue(loan_Bob_Alice.lender == bob, "Bob should be the lender");
         assertTrue(loan_Bob_Alice.borrower == alice, "Alice should be the borrower");
-        LoanOffer memory loanOffer = size.getLoanOffer(bob);
+        LoanOffer memory loanOffer = size.getUserView(bob).user.loanOffer;
         uint256 rate = loanOffer.getRate(5);
         assertEq(loan_Bob_Alice.faceValue, Math.mulDivUp(70e18, (PERCENT + rate), PERCENT), "Check loan faceValue");
-        assertEq(size.getDueDate(0), 5, "Check loan due date");
+        assertEq(size.getLoan(0).dueDate, 5, "Check loan due date");
 
         // Bob borrows using the loan as virtual collateral
         _borrowAsMarketOrder(bob, james, 35e18, 10, [uint256(0)]);
@@ -164,10 +164,10 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         Loan memory loan_James_Bob = size.getLoan(1);
         assertEq(loan_James_Bob.lender, james, "James should be the lender");
         assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
-        LoanOffer memory loanOffer2 = size.getLoanOffer(james);
-        uint256 rate2 = loanOffer2.getRate(size.getDueDate(0));
+        LoanOffer memory loanOffer2 = size.getUserView(james).user.loanOffer;
+        uint256 rate2 = loanOffer2.getRate(size.getLoan(0).dueDate);
         assertEq(loan_James_Bob.faceValue, Math.mulDivUp(35e18, PERCENT + rate2, PERCENT), "Check loan faceValue");
-        assertEq(size.getDueDate(0), size.getDueDate(1), "Check loan due date");
+        assertEq(size.getLoan(0).dueDate, size.getLoan(1).dueDate, "Check loan due date");
     }
 
     function test_Experiments_testLoanMove1() public {
@@ -223,7 +223,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(alice, bob, 100e18, 6);
 
         // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.crOpening());
+        assertGe(size.collateralRatio(alice), size.config().crOpening);
         assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
 
         vm.warp(block.timestamp + 1);
@@ -306,7 +306,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(alice, bob, 100e18, 6);
 
         // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.crOpening(), "Alice should be above CR opening");
+        assertGe(size.collateralRatio(alice), size.config().crOpening, "Alice should be above CR opening");
         assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)

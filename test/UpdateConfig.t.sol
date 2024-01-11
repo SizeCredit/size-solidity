@@ -13,9 +13,9 @@ contract UpdateConfigTest is BaseTest {
     function test_UpdateConfig_updateConfig_reverts_if_not_owner() public {
         vm.startPrank(alice);
 
-        assertTrue(size.getConfig().minimumCredit != 1e18);
+        assertTrue(size.config().minimumCredit != 1e18);
 
-        Config memory config = size.getConfig();
+        Config memory config = size.config();
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
         size.updateConfig(
             UpdateConfigParams({
@@ -29,13 +29,13 @@ contract UpdateConfigTest is BaseTest {
             })
         );
 
-        assertTrue(size.getConfig().minimumCredit != 1e18);
+        assertTrue(size.config().minimumCredit != 1e18);
     }
 
     function test_UpdateConfig_updateConfig_updates_params() public {
-        assertTrue(size.getConfig().minimumCredit != 1e18);
+        assertTrue(size.config().minimumCredit != 1e18);
 
-        Config memory config = size.getConfig();
+        Config memory config = size.config();
         size.updateConfig(
             UpdateConfigParams({
                 priceFeed: address(config.priceFeed),
@@ -48,6 +48,6 @@ contract UpdateConfigTest is BaseTest {
             })
         );
 
-        assertTrue(size.getConfig().minimumCredit == 1e18);
+        assertTrue(size.config().minimumCredit == 1e18);
     }
 }

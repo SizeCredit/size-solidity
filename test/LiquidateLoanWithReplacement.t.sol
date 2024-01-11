@@ -30,7 +30,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        BorrowOffer memory borrowOfferBefore = size.getBorrowOffer(candy);
+        BorrowOffer memory borrowOfferBefore = size.getUserView(candy).user.borrowOffer;
         Loan memory loanBefore = size.getLoan(loanId);
         Vars memory _before = _state();
 
@@ -40,7 +40,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
 
         _liquidateLoanWithReplacement(liquidator, loanId, candy);
 
-        BorrowOffer memory borrowOfferAfter = size.getBorrowOffer(candy);
+        BorrowOffer memory borrowOfferAfter = size.getUserView(candy).user.borrowOffer;
         Loan memory loanAfter = size.getLoan(loanId);
         Vars memory _after = _state();
 
@@ -72,7 +72,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        BorrowOffer memory borrowOfferBefore = size.getBorrowOffer(candy);
+        BorrowOffer memory borrowOfferBefore = size.getUserView(candy).user.borrowOffer;
         Loan memory loanBefore = size.getLoan(loanId);
         Vars memory _before = _state();
 
@@ -82,7 +82,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
 
         _liquidateLoanWithReplacement(liquidator, loanId, candy);
 
-        BorrowOffer memory borrowOfferAfter = size.getBorrowOffer(candy);
+        BorrowOffer memory borrowOfferAfter = size.getUserView(candy).user.borrowOffer;
         Loan memory loanAfter = size.getLoan(loanId);
         Vars memory _after = _state();
 
