@@ -91,11 +91,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     function borrowAsMarketOrder(
         address lender,
         uint256 amount,
-        uint256 dueDate
-        // ,
-        // bool exactAmountIn,
-        // uint256 n,
-        // uint256 seedVirtualCollateralLoanIds
+        uint256 dueDate,
+        bool exactAmountIn,
+        uint256 n,
+        uint256 seedVirtualCollateralLoanIds
     ) public getSender {
         __before();
 
@@ -104,10 +103,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
 
         uint256[] memory virtualCollateralLoanIds;
-        // if (_before.activeLoans > 0) {
-        //     n = between(n, 1, _before.activeLoans);
-        //     virtualCollateralLoanIds = _getRandomVirtualCollateralLoanIds(n, seedVirtualCollateralLoanIds);
-        // }
+        if (_before.activeLoans > 0) {
+            n = between(n, 1, _before.activeLoans);
+            virtualCollateralLoanIds = _getRandomVirtualCollateralLoanIds(n, seedVirtualCollateralLoanIds);
+        }
 
         hevm.prank(sender);
         size.borrowAsMarketOrder(
@@ -115,8 +114,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 lender: lender,
                 amount: amount,
                 dueDate: dueDate,
-                // exactAmountIn: exactAmountIn,
-                exactAmountIn: false,
+                exactAmountIn: exactAmountIn,
                 virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
@@ -129,10 +127,12 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             gt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
         }
 
-        if (virtualCollateralLoanIds.length > 0) {
-            gte(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
-        } else {
-            eq(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
+        if (amount > size.config().minimumCredit) {
+            if (virtualCollateralLoanIds.length > 0) {
+                gte(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
+            } else {
+                eq(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
+            }
         }
     }
 

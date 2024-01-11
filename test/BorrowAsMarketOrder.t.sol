@@ -412,4 +412,26 @@ contract BorrowAsMarketOrderTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INSUFFICIENT_COLLATERAL.selector, 0, 150e18));
         size.borrowAsMarketOrder(params);
     }
+
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_does_not_create_loans_if_dust_amount() public {
+        _deposit(alice, 100e18, 100e18);
+        _deposit(bob, 100e18, 100e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0.1e18, 12);
+        LoanOffer memory offerBefore = size.getUserView(alice).user.loanOffer;
+
+        Vars memory _before = _state();
+
+        uint256 amount = 1;
+        uint256 dueDate = 12;
+
+        _borrowAsMarketOrder(bob, alice, amount, dueDate, true);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.alice, _before.alice);
+        assertEq(_after.bob, _before.bob);
+        assertEq(_after.bob.debtAmount, 0);
+        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(size.activeLoans(), 0);
+    }
 }

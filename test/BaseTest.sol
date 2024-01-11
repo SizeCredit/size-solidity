@@ -151,8 +151,15 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         internal
         returns (uint256)
     {
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false);
+    }
+
+    function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate, bool exactAmountIn)
+        internal
+        returns (uint256)
+    {
         uint256[] memory virtualCollateralLoanIds;
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralLoanIds);
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -208,7 +215,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
-        return size.activeLoans() - 1;
+        return size.activeLoans() > 0 ? size.activeLoans() - 1 : type(uint256).max;
     }
 
     function _borrowAsLimitOrder(
@@ -245,7 +252,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: borrower, amount: amount, dueDate: dueDate, exactAmountIn: exactAmountIn})
         );
-        return size.activeLoans() - 1;
+        return size.activeLoans() > 0 ? size.activeLoans() - 1 : type(uint256).max;
     }
 
     function _borrowerExit(address user, uint256 loanId, address borrowerToExitTo) internal {
