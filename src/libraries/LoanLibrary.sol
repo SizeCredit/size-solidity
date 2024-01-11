@@ -33,15 +33,15 @@ struct VariableLoan {
 }
 
 library LoanLibrary {
-    function isFOL(Loan memory self) public pure returns (bool) {
+    function isFOL(Loan memory self) internal pure returns (bool) {
         return self.folId == RESERVED_ID;
     }
 
-    function getCredit(Loan memory self) public pure returns (uint256) {
+    function getCredit(Loan memory self) internal pure returns (uint256) {
         return self.faceValue - self.faceValueExited;
     }
 
-    function getDebt(Loan memory self) public pure returns (uint256) {
+    function getDebt(Loan memory self) internal pure returns (uint256) {
         return self.faceValue;
     }
 }

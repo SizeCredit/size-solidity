@@ -27,7 +27,7 @@ library YieldCurveLibrary {
         }
     }
 
-    function getRate(YieldCurve memory curveRelativeTime, uint256 dueDate) public view returns (uint256) {
+    function getRate(YieldCurve memory curveRelativeTime, uint256 dueDate) internal view returns (uint256) {
         if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
         uint256 interval = dueDate - block.timestamp;
         uint256 length = curveRelativeTime.timeBuckets.length;
@@ -54,8 +54,3 @@ library YieldCurveLibrary {
         }
     }
 }
-
-/*
-                (x1,y1)
-    (x0,y0)
-*/

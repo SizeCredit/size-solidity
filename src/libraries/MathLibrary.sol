@@ -6,34 +6,34 @@ import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 uint256 constant PERCENT = 1e18;
 
 library Math {
-    function amountToWad(uint256 amount, uint8 decimals) public pure returns (uint256) {
+    function amountToWad(uint256 amount, uint8 decimals) internal pure returns (uint256) {
         // @audit-info The protocol does not support tokens with more than 18 decimals
         return amount * 10 ** (18 - decimals);
     }
 
-    function wadToAmount(uint256 wad, uint8 decimals) public pure returns (uint256) {
+    function wadToAmountDown(uint256 wad, uint8 decimals) internal pure returns (uint256) {
         // @audit-info The protocol does not support tokens with more than 18 decimals
         return wad / 10 ** (18 - decimals);
     }
 
-    function min(uint256 a, uint256 b) public pure returns (uint256) {
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
         return FixedPointMathLib.min(a, b);
     }
 
-    function min(uint256 a, uint256 b, uint256 c) public pure returns (uint256) {
+    function min(uint256 a, uint256 b, uint256 c) internal pure returns (uint256) {
         uint256 minAB = FixedPointMathLib.min(a, b);
         return FixedPointMathLib.min(minAB, c);
     }
 
-    function mulDivUp(uint256 x, uint256 y, uint256 z) public pure returns (uint256) {
+    function mulDivUp(uint256 x, uint256 y, uint256 z) internal pure returns (uint256) {
         return FixedPointMathLib.mulDivUp(x, y, z);
     }
 
-    function mulDivDown(uint256 x, uint256 y, uint256 z) public pure returns (uint256) {
+    function mulDivDown(uint256 x, uint256 y, uint256 z) internal pure returns (uint256) {
         return FixedPointMathLib.mulDiv(x, y, z);
     }
 
-    function binarySearch(uint256[] memory array, uint256 value) public pure returns (uint256 low, uint256 high) {
+    function binarySearch(uint256[] memory array, uint256 value) internal pure returns (uint256 low, uint256 high) {
         low = 0;
         high = array.length - 1;
         if (value < array[low] || value > array[high]) {

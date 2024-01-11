@@ -45,25 +45,8 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return state.loans[loanId].getCredit();
     }
 
-    function crOpening() external view returns (uint256) {
-        return state.config.crOpening;
-    }
-
-    function crLiquidation() external view returns (uint256) {
-        return state.config.crLiquidation;
-    }
-
-    function collateralPercentagePremiumToLiquidator() external view returns (uint256) {
-        return state.config.collateralPercentagePremiumToLiquidator;
-    }
-
-    function collateralPercentagePremiumToProtocol() external view returns (uint256) {
-        return state.config.collateralPercentagePremiumToProtocol;
-    }
-
-    function collateralPercentagePremiumToBorrower() external view returns (uint256) {
-        return PERCENT - state.config.collateralPercentagePremiumToProtocol
-            - state.config.collateralPercentagePremiumToLiquidator;
+    function config() external view returns (Config memory) {
+        return state.config;
     }
 
     function getUserView(address user) public view returns (UserView memory) {
@@ -91,24 +74,12 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return state.loans[loanId];
     }
 
+    function getLoans() public view returns (Loan[] memory) {
+        return state.loans;
+    }
+
     function getLoanStatus(uint256 loanId) public view override(ISizeView) returns (LoanStatus) {
         return state.getLoanStatus(state.loans[loanId]);
-    }
-
-    function getLoanOffer(address account) public view returns (LoanOffer memory) {
-        return state.users[account].loanOffer;
-    }
-
-    function getBorrowOffer(address account) public view returns (BorrowOffer memory) {
-        return state.users[account].borrowOffer;
-    }
-
-    function getDueDate(uint256 loanId) public view returns (uint256) {
-        return state.loans[loanId].dueDate;
-    }
-
-    function minimumCredit() public view returns (uint256) {
-        return state.config.minimumCredit;
     }
 
     function getProtocolVault() public view returns (uint256, uint256, uint256) {
@@ -125,9 +96,5 @@ abstract contract SizeView is SizeStorage, ISizeView {
             state.tokens.borrowToken.balanceOf(state.config.feeRecipient),
             state.tokens.debtToken.balanceOf(state.config.feeRecipient)
         );
-    }
-
-    function getConfig() public view returns (Config memory) {
-        return state.config;
     }
 }

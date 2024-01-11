@@ -47,14 +47,14 @@ library Withdraw {
         uint8 decimals = token.decimals();
 
         uint256 userBalanceWad = nonTransferrableToken.balanceOf(msg.sender);
-        uint256 userBalanceAmount = Math.wadToAmount(userBalanceWad, decimals);
+        uint256 userBalanceAmountDown = Math.wadToAmountDown(userBalanceWad, decimals);
 
-        uint256 withdrawAmount = Math.min(params.amount, userBalanceAmount);
-        uint256 wad = Math.amountToWad(withdrawAmount, decimals);
+        uint256 withdrawAmountDown = Math.min(params.amount, userBalanceAmountDown);
+        uint256 wadDown = Math.amountToWad(withdrawAmountDown, decimals);
 
-        nonTransferrableToken.burn(msg.sender, wad);
-        token.safeTransfer(msg.sender, withdrawAmount);
+        nonTransferrableToken.burn(msg.sender, wadDown);
+        token.safeTransfer(msg.sender, withdrawAmountDown);
 
-        emit Events.Withdraw(params.token, wad);
+        emit Events.Withdraw(params.token, wadDown);
     }
 }
