@@ -98,7 +98,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     ) public getSender {
         __before();
 
-        lender = _getRandomSender(lender);
+        lender = _getRandomUser(lender);
         amount = between(amount, 0, MAX_AMOUNT_USDC * 1e12 / 100);
         dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
 
@@ -121,13 +121,13 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after();
 
-        if (lender == sender) {
-            eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
-        } else {
-            gt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
-        }
-
         if (amount > size.config().minimumCredit) {
+            if (lender == sender) {
+                eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
+            } else {
+                gt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
+            }
+
             if (virtualCollateralLoanIds.length > 0) {
                 gte(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
             } else {
@@ -136,42 +136,42 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    // function borrowAsLimitOrder(uint256 maxAmount, uint256 yieldCurveSeed) public getSender {
-    //     __before();
+    function borrowAsLimitOrder(uint256 maxAmount, uint256 yieldCurveSeed) public getSender {
+        __before();
 
-    //     maxAmount = between(maxAmount, 0, MAX_AMOUNT_USDC * 1e12);
-    //     YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
+        maxAmount = between(maxAmount, 0, MAX_AMOUNT_USDC * 1e12);
+        YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
-    //     hevm.prank(sender);
-    //     size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
+        hevm.prank(sender);
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
 
-    //     __after();
-    // }
+        __after();
+    }
 
-    // function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn)
-    //     public
-    //     getSender
-    // {
-    //     __before();
+    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn)
+        public
+        getSender
+    {
+        __before();
 
-    //     borrower = _getRandomSender(borrower);
-    //     dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
-    //     amount = between(amount, 0, _before.sender.borrowAmount / 10);
+        borrower = _getRandomUser(borrower);
+        dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
+        amount = between(amount, 0, _before.sender.borrowAmount / 10);
 
-    //     hevm.prank(sender);
-    //     size.lendAsMarketOrder(
-    //         LendAsMarketOrderParams({borrower: borrower, dueDate: dueDate, amount: amount, exactAmountIn: exactAmountIn})
-    //     );
+        hevm.prank(sender);
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({borrower: borrower, dueDate: dueDate, amount: amount, exactAmountIn: exactAmountIn})
+        );
 
-    //     __after();
+        __after();
 
-    //     if (sender == borrower) {
-    //         eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
-    //     } else {
-    //         lt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
-    //     }
-    //     eq(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
-    // }
+        if (sender == borrower) {
+            eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
+        } else {
+            lt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
+        }
+        eq(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
+    }
 
     function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, uint256 yieldCurveSeed) public getSender {
         __before();
@@ -188,126 +188,128 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
     }
 
-    // function borrowerExit(uint256 loanId, address borrowerToExitTo) public getSender {
-    //     __before(loanId);
+    function borrowerExit(uint256 loanId, address borrowerToExitTo) public getSender {
+        __before(loanId);
 
-    //     precondition(_before.activeLoans > 0);
+        precondition(_before.activeLoans > 0);
 
-    //     loanId = between(loanId, 0, _before.activeLoans - 1);
-    //     borrowerToExitTo = _getRandomSender(borrowerToExitTo);
+        loanId = between(loanId, 0, _before.activeLoans - 1);
+        borrowerToExitTo = _getRandomUser(borrowerToExitTo);
 
-    //     hevm.prank(sender);
-    //     size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
+        hevm.prank(sender);
+        size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
 
-    //     __after(loanId);
+        __after(loanId);
 
-    //     if (borrowerToExitTo == sender) {
-    //         eq(_after.sender.debtAmount, _before.sender.debtAmount, BORROWER_EXIT_01);
-    //     } else {
-    //         lt(_after.sender.debtAmount, _before.sender.debtAmount, BORROWER_EXIT_01);
-    //     }
-    // }
+        if (borrowerToExitTo == sender) {
+            eq(_after.sender.debtAmount, _before.sender.debtAmount, BORROWER_EXIT_01);
+        } else {
+            lt(_after.sender.debtAmount, _before.sender.debtAmount, BORROWER_EXIT_01);
+        }
+    }
 
-    // function repay(uint256 loanId, uint256 amount) public getSender {
-    //     __before(loanId);
+    function repay(uint256 loanId, uint256 amount) public getSender {
+        __before(loanId);
 
-    //     precondition(_before.activeLoans > 0);
+        precondition(_before.activeLoans > 0);
 
-    //     loanId = between(loanId, 0, _before.activeLoans - 1);
+        loanId = between(loanId, 0, _before.activeLoans - 1);
 
-    //     hevm.prank(sender);
-    //     size.repay(RepayParams({loanId: loanId, amount: amount}));
+        hevm.prank(sender);
+        size.repay(RepayParams({loanId: loanId, amount: amount}));
 
-    //     __after(loanId);
+        __after(loanId);
 
-    //     lt(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
-    //     gt(_after.protocolBorrowAmount, _before.protocolBorrowAmount, REPAY_01);
-    //     lt(_after.sender.debtAmount, _before.sender.debtAmount, REPAY_02);
-    // }
+        lt(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
+        gt(_after.protocolBorrowAmount, _before.protocolBorrowAmount, REPAY_01);
+        lt(_after.sender.debtAmount, _before.sender.debtAmount, REPAY_02);
+    }
 
-    // function claim(uint256 loanId) public getSender {
-    //     __before(loanId);
+    function claim(uint256 loanId) public getSender {
+        __before(loanId);
 
-    //     precondition(_before.activeLoans > 0);
+        precondition(_before.activeLoans > 0);
 
-    //     loanId = between(loanId, 0, _before.activeLoans - 1);
+        loanId = between(loanId, 0, _before.activeLoans - 1);
 
-    //     hevm.prank(sender);
-    //     size.claim(ClaimParams({loanId: loanId}));
+        hevm.prank(sender);
+        size.claim(ClaimParams({loanId: loanId}));
 
-    //     __after(loanId);
+        __after(loanId);
 
-    //     gte(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
-    //     t(size.isFOL(loanId), CLAIM_02);
-    // }
+        gte(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
+        t(size.isFOL(loanId), CLAIM_02);
+    }
 
-    // function liquidateLoan(uint256 loanId) public getSender {
-    //     __before(loanId);
+    function liquidateLoan(uint256 loanId) public getSender {
+        __before(loanId);
 
-    //     precondition(_before.activeLoans > 0);
+        precondition(_before.activeLoans > 0);
 
-    //     loanId = between(loanId, 0, _before.activeLoans - 1);
+        loanId = between(loanId, 0, _before.activeLoans - 1);
 
-    //     hevm.prank(sender);
-    //     size.liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+        hevm.prank(sender);
+        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: 1e18}));
 
-    //     __after(loanId);
+        __after(loanId);
 
-    //     gt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
-    //     lt(_after.sender.borrowAmount, _before.sender.borrowAmount, LIQUIDATE_02);
-    //     lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
-    //     t(_before.isSenderLiquidatable, LIQUIDATE_03);
-    // }
+        gt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
+        lt(_after.sender.borrowAmount, _before.sender.borrowAmount, LIQUIDATE_02);
+        lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
+        t(_before.isSenderLiquidatable, LIQUIDATE_03);
+    }
 
-    // function selfLiquidateLoan(uint256 loanId) public getSender {
-    //     __before(loanId);
+    function selfLiquidateLoan(uint256 loanId) public getSender {
+        __before(loanId);
 
-    //     precondition(_before.activeLoans > 0);
+        precondition(_before.activeLoans > 0);
 
-    //     loanId = between(loanId, 0, _before.activeLoans - 1);
+        loanId = between(loanId, 0, _before.activeLoans - 1);
 
-    //     hevm.prank(sender);
-    //     size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+        hevm.prank(sender);
+        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
 
-    //     __after(loanId);
+        __after(loanId);
 
-    //     lt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
-    //     lt(_after.sender.debtAmount, _before.sender.debtAmount, LIQUIDATE_02);
-    // }
+        lt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
+        lt(_after.sender.debtAmount, _before.sender.debtAmount, LIQUIDATE_02);
+    }
 
-    // function liquidateLoanWithReplacement(uint256 loanId, address borrower) public getSender {
-    //     __before(loanId);
+    function liquidateLoanWithReplacement(uint256 loanId, address borrower) public getSender {
+        __before(loanId);
 
-    //     precondition(_before.activeLoans > 0);
+        precondition(_before.activeLoans > 0);
 
-    //     loanId = between(loanId, 0, _before.activeLoans - 1);
-    //     borrower = _getRandomSender(borrower);
+        loanId = between(loanId, 0, _before.activeLoans - 1);
+        borrower = _getRandomUser(borrower);
 
-    //     hevm.prank(sender);
-    //     size.liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
+        hevm.prank(sender);
+        size.liquidateLoanWithReplacement(
+            LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower, minimumCollateralRatio: 1e18})
+        );
 
-    //     __after(loanId);
+        __after(loanId);
 
-    //     lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
-    // }
+        lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
+    }
 
-    // function moveToVariablePool(uint256 loanId) public getSender {
-    //     __before(loanId);
+    function moveToVariablePool(uint256 loanId) public getSender {
+        __before(loanId);
 
-    //     precondition(_before.activeLoans > 0);
+        precondition(_before.activeLoans > 0);
 
-    //     loanId = between(loanId, 0, _before.activeLoans - 1);
+        loanId = between(loanId, 0, _before.activeLoans - 1);
 
-    //     hevm.prank(sender);
-    //     size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
+        hevm.prank(sender);
+        size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
 
-    //     __after(loanId);
-    // }
+        __after(loanId);
+    }
 
-    // function setPrice(uint256 price) public {
-    //     uint256 oldPrice = priceFeed.getPrice();
-    //     price = between(price, oldPrice * 1e18 / 1.2e18, priceFeed.getPrice() * 1.2e18 / 1e18);
+    function setPrice(uint256 price) public {
+        uint256 oldPrice = priceFeed.getPrice();
+        price = between(price, oldPrice * 1e18 / 1.2e18, priceFeed.getPrice() * 1.2e18 / 1e18);
 
-    //     priceFeed.setPrice(price);
-    // }
+        priceFeed.setPrice(price);
+    }
 }
