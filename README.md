@@ -10,21 +10,21 @@ Size V2 Solidity
 | File                                                   | % Lines           | % Statements      | % Branches       | % Funcs          |
 |--------------------------------------------------------|-------------------|-------------------|------------------|------------------|
 | src/Size.sol                                           | 100.00% (41/41)   | 100.00% (41/41)   | 100.00% (0/0)    | 100.00% (17/17)  |
-| src/SizeView.sol                                       | 100.00% (26/26)   | 100.00% (37/37)   | 100.00% (0/0)    | 100.00% (24/24)  |
-| src/libraries/LoanLibrary.sol                          | 100.00% (3/3)     | 100.00% (5/5)     | 100.00% (0/0)    | 100.00% (3/3)    |
-| src/libraries/MathLibrary.sol                          | 100.00% (19/19)   | 100.00% (31/31)   | 100.00% (6/6)    | 100.00% (7/7)    |
-| src/libraries/OfferLibrary.sol                         | 100.00% (6/6)     | 100.00% (18/18)   | 100.00% (0/0)    | 100.00% (4/4)    |
-| src/libraries/YieldCurveLibrary.sol                    | 100.00% (24/24)   | 100.00% (37/37)   | 78.57% (11/14)   | 100.00% (2/2)    |
+| src/SizeView.sol                                       | 94.44% (17/18)    | 96.30% (26/27)    | 100.00% (0/0)    | 93.75% (15/16)   |
+| src/libraries/LoanLibrary.sol                          | 0.00% (0/3)       | 0.00% (0/5)       | 100.00% (0/0)    | 0.00% (0/3)      |
+| src/libraries/MathLibrary.sol                          | 94.74% (18/19)    | 96.77% (30/31)    | 83.33% (5/6)     | 100.00% (7/7)    |
+| src/libraries/OfferLibrary.sol                         | 0.00% (0/6)       | 0.00% (0/18)      | 100.00% (0/0)    | 0.00% (0/4)      |
+| src/libraries/YieldCurveLibrary.sol                    | 37.50% (9/24)     | 35.14% (13/37)    | 42.86% (6/14)    | 50.00% (1/2)     |
 | src/libraries/actions/BorrowAsLimitOrder.sol           | 100.00% (5/5)     | 100.00% (5/5)     | 100.00% (2/2)    | 100.00% (2/2)    |
-| src/libraries/actions/BorrowAsMarketOrder.sol          | 100.00% (54/54)   | 100.00% (69/69)   | 90.91% (20/22)   | 100.00% (4/4)    |
+| src/libraries/actions/BorrowAsMarketOrder.sol          | 100.00% (54/54)   | 100.00% (69/69)   | 95.45% (21/22)   | 100.00% (4/4)    |
 | src/libraries/actions/BorrowerExit.sol                 | 96.30% (26/27)    | 97.06% (33/34)    | 80.00% (8/10)    | 100.00% (2/2)    |
 | src/libraries/actions/Claim.sol                        | 100.00% (7/7)     | 100.00% (8/8)     | 100.00% (2/2)    | 100.00% (2/2)    |
-| src/libraries/actions/Common.sol                       | 100.00% (58/58)   | 98.82% (84/85)    | 85.00% (17/20)   | 86.67% (13/15)   |
+| src/libraries/actions/Common.sol                       | 100.00% (59/59)   | 98.85% (86/87)    | 95.00% (19/20)   | 81.25% (13/16)   |
 | src/libraries/actions/Compensate.sol                   | 100.00% (20/20)   | 100.00% (26/26)   | 100.00% (12/12)  | 100.00% (2/2)    |
 | src/libraries/actions/Deposit.sol                      | 100.00% (10/10)   | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/libraries/actions/Initialize.sol                   | 100.00% (22/22)   | 100.00% (29/29)   | 100.00% (14/14)  | 100.00% (2/2)    |
 | src/libraries/actions/LendAsLimitOrder.sol             | 100.00% (11/11)   | 100.00% (12/12)   | 87.50% (7/8)     | 100.00% (2/2)    |
-| src/libraries/actions/LendAsMarketOrder.sol            | 96.15% (25/26)    | 96.55% (28/29)    | 70.00% (7/10)    | 100.00% (2/2)    |
+| src/libraries/actions/LendAsMarketOrder.sol            | 96.15% (25/26)    | 96.55% (28/29)    | 80.00% (8/10)    | 100.00% (2/2)    |
 | src/libraries/actions/LiquidateLoan.sol                | 100.00% (33/33)   | 100.00% (39/39)   | 58.33% (7/12)    | 100.00% (2/2)    |
 | src/libraries/actions/LiquidateLoanWithReplacement.sol | 100.00% (23/23)   | 100.00% (27/27)   | 75.00% (3/4)     | 100.00% (2/2)    |
 | src/libraries/actions/MoveToVariablePool.sol           | 100.00% (14/14)   | 100.00% (17/17)   | 83.33% (5/6)     | 100.00% (2/2)    |
@@ -41,14 +41,16 @@ Size V2 Solidity
 ┌──────────────────────────────┬────────┐
 │           (index)            │ Values │
 ├──────────────────────────────┼────────┤
+│            BORROW            │   1    │
 │      BorrowAsLimitOrder      │   3    │
-│     BorrowAsMarketOrder      │   14   │
+│     BorrowAsMarketOrder      │   15   │
 │         BorrowerExit         │   4    │
 │            Claim             │   7    │
 │          Compensate          │   6    │
 │           Deposit            │   2    │
 │         Experiments          │   10   │
 │          Initialize          │   3    │
+│             LOAN             │   1    │
 │       LendAsLimitOrder       │   2    │
 │      LendAsMarketOrder       │   6    │
 │ LiquidateLoanWithReplacement │   5    │
@@ -59,7 +61,8 @@ Size V2 Solidity
 │    NonTransferrableToken     │   7    │
 │         Ownable2Step         │   4    │
 │          PriceFeed           │   8    │
-│            Repay             │   7    │
+│            REPAY             │   2    │
+│            Repay             │   9    │
 │      SelfLiquidateLoan       │   6    │
 │         UpdateConfig         │   2    │
 │           Upgrade            │   2    │
