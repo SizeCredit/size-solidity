@@ -4,8 +4,10 @@ pragma solidity 0.8.20;
 import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {RepayParams} from "@src/libraries/actions/Repay.sol";
 
 import {Math} from "@src/libraries/MathLibrary.sol";
 
@@ -153,5 +155,37 @@ contract RepayTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + faceValue / 2);
         assertTrue(!size.getLoan(loanId).repaid);
+    }
+
+    function test_Repay_repay_partial_cannot_leave_loan_below_minimumCredit() public {
+        _setPrice(1e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
+        uint256 amount = 10e18;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 4e18, size.config().minimumCredit)
+        );
+        _repay(bob, loanId, 6e18);
+        assertGt(size.getCredit(loanId), size.config().minimumCredit);
+    }
+
+    function test_Repay_repay_partial_cannot_leave_loan_below_minimumCredit(uint256 borrowAmount, uint256 repayAmount)
+        public
+    {
+        borrowAmount = bound(borrowAmount, size.config().minimumCredit, 100e18);
+        repayAmount = bound(repayAmount, 0, borrowAmount);
+
+        _setPrice(1e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
+        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, borrowAmount, 12);
+
+        vm.prank(bob);
+        try size.repay(RepayParams({loanId: loanId, amount: repayAmount})) {} catch {}
+        assertGe(size.getCredit(loanId), size.config().minimumCredit);
     }
 }

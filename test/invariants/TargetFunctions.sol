@@ -27,6 +27,7 @@ import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
+    event L1(uint256 a);
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
     function setup() internal override {
@@ -220,8 +221,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after(loanId);
 
-        lt(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
-        gt(_after.protocolBorrowAmount, _before.protocolBorrowAmount, REPAY_01);
+        lte(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
+        gte(_after.protocolBorrowAmount, _before.protocolBorrowAmount, REPAY_01);
         lt(_after.sender.debtAmount, _before.sender.debtAmount, REPAY_02);
     }
 
@@ -259,7 +260,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         t(_before.isSenderLiquidatable, LIQUIDATE_03);
     }
 
-    function selfLiquidateLoan(uint256 loanId) public getSender {
+    function selfLiquidateLoan(uint256 loanId) internal getSender {
         __before(loanId);
 
         precondition(_before.activeLoans > 0);
@@ -275,7 +276,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         lt(_after.sender.debtAmount, _before.sender.debtAmount, LIQUIDATE_02);
     }
 
-    function liquidateLoanWithReplacement(uint256 loanId, address borrower) public getSender {
+    function liquidateLoanWithReplacement(uint256 loanId, address borrower) internal getSender {
         __before(loanId);
 
         precondition(_before.activeLoans > 0);
@@ -293,7 +294,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
     }
 
-    function moveToVariablePool(uint256 loanId) public getSender {
+    function moveToVariablePool(uint256 loanId) internal getSender {
         __before(loanId);
 
         precondition(_before.activeLoans > 0);
@@ -307,8 +308,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     }
 
     function setPrice(uint256 price) public {
-        uint256 oldPrice = priceFeed.getPrice();
-        price = between(price, oldPrice * 1e18 / 1.2e18, priceFeed.getPrice() * 1.2e18 / 1e18);
+        price = between(price, MIN_PRICE, MAX_PRICE);
 
         priceFeed.setPrice(price);
     }

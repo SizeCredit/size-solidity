@@ -10,6 +10,7 @@ struct User {
 
 struct UserView {
     User user;
+    address account;
     uint256 collateralAmount;
     uint256 borrowAmount;
     uint256 debtAmount;

@@ -17,9 +17,12 @@ library Common {
         state.tokens.debtToken.burn(fol.borrower, amount);
 
         loan.faceValue -= amount;
+        validateMinimumCredit(state, loan.getCredit());
+
         if (!loan.isFOL()) {
             fol.faceValue -= amount;
             fol.faceValueExited -= amount;
+            validateMinimumCredit(state, fol.getCredit());
         }
     }
 

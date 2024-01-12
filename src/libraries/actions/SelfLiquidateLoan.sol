@@ -52,7 +52,6 @@ library SelfLiquidateLoan {
 
         Loan storage loan = state.loans[params.loanId];
 
-        // credit := faceValue - exited :>= state.config.minimumCredit (by construction, see createSOL)
         uint256 credit = loan.getCredit();
         Loan storage fol = state.getFOL(loan);
 

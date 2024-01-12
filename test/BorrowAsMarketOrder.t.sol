@@ -417,7 +417,6 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _lendAsLimitOrder(alice, 100e18, 12, 0.1e18, 12);
-        LoanOffer memory offerBefore = size.getUserView(alice).user.loanOffer;
 
         Vars memory _before = _state();
 

@@ -12,6 +12,8 @@ abstract contract Helper is Deploy, PropertiesConstants {
     uint256 internal constant MAX_DURATION = 180 days;
     uint256 internal constant MAX_RATE = 2e18;
     uint256 internal constant MAX_TIME_BUCKETS = 24;
+    uint256 internal constant MIN_PRICE = 0.01e18;
+    uint256 internal constant MAX_PRICE = 10_000e18;
 
     function _getRandomUser(address user) internal pure returns (address) {
         return uint160(user) % 3 == 0 ? USER1 : uint160(user) % 3 == 1 ? USER2 : USER3;

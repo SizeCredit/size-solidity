@@ -52,6 +52,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     function getUserView(address user) public view returns (UserView memory) {
         return UserView({
             user: state.users[user],
+            account: user,
             collateralAmount: state.tokens.collateralToken.balanceOf(user),
             borrowAmount: state.tokens.borrowToken.balanceOf(user),
             debtAmount: state.tokens.debtToken.balanceOf(user)
