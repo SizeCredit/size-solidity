@@ -3,11 +3,12 @@ pragma solidity 0.8.20;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
+import {State} from "@src/SizeStorage.sol";
+import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
-
-import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -21,30 +22,25 @@ struct InitializeParams {
     address collateralToken;
     address borrowToken;
     address debtToken;
-    address protocolVault;
+    address variablePool;
     address feeRecipient;
 }
 
 struct InitializeExtraParams {
     uint256 crOpening;
     uint256 crLiquidation;
-    uint256 collateralPercentagePremiumToLiquidator;
-    uint256 collateralPercentagePremiumToProtocol;
+    uint256 collateralPremiumToLiquidator;
+    uint256 collateralPremiumToProtocol;
     uint256 minimumCredit;
 }
 
 library Initialize {
-    using UpdateConfig for State;
-
-    function validateInitialize(
-        State storage state,
-        InitializeParams memory params,
-        InitializeExtraParams memory extraParams
-    ) external view {
+    function validateInitialize(State storage, InitializeParams memory params, InitializeExtraParams memory extraParams)
+        external
+        pure
+    {
         // validate owner
-        if (params.owner == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
+        // OwnableUpgradeable already performs this check
 
         // validate collateral asset
         if (params.collateralAsset == address(0)) {
@@ -71,22 +67,53 @@ library Initialize {
             revert Errors.NULL_ADDRESS();
         }
 
-        // validate protocolVault
-        if (params.protocolVault == address(0)) {
+        // validate variablePool
+        if (params.variablePool == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
-        state.validateUpdateConfig(
-            UpdateConfigParams({
-                priceFeed: params.priceFeed,
-                feeRecipient: params.feeRecipient,
-                crOpening: extraParams.crOpening,
-                crLiquidation: extraParams.crLiquidation,
-                collateralPercentagePremiumToLiquidator: extraParams.collateralPercentagePremiumToLiquidator,
-                collateralPercentagePremiumToProtocol: extraParams.collateralPercentagePremiumToProtocol,
-                minimumCredit: extraParams.minimumCredit
-            })
-        );
+        // validate price feed
+        if (params.priceFeed == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate feeRecipient
+        if (params.feeRecipient == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate crOpening
+        if (extraParams.crOpening < PERCENT) {
+            revert Errors.INVALID_COLLATERAL_RATIO(extraParams.crOpening);
+        }
+
+        // validate crLiquidation
+        if (extraParams.crLiquidation < PERCENT) {
+            revert Errors.INVALID_COLLATERAL_RATIO(extraParams.crLiquidation);
+        }
+        if (extraParams.crOpening <= extraParams.crLiquidation) {
+            revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(extraParams.crOpening, extraParams.crLiquidation);
+        }
+
+        // validate collateralPremiumToLiquidator
+        if (extraParams.collateralPremiumToLiquidator > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(extraParams.collateralPremiumToLiquidator);
+        }
+
+        // validate collateralPremiumToProtocol
+        if (extraParams.collateralPremiumToProtocol > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(extraParams.collateralPremiumToProtocol);
+        }
+        if (extraParams.collateralPremiumToLiquidator + extraParams.collateralPremiumToProtocol > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
+                extraParams.collateralPremiumToLiquidator + extraParams.collateralPremiumToProtocol
+            );
+        }
+
+        // validate minimumCredit
+        if (extraParams.minimumCredit == 0) {
+            revert Errors.NULL_AMOUNT();
+        }
     }
 
     function executeInitialize(
@@ -99,18 +126,13 @@ library Initialize {
         state.tokens.collateralToken = CollateralToken(params.collateralToken);
         state.tokens.borrowToken = BorrowToken(params.borrowToken);
         state.tokens.debtToken = DebtToken(params.debtToken);
-        state.config.variablePool = params.protocolVault;
-
-        state.executeUpdateConfig(
-            UpdateConfigParams({
-                priceFeed: params.priceFeed,
-                feeRecipient: params.feeRecipient,
-                crOpening: extraParams.crOpening,
-                crLiquidation: extraParams.crLiquidation,
-                collateralPercentagePremiumToLiquidator: extraParams.collateralPercentagePremiumToLiquidator,
-                collateralPercentagePremiumToProtocol: extraParams.collateralPercentagePremiumToProtocol,
-                minimumCredit: extraParams.minimumCredit
-            })
-        );
+        state.config.variablePool = params.variablePool;
+        state.config.priceFeed = IPriceFeed(params.priceFeed);
+        state.config.feeRecipient = params.feeRecipient;
+        state.config.crOpening = extraParams.crOpening;
+        state.config.crLiquidation = extraParams.crLiquidation;
+        state.config.collateralPremiumToLiquidator = extraParams.collateralPremiumToLiquidator;
+        state.config.collateralPremiumToProtocol = extraParams.collateralPremiumToProtocol;
+        state.config.minimumCredit = extraParams.minimumCredit;
     }
 }

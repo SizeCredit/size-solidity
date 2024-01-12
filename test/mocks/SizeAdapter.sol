@@ -113,8 +113,8 @@ contract SizeAdapter is Size {
         address feeRecipient,
         uint256 crOpening,
         uint256 crLiquidation,
-        uint256 collateralPercentagePremiumToLiquidator,
-        uint256 collateralPercentagePremiumToProtocol,
+        uint256 collateralPremiumToLiquidator,
+        uint256 collateralPremiumToProtocol,
         uint256 minimumCredit
     ) external {
         _updateConfig(
@@ -122,8 +122,8 @@ contract SizeAdapter is Size {
                 feeRecipient: feeRecipient,
                 crOpening: crOpening,
                 crLiquidation: crLiquidation,
-                collateralPercentagePremiumToLiquidator: collateralPercentagePremiumToLiquidator,
-                collateralPercentagePremiumToProtocol: collateralPercentagePremiumToProtocol,
+                collateralPremiumToLiquidator: collateralPremiumToLiquidator,
+                collateralPremiumToProtocol: collateralPremiumToProtocol,
                 minimumCredit: minimumCredit
             })
         );

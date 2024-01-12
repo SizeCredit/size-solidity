@@ -72,9 +72,9 @@ library LiquidateLoan {
             uint256 collateralRemainder = assignedCollateral - debtInCollateralToken;
 
             uint256 collateralRemainderToLiquidator =
-                Math.mulDivDown(collateralRemainder, state.config.collateralPercentagePremiumToLiquidator, PERCENT);
+                Math.mulDivDown(collateralRemainder, state.config.collateralPremiumToLiquidator, PERCENT);
             uint256 collateralRemainderToProtocol =
-                Math.mulDivDown(collateralRemainder, state.config.collateralPercentagePremiumToProtocol, PERCENT);
+                Math.mulDivDown(collateralRemainder, state.config.collateralPremiumToProtocol, PERCENT);
 
             liquidatorProfitCollateralToken = debtInCollateralToken + collateralRemainderToLiquidator;
             state.tokens.collateralToken.transferFrom(

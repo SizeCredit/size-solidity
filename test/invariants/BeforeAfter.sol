@@ -40,7 +40,7 @@ abstract contract BeforeAfter is Deploy {
         _before.senderCollateralAmount = weth.balanceOf(sender);
         _before.senderBorrowAmount = usdc.balanceOf(sender);
         _before.activeLoans = size.activeLoans();
-        (, _before.protocolBorrowAmount,) = size.getProtocolVault();
+        (, _before.protocolBorrowAmount,) = size.getVariablePool();
     }
 
     function __after(uint256 loanId) internal {
@@ -55,7 +55,7 @@ abstract contract BeforeAfter is Deploy {
         _after.senderCollateralAmount = weth.balanceOf(sender);
         _after.senderBorrowAmount = usdc.balanceOf(sender);
         _after.activeLoans = size.activeLoans();
-        (, _after.protocolBorrowAmount,) = size.getProtocolVault();
+        (, _after.protocolBorrowAmount,) = size.getVariablePool();
     }
 
     function __before() internal {

@@ -23,8 +23,8 @@ struct Tokens {
 struct Config {
     uint256 crOpening;
     uint256 crLiquidation;
-    uint256 collateralPercentagePremiumToLiquidator;
-    uint256 collateralPercentagePremiumToProtocol;
+    uint256 collateralPremiumToLiquidator;
+    uint256 collateralPremiumToProtocol;
     uint256 minimumCredit;
     IPriceFeed priceFeed;
     address variablePool;

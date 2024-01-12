@@ -60,11 +60,11 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     address internal candy = address(0x30000);
     address internal james = address(0x40000);
     address internal liquidator = address(0x50000);
-    address internal protocolVault = address(0x60000);
+    address internal variablePool = address(0x60000);
     address internal feeRecipient = address(0x70000);
 
     function setUp() public virtual {
-        setup(address(this), protocolVault, feeRecipient);
+        setup(address(this), variablePool, feeRecipient);
 
         vm.label(alice, "alice");
         vm.label(bob, "bob");
@@ -333,8 +333,8 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vars.candy = size.getUserView(candy);
         vars.james = size.getUserView(james);
         vars.liquidator = size.getUserView(liquidator);
-        vars.protocolCollateralAmount = collateralToken.balanceOf(protocolVault);
-        vars.protocolBorrowAmount = borrowToken.balanceOf(protocolVault);
+        vars.protocolCollateralAmount = collateralToken.balanceOf(variablePool);
+        vars.protocolBorrowAmount = borrowToken.balanceOf(variablePool);
         vars.feeRecipientCollateralAmount = collateralToken.balanceOf(feeRecipient);
         vars.feeRecipientBorrowAmount = borrowToken.balanceOf(feeRecipient);
     }

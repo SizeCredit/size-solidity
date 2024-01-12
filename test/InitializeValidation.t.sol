@@ -3,11 +3,10 @@ pragma solidity 0.8.20;
 
 import {Test} from "forge-std/Test.sol";
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
-
-import {BaseTest, Vars} from "./BaseTest.sol";
+import {BaseTest} from "./BaseTest.sol";
 import {USDC} from "./mocks/USDC.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
@@ -22,7 +21,7 @@ contract InitializeValidationTest is Test, BaseTest {
         Size implementation = new Size();
 
         params.owner = address(0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
         params.owner = address(this);
 
@@ -56,10 +55,10 @@ contract InitializeValidationTest is Test, BaseTest {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
         params.debtToken = address(debtToken);
 
-        params.protocolVault = address(0);
+        params.variablePool = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.protocolVault = protocolVault;
+        params.variablePool = variablePool;
 
         params.feeRecipient = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
@@ -83,22 +82,22 @@ contract InitializeValidationTest is Test, BaseTest {
         extraParams.crLiquidation = 1.3e18;
         extraParams.crOpening = 1.5e18;
 
-        extraParams.collateralPercentagePremiumToLiquidator = 1.1e18;
+        extraParams.collateralPremiumToLiquidator = 1.1e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.collateralPercentagePremiumToLiquidator = 0.3e18;
+        extraParams.collateralPremiumToLiquidator = 0.3e18;
 
-        extraParams.collateralPercentagePremiumToProtocol = 1.2e18;
+        extraParams.collateralPremiumToProtocol = 1.2e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.collateralPercentagePremiumToProtocol = 0.1e18;
+        extraParams.collateralPremiumToProtocol = 0.1e18;
 
-        extraParams.collateralPercentagePremiumToLiquidator = 0.6e18;
-        extraParams.collateralPercentagePremiumToProtocol = 0.6e18;
+        extraParams.collateralPremiumToLiquidator = 0.6e18;
+        extraParams.collateralPremiumToProtocol = 0.6e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.collateralPercentagePremiumToLiquidator = 0.3e18;
-        extraParams.collateralPercentagePremiumToProtocol = 0.1e18;
+        extraParams.collateralPremiumToLiquidator = 0.3e18;
+        extraParams.collateralPremiumToProtocol = 0.1e18;
 
         extraParams.minimumCredit = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));

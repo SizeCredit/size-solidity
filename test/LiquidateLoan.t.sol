@@ -54,26 +54,23 @@ contract LiquidateLoanTest is BaseTest {
         assertEq(
             _after.feeRecipientCollateralAmount,
             _before.feeRecipientCollateralAmount
-                + Math.mulDivDown(collateralRemainder, size.config().collateralPercentagePremiumToProtocol, PERCENT)
+                + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToProtocol, PERCENT)
         );
-        uint256 collateralPercentagePremiumToBorrower = PERCENT - size.config().collateralPercentagePremiumToProtocol
-            - size.config().collateralPercentagePremiumToLiquidator;
+        uint256 collateralPremiumToBorrower =
+            PERCENT - size.config().collateralPremiumToProtocol - size.config().collateralPremiumToLiquidator;
         assertEq(
             _after.bob.collateralAmount,
             _before.bob.collateralAmount - (debt * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
-                    (
-                        size.config().collateralPercentagePremiumToProtocol
-                            + size.config().collateralPercentagePremiumToLiquidator
-                    ),
+                    (size.config().collateralPremiumToProtocol + size.config().collateralPremiumToLiquidator),
                     PERCENT
                 ),
             _before.bob.collateralAmount - (debt * 5) - collateralRemainder
-                + Math.mulDivDown(collateralRemainder, collateralPercentagePremiumToBorrower, PERCENT)
+                + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
-        uint256 liquidatorProfitAmount = (debt * 5)
-            + Math.mulDivDown(collateralRemainder, size.config().collateralPercentagePremiumToLiquidator, PERCENT);
+        uint256 liquidatorProfitAmount =
+            (debt * 5) + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToLiquidator, PERCENT);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount + liquidatorProfitAmount);
         assertEq(liquidatorProfit, liquidatorProfitAmount);
     }

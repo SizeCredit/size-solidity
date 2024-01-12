@@ -30,7 +30,7 @@ contract Deploy {
     InitializeParams internal params;
     InitializeExtraParams internal extraParams;
 
-    function setup(address owner, address protocolVault, address feeRecipient) internal {
+    function setup(address owner, address variablePool, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
@@ -45,14 +45,14 @@ contract Deploy {
             collateralToken: address(collateralToken),
             borrowToken: address(borrowToken),
             debtToken: address(debtToken),
-            protocolVault: protocolVault,
+            variablePool: variablePool,
             feeRecipient: feeRecipient
         });
         extraParams = InitializeExtraParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            collateralPercentagePremiumToLiquidator: 0.3e18,
-            collateralPercentagePremiumToProtocol: 0.1e18,
+            collateralPremiumToLiquidator: 0.3e18,
+            collateralPremiumToProtocol: 0.1e18,
             minimumCredit: 5e18
         });
         proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params, extraParams)));

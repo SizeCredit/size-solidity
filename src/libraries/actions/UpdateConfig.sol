@@ -1,76 +1,63 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
-
-import {State} from "@src/SizeStorage.sol";
-import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {Config, State, Tokens} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Initialize, InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
 struct UpdateConfigParams {
-    address priceFeed;
-    address feeRecipient;
-    uint256 crOpening;
-    uint256 crLiquidation;
-    uint256 collateralPercentagePremiumToLiquidator;
-    uint256 collateralPercentagePremiumToProtocol;
-    uint256 minimumCredit;
+    bytes32 key;
+    uint256 value;
 }
 
 library UpdateConfig {
+    using Initialize for State;
+
     function validateUpdateConfig(State storage, UpdateConfigParams memory params) external pure {
-        // validate price feed
-        if (params.priceFeed == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
-        // validate feeRecipient
-        if (params.feeRecipient == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
-        // validate crOpening
-        if (params.crOpening < PERCENT) {
-            revert Errors.INVALID_COLLATERAL_RATIO(params.crOpening);
-        }
-
-        // validate crLiquidation
-        if (params.crLiquidation < PERCENT) {
-            revert Errors.INVALID_COLLATERAL_RATIO(params.crLiquidation);
-        }
-        if (params.crOpening <= params.crLiquidation) {
-            revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(params.crOpening, params.crLiquidation);
-        }
-
-        // validate collateralPercentagePremiumToLiquidator
-        if (params.collateralPercentagePremiumToLiquidator > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(params.collateralPercentagePremiumToLiquidator);
-        }
-
-        // validate collateralPercentagePremiumToProtocol
-        if (params.collateralPercentagePremiumToProtocol > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(params.collateralPercentagePremiumToProtocol);
-        }
-        if (params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToProtocol > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                params.collateralPercentagePremiumToLiquidator + params.collateralPercentagePremiumToProtocol
-            );
-        }
-
-        // validate minimumCredit
-        if (params.minimumCredit == 0) {
-            revert Errors.NULL_AMOUNT();
-        }
+        // validation is done at execution
     }
 
     function executeUpdateConfig(State storage state, UpdateConfigParams memory params) external {
-        state.config.crOpening = params.crOpening;
-        state.config.crLiquidation = params.crLiquidation;
-        state.config.collateralPercentagePremiumToLiquidator = params.collateralPercentagePremiumToLiquidator;
-        state.config.collateralPercentagePremiumToProtocol = params.collateralPercentagePremiumToProtocol;
-        state.config.minimumCredit = params.minimumCredit;
-        state.config.priceFeed = IPriceFeed(params.priceFeed);
-        state.config.feeRecipient = params.feeRecipient;
+        Config memory config = state.config;
+        Tokens memory tokens = state.tokens;
+        if (params.key == "priceFeed") {
+            config.priceFeed = IPriceFeed(address(uint160(params.value)));
+        } else if (params.key == "feeRecipient") {
+            config.feeRecipient = address(uint160(params.value));
+        } else if (params.key == "crOpening") {
+            config.crOpening = params.value;
+        } else if (params.key == "crLiquidation") {
+            config.crLiquidation = params.value;
+        } else if (params.key == "collateralPremiumToLiquidator") {
+            config.collateralPremiumToLiquidator = params.value;
+        } else if (params.key == "collateralPremiumToProtocol") {
+            config.collateralPremiumToProtocol = params.value;
+        } else if (params.key == "minimumCredit") {
+            config.minimumCredit = params.value;
+        } else {
+            revert Errors.INVALID_KEY(params.key);
+        }
+        InitializeParams memory initializeParams = InitializeParams({
+            owner: address(0),
+            priceFeed: address(config.priceFeed),
+            collateralAsset: address(tokens.collateralAsset),
+            borrowAsset: address(tokens.borrowAsset),
+            collateralToken: address(tokens.collateralToken),
+            borrowToken: address(tokens.borrowToken),
+            debtToken: address(tokens.debtToken),
+            variablePool: address(config.variablePool),
+            feeRecipient: address(config.feeRecipient)
+        });
+        InitializeExtraParams memory initializeExtraParams = InitializeExtraParams({
+            crOpening: config.crOpening,
+            crLiquidation: config.crLiquidation,
+            collateralPremiumToLiquidator: config.collateralPremiumToLiquidator,
+            collateralPremiumToProtocol: config.collateralPremiumToProtocol,
+            minimumCredit: config.minimumCredit
+        });
+        state.validateInitialize(initializeParams, initializeExtraParams);
+        state.executeInitialize(initializeParams, initializeExtraParams);
     }
 }

@@ -144,7 +144,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         }
         uint256 collateralTemp;
         uint256 borrowTemp;
-        (collateralTemp, borrowTemp,) = size.getProtocolVault();
+        (collateralTemp, borrowTemp,) = size.getVariablePool();
         collateralAmount += collateralTemp;
         borrowAmount += borrowTemp;
 

@@ -15,19 +15,8 @@ contract UpdateConfigTest is BaseTest {
 
         assertTrue(size.config().minimumCredit != 1e18);
 
-        Config memory config = size.config();
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
-        size.updateConfig(
-            UpdateConfigParams({
-                priceFeed: address(config.priceFeed),
-                feeRecipient: config.feeRecipient,
-                crOpening: config.crOpening,
-                crLiquidation: config.crLiquidation,
-                collateralPercentagePremiumToLiquidator: config.collateralPercentagePremiumToLiquidator,
-                collateralPercentagePremiumToProtocol: config.collateralPercentagePremiumToProtocol,
-                minimumCredit: 1e18
-            })
-        );
+        size.updateConfig(UpdateConfigParams({key: "minimumCredit", value: 1e18}));
 
         assertTrue(size.config().minimumCredit != 1e18);
     }
@@ -35,18 +24,7 @@ contract UpdateConfigTest is BaseTest {
     function test_UpdateConfig_updateConfig_updates_params() public {
         assertTrue(size.config().minimumCredit != 1e18);
 
-        Config memory config = size.config();
-        size.updateConfig(
-            UpdateConfigParams({
-                priceFeed: address(config.priceFeed),
-                feeRecipient: config.feeRecipient,
-                crOpening: config.crOpening,
-                crLiquidation: config.crLiquidation,
-                collateralPercentagePremiumToLiquidator: config.collateralPercentagePremiumToLiquidator,
-                collateralPercentagePremiumToProtocol: config.collateralPercentagePremiumToProtocol,
-                minimumCredit: 1e18
-            })
-        );
+        size.updateConfig(UpdateConfigParams({key: "minimumCredit", value: 1e18}));
 
         assertTrue(size.config().minimumCredit == 1e18);
     }
