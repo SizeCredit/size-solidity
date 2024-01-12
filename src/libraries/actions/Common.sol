@@ -22,11 +22,16 @@ library Common {
         if (!loan.isFOL()) {
             fol.faceValue -= amount;
             fol.faceValueExited -= amount;
-            validateMinimumCredit(state, fol.getCredit());
         }
     }
 
     function validateMinimumCredit(State storage state, uint256 credit) public view {
+        if (0 < credit && credit < state.config.minimumCredit) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.config.minimumCredit);
+        }
+    }
+
+    function validateMinimumCreditOpening(State storage state, uint256 credit) public view {
         if (credit < state.config.minimumCredit) {
             revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.config.minimumCredit);
         }
@@ -45,7 +50,7 @@ library Common {
             repaid: false,
             folId: RESERVED_ID
         });
-        validateMinimumCredit(state, fol.getCredit());
+        validateMinimumCreditOpening(state, fol.getCredit());
 
         state.loans.push(fol);
         uint256 folId = state.loans.length - 1;
@@ -70,17 +75,13 @@ library Common {
             folId: folId
         });
 
-        validateMinimumCredit(state, sol.getCredit());
+        validateMinimumCreditOpening(state, sol.getCredit());
         state.loans.push(sol);
         uint256 solId = state.loans.length - 1;
 
         Loan storage exiter = state.loans[exiterId];
         exiter.faceValueExited += faceValue;
-        uint256 exiterCredit = exiter.getCredit();
-
-        if (exiterCredit > 0) {
-            validateMinimumCredit(state, exiterCredit);
-        }
+        validateMinimumCredit(state, exiter.getCredit());
 
         emit Events.CreateLoan(solId, lender, borrower, exiterId, folId, faceValue, fol.dueDate);
     }
