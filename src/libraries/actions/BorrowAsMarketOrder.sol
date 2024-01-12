@@ -108,9 +108,10 @@ library BorrowAsMarketOrder {
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, r, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
-            if (deltaAmountIn > loan.getCredit()) {
-                deltaAmountIn = loan.getCredit();
-                deltaAmountOut = Math.mulDivDown(loan.getCredit(), PERCENT, r);
+            uint256 loanCredit = loan.getCredit();
+            if (deltaAmountIn > loanCredit) {
+                deltaAmountIn = loanCredit;
+                deltaAmountOut = Math.mulDivDown(loanCredit, PERCENT, r);
             } else {
                 deltaAmountOut = amountOutLeft;
             }

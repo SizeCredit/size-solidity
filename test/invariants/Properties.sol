@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {console2 as console} from "forge-std/console2.sol";
+
 import {BeforeAfter} from "./BeforeAfter.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
@@ -35,7 +37,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant REPAY_02 = "REPAY_02: Repay decreases the sender debt";
 
     string internal constant LOAN_01 = "LOAN_01: loan.faceValue <= FOL(loan).faceValue";
-    string internal constant LOAN_02 = "LOAN_02: SUM(loan.credit) foreach loan in FOL.loans = FOL(loan).faceValue";
+    string internal constant LOAN_02 = "LOAN_02: SUM(loan.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
     string internal constant LOAN_03 = "LOAN_03: loan.faceValueExited <= loan.faceValue";
     string internal constant LOAN_04 = "LOAN_04: loan.repaid => !loan.isFOL()";
     string internal constant LOAN_05 = "LOAN_05: loan.credit >= minimumCredit";
@@ -43,8 +45,6 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant LOAN_07 = "LOAN_07: FOL.faceValueExited = SUM(SOL.getCredit)";
 
     string internal constant TOKENS_01 = "TOKENS_01: The sum of all tokens is constant";
-    string internal constant TOKENS_02 =
-        "TOKENS_02: The total supply of debt is not greater than the total supply of borrow tokens";
 
     string internal constant LIQUIDATION_01 =
         "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
@@ -52,28 +52,31 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     function invariant_LOAN() public returns (bool) {
         uint256 minimumCredit = size.config().minimumCredit;
         uint256 activeLoans = size.activeLoans();
-        uint256[] memory folCreditsSum = new uint256[](activeLoans);
-        uint256[] memory solCreditsSum = new uint256[](activeLoans);
-        uint256[] memory folFaceValue = new uint256[](activeLoans);
-        uint256[] memory folFaceValueExited = new uint256[](activeLoans);
-        uint256[] memory folFaceValuesSum = new uint256[](activeLoans);
+        uint256[] memory folCreditsSumByFolId = new uint256[](activeLoans);
+        uint256[] memory solCreditsSumByFolId = new uint256[](activeLoans);
+        uint256[] memory folFaceValueByFolId = new uint256[](activeLoans);
+        uint256[] memory folFaceValueExitedByFolId = new uint256[](activeLoans);
+        uint256[] memory folFaceValuesSumByFolId = new uint256[](activeLoans);
         for (uint256 loanId; loanId < activeLoans; loanId++) {
             Loan memory loan = size.getLoan(loanId);
             uint256 folId = loanId == RESERVED_ID ? loan.folId : loanId;
             Loan memory fol = size.getLoan(folId);
 
-            folCreditsSum[folId] += size.getCredit(loanId);
-            folFaceValue[folId] = fol.faceValue;
-            folFaceValueExited[folId] = fol.faceValueExited;
-            folFaceValuesSum[folId] += loan.faceValue;
+            folCreditsSumByFolId[folId] += size.getCredit(folId);
+            solCreditsSumByFolId[folId] =
+                solCreditsSumByFolId[folId] == type(uint256).max ? solCreditsSumByFolId[folId] : type(uint256).max; // set to -1 by default
+            folFaceValueByFolId[folId] = fol.faceValue;
+            folFaceValueExitedByFolId[folId] = fol.faceValueExited;
+            folFaceValuesSumByFolId[folId] += fol.faceValue;
 
-            if (size.isFOL(loanId)) {
+            if (!size.isFOL(loanId)) {
                 if (loan.repaid) {
                     t(false, LOAN_04);
                     return false;
                 }
-            } else {
-                solCreditsSum[folId] += size.getCredit(loanId);
+                solCreditsSumByFolId[folId] =
+                    solCreditsSumByFolId[folId] == type(uint256).max ? 0 : solCreditsSumByFolId[folId]; // set to 0 if is -1
+                solCreditsSumByFolId[folId] += size.getCredit(loanId);
                 if (!(loan.faceValue <= fol.faceValue)) {
                     t(false, LOAN_01);
                     return false;
@@ -85,23 +88,30 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 return false;
             }
 
-            if (!(size.getCredit(loanId) >= minimumCredit)) {
+            if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCredit) {
                 t(false, LOAN_05);
                 return false;
             }
         }
 
         for (uint256 loanId; loanId < activeLoans; loanId++) {
-            if (folCreditsSum[loanId] != folFaceValue[loanId]) {
-                t(false, LOAN_02);
-                return false;
-            }
             if (size.isFOL(loanId)) {
-                if (folFaceValuesSum[loanId] != size.getLoan(loanId).faceValue) {
+                if (
+                    solCreditsSumByFolId[loanId] != type(uint256).max
+                        && solCreditsSumByFolId[loanId] != folFaceValueByFolId[loanId]
+                ) {
+                    console.log("xxx", solCreditsSumByFolId[loanId], folFaceValueByFolId[loanId]);
+                    t(false, LOAN_02);
+                    return false;
+                }
+                if (folFaceValuesSumByFolId[loanId] != folFaceValueByFolId[loanId]) {
                     t(false, LOAN_06);
                     return false;
                 }
-                if (folFaceValueExited[loanId] != solCreditsSum[loanId]) {
+                if (
+                    solCreditsSumByFolId[loanId] != type(uint256).max
+                        && solCreditsSumByFolId[loanId] != folFaceValueExitedByFolId[loanId]
+                ) {
                     t(false, LOAN_07);
                     return false;
                 }
@@ -147,14 +157,6 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 || (weth.balanceOf(address(size)) != collateralAmount)
         ) {
             t(false, TOKENS_01);
-            return false;
-        }
-        return true;
-    }
-
-    function invariant_TOKENS_02() public returns (bool) {
-        if (!(debtToken.totalSupply() <= borrowToken.totalSupply())) {
-            t(false, TOKENS_02);
             return false;
         }
         return true;

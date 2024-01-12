@@ -138,4 +138,14 @@ contract WithdrawTest is BaseTest {
         assertEq(_state().liquidator.borrowAmount, dust);
         assertGt(_state().liquidator.borrowAmount, 0);
     }
+
+    function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_self_borrow() public {
+        _setPrice(1e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(alice, weth, 150e18);
+        _borrowAsLimitOrder(alice, 100e18, 1e18, 12);
+        _lendAsMarketOrder(alice, alice, 100e18, 12);
+        _withdraw(alice, usdc, 10e6);
+        assertLt(borrowToken.totalSupply(), debtToken.totalSupply());
+    }
 }

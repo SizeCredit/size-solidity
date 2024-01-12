@@ -34,6 +34,5 @@ contract FoundryTester is Test {
         assertTrue(handler.invariant_LOAN(), "LOAN");
         assertTrue(handler.invariant_LIQUIDATION_01(), "LIQUIDATION_01");
         assertTrue(handler.invariant_TOKENS_01(), "TOKENS_01");
-        assertTrue(handler.invariant_TOKENS_02(), "TOKENS_02");
     }
 }

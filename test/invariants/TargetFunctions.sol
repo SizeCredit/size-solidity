@@ -68,26 +68,26 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    // function withdraw(address token, uint256 amount) public getSender {
-    //     token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
+    function withdraw(address token, uint256 amount) public getSender {
+        token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
 
-    //     __before();
+        __before();
 
-    //     uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
-    //     amount = between(amount, 0, maxAmount);
-    //     hevm.prank(sender);
-    //     size.withdraw(WithdrawParams({token: token, amount: amount}));
+        uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
+        amount = between(amount, 0, maxAmount);
+        hevm.prank(sender);
+        size.withdraw(WithdrawParams({token: token, amount: amount}));
 
-    //     __after();
+        __after();
 
-    //     if (token == address(weth)) {
-    //         eq(_after.sender.collateralAmount, _before.sender.collateralAmount - amount, WITHDRAW_01);
-    //         eq(_after.senderCollateralAmount, _before.senderCollateralAmount + amount, WITHDRAW_01);
-    //     } else {
-    //         eq(_after.sender.borrowAmount, _before.sender.borrowAmount - amount * 1e12, WITHDRAW_01);
-    //         eq(_after.senderBorrowAmount, _before.senderBorrowAmount + amount, WITHDRAW_01);
-    //     }
-    // }
+        if (token == address(weth)) {
+            eq(_after.sender.collateralAmount, _before.sender.collateralAmount - amount, WITHDRAW_01);
+            eq(_after.senderCollateralAmount, _before.senderCollateralAmount + amount, WITHDRAW_01);
+        } else {
+            eq(_after.sender.borrowAmount, _before.sender.borrowAmount - amount * 1e12, WITHDRAW_01);
+            eq(_after.senderBorrowAmount, _before.senderBorrowAmount + amount, WITHDRAW_01);
+        }
+    }
 
     function borrowAsMarketOrder(
         address lender,
