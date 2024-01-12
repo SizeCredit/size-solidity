@@ -5,16 +5,16 @@ import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
-import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
+import {LiquidateFixedLoanWithReplacementParams} from "@src/libraries/actions/LiquidateFixedLoanWithReplacement.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-contract LiquidateLoanWithReplacementValidationTest is BaseTest {
-    using LoanLibrary for Loan;
+contract LiquidateFixedLoanWithReplacementValidationTest is BaseTest {
+    using FixedLoanLibrary for FixedLoan;
 
-    function test_LiquidateLoanWithReplacement_validation() public {
+    function test_LiquidateFixedLoanWithReplacement_validation() public {
         _setPrice(1e18);
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
@@ -29,8 +29,8 @@ contract LiquidateLoanWithReplacementValidationTest is BaseTest {
         vm.startPrank(liquidator);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, james));
-        size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({
+        size.liquidateFixedLoanWithReplacement(
+            LiquidateFixedLoanWithReplacementParams({
                 loanId: loanId,
                 borrower: james,
                 minimumCollateralRatio: minimumCollateralRatio
@@ -40,10 +40,12 @@ contract LiquidateLoanWithReplacementValidationTest is BaseTest {
         vm.warp(block.timestamp + 12);
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.INVALID_LOAN_STATUS.selector, loanId, LoanStatus.OVERDUE, LoanStatus.ACTIVE)
+            abi.encodeWithSelector(
+                Errors.INVALID_LOAN_STATUS.selector, loanId, FixedLoanStatus.OVERDUE, FixedLoanStatus.ACTIVE
+            )
         );
-        size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({
+        size.liquidateFixedLoanWithReplacement(
+            LiquidateFixedLoanWithReplacementParams({
                 loanId: loanId,
                 borrower: candy,
                 minimumCollateralRatio: minimumCollateralRatio

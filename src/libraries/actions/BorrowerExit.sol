@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
 
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/FixedLoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
@@ -21,12 +21,12 @@ struct BorrowerExitParams {
 
 library BorrowerExit {
     using OfferLibrary for BorrowOffer;
-    using LoanLibrary for Loan;
-    using LoanLibrary for Loan[];
+    using FixedLoanLibrary for FixedLoan;
+    using FixedLoanLibrary for FixedLoan[];
 
     function validateBorrowerExit(State storage state, BorrowerExitParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.users[params.borrowerToExitTo].borrowOffer;
-        Loan memory fol = state.loans[params.loanId];
+        FixedLoan memory fol = state.loans[params.loanId];
 
         uint256 rate = borrowOffer.getRate(fol.dueDate);
         uint256 r = PERCENT + rate;
@@ -37,8 +37,8 @@ library BorrowerExit {
         if (msg.sender != fol.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, fol.borrower);
         }
-        if (state.tokens.borrowToken.balanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.tokens.borrowToken.balanceOf(msg.sender), amountIn);
+        if (state.f.borrowToken.balanceOf(msg.sender) < amountIn) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.f.borrowToken.balanceOf(msg.sender), amountIn);
         }
 
         // validate loanId
@@ -60,15 +60,15 @@ library BorrowerExit {
         emit Events.BorrowerExit(params.loanId, params.borrowerToExitTo);
 
         BorrowOffer storage borrowOffer = state.users[params.borrowerToExitTo].borrowOffer;
-        Loan storage fol = state.loans[params.loanId];
+        FixedLoan storage fol = state.loans[params.loanId];
 
         uint256 rate = borrowOffer.getRate(fol.dueDate);
         uint256 r = PERCENT + rate;
         uint256 faceValue = fol.faceValue;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
 
-        state.tokens.borrowToken.transferFrom(msg.sender, params.borrowerToExitTo, amountIn);
-        state.tokens.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
+        state.f.borrowToken.transferFrom(msg.sender, params.borrowerToExitTo, amountIn);
+        state.f.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
         fol.borrower = params.borrowerToExitTo;
         borrowOffer.maxAmount -= amountIn;
     }

@@ -5,25 +5,11 @@ import {State} from "@src/SizeStorage.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-
-struct VariablePoolConfig {
-    uint256 minRate;
-    uint256 maxRate;
-    uint256 slope;
-    uint256 turningPoint;
-}
-
-struct VariablePoolState {
-    uint256 liquidityIndex;
-    uint256 totalBorrowed;
-}
-
-library VariablePool {
 // WIP
 /*
     function getUtilizationRatio(State storage state) internal view returns (uint256) {
         uint256 totalBorrowed = state.variablePoolState.totalBorrowed;
-        uint256 totalDeposits = state.tokens.borrowAsset.balanceOf(state.config.variablePool);
+        uint256 totalDeposits = state.g.borrowAsset.balanceOf(state.g.variablePool);
 
         if (totalDeposits > 0) {
             return Math.mulDivDown(totalBorrowed, PERCENT, totalDeposits);
@@ -52,4 +38,3 @@ library VariablePool {
         }
     }
 */
-}

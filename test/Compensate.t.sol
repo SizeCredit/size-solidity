@@ -4,10 +4,10 @@ pragma solidity 0.8.20;
 import {BaseTest} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/FixedLoanLibrary.sol";
 
 contract CompensateTest is BaseTest {
-    using LoanLibrary for Loan;
+    using FixedLoanLibrary for FixedLoan;
 
     function test_Compensate_compensate_reduces_repaid_loan_debt_and_compensated_loan_credit() public {
         _deposit(alice, 100e18, 100e18);
@@ -21,17 +21,20 @@ contract CompensateTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e18, 12);
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e18, 12);
 
-        uint256 repaidLoanDebtBefore = size.getLoan(loanId3).getDebt();
-        uint256 compensatedLoanCreditBefore = size.getLoan(loanId).getCredit();
+        uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(loanId3).getDebt();
+        uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(loanId).getCredit();
 
         _compensate(alice, loanId3, loanId);
 
-        uint256 repaidLoanDebtAfter = size.getLoan(loanId3).getDebt();
-        uint256 compensatedLoanCreditAfter = size.getLoan(loanId).getCredit();
+        uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(loanId3).getDebt();
+        uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(loanId).getCredit();
 
-        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e18);
-        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 2 * 20e18);
-        assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
+        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 2 * 20e18);
+        assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 2 * 20e18);
+        assertEq(
+            repaidFixedLoanDebtBefore - repaidFixedLoanDebtAfter,
+            compensatedFixedLoanCreditBefore - compensatedFixedLoanCreditAfter
+        );
     }
 
     function test_Compensate_compensate_SOL_reduces_SOL_debt_and_FOL_loan_credit() public {
@@ -46,17 +49,20 @@ contract CompensateTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e18, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 15e18, 12, [loanId]);
 
-        uint256 repaidLoanDebtBefore = size.getLoan(solId).getDebt();
-        uint256 compensatedLoanCreditBefore = size.getLoan(loanId).getCredit();
+        uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(solId).getDebt();
+        uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(loanId).getCredit();
 
         _compensate(alice, solId, loanId);
 
-        uint256 repaidLoanDebtAfter = size.getLoan(solId).getDebt();
-        uint256 compensatedLoanCreditAfter = size.getLoan(loanId).getCredit();
+        uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(solId).getDebt();
+        uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(loanId).getCredit();
 
-        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 15e18);
-        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 15e18);
-        assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
+        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 15e18);
+        assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 15e18);
+        assertEq(
+            repaidFixedLoanDebtBefore - repaidFixedLoanDebtAfter,
+            compensatedFixedLoanCreditBefore - compensatedFixedLoanCreditAfter
+        );
     }
 
     function test_Compensate_compensate_SOL_reduces_SOL_debt_and_SOL_loan_credit() public {
@@ -73,17 +79,20 @@ contract CompensateTest is BaseTest {
         uint256 solId = _borrowAsMarketOrder(alice, candy, 15e18, 12, [loanId]);
         uint256 solId2 = _borrowAsMarketOrder(bob, alice, 10e18, 12, [loanId2]);
 
-        uint256 repaidLoanDebtBefore = size.getLoan(solId).getDebt();
-        uint256 compensatedLoanCreditBefore = size.getLoan(solId2).getCredit();
+        uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(solId).getDebt();
+        uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(solId2).getCredit();
 
         _compensate(alice, solId, solId2);
 
-        uint256 repaidLoanDebtAfter = size.getLoan(solId).getDebt();
-        uint256 compensatedLoanCreditAfter = size.getLoan(solId2).getCredit();
+        uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(solId).getDebt();
+        uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(solId2).getCredit();
 
-        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 10e18);
-        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 10e18);
-        assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
+        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 10e18);
+        assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 10e18);
+        assertEq(
+            repaidFixedLoanDebtBefore - repaidFixedLoanDebtAfter,
+            compensatedFixedLoanCreditBefore - compensatedFixedLoanCreditAfter
+        );
     }
 
     function test_Compensate_compensate_FOL_repaid_FOL_reverts() public {
@@ -117,7 +126,7 @@ contract CompensateTest is BaseTest {
         uint256 solId = _borrowAsMarketOrder(alice, candy, 15e18, 12, [loanId]);
         _borrowAsMarketOrder(bob, james, 40e18, 12);
 
-        assertEq(size.activeLoans(), 4);
+        assertEq(size.activeFixedLoans(), 4);
 
         _repay(bob, loanId);
 

@@ -11,12 +11,12 @@ import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
 import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 
-import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
+import {LiquidateFixedLoanWithReplacementParams} from "@src/libraries/actions/LiquidateFixedLoanWithReplacement.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
-import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
+import {SelfLiquidateFixedLoanParams} from "@src/libraries/actions/SelfLiquidateFixedLoan.sol";
 
 import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
@@ -38,7 +38,7 @@ contract SizeAdapter is Size {
         uint256 amount,
         uint256 dueDate,
         bool exactAmountIn,
-        uint256[] memory virtualCollateralLoanIds
+        uint256[] memory virtualCollateralFixedLoanIds
     ) external {
         _borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
@@ -46,7 +46,7 @@ contract SizeAdapter is Size {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
             })
         );
     }
@@ -93,16 +93,16 @@ contract SizeAdapter is Size {
         _claim(ClaimParams({loanId: loanId}));
     }
 
-    function liquidateLoan(uint256 loanId) external returns (uint256) {
-        return _liquidateLoan(LiquidateLoanParams({loanId: loanId}));
+    function liquidateFixedLoan(uint256 loanId) external returns (uint256) {
+        return _liquidateFixedLoan(LiquidateFixedLoanParams({loanId: loanId}));
     }
 
-    function selfLiquidateLoan(uint256 loanId) external {
-        _selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+    function selfLiquidateFixedLoan(uint256 loanId) external {
+        _selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));
     }
 
-    function liquidateLoanWithReplacement(uint256 loanId, address borrower) external returns (uint256, uint256) {
-        return _liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
+    function liquidateFixedLoanWithReplacement(uint256 loanId, address borrower) external returns (uint256, uint256) {
+        return _liquidateFixedLoanWithReplacement(LiquidateFixedLoanWithReplacementParams({loanId: loanId, borrower: borrower}));
     }
 
     function moveToVariablePool(uint256 loanId) external {

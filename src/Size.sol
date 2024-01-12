@@ -16,7 +16,7 @@ import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {Initialize, InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {LiquidateFixedLoan, LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
 import {MoveToVariablePool, MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
@@ -24,11 +24,11 @@ import {Common} from "@src/libraries/actions/Common.sol";
 
 import {Compensate, CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {
-    LiquidateLoanWithReplacement,
-    LiquidateLoanWithReplacementParams
-} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
+    LiquidateFixedLoanWithReplacement,
+    LiquidateFixedLoanWithReplacementParams
+} from "@src/libraries/actions/LiquidateFixedLoanWithReplacement.sol";
 import {Repay, RepayParams} from "@src/libraries/actions/Repay.sol";
-import {SelfLiquidateLoan, SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
+import {SelfLiquidateFixedLoan, SelfLiquidateFixedLoanParams} from "@src/libraries/actions/SelfLiquidateFixedLoan.sol";
 import {Withdraw, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 import {SizeView} from "@src/SizeView.sol";
@@ -49,9 +49,9 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, Multic
     using BorrowerExit for State;
     using Repay for State;
     using Claim for State;
-    using LiquidateLoan for State;
-    using SelfLiquidateLoan for State;
-    using LiquidateLoanWithReplacement for State;
+    using LiquidateFixedLoan for State;
+    using SelfLiquidateFixedLoan for State;
+    using LiquidateFixedLoanWithReplacement for State;
     using MoveToVariablePool for State;
     using Compensate for State;
     using Common for State;
@@ -142,30 +142,30 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, Multic
     }
 
     /// @inheritdoc ISize
-    function liquidateLoan(LiquidateLoanParams calldata params)
+    function liquidateFixedLoan(LiquidateFixedLoanParams calldata params)
         external
         override(ISize)
         returns (uint256 liquidatorProfitCollateralAsset)
     {
-        state.validateLiquidateLoan(params);
-        liquidatorProfitCollateralAsset = state.executeLiquidateLoan(params);
+        state.validateLiquidateFixedLoan(params);
+        liquidatorProfitCollateralAsset = state.executeLiquidateFixedLoan(params);
     }
 
     /// @inheritdoc ISize
-    function selfLiquidateLoan(SelfLiquidateLoanParams calldata params) external override(ISize) {
-        state.validateSelfLiquidateLoan(params);
-        state.executeSelfLiquidateLoan(params);
+    function selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams calldata params) external override(ISize) {
+        state.validateSelfLiquidateFixedLoan(params);
+        state.executeSelfLiquidateFixedLoan(params);
     }
 
     /// @inheritdoc ISize
-    function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
+    function liquidateFixedLoanWithReplacement(LiquidateFixedLoanWithReplacementParams calldata params)
         external
         override(ISize)
         returns (uint256 liquidatorProfitCollateralAsset, uint256 liquidatorProfitBorrowAsset)
     {
-        state.validateLiquidateLoanWithReplacement(params);
+        state.validateLiquidateFixedLoanWithReplacement(params);
         (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
-            state.executeLiquidateLoanWithReplacement(params);
+            state.executeLiquidateFixedLoanWithReplacement(params);
         state.validateUserIsNotLiquidatable(params.borrower);
     }
 

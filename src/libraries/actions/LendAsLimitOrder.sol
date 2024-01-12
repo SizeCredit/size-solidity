@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {LoanOffer} from "@src/libraries/OfferLibrary.sol";
+import {FixedLoanOffer} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -23,8 +23,8 @@ library LendAsLimitOrder {
         if (params.maxAmount == 0) {
             revert Errors.NULL_AMOUNT();
         }
-        if (params.maxAmount > state.tokens.borrowToken.balanceOf(msg.sender)) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.tokens.borrowToken.balanceOf(msg.sender), params.maxAmount);
+        if (params.maxAmount > state.f.borrowToken.balanceOf(msg.sender)) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.f.borrowToken.balanceOf(msg.sender), params.maxAmount);
         }
 
         // validate maxDueDate
@@ -40,7 +40,7 @@ library LendAsLimitOrder {
     }
 
     function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external {
-        state.users[msg.sender].loanOffer = LoanOffer({
+        state.users[msg.sender].loanOffer = FixedLoanOffer({
             maxAmount: params.maxAmount,
             maxDueDate: params.maxDueDate,
             curveRelativeTime: params.curveRelativeTime

@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 uint256 constant RESERVED_ID = type(uint256).max;
 
-struct Loan {
+struct FixedLoan {
     // generic
     uint256 faceValue;
     uint256 faceValueExited;
@@ -16,7 +16,7 @@ struct Loan {
     uint256 folId;
 }
 
-enum LoanStatus {
+enum FixedLoanStatus {
     ACTIVE, // not yet due
     OVERDUE, // eligible to liquidation
     REPAID, // by borrower or liquidator
@@ -24,7 +24,7 @@ enum LoanStatus {
 
 }
 
-struct VariableLoan {
+struct VariableFixedLoan {
     address borrower;
     uint256 amountBorrowAssetLentOut;
     uint256 amountCollateral;
@@ -32,16 +32,16 @@ struct VariableLoan {
     bool repaid;
 }
 
-library LoanLibrary {
-    function isFOL(Loan memory self) internal pure returns (bool) {
+library FixedLoanLibrary {
+    function isFOL(FixedLoan memory self) internal pure returns (bool) {
         return self.folId == RESERVED_ID;
     }
 
-    function getCredit(Loan memory self) internal pure returns (uint256) {
+    function getCredit(FixedLoan memory self) internal pure returns (uint256) {
         return self.faceValue - self.faceValueExited;
     }
 
-    function getDebt(Loan memory self) internal pure returns (uint256) {
+    function getDebt(FixedLoan memory self) internal pure returns (uint256) {
         return self.faceValue;
     }
 }

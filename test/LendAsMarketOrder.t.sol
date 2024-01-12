@@ -5,9 +5,9 @@ import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/FixedLoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
@@ -16,8 +16,8 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 
 contract LendAsMarketOrderTest is BaseTest {
-    using OfferLibrary for LoanOffer;
-    using LoanLibrary for Loan;
+    using OfferLibrary for FixedLoanOffer;
+    using FixedLoanLibrary for FixedLoan;
 
     function test_LendAsMarketOrder_lendAsMarketOrder_transfers_to_borrower() public {
         _deposit(alice, 100e18, 100e18);
@@ -30,14 +30,14 @@ contract LendAsMarketOrderTest is BaseTest {
 
         Vars memory _before = _state();
         BorrowOffer memory offerBefore = size.getUserView(alice).user.borrowOffer;
-        uint256 loansBefore = size.activeLoans();
+        uint256 loansBefore = size.activeFixedLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, faceValue, dueDate);
-        Loan memory loan = size.getLoan(loanId);
+        FixedLoan memory loan = size.getFixedLoan(loanId);
 
         Vars memory _after = _state();
         BorrowOffer memory offerAfter = size.getUserView(alice).user.borrowOffer;
-        uint256 loansAfter = size.activeLoans();
+        uint256 loansAfter = size.activeFixedLoans();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
@@ -60,14 +60,14 @@ contract LendAsMarketOrderTest is BaseTest {
 
         Vars memory _before = _state();
         BorrowOffer memory offerBefore = size.getUserView(alice).user.borrowOffer;
-        uint256 loansBefore = size.activeLoans();
+        uint256 loansBefore = size.activeFixedLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
-        Loan memory loan = size.getLoan(loanId);
+        FixedLoan memory loan = size.getFixedLoan(loanId);
 
         Vars memory _after = _state();
         BorrowOffer memory offerAfter = size.getUserView(alice).user.borrowOffer;
-        uint256 loansAfter = size.activeLoans();
+        uint256 loansAfter = size.activeFixedLoans();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
@@ -92,14 +92,14 @@ contract LendAsMarketOrderTest is BaseTest {
 
         Vars memory _before = _state();
         BorrowOffer memory offerBefore = size.getUserView(alice).user.borrowOffer;
-        uint256 loansBefore = size.activeLoans();
+        uint256 loansBefore = size.activeFixedLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
-        Loan memory loan = size.getLoan(loanId);
+        FixedLoan memory loan = size.getFixedLoan(loanId);
 
         Vars memory _after = _state();
         BorrowOffer memory offerAfter = size.getUserView(alice).user.borrowOffer;
-        uint256 loansAfter = size.activeLoans();
+        uint256 loansAfter = size.activeFixedLoans();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);

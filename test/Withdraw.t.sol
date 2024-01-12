@@ -130,7 +130,7 @@ contract WithdrawTest is BaseTest {
 
         _setPrice(0.125e18);
 
-        _liquidateLoan(liquidator, loanId);
+        _liquidateFixedLoan(liquidator, loanId);
         _withdraw(liquidator, usdc, type(uint256).max);
 
         uint256 a = usdc.balanceOf(liquidator);

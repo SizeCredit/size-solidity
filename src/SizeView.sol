@@ -1,22 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Config, SizeStorage} from "@src/SizeStorage.sol";
+import {Fixed, General, SizeStorage, State} from "@src/SizeStorage.sol";
 
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User, UserView} from "@src/libraries/UserLibrary.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
 
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 
 abstract contract SizeView is SizeStorage, ISizeView {
-    using OfferLibrary for LoanOffer;
+    using OfferLibrary for FixedLoanOffer;
     using OfferLibrary for BorrowOffer;
-    using LoanLibrary for Loan;
+    using FixedLoanLibrary for FixedLoan;
     using Common for State;
 
     function collateralRatio(address user) public view returns (uint256) {
@@ -28,12 +27,12 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     function isLiquidatable(uint256 loanId) public view returns (bool) {
-        Loan memory loan = state.loans[loanId];
+        FixedLoan memory loan = state.loans[loanId];
         return state.isLiquidatable(loan.borrower);
     }
 
     function getFOLAssignedCollateral(uint256 loanId) public view returns (uint256) {
-        Loan memory loan = state.loans[loanId];
+        FixedLoan memory loan = state.loans[loanId];
         return state.getFOLAssignedCollateral(loan);
     }
 
@@ -45,57 +44,61 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return state.loans[loanId].getCredit();
     }
 
-    function config() external view returns (Config memory) {
-        return state.config;
+    function g() external view returns (General memory) {
+        return state.g;
+    }
+
+    function f() external view returns (Fixed memory) {
+        return state.f;
     }
 
     function getUserView(address user) public view returns (UserView memory) {
         return UserView({
             user: state.users[user],
             account: user,
-            collateralAmount: state.tokens.collateralToken.balanceOf(user),
-            borrowAmount: state.tokens.borrowToken.balanceOf(user),
-            debtAmount: state.tokens.debtToken.balanceOf(user)
+            collateralAmount: state.f.collateralToken.balanceOf(user),
+            borrowAmount: state.f.borrowToken.balanceOf(user),
+            debtAmount: state.f.debtToken.balanceOf(user)
         });
     }
 
-    function activeLoans() public view returns (uint256) {
+    function activeFixedLoans() public view returns (uint256) {
         return state.loans.length;
     }
 
-    function activeVariableLoans() public view returns (uint256) {
-        return state.variableLoans.length;
+    function activeVariableFixedLoans() public view returns (uint256) {
+        return state.variableFixedLoans.length;
     }
 
     function isFOL(uint256 loanId) public view returns (bool) {
         return state.loans[loanId].isFOL();
     }
 
-    function getLoan(uint256 loanId) public view returns (Loan memory) {
+    function getFixedLoan(uint256 loanId) public view returns (FixedLoan memory) {
         return state.loans[loanId];
     }
 
-    function getLoans() public view returns (Loan[] memory) {
+    function getFixedLoans() public view returns (FixedLoan[] memory) {
         return state.loans;
     }
 
-    function getLoanStatus(uint256 loanId) public view override(ISizeView) returns (LoanStatus) {
-        return state.getLoanStatus(state.loans[loanId]);
+    function getFixedLoanStatus(uint256 loanId) public view override(ISizeView) returns (FixedLoanStatus) {
+        return state.getFixedLoanStatus(state.loans[loanId]);
     }
 
     function getVariablePool() public view returns (uint256, uint256, uint256) {
         return (
-            state.tokens.collateralToken.balanceOf(state.config.variablePool),
-            state.tokens.borrowToken.balanceOf(state.config.variablePool),
-            state.tokens.debtToken.balanceOf(state.config.variablePool)
+            state.f.collateralToken.balanceOf(state.g.variablePool),
+            state.f.borrowToken.balanceOf(state.g.variablePool),
+            state.f.debtToken.balanceOf(state.g.variablePool)
         );
     }
 
     function getFeeRecipient() public view returns (uint256, uint256, uint256) {
         return (
-            state.tokens.collateralToken.balanceOf(state.config.feeRecipient),
-            state.tokens.borrowToken.balanceOf(state.config.feeRecipient),
-            state.tokens.debtToken.balanceOf(state.config.feeRecipient)
+            state.f.collateralToken.balanceOf(state.g.feeRecipient),
+            state.f.borrowToken.balanceOf(state.g.feeRecipient),
+            state.f.debtToken.balanceOf(state.g.feeRecipient)
         );
     }
 }

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {BorrowOffer, LoanOffer} from "@src/libraries/OfferLibrary.sol";
+import {BorrowOffer, FixedLoanOffer} from "@src/libraries/OfferLibrary.sol";
 
 struct User {
-    LoanOffer loanOffer;
+    FixedLoanOffer loanOffer;
     BorrowOffer borrowOffer;
 }
 

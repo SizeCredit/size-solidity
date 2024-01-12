@@ -23,16 +23,16 @@ abstract contract Helper is Deploy, PropertiesConstants {
         return YieldCurveHelper.getRandomYieldCurve(seed);
     }
 
-    function _getRandomVirtualCollateralLoanIds(uint256 n, uint256 seed)
+    function _getRandomVirtualCollateralFixedLoanIds(uint256 n, uint256 seed)
         internal
         view
-        returns (uint256[] memory virtualCollateralLoanIds)
+        returns (uint256[] memory virtualCollateralFixedLoanIds)
     {
-        uint256 activeLoans = size.activeLoans();
-        virtualCollateralLoanIds = new uint256[](n);
+        uint256 activeFixedLoans = size.activeFixedLoans();
+        virtualCollateralFixedLoanIds = new uint256[](n);
         for (uint256 i = 0; i < n; i++) {
-            uint256 index = uint256(keccak256(abi.encodePacked(seed, i))) % activeLoans;
-            virtualCollateralLoanIds[i] = index;
+            uint256 index = uint256(keccak256(abi.encodePacked(seed, i))) % activeFixedLoans;
+            virtualCollateralFixedLoanIds[i] = index;
         }
     }
 }

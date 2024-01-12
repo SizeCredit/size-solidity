@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
 import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
 import {BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
 
@@ -20,14 +20,14 @@ contract BorrowerExitTest is BaseTest {
         Vars memory _before = _state();
 
         BorrowOffer memory borrowOfferBefore = size.getUserView(candy).user.borrowOffer;
-        Loan memory loanBefore = size.getLoan(loanId);
-        uint256 loansBefore = size.activeLoans();
+        FixedLoan memory loanBefore = size.getFixedLoan(loanId);
+        uint256 loansBefore = size.activeFixedLoans();
 
         _borrowerExit(bob, loanId, candy);
 
         BorrowOffer memory borrowOfferAfter = size.getUserView(candy).user.borrowOffer;
-        Loan memory loanAfter = size.getLoan(loanId);
-        uint256 loansAfter = size.activeLoans();
+        FixedLoan memory loanAfter = size.getFixedLoan(loanId);
+        uint256 loansAfter = size.activeFixedLoans();
 
         Vars memory _after = _state();
 
@@ -56,14 +56,14 @@ contract BorrowerExitTest is BaseTest {
         address borrowerToExitTo = bob;
 
         BorrowOffer memory borrowOfferBefore = size.getUserView(bob).user.borrowOffer;
-        Loan memory loanBefore = size.getLoan(loanId);
-        uint256 loansBefore = size.activeLoans();
+        FixedLoan memory loanBefore = size.getFixedLoan(loanId);
+        uint256 loansBefore = size.activeFixedLoans();
 
         _borrowerExit(bob, loanId, borrowerToExitTo);
 
         BorrowOffer memory borrowOfferAfter = size.getUserView(bob).user.borrowOffer;
-        Loan memory loanAfter = size.getLoan(loanId);
-        uint256 loansAfter = size.activeLoans();
+        FixedLoan memory loanAfter = size.getFixedLoan(loanId);
+        uint256 loansAfter = size.activeFixedLoans();
 
         Vars memory _after = _state();
 

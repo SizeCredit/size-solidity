@@ -121,18 +121,18 @@ library Initialize {
         InitializeParams memory params,
         InitializeExtraParams memory extraParams
     ) external {
-        state.tokens.collateralAsset = IERC20Metadata(params.collateralAsset);
-        state.tokens.borrowAsset = IERC20Metadata(params.borrowAsset);
-        state.tokens.collateralToken = CollateralToken(params.collateralToken);
-        state.tokens.borrowToken = BorrowToken(params.borrowToken);
-        state.tokens.debtToken = DebtToken(params.debtToken);
-        state.config.variablePool = params.variablePool;
-        state.config.priceFeed = IPriceFeed(params.priceFeed);
-        state.config.feeRecipient = params.feeRecipient;
-        state.config.crOpening = extraParams.crOpening;
-        state.config.crLiquidation = extraParams.crLiquidation;
-        state.config.collateralPremiumToLiquidator = extraParams.collateralPremiumToLiquidator;
-        state.config.collateralPremiumToProtocol = extraParams.collateralPremiumToProtocol;
-        state.config.minimumCredit = extraParams.minimumCredit;
+        state.g.collateralAsset = IERC20Metadata(params.collateralAsset);
+        state.g.borrowAsset = IERC20Metadata(params.borrowAsset);
+        state.f.collateralToken = CollateralToken(params.collateralToken);
+        state.f.borrowToken = BorrowToken(params.borrowToken);
+        state.f.debtToken = DebtToken(params.debtToken);
+        state.g.variablePool = params.variablePool;
+        state.g.priceFeed = IPriceFeed(params.priceFeed);
+        state.g.feeRecipient = params.feeRecipient;
+        state.f.crOpening = extraParams.crOpening;
+        state.f.crLiquidation = extraParams.crLiquidation;
+        state.f.collateralPremiumToLiquidator = extraParams.collateralPremiumToLiquidator;
+        state.f.collateralPremiumToProtocol = extraParams.collateralPremiumToProtocol;
+        state.f.minimumCredit = extraParams.minimumCredit;
     }
 }

@@ -3,12 +3,12 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
-contract LiquidateLoanTest is BaseTest {
-    function test_LiquidateLoan_liquidateLoan_seizes_borrower_collateral() public {
+contract LiquidateFixedLoanTest is BaseTest {
+    function test_LiquidateFixedLoan_liquidateFixedLoan_seizes_borrower_collateral() public {
         _setPrice(1e18);
 
         _deposit(alice, 100e18, 100e18);
@@ -21,7 +21,7 @@ contract LiquidateLoanTest is BaseTest {
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debt, size.f().crOpening, PERCENT);
         uint256 lock = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         // nothing is locked anymore on v2
         lock = 0;
@@ -43,7 +43,7 @@ contract LiquidateLoanTest is BaseTest {
 
         Vars memory _before = _state();
 
-        uint256 liquidatorProfit = _liquidateLoan(liquidator, loanId);
+        uint256 liquidatorProfit = _liquidateFixedLoan(liquidator, loanId);
 
         uint256 collateralRemainder = assigned - (debt * 5);
 
@@ -54,28 +54,28 @@ contract LiquidateLoanTest is BaseTest {
         assertEq(
             _after.feeRecipientCollateralAmount,
             _before.feeRecipientCollateralAmount
-                + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToProtocol, PERCENT)
+                + Math.mulDivDown(collateralRemainder, size.f().collateralPremiumToProtocol, PERCENT)
         );
         uint256 collateralPremiumToBorrower =
-            PERCENT - size.config().collateralPremiumToProtocol - size.config().collateralPremiumToLiquidator;
+            PERCENT - size.f().collateralPremiumToProtocol - size.f().collateralPremiumToLiquidator;
         assertEq(
             _after.bob.collateralAmount,
             _before.bob.collateralAmount - (debt * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
-                    (size.config().collateralPremiumToProtocol + size.config().collateralPremiumToLiquidator),
+                    (size.f().collateralPremiumToProtocol + size.f().collateralPremiumToLiquidator),
                     PERCENT
                 ),
             _before.bob.collateralAmount - (debt * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
         uint256 liquidatorProfitAmount =
-            (debt * 5) + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToLiquidator, PERCENT);
+            (debt * 5) + Math.mulDivDown(collateralRemainder, size.f().collateralPremiumToLiquidator, PERCENT);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount + liquidatorProfitAmount);
         assertEq(liquidatorProfit, liquidatorProfitAmount);
     }
 
-    function test_LiquidateLoan_liquidateLoan_repays_loan() public {
+    function test_LiquidateFixedLoan_liquidateFixedLoan_repays_loan() public {
         _setPrice(1e18);
 
         _deposit(alice, 100e18, 100e18);
@@ -88,14 +88,14 @@ contract LiquidateLoanTest is BaseTest {
         _setPrice(0.2e18);
 
         assertTrue(size.isLiquidatable(loanId));
-        assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
+        assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
 
-        _liquidateLoan(liquidator, loanId);
+        _liquidateFixedLoan(liquidator, loanId);
 
-        assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
+        assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.REPAID);
     }
 
-    function test_LiquidateLoan_liquidateLoan_reduces_borrower_debt() public {
+    function test_LiquidateFixedLoan_liquidateFixedLoan_reduces_borrower_debt() public {
         _setPrice(1e18);
 
         _deposit(alice, 100e18, 100e18);
@@ -113,14 +113,14 @@ contract LiquidateLoanTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _liquidateLoan(liquidator, loanId);
+        _liquidateFixedLoan(liquidator, loanId);
 
         Vars memory _after = _state();
 
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt, 0);
     }
 
-    function test_LiquidateLoan_liquidateLoan_can_be_called_unprofitably() public {
+    function test_LiquidateFixedLoan_liquidateFixedLoan_can_be_called_unprofitably() public {
         _setPrice(1e18);
 
         _deposit(alice, 100e18, 100e18);
@@ -138,7 +138,7 @@ contract LiquidateLoanTest is BaseTest {
         uint256 debtCollateral = Math.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
         (uint256 feeRecipientCollateralAssetBefore, uint256 feeRecipientBorrowAssetBefore,) = size.getFeeRecipient();
 
-        uint256 liquidatorProfit = _liquidateLoan(liquidator, loanId, 0);
+        uint256 liquidatorProfit = _liquidateFixedLoan(liquidator, loanId, 0);
 
         (uint256 feeRecipientCollateralAssetAfter, uint256 feeRecipientBorrowAssetAfter,) = size.getFeeRecipient();
 

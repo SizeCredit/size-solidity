@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 
 library Errors {
     error USER_IS_LIQUIDATABLE(address account, uint256 cr);
@@ -27,7 +27,7 @@ library Errors {
     error INVALID_LENDER(address account);
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);
-    error INVALID_LOAN_STATUS(uint256 loanId, LoanStatus actual, LoanStatus expected);
+    error INVALID_LOAN_STATUS(uint256 loanId, FixedLoanStatus actual, FixedLoanStatus expected);
 
     error AMOUNT_GREATER_THAN_MAX_AMOUNT(uint256 amount, uint256 maxAmount);
     error AMOUNT_GREATER_THAN_LOAN_CREDIT(uint256 amount, uint256 loanCredit);
@@ -55,7 +55,7 @@ library Errors {
     error INVALID_PARTIAL_REPAY_AMOUNT(uint256 amount, uint256 fv);
 
     error NOT_LIQUIDATABLE(address account);
-    error LOAN_NOT_LIQUIDATABLE_STATUS(uint256 loanId, LoanStatus status);
+    error LOAN_NOT_LIQUIDATABLE_STATUS(uint256 loanId, FixedLoanStatus status);
     error LOAN_NOT_LIQUIDATABLE_CR(uint256 loanId, uint256 cr);
     error COLLATERAL_RATIO_BELOW_MINIMUM_COLLATERAL_RATIO(uint256 collateralRatio, uint256 minimumCollateralRatio);
     error LIQUIDATION_NOT_AT_LOSS(uint256 loanId, uint256 assignedCollateral, uint256 debtCollateral);

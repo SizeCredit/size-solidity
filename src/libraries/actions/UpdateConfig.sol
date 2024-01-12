@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Config, State, Tokens} from "@src/SizeStorage.sol";
+import {Fixed, General, State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Initialize, InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
@@ -20,42 +20,42 @@ library UpdateConfig {
     }
 
     function executeUpdateConfig(State storage state, UpdateConfigParams memory params) external {
-        Config memory config = state.config;
-        Tokens memory tokens = state.tokens;
+        General memory g = state.g;
+        Fixed memory f = state.f;
         if (params.key == "priceFeed") {
-            config.priceFeed = IPriceFeed(address(uint160(params.value)));
+            g.priceFeed = IPriceFeed(address(uint160(params.value)));
         } else if (params.key == "feeRecipient") {
-            config.feeRecipient = address(uint160(params.value));
+            g.feeRecipient = address(uint160(params.value));
         } else if (params.key == "crOpening") {
-            config.crOpening = params.value;
+            f.crOpening = params.value;
         } else if (params.key == "crLiquidation") {
-            config.crLiquidation = params.value;
+            f.crLiquidation = params.value;
         } else if (params.key == "collateralPremiumToLiquidator") {
-            config.collateralPremiumToLiquidator = params.value;
+            f.collateralPremiumToLiquidator = params.value;
         } else if (params.key == "collateralPremiumToProtocol") {
-            config.collateralPremiumToProtocol = params.value;
+            f.collateralPremiumToProtocol = params.value;
         } else if (params.key == "minimumCredit") {
-            config.minimumCredit = params.value;
+            f.minimumCredit = params.value;
         } else {
             revert Errors.INVALID_KEY(params.key);
         }
         InitializeParams memory initializeParams = InitializeParams({
             owner: address(0),
-            priceFeed: address(config.priceFeed),
-            collateralAsset: address(tokens.collateralAsset),
-            borrowAsset: address(tokens.borrowAsset),
-            collateralToken: address(tokens.collateralToken),
-            borrowToken: address(tokens.borrowToken),
-            debtToken: address(tokens.debtToken),
-            variablePool: address(config.variablePool),
-            feeRecipient: address(config.feeRecipient)
+            priceFeed: address(g.priceFeed),
+            collateralAsset: address(g.collateralAsset),
+            borrowAsset: address(g.borrowAsset),
+            collateralToken: address(f.collateralToken),
+            borrowToken: address(f.borrowToken),
+            debtToken: address(f.debtToken),
+            variablePool: address(g.variablePool),
+            feeRecipient: address(g.feeRecipient)
         });
         InitializeExtraParams memory initializeExtraParams = InitializeExtraParams({
-            crOpening: config.crOpening,
-            crLiquidation: config.crLiquidation,
-            collateralPremiumToLiquidator: config.collateralPremiumToLiquidator,
-            collateralPremiumToProtocol: config.collateralPremiumToProtocol,
-            minimumCredit: config.minimumCredit
+            crOpening: f.crOpening,
+            crLiquidation: f.crLiquidation,
+            collateralPremiumToLiquidator: f.collateralPremiumToLiquidator,
+            collateralPremiumToProtocol: f.collateralPremiumToProtocol,
+            minimumCredit: f.minimumCredit
         });
         state.validateInitialize(initializeParams, initializeExtraParams);
         state.executeInitialize(initializeParams, initializeExtraParams);

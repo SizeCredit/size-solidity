@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
 
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/FixedLoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
@@ -24,7 +24,7 @@ struct LendAsMarketOrderParams {
 
 library LendAsMarketOrder {
     using OfferLibrary for BorrowOffer;
-    using LoanLibrary for Loan[];
+    using FixedLoanLibrary for FixedLoan[];
     using Common for State;
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
@@ -52,8 +52,8 @@ library LendAsMarketOrder {
         if (amountIn > borrowOffer.maxAmount) {
             revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(amountIn, borrowOffer.maxAmount);
         }
-        if (state.tokens.borrowToken.balanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.tokens.borrowToken.balanceOf(msg.sender), amountIn);
+        if (state.f.borrowToken.balanceOf(msg.sender) < amountIn) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.f.borrowToken.balanceOf(msg.sender), amountIn);
         }
 
         // validate exactAmountIn
@@ -75,9 +75,9 @@ library LendAsMarketOrder {
             amountIn = Math.mulDivUp(params.amount, PERCENT, r);
         }
 
-        state.tokens.debtToken.mint(params.borrower, faceValue);
+        state.f.debtToken.mint(params.borrower, faceValue);
         state.createFOL({lender: msg.sender, borrower: params.borrower, faceValue: faceValue, dueDate: params.dueDate});
-        state.tokens.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
+        state.f.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
         borrowOffer.maxAmount -= amountIn;
     }
 }

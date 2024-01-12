@@ -6,10 +6,10 @@ import {console2 as console} from "forge-std/console2.sol";
 import {BeforeAfter} from "./BeforeAfter.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
-import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
 import {UserView} from "@src/libraries/UserLibrary.sol";
 
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {RESERVED_ID} from "@src/libraries/FixedLoanLibrary.sol";
 
 abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender in wad";
@@ -50,17 +50,17 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
 
     function invariant_LOAN() public returns (bool) {
-        uint256 minimumCredit = size.config().minimumCredit;
-        uint256 activeLoans = size.activeLoans();
-        uint256[] memory folCreditsSumByFolId = new uint256[](activeLoans);
-        uint256[] memory solCreditsSumByFolId = new uint256[](activeLoans);
-        uint256[] memory folFaceValueByFolId = new uint256[](activeLoans);
-        uint256[] memory folFaceValueExitedByFolId = new uint256[](activeLoans);
-        uint256[] memory folFaceValuesSumByFolId = new uint256[](activeLoans);
-        for (uint256 loanId; loanId < activeLoans; loanId++) {
-            Loan memory loan = size.getLoan(loanId);
+        uint256 minimumCredit = size.f().minimumCredit;
+        uint256 activeFixedLoans = size.activeFixedLoans();
+        uint256[] memory folCreditsSumByFolId = new uint256[](activeFixedLoans);
+        uint256[] memory solCreditsSumByFolId = new uint256[](activeFixedLoans);
+        uint256[] memory folFaceValueByFolId = new uint256[](activeFixedLoans);
+        uint256[] memory folFaceValueExitedByFolId = new uint256[](activeFixedLoans);
+        uint256[] memory folFaceValuesSumByFolId = new uint256[](activeFixedLoans);
+        for (uint256 loanId; loanId < activeFixedLoans; loanId++) {
+            FixedLoan memory loan = size.getFixedLoan(loanId);
             uint256 folId = loanId == RESERVED_ID ? loan.folId : loanId;
-            Loan memory fol = size.getLoan(folId);
+            FixedLoan memory fol = size.getFixedLoan(folId);
 
             folCreditsSumByFolId[folId] += size.getCredit(folId);
             solCreditsSumByFolId[folId] =
@@ -94,7 +94,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
             }
         }
 
-        for (uint256 loanId; loanId < activeLoans; loanId++) {
+        for (uint256 loanId; loanId < activeFixedLoans; loanId++) {
             if (size.isFOL(loanId)) {
                 if (
                     solCreditsSumByFolId[loanId] != type(uint256).max

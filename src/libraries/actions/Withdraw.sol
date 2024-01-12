@@ -4,9 +4,9 @@ pragma solidity 0.8.20;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {Loan} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
 
-import {Loan, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/FixedLoanLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
@@ -21,15 +21,14 @@ struct WithdrawParams {
 }
 
 library Withdraw {
-    using LoanLibrary for Loan;
+    using FixedLoanLibrary for FixedLoan;
     using SafeERC20 for IERC20Metadata;
 
     function validateWithdraw(State storage state, WithdrawParams calldata params) external view {
         // validte msg.sender
 
         // validate token
-        if (params.token != address(state.tokens.collateralAsset) && params.token != address(state.tokens.borrowAsset))
-        {
+        if (params.token != address(state.g.collateralAsset) && params.token != address(state.g.borrowAsset)) {
             revert Errors.INVALID_TOKEN(params.token);
         }
 
@@ -40,9 +39,9 @@ library Withdraw {
     }
 
     function executeWithdraw(State storage state, WithdrawParams calldata params) external {
-        NonTransferrableToken nonTransferrableToken = params.token == address(state.tokens.collateralAsset)
-            ? NonTransferrableToken(state.tokens.collateralToken)
-            : NonTransferrableToken(state.tokens.borrowToken);
+        NonTransferrableToken nonTransferrableToken = params.token == address(state.g.collateralAsset)
+            ? NonTransferrableToken(state.f.collateralToken)
+            : NonTransferrableToken(state.f.borrowToken);
         IERC20Metadata token = IERC20Metadata(params.token);
         uint8 decimals = token.decimals();
 

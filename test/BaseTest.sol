@@ -31,13 +31,13 @@ import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
 import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 
 import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
-import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
+import {LiquidateFixedLoanWithReplacementParams} from "@src/libraries/actions/LiquidateFixedLoanWithReplacement.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
-import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
+import {SelfLiquidateFixedLoanParams} from "@src/libraries/actions/SelfLiquidateFixedLoan.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 import {Deploy} from "./Deploy.sol";
@@ -158,8 +158,8 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         internal
         returns (uint256)
     {
-        uint256[] memory virtualCollateralLoanIds;
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralLoanIds);
+        uint256[] memory virtualCollateralFixedLoanIds;
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralFixedLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -169,9 +169,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         uint256 dueDate,
         uint256[1] memory ids
     ) internal returns (uint256) {
-        uint256[] memory virtualCollateralLoanIds = new uint256[](1);
-        virtualCollateralLoanIds[0] = ids[0];
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralLoanIds);
+        uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
+        virtualCollateralFixedLoanIds[0] = ids[0];
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralFixedLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -179,9 +179,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         address lender,
         uint256 amount,
         uint256 dueDate,
-        uint256[] memory virtualCollateralLoanIds
+        uint256[] memory virtualCollateralFixedLoanIds
     ) internal returns (uint256) {
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralLoanIds);
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralFixedLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -192,9 +192,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         bool exactAmountIn,
         uint256[1] memory ids
     ) internal returns (uint256) {
-        uint256[] memory virtualCollateralLoanIds = new uint256[](1);
-        virtualCollateralLoanIds[0] = ids[0];
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralLoanIds);
+        uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
+        virtualCollateralFixedLoanIds[0] = ids[0];
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralFixedLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -203,7 +203,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         uint256 amount,
         uint256 dueDate,
         bool exactAmountIn,
-        uint256[] memory virtualCollateralLoanIds
+        uint256[] memory virtualCollateralFixedLoanIds
     ) internal returns (uint256) {
         vm.prank(borrower);
         size.borrowAsMarketOrder(
@@ -212,10 +212,10 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
             })
         );
-        return size.activeLoans() > 0 ? size.activeLoans() - 1 : type(uint256).max;
+        return size.activeFixedLoans() > 0 ? size.activeFixedLoans() - 1 : type(uint256).max;
     }
 
     function _borrowAsLimitOrder(
@@ -252,7 +252,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: borrower, amount: amount, dueDate: dueDate, exactAmountIn: exactAmountIn})
         );
-        return size.activeLoans() > 0 ? size.activeLoans() - 1 : type(uint256).max;
+        return size.activeFixedLoans() > 0 ? size.activeFixedLoans() - 1 : type(uint256).max;
     }
 
     function _borrowerExit(address user, uint256 loanId, address borrowerToExitTo) internal {
@@ -274,36 +274,41 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         size.claim(ClaimParams({loanId: loanId}));
     }
 
-    function _liquidateLoan(address user, uint256 loanId) internal returns (uint256) {
-        return _liquidateLoan(user, loanId, 1e18);
+    function _liquidateFixedLoan(address user, uint256 loanId) internal returns (uint256) {
+        return _liquidateFixedLoan(user, loanId, 1e18);
     }
 
-    function _liquidateLoan(address user, uint256 loanId, uint256 minimumCollateralRatio) internal returns (uint256) {
+    function _liquidateFixedLoan(address user, uint256 loanId, uint256 minimumCollateralRatio)
+        internal
+        returns (uint256)
+    {
         vm.prank(user);
-        return size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
+        return size.liquidateFixedLoan(
+            LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
+        );
     }
 
-    function _selfLiquidateLoan(address user, uint256 loanId) internal {
+    function _selfLiquidateFixedLoan(address user, uint256 loanId) internal {
         vm.prank(user);
-        return size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+        return size.selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));
     }
 
-    function _liquidateLoanWithReplacement(address user, uint256 loanId, address borrower)
+    function _liquidateFixedLoanWithReplacement(address user, uint256 loanId, address borrower)
         internal
         returns (uint256, uint256)
     {
-        return _liquidateLoanWithReplacement(user, loanId, borrower, 1e18);
+        return _liquidateFixedLoanWithReplacement(user, loanId, borrower, 1e18);
     }
 
-    function _liquidateLoanWithReplacement(
+    function _liquidateFixedLoanWithReplacement(
         address user,
         uint256 loanId,
         address borrower,
         uint256 minimumCollateralRatio
     ) internal returns (uint256, uint256) {
         vm.prank(user);
-        return size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({
+        return size.liquidateFixedLoanWithReplacement(
+            LiquidateFixedLoanWithReplacementParams({
                 loanId: loanId,
                 borrower: borrower,
                 minimumCollateralRatio: minimumCollateralRatio

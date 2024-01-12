@@ -3,14 +3,14 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract MoveToVariablePoolValidationTest is BaseTest {
-    using OfferLibrary for LoanOffer;
+    using OfferLibrary for FixedLoanOffer;
 
     function test_MoveToVariablePool_validation() public {
         _setPrice(1e18);
@@ -26,7 +26,9 @@ contract MoveToVariablePoolValidationTest is BaseTest {
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: solId}));
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.INVALID_LOAN_STATUS.selector, loanId, LoanStatus.ACTIVE, LoanStatus.OVERDUE)
+            abi.encodeWithSelector(
+                Errors.INVALID_LOAN_STATUS.selector, loanId, FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE
+            )
         );
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
 
@@ -35,9 +37,7 @@ contract MoveToVariablePoolValidationTest is BaseTest {
         vm.warp(block.timestamp + 12);
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.INSUFFICIENT_COLLATERAL.selector, 130e18, 100e18 * size.config().crOpening / 1e18
-            )
+            abi.encodeWithSelector(Errors.INSUFFICIENT_COLLATERAL.selector, 130e18, 100e18 * size.f().crOpening / 1e18)
         );
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
     }

@@ -92,14 +92,14 @@ Size V2 Solidity
 
 ## TODO before testnet
 
-- finish invariant tests
+- VP
 - test for dueDate NOW
 - events tests
 - origination fee & loan fee
-- VP
 
 ## TODO before audit
 
+- add more invariants
 - review all input validation functions
 - natspec
 

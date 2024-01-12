@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Loan} from "@src/libraries/LoanLibrary.sol";
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
@@ -15,25 +15,25 @@ struct ClaimParams {
 }
 
 library Claim {
-    using LoanLibrary for Loan;
+    using FixedLoanLibrary for FixedLoan;
     using Common for State;
 
     function validateClaim(State storage state, ClaimParams calldata params) external view {
-        Loan storage loan = state.loans[params.loanId];
+        FixedLoan storage loan = state.loans[params.loanId];
 
         // validate msg.sender
         // @audit Check if this should be permissioned
 
         // validate loanId
-        if (state.getLoanStatus(loan) != LoanStatus.REPAID) {
+        if (state.getFixedLoanStatus(loan) != FixedLoanStatus.REPAID) {
             revert Errors.LOAN_NOT_REPAID(params.loanId);
         }
     }
 
     function executeClaim(State storage state, ClaimParams calldata params) external {
-        Loan storage loan = state.loans[params.loanId];
+        FixedLoan storage loan = state.loans[params.loanId];
 
-        state.tokens.borrowToken.transferFrom(state.config.variablePool, loan.lender, loan.getCredit());
+        state.f.borrowToken.transferFrom(state.g.variablePool, loan.lender, loan.getCredit());
         loan.faceValueExited = loan.faceValue;
 
         emit Events.Claim(params.loanId);

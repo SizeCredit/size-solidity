@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-contract SelfLiquidateLoanTest is BaseTest {
-    function test_SelfLiquidateLoan_selfliquidateLoan_rapays_with_collateral() public {
+contract SelfLiquidateFixedLoanTest is BaseTest {
+    function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_rapays_with_collateral() public {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 100e6);
@@ -26,11 +26,11 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(size.collateralRatio(bob), 0.75e18);
 
         vm.expectRevert();
-        _liquidateLoan(liquidator, loanId);
+        _liquidateFixedLoan(liquidator, loanId);
 
         Vars memory _before = _state();
 
-        _selfLiquidateLoan(alice, loanId);
+        _selfLiquidateFixedLoan(alice, loanId);
 
         Vars memory _after = _state();
 
@@ -39,7 +39,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e18);
     }
 
-    function test_SelfLiquidateLoan_selfliquidateLoan_SOL_keeps_accounting_in_check() public {
+    function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_SOL_keeps_accounting_in_check() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
@@ -68,11 +68,11 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(size.collateralRatio(bob), 0.75e18);
 
         vm.expectRevert();
-        _liquidateLoan(liquidator, folId);
+        _liquidateFixedLoan(liquidator, folId);
 
         Vars memory _before = _state();
 
-        _selfLiquidateLoan(candy, solId);
+        _selfLiquidateFixedLoan(candy, solId);
 
         Vars memory _after = _state();
 
@@ -81,7 +81,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e18);
     }
 
-    function test_SelfLiquidateLoan_selfliquidateLoan_FOL_should_not_leave_dust_loan_when_no_exits() public {
+    function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_FOL_should_not_leave_dust_loan_when_no_exits() public {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 100e6);
@@ -91,10 +91,10 @@ contract SelfLiquidateLoanTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
 
         _setPrice(0.0001e18);
-        _selfLiquidateLoan(alice, loanId);
+        _selfLiquidateFixedLoan(alice, loanId);
     }
 
-    function test_SelfLiquidateLoan_selfliquidateLoan_FOL_should_not_leave_dust_loan_when_exits() public {
+    function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_FOL_should_not_leave_dust_loan_when_exits() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
@@ -117,18 +117,18 @@ contract SelfLiquidateLoanTest is BaseTest {
 
         _setPrice(0.25e18);
 
-        assertEq(size.getLoan(loanId).faceValue, 50e18);
-        assertEq(size.getLoan(loanId).faceValueExited, 5e18);
+        assertEq(size.getFixedLoan(loanId).faceValue, 50e18);
+        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e18);
         assertEq(size.getCredit(loanId), 45e18);
 
-        _selfLiquidateLoan(alice, loanId);
+        _selfLiquidateFixedLoan(alice, loanId);
 
-        assertEq(size.getLoan(loanId).faceValue, 5e18);
-        assertEq(size.getLoan(loanId).faceValueExited, 5e18);
+        assertEq(size.getFixedLoan(loanId).faceValue, 5e18);
+        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e18);
         assertEq(size.getCredit(loanId), 0);
     }
 
-    function test_SelfLiquidateLoan_selfliquidateLoan_SOL_should_not_leave_dust_loan() public {
+    function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_SOL_should_not_leave_dust_loan() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
@@ -151,11 +151,11 @@ contract SelfLiquidateLoanTest is BaseTest {
 
         _setPrice(0.25e18);
 
-        _selfLiquidateLoan(candy, solId);
+        _selfLiquidateFixedLoan(candy, solId);
 
         assertEq(size.getCredit(solId), 0);
 
-        _selfLiquidateLoan(bob, solId2);
+        _selfLiquidateFixedLoan(bob, solId2);
 
         assertEq(size.getCredit(solId2), 0);
     }

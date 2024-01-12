@@ -24,8 +24,7 @@ library Deposit {
         // validte msg.sender
 
         // validate token
-        if (params.token != address(state.tokens.collateralAsset) && params.token != address(state.tokens.borrowAsset))
-        {
+        if (params.token != address(state.g.collateralAsset) && params.token != address(state.g.borrowAsset)) {
             revert Errors.INVALID_TOKEN(params.token);
         }
 
@@ -36,9 +35,9 @@ library Deposit {
     }
 
     function executeDeposit(State storage state, DepositParams calldata params) external {
-        NonTransferrableToken nonTransferrableToken = params.token == address(state.tokens.collateralAsset)
-            ? NonTransferrableToken(state.tokens.collateralToken)
-            : NonTransferrableToken(state.tokens.borrowToken);
+        NonTransferrableToken nonTransferrableToken = params.token == address(state.g.collateralAsset)
+            ? NonTransferrableToken(state.f.collateralToken)
+            : NonTransferrableToken(state.f.borrowToken);
         IERC20Metadata token = IERC20Metadata(params.token);
         uint256 wad = Math.amountToWad(params.amount, IERC20Metadata(params.token).decimals());
 

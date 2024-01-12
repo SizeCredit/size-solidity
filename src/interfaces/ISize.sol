@@ -9,11 +9,11 @@ import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
 
-import {LiquidateLoanWithReplacementParams} from "@src/libraries/actions/LiquidateLoanWithReplacement.sol";
+import {LiquidateFixedLoanWithReplacementParams} from "@src/libraries/actions/LiquidateFixedLoanWithReplacement.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
-import {SelfLiquidateLoanParams} from "@src/libraries/actions/SelfLiquidateLoan.sol";
+import {SelfLiquidateFixedLoanParams} from "@src/libraries/actions/SelfLiquidateFixedLoan.sol";
 
 import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
@@ -68,15 +68,15 @@ interface ISize {
     // decreases borrower debtAmount
     // sets loan to repaid
     // etc
-    function liquidateLoan(LiquidateLoanParams calldata params) external returns (uint256);
+    function liquidateFixedLoan(LiquidateFixedLoanParams calldata params) external returns (uint256);
 
-    function selfLiquidateLoan(SelfLiquidateLoanParams calldata params) external;
+    function selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams calldata params) external;
 
     // What is not possible to do for an overdue which is eligible for liquidation is to apply
     //   the replacement because it only makes sense if there is some deltaT to cover between
     //   the liquidation time and the due date time, so for overdue that would be a negative
     //   time and therefore it does not make sense
-    function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
+    function liquidateFixedLoanWithReplacement(LiquidateFixedLoanWithReplacementParams calldata params)
         external
         returns (uint256, uint256);
 

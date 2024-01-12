@@ -5,15 +5,15 @@ import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
-import {LiquidateLoanParams} from "@src/libraries/actions/LiquidateLoan.sol";
+import {LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 
-contract LiquidateLoanValidationTest is BaseTest {
-    function test_LiquidateLoan_validation() public {
+contract LiquidateFixedLoanValidationTest is BaseTest {
+    function test_LiquidateFixedLoan_validation() public {
         _deposit(alice, 100e18, 100e18);
         _deposit(bob, 100e18, 100e18);
         _deposit(candy, 100e18, 100e18);
@@ -30,21 +30,27 @@ contract LiquidateLoanValidationTest is BaseTest {
 
         vm.startPrank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, 103e18));
-        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
+        size.liquidateFixedLoan(
+            LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
+        );
         vm.stopPrank();
 
         _deposit(liquidator, usdc, 10_000e18);
 
         vm.startPrank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, solId, type(uint256).max));
-        size.liquidateLoan(LiquidateLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio}));
+        size.liquidateFixedLoan(
+            LiquidateFixedLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio})
+        );
         vm.stopPrank();
 
         vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, size.collateralRatio(bob))
         );
-        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
+        size.liquidateFixedLoan(
+            LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
+        );
         vm.stopPrank();
 
         _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
@@ -54,14 +60,18 @@ contract LiquidateLoanValidationTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, size.collateralRatio(bob))
         );
-        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
+        size.liquidateFixedLoan(
+            LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
+        );
         vm.stopPrank();
 
         _setPrice(0.01e18);
 
         vm.startPrank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_LIQUIDATED.selector, solId));
-        size.liquidateLoan(LiquidateLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio}));
+        size.liquidateFixedLoan(
+            LiquidateFixedLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio})
+        );
         vm.stopPrank();
 
         _setPrice(100e18);
@@ -71,8 +81,12 @@ contract LiquidateLoanValidationTest is BaseTest {
         _setPrice(0.2e18);
 
         vm.startPrank(liquidator);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_STATUS.selector, loanId, LoanStatus.REPAID));
-        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_STATUS.selector, loanId, FixedLoanStatus.REPAID)
+        );
+        size.liquidateFixedLoan(
+            LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
+        );
         vm.stopPrank();
     }
 }

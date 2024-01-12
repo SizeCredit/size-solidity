@@ -3,11 +3,11 @@ pragma solidity 0.8.20;
 
 import {BaseTest} from "./BaseTest.sol";
 
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User} from "@src/libraries/UserLibrary.sol";
 
 contract LendAsLimitOrderTest is BaseTest {
-    using OfferLibrary for LoanOffer;
+    using OfferLibrary for FixedLoanOffer;
 
     function test_LendAsLimitOrder_lendAsLimitOrder_adds_loanOffer_to_orderbook() public {
         _deposit(alice, 100e18, 100e18);

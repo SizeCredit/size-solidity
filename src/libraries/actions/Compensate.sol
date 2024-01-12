@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -18,11 +18,11 @@ struct CompensateParams {
 
 library Compensate {
     using Common for State;
-    using LoanLibrary for Loan;
+    using FixedLoanLibrary for FixedLoan;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
-        Loan storage loanToRepay = state.loans[params.loanToRepayId];
-        Loan storage loanToCompensate = state.loans[params.loanToCompensateId];
+        FixedLoan storage loanToRepay = state.loans[params.loanToRepayId];
+        FixedLoan storage loanToCompensate = state.loans[params.loanToCompensateId];
 
         // validate msg.sender
         if (msg.sender != loanToRepay.borrower) {
@@ -30,16 +30,17 @@ library Compensate {
         }
 
         // validate loanToRepayId
-        if (state.getLoanStatus(loanToRepay) == LoanStatus.REPAID) {
+        if (state.getFixedLoanStatus(loanToRepay) == FixedLoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanToRepayId);
         }
 
         // validate loanToCompensateId
-        if (state.getLoanStatus(loanToCompensate) == LoanStatus.REPAID) {
+        if (state.getFixedLoanStatus(loanToCompensate) == FixedLoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanToCompensateId);
         }
         if (
-            state.getLoanStatus(loanToCompensate) != LoanStatus.REPAID && loanToRepay.dueDate < loanToCompensate.dueDate
+            state.getFixedLoanStatus(loanToCompensate) != FixedLoanStatus.REPAID
+                && loanToRepay.dueDate < loanToCompensate.dueDate
         ) {
             revert Errors.DUE_DATE_NOT_COMPATIBLE(params.loanToRepayId, params.loanToCompensateId);
         }
@@ -56,8 +57,8 @@ library Compensate {
     function executeCompensate(State storage state, CompensateParams calldata params) external {
         emit Events.Compensate(params.loanToRepayId, params.loanToCompensateId, params.amount);
 
-        Loan storage loanToRepay = state.loans[params.loanToRepayId];
-        Loan storage loanToCompensate = state.loans[params.loanToCompensateId];
+        FixedLoan storage loanToRepay = state.loans[params.loanToRepayId];
+        FixedLoan storage loanToCompensate = state.loans[params.loanToCompensateId];
         // @audit Check the implications of a user-provided compensation amount
         uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.getCredit(), loanToRepay.getCredit());
 

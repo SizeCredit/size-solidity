@@ -13,7 +13,7 @@ contract InitializeTest is BaseTest {
         vm.expectRevert();
         implementation.initialize(params, extraParams);
 
-        assertEq(implementation.config().crLiquidation, 0);
+        assertEq(implementation.f().crLiquidation, 0);
     }
 
     function test_Initialize_proxy_can_be_initialized() public {
@@ -22,6 +22,6 @@ contract InitializeTest is BaseTest {
             address(implementation), abi.encodeWithSelector(Size.initialize.selector, params, extraParams)
         );
 
-        assertEq(Size(address(proxy)).config().crLiquidation, 1.3e18);
+        assertEq(Size(address(proxy)).f().crLiquidation, 1.3e18);
     }
 }
