@@ -44,8 +44,6 @@ struct Variable {
     uint256 reserveFactor;
     uint256 liquidityIndexBorrow;
     uint256 liquidityIndexSupply;
-    uint256 capBorrow;
-    uint256 capSupply;
     uint256 lastUpdate;
     ScaledSupplyToken scaledSupplyToken;
     ScaledBorrowToken scaledBorrowToken;

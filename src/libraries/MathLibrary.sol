@@ -5,6 +5,11 @@ import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 
 uint256 constant PERCENT = 1e18;
 
+enum Rounding {
+    DOWN,
+    UP
+}
+
 library Math {
     function amountToWad(uint256 amount, uint8 decimals) internal pure returns (uint256) {
         // @audit-info The protocol does not support tokens with more than 18 decimals

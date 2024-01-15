@@ -5,6 +5,7 @@ import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 // solhint-disable var-name-mixedcase
 library Events {
+    // Fixed
     event Deposit(address indexed token, uint256 wad);
     event Withdraw(address indexed token, uint256 wad);
     event BorrowAsMarketOrder(
@@ -41,4 +42,8 @@ library Events {
     );
     event MoveToVariablePool(uint256 indexed loanId);
     event Compensate(uint256 indexed loanToRepayId, uint256 indexed loanToCompensateId, uint256 amount);
+
+    // Variable
+    event DepositVariable(address indexed token, uint256 wad);
+    event WithdrawVariable(address indexed token, uint256 wad);
 }

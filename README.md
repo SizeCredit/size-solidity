@@ -93,7 +93,11 @@ Size V2 Solidity
 
 ## TODO before testnet
 
+- caps
 - VP
+
+- add full withdrawvariable
+
 - test for dueDate NOW
 - events tests
 - origination fee & loan fee

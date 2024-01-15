@@ -134,5 +134,7 @@ library Initialize {
         state.f.collateralPremiumToLiquidator = extraParams.collateralPremiumToLiquidator;
         state.f.collateralPremiumToProtocol = extraParams.collateralPremiumToProtocol;
         state.f.minimumCredit = extraParams.minimumCredit;
+
+        state.v.lastUpdate = block.timestamp;
     }
 }

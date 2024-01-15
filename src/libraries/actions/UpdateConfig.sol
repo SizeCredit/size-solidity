@@ -22,20 +22,23 @@ library UpdateConfig {
     function executeUpdateConfig(State storage state, UpdateConfigParams memory params) external {
         General memory g = state.g;
         Fixed memory f = state.f;
-        if (params.key == "priceFeed") {
-            g.priceFeed = IPriceFeed(address(uint160(params.value)));
-        } else if (params.key == "feeRecipient") {
+        // if (params.key == "priceFeed") {
+        //     g.priceFeed = IPriceFeed(address(uint160(params.value)));
+        // } else
+        if (params.key == "feeRecipient") {
             g.feeRecipient = address(uint160(params.value));
-        } else if (params.key == "crOpening") {
-            f.crOpening = params.value;
-        } else if (params.key == "crLiquidation") {
-            f.crLiquidation = params.value;
-        } else if (params.key == "collateralPremiumToLiquidator") {
-            f.collateralPremiumToLiquidator = params.value;
-        } else if (params.key == "collateralPremiumToProtocol") {
-            f.collateralPremiumToProtocol = params.value;
+            state.g.feeRecipient = address(uint160(params.value));
+            // } else if (params.key == "crOpening") {
+            //     f.crOpening = params.value;
+            // } else if (params.key == "crLiquidation") {
+            //     f.crLiquidation = params.value;
+            // } else if (params.key == "collateralPremiumToLiquidator") {
+            //     f.collateralPremiumToLiquidator = params.value;
+            // } else if (params.key == "collateralPremiumToProtocol") {
+            //     f.collateralPremiumToProtocol = params.value;
         } else if (params.key == "minimumCredit") {
             f.minimumCredit = params.value;
+            state.f.minimumCredit = params.value;
         } else {
             revert Errors.INVALID_KEY(params.key);
         }
@@ -58,6 +61,5 @@ library UpdateConfig {
             minimumCredit: f.minimumCredit
         });
         state.validateInitialize(initializeParams, initializeExtraParams);
-        state.executeInitialize(initializeParams, initializeExtraParams);
     }
 }
