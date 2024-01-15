@@ -40,8 +40,7 @@ contract ScaledToken is NonTransferrableToken {
     }
 
     function mintScaled(address to, uint256 amount, uint256 index, Rounding rounding) public onlyOwner {
-        uint256 amountScaled =
-            rounding == Rounding.DOWN ? Math.mulDivDown(amount, PERCENT, index) : Math.mulDivUp(amount, PERCENT, index);
+        uint256 amountScaled = Math.mulDiv(amount, PERCENT, index, rounding);
         if (amountScaled == 0) {
             revert Errors.NULL_AMOUNT();
         }
@@ -50,8 +49,7 @@ contract ScaledToken is NonTransferrableToken {
     }
 
     function burnScaled(address from, uint256 amount, uint256 index, Rounding rounding) public onlyOwner {
-        uint256 amountScaled =
-            rounding == Rounding.UP ? Math.mulDivUp(amount, PERCENT, index) : Math.mulDivDown(amount, PERCENT, index);
+        uint256 amountScaled = Math.mulDiv(amount, PERCENT, index, rounding);
         if (amountScaled == 0) {
             revert Errors.NULL_AMOUNT();
         }
@@ -67,8 +65,7 @@ contract ScaledToken is NonTransferrableToken {
         previousIndex[from] = index;
         previousIndex[to] = index;
 
-        uint256 unscaledAmount =
-            rounding == Rounding.UP ? Math.mulDivUp(amount, PERCENT, index) : Math.mulDivDown(amount, PERCENT, index);
+        uint256 unscaledAmount = Math.mulDiv(amount, PERCENT, index, rounding);
         if (unscaledAmount == 0) {
             revert Errors.NULL_AMOUNT();
         }

@@ -30,6 +30,10 @@ library Math {
         return FixedPointMathLib.min(minAB, c);
     }
 
+    function mulDiv(uint256 x, uint256 y, uint256 z, Rounding rounding) internal pure returns (uint256) {
+        return rounding == Rounding.DOWN ? mulDivDown(x, y, z) : mulDivUp(x, y, z);
+    }
+
     function mulDivUp(uint256 x, uint256 y, uint256 z) internal pure returns (uint256) {
         return FixedPointMathLib.mulDivUp(x, y, z);
     }
