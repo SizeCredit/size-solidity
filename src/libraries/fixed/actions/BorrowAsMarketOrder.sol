@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/FixedLoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {User} from "@src/libraries/fixed/UserLibrary.sol";
 
 import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
-import {Common} from "@src/libraries/actions/Common.sol";
+import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -28,7 +28,7 @@ library BorrowAsMarketOrder {
     using OfferLibrary for FixedLoanOffer;
     using FixedLoanLibrary for FixedLoan;
     using FixedLoanLibrary for FixedLoan[];
-    using Common for State;
+    using FixedLibrary for State;
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
         User memory lenderUser = state._fixed.users[params.lender];

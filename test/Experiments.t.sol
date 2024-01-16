@@ -6,12 +6,12 @@ import {ExperimentsHelper} from "./helpers/ExperimentsHelper.sol";
 
 import {Math} from "@src/libraries/MathLibrary.sol";
 
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {Test} from "forge-std/Test.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     using FixedLoanLibrary for FixedLoan;

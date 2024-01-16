@@ -3,9 +3,9 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 contract LiquidateFixedLoanTest is BaseTest {
     function test_LiquidateFixedLoan_liquidateFixedLoan_seizes_borrower_collateral() public {

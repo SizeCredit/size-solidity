@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {BaseTest} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 contract CompensateTest is BaseTest {
     using FixedLoanLibrary for FixedLoan;

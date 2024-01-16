@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
+import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

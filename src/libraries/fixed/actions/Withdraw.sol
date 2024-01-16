@@ -4,10 +4,10 @@ pragma solidity 0.8.20;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/FixedLoanLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {State} from "@src/SizeStorage.sol";

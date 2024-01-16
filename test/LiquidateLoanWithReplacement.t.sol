@@ -3,12 +3,13 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {FixedLoan, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
+import {FixedLoan, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {BorrowOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 
-import {LiquidateFixedLoanWithReplacementParams} from "@src/libraries/actions/LiquidateFixedLoanWithReplacement.sol";
+import {LiquidateFixedLoanWithReplacementParams} from
+    "@src/libraries/fixed/actions/LiquidateFixedLoanWithReplacement.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

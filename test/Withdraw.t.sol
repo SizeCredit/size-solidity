@@ -7,9 +7,9 @@ import {BaseTest} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
-import {UserView} from "@src/libraries/UserLibrary.sol";
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
-import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
+import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 contract WithdrawTest is BaseTest {
     function test_Withdraw_withdraw_decreases_user_balance() public {

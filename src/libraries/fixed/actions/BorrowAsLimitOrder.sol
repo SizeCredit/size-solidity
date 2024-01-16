@@ -2,8 +2,8 @@
 pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
-import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+import {BorrowOffer} from "@src/libraries/fixed/OfferLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";

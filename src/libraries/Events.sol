@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 // solhint-disable var-name-mixedcase
 library Events {

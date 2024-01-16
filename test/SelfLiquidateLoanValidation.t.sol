@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {BaseTest} from "./BaseTest.sol";
 
-import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
-import {SelfLiquidateFixedLoanParams} from "@src/libraries/actions/SelfLiquidateFixedLoan.sol";
+import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";

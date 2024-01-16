@@ -8,7 +8,7 @@ import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
 import {USDC} from "./mocks/USDC.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
-import {InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
+import {InitializeExtraParams, InitializeParams} from "@src/libraries/fixed/actions/Initialize.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 
 import {BorrowToken} from "@src/token/BorrowToken.sol";

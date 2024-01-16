@@ -2,8 +2,8 @@
 pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {User} from "@src/libraries/fixed/UserLibrary.sol";
+import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

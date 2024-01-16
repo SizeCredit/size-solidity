@@ -5,9 +5,9 @@ import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 
 import {Math} from "@src/libraries/MathLibrary.sol";
 

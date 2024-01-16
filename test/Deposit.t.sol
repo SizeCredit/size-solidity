@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
-import {UserView} from "@src/libraries/UserLibrary.sol";
+import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
 
 contract DepositTest is BaseTest {
     function test_Deposit_deposit_increases_user_balance() public {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 import {BorrowVariable, BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
 import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
 
@@ -11,7 +11,7 @@ import {ISizeVariable} from "@src/interfaces/ISizeVariable.sol";
 abstract contract SizeVariable is ISizeVariable, SizeStorage {
     using BorrowVariable for State;
     using RepayVariable for State;
-    using VariablePoolLibrary for State;
+    using VariableLibrary for State;
 
     /// @inheritdoc ISizeVariable
     function borrowVariable(BorrowVariableParams calldata params) external override(ISizeVariable) {

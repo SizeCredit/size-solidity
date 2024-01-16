@@ -6,10 +6,10 @@ import {console2 as console} from "forge-std/console2.sol";
 import {BeforeAfter} from "./BeforeAfter.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
-import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
-import {UserView} from "@src/libraries/UserLibrary.sol";
+import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
 
-import {RESERVED_ID} from "@src/libraries/FixedLoanLibrary.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender in wad";

@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {Fixed, General, State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {Initialize, InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
+import {Initialize, InitializeExtraParams, InitializeParams} from "@src/libraries/fixed/actions/Initialize.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
 struct UpdateConfigParams {

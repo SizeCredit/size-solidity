@@ -3,9 +3,9 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
+import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

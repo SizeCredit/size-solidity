@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
+import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

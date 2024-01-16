@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 library Errors {
     error USER_IS_LIQUIDATABLE(address account, uint256 cr);

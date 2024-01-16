@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {BaseTest} from "./BaseTest.sol";
 
-import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
+import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {User} from "@src/libraries/fixed/UserLibrary.sol";
 
 contract BorrowAsLimitOrderTest is BaseTest {
     using OfferLibrary for BorrowOffer;

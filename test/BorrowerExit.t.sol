@@ -4,9 +4,9 @@ pragma solidity 0.8.20;
 import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
-import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
-import {BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
+import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {BorrowOffer} from "@src/libraries/fixed/OfferLibrary.sol";
+import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 
 contract BorrowerExitTest is BaseTest {
     function test_BorrowerExit_borrowerExit_transfer_cash_from_sender_to_borrowOffer_properties() public {

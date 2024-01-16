@@ -3,8 +3,8 @@ pragma solidity 0.8.20;
 
 import {BaseTest} from "./BaseTest.sol";
 
-import {ClaimParams} from "@src/libraries/actions/Claim.sol";
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
+import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

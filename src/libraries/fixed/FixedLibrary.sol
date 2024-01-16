@@ -4,10 +4,11 @@ pragma solidity 0.8.20;
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus, RESERVED_ID} from "@src/libraries/FixedLoanLibrary.sol";
-import {Math} from "@src/libraries/MathLibrary.sol";
 
-library Common {
+import {Math} from "@src/libraries/MathLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus, RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+
+library FixedLibrary {
     using FixedLoanLibrary for FixedLoan;
 
     function reduceDebt(State storage state, uint256 loanId, uint256 amount) public {

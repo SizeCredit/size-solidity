@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -17,7 +17,7 @@ struct BorrowVariableParams {
 
 library BorrowVariable {
     using SafeERC20 for IERC20Metadata;
-    using VariablePoolLibrary for State;
+    using VariableLibrary for State;
 
     function validateBorrowVariable(State storage, BorrowVariableParams calldata params) external pure {
         // validte msg.sender

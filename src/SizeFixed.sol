@@ -1,28 +1,31 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
-import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
+import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
-import {BorrowerExit, BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
-import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
-import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {BorrowerExit, BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
+import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
+import {Deposit, DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 
-import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
-import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LiquidateFixedLoan, LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
-import {MoveToVariablePool, MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
+import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
+import {LiquidateFixedLoan, LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
+import {MoveToVariablePool, MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 
-import {Common} from "@src/libraries/actions/Common.sol";
+import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
-import {Compensate, CompensateParams} from "@src/libraries/actions/Compensate.sol";
+import {Compensate, CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {
     LiquidateFixedLoanWithReplacement,
     LiquidateFixedLoanWithReplacementParams
-} from "@src/libraries/actions/LiquidateFixedLoanWithReplacement.sol";
-import {Repay, RepayParams} from "@src/libraries/actions/Repay.sol";
-import {SelfLiquidateFixedLoan, SelfLiquidateFixedLoanParams} from "@src/libraries/actions/SelfLiquidateFixedLoan.sol";
-import {Withdraw, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+} from "@src/libraries/fixed/actions/LiquidateFixedLoanWithReplacement.sol";
+import {Repay, RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
+import {
+    SelfLiquidateFixedLoan,
+    SelfLiquidateFixedLoanParams
+} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
+import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
@@ -43,7 +46,7 @@ abstract contract SizeFixed is ISizeFixed, SizeStorage {
     using LiquidateFixedLoanWithReplacement for State;
     using MoveToVariablePool for State;
     using Compensate for State;
-    using Common for State;
+    using FixedLibrary for State;
 
     /// @inheritdoc ISizeFixed
     function deposit(DepositParams calldata params) external override(ISizeFixed) {

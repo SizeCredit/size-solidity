@@ -2,8 +2,8 @@
 pragma solidity 0.8.20;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
-import {UserView} from "@src/libraries/UserLibrary.sol";
+import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
 import {Vars} from "@test/BaseTest.sol";
 import {Test} from "forge-std/Test.sol";
 

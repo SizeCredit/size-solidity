@@ -3,10 +3,10 @@ pragma solidity 0.8.20;
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
+import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 
 contract MoveToVariablePoolTest is BaseTest {
     using OfferLibrary for FixedLoanOffer;

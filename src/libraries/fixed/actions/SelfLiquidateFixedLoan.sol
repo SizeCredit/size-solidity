@@ -3,10 +3,10 @@ pragma solidity 0.8.20;
 
 import {Math} from "@src/libraries/MathLibrary.sol";
 
-import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
-import {Common} from "@src/libraries/actions/Common.sol";
+import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -19,7 +19,7 @@ struct SelfLiquidateFixedLoanParams {
 
 library SelfLiquidateFixedLoan {
     using FixedLoanLibrary for FixedLoan;
-    using Common for State;
+    using FixedLibrary for State;
 
     function validateSelfLiquidateFixedLoan(State storage state, SelfLiquidateFixedLoanParams calldata params)
         external

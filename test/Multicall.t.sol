@@ -7,10 +7,10 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
-import {LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
-import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
+import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

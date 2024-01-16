@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {BaseTest} from "./BaseTest.sol";
 
-import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
+import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

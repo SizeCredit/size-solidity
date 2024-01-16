@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {BaseTest} from "./BaseTest.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
+import {UpdateConfigParams} from "@src/libraries/fixed/actions/UpdateConfig.sol";
 
 import {Size} from "@src/Size.sol";
 

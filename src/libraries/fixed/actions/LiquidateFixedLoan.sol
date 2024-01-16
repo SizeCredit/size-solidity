@@ -3,10 +3,10 @@ pragma solidity 0.8.20;
 
 import {Math} from "@src/libraries/MathLibrary.sol";
 
-import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {Common} from "@src/libraries/actions/Common.sol";
+import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -20,7 +20,7 @@ struct LiquidateFixedLoanParams {
 
 library LiquidateFixedLoan {
     using FixedLoanLibrary for FixedLoan;
-    using Common for State;
+    using FixedLibrary for State;
 
     function validateLiquidateFixedLoan(State storage state, LiquidateFixedLoanParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];

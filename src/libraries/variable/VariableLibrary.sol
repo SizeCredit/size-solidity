@@ -5,13 +5,13 @@ import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {InterestMath, SECONDS_PER_YEAR} from "@src/libraries/InterestMath.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
-import {WadRayMath} from "@src/libraries/WadRayMathLibrary.sol";
+import {InterestMath, SECONDS_PER_YEAR} from "@src/libraries/variable/InterestMath.sol";
+import {WadRayMath} from "@src/libraries/variable/WadRayMathLibrary.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
-library VariablePoolLibrary {
+library VariableLibrary {
     function getSlope2(State storage state) internal view returns (uint256) {
         return Math.mulDivDown(
             state._variable.maxRate - state._variable.minRate, PERCENT, PERCENT - state._variable.optimalUR

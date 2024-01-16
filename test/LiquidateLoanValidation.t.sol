@@ -5,9 +5,9 @@ import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
-import {LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
+import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {User} from "@src/libraries/fixed/UserLibrary.sol";
+import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";

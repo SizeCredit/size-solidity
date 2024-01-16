@@ -6,10 +6,10 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 
-import {Initialize, InitializeExtraParams, InitializeParams} from "@src/libraries/actions/Initialize.sol";
-import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
+import {Initialize, InitializeExtraParams, InitializeParams} from "@src/libraries/fixed/actions/Initialize.sol";
+import {UpdateConfig, UpdateConfigParams} from "@src/libraries/fixed/actions/UpdateConfig.sol";
 
-import {Common} from "@src/libraries/actions/Common.sol";
+import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {SizeFixed} from "@src/SizeFixed.sol";
 import {SizeVariable} from "@src/SizeVariable.sol";
@@ -31,7 +31,7 @@ contract Size is
 {
     using Initialize for State;
     using UpdateConfig for State;
-    using Common for State;
+    using FixedLibrary for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {

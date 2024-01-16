@@ -5,8 +5,8 @@ import {BaseTest} from "./BaseTest.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
-import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
+import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

@@ -3,18 +3,18 @@ pragma solidity 0.8.20;
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
-import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {User, UserView} from "@src/libraries/UserLibrary.sol";
-import {Common} from "@src/libraries/actions/Common.sol";
-import {InitializeExtraParams} from "@src/libraries/actions/Initialize.sol";
+import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {User, UserView} from "@src/libraries/fixed/UserLibrary.sol";
+import {InitializeExtraParams} from "@src/libraries/fixed/actions/Initialize.sol";
 
 abstract contract SizeView is SizeStorage {
     using OfferLibrary for FixedLoanOffer;
     using OfferLibrary for BorrowOffer;
     using FixedLoanLibrary for FixedLoan;
-    using Common for State;
+    using FixedLibrary for State;
 
     function collateralRatio(address user) external view returns (uint256) {
         return state.collateralRatio(user);

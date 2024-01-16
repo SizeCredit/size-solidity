@@ -1,25 +1,26 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
-import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
-import {BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
-import {ClaimParams} from "@src/libraries/actions/Claim.sol";
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
-import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
+import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
+import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
+import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
+import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
+import {MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 
-import {LiquidateFixedLoanWithReplacementParams} from "@src/libraries/actions/LiquidateFixedLoanWithReplacement.sol";
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
-import {SelfLiquidateFixedLoanParams} from "@src/libraries/actions/SelfLiquidateFixedLoan.sol";
+import {LiquidateFixedLoanWithReplacementParams} from
+    "@src/libraries/fixed/actions/LiquidateFixedLoanWithReplacement.sol";
+import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
+import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
 
-import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
-import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {UpdateConfigParams} from "@src/libraries/fixed/actions/UpdateConfig.sol";
+import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {Size} from "@src/Size.sol";
 

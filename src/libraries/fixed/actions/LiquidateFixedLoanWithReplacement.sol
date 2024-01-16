@@ -3,15 +3,16 @@ pragma solidity 0.8.20;
 
 import {Math} from "@src/libraries/MathLibrary.sol";
 
-import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {Common} from "@src/libraries/actions/Common.sol";
+
+import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {LiquidateFixedLoan, LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
+import {LiquidateFixedLoan, LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -25,7 +26,7 @@ struct LiquidateFixedLoanWithReplacementParams {
 library LiquidateFixedLoanWithReplacement {
     using FixedLoanLibrary for FixedLoan;
     using OfferLibrary for BorrowOffer;
-    using Common for State;
+    using FixedLibrary for State;
     using LiquidateFixedLoan for State;
 
     function validateLiquidateFixedLoanWithReplacement(

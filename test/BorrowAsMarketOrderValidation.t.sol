@@ -5,10 +5,10 @@ import {console2 as console} from "forge-std/console2.sol";
 
 import {BaseTest, Vars} from "./BaseTest.sol";
 
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/FixedLoanLibrary.sol";
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {User} from "@src/libraries/UserLibrary.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {User} from "@src/libraries/fixed/UserLibrary.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

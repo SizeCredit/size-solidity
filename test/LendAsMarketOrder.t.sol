@@ -5,12 +5,12 @@ import {BaseTest, Vars} from "./BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/FixedLoanLibrary.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {BorrowOffer} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {BorrowOffer} from "@src/libraries/fixed/OfferLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Math} from "@src/libraries/MathLibrary.sol";

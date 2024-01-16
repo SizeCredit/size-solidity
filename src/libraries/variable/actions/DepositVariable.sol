@@ -6,7 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {Math, Rounding} from "@src/libraries/MathLibrary.sol";
 
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 import {ScaledToken} from "@src/token/ScaledToken.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -21,7 +21,7 @@ struct DepositVariableParams {
 
 library DepositVariable {
     using SafeERC20 for IERC20Metadata;
-    using VariablePoolLibrary for State;
+    using VariableLibrary for State;
 
     function validateDepositVariable(State storage state, DepositVariableParams calldata params) external view {
         // validte msg.sender
