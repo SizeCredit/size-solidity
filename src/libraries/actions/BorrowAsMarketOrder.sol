@@ -31,7 +31,7 @@ library BorrowAsMarketOrder {
     using Common for State;
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
-        User memory lenderUser = state.users[params.lender];
+        User memory lenderUser = state._fixed.users[params.lender];
         FixedLoanOffer memory loanOffer = lenderUser.loanOffer;
 
         // validate msg.sender
@@ -63,7 +63,7 @@ library BorrowAsMarketOrder {
         // validate params.virtualCollateralFixedLoanIds
         for (uint256 i = 0; i < params.virtualCollateralFixedLoanIds.length; ++i) {
             uint256 loanId = params.virtualCollateralFixedLoanIds[i];
-            FixedLoan memory loan = state.loans[loanId];
+            FixedLoan memory loan = state._fixed.loans[loanId];
 
             if (msg.sender != loan.lender) {
                 revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, loan.lender);
@@ -94,7 +94,7 @@ library BorrowAsMarketOrder {
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
-        User storage lenderUser = state.users[params.lender];
+        User storage lenderUser = state._fixed.users[params.lender];
 
         FixedLoanOffer storage loanOffer = lenderUser.loanOffer;
 
@@ -104,7 +104,7 @@ library BorrowAsMarketOrder {
 
         for (uint256 i = 0; i < params.virtualCollateralFixedLoanIds.length; ++i) {
             uint256 loanId = params.virtualCollateralFixedLoanIds[i];
-            FixedLoan memory loan = state.loans[loanId];
+            FixedLoan memory loan = state._fixed.loans[loanId];
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, r, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
@@ -122,7 +122,7 @@ library BorrowAsMarketOrder {
             }
 
             state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, faceValue: deltaAmountIn});
-            state.f.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
+            state._fixed.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
         }
@@ -137,7 +137,7 @@ library BorrowAsMarketOrder {
             return;
         }
 
-        User storage lenderUser = state.users[params.lender];
+        User storage lenderUser = state._fixed.users[params.lender];
 
         FixedLoanOffer storage loanOffer = lenderUser.loanOffer;
 
@@ -146,15 +146,15 @@ library BorrowAsMarketOrder {
         uint256 faceValue = Math.mulDivUp(params.amount, r, PERCENT);
         uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(faceValue);
 
-        if (state.f.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {
+        if (state._fixed.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {
             revert Errors.INSUFFICIENT_COLLATERAL(
-                state.f.collateralToken.balanceOf(msg.sender), minimumCollateralOpening
+                state._fixed.collateralToken.balanceOf(msg.sender), minimumCollateralOpening
             );
         }
 
-        state.f.debtToken.mint(msg.sender, faceValue);
+        state._fixed.debtToken.mint(msg.sender, faceValue);
         state.createFOL({lender: params.lender, borrower: msg.sender, faceValue: faceValue, dueDate: params.dueDate});
-        state.f.borrowToken.transferFrom(params.lender, msg.sender, params.amount);
+        state._fixed.borrowToken.transferFrom(params.lender, msg.sender, params.amount);
         loanOffer.maxAmount -= params.amount;
     }
 }

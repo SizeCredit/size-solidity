@@ -12,19 +12,19 @@ contract UpdateConfigTest is BaseTest {
     function test_UpdateConfig_updateConfig_reverts_if_not_owner() public {
         vm.startPrank(alice);
 
-        assertTrue(size.f().minimumCredit != 1e18);
+        assertTrue(size.config().minimumCredit != 1e18);
 
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
         size.updateConfig(UpdateConfigParams({key: "minimumCredit", value: 1e18}));
 
-        assertTrue(size.f().minimumCredit != 1e18);
+        assertTrue(size.config().minimumCredit != 1e18);
     }
 
     function test_UpdateConfig_updateConfig_updates_params() public {
-        assertTrue(size.f().minimumCredit != 1e18);
+        assertTrue(size.config().minimumCredit != 1e18);
 
         size.updateConfig(UpdateConfigParams({key: "minimumCredit", value: 1e18}));
 
-        assertTrue(size.f().minimumCredit == 1e18);
+        assertTrue(size.config().minimumCredit == 1e18);
     }
 }

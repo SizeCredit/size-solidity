@@ -11,10 +11,10 @@ library Common {
     using FixedLoanLibrary for FixedLoan;
 
     function reduceDebt(State storage state, uint256 loanId, uint256 amount) public {
-        FixedLoan storage loan = state.loans[loanId];
+        FixedLoan storage loan = state._fixed.loans[loanId];
         FixedLoan storage fol = getFOL(state, loan);
 
-        state.f.debtToken.burn(fol.borrower, amount);
+        state._fixed.debtToken.burn(fol.borrower, amount);
 
         loan.faceValue -= amount;
         validateMinimumCredit(state, loan.getCredit());
@@ -26,14 +26,14 @@ library Common {
     }
 
     function validateMinimumCredit(State storage state, uint256 credit) public view {
-        if (0 < credit && credit < state.f.minimumCredit) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.f.minimumCredit);
+        if (0 < credit && credit < state._fixed.minimumCredit) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state._fixed.minimumCredit);
         }
     }
 
     function validateMinimumCreditOpening(State storage state, uint256 credit) public view {
-        if (credit < state.f.minimumCredit) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.f.minimumCredit);
+        if (credit < state._fixed.minimumCredit) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state._fixed.minimumCredit);
         }
     }
 
@@ -52,8 +52,8 @@ library Common {
         });
         validateMinimumCreditOpening(state, fol.getCredit());
 
-        state.loans.push(fol);
-        uint256 folId = state.loans.length - 1;
+        state._fixed.loans.push(fol);
+        uint256 folId = state._fixed.loans.length - 1;
 
         emit Events.CreateFixedLoan(folId, lender, borrower, RESERVED_ID, RESERVED_ID, faceValue, dueDate);
     }
@@ -63,7 +63,7 @@ library Common {
         public
     {
         uint256 folId = getFOLId(state, exiterId);
-        FixedLoan storage fol = state.loans[folId];
+        FixedLoan storage fol = state._fixed.loans[folId];
 
         FixedLoan memory sol = FixedLoan({
             faceValue: faceValue,
@@ -76,10 +76,10 @@ library Common {
         });
 
         validateMinimumCreditOpening(state, sol.getCredit());
-        state.loans.push(sol);
-        uint256 solId = state.loans.length - 1;
+        state._fixed.loans.push(sol);
+        uint256 solId = state._fixed.loans.length - 1;
 
-        FixedLoan storage exiter = state.loans[exiterId];
+        FixedLoan storage exiter = state._fixed.loans[exiterId];
         exiter.faceValueExited += faceValue;
         validateMinimumCredit(state, exiter.getCredit());
 
@@ -105,11 +105,11 @@ library Common {
     }
 
     function getFOL(State storage state, FixedLoan storage self) public view returns (FixedLoan storage) {
-        return self.isFOL() ? self : state.loans[self.folId];
+        return self.isFOL() ? self : state._fixed.loans[self.folId];
     }
 
     function getFOLId(State storage state, uint256 loanId) public view returns (uint256) {
-        FixedLoan storage loan = state.loans[loanId];
+        FixedLoan storage loan = state._fixed.loans[loanId];
         return loan.isFOL() ? loanId : loan.folId;
     }
 
@@ -136,8 +136,8 @@ library Common {
     function getFOLAssignedCollateral(State storage state, FixedLoan memory loan) public view returns (uint256) {
         if (!loan.isFOL()) revert Errors.NOT_SUPPORTED();
 
-        uint256 debt = state.f.debtToken.balanceOf(loan.borrower);
-        uint256 collateral = state.f.collateralToken.balanceOf(loan.borrower);
+        uint256 debt = state._fixed.debtToken.balanceOf(loan.borrower);
+        uint256 collateral = state._fixed.collateralToken.balanceOf(loan.borrower);
         if (debt > 0) {
             return Math.mulDivDown(collateral, loan.faceValue, debt);
         } else {
@@ -146,16 +146,16 @@ library Common {
     }
 
     function getProRataAssignedCollateral(State storage state, uint256 loanId) public view returns (uint256) {
-        FixedLoan storage loan = state.loans[loanId];
+        FixedLoan storage loan = state._fixed.loans[loanId];
         FixedLoan storage fol = getFOL(state, loan);
         uint256 folCollateral = getFOLAssignedCollateral(state, fol);
         return Math.mulDivDown(folCollateral, loan.getCredit(), fol.getDebt());
     }
 
     function collateralRatio(State storage state, address account) public view returns (uint256) {
-        uint256 collateral = state.f.collateralToken.balanceOf(account);
-        uint256 debt = state.f.debtToken.balanceOf(account);
-        uint256 price = state.g.priceFeed.getPrice();
+        uint256 collateral = state._fixed.collateralToken.balanceOf(account);
+        uint256 debt = state._fixed.debtToken.balanceOf(account);
+        uint256 price = state._general.priceFeed.getPrice();
 
         if (debt > 0) {
             return Math.mulDivDown(collateral, price, debt);
@@ -165,7 +165,7 @@ library Common {
     }
 
     function isLiquidatable(State storage state, address account) public view returns (bool) {
-        return collateralRatio(state, account) < state.f.crLiquidation;
+        return collateralRatio(state, account) < state._fixed.crLiquidation;
     }
 
     function validateUserIsNotLiquidatable(State storage state, address account) external view {
@@ -175,6 +175,6 @@ library Common {
     }
 
     function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
-        return Math.mulDivUp(faceValue, state.f.crOpening, state.g.priceFeed.getPrice());
+        return Math.mulDivUp(faceValue, state._fixed.crOpening, state._general.priceFeed.getPrice());
     }
 }

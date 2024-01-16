@@ -18,7 +18,7 @@ library MoveToVariablePool {
     using Common for State;
 
     function validateMoveToVariablePool(State storage state, MoveToVariablePoolParams calldata params) external view {
-        FixedLoan storage loan = state.loans[params.loanId];
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         // validate msg.sender
 
@@ -34,7 +34,7 @@ library MoveToVariablePool {
     function executeMoveToVariablePool(State storage state, MoveToVariablePoolParams calldata params) external {
         emit Events.MoveToVariablePool(params.loanId);
 
-        FixedLoan storage loan = state.loans[params.loanId];
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
         uint256 assignedCollateral = state.getFOLAssignedCollateral(loan);
@@ -44,7 +44,7 @@ library MoveToVariablePool {
             revert Errors.INSUFFICIENT_COLLATERAL(assignedCollateral, minimumCollateralOpening);
         }
 
-        state.f.collateralToken.transferFrom(loan.borrower, state.g.variablePool, assignedCollateral);
+        state._fixed.collateralToken.transferFrom(loan.borrower, state._general.variablePool, assignedCollateral);
         loan.repaid = true;
         state.createVariableFixedLoan({
             borrower: loan.borrower,

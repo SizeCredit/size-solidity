@@ -20,45 +20,30 @@ library UpdateConfig {
     }
 
     function executeUpdateConfig(State storage state, UpdateConfigParams memory params) external {
-        General memory g = state.g;
-        Fixed memory f = state.f;
-        // if (params.key == "priceFeed") {
-        //     g.priceFeed = IPriceFeed(address(uint160(params.value)));
-        // } else
         if (params.key == "feeRecipient") {
-            g.feeRecipient = address(uint160(params.value));
-            state.g.feeRecipient = address(uint160(params.value));
-            // } else if (params.key == "crOpening") {
-            //     f.crOpening = params.value;
-            // } else if (params.key == "crLiquidation") {
-            //     f.crLiquidation = params.value;
-            // } else if (params.key == "collateralPremiumToLiquidator") {
-            //     f.collateralPremiumToLiquidator = params.value;
-            // } else if (params.key == "collateralPremiumToProtocol") {
-            //     f.collateralPremiumToProtocol = params.value;
+            state._general.feeRecipient = address(uint160(params.value));
         } else if (params.key == "minimumCredit") {
-            f.minimumCredit = params.value;
-            state.f.minimumCredit = params.value;
+            state._fixed.minimumCredit = params.value;
         } else {
             revert Errors.INVALID_KEY(params.key);
         }
         InitializeParams memory initializeParams = InitializeParams({
             owner: address(0),
-            priceFeed: address(g.priceFeed),
-            collateralAsset: address(g.collateralAsset),
-            borrowAsset: address(g.borrowAsset),
-            collateralToken: address(f.collateralToken),
-            borrowToken: address(f.borrowToken),
-            debtToken: address(f.debtToken),
-            variablePool: address(g.variablePool),
-            feeRecipient: address(g.feeRecipient)
+            priceFeed: address(state._general.priceFeed),
+            collateralAsset: address(state._general.collateralAsset),
+            borrowAsset: address(state._general.borrowAsset),
+            collateralToken: address(state._fixed.collateralToken),
+            borrowToken: address(state._fixed.borrowToken),
+            debtToken: address(state._fixed.debtToken),
+            variablePool: address(state._general.variablePool),
+            feeRecipient: address(state._general.feeRecipient)
         });
         InitializeExtraParams memory initializeExtraParams = InitializeExtraParams({
-            crOpening: f.crOpening,
-            crLiquidation: f.crLiquidation,
-            collateralPremiumToLiquidator: f.collateralPremiumToLiquidator,
-            collateralPremiumToProtocol: f.collateralPremiumToProtocol,
-            minimumCredit: f.minimumCredit
+            crOpening: state._fixed.crOpening,
+            crLiquidation: state._fixed.crLiquidation,
+            collateralPremiumToLiquidator: state._fixed.collateralPremiumToLiquidator,
+            collateralPremiumToProtocol: state._fixed.collateralPremiumToProtocol,
+            minimumCredit: state._fixed.minimumCredit
         });
         state.validateInitialize(initializeParams, initializeExtraParams);
     }

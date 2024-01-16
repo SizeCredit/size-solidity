@@ -166,16 +166,16 @@ contract RepayTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 4e18, size.f().minimumCredit)
+            abi.encodeWithSelector(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 4e18, size.config().minimumCredit)
         );
         _repay(bob, loanId, 6e18);
-        assertGt(size.getCredit(loanId), size.f().minimumCredit);
+        assertGt(size.getCredit(loanId), size.config().minimumCredit);
     }
 
     function test_Repay_repay_partial_cannot_leave_loan_below_minimumCredit(uint256 borrowAmount, uint256 repayAmount)
         public
     {
-        borrowAmount = bound(borrowAmount, size.f().minimumCredit, 100e18);
+        borrowAmount = bound(borrowAmount, size.config().minimumCredit, 100e18);
         repayAmount = bound(repayAmount, 0, borrowAmount);
 
         _setPrice(1e18);
@@ -186,6 +186,6 @@ contract RepayTest is BaseTest {
 
         vm.prank(bob);
         try size.repay(RepayParams({loanId: loanId, amount: repayAmount})) {} catch {}
-        assertGe(size.getCredit(loanId), size.f().minimumCredit);
+        assertGe(size.getCredit(loanId), size.config().minimumCredit);
     }
 }

@@ -13,6 +13,7 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 import {ScaledBorrowToken} from "@src/token/ScaledBorrowToken.sol";
 import {ScaledDebtToken} from "@src/token/ScaledDebtToken.sol";
 
+// NOTE changing any of these structs' order will change the storage layout
 struct General {
     IPriceFeed priceFeed;
     IERC20Metadata collateralAsset;
@@ -23,6 +24,8 @@ struct General {
 }
 
 struct Fixed {
+    mapping(address => User) users;
+    FixedLoan[] loans;
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 minimumCredit;
@@ -48,18 +51,12 @@ struct Variable {
     ScaledDebtToken scaledDebtToken;
 }
 
-// NOTE: changing any of these structs will change the storage layout
 struct State {
-    // slot 0
-    mapping(address => User) users;
-    // slot 1
-    FixedLoan[] loans;
-    // slot ...
-    General g;
-    Fixed f;
-    Variable v;
+    General _general;
+    Fixed _fixed;
+    Variable _variable;
 }
 
 abstract contract SizeStorage {
-    State public state;
+    State internal state;
 }

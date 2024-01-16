@@ -13,30 +13,33 @@ import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
 library VariablePoolLibrary {
     function getSlope2(State storage state) internal view returns (uint256) {
-        return Math.mulDivDown(state.v.maxRate - state.v.minRate, PERCENT, PERCENT - state.v.optimalUR);
+        return Math.mulDivDown(
+            state._variable.maxRate - state._variable.minRate, PERCENT, PERCENT - state._variable.optimalUR
+        );
     }
 
     function getOptimalIR(State storage state) internal view returns (uint256) {
-        return state.v.minRate + Math.mulDivDown(state.v.slope, state.v.optimalUR, PERCENT);
+        return state._variable.minRate + Math.mulDivDown(state._variable.slope, state._variable.optimalUR, PERCENT);
     }
 
     function getBorrowAPR(State storage state, uint256 ur) internal view returns (uint256) {
-        if (ur < state.v.optimalUR) {
-            return state.v.minRate + Math.mulDivDown(state.v.slope, ur, PERCENT);
+        if (ur < state._variable.optimalUR) {
+            return state._variable.minRate + Math.mulDivDown(state._variable.slope, ur, PERCENT);
         } else {
-            return getOptimalIR(state) + Math.mulDivDown(getSlope2(state), (ur - state.v.optimalUR), PERCENT);
+            return getOptimalIR(state) + Math.mulDivDown(getSlope2(state), (ur - state._variable.optimalUR), PERCENT);
         }
     }
 
     function getSupplyAPR(State storage state, uint256 ur) internal view returns (uint256) {
         uint256 borrowAPR = getBorrowAPR(state, ur);
-        return Math.mulDivDown(borrowAPR, Math.mulDivDown(ur, (PERCENT - state.v.reserveFactor), PERCENT), PERCENT);
+        return
+            Math.mulDivDown(borrowAPR, Math.mulDivDown(ur, (PERCENT - state._variable.reserveFactor), PERCENT), PERCENT);
     }
 
     function getUR(State storage state) internal view returns (uint256) {
         // @audit Should this be debt.totalSupply() / borrow.totalSupply() ?
-        uint256 collateral = state.v.collateralToken.totalSupply();
-        uint256 borrow = state.v.scaledBorrowToken.totalSupply();
+        uint256 collateral = state._variable.collateralToken.totalSupply();
+        uint256 borrow = state._variable.scaledBorrowToken.totalSupply();
         if (collateral > 0) {
             return Math.mulDivDown(borrow, PERCENT, collateral);
         } else {
@@ -61,29 +64,31 @@ library VariablePoolLibrary {
     }
 
     function updateLiquidityIndex(State storage state) internal {
-        uint256 interval = block.timestamp - state.v.lastUpdate;
+        uint256 interval = block.timestamp - state._variable.lastUpdate;
         if (interval == 0) {
             return;
         }
 
-        if (state.v.liquidityIndexSupplyRAY > 0) {
-            uint256 interestRAY = InterestMath.linearInterestRAY(state.v.liquidityIndexSupplyRAY, interval);
-            state.v.liquidityIndexSupplyRAY = WadRayMath.rayMul(interestRAY, state.v.liquidityIndexSupplyRAY);
+        if (state._variable.liquidityIndexSupplyRAY > 0) {
+            uint256 interestRAY = InterestMath.linearInterestRAY(state._variable.liquidityIndexSupplyRAY, interval);
+            state._variable.liquidityIndexSupplyRAY =
+                WadRayMath.rayMul(interestRAY, state._variable.liquidityIndexSupplyRAY);
         }
 
-        if (state.v.liquidityIndexBorrowRAY > 0) {
-            uint256 interestRAY = InterestMath.compoundInterestRAY(state.v.liquidityIndexBorrowRAY, interval);
-            state.v.liquidityIndexBorrowRAY = WadRayMath.rayMul(interestRAY, state.v.liquidityIndexBorrowRAY);
+        if (state._variable.liquidityIndexBorrowRAY > 0) {
+            uint256 interestRAY = InterestMath.compoundInterestRAY(state._variable.liquidityIndexBorrowRAY, interval);
+            state._variable.liquidityIndexBorrowRAY =
+                WadRayMath.rayMul(interestRAY, state._variable.liquidityIndexBorrowRAY);
         }
 
-        state.v.lastUpdate = block.timestamp;
+        state._variable.lastUpdate = block.timestamp;
     }
 
     function collateralRatio(State storage state, address account) public view returns (uint256) {
         // TODO this equation seems incorrect, debt should grow with interest
-        uint256 collateral = state.v.collateralToken.balanceOf(account);
-        uint256 debt = state.v.scaledDebtToken.balanceOf(account);
-        uint256 price = state.g.priceFeed.getPrice();
+        uint256 collateral = state._variable.collateralToken.balanceOf(account);
+        uint256 debt = state._variable.scaledDebtToken.balanceOf(account);
+        uint256 price = state._general.priceFeed.getPrice();
 
         if (debt > 0) {
             return Math.mulDivDown(collateral, price, debt);
@@ -93,7 +98,7 @@ library VariablePoolLibrary {
     }
 
     function isLiquidatable(State storage state, address account) public view returns (bool) {
-        return collateralRatio(state, account) < state.v.minimumCollateralRatio;
+        return collateralRatio(state, account) < state._variable.minimumCollateralRatio;
     }
 
     function validateUserIsNotLiquidatableVariable(State storage state, address account) external view {
@@ -103,12 +108,12 @@ library VariablePoolLibrary {
     }
 
     function getReserveNormalizedIncome(State storage state) internal view returns (uint256) {
-        uint256 interval = block.timestamp - state.v.lastUpdate;
+        uint256 interval = block.timestamp - state._variable.lastUpdate;
         if (interval == 0) {
-            return state.v.liquidityIndexBorrowRAY;
+            return state._variable.liquidityIndexBorrowRAY;
         } else {
-            uint256 interestRAY = InterestMath.compoundInterestRAY(state.v.liquidityIndexBorrowRAY, interval);
-            return Math.mulDivDown(interestRAY, state.v.liquidityIndexBorrowRAY, PERCENT);
+            uint256 interestRAY = InterestMath.compoundInterestRAY(state._variable.liquidityIndexBorrowRAY, interval);
+            return Math.mulDivDown(interestRAY, state._variable.liquidityIndexBorrowRAY, PERCENT);
         }
     }
 

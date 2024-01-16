@@ -67,7 +67,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _lendAsLimitOrder(bob, 100e18, 10, 0.03e18, 12);
         _deposit(alice, weth, 2e18);
         _borrowAsMarketOrder(alice, bob, 100e18, 6);
-        assertGe(size.collateralRatio(alice), size.f().crOpening);
+        assertGe(size.collateralRatio(alice), size.config().crOpening);
         assertTrue(!size.isLiquidatable(alice), "borrower should not be liquidatable");
         vm.warp(block.timestamp + 1);
         _setPrice(60e18);
@@ -223,7 +223,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(alice, bob, 100e18, 6);
 
         // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.f().crOpening);
+        assertGe(size.collateralRatio(alice), size.config().crOpening);
         assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
 
         vm.warp(block.timestamp + 1);
@@ -306,7 +306,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(alice, bob, 100e18, 6);
 
         // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.f().crOpening, "Alice should be above CR opening");
+        assertGe(size.collateralRatio(alice), size.config().crOpening, "Alice should be above CR opening");
         assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)

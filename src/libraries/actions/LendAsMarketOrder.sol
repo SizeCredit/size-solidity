@@ -28,7 +28,7 @@ library LendAsMarketOrder {
     using Common for State;
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
-        BorrowOffer memory borrowOffer = state.users[params.borrower].borrowOffer;
+        BorrowOffer memory borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
         uint256 amountIn;
@@ -52,8 +52,8 @@ library LendAsMarketOrder {
         if (amountIn > borrowOffer.maxAmount) {
             revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(amountIn, borrowOffer.maxAmount);
         }
-        if (state.f.borrowToken.balanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.f.borrowToken.balanceOf(msg.sender), amountIn);
+        if (state._fixed.borrowToken.balanceOf(msg.sender) < amountIn) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowToken.balanceOf(msg.sender), amountIn);
         }
 
         // validate exactAmountIn
@@ -62,7 +62,7 @@ library LendAsMarketOrder {
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) external {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
-        BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
+        BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
         uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
         uint256 faceValue;
@@ -75,9 +75,9 @@ library LendAsMarketOrder {
             amountIn = Math.mulDivUp(params.amount, PERCENT, r);
         }
 
-        state.f.debtToken.mint(params.borrower, faceValue);
+        state._fixed.debtToken.mint(params.borrower, faceValue);
         state.createFOL({lender: msg.sender, borrower: params.borrower, faceValue: faceValue, dueDate: params.dueDate});
-        state.f.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
+        state._fixed.borrowToken.transferFrom(msg.sender, params.borrower, amountIn);
         borrowOffer.maxAmount -= amountIn;
     }
 }

@@ -23,8 +23,8 @@ library LendAsLimitOrder {
         if (params.maxAmount == 0) {
             revert Errors.NULL_AMOUNT();
         }
-        if (params.maxAmount > state.f.borrowToken.balanceOf(msg.sender)) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.f.borrowToken.balanceOf(msg.sender), params.maxAmount);
+        if (params.maxAmount > state._fixed.borrowToken.balanceOf(msg.sender)) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowToken.balanceOf(msg.sender), params.maxAmount);
         }
 
         // validate maxDueDate
@@ -40,7 +40,7 @@ library LendAsLimitOrder {
     }
 
     function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external {
-        state.users[msg.sender].loanOffer = FixedLoanOffer({
+        state._fixed.users[msg.sender].loanOffer = FixedLoanOffer({
             maxAmount: params.maxAmount,
             maxDueDate: params.maxDueDate,
             curveRelativeTime: params.curveRelativeTime

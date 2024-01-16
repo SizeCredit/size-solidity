@@ -25,8 +25,8 @@ library BorrowerExit {
     using FixedLoanLibrary for FixedLoan[];
 
     function validateBorrowerExit(State storage state, BorrowerExitParams calldata params) external view {
-        BorrowOffer memory borrowOffer = state.users[params.borrowerToExitTo].borrowOffer;
-        FixedLoan memory fol = state.loans[params.loanId];
+        BorrowOffer memory borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
+        FixedLoan memory fol = state._fixed.loans[params.loanId];
 
         uint256 rate = borrowOffer.getRate(fol.dueDate);
         uint256 r = PERCENT + rate;
@@ -37,8 +37,8 @@ library BorrowerExit {
         if (msg.sender != fol.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, fol.borrower);
         }
-        if (state.f.borrowToken.balanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.f.borrowToken.balanceOf(msg.sender), amountIn);
+        if (state._fixed.borrowToken.balanceOf(msg.sender) < amountIn) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowToken.balanceOf(msg.sender), amountIn);
         }
 
         // validate loanId
@@ -59,16 +59,16 @@ library BorrowerExit {
     function executeBorrowerExit(State storage state, BorrowerExitParams calldata params) external {
         emit Events.BorrowerExit(params.loanId, params.borrowerToExitTo);
 
-        BorrowOffer storage borrowOffer = state.users[params.borrowerToExitTo].borrowOffer;
-        FixedLoan storage fol = state.loans[params.loanId];
+        BorrowOffer storage borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
+        FixedLoan storage fol = state._fixed.loans[params.loanId];
 
         uint256 rate = borrowOffer.getRate(fol.dueDate);
         uint256 r = PERCENT + rate;
         uint256 faceValue = fol.faceValue;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
 
-        state.f.borrowToken.transferFrom(msg.sender, params.borrowerToExitTo, amountIn);
-        state.f.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
+        state._fixed.borrowToken.transferFrom(msg.sender, params.borrowerToExitTo, amountIn);
+        state._fixed.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
         fol.borrower = params.borrowerToExitTo;
         borrowOffer.maxAmount -= amountIn;
     }

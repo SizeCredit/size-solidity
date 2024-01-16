@@ -20,14 +20,14 @@ library Repay {
     using Common for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
-        FixedLoan storage loan = state.loans[params.loanId];
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         // validate msg.sender
         if (msg.sender != loan.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.borrower);
         }
-        if (state.f.borrowToken.balanceOf(msg.sender) < loan.faceValue) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.f.borrowToken.balanceOf(msg.sender), loan.faceValue);
+        if (state._fixed.borrowToken.balanceOf(msg.sender) < loan.faceValue) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowToken.balanceOf(msg.sender), loan.faceValue);
         }
 
         // validate loanId
@@ -42,15 +42,15 @@ library Repay {
     }
 
     function executeRepay(State storage state, RepayParams calldata params) external {
-        FixedLoan storage loan = state.loans[params.loanId];
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
         uint256 repayAmount = Math.min(loan.faceValue, params.amount);
 
         if (repayAmount == loan.faceValue && loan.isFOL()) {
-            state.f.borrowToken.transferFrom(msg.sender, state.g.variablePool, repayAmount);
-            state.f.debtToken.burn(msg.sender, repayAmount);
+            state._fixed.borrowToken.transferFrom(msg.sender, state._general.variablePool, repayAmount);
+            state._fixed.debtToken.burn(msg.sender, repayAmount);
             loan.repaid = true;
         } else {
-            state.f.borrowToken.transferFrom(msg.sender, loan.lender, repayAmount);
+            state._fixed.borrowToken.transferFrom(msg.sender, loan.lender, repayAmount);
             state.reduceDebt(params.loanId, repayAmount);
         }
 

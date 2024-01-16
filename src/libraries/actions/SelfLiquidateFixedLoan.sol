@@ -25,10 +25,11 @@ library SelfLiquidateFixedLoan {
         external
         view
     {
-        FixedLoan storage loan = state.loans[params.loanId];
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
-        uint256 debtCollateral =
-            Math.mulDivDown(loan.getDebt(), 10 ** state.g.priceFeed.decimals(), state.g.priceFeed.getPrice());
+        uint256 debtCollateral = Math.mulDivDown(
+            loan.getDebt(), 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
+        );
 
         // validate msg.sender
         if (msg.sender != loan.lender) {
@@ -55,13 +56,13 @@ library SelfLiquidateFixedLoan {
     {
         emit Events.SelfLiquidateFixedLoan(params.loanId);
 
-        FixedLoan storage loan = state.loans[params.loanId];
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         uint256 credit = loan.getCredit();
         FixedLoan storage fol = state.getFOL(loan);
 
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
-        state.f.collateralToken.transferFrom(fol.borrower, msg.sender, assignedCollateral);
+        state._fixed.collateralToken.transferFrom(fol.borrower, msg.sender, assignedCollateral);
         state.reduceDebt(params.loanId, credit);
     }
 }

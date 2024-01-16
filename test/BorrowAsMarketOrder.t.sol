@@ -38,7 +38,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
 
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 debtOpening = Math.mulDivUp(debt, size.f().crOpening, PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
         uint256 minimumCollateral = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
         FixedLoanOffer memory offerAfter = size.getUserView(alice).user.loanOffer;
@@ -74,7 +74,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
-        uint256 debtOpening = Math.mulDivUp(debt, size.f().crOpening, PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
         uint256 minimumCollateral = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
         FixedLoanOffer memory offerAfter = size.getUserView(alice).user.loanOffer;
@@ -169,7 +169,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
 
         uint256 faceValue = Math.mulDivUp(r, (amountFixedLoanId2 - amountFixedLoanId1), PERCENT);
-        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.f().crOpening, PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.config().crOpening, PERCENT);
         uint256 minimumCollateral = Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
@@ -211,7 +211,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.f().crOpening, PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.config().crOpening, PERCENT);
         uint256 minimumCollateralAmount =
             Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
@@ -257,7 +257,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
         uint256 faceValue = Math.mulDivUp(r, amount, PERCENT);
-        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.f().crOpening, PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.config().crOpening, PERCENT);
         uint256 maxCollateralToLock = Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         vm.startPrank(bob);
         uint256[] memory virtualCollateralFixedLoanIds;

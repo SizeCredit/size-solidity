@@ -28,7 +28,10 @@ library Withdraw {
         // validte msg.sender
 
         // validate token
-        if (params.token != address(state.g.collateralAsset) && params.token != address(state.g.borrowAsset)) {
+        if (
+            params.token != address(state._general.collateralAsset)
+                && params.token != address(state._general.borrowAsset)
+        ) {
             revert Errors.INVALID_TOKEN(params.token);
         }
 
@@ -39,9 +42,9 @@ library Withdraw {
     }
 
     function executeWithdraw(State storage state, WithdrawParams calldata params) external {
-        NonTransferrableToken nonTransferrableToken = params.token == address(state.g.collateralAsset)
-            ? NonTransferrableToken(state.f.collateralToken)
-            : NonTransferrableToken(state.f.borrowToken);
+        NonTransferrableToken nonTransferrableToken = params.token == address(state._general.collateralAsset)
+            ? NonTransferrableToken(state._fixed.collateralToken)
+            : NonTransferrableToken(state._fixed.borrowToken);
         IERC20Metadata token = IERC20Metadata(params.token);
         uint8 decimals = token.decimals();
 

@@ -3,7 +3,6 @@ pragma solidity 0.8.20;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {State} from "@src/SizeStorage.sol";
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
@@ -121,24 +120,24 @@ library Initialize {
         InitializeParams memory params,
         InitializeExtraParams memory extraParams
     ) external {
-        state.g.collateralAsset = IERC20Metadata(params.collateralAsset);
-        state.g.borrowAsset = IERC20Metadata(params.borrowAsset);
-        state.f.collateralToken = CollateralToken(params.collateralToken);
-        state.f.borrowToken = BorrowToken(params.borrowToken);
-        state.f.debtToken = DebtToken(params.debtToken);
-        state.g.variablePool = params.variablePool;
-        state.g.priceFeed = IPriceFeed(params.priceFeed);
-        state.g.feeRecipient = params.feeRecipient;
-        state.f.crOpening = extraParams.crOpening;
-        state.f.crLiquidation = extraParams.crLiquidation;
-        state.f.collateralPremiumToLiquidator = extraParams.collateralPremiumToLiquidator;
-        state.f.collateralPremiumToProtocol = extraParams.collateralPremiumToProtocol;
-        state.f.minimumCredit = extraParams.minimumCredit;
+        state._general.collateralAsset = IERC20Metadata(params.collateralAsset);
+        state._general.borrowAsset = IERC20Metadata(params.borrowAsset);
+        state._fixed.collateralToken = CollateralToken(params.collateralToken);
+        state._fixed.borrowToken = BorrowToken(params.borrowToken);
+        state._fixed.debtToken = DebtToken(params.debtToken);
+        state._general.variablePool = params.variablePool;
+        state._general.priceFeed = IPriceFeed(params.priceFeed);
+        state._general.feeRecipient = params.feeRecipient;
+        state._fixed.crOpening = extraParams.crOpening;
+        state._fixed.crLiquidation = extraParams.crLiquidation;
+        state._fixed.collateralPremiumToLiquidator = extraParams.collateralPremiumToLiquidator;
+        state._fixed.collateralPremiumToProtocol = extraParams.collateralPremiumToProtocol;
+        state._fixed.minimumCredit = extraParams.minimumCredit;
 
         // TODO separate in initializeFixed, initializeVariable, initializeGeneral
 
-        state.v.lastUpdate = block.timestamp;
-        state.v.liquidityIndexSupplyRAY = PERCENT;
-        state.v.liquidityIndexBorrowRAY = PERCENT;
+        state._variable.lastUpdate = block.timestamp;
+        state._variable.liquidityIndexSupplyRAY = PERCENT;
+        state._variable.liquidityIndexBorrowRAY = PERCENT;
     }
 }

@@ -27,7 +27,10 @@ library WithdrawVariable {
         // validte msg.sender
 
         // validate token
-        if (params.token != address(state.g.collateralAsset) && params.token != address(state.g.borrowAsset)) {
+        if (
+            params.token != address(state._general.collateralAsset)
+                && params.token != address(state._general.borrowAsset)
+        ) {
             revert Errors.INVALID_TOKEN(params.token);
         }
 
@@ -43,10 +46,10 @@ library WithdrawVariable {
         IERC20Metadata token = IERC20Metadata(params.token);
         uint256 wad = Math.amountToWad(params.amount, IERC20Metadata(params.token).decimals());
 
-        if (params.token == address(state.g.collateralAsset)) {
-            state.v.collateralToken.burn(msg.sender, wad);
+        if (params.token == address(state._general.collateralAsset)) {
+            state._variable.collateralToken.burn(msg.sender, wad);
         } else {
-            state.v.scaledBorrowToken.burnScaled(msg.sender, wad, state.v.liquidityIndexBorrowRAY);
+            state._variable.scaledBorrowToken.burnScaled(msg.sender, wad, state._variable.liquidityIndexBorrowRAY);
         }
         token.safeTransfer(msg.sender, params.amount);
 

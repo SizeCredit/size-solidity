@@ -19,7 +19,7 @@ library Claim {
     using Common for State;
 
     function validateClaim(State storage state, ClaimParams calldata params) external view {
-        FixedLoan storage loan = state.loans[params.loanId];
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         // validate msg.sender
         // @audit Check if this should be permissioned
@@ -31,9 +31,9 @@ library Claim {
     }
 
     function executeClaim(State storage state, ClaimParams calldata params) external {
-        FixedLoan storage loan = state.loans[params.loanId];
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
 
-        state.f.borrowToken.transferFrom(state.g.variablePool, loan.lender, loan.getCredit());
+        state._fixed.borrowToken.transferFrom(state._general.variablePool, loan.lender, loan.getCredit());
         loan.faceValueExited = loan.faceValue;
 
         emit Events.Claim(params.loanId);

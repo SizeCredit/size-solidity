@@ -32,8 +32,8 @@ library LiquidateFixedLoanWithReplacement {
         State storage state,
         LiquidateFixedLoanWithReplacementParams calldata params
     ) external view {
-        FixedLoan storage loan = state.loans[params.loanId];
-        BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
+        BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
         // validate liquidateFixedLoan
         state.validateLiquidateFixedLoan(
@@ -57,8 +57,8 @@ library LiquidateFixedLoanWithReplacement {
     ) external returns (uint256, uint256) {
         emit Events.LiquidateFixedLoanWithReplacement(params.loanId, params.borrower, params.minimumCollateralRatio);
 
-        FixedLoan storage fol = state.loans[params.loanId];
-        BorrowOffer storage borrowOffer = state.users[params.borrower].borrowOffer;
+        FixedLoan storage fol = state._fixed.loans[params.loanId];
+        BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
         uint256 faceValue = fol.faceValue;
         uint256 dueDate = fol.dueDate;
 
@@ -75,10 +75,12 @@ library LiquidateFixedLoanWithReplacement {
         fol.borrower = params.borrower;
         fol.repaid = false;
 
-        state.f.debtToken.mint(params.borrower, faceValue);
-        state.f.borrowToken.transferFrom(state.g.variablePool, params.borrower, amountOut);
-        // TODO evaliate who gets this profit, msg.sender or state.g.feeRecipient
-        state.f.borrowToken.transferFrom(state.g.variablePool, state.g.feeRecipient, liquidatorProfitBorrowAsset);
+        state._fixed.debtToken.mint(params.borrower, faceValue);
+        state._fixed.borrowToken.transferFrom(state._general.variablePool, params.borrower, amountOut);
+        // TODO evaliate who gets this profit, msg.sender or state._general.feeRecipient
+        state._fixed.borrowToken.transferFrom(
+            state._general.variablePool, state._general.feeRecipient, liquidatorProfitBorrowAsset
+        );
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

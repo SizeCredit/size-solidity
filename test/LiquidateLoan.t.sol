@@ -21,7 +21,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 debtOpening = Math.mulDivUp(debt, size.f().crOpening, PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
         uint256 lock = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         // nothing is locked anymore on v2
         lock = 0;
@@ -54,23 +54,23 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(
             _after.feeRecipientCollateralAmount,
             _before.feeRecipientCollateralAmount
-                + Math.mulDivDown(collateralRemainder, size.f().collateralPremiumToProtocol, PERCENT)
+                + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToProtocol, PERCENT)
         );
         uint256 collateralPremiumToBorrower =
-            PERCENT - size.f().collateralPremiumToProtocol - size.f().collateralPremiumToLiquidator;
+            PERCENT - size.config().collateralPremiumToProtocol - size.config().collateralPremiumToLiquidator;
         assertEq(
             _after.bob.collateralAmount,
             _before.bob.collateralAmount - (debt * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
-                    (size.f().collateralPremiumToProtocol + size.f().collateralPremiumToLiquidator),
+                    (size.config().collateralPremiumToProtocol + size.config().collateralPremiumToLiquidator),
                     PERCENT
                 ),
             _before.bob.collateralAmount - (debt * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
         uint256 liquidatorProfitAmount =
-            (debt * 5) + Math.mulDivDown(collateralRemainder, size.f().collateralPremiumToLiquidator, PERCENT);
+            (debt * 5) + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToLiquidator, PERCENT);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount + liquidatorProfitAmount);
         assertEq(liquidatorProfit, liquidatorProfitAmount);
     }

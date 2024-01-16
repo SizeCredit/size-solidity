@@ -27,7 +27,10 @@ library DepositVariable {
         // validte msg.sender
 
         // validate token
-        if (params.token != address(state.g.collateralAsset) && params.token != address(state.g.borrowAsset)) {
+        if (
+            params.token != address(state._general.collateralAsset)
+                && params.token != address(state._general.borrowAsset)
+        ) {
             revert Errors.INVALID_TOKEN(params.token);
         }
 
@@ -45,10 +48,10 @@ library DepositVariable {
         uint256 wad = Math.amountToWad(params.amount, IERC20Metadata(params.token).decimals());
 
         token.safeTransferFrom(msg.sender, address(this), params.amount);
-        if (params.token == address(state.g.collateralAsset)) {
-            state.v.collateralToken.mint(msg.sender, wad);
+        if (params.token == address(state._general.collateralAsset)) {
+            state._variable.collateralToken.mint(msg.sender, wad);
         } else {
-            state.v.scaledBorrowToken.mintScaled(msg.sender, wad, state.v.liquidityIndexBorrowRAY);
+            state._variable.scaledBorrowToken.mintScaled(msg.sender, wad, state._variable.liquidityIndexBorrowRAY);
         }
 
         emit Events.DepositVariable(params.token, wad);

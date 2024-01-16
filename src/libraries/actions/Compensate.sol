@@ -21,8 +21,8 @@ library Compensate {
     using FixedLoanLibrary for FixedLoan;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
-        FixedLoan storage loanToRepay = state.loans[params.loanToRepayId];
-        FixedLoan storage loanToCompensate = state.loans[params.loanToCompensateId];
+        FixedLoan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
+        FixedLoan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
 
         // validate msg.sender
         if (msg.sender != loanToRepay.borrower) {
@@ -57,8 +57,8 @@ library Compensate {
     function executeCompensate(State storage state, CompensateParams calldata params) external {
         emit Events.Compensate(params.loanToRepayId, params.loanToCompensateId, params.amount);
 
-        FixedLoan storage loanToRepay = state.loans[params.loanToRepayId];
-        FixedLoan storage loanToCompensate = state.loans[params.loanToCompensateId];
+        FixedLoan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
+        FixedLoan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
         // @audit Check the implications of a user-provided compensation amount
         uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.getCredit(), loanToRepay.getCredit());
 
