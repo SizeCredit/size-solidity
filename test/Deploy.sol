@@ -21,7 +21,7 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 import {ScaledBorrowToken} from "@src/token/ScaledBorrowToken.sol";
 import {ScaledDebtToken} from "@src/token/ScaledDebtToken.sol";
 
-contract Deploy {
+abstract contract Deploy {
     ERC1967Proxy internal proxy;
     Size internal size;
     PriceFeedMock internal priceFeed;

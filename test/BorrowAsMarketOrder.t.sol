@@ -5,7 +5,8 @@ import {console2 as console} from "forge-std/console2.sol";
 
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
-import {BaseTest, Vars} from "./BaseTest.sol";
+import {BaseTest} from "./BaseTest.sol";
+import {Vars} from "./BaseTestGeneric.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
