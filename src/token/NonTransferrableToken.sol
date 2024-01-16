@@ -10,11 +10,11 @@ contract NonTransferrableToken is Ownable, ERC20 {
     // solhint-disable-next-line no-empty-blocks
     constructor(address owner_, string memory name_, string memory symbol_) Ownable(owner_) ERC20(name_, symbol_) {}
 
-    function mint(address to, uint256 amount) external onlyOwner {
+    function mint(address to, uint256 amount) external virtual onlyOwner {
         _mint(to, amount);
     }
 
-    function burn(address from, uint256 amount) external onlyOwner {
+    function burn(address from, uint256 amount) external virtual onlyOwner {
         _burn(from, amount);
     }
 

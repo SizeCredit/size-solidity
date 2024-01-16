@@ -11,9 +11,7 @@ import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 import {ScaledBorrowToken} from "@src/token/ScaledBorrowToken.sol";
-
 import {ScaledDebtToken} from "@src/token/ScaledDebtToken.sol";
-import {ScaledSupplyToken} from "@src/token/ScaledSupplyToken.sol";
 
 struct General {
     IPriceFeed priceFeed;
@@ -45,7 +43,7 @@ struct Variable {
     uint256 liquidityIndexBorrow;
     uint256 liquidityIndexSupply;
     uint256 lastUpdate;
-    ScaledSupplyToken scaledSupplyToken;
+    CollateralToken collateralToken;
     ScaledBorrowToken scaledBorrowToken;
     ScaledDebtToken scaledDebtToken;
 }

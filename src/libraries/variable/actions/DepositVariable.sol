@@ -41,14 +41,15 @@ library DepositVariable {
         // @audit pass token as arg?
         state.updateLiquidityIndex();
 
-        ScaledToken scaledToken = params.token == address(state.g.collateralAsset)
-            ? ScaledToken(state.v.scaledSupplyToken)
-            : ScaledToken(state.v.scaledBorrowToken);
         IERC20Metadata token = IERC20Metadata(params.token);
         uint256 wad = Math.amountToWad(params.amount, IERC20Metadata(params.token).decimals());
 
         token.safeTransferFrom(msg.sender, address(this), params.amount);
-        scaledToken.mintScaled(msg.sender, wad, state.v.liquidityIndexSupply, Rounding.DOWN);
+        if (params.token == address(state.g.collateralAsset)) {
+            state.v.collateralToken.mint(msg.sender, wad);
+        } else {
+            state.v.scaledBorrowToken.mintScaled(msg.sender, wad, state.v.liquidityIndexBorrow);
+        }
 
         emit Events.DepositVariable(params.token, wad);
     }

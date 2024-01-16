@@ -31,10 +31,11 @@ library VariablePoolLibrary {
     }
 
     function getUR(State storage state) internal view returns (uint256) {
-        uint256 capSupply = state.v.scaledSupplyToken.totalSupply();
-        uint256 capBorrow = state.v.scaledBorrowToken.totalSupply();
-        if (capSupply > 0) {
-            return Math.mulDivDown(capBorrow, PERCENT, capSupply);
+        // @audit Should this be debt.totalSupply() / borrow.totalSupply() ?
+        uint256 collateral = state.v.collateralToken.totalSupply();
+        uint256 borrow = state.v.scaledBorrowToken.totalSupply();
+        if (collateral > 0) {
+            return Math.mulDivDown(borrow, PERCENT, collateral);
         } else {
             return 0;
         }
@@ -58,6 +59,9 @@ library VariablePoolLibrary {
 
     function updateLiquidityIndex(State storage state) internal {
         uint256 interval = block.timestamp - state.v.lastUpdate;
+        if (interval == 0) {
+            return;
+        }
         state.v.liquidityIndexSupply =
             Math.mulDivDown(state.v.liquidityIndexSupply, PERCENT + getPerSecondSupplyIR(state) * interval, PERCENT);
         state.v.liquidityIndexBorrow =
@@ -68,7 +72,7 @@ library VariablePoolLibrary {
     }
 
     function collateralRatio(State storage state, address account) public view returns (uint256) {
-        uint256 collateral = state.v.scaledSupplyToken.balanceOf(account);
+        uint256 collateral = state.v.collateralToken.balanceOf(account);
         uint256 debt = state.v.scaledDebtToken.balanceOf(account);
         uint256 price = state.g.priceFeed.getPrice();
 

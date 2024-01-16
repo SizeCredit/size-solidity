@@ -40,13 +40,14 @@ library WithdrawVariable {
     function executeWithdrawVariable(State storage state, WithdrawVariableParams calldata params) external {
         state.updateLiquidityIndex();
 
-        ScaledToken scaledToken = params.token == address(state.g.collateralAsset)
-            ? ScaledToken(state.v.scaledSupplyToken)
-            : ScaledToken(state.v.scaledBorrowToken);
         IERC20Metadata token = IERC20Metadata(params.token);
         uint256 wad = Math.amountToWad(params.amount, IERC20Metadata(params.token).decimals());
 
-        scaledToken.burnScaled(msg.sender, wad, state.v.liquidityIndexSupply, Rounding.UP);
+        if (params.token == address(state.g.collateralAsset)) {
+            state.v.collateralToken.burn(msg.sender, wad);
+        } else {
+            state.v.scaledBorrowToken.burnScaled(msg.sender, wad, state.v.liquidityIndexBorrow);
+        }
         token.safeTransfer(msg.sender, params.amount);
 
         emit Events.WithdrawVariable(params.token, wad);
