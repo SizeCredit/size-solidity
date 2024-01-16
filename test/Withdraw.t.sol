@@ -5,6 +5,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {BaseTest} from "./BaseTest.sol";
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
 import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
@@ -126,7 +127,7 @@ contract WithdrawTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
         uint256 debtUSDC = Math.mulDivUp(debt, 1e6, 1e18);
-        uint256 dust = Math.amountToWad(debtUSDC, usdc.decimals()) - debt;
+        uint256 dust = ConversionLibrary.amountToWad(debtUSDC, usdc.decimals()) - debt;
 
         _setPrice(0.125e18);
 

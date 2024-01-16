@@ -6,6 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
@@ -49,10 +50,10 @@ library Withdraw {
         uint8 decimals = token.decimals();
 
         uint256 userBalanceWad = nonTransferrableToken.balanceOf(msg.sender);
-        uint256 userBalanceAmountDown = Math.wadToAmountDown(userBalanceWad, decimals);
+        uint256 userBalanceAmountDown = ConversionLibrary.wadToAmountDown(userBalanceWad, decimals);
 
         uint256 withdrawAmountDown = Math.min(params.amount, userBalanceAmountDown);
-        uint256 wadDown = Math.amountToWad(withdrawAmountDown, decimals);
+        uint256 wadDown = ConversionLibrary.amountToWad(withdrawAmountDown, decimals);
 
         nonTransferrableToken.burn(msg.sender, wadDown);
         token.safeTransfer(msg.sender, withdrawAmountDown);
