@@ -13,7 +13,7 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 import {ScaledBorrowToken} from "@src/token/ScaledBorrowToken.sol";
 import {ScaledDebtToken} from "@src/token/ScaledDebtToken.sol";
 
-// NOTE changing any of these structs' order will change the storage layout
+// NOTE changing any of these structs' order or variables may change the storage layout
 struct General {
     IPriceFeed priceFeed;
     IERC20Metadata collateralAsset;

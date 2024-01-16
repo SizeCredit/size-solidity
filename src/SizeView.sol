@@ -10,9 +10,7 @@ import {User, UserView} from "@src/libraries/UserLibrary.sol";
 import {Common} from "@src/libraries/actions/Common.sol";
 import {InitializeExtraParams} from "@src/libraries/actions/Initialize.sol";
 
-import {ISizeView} from "@src/interfaces/ISizeView.sol";
-
-abstract contract SizeView is SizeStorage, ISizeView {
+abstract contract SizeView is SizeStorage {
     using OfferLibrary for FixedLoanOffer;
     using OfferLibrary for BorrowOffer;
     using FixedLoanLibrary for FixedLoan;
@@ -80,7 +78,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return state._fixed.loans;
     }
 
-    function getFixedLoanStatus(uint256 loanId) external view override(ISizeView) returns (FixedLoanStatus) {
+    function getFixedLoanStatus(uint256 loanId) external view returns (FixedLoanStatus) {
         return state.getFixedLoanStatus(state._fixed.loans[loanId]);
     }
 
