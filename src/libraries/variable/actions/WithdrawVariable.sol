@@ -46,7 +46,7 @@ library WithdrawVariable {
         if (params.token == address(state.g.collateralAsset)) {
             state.v.collateralToken.burn(msg.sender, wad);
         } else {
-            state.v.scaledBorrowToken.burnScaled(msg.sender, wad, state.v.liquidityIndexBorrow);
+            state.v.scaledBorrowToken.burnScaled(msg.sender, wad, state.v.liquidityIndexBorrowRAY);
         }
         token.safeTransfer(msg.sender, params.amount);
 

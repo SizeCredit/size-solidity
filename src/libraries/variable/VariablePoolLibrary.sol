@@ -4,7 +4,10 @@ pragma solidity 0.8.20;
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+
+import {InterestMath, SECONDS_PER_YEAR} from "@src/libraries/InterestMath.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
+import {WadRayMath} from "@src/libraries/WadRayMathLibrary.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 
@@ -50,11 +53,11 @@ library VariablePoolLibrary {
     }
 
     function getPerSecondBorrowIR(State storage state) internal view returns (uint256) {
-        return getBorrowAPR(state) / 365 days;
+        return getBorrowAPR(state) / SECONDS_PER_YEAR;
     }
 
     function getPerSecondSupplyIR(State storage state) internal view returns (uint256) {
-        return getSupplyAPR(state) / 365 days;
+        return getSupplyAPR(state) / SECONDS_PER_YEAR;
     }
 
     function updateLiquidityIndex(State storage state) internal {
@@ -62,12 +65,17 @@ library VariablePoolLibrary {
         if (interval == 0) {
             return;
         }
-        state.v.liquidityIndexSupply =
-            Math.mulDivDown(state.v.liquidityIndexSupply, PERCENT + getPerSecondSupplyIR(state) * interval, PERCENT);
-        state.v.liquidityIndexBorrow =
-            Math.mulDivDown(state.v.liquidityIndexBorrow, PERCENT + getPerSecondBorrowIR(state) * interval, PERCENT);
 
-        // @audit Check if it is OK to update lastUpdate here
+        if (state.v.liquidityIndexSupplyRAY > 0) {
+            uint256 interestRAY = InterestMath.linearInterestRAY(state.v.liquidityIndexSupplyRAY, interval);
+            state.v.liquidityIndexSupplyRAY = WadRayMath.rayMul(interestRAY, state.v.liquidityIndexSupplyRAY);
+        }
+
+        if (state.v.liquidityIndexBorrowRAY > 0) {
+            uint256 interestRAY = InterestMath.compoundInterestRAY(state.v.liquidityIndexBorrowRAY, interval);
+            state.v.liquidityIndexBorrowRAY = WadRayMath.rayMul(interestRAY, state.v.liquidityIndexBorrowRAY);
+        }
+
         state.v.lastUpdate = block.timestamp;
     }
 
@@ -91,5 +99,19 @@ library VariablePoolLibrary {
         if (isLiquidatable(state, account)) {
             revert Errors.USER_IS_LIQUIDATABLE(account, collateralRatio(state, account));
         }
+    }
+
+    function getReserveNormalizedIncome(State storage state) internal view returns (uint256) {
+        uint256 interval = block.timestamp - state.v.lastUpdate;
+        if (interval == 0) {
+            return state.v.liquidityIndexBorrowRAY;
+        } else {
+            uint256 interestRAY = InterestMath.compoundInterestRAY(state.v.liquidityIndexBorrowRAY, interval);
+            return Math.mulDivDown(interestRAY, state.v.liquidityIndexBorrowRAY, PERCENT);
+        }
+    }
+
+    function updateInterestRates(State storage state) internal {
+        // TODO
     }
 }

@@ -40,8 +40,8 @@ struct Variable {
     uint256 slope;
     uint256 optimalUR;
     uint256 reserveFactor;
-    uint256 liquidityIndexBorrow;
-    uint256 liquidityIndexSupply;
+    uint256 liquidityIndexBorrowRAY;
+    uint256 liquidityIndexSupplyRAY;
     uint256 lastUpdate;
     CollateralToken collateralToken;
     ScaledBorrowToken scaledBorrowToken;

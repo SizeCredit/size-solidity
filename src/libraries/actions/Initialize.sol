@@ -135,6 +135,10 @@ library Initialize {
         state.f.collateralPremiumToProtocol = extraParams.collateralPremiumToProtocol;
         state.f.minimumCredit = extraParams.minimumCredit;
 
+        // TODO separate in initializeFixed, initializeVariable, initializeGeneral
+
         state.v.lastUpdate = block.timestamp;
+        state.v.liquidityIndexSupplyRAY = PERCENT;
+        state.v.liquidityIndexBorrowRAY = PERCENT;
     }
 }
