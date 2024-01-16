@@ -19,8 +19,8 @@ import {LiquidateFixedLoanWithReplacementParams} from
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
 
-import {UpdateConfigParams} from "@src/libraries/fixed/actions/UpdateConfig.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
+import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
 import {Size} from "@src/Size.sol";
 

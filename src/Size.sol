@@ -11,8 +11,8 @@ import {
     InitializeFixedParams,
     InitializeGeneralParams,
     InitializeVariableParams
-} from "@src/libraries/fixed/actions/Initialize.sol";
-import {UpdateConfig, UpdateConfigParams} from "@src/libraries/fixed/actions/UpdateConfig.sol";
+} from "@src/libraries/general/actions/Initialize.sol";
+import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 

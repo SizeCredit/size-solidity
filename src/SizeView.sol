@@ -8,7 +8,7 @@ import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User, UserView} from "@src/libraries/fixed/UserLibrary.sol";
-import {InitializeFixedParams} from "@src/libraries/fixed/actions/Initialize.sol";
+import {InitializeFixedParams} from "@src/libraries/general/actions/Initialize.sol";
 
 abstract contract SizeView is SizeStorage {
     using OfferLibrary for FixedLoanOffer;

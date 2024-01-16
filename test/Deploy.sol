@@ -13,7 +13,7 @@ import {
     InitializeFixedParams,
     InitializeGeneralParams,
     InitializeVariableParams
-} from "@src/libraries/fixed/actions/Initialize.sol";
+} from "@src/libraries/general/actions/Initialize.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 
 import {CollateralToken} from "@src/token/CollateralToken.sol";
