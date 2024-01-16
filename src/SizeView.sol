@@ -66,10 +66,6 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return state.loans.length;
     }
 
-    function activeVariableFixedLoans() public view returns (uint256) {
-        return state.variableFixedLoans.length;
-    }
-
     function isFOL(uint256 loanId) public view returns (bool) {
         return state.loans[loanId].isFOL();
     }

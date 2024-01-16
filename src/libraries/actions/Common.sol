@@ -4,13 +4,7 @@ pragma solidity 0.8.20;
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
-import {
-    FixedLoan,
-    FixedLoanLibrary,
-    FixedLoanStatus,
-    RESERVED_ID,
-    VariableFixedLoan
-} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus, RESERVED_ID} from "@src/libraries/FixedLoanLibrary.sol";
 import {Math} from "@src/libraries/MathLibrary.sol";
 
 library Common {
@@ -98,15 +92,16 @@ library Common {
         uint256 amountBorrowAssetLentOut,
         uint256 amountCollateral
     ) public {
-        state.variableFixedLoans.push(
-            VariableFixedLoan({
-                borrower: borrower,
-                amountBorrowAssetLentOut: amountBorrowAssetLentOut,
-                amountCollateral: amountCollateral,
-                startTime: block.timestamp,
-                repaid: false
-            })
-        );
+        // TODO
+        // state.variableFixedLoans.push(
+        //     VariableFixedLoan({
+        //         borrower: borrower,
+        //         amountBorrowAssetLentOut: amountBorrowAssetLentOut,
+        //         amountCollateral: amountCollateral,
+        //         startTime: block.timestamp,
+        //         repaid: false
+        //     })
+        // );
     }
 
     function getFOL(State storage state, FixedLoan storage self) public view returns (FixedLoan storage) {

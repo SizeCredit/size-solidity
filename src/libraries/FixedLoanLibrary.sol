@@ -24,14 +24,6 @@ enum FixedLoanStatus {
 
 }
 
-struct VariableFixedLoan {
-    address borrower;
-    uint256 amountBorrowAssetLentOut;
-    uint256 amountCollateral;
-    uint256 startTime;
-    bool repaid;
-}
-
 library FixedLoanLibrary {
     function isFOL(FixedLoan memory self) internal pure returns (bool) {
         return self.folId == RESERVED_ID;

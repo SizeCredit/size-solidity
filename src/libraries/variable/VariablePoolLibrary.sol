@@ -80,6 +80,7 @@ library VariablePoolLibrary {
     }
 
     function collateralRatio(State storage state, address account) public view returns (uint256) {
+        // TODO this equation seems incorrect, debt should grow with interest
         uint256 collateral = state.v.collateralToken.balanceOf(account);
         uint256 debt = state.v.scaledDebtToken.balanceOf(account);
         uint256 price = state.g.priceFeed.getPrice();

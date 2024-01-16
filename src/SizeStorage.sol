@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {FixedLoan, VariableFixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
 
 import {User} from "@src/libraries/UserLibrary.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
@@ -54,8 +54,6 @@ struct State {
     mapping(address => User) users;
     // slot 1
     FixedLoan[] loans;
-    // slot 2
-    VariableFixedLoan[] variableFixedLoans;
     // slot ...
     General g;
     Fixed f;
