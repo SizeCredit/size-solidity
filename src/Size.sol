@@ -6,7 +6,12 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 
-import {Initialize, InitializeExtraParams, InitializeParams} from "@src/libraries/fixed/actions/Initialize.sol";
+import {
+    Initialize,
+    InitializeFixedParams,
+    InitializeGeneralParams,
+    InitializeVariableParams
+} from "@src/libraries/fixed/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/fixed/actions/UpdateConfig.sol";
 
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
@@ -38,18 +43,19 @@ contract Size is
         _disableInitializers();
     }
 
-    function initialize(InitializeParams calldata params, InitializeExtraParams calldata extraParams)
-        external
-        initializer
-    {
-        state.validateInitialize(params, extraParams);
+    function initialize(
+        InitializeGeneralParams calldata g,
+        InitializeFixedParams calldata f,
+        InitializeVariableParams calldata v
+    ) external initializer {
+        state.validateInitialize(g, f, v);
 
-        __Ownable_init(params.owner);
+        __Ownable_init(g.owner);
         __Ownable2Step_init();
         __Multicall_init();
         __UUPSUpgradeable_init();
 
-        state.executeInitialize(params, extraParams);
+        state.executeInitialize(g, f, v);
     }
 
     // solhint-disable-next-line no-empty-blocks

@@ -20,88 +20,85 @@ contract InitializeValidationTest is Test, BaseTest {
     function test_Initialize_validation() public {
         Size implementation = new Size();
 
-        params.owner = address(0);
+        g.owner = address(0);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.owner = address(this);
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        g.owner = address(this);
 
-        params.priceFeed = address(0);
+        g.priceFeed = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.priceFeed = address(priceFeed);
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        g.priceFeed = address(priceFeed);
 
-        params.collateralAsset = address(0);
+        g.collateralAsset = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.collateralAsset = address(weth);
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        g.collateralAsset = address(weth);
 
-        params.borrowAsset = address(0);
+        g.borrowAsset = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.borrowAsset = address(usdc);
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        g.borrowAsset = address(usdc);
 
-        params.collateralToken = address(0);
+        g.feeRecipient = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.collateralToken = address(collateralToken);
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        g.feeRecipient = feeRecipient;
 
-        params.borrowToken = address(0);
+        f.collateralToken = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.borrowToken = address(borrowToken);
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        f.collateralToken = address(fixedCollateralToken);
 
-        params.debtToken = address(0);
+        f.borrowToken = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.debtToken = address(debtToken);
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        f.borrowToken = address(borrowToken);
 
-        params.variablePool = address(0);
+        f.debtToken = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.variablePool = variablePool;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        f.debtToken = address(debtToken);
 
-        params.feeRecipient = address(0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.feeRecipient = feeRecipient;
-
-        extraParams.crOpening = 0.5e18;
+        f.crOpening = 0.5e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 0.5e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.crOpening = 1.5e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        f.crOpening = 1.5e18;
 
-        extraParams.crLiquidation = 0.3e18;
+        f.crLiquidation = 0.3e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 0.3e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.crLiquidation = 1.3e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        f.crLiquidation = 1.3e18;
 
-        extraParams.crLiquidation = 1.5e18;
-        extraParams.crOpening = 1.3e18;
+        f.crLiquidation = 1.5e18;
+        f.crOpening = 1.3e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO.selector, 1.3e18, 1.5e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.crLiquidation = 1.3e18;
-        extraParams.crOpening = 1.5e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        f.crLiquidation = 1.3e18;
+        f.crOpening = 1.5e18;
 
-        extraParams.collateralPremiumToLiquidator = 1.1e18;
+        f.collateralPremiumToLiquidator = 1.1e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.collateralPremiumToLiquidator = 0.3e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        f.collateralPremiumToLiquidator = 0.3e18;
 
-        extraParams.collateralPremiumToProtocol = 1.2e18;
+        f.collateralPremiumToProtocol = 1.2e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.collateralPremiumToProtocol = 0.1e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        f.collateralPremiumToProtocol = 0.1e18;
 
-        extraParams.collateralPremiumToLiquidator = 0.6e18;
-        extraParams.collateralPremiumToProtocol = 0.6e18;
+        f.collateralPremiumToLiquidator = 0.6e18;
+        f.collateralPremiumToProtocol = 0.6e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.collateralPremiumToLiquidator = 0.3e18;
-        extraParams.collateralPremiumToProtocol = 0.1e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        f.collateralPremiumToLiquidator = 0.3e18;
+        f.collateralPremiumToProtocol = 0.1e18;
 
-        extraParams.minimumCredit = 0;
+        f.minimumCredit = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        extraParams.minimumCredit = 5e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
+        f.minimumCredit = 5e18;
+
+        // TODO add validation for variable params
     }
 }

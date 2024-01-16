@@ -11,23 +11,18 @@ import {Math, PERCENT, Rounding} from "@src/libraries/MathLibrary.sol";
 /// @notice A scaled amount is an unscaled amount divided by the liquidity index
 contract ScaledToken is NonTransferrableToken {
     mapping(address => uint256) private previousIndex;
-    IVariablePool private variablePool;
 
-    constructor(address owner_, string memory name_, string memory symbol_, address variablePool_)
+    // solhint-disable-next-line no-empty-blocks
+    constructor(address owner_, string memory name_, string memory symbol_)
         NonTransferrableToken(owner_, name_, symbol_)
-    {
-        if (variablePool_ == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        variablePool = IVariablePool(variablePool_);
-    }
+    {}
 
     /// @dev Returns the UNSCALED balance of the user
     /// @param user The address of the user
     /// @param rounding rounding direction
     function _balanceOf(address user, Rounding rounding) internal view returns (uint256) {
         uint256 scaledBalance = super.balanceOf(user);
-        uint256 index = variablePool.getReserveNormalizedIncome();
+        uint256 index = IVariablePool(owner()).getReserveNormalizedIncome();
         return Math.mulDiv(scaledBalance, index, PERCENT, rounding);
     }
 
@@ -35,7 +30,7 @@ contract ScaledToken is NonTransferrableToken {
     /// @param rounding rounding direction
     function _totalSupply(Rounding rounding) internal view returns (uint256) {
         uint256 scaledTotalSupply = super.totalSupply();
-        uint256 index = variablePool.getReserveNormalizedIncome();
+        uint256 index = IVariablePool(owner()).getReserveNormalizedIncome();
         return Math.mulDiv(scaledTotalSupply, index, PERCENT, rounding);
     }
 

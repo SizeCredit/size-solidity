@@ -10,17 +10,13 @@ import {SizeAdapter} from "@test/mocks/SizeAdapter.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 
-import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {BaseScript} from "./BaseScript.sol";
 import {Deploy} from "@test/Deploy.sol";
 
 contract DeployScript is BaseScript, Deploy {
-    address public protocolVault = address(0x60000);
-
     function setUp() public {}
 
     function run() public {
@@ -38,8 +34,8 @@ contract DeployScript is BaseScript, Deploy {
 
         console.log("Deploying Size LOCAL");
 
-        setup(deployer, protocolVault, deployer);
-        proxy = new ERC1967Proxy(address(new SizeAdapter()), abi.encodeCall(Size.initialize, (params, extraParams)));
+        setup(deployer, deployer);
+        proxy = new ERC1967Proxy(address(new SizeAdapter()), abi.encodeCall(Size.initialize, (g, f, v)));
         size = Size(address(proxy));
 
         weth.deposit{value: 10e18}();

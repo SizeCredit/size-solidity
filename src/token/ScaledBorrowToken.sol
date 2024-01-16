@@ -6,9 +6,7 @@ import {Rounding} from "@src/libraries/MathLibrary.sol";
 
 contract ScaledBorrowToken is ScaledToken {
     // solhint-disable-next-line no-empty-blocks
-    constructor(address owner_, string memory name_, string memory symbol_, address variablePool_)
-        ScaledToken(owner_, name_, symbol_, variablePool_)
-    {}
+    constructor(address owner_, string memory name_, string memory symbol_) ScaledToken(owner_, name_, symbol_) {}
 
     /// @dev Returns the UNSCALED balance of the user, rounding DOWN
     /// @param user The address of the user

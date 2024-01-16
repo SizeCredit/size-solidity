@@ -32,7 +32,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
     function setup() internal override {
-        setup(address(this), address(0x1), address(this));
+        setup(address(this), address(this));
         address[] memory users = new address[](3);
         users[0] = USER1;
         users[1] = USER2;

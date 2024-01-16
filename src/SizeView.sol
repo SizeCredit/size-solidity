@@ -8,7 +8,7 @@ import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User, UserView} from "@src/libraries/fixed/UserLibrary.sol";
-import {InitializeExtraParams} from "@src/libraries/fixed/actions/Initialize.sol";
+import {InitializeFixedParams} from "@src/libraries/fixed/actions/Initialize.sol";
 
 abstract contract SizeView is SizeStorage {
     using OfferLibrary for FixedLoanOffer;
@@ -42,8 +42,11 @@ abstract contract SizeView is SizeStorage {
         return state._fixed.loans[loanId].getCredit();
     }
 
-    function config() external view returns (InitializeExtraParams memory) {
-        return InitializeExtraParams({
+    function config() external view returns (InitializeFixedParams memory) {
+        return InitializeFixedParams({
+            collateralToken: address(state._fixed.collateralToken),
+            borrowToken: address(state._fixed.borrowToken),
+            debtToken: address(state._fixed.debtToken),
             crOpening: state._fixed.crOpening,
             crLiquidation: state._fixed.crLiquidation,
             collateralPremiumToLiquidator: state._fixed.collateralPremiumToLiquidator,
