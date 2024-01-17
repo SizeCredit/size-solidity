@@ -27,7 +27,7 @@ contract WithdrawTest is BaseTest {
         assertEq(aliceUser.fixedCollateralAmount, 16e18);
     }
 
-    function testFuzz_SizeWithdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
+    function testFuzz_Withdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
         x = bound(x, 1, type(uint128).max);
         y = bound(y, 1, type(uint128).max);
         z = bound(z, 1, type(uint128).max);
@@ -49,7 +49,7 @@ contract WithdrawTest is BaseTest {
         assertEq(aliceUser.fixedCollateralAmount, (y - w) * 1e18);
     }
 
-    function testFuzz_SizeWithdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
+    function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
         valueUSDC = bound(valueUSDC, 1, type(uint256).max / 1e12);
         valueWETH = bound(valueWETH, 1, type(uint256).max);
         deal(address(usdc), alice, valueUSDC);

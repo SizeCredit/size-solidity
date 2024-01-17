@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {WadRayMath} from "./WadRayMathLibrary.sol";
+import {RAY, WadRayMath} from "./WadRayMathLibrary.sol";
 
 uint256 constant SECONDS_PER_YEAR = 365 days;
 
 library InterestMath {
     /// @notice See https://github.com/aave/aave-v3-core/blob/2437c5600c12ab0faefc8173fff1ca9615732ce5/contracts/protocol/libraries/math/MathUtils.sol#L23
     function linearInterestRAY(uint256 rateRAY, uint256 intervalSeconds) internal pure returns (uint256) {
-        return WadRayMath.RAY + (rateRAY + intervalSeconds) / SECONDS_PER_YEAR;
+        return RAY + (rateRAY + intervalSeconds) / SECONDS_PER_YEAR;
     }
 
     /// @notice See https://github.com/aave/aave-v3-core/blob/2437c5600c12ab0faefc8173fff1ca9615732ce5/contracts/protocol/libraries/math/MathUtils.sol#L50
     function compoundInterestRAY(uint256 rateRAY, uint256 intervalSeconds) internal pure returns (uint256) {
         uint256 exp = intervalSeconds;
         if (exp == 0) {
-            return WadRayMath.RAY;
+            return RAY;
         }
 
         uint256 expMinusOne;
@@ -40,6 +40,6 @@ library InterestMath {
             thirdTermRAY /= 6;
         }
 
-        return WadRayMath.RAY + (rateRAY * exp) / SECONDS_PER_YEAR + secondTermRAY + thirdTermRAY;
+        return RAY + (rateRAY * exp) / SECONDS_PER_YEAR + secondTermRAY + thirdTermRAY;
     }
 }

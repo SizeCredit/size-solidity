@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {WadRayMath} from "@src/libraries/variable/WadRayMathLibrary.sol";
+import {RAY} from "@src/libraries/variable/WadRayMathLibrary.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
@@ -204,8 +204,8 @@ library Initialize {
         state._variable.slope = v.slope;
         state._variable.optimalUR = v.optimalUR;
         state._variable.reserveFactor = v.reserveFactor;
-        state._variable.liquidityIndexSupplyRAY = WadRayMath.RAY;
-        state._variable.liquidityIndexBorrowRAY = WadRayMath.RAY;
+        state._variable.indexSupplyRAY = RAY;
+        state._variable.indexBorrowRAY = RAY;
         state._variable.lastUpdate = block.timestamp;
         state._variable.collateralToken = CollateralToken(v.collateralToken);
         state._variable.scaledBorrowToken = ScaledBorrowToken(v.scaledBorrowToken);

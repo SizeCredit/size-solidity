@@ -30,9 +30,9 @@ library BorrowVariable {
 
     function executeBorrowVariable(State storage state, BorrowVariableParams calldata params) external {
         state.updateLiquidityIndex();
-        state._variable.scaledDebtToken.mintScaled(msg.sender, params.amount, state._variable.liquidityIndexBorrowRAY);
+        state._variable.scaledDebtToken.mintScaled(msg.sender, params.amount, state._variable.indexBorrowRAY);
         // TODO check order of these operations:
-        state._variable.scaledBorrowToken.mintScaled(msg.sender, params.amount, state._variable.liquidityIndexBorrowRAY);
+        state._variable.scaledBorrowToken.mintScaled(msg.sender, params.amount, state._variable.indexBorrowRAY);
         state.updateInterestRates();
 
         emit Events.BorrowVariable(params.amount);

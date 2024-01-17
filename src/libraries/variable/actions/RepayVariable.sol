@@ -30,7 +30,7 @@ library RepayVariable {
 
     function executeRepayVariable(State storage state, RepayVariableParams calldata params) external {
         state.updateLiquidityIndex();
-        state._variable.scaledDebtToken.burnScaled(msg.sender, params.amount, state._variable.liquidityIndexBorrowRAY);
+        state._variable.scaledDebtToken.burnScaled(msg.sender, params.amount, state._variable.indexBorrowRAY);
 
         emit Events.RepayVariable(params.amount);
     }

@@ -69,16 +69,14 @@ library VariableLibrary {
             return;
         }
 
-        if (state._variable.liquidityIndexSupplyRAY > 0) {
-            uint256 interestRAY = InterestMath.linearInterestRAY(state._variable.liquidityIndexSupplyRAY, interval);
-            state._variable.liquidityIndexSupplyRAY =
-                WadRayMath.rayMul(interestRAY, state._variable.liquidityIndexSupplyRAY);
+        if (state._variable.indexSupplyRAY > 0) {
+            uint256 interestRAY = InterestMath.linearInterestRAY(state._variable.indexSupplyRAY, interval);
+            state._variable.indexSupplyRAY = WadRayMath.rayMul(interestRAY, state._variable.indexSupplyRAY);
         }
 
-        if (state._variable.liquidityIndexBorrowRAY > 0) {
-            uint256 interestRAY = InterestMath.compoundInterestRAY(state._variable.liquidityIndexBorrowRAY, interval);
-            state._variable.liquidityIndexBorrowRAY =
-                WadRayMath.rayMul(interestRAY, state._variable.liquidityIndexBorrowRAY);
+        if (state._variable.indexBorrowRAY > 0) {
+            uint256 interestRAY = InterestMath.compoundInterestRAY(state._variable.indexBorrowRAY, interval);
+            state._variable.indexBorrowRAY = WadRayMath.rayMul(interestRAY, state._variable.indexBorrowRAY);
         }
 
         state._variable.lastUpdate = block.timestamp;
@@ -107,13 +105,13 @@ library VariableLibrary {
         }
     }
 
-    function getReserveNormalizedIncome(State storage state) internal view returns (uint256) {
+    function getReserveNormalizedIncomeRAY(State storage state) internal view returns (uint256) {
         uint256 interval = block.timestamp - state._variable.lastUpdate;
         if (interval == 0) {
-            return state._variable.liquidityIndexBorrowRAY;
+            return state._variable.indexBorrowRAY;
         } else {
-            uint256 interestRAY = InterestMath.compoundInterestRAY(state._variable.liquidityIndexBorrowRAY, interval);
-            return Math.mulDivDown(interestRAY, state._variable.liquidityIndexBorrowRAY, PERCENT);
+            uint256 interestRAY = InterestMath.compoundInterestRAY(state._variable.indexBorrowRAY, interval);
+            return WadRayMath.rayMul(interestRAY, state._variable.indexBorrowRAY);
         }
     }
 

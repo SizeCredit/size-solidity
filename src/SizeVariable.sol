@@ -44,7 +44,7 @@ abstract contract SizeVariable is ISizeVariable, IVariablePool, SizeStorage {
     }
 
     /// @inheritdoc IVariablePool
-    function getReserveNormalizedIncome() external view override(IVariablePool) returns (uint256) {
-        return state.getReserveNormalizedIncome();
+    function getReserveNormalizedIncomeRAY() external view override(IVariablePool) returns (uint256) {
+        return state.getReserveNormalizedIncomeRAY();
     }
 }

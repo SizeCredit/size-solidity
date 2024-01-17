@@ -50,7 +50,7 @@ library DepositVariable {
         if (params.token == address(state._general.collateralAsset)) {
             state._variable.collateralToken.mint(msg.sender, wad);
         } else {
-            state._variable.scaledBorrowToken.mintScaled(msg.sender, wad, state._variable.liquidityIndexBorrowRAY);
+            state._variable.scaledBorrowToken.mintScaled(msg.sender, wad, state._variable.indexBorrowRAY);
         }
 
         emit Events.DepositVariable(params.token, wad);
