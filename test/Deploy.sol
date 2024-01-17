@@ -3,10 +3,8 @@ pragma solidity 0.8.20;
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {PriceFeedMock} from "./mocks/PriceFeedMock.sol";
+import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
-import {USDC} from "./mocks/USDC.sol";
-import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
 import {
     Initialize,
@@ -15,6 +13,8 @@ import {
     InitializeVariableParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {USDC} from "@test/mocks/USDC.sol";
+import {WETH} from "@test/mocks/WETH.sol";
 
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";

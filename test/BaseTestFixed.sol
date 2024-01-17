@@ -5,10 +5,10 @@ import {Test} from "forge-std/Test.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {USDC} from "./mocks/USDC.sol";
-import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {USDC} from "@test/mocks/USDC.sol";
+import {WETH} from "@test/mocks/WETH.sol";
 
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -38,7 +38,7 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
-import {BaseTestGeneric} from "./BaseTestGeneric.sol";
+import {BaseTestGeneric} from "@test/BaseTestGeneric.sol";
 
 abstract contract BaseTestFixed is Test, BaseTestGeneric {
     function _deposit(address user, IERC20Metadata token, uint256 amount) internal {
