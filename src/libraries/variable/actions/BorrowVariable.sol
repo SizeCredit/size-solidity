@@ -34,5 +34,7 @@ library BorrowVariable {
         // TODO check order of these operations:
         state._variable.scaledBorrowToken.mintScaled(msg.sender, params.amount, state._variable.liquidityIndexBorrowRAY);
         state.updateInterestRates();
+
+        emit Events.BorrowVariable(params.amount);
     }
 }

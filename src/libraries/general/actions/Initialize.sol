@@ -15,6 +15,7 @@ import {ScaledDebtToken} from "@src/token/ScaledDebtToken.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 struct InitializeGeneralParams {
     address owner;
@@ -220,5 +221,6 @@ library Initialize {
         _executeInitializeGeneral(state, g);
         _executeInitializeFixed(state, f);
         _executeInitializeVariable(state, v);
+        emit Events.Initialize(g, f, v);
     }
 }

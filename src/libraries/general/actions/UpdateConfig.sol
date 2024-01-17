@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 import {Initialize, InitializeFixedParams} from "@src/libraries/general/actions/Initialize.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
@@ -25,5 +26,7 @@ library UpdateConfig {
         } else {
             revert Errors.INVALID_KEY(params.key);
         }
+
+        emit Events.UpdateConfig(params.key, params.value);
     }
 }
