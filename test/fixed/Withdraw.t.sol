@@ -5,10 +5,10 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {UserView} from "@src/SizeView.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
-import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 

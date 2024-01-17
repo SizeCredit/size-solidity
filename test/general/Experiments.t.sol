@@ -18,9 +18,9 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     using OfferLibrary for FixedLoanOffer;
 
     function setUp() public override {
+        vm.warp(0);
         super.setUp();
         _setPrice(100e18);
-        vm.warp(0);
     }
 
     function test_Experiments_test1() public {

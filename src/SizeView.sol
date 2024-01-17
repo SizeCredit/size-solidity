@@ -7,8 +7,19 @@ import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed
 
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {User, UserView} from "@src/libraries/fixed/UserLibrary.sol";
+import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {InitializeFixedParams} from "@src/libraries/general/actions/Initialize.sol";
+
+struct UserView {
+    User user;
+    address account;
+    uint256 fixedCollateralAmount;
+    uint256 borrowAmount;
+    uint256 debtAmount;
+    uint256 variableCollateralAmount;
+    uint256 scaledBorrowAmount;
+    uint256 scaledDebtAmount;
+}
 
 abstract contract SizeView is SizeStorage {
     using OfferLibrary for FixedLoanOffer;

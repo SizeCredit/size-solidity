@@ -1,22 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
+import {UserView} from "@src/SizeView.sol";
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneric.sol";
 
 contract DepositVariableTest is BaseTest {
     function test_DepositVariable_deposit_increases_user_balance() public {
-        _deposit(alice, address(usdc), 1e6);
+        _depositVariable(alice, address(usdc), 1e6);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, 1e18);
-        assertEq(aliceUser.fixedCollateralAmount, 0);
+        assertEq(aliceUser.scaledBorrowAmount, 1e18);
+        assertEq(aliceUser.variableCollateralAmount, 0);
         assertEq(usdc.balanceOf(address(size)), 1e6);
 
-        _deposit(alice, address(weth), 2e18);
+        _depositVariable(alice, address(weth), 2e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, 1e18);
-        assertEq(aliceUser.fixedCollateralAmount, 2e18);
+        assertEq(aliceUser.scaledBorrowAmount, 1e18);
+        assertEq(aliceUser.variableCollateralAmount, 2e18);
         assertEq(weth.balanceOf(address(size)), 2e18);
     }
 
@@ -24,16 +23,16 @@ contract DepositVariableTest is BaseTest {
         x = bound(x, 1, type(uint128).max);
         y = bound(y, 1, type(uint128).max);
 
-        _deposit(alice, address(usdc), x);
+        _depositVariable(alice, address(usdc), x);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, x * 10 ** (18 - usdc.decimals()));
-        assertEq(aliceUser.fixedCollateralAmount, 0);
+        assertEq(aliceUser.scaledBorrowAmount, x * 10 ** (18 - usdc.decimals()));
+        assertEq(aliceUser.variableCollateralAmount, 0);
         assertEq(usdc.balanceOf(address(size)), x);
 
-        _deposit(alice, address(weth), y);
+        _depositVariable(alice, address(weth), y);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, x * 10 ** (18 - usdc.decimals()));
-        assertEq(aliceUser.fixedCollateralAmount, y * 10 ** (18 - weth.decimals()));
+        assertEq(aliceUser.scaledBorrowAmount, x * 10 ** (18 - usdc.decimals()));
+        assertEq(aliceUser.variableCollateralAmount, y * 10 ** (18 - weth.decimals()));
         assertEq(weth.balanceOf(address(size)), y);
     }
 }

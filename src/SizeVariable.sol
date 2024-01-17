@@ -10,8 +10,9 @@ import {WithdrawVariable, WithdrawVariableParams} from "@src/libraries/variable/
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 import {ISizeVariable} from "@src/interfaces/ISizeVariable.sol";
+import {IVariablePool} from "@src/interfaces/IVariablePool.sol";
 
-abstract contract SizeVariable is ISizeVariable, SizeStorage {
+abstract contract SizeVariable is ISizeVariable, IVariablePool, SizeStorage {
     using DepositVariable for State;
     using WithdrawVariable for State;
     using BorrowVariable for State;
@@ -40,5 +41,10 @@ abstract contract SizeVariable is ISizeVariable, SizeStorage {
     function repayVariable(RepayVariableParams calldata params) external override(ISizeVariable) {
         state.validateRepayVariable(params);
         state.executeRepayVariable(params);
+    }
+
+    /// @inheritdoc IVariablePool
+    function getReserveNormalizedIncome() external view override(IVariablePool) returns (uint256) {
+        return state.getReserveNormalizedIncome();
     }
 }

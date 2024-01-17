@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {UserView} from "@src/SizeView.sol";
 import {RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
 import {Deploy} from "@test/Deploy.sol";
 
 abstract contract BeforeAfter is Deploy {

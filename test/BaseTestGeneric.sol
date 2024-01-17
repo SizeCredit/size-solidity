@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
+import {UserView} from "@src/SizeView.sol";
 
 import {Deploy} from "./Deploy.sol";
 

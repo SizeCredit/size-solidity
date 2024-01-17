@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
+import {UserView} from "@src/SizeView.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneric.sol";
 

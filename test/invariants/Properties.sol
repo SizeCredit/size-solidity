@@ -6,8 +6,9 @@ import {console2 as console} from "forge-std/console2.sol";
 import {BeforeAfter} from "./BeforeAfter.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
+
+import {UserView} from "@src/SizeView.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
 
 import {RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
