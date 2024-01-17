@@ -30,7 +30,7 @@ contract MoveToVariablePoolTest is BaseTest {
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
 
         uint256 assignedCollateral =
-            Math.mulDivDown(_before.bob.collateralAmount, loanBefore.faceValue, _before.bob.debtAmount);
+            Math.mulDivDown(_before.bob.fixedCollateralAmount, loanBefore.faceValue, _before.bob.debtAmount);
 
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
 
@@ -42,7 +42,7 @@ contract MoveToVariablePoolTest is BaseTest {
         assertEq(_after.alice, _before.alice);
         assertEq(loansBefore, loansAfter);
         // assertEq(variableFixedLoansAfter, variableFixedLoansBefore + 1);
-        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - assignedCollateral);
+        assertEq(_after.bob.fixedCollateralAmount, _before.bob.fixedCollateralAmount - assignedCollateral);
         assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount + assignedCollateral);
         assertTrue(!loanBefore.repaid);
         assertTrue(loanAfter.repaid);

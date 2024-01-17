@@ -44,7 +44,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         FixedLoanOffer memory offerAfter = size.getUserView(alice).user.loanOffer;
 
-        assertGt(_before.bob.collateralAmount, minimumCollateral);
+        assertGt(_before.bob.fixedCollateralAmount, minimumCollateral);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount + amount);
         assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
@@ -80,7 +80,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         FixedLoanOffer memory offerAfter = size.getUserView(alice).user.loanOffer;
 
-        assertGt(_before.bob.collateralAmount, minimumCollateral);
+        assertGt(_before.bob.fixedCollateralAmount, minimumCollateral);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount + amount);
         assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
@@ -173,7 +173,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 faceValueOpening = Math.mulDivUp(faceValue, size.config().crOpening, PERCENT);
         uint256 minimumCollateral = Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
-        assertGt(_before.bob.collateralAmount, minimumCollateral);
+        assertGt(_before.bob.fixedCollateralAmount, minimumCollateral);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
         assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
         assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
@@ -216,7 +216,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 minimumCollateralAmount =
             Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
-        assertGt(_before.bob.collateralAmount, minimumCollateralAmount);
+        assertGt(_before.bob.fixedCollateralAmount, minimumCollateralAmount);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
         assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
         assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);

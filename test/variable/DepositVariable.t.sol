@@ -5,8 +5,8 @@ import {UserView} from "@src/libraries/fixed/UserLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneric.sol";
 
-contract DepositTest is BaseTest {
-    function test_Deposit_deposit_increases_user_balance() public {
+contract DepositVariableTest is BaseTest {
+    function test_DepositVariable_deposit_increases_user_balance() public {
         _deposit(alice, address(usdc), 1e6);
         UserView memory aliceUser = size.getUserView(alice);
         assertEq(aliceUser.borrowAmount, 1e18);
@@ -20,7 +20,7 @@ contract DepositTest is BaseTest {
         assertEq(weth.balanceOf(address(size)), 2e18);
     }
 
-    function testFuzz_Deposit_deposit_increases_user_balance(uint256 x, uint256 y) public {
+    function testFuzz_DepositVariable_deposit_increases_user_balance(uint256 x, uint256 y) public {
         x = bound(x, 1, type(uint128).max);
         y = bound(y, 1, type(uint128).max);
 

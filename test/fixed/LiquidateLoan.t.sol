@@ -60,19 +60,21 @@ contract LiquidateFixedLoanTest is BaseTest {
         uint256 collateralPremiumToBorrower =
             PERCENT - size.config().collateralPremiumToProtocol - size.config().collateralPremiumToLiquidator;
         assertEq(
-            _after.bob.collateralAmount,
-            _before.bob.collateralAmount - (debt * 5)
+            _after.bob.fixedCollateralAmount,
+            _before.bob.fixedCollateralAmount - (debt * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
                     (size.config().collateralPremiumToProtocol + size.config().collateralPremiumToLiquidator),
                     PERCENT
                 ),
-            _before.bob.collateralAmount - (debt * 5) - collateralRemainder
+            _before.bob.fixedCollateralAmount - (debt * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
         uint256 liquidatorProfitAmount =
             (debt * 5) + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToLiquidator, PERCENT);
-        assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount + liquidatorProfitAmount);
+        assertEq(
+            _after.liquidator.fixedCollateralAmount, _before.liquidator.fixedCollateralAmount + liquidatorProfitAmount
+        );
         assertEq(liquidatorProfit, liquidatorProfitAmount);
     }
 
@@ -148,6 +150,6 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(feeRecipientBorrowAssetBefore, feeRecipientBorrowAssetAfter, 0);
         assertEq(feeRecipientCollateralAssetBefore, feeRecipientCollateralAssetAfter, 0);
         assertEq(size.getFOLAssignedCollateral(loanId), 0);
-        assertEq(size.getUserView(bob).collateralAmount, 0);
+        assertEq(size.getUserView(bob).fixedCollateralAmount, 0);
     }
 }

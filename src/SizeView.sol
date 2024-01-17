@@ -59,9 +59,12 @@ abstract contract SizeView is SizeStorage {
         return UserView({
             user: state._fixed.users[user],
             account: user,
-            collateralAmount: state._fixed.collateralToken.balanceOf(user),
+            fixedCollateralAmount: state._fixed.collateralToken.balanceOf(user),
             borrowAmount: state._fixed.borrowToken.balanceOf(user),
-            debtAmount: state._fixed.debtToken.balanceOf(user)
+            debtAmount: state._fixed.debtToken.balanceOf(user),
+            variableCollateralAmount: state._variable.collateralToken.balanceOf(user),
+            scaledBorrowAmount: state._variable.scaledBorrowToken.balanceOf(user),
+            scaledDebtAmount: state._variable.scaledDebtToken.balanceOf(user)
         });
     }
 
