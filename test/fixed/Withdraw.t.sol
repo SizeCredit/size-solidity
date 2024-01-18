@@ -126,7 +126,7 @@ contract WithdrawTest is BaseTest {
         assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
         assertEq(weth.balanceOf(address(alice)), beforeWETH);
 
-        _withdraw(bob, weth, type(uint256).max);
+        _withdraw(alice, weth, type(uint256).max);
         assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
         assertEq(weth.balanceOf(address(alice)), beforeWETH);
 
@@ -134,7 +134,7 @@ contract WithdrawTest is BaseTest {
         assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
         assertEq(weth.balanceOf(address(alice)), beforeWETH);
 
-        _withdraw(bob, weth, 1);
+        _withdraw(alice, weth, 1);
         assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
         assertEq(weth.balanceOf(address(alice)), beforeWETH);
 
