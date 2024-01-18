@@ -109,10 +109,17 @@ Size V2 Solidity
 ## TODO before audit
 
 - add more invariants
+- add ACLUpgradeable & add PAUSER_ROLE
 - review all input validation functions
 - review internal vs external libs and gas
 - gas optimize 80/20
 - natspec
+
+## TODO before mainnet
+
+- monitoring
+- pause
+- incident response
 
 ## Gas optimizations
 

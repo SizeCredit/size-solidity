@@ -115,6 +115,33 @@ contract WithdrawTest is BaseTest {
         assertEq(afterWETH, 150e18);
     }
 
+    function test_Withdraw_withdraw_everything_without_depositing() public {
+        uint256 beforeUSDC = usdc.balanceOf(address(alice));
+        uint256 beforeWETH = weth.balanceOf(address(alice));
+
+        assertEq(beforeUSDC, 0);
+        assertEq(beforeWETH, 0);
+
+        _withdraw(alice, usdc, type(uint256).max);
+        assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
+        assertEq(weth.balanceOf(address(alice)), beforeWETH);
+
+        _withdraw(bob, weth, type(uint256).max);
+        assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
+        assertEq(weth.balanceOf(address(alice)), beforeWETH);
+
+        _withdraw(alice, usdc, 1);
+        assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
+        assertEq(weth.balanceOf(address(alice)), beforeWETH);
+
+        _withdraw(bob, weth, 1);
+        assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
+        assertEq(weth.balanceOf(address(alice)), beforeWETH);
+
+        assertEq(usdc.balanceOf(address(alice)), 0);
+        assertEq(weth.balanceOf(address(alice)), 0);
+    }
+
     function test_Withdraw_withdraw_everything_may_leave_dust_due_to_wad_conversion() public {
         _setPrice(1e18);
         uint256 liquidatorAmount = 10_000e6;
