@@ -96,6 +96,11 @@ Size V2 Solidity
 ## TODO before testnet
 
 - variable
+  - fix update reservers logic on borrow
+  - vp borrow tests
+  - vp scaledtokens tests
+  - vp repay
+  - add aave tests
   - correctly round wad/ray math
   - vp liquidation
   - add support for withdrawVariable
