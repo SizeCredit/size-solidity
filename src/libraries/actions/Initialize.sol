@@ -19,9 +19,6 @@ struct InitializeParams {
     address priceFeed;
     address collateralAsset;
     address borrowAsset;
-    address collateralToken;
-    address borrowToken;
-    address debtToken;
     address variablePool;
     address feeRecipient;
 }
@@ -49,21 +46,6 @@ library Initialize {
 
         // validate borrow asset
         if (params.borrowAsset == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
-        // validate collateral token
-        if (params.collateralToken == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
-        // validate borrow token
-        if (params.borrowToken == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
-        // validate debt token
-        if (params.debtToken == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
@@ -121,14 +103,16 @@ library Initialize {
         InitializeParams memory params,
         InitializeExtraParams memory extraParams
     ) external {
+        state.f.collateralToken = new CollateralToken(address(this), "Size ETH", "szETH");
+        state.f.borrowToken = new BorrowToken(address(this), "Size USDC", "szUSDC");
+        state.f.debtToken = new DebtToken(address(this), "Size Debt", "szDebt");
+
         state.g.collateralAsset = IERC20Metadata(params.collateralAsset);
         state.g.borrowAsset = IERC20Metadata(params.borrowAsset);
-        state.f.collateralToken = CollateralToken(params.collateralToken);
-        state.f.borrowToken = BorrowToken(params.borrowToken);
-        state.f.debtToken = DebtToken(params.debtToken);
         state.g.variablePool = params.variablePool;
         state.g.priceFeed = IPriceFeed(params.priceFeed);
         state.g.feeRecipient = params.feeRecipient;
+
         state.f.crOpening = extraParams.crOpening;
         state.f.crLiquidation = extraParams.crLiquidation;
         state.f.collateralPremiumToLiquidator = extraParams.collateralPremiumToLiquidator;

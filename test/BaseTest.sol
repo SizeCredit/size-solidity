@@ -18,7 +18,6 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {DebtToken} from "@src/token/DebtToken.sol";
@@ -338,10 +337,10 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vars.candy = size.getUserView(candy);
         vars.james = size.getUserView(james);
         vars.liquidator = size.getUserView(liquidator);
-        vars.protocolCollateralAmount = collateralToken.balanceOf(variablePool);
-        vars.protocolBorrowAmount = borrowToken.balanceOf(variablePool);
-        vars.feeRecipientCollateralAmount = collateralToken.balanceOf(feeRecipient);
-        vars.feeRecipientBorrowAmount = borrowToken.balanceOf(feeRecipient);
+        vars.protocolCollateralAmount = size.getUserView(variablePool).collateralAmount;
+        vars.protocolBorrowAmount = size.getUserView(variablePool).borrowAmount;
+        vars.feeRecipientCollateralAmount = size.getUserView(feeRecipient).collateralAmount;
+        vars.feeRecipientBorrowAmount = size.getUserView(feeRecipient).borrowAmount;
     }
 
     function _setPrice(uint256 price) internal {

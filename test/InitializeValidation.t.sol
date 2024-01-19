@@ -10,9 +10,6 @@ import {BaseTest} from "./BaseTest.sol";
 import {USDC} from "./mocks/USDC.sol";
 import {WETH} from "./mocks/WETH.sol";
 import {Size} from "@src/Size.sol";
-import {BorrowToken} from "@src/token/BorrowToken.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
@@ -39,21 +36,6 @@ contract InitializeValidationTest is Test, BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
         params.borrowAsset = address(usdc);
-
-        params.collateralToken = address(0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.collateralToken = address(collateralToken);
-
-        params.borrowToken = address(0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.borrowToken = address(borrowToken);
-
-        params.debtToken = address(0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (params, extraParams)));
-        params.debtToken = address(debtToken);
 
         params.variablePool = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
