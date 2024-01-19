@@ -26,9 +26,6 @@ struct InitializeGeneralParams {
 }
 
 struct InitializeFixedParams {
-    address collateralToken;
-    address borrowToken;
-    address debtToken;
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 collateralPremiumToLiquidator;
@@ -43,9 +40,6 @@ struct InitializeVariableParams {
     uint256 slope;
     uint256 optimalUR;
     uint256 reserveFactor;
-    address collateralToken;
-    address scaledBorrowToken;
-    address scaledDebtToken;
 }
 
 library Initialize {
@@ -75,21 +69,6 @@ library Initialize {
     }
 
     function _validateInitializeFixedParams(InitializeFixedParams memory f) internal pure {
-        // validate collateral token
-        if (f.collateralToken == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
-        // validate borrow token
-        if (f.borrowToken == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
-        // validate debt token
-        if (f.debtToken == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
         // validate crOpening
         if (f.crOpening < PERCENT) {
             revert Errors.INVALID_COLLATERAL_RATIO(f.crOpening);
@@ -150,21 +129,6 @@ library Initialize {
         }
 
         // TODO validate sum?
-
-        // validate collateralToken
-        if (v.collateralToken == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
-        // validate scaledBorrowToken
-        if (v.scaledBorrowToken == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-
-        // validate scaledDebtToken
-        if (v.scaledDebtToken == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
     }
 
     function validateInitialize(
@@ -187,9 +151,10 @@ library Initialize {
     }
 
     function _executeInitializeFixed(State storage state, InitializeFixedParams memory f) internal {
-        state._fixed.collateralToken = CollateralToken(f.collateralToken);
-        state._fixed.borrowToken = BorrowToken(f.borrowToken);
-        state._fixed.debtToken = DebtToken(f.debtToken);
+        state._fixed.collateralToken = new CollateralToken(address(this), "Size Fixed ETH", "szETH");
+        state._fixed.borrowToken = new BorrowToken(address(this), "Size USDC", "szUSDC");
+        state._fixed.debtToken = new DebtToken(address(this), "Size Debt", "szDebt");
+
         state._fixed.crOpening = f.crOpening;
         state._fixed.crLiquidation = f.crLiquidation;
         state._fixed.collateralPremiumToLiquidator = f.collateralPremiumToLiquidator;
@@ -207,9 +172,10 @@ library Initialize {
         state._variable.indexSupplyRAY = RAY;
         state._variable.indexBorrowRAY = RAY;
         state._variable.lastUpdate = block.timestamp;
-        state._variable.collateralToken = CollateralToken(v.collateralToken);
-        state._variable.scaledBorrowToken = ScaledBorrowToken(v.scaledBorrowToken);
-        state._variable.scaledDebtToken = ScaledDebtToken(v.scaledDebtToken);
+
+        state._variable.collateralToken = new CollateralToken(address(this), "Size Variable ETH", "szvETH");
+        state._variable.scaledBorrowToken = new ScaledBorrowToken(address(this), "Size Variable USDC", "szvUSDC");
+        state._variable.scaledDebtToken = new ScaledDebtToken(address(this), "Size Variable Debt", "szvDebt");
     }
 
     function executeInitialize(

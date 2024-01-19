@@ -41,12 +41,6 @@ abstract contract Deploy {
         priceFeed = new PriceFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
-        fixedCollateralToken = new CollateralToken(owner, "Size Fixed ETH", "szETH");
-        borrowToken = new BorrowToken(owner, "Size USDC", "szUSDC");
-        debtToken = new DebtToken(owner, "Size Debt", "szDebt");
-        variableCollateralToken = new CollateralToken(owner, "Size Variable ETH", "szvETH");
-        scaledBorrowToken = new ScaledBorrowToken(owner, "Size Variable USDC", "szvUSDC");
-        scaledDebtToken = new ScaledDebtToken(owner, "Size Variable Debt", "szvDebt");
         g = InitializeGeneralParams({
             owner: owner,
             priceFeed: address(priceFeed),
@@ -55,9 +49,6 @@ abstract contract Deploy {
             feeRecipient: feeRecipient
         });
         f = InitializeFixedParams({
-            collateralToken: address(fixedCollateralToken),
-            borrowToken: address(borrowToken),
-            debtToken: address(debtToken),
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             collateralPremiumToLiquidator: 0.3e18,
@@ -70,22 +61,40 @@ abstract contract Deploy {
             maxRate: 0.5e18,
             slope: 0.1e18,
             optimalUR: 0.8e18,
-            reserveFactor: 0.1e18,
-            collateralToken: address(variableCollateralToken),
-            scaledBorrowToken: address(scaledBorrowToken),
-            scaledDebtToken: address(scaledDebtToken)
+            reserveFactor: 0.1e18
         });
         proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (g, f, v)));
         size = Size(address(proxy));
 
-        fixedCollateralToken.transferOwnership(address(size));
-        borrowToken.transferOwnership(address(size));
-        debtToken.transferOwnership(address(size));
-
-        variableCollateralToken.transferOwnership(address(size));
-        scaledBorrowToken.transferOwnership(address(size));
-        scaledDebtToken.transferOwnership(address(size));
-
         priceFeed.setPrice(1337e18);
+    }
+
+    function setupChain(address _owner, address _weth, address _usdc) internal {
+        priceFeed = new PriceFeedMock(_owner);
+        g = InitializeGeneralParams({
+            owner: _owner,
+            priceFeed: address(priceFeed),
+            collateralAsset: _weth,
+            borrowAsset: _usdc,
+            feeRecipient: _owner
+        });
+        f = InitializeFixedParams({
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            collateralPremiumToLiquidator: 0.3e18,
+            collateralPremiumToProtocol: 0.1e18,
+            minimumCredit: 5e18
+        });
+        v = InitializeVariableParams({
+            minimumCollateralRatio: 1.5e18,
+            minRate: 0.1e18,
+            maxRate: 0.5e18,
+            slope: 0.1e18,
+            optimalUR: 0.8e18,
+            reserveFactor: 0.1e18
+        });
+        size = new Size();
+        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (g, f, v)));
+        priceFeed.setPrice(2468e18);
     }
 }

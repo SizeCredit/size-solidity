@@ -4,9 +4,9 @@ pragma solidity ^0.8.19;
 import {Script} from "forge-std/Script.sol";
 import {Vm} from "forge-std/Vm.sol";
 
-contract BaseScript is Script {
-    error InvalidChain();
-    error InvalidPrivateKey(string);
+abstract contract BaseScript is Script {
+    error InvalidChainId(uint256 chainid);
+    error InvalidPrivateKey(string privateKey);
 
     struct Deployment {
         string name;
@@ -16,6 +16,14 @@ contract BaseScript is Script {
     string root;
     string path;
     Deployment[] public deployments;
+
+    string chainName = "sepolia";
+
+    modifier broadcast() {
+        vm.startBroadcast();
+        _;
+        vm.stopBroadcast();
+    }
 
     function setupLocalhostEnv(uint32 index) internal returns (uint256 localhostPrivateKey) {
         if (block.chainid == 31337) {
@@ -43,14 +51,14 @@ contract BaseScript is Script {
             vm.serializeString(jsonWrite, vm.toString(deployments[i].addr), deployments[i].name);
         }
 
-        string memory chainName;
+        string memory networkName;
 
         try this.getChain() returns (Chain memory chain) {
-            chainName = chain.name;
+            networkName = chain.name;
         } catch {
-            chainName = findChainName();
+            networkName = findChainName();
         }
-        jsonWrite = vm.serializeString(jsonWrite, "networkName", chainName);
+        jsonWrite = vm.serializeString(jsonWrite, "networkName", networkName);
         vm.writeJson(jsonWrite, path);
     }
 
@@ -70,6 +78,6 @@ contract BaseScript is Script {
                 continue;
             }
         }
-        revert InvalidChain();
+        revert InvalidChainId(thisChainId);
     }
 }

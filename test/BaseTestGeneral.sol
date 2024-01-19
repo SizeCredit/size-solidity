@@ -55,10 +55,10 @@ abstract contract BaseTestGeneral is Test, Deploy {
         vars.candy = size.getUserView(candy);
         vars.james = size.getUserView(james);
         vars.liquidator = size.getUserView(liquidator);
-        vars.protocolCollateralAmount = fixedCollateralToken.balanceOf(address(size));
-        vars.protocolBorrowAmount = borrowToken.balanceOf(address(size));
-        vars.feeRecipientCollateralAmount = fixedCollateralToken.balanceOf(feeRecipient);
-        vars.feeRecipientBorrowAmount = borrowToken.balanceOf(feeRecipient);
+        vars.protocolCollateralAmount = size.getUserView(address(size)).fixedCollateralAmount;
+        vars.protocolBorrowAmount = size.getUserView(address(size)).borrowAmount;
+        vars.feeRecipientCollateralAmount = size.getUserView(feeRecipient).fixedCollateralAmount;
+        vars.feeRecipientBorrowAmount = size.getUserView(feeRecipient).borrowAmount;
     }
 
     function _setPrice(uint256 price) internal {

@@ -1,19 +1,23 @@
 [profile.default]
-src = "src"
-out = "out"
-libs = ["lib"]
-fs_permissions = [{access = "read-write", path = "./deployments"}]
-no_match_contract = 'CryticTester|Handler'
+  src = "src"
+  out = "out"
+  libs = ["lib"]
+  fs_permissions = [{access = "read-write", path = "./deployments"}]
+  no_match_contract = 'CryticTester|Handler'
 
 [invariant]
-runs = 1000
-fail_on_revert = false
+  runs = 1000
+  fail_on_revert = false
 
 [rpc_endpoints]
-anvil = "http://127.0.0.1:8545"
+  sepolia = "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+  anvil = "http://127.0.0.1:8545"
+
+[etherscan]
+  sepolia = { key = "${API_KEY_ETHERSCAN}" }
 
 [fmt]
-sort_imports = true
-line_length = 120
+  sort_imports = true
+  line_length = 120
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

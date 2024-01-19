@@ -5,6 +5,10 @@ import {SizeStorage, State} from "@src/SizeStorage.sol";
 
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
+import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {CollateralToken} from "@src/token/CollateralToken.sol";
+import {DebtToken} from "@src/token/DebtToken.sol";
+
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
@@ -57,9 +61,6 @@ abstract contract SizeView is SizeStorage {
 
     function config() external view returns (InitializeFixedParams memory) {
         return InitializeFixedParams({
-            collateralToken: address(state._fixed.collateralToken),
-            borrowToken: address(state._fixed.borrowToken),
-            debtToken: address(state._fixed.debtToken),
             crOpening: state._fixed.crOpening,
             crLiquidation: state._fixed.crLiquidation,
             collateralPremiumToLiquidator: state._fixed.collateralPremiumToLiquidator,
@@ -117,5 +118,9 @@ abstract contract SizeView is SizeStorage {
             state._fixed.borrowToken.balanceOf(state._general.feeRecipient),
             state._fixed.debtToken.balanceOf(state._general.feeRecipient)
         );
+    }
+
+    function tokens() public view returns (CollateralToken, BorrowToken, DebtToken) {
+        return (state._fixed.collateralToken, state._fixed.borrowToken, state._fixed.debtToken);
     }
 }

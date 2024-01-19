@@ -5,6 +5,9 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {DebtToken} from "@src/token/DebtToken.sol";
+
 import {UserView} from "@src/SizeView.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
@@ -174,6 +177,7 @@ contract WithdrawTest is BaseTest {
         _borrowAsLimitOrder(alice, 100e18, 1e18, 12);
         _lendAsMarketOrder(alice, alice, 100e18, 12);
         _withdraw(alice, usdc, 10e6);
+        (, BorrowToken borrowToken, DebtToken debtToken) = size.tokens();
         assertLt(borrowToken.totalSupply(), debtToken.totalSupply());
     }
 }
