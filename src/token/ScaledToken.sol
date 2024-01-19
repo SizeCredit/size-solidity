@@ -10,15 +10,15 @@ import {WadRayMath} from "@src/libraries/variable/WadRayMathLibrary.sol";
 
 // @audit Check maximum amount of minted tokens and analyse required TVL before it overflows
 /// @dev ScaledToken is a token that is scaled by a liquidity index
-/// @notice A scaled amount is an unscaled amount divided by the liquidity index
+/// @notice A scaled amount is an unscaled (underlying) amount divided by the liquidity index at the moment of the update
 contract ScaledToken is NonTransferrableToken {
     // solhint-disable-next-line no-empty-blocks
     constructor(address owner_, string memory name_, string memory symbol_)
         NonTransferrableToken(owner_, name_, symbol_)
     {}
 
-    /// @dev The scaled balance is the sum of all the updated stored balance divided by the reserve's liquidity index
-    /// at the moment of the update
+    /// @dev The scaled balance is the sum of all the underlying asset of the user (amount deposited) divided by the reserve's liquidity index at the moment of the update
+    /// @notice This essentially 'marks' when a user has deposited in the reserve pool, and can be used to calculate the users current compounded balance.
     /// @param user The address of the user
     /// @return The scaled balance of the user
     function scaledBalanceOf(address user) external view returns (uint256) {
@@ -35,17 +35,17 @@ contract ScaledToken is NonTransferrableToken {
     /// @param user The address of the user
     /// @param rounding rounding direction
     function _balanceOf(address user, Rounding rounding) internal view returns (uint256) {
-        uint256 scaledBalance = super.balanceOf(user);
-        uint256 indexRAY = IVariablePool(owner()).getReserveNormalizedIncomeRAY();
-        return WadRayMath.rayMul(scaledBalance, indexRAY, rounding);
+        uint256 _scaledBalance = super.balanceOf(user);
+        uint256 _indexRAY = IVariablePool(owner()).getReserveNormalizedIncomeRAY();
+        return WadRayMath.rayMul(_scaledBalance, _indexRAY, rounding);
     }
 
     /// @dev Returns the UNSCALED total supply of the token
     /// @param rounding rounding direction
     function _totalSupply(Rounding rounding) internal view returns (uint256) {
-        uint256 scaledTotalSupply = super.totalSupply();
-        uint256 indexRAY = IVariablePool(owner()).getReserveNormalizedIncomeRAY();
-        return WadRayMath.rayMul(scaledTotalSupply, indexRAY, rounding);
+        uint256 _scaledTotalSupply = super.totalSupply();
+        uint256 _indexRAY = IVariablePool(owner()).getReserveNormalizedIncomeRAY();
+        return WadRayMath.rayMul(_scaledTotalSupply, _indexRAY, rounding);
     }
 
     /// @dev Mints a scaled amount of tokens to the user

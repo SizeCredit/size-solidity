@@ -8,7 +8,8 @@ contract ScaledDebtToken is ScaledToken {
     // solhint-disable-next-line no-empty-blocks
     constructor(address owner_, string memory name_, string memory symbol_) ScaledToken(owner_, name_, symbol_) {}
 
-    /// @dev Returns the UNSCALED balance of the user, rounding UP
+    /// @dev Returns the UNSCALED debt of the user, rounding UP
+    /// @notice The UNSCALED debt of the user includes their principal debt + the interest to be paid by the principal debt
     /// @param user The address of the user
     function balanceOf(address user) public view virtual override returns (uint256) {
         return _balanceOf(user, Rounding.UP);

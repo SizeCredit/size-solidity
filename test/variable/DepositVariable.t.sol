@@ -9,12 +9,14 @@ contract DepositVariableTest is BaseTest {
         _depositVariable(alice, address(usdc), 1e6);
         UserView memory aliceUser = size.getUserView(alice);
         assertEq(aliceUser.variableBorrowAmount, 1e18);
+        assertEq(aliceUser.scaledBorrowAmount, 1e18);
         assertEq(aliceUser.variableCollateralAmount, 0);
         assertEq(usdc.balanceOf(address(size)), 1e6);
 
         _depositVariable(alice, address(weth), 2e18);
         aliceUser = size.getUserView(alice);
         assertEq(aliceUser.variableBorrowAmount, 1e18);
+        assertEq(aliceUser.scaledBorrowAmount, 1e18);
         assertEq(aliceUser.variableCollateralAmount, 2e18);
         assertEq(weth.balanceOf(address(size)), 2e18);
     }
@@ -23,12 +25,14 @@ contract DepositVariableTest is BaseTest {
         _depositVariable(alice, address(usdc), 1e6);
         UserView memory aliceUser = size.getUserView(alice);
         assertEq(aliceUser.variableBorrowAmount, 1e18);
+        assertEq(aliceUser.scaledBorrowAmount, 1e18);
         assertEq(aliceUser.variableCollateralAmount, 0);
         assertEq(usdc.balanceOf(address(size)), 1e6);
 
         vm.warp(block.timestamp + 1 days);
         aliceUser = size.getUserView(alice);
         assertGt(aliceUser.variableBorrowAmount, 1e18);
+        assertEq(aliceUser.scaledBorrowAmount, 1e18);
         assertEq(aliceUser.variableCollateralAmount, 0);
         assertEq(usdc.balanceOf(address(size)), 1e6);
         uint256 variableBorrowAmount = aliceUser.variableBorrowAmount;
@@ -36,6 +40,7 @@ contract DepositVariableTest is BaseTest {
         _depositVariable(alice, address(weth), 2e18);
         aliceUser = size.getUserView(alice);
         assertEq(aliceUser.variableBorrowAmount, variableBorrowAmount);
+        assertEq(aliceUser.scaledBorrowAmount, 1e18);
         assertEq(aliceUser.variableCollateralAmount, 2e18);
         assertEq(weth.balanceOf(address(size)), 2e18);
         variableBorrowAmount = aliceUser.variableBorrowAmount;
@@ -43,6 +48,7 @@ contract DepositVariableTest is BaseTest {
         vm.warp(block.timestamp + 1 days);
         aliceUser = size.getUserView(alice);
         assertGt(aliceUser.variableBorrowAmount, variableBorrowAmount);
+        assertEq(aliceUser.scaledBorrowAmount, 1e18);
         assertEq(aliceUser.variableCollateralAmount, 2e18);
         assertEq(weth.balanceOf(address(size)), 2e18);
     }
@@ -54,12 +60,14 @@ contract DepositVariableTest is BaseTest {
         _depositVariable(alice, address(usdc), x);
         UserView memory aliceUser = size.getUserView(alice);
         assertEq(aliceUser.variableBorrowAmount, x * 10 ** (18 - usdc.decimals()));
+        assertEq(aliceUser.scaledBorrowAmount, x * 10 ** (18 - usdc.decimals()));
         assertEq(aliceUser.variableCollateralAmount, 0);
         assertEq(usdc.balanceOf(address(size)), x);
 
         _depositVariable(alice, address(weth), y);
         aliceUser = size.getUserView(alice);
         assertEq(aliceUser.variableBorrowAmount, x * 10 ** (18 - usdc.decimals()));
+        assertEq(aliceUser.scaledBorrowAmount, x * 10 ** (18 - usdc.decimals()));
         assertEq(aliceUser.variableCollateralAmount, y * 10 ** (18 - weth.decimals()));
         assertEq(weth.balanceOf(address(size)), y);
     }
@@ -76,6 +84,7 @@ contract DepositVariableTest is BaseTest {
         _depositVariable(alice, address(usdc), x);
         UserView memory aliceUser = size.getUserView(alice);
         assertEq(aliceUser.variableBorrowAmount, x * 10 ** (18 - usdc.decimals()));
+        assertEq(aliceUser.scaledBorrowAmount, x * 10 ** (18 - usdc.decimals()));
         assertEq(aliceUser.variableCollateralAmount, 0);
         assertEq(usdc.balanceOf(address(size)), x);
         uint256 variableBorrowAmount = aliceUser.variableBorrowAmount;
@@ -83,6 +92,7 @@ contract DepositVariableTest is BaseTest {
         vm.warp(block.timestamp + interval);
         aliceUser = size.getUserView(alice);
         assertGt(aliceUser.variableBorrowAmount, variableBorrowAmount);
+        assertEq(aliceUser.scaledBorrowAmount, x * 10 ** (18 - usdc.decimals()));
         assertEq(aliceUser.variableCollateralAmount, 0);
         assertEq(usdc.balanceOf(address(size)), x);
         variableBorrowAmount = aliceUser.variableBorrowAmount;
@@ -90,6 +100,7 @@ contract DepositVariableTest is BaseTest {
         _depositVariable(alice, address(weth), y);
         aliceUser = size.getUserView(alice);
         assertEq(aliceUser.variableBorrowAmount, variableBorrowAmount);
+        assertEq(aliceUser.scaledBorrowAmount, x * 10 ** (18 - usdc.decimals()));
         assertEq(aliceUser.variableCollateralAmount, y * 10 ** (18 - weth.decimals()));
         assertEq(weth.balanceOf(address(size)), y);
         variableBorrowAmount = aliceUser.variableBorrowAmount;
@@ -97,6 +108,7 @@ contract DepositVariableTest is BaseTest {
         vm.warp(block.timestamp + interval);
         aliceUser = size.getUserView(alice);
         assertGt(aliceUser.variableBorrowAmount, variableBorrowAmount);
+        assertEq(aliceUser.scaledBorrowAmount, x * 10 ** (18 - usdc.decimals()));
         assertEq(aliceUser.variableCollateralAmount, y * 10 ** (18 - weth.decimals()));
         assertEq(weth.balanceOf(address(size)), y);
     }
