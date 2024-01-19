@@ -95,31 +95,30 @@ Size V2 Solidity
 ## TODO before testnet
 
 - variable
-  - use RAY for index calcs
-  - vp tests
+  - correctly round wad/ray math
   - vp liquidation
-  - caps
-  - full withdrawvariable
+  - add support for withdrawVariable
 - fixed
-  - test for dueDate NOW
-  - origination fee & loan fee
+  - test for dueDate==NOW
+  - add origination fee & loan fee
 - general
-  - events tests
+  - add invariant tests to the CI
+  - add caps for everything
+  - test events
+  - add ACLUpgradeable & add PAUSER_ROLE
 
 ## TODO before audit
 
 - add more invariants
-- add ACLUpgradeable & add PAUSER_ROLE
 - review all input validation functions
-- review internal vs external libs and gas
-- gas optimize 80/20
-- natspec
+- review internal vs external libs and gas costs
+- gas optimize the 80/20 rule
+- add natspec
 
 ## TODO before mainnet
 
 - monitoring
-- pause
-- incident response
+- incident response plan
 
 ## Gas optimizations
 
