@@ -18,18 +18,15 @@ contract DeployScript is BaseScript, Addresses, Deploy {
 
     function setUp() public {}
 
-    function run() public {
+    function run() public broadcast {
         console.log("[Size v2] deploying...");
         uint256 deployerPk = setupLocalhostEnv(0);
         address deployer = vm.addr(deployerPk);
-        string memory chain = findChainName();
 
-        console.log("[Size v2] chain\t", chain);
+        console.log("[Size v2] chain\t", chainName);
         console.log("[Size v2] owner\t", deployer);
 
-        vm.startBroadcast(deployerPk);
-        setupChain(deployer, addresses(chain).weth, addresses(chain).usdc);
-        vm.stopBroadcast();
+        setupChain(deployer, addresses(chainName).weth, addresses(chainName).usdc);
 
         console.log("[Size v2] deployed");
         console.log("[Size v2] proxy\t", address(proxy));

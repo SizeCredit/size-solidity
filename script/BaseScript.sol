@@ -17,6 +17,14 @@ abstract contract BaseScript is Script {
     string path;
     Deployment[] public deployments;
 
+    string chainName = "sepolia";
+
+    modifier broadcast() {
+        vm.startBroadcast();
+        _;
+        vm.stopBroadcast();
+    }
+
     function setupLocalhostEnv(uint32 index) internal returns (uint256 localhostPrivateKey) {
         if (block.chainid == 31337) {
             root = vm.projectRoot();

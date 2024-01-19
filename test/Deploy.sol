@@ -71,7 +71,6 @@ abstract contract Deploy {
         });
         size = new Size();
         proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (params, extraParams)));
-
-        // priceFeed.setPrice(2468e18);
+        priceFeed.setPrice(2468e18);
     }
 }
