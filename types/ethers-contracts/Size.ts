@@ -252,17 +252,11 @@ export type InitializeParamsStruct = {
   priceFeed: string;
   collateralAsset: string;
   borrowAsset: string;
-  collateralToken: string;
-  borrowToken: string;
-  debtToken: string;
   variablePool: string;
   feeRecipient: string;
 };
 
 export type InitializeParamsStructOutput = [
-  string,
-  string,
-  string,
   string,
   string,
   string,
@@ -274,9 +268,6 @@ export type InitializeParamsStructOutput = [
   priceFeed: string;
   collateralAsset: string;
   borrowAsset: string;
-  collateralToken: string;
-  borrowToken: string;
-  debtToken: string;
   variablePool: string;
   feeRecipient: string;
 };
@@ -466,7 +457,7 @@ export interface SizeInterface extends utils.Interface {
     "getFixedLoans()": FunctionFragment;
     "getUserView(address)": FunctionFragment;
     "getVariablePool()": FunctionFragment;
-    "initialize((address,address,address,address,address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
+    "initialize((address,address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
     "isFOL(uint256)": FunctionFragment;
     "isLiquidatable(address)": FunctionFragment;
     "isLiquidatable(uint256)": FunctionFragment;
@@ -483,6 +474,7 @@ export interface SizeInterface extends utils.Interface {
     "repay((uint256,uint256))": FunctionFragment;
     "selfLiquidateFixedLoan((uint256))": FunctionFragment;
     "state()": FunctionFragment;
+    "tokens()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "updateConfig((bytes32,uint256))": FunctionFragment;
     "upgradeToAndCall(address,bytes)": FunctionFragment;
@@ -530,6 +522,7 @@ export interface SizeInterface extends utils.Interface {
       | "repay"
       | "selfLiquidateFixedLoan"
       | "state"
+      | "tokens"
       | "transferOwnership"
       | "updateConfig"
       | "upgradeToAndCall"
@@ -674,6 +667,7 @@ export interface SizeInterface extends utils.Interface {
     values: [SelfLiquidateFixedLoanParamsStruct]
   ): string;
   encodeFunctionData(functionFragment: "state", values?: undefined): string;
+  encodeFunctionData(functionFragment: "tokens", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
@@ -808,6 +802,7 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "state", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "tokens", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
@@ -1069,6 +1064,8 @@ export interface Size extends BaseContract {
       }
     >;
 
+    tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string }
@@ -1252,6 +1249,8 @@ export interface Size extends BaseContract {
     }
   >;
 
+  tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
+
   transferOwnership(
     newOwner: string,
     overrides?: Overrides & { from?: string }
@@ -1432,6 +1431,8 @@ export interface Size extends BaseContract {
         v: VariableStructOutput;
       }
     >;
+
+    tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
 
     transferOwnership(
       newOwner: string,
@@ -1634,6 +1635,8 @@ export interface Size extends BaseContract {
 
     state(overrides?: CallOverrides): Promise<BigNumber>;
 
+    tokens(overrides?: CallOverrides): Promise<BigNumber>;
+
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string }
@@ -1818,6 +1821,8 @@ export interface Size extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     state(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,
