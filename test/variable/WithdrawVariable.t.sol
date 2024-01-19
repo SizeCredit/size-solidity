@@ -18,21 +18,21 @@ contract WithdrawVariableTest is BaseTest {
         _depositVariable(alice, address(usdc), 12e6);
         _depositVariable(alice, address(weth), 23e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.scaledBorrowAmount, 12e18);
+        assertEq(aliceUser.variableBorrowAmount, 12e18);
         assertEq(aliceUser.variableCollateralAmount, 23e18);
 
         _withdrawVariable(alice, address(usdc), 9e6);
         _withdrawVariable(alice, address(weth), 7e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.scaledBorrowAmount, 3e18);
+        assertEq(aliceUser.variableBorrowAmount, 3e18);
         assertEq(aliceUser.variableCollateralAmount, 16e18);
     }
 
-    function test_WithdrawVariable_withdrawVariable_decreases_user_balance_pass_time() public {
+    function test_WithdrawVariable_withdrawVariable_decreases_user_balance_time() public {
         _depositVariable(alice, address(usdc), 12e6);
         _depositVariable(alice, address(weth), 23e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.scaledBorrowAmount, 12e18);
+        assertEq(aliceUser.variableBorrowAmount, 12e18);
         assertEq(aliceUser.variableCollateralAmount, 23e18);
 
         vm.warp(block.timestamp + 1 days);
@@ -40,7 +40,7 @@ contract WithdrawVariableTest is BaseTest {
         _withdrawVariable(alice, address(usdc), 9e6);
         _withdrawVariable(alice, address(weth), 7e18);
         aliceUser = size.getUserView(alice);
-        assertGt(aliceUser.scaledBorrowAmount, 3e18);
+        assertGt(aliceUser.variableBorrowAmount, 3e18);
         assertEq(aliceUser.variableCollateralAmount, 16e18);
     }
 
@@ -58,7 +58,7 @@ contract WithdrawVariableTest is BaseTest {
         _depositVariable(alice, address(usdc), x * 1e6);
         _depositVariable(alice, address(weth), y * 1e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.scaledBorrowAmount, x * 1e18);
+        assertEq(aliceUser.variableBorrowAmount, x * 1e18);
         assertEq(aliceUser.variableCollateralAmount, y * 1e18);
 
         z = bound(z, 1, x);
@@ -67,11 +67,11 @@ contract WithdrawVariableTest is BaseTest {
         _withdrawVariable(alice, address(usdc), z * 1e6);
         _withdrawVariable(alice, address(weth), w * 1e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.scaledBorrowAmount, (x - z) * 1e18);
+        assertEq(aliceUser.variableBorrowAmount, (x - z) * 1e18);
         assertEq(aliceUser.variableCollateralAmount, (y - w) * 1e18);
     }
 
-    function testFuzz_WithdrawVariable_withdrawVariable_decreases_user_balance_pass_time(
+    function testFuzz_WithdrawVariable_withdrawVariable_decreases_user_balance_time(
         uint256 x,
         uint256 y,
         uint256 z,
@@ -87,7 +87,7 @@ contract WithdrawVariableTest is BaseTest {
         _depositVariable(alice, address(usdc), x * 1e6);
         _depositVariable(alice, address(weth), y * 1e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.scaledBorrowAmount, x * 1e18);
+        assertEq(aliceUser.variableBorrowAmount, x * 1e18);
         assertEq(aliceUser.variableCollateralAmount, y * 1e18);
 
         z = bound(z, 1, x);
@@ -97,7 +97,7 @@ contract WithdrawVariableTest is BaseTest {
         _withdrawVariable(alice, address(usdc), z * 1e6);
         _withdrawVariable(alice, address(weth), w * 1e18);
         aliceUser = size.getUserView(alice);
-        assertGt(aliceUser.scaledBorrowAmount, (x - z) * 1e18);
+        assertGt(aliceUser.variableBorrowAmount, (x - z) * 1e18);
         assertEq(aliceUser.variableCollateralAmount, (y - w) * 1e18);
     }
 
@@ -131,7 +131,7 @@ contract WithdrawVariableTest is BaseTest {
         assertEq(weth.balanceOf(address(alice)), valueWETH);
     }
 
-    function testFuzz_WithdrawVariable_depositVariable_withdrawVariable_identity_pass_time(
+    function testFuzz_WithdrawVariable_depositVariable_withdrawVariable_identity_time(
         uint256 valueUSDC,
         uint256 valueWETH,
         uint256 interval
@@ -154,16 +154,16 @@ contract WithdrawVariableTest is BaseTest {
 
         assertEq(usdc.balanceOf(address(size)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), valueWETH);
-        assertEq(size.getUserView(alice).scaledBorrowAmount, valueUSDC * 1e12);
+        assertEq(size.getUserView(alice).variableBorrowAmount, valueUSDC * 1e12);
         assertEq(size.getUserView(alice).variableCollateralAmount, valueWETH);
 
         vm.warp(block.timestamp + interval);
-        assertGt(size.getUserView(alice).scaledBorrowAmount, valueUSDC * 1e12);
+        assertGt(size.getUserView(alice).variableBorrowAmount, valueUSDC * 1e12);
         assertEq(size.getUserView(alice).variableCollateralAmount, valueWETH);
 
         size.withdrawVariable(WithdrawVariableParams({token: address(usdc), amount: valueUSDC}));
         size.withdrawVariable(WithdrawVariableParams({token: address(weth), amount: valueWETH}));
-        assertGt(size.getUserView(alice).scaledBorrowAmount, 0);
+        assertGt(size.getUserView(alice).variableBorrowAmount, 0);
         assertEq(size.getUserView(alice).variableCollateralAmount, 0);
 
         assertEq(usdc.balanceOf(address(size)), 0);
@@ -232,7 +232,7 @@ contract WithdrawVariableTest is BaseTest {
 
         // uint256 a = usdc.balanceOf(liquidator);
         // assertEq(a, liquidatorAmount - debtUSDC);
-        // assertEq(_state().liquidator.scaledBorrowAmount, dust);
-        // assertGt(_state().liquidator.scaledBorrowAmount, 0);
+        // assertEq(_state().liquidator.variableBorrowAmount, dust);
+        // assertGt(_state().liquidator.variableBorrowAmount, 0);
     }
 }

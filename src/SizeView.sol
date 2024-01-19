@@ -17,6 +17,8 @@ struct UserView {
     uint256 borrowAmount;
     uint256 debtAmount;
     uint256 variableCollateralAmount;
+    uint256 variableBorrowAmount;
+    uint256 variableDebtAmount;
     uint256 scaledBorrowAmount;
     uint256 scaledDebtAmount;
 }
@@ -74,8 +76,10 @@ abstract contract SizeView is SizeStorage {
             borrowAmount: state._fixed.borrowToken.balanceOf(user),
             debtAmount: state._fixed.debtToken.balanceOf(user),
             variableCollateralAmount: state._variable.collateralToken.balanceOf(user),
-            scaledBorrowAmount: state._variable.scaledBorrowToken.balanceOf(user),
-            scaledDebtAmount: state._variable.scaledDebtToken.balanceOf(user)
+            variableBorrowAmount: state._variable.scaledBorrowToken.balanceOf(user),
+            variableDebtAmount: state._variable.scaledDebtToken.balanceOf(user),
+            scaledBorrowAmount: state._variable.scaledBorrowToken.scaledBalanceOf(user),
+            scaledDebtAmount: state._variable.scaledDebtToken.scaledBalanceOf(user)
         });
     }
 

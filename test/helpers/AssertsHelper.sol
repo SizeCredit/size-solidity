@@ -26,8 +26,8 @@ abstract contract AssertsHelper is Test {
         assertEq(a.borrowAmount, b.borrowAmount, "borrowAmount");
         assertEq(a.debtAmount, b.debtAmount, "debtAmount");
         assertEq(a.variableCollateralAmount, b.variableCollateralAmount, "variableCollateralAmount");
-        assertEq(a.scaledBorrowAmount, b.scaledBorrowAmount, "scaledBorrowAmount");
-        assertEq(a.scaledDebtAmount, b.scaledDebtAmount, "scaledDebtAmount");
+        assertEq(a.variableBorrowAmount, b.variableBorrowAmount, "variableBorrowAmount");
+        assertEq(a.variableDebtAmount, b.variableDebtAmount, "variableDebtAmount");
     }
 
     function assertEq(uint256 a, uint256 b, uint256 c) internal {

@@ -17,6 +17,20 @@ contract ScaledToken is NonTransferrableToken {
         NonTransferrableToken(owner_, name_, symbol_)
     {}
 
+    /// @dev The scaled balance is the sum of all the updated stored balance divided by the reserve's liquidity index
+    /// at the moment of the update
+    /// @param user The address of the user
+    /// @return The scaled balance of the user
+    function scaledBalanceOf(address user) external view returns (uint256) {
+        return super.balanceOf(user);
+    }
+
+    /// @notice Returns the scaled total supply of the scaled balance token. Represents sum(debt/index)
+    /// @return The scaled total supply
+    function scaledTotalSupply() public view returns (uint256) {
+        return super.totalSupply();
+    }
+
     /// @dev Returns the UNSCALED balance of the user
     /// @param user The address of the user
     /// @param rounding rounding direction
