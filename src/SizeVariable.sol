@@ -28,6 +28,7 @@ abstract contract SizeVariable is ISizeVariable, IVariablePool, SizeStorage {
     function withdrawVariable(WithdrawVariableParams calldata params) external override(ISizeVariable) {
         state.validateWithdrawVariable(params);
         state.executeWithdrawVariable(params);
+        state.validateUserIsNotLiquidatableVariable(msg.sender);
     }
 
     /// @inheritdoc ISizeVariable

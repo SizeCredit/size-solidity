@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneric.sol";
+import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneric.sol";
+import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";

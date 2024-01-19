@@ -10,9 +10,9 @@ import {DepositVariableParams} from "@src/libraries/variable/actions/DepositVari
 import {RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
 import {WithdrawVariableParams} from "@src/libraries/variable/actions/WithdrawVariable.sol";
 
-import {BaseTestGeneric} from "@test/BaseTestGeneric.sol";
+import {BaseTestGeneral} from "@test/BaseTestGeneral.sol";
 
-abstract contract BaseTestVariable is Test, BaseTestGeneric {
+abstract contract BaseTestVariable is Test, BaseTestGeneral {
     function _depositVariable(address user, IERC20Metadata token, uint256 amount) internal {
         _depositVariable(user, address(token), amount);
     }

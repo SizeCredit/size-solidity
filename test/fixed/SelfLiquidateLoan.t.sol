@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneric.sol";
+import {Vars} from "@test/BaseTestGeneral.sol";
 
 contract SelfLiquidateFixedLoanTest is BaseTest {
     function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_rapays_with_collateral() public {

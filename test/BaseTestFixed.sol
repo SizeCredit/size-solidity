@@ -38,9 +38,9 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
-import {BaseTestGeneric} from "@test/BaseTestGeneric.sol";
+import {BaseTestGeneral} from "@test/BaseTestGeneral.sol";
 
-abstract contract BaseTestFixed is Test, BaseTestGeneric {
+abstract contract BaseTestFixed is Test, BaseTestGeneral {
     function _deposit(address user, IERC20Metadata token, uint256 amount) internal {
         _deposit(user, address(token), amount);
     }
