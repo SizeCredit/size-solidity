@@ -10,7 +10,7 @@ Size V2 Solidity
 | File                                                        | % Lines           | % Statements      | % Branches       | % Funcs          |
 |-------------------------------------------------------------|-------------------|-------------------|------------------|------------------|
 | src/Size.sol                                                | 100.00% (41/41)   | 100.00% (41/41)   | 100.00% (0/0)    | 100.00% (17/17)  |
-| src/SizeView.sol                                            | 89.47% (17/19)    | 92.86% (26/28)    | 100.00% (0/0)    | 88.24% (15/17)   |
+| src/SizeView.sol                                            | 90.00% (18/20)    | 93.10% (27/29)    | 100.00% (0/0)    | 88.89% (16/18)   |
 | src/libraries/FixedLoanLibrary.sol                          | 0.00% (0/3)       | 0.00% (0/5)       | 100.00% (0/0)    | 0.00% (0/3)      |
 | src/libraries/MathLibrary.sol                               | 94.74% (18/19)    | 96.77% (30/31)    | 83.33% (5/6)     | 100.00% (7/7)    |
 | src/libraries/OfferLibrary.sol                              | 0.00% (0/6)       | 0.00% (0/18)      | 100.00% (0/0)    | 0.00% (0/4)      |
@@ -22,7 +22,7 @@ Size V2 Solidity
 | src/libraries/actions/Common.sol                            | 100.00% (59/59)   | 98.85% (86/87)    | 95.00% (19/20)   | 81.25% (13/16)   |
 | src/libraries/actions/Compensate.sol                        | 100.00% (21/21)   | 100.00% (26/26)   | 100.00% (12/12)  | 100.00% (2/2)    |
 | src/libraries/actions/Deposit.sol                           | 100.00% (10/10)   | 100.00% (17/17)   | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/libraries/actions/Initialize.sol                        | 100.00% (43/43)   | 100.00% (52/52)   | 100.00% (30/30)  | 100.00% (2/2)    |
+| src/libraries/actions/Initialize.sol                        | 100.00% (37/37)   | 100.00% (43/43)   | 100.00% (24/24)  | 100.00% (2/2)    |
 | src/libraries/actions/LendAsLimitOrder.sol                  | 100.00% (11/11)   | 100.00% (12/12)   | 87.50% (7/8)     | 100.00% (2/2)    |
 | src/libraries/actions/LendAsMarketOrder.sol                 | 96.15% (25/26)    | 96.55% (28/29)    | 80.00% (8/10)    | 100.00% (2/2)    |
 | src/libraries/actions/LiquidateFixedLoan.sol                | 100.00% (33/33)   | 100.00% (39/39)   | 58.33% (7/12)    | 100.00% (2/2)    |
@@ -30,7 +30,7 @@ Size V2 Solidity
 | src/libraries/actions/MoveToVariablePool.sol                | 100.00% (14/14)   | 100.00% (17/17)   | 83.33% (5/6)     | 100.00% (2/2)    |
 | src/libraries/actions/Repay.sol                             | 100.00% (18/18)   | 100.00% (22/22)   | 80.00% (8/10)    | 100.00% (2/2)    |
 | src/libraries/actions/SelfLiquidateFixedLoan.sol            | 100.00% (19/19)   | 100.00% (23/23)   | 75.00% (6/8)     | 100.00% (2/2)    |
-| src/libraries/actions/UpdateConfig.sol                      | 71.43% (15/21)    | 73.91% (17/23)    | 57.14% (8/14)    | 100.00% (2/2)    |
+| src/libraries/actions/UpdateConfig.sol                      | 100.00% (3/3)     | 100.00% (3/3)     | 100.00% (2/2)    | 100.00% (2/2)    |
 | src/libraries/actions/Withdraw.sol                          | 100.00% (14/14)   | 100.00% (25/25)   | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/oracle/PriceFeed.sol                                    | 100.00% (12/12)   | 100.00% (21/21)   | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/token/NonTransferrableToken.sol                         | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (0/0)    | 100.00% (6/6)    |
