@@ -3,6 +3,7 @@
   "description": "Size v2",
   "scripts": {
     "solhint": "solhint \"src/**/*.sol\"  --max-warnings 0",
+    "deploy-sepolia": "forge script script/Deploy.s.sol --rpc-url sepolia",
     "coverage": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*' 'script/*' && genhtml lcov.info -o report --branch-coverage && open report/index.html",
     "typechain": "typechain --target ethers-v5 out/Size.sol/Size.json out/PriceFeed.sol/PriceFeed.json"
   },

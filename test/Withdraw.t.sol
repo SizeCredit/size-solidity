@@ -4,6 +4,8 @@ pragma solidity 0.8.20;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {BaseTest} from "./BaseTest.sol";
+import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
@@ -146,6 +148,7 @@ contract WithdrawTest is BaseTest {
         _borrowAsLimitOrder(alice, 100e18, 1e18, 12);
         _lendAsMarketOrder(alice, alice, 100e18, 12);
         _withdraw(alice, usdc, 10e6);
+        (, BorrowToken borrowToken, DebtToken debtToken) = size.tokens();
         assertLt(borrowToken.totalSupply(), debtToken.totalSupply());
     }
 }

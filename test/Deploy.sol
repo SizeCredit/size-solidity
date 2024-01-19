@@ -18,15 +18,12 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {DebtToken} from "@src/token/DebtToken.sol";
 
-contract Deploy {
+abstract contract Deploy {
     ERC1967Proxy internal proxy;
     Size internal size;
     PriceFeedMock internal priceFeed;
     WETH internal weth;
     USDC internal usdc;
-    CollateralToken internal collateralToken;
-    BorrowToken internal borrowToken;
-    DebtToken internal debtToken;
     InitializeParams internal params;
     InitializeExtraParams internal extraParams;
 
@@ -34,17 +31,11 @@ contract Deploy {
         priceFeed = new PriceFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
-        collateralToken = new CollateralToken(owner, "Size ETH", "szETH");
-        borrowToken = new BorrowToken(owner, "Size USDC", "szUSDC");
-        debtToken = new DebtToken(owner, "Size Debt", "szDebt");
         params = InitializeParams({
             owner: owner,
             priceFeed: address(priceFeed),
             collateralAsset: address(weth),
             borrowAsset: address(usdc),
-            collateralToken: address(collateralToken),
-            borrowToken: address(borrowToken),
-            debtToken: address(debtToken),
             variablePool: variablePool,
             feeRecipient: feeRecipient
         });
@@ -58,10 +49,29 @@ contract Deploy {
         proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (params, extraParams)));
         size = Size(address(proxy));
 
-        collateralToken.transferOwnership(address(size));
-        borrowToken.transferOwnership(address(size));
-        debtToken.transferOwnership(address(size));
-
         priceFeed.setPrice(1337e18);
+    }
+
+    function setupChain(address _owner, address _weth, address _usdc) internal {
+        priceFeed = new PriceFeedMock(_owner);
+        params = InitializeParams({
+            owner: _owner,
+            priceFeed: address(priceFeed),
+            collateralAsset: address(_weth),
+            borrowAsset: address(_usdc),
+            variablePool: address(0x1),
+            feeRecipient: _owner
+        });
+        extraParams = InitializeExtraParams({
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            collateralPremiumToLiquidator: 0.3e18,
+            collateralPremiumToProtocol: 0.1e18,
+            minimumCredit: 5e18
+        });
+        size = new Size();
+        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (params, extraParams)));
+
+        // priceFeed.setPrice(2468e18);
     }
 }

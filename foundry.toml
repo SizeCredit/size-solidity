@@ -1,19 +1,23 @@
 [profile.default]
-src = "src"
-out = "out"
-libs = ["lib"]
-fs_permissions = [{access = "read-write", path = "./deployments"}]
-no_match_contract = 'CryticTester|Handler'
+  src = "src"
+  out = "out"
+  libs = ["lib"]
+  fs_permissions = [{access = "read-write", path = "./deployments"}]
+  no_match_contract = 'CryticTester|Handler'
 
 [invariant]
-runs = 1000
-fail_on_revert = false
+  runs = 1000
+  fail_on_revert = false
 
 [rpc_endpoints]
-anvil = "http://127.0.0.1:8545"
+  sepolia = "https://eth-sepolia.g.alchemy.com/v2/${API_KEY_ALCHEMY}"
+  anvil = "http://127.0.0.1:8545"
+
+[etherscan]
+  sepolia = { key = "${API_KEY_ETHERSCAN}" }
 
 [fmt]
-sort_imports = true
-line_length = 120
+  sort_imports = true
+  line_length = 120
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

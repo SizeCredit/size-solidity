@@ -77,6 +77,12 @@ Size V2 Solidity
 
 - Inside the protocol, all values are expressed in WAD (18 decimals), including price feed decimals and percentages
 
+## Deployment
+
+```bash
+npm run deploy-sepolia
+```
+
 ## Invariants
 
 - creating a FOL/SOL decreases a offer maxAmount

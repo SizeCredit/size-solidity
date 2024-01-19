@@ -5,6 +5,10 @@ import {Fixed, General, SizeStorage, State} from "@src/SizeStorage.sol";
 
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
 
+import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {CollateralToken} from "@src/token/CollateralToken.sol";
+import {DebtToken} from "@src/token/DebtToken.sol";
+
 import {State} from "@src/SizeStorage.sol";
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {User, UserView} from "@src/libraries/UserLibrary.sol";
@@ -100,5 +104,9 @@ abstract contract SizeView is SizeStorage, ISizeView {
             state.f.borrowToken.balanceOf(state.g.feeRecipient),
             state.f.debtToken.balanceOf(state.g.feeRecipient)
         );
+    }
+
+    function tokens() public view returns (CollateralToken, BorrowToken, DebtToken) {
+        return (state.f.collateralToken, state.f.borrowToken, state.f.debtToken);
     }
 }
