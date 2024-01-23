@@ -101,23 +101,20 @@ npm run deploy-sepolia
 
 ## TODO before testnet
 
-- variable
-  - fix update reservers logic on borrow
-  - vp borrow tests
-  - vp scaledtokens tests
-  - vp repay
-  - add aave tests
-  - correctly round wad/ray math
-  - vp liquidation
-  - add support for withdrawVariable
-- fixed
-  - test for dueDate==NOW
-  - add origination fee & loan fee
-- general
-  - add invariant tests to the CI
-  - add caps for everything
-  - test events
-  - add ACLUpgradeable & add PAUSER_ROLE
+- Do the Aave fork, document and automate mitigations
+- Implement Aave price hooks using real Aave's spot rate, with configurable address connector, and a possibility to upgrade it later to e.g. TWAP
+- Learn how to do liquidations in our Aave fork
+- Insurance pool by pooling funds during liquidations
+- Check how Aave does insurance
+- liquidateWithReplacement permissioned, admin can add other people or make it permissionless
+
+- add aave tests
+- add ACLUpgradeable & add PAUSER_ROLE
+- add origination fee & loan fee
+- add caps for everything
+- add tests for fixed borrows with dueDate now
+- add invariant tests to the CI
+- add support for withdrawVariable max
 
 ## TODO before audit
 
@@ -129,6 +126,7 @@ npm run deploy-sepolia
 
 ## TODO before mainnet
 
+- test events
 - monitoring
 - incident response plan
 
