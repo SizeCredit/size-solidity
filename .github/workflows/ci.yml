@@ -98,7 +98,7 @@ jobs:
 
       - name: Install Crytic-compile
         run: |
-          pip install crytic-compile==0.3.4
+          pip install crytic-compile
 
       - name: Install Slither
         run: |
