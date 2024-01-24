@@ -53,8 +53,12 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _withdraw(address user, address token, uint256 amount) internal {
+        return _withdraw(user, token, amount, user);
+    }
+
+    function _withdraw(address user, address token, uint256 amount, address to) internal {
         vm.prank(user);
-        size.withdraw(WithdrawParams({token: token, amount: amount}));
+        size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
     }
 
     function _deposit(address user, uint256 collateralAssetValue, uint256 debtAssetValue) internal {

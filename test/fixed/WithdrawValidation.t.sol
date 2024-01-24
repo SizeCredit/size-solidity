@@ -14,9 +14,12 @@ contract WithdrawValidationTest is BaseTest {
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TOKEN.selector, address(0)));
-        size.withdraw(WithdrawParams({token: address(0), amount: 1}));
+        size.withdraw(WithdrawParams({token: address(0), amount: 1, to: alice}));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        size.withdraw(WithdrawParams({token: address(weth), amount: 0}));
+        size.withdraw(WithdrawParams({token: address(weth), amount: 0, to: alice}));
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        size.withdraw(WithdrawParams({token: address(weth), amount: 1e6, to: address(0)}));
     }
 }

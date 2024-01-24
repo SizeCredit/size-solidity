@@ -87,8 +87,12 @@ contract MulticallTest is BaseTest {
             size.liquidateFixedLoan, LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: 1e18})
         );
         // withdraw everything
-        data[2] = abi.encodeCall(size.withdraw, WithdrawParams({token: address(weth), amount: type(uint256).max}));
-        data[3] = abi.encodeCall(size.withdraw, WithdrawParams({token: address(usdc), amount: type(uint256).max}));
+        data[2] = abi.encodeCall(
+            size.withdraw, WithdrawParams({token: address(weth), amount: type(uint256).max, to: liquidator})
+        );
+        data[3] = abi.encodeCall(
+            size.withdraw, WithdrawParams({token: address(usdc), amount: type(uint256).max, to: liquidator})
+        );
         vm.prank(liquidator);
         size.multicall(data);
 

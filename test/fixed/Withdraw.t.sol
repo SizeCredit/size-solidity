@@ -72,14 +72,14 @@ contract WithdrawTest is BaseTest {
         assertEq(usdc.balanceOf(address(size)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), valueWETH);
 
-        size.withdraw(WithdrawParams({token: address(usdc), amount: valueUSDC}));
+        size.withdraw(WithdrawParams({token: address(usdc), amount: valueUSDC, to: bob}));
 
-        size.withdraw(WithdrawParams({token: address(weth), amount: valueWETH}));
+        size.withdraw(WithdrawParams({token: address(weth), amount: valueWETH, to: bob}));
 
         assertEq(usdc.balanceOf(address(size)), 0);
-        assertEq(usdc.balanceOf(address(alice)), valueUSDC);
+        assertEq(usdc.balanceOf(address(bob)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), 0);
-        assertEq(weth.balanceOf(address(alice)), valueWETH);
+        assertEq(weth.balanceOf(address(bob)), valueWETH);
     }
 
     function test_Withdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
@@ -91,11 +91,11 @@ contract WithdrawTest is BaseTest {
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, bob, 0));
-        size.withdraw(WithdrawParams({token: address(weth), amount: 150e18}));
+        size.withdraw(WithdrawParams({token: address(weth), amount: 150e18, to: bob}));
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, bob, 0.01e18));
-        size.withdraw(WithdrawParams({token: address(weth), amount: 149e18}));
+        size.withdraw(WithdrawParams({token: address(weth), amount: 149e18, to: bob}));
     }
 
     function test_Withdraw_withdraw_everything() public {

@@ -15,8 +15,8 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 // NOTE changing any of these structs' order or variables may change the storage layout
 struct General {
     IPriceFeed priceFeed;
-    IERC20Metadata collateralAsset;
-    IERC20Metadata borrowAsset;
+    IERC20Metadata collateralAsset; // e.g. WETH
+    IERC20Metadata borrowAsset; // e.g. USDC
     IPool variablePool;
     address insurance;
     address feeRecipient;
@@ -30,9 +30,9 @@ struct Fixed {
     uint256 minimumCredit;
     uint256 collateralPremiumToLiquidator;
     uint256 collateralPremiumToProtocol;
-    CollateralToken collateralToken;
-    BorrowToken borrowToken;
-    DebtToken debtToken;
+    CollateralToken collateralToken; // e.g. szWETH
+    BorrowToken borrowToken; // e.g. szUSDC
+    DebtToken debtToken; // e.g. szDebt
 }
 
 struct State {

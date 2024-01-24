@@ -5,8 +5,10 @@ import {Math} from "@src/libraries/MathLibrary.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -19,6 +21,7 @@ struct LiquidateFixedLoanParams {
 }
 
 library LiquidateFixedLoan {
+    using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
     using FixedLibrary for State;
 
@@ -87,7 +90,7 @@ library LiquidateFixedLoan {
         }
 
         state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
-        state._fixed.borrowToken.transferFrom(msg.sender, address(state._general.variablePool), debtBorrowToken);
+        state.depositBorrowToken(msg.sender, debtBorrowToken, loan.lender);
         state._fixed.debtToken.burn(loan.borrower, debtBorrowToken);
         loan.repaid = true;
 

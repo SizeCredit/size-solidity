@@ -19,6 +19,7 @@ import {Events} from "@src/libraries/Events.sol";
 struct WithdrawParams {
     address token;
     uint256 amount;
+    address to;
 }
 
 library Withdraw {
@@ -40,6 +41,11 @@ library Withdraw {
         if (params.amount == 0) {
             revert Errors.NULL_AMOUNT();
         }
+
+        // validate to
+        if (params.to == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
     }
 
     function executeWithdraw(State storage state, WithdrawParams calldata params) external {
@@ -56,7 +62,7 @@ library Withdraw {
         uint256 wadDown = ConversionLibrary.amountToWad(withdrawAmountDown, decimals);
 
         nonTransferrableToken.burn(msg.sender, wadDown);
-        token.safeTransfer(msg.sender, withdrawAmountDown);
+        token.safeTransfer(params.to, withdrawAmountDown);
 
         emit Events.Withdraw(params.token, wadDown);
     }

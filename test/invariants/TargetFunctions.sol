@@ -77,7 +77,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
         amount = between(amount, 0, maxAmount);
         hevm.prank(sender);
-        size.withdraw(WithdrawParams({token: token, amount: amount}));
+        size.withdraw(WithdrawParams({token: token, amount: amount, to: sender}));
 
         __after();
 
