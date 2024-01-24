@@ -96,6 +96,10 @@ jobs:
         with:
           version: nightly
 
+      - name: Install Crytic-compile
+        run: |
+          pip install crytic-compile
+
       - name: Install Echidna
         run: |
           wget https://github.com/crytic/echidna/releases/download/v2.2.1/echidna-2.2.1-Linux.zip -O echidna.zip
