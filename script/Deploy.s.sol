@@ -23,7 +23,7 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         console.log("[Size v2] chain\t", chainName);
         console.log("[Size v2] owner\t", deployer);
 
-        setupChain(deployer, addresses(chainName).weth, addresses(chainName).usdc);
+        setupChain(deployer, addresses(chainName).variablePool, addresses(chainName).weth, addresses(chainName).usdc);
 
         console.log("[Size v2] deployed");
         console.log("[Size v2] proxy\t", address(proxy));

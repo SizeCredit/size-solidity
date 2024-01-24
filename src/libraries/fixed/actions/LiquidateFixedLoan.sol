@@ -87,7 +87,7 @@ library LiquidateFixedLoan {
         }
 
         state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
-        state._fixed.borrowToken.transferFrom(msg.sender, state._general.variablePool, debtBorrowToken);
+        state._fixed.borrowToken.transferFrom(msg.sender, address(state._general.variablePool), debtBorrowToken);
         state._fixed.debtToken.burn(loan.borrower, debtBorrowToken);
         loan.repaid = true;
 

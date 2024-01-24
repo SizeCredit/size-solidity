@@ -48,7 +48,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         assertEq(_after.alice, _before.alice);
         assertEq(_after.candy.debtAmount, _before.candy.debtAmount + debt);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + amount);
-        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount, 0);
+        assertEq(_after.vpBorrowAmount, _before.vpBorrowAmount, 0);
         assertEq(_after.feeRecipientBorrowAmount, _before.feeRecipientBorrowAmount + delta);
         assertEq(loanAfter.borrower, candy);
         assertEq(loanAfter.repaid, false);
@@ -90,7 +90,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         assertEq(_after.alice, _before.alice);
         assertEq(_after.candy.debtAmount, _before.candy.debtAmount + debt);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + newAmount);
-        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount, 0);
+        assertEq(_after.vpBorrowAmount, _before.vpBorrowAmount, 0);
         assertEq(_after.feeRecipientBorrowAmount, _before.feeRecipientBorrowAmount + delta);
         assertEq(loanAfter.borrower, candy);
         assertEq(loanAfter.repaid, false);

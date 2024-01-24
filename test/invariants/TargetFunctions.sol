@@ -224,7 +224,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after(loanId);
 
         lte(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
-        gte(_after.protocolBorrowAmount, _before.protocolBorrowAmount, REPAY_01);
+        gte(_after.vpBorrowAmount, _before.vpBorrowAmount, REPAY_01);
         lt(_after.sender.debtAmount, _before.sender.debtAmount, REPAY_02);
     }
 

@@ -7,3 +7,4 @@
 @solady=lib/solady/src
 @chimera=lib/chimera/src
 @crytic/properties=lib/properties
+@aave=lib/aave-v3-core/contracts

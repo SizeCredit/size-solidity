@@ -15,8 +15,8 @@ struct Vars {
     UserView candy;
     UserView james;
     UserView liquidator;
-    uint256 protocolCollateralAmount;
-    uint256 protocolBorrowAmount;
+    uint256 vpCollateralAmount;
+    uint256 vpBorrowAmount;
     uint256 feeRecipientCollateralAmount;
     uint256 feeRecipientBorrowAmount;
 }
@@ -55,8 +55,7 @@ abstract contract BaseTestGeneral is Test, Deploy {
         vars.candy = size.getUserView(candy);
         vars.james = size.getUserView(james);
         vars.liquidator = size.getUserView(liquidator);
-        vars.protocolCollateralAmount = size.getUserView(address(size)).collateralAmount;
-        vars.protocolBorrowAmount = size.getUserView(address(size)).borrowAmount;
+        (vars.vpCollateralAmount, vars.vpBorrowAmount,) = size.getVariablePool();
         vars.feeRecipientCollateralAmount = size.getUserView(feeRecipient).collateralAmount;
         vars.feeRecipientBorrowAmount = size.getUserView(feeRecipient).borrowAmount;
     }

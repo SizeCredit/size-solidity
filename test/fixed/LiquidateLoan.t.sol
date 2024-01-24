@@ -51,7 +51,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.liquidator.borrowAmount, _before.liquidator.borrowAmount - debt);
-        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + debt);
+        assertEq(_after.vpBorrowAmount, _before.vpBorrowAmount + debt);
         assertEq(
             _after.feeRecipientCollateralAmount,
             _before.feeRecipientCollateralAmount

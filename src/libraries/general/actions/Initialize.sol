@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
@@ -20,6 +21,7 @@ struct InitializeGeneralParams {
     address collateralAsset;
     address borrowAsset;
     address feeRecipient;
+    address variablePool;
 }
 
 struct InitializeFixedParams {
@@ -104,7 +106,7 @@ library Initialize {
         state._general.collateralAsset = IERC20Metadata(g.collateralAsset);
         state._general.borrowAsset = IERC20Metadata(g.borrowAsset);
         state._general.feeRecipient = g.feeRecipient;
-        state._general.variablePool = address(this);
+        state._general.variablePool = IPool(g.variablePool);
     }
 
     function _executeInitializeFixed(State storage state, InitializeFixedParams memory f) internal {

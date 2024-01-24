@@ -96,9 +96,9 @@ abstract contract SizeView is SizeStorage {
 
     function getVariablePool() external view returns (uint256, uint256, uint256) {
         return (
-            state._fixed.collateralToken.balanceOf(state._general.variablePool),
-            state._fixed.borrowToken.balanceOf(state._general.variablePool),
-            state._fixed.debtToken.balanceOf(state._general.variablePool)
+            state._fixed.collateralToken.balanceOf(address(state._general.variablePool)),
+            state._fixed.borrowToken.balanceOf(address(state._general.variablePool)),
+            state._fixed.debtToken.balanceOf(address(state._general.variablePool))
         );
     }
 

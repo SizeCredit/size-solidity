@@ -15,8 +15,8 @@ abstract contract AssertsHelper is Test {
         assertEq(a.candy, b.candy);
         assertEq(a.james, b.james);
         assertEq(a.liquidator, b.liquidator);
-        assertEq(a.protocolCollateralAmount, b.protocolCollateralAmount, "protocolCollateralAmount");
-        assertEq(a.protocolBorrowAmount, b.protocolBorrowAmount, "protocolBorrowAmount");
+        assertEq(a.vpCollateralAmount, b.vpCollateralAmount, "vpCollateralAmount");
+        assertEq(a.vpBorrowAmount, b.vpBorrowAmount, "vpBorrowAmount");
         assertEq(a.feeRecipientCollateralAmount, b.feeRecipientCollateralAmount, "feeRecipientCollateralAmount");
         assertEq(a.feeRecipientBorrowAmount, b.feeRecipientBorrowAmount, "feeRecipientBorrowAmount");
     }

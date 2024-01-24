@@ -46,7 +46,7 @@ library Repay {
         uint256 repayAmount = Math.min(loan.faceValue, params.amount);
 
         if (repayAmount == loan.faceValue && loan.isFOL()) {
-            state._fixed.borrowToken.transferFrom(msg.sender, state._general.variablePool, repayAmount);
+            state._fixed.borrowToken.transferFrom(msg.sender, address(state._general.variablePool), repayAmount);
             state._fixed.debtToken.burn(msg.sender, repayAmount);
             loan.repaid = true;
         } else {

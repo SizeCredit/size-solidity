@@ -43,7 +43,7 @@ contract MoveToVariablePoolTest is BaseTest {
         assertEq(loansBefore, loansAfter);
         // assertEq(variableFixedLoansAfter, variableFixedLoansBefore + 1);
         assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - assignedCollateral);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount + assignedCollateral);
+        assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount + assignedCollateral);
         assertTrue(!loanBefore.repaid);
         assertTrue(loanAfter.repaid);
     }

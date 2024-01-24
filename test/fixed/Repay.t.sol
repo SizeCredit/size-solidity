@@ -30,7 +30,7 @@ contract RepayTest is BaseTest {
 
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue);
-        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + faceValue);
+        assertEq(_after.vpBorrowAmount, _before.vpBorrowAmount + faceValue);
         assertTrue(size.getFixedLoan(loanId).repaid);
     }
 
@@ -73,7 +73,7 @@ contract RepayTest is BaseTest {
 
         assertEq(_overdue.bob.debtAmount, _before.bob.debtAmount);
         assertEq(_overdue.bob.borrowAmount, _before.bob.borrowAmount);
-        assertEq(_overdue.protocolBorrowAmount, _before.protocolBorrowAmount);
+        assertEq(_overdue.vpBorrowAmount, _before.vpBorrowAmount);
         assertTrue(!size.getFixedLoan(loanId).repaid);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.OVERDUE);
 
@@ -83,7 +83,7 @@ contract RepayTest is BaseTest {
 
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue);
-        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + faceValue);
+        assertEq(_after.vpBorrowAmount, _before.vpBorrowAmount + faceValue);
         assertTrue(size.getFixedLoan(loanId).repaid);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.REPAID);
     }

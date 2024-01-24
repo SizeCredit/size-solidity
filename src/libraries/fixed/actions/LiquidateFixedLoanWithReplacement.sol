@@ -77,10 +77,10 @@ library LiquidateFixedLoanWithReplacement {
         fol.repaid = false;
 
         state._fixed.debtToken.mint(params.borrower, faceValue);
-        state._fixed.borrowToken.transferFrom(state._general.variablePool, params.borrower, amountOut);
+        state._fixed.borrowToken.transferFrom(address(state._general.variablePool), params.borrower, amountOut);
         // TODO evaliate who gets this profit, msg.sender or state._general.feeRecipient
         state._fixed.borrowToken.transferFrom(
-            state._general.variablePool, state._general.feeRecipient, liquidatorProfitBorrowAsset
+            address(state._general.variablePool), state._general.feeRecipient, liquidatorProfitBorrowAsset
         );
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);

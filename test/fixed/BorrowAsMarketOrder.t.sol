@@ -47,7 +47,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount + amount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount);
         assertEq(_after.bob.debtAmount, debt);
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
@@ -83,7 +83,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount + amount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount);
         assertEq(_after.bob.debtAmount, debt);
         assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amount);
     }
@@ -107,7 +107,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount - amount);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
         assertEq(_after.bob, _before.bob);
         assertTrue(!size.isFOL(loanId2));
@@ -140,7 +140,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount - amount);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
         assertEq(_after.bob, _before.bob);
         assertTrue(!size.isFOL(loanId2));
@@ -176,7 +176,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
         assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
@@ -219,7 +219,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertGt(_before.bob.collateralAmount, minimumCollateralAmount);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
         assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
@@ -244,7 +244,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
         assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
         assertEq(_after.bob, _before.bob);
         assertTrue(!size.isFOL(loanId2));
@@ -431,7 +431,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.alice, _before.alice);
         assertEq(_after.bob, _before.bob);
         assertEq(_after.bob.debtAmount, 0);
-        assertEq(_after.protocolCollateralAmount, _before.protocolCollateralAmount);
+        assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount);
         assertEq(size.activeFixedLoans(), 0);
     }
 }
