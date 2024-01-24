@@ -79,6 +79,27 @@ jobs:
       - name: Run solhint
         run: npm run solhint
 
+  invariants:
+    strategy:
+      matrix:
+        mode: [assertion, property]
+
+    name: Foundry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Echidna ${{ matrix.mode }}
+        run: |
+          echidna . --contract CryticTester --config echidna.yaml --mode ${{ matrix.mode }} --test-limit 100000
+
   typechain-coverage:
     strategy:
       fail-fast: true
