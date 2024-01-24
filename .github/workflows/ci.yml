@@ -96,9 +96,9 @@ jobs:
         with:
           version: nightly
 
-    - name: Compile contracts
-      run: |
-        forge build --build-info
+      - name: Compile contracts
+        run: |
+          forge build --build-info
 
       - uses: crytic/echidna-action@v2
         name: Echidna ${{ matrix.mode }}
