@@ -102,7 +102,6 @@ npm run deploy-sepolia
 
 - gas optimize the 80/20 rule
 - add tests for fixed borrows with dueDate now
-- add invariant tests to the CI
 - review all input validation functions
 - add natspec
 
