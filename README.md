@@ -9,9 +9,7 @@ Size V2 Solidity
 
 | File                                                              | % Lines           | % Statements      | % Branches       | % Funcs          |
 |-------------------------------------------------------------------|-------------------|-------------------|------------------|------------------|
-| src/Size.sol                                                      | 100.00% (8/8)     | 100.00% (8/8)     | 100.00% (0/0)    | 100.00% (3/3)    |
-| src/SizeFixed.sol                                                 | 100.00% (33/33)   | 100.00% (33/33)   | 100.00% (0/0)    | 100.00% (14/14)  |
-| src/SizeVariable.sol                                              | 81.82% (9/11)     | 83.33% (10/12)    | 100.00% (0/0)    | 80.00% (4/5)     |
+| src/Size.sol                                                      | 100.00% (41/41)   | 100.00% (41/41)   | 100.00% (0/0)    | 100.00% (17/17)  |
 | src/SizeView.sol                                                  | 94.44% (17/18)    | 96.43% (27/28)    | 100.00% (0/0)    | 93.75% (15/16)   |
 | src/libraries/ConversionLibrary.sol                               | 100.00% (2/2)     | 100.00% (6/6)     | 100.00% (0/0)    | 100.00% (2/2)    |
 | src/libraries/MathLibrary.sol                                     | 88.89% (16/18)    | 88.89% (24/27)    | 83.33% (5/6)     | 83.33% (5/6)     |
@@ -33,21 +31,10 @@ Size V2 Solidity
 | src/libraries/fixed/actions/Repay.sol                             | 100.00% (18/18)   | 100.00% (22/22)   | 80.00% (8/10)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol            | 100.00% (18/18)   | 100.00% (23/23)   | 75.00% (6/8)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Withdraw.sol                          | 100.00% (15/15)   | 100.00% (25/25)   | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/libraries/general/actions/Initialize.sol                      | 95.00% (57/60)    | 95.38% (62/65)    | 89.29% (25/28)   | 100.00% (8/8)    |
+| src/libraries/general/actions/Initialize.sol                      | 100.00% (40/40)   | 100.00% (45/45)   | 100.00% (22/22)  | 100.00% (6/6)    |
 | src/libraries/general/actions/UpdateConfig.sol                    | 100.00% (4/4)     | 100.00% (4/4)     | 100.00% (2/2)    | 100.00% (2/2)    |
-| src/libraries/variable/InterestMath.sol                           | 0.00% (0/17)      | 0.00% (0/28)      | 0.00% (0/2)      | 0.00% (0/2)      |
-| src/libraries/variable/VariableLibrary.sol                        | 21.95% (9/41)     | 21.13% (15/71)    | 25.00% (4/16)    | 6.67% (1/15)     |
-| src/libraries/variable/WadRayMath.sol                             | 33.33% (4/12)     | 28.57% (2/7)      | 0.00% (0/6)      | 33.33% (2/6)     |
-| src/libraries/variable/WadRayMathLibrary.sol                      | 33.33% (2/6)      | 33.33% (4/12)     | 100.00% (0/0)    | 33.33% (2/6)     |
-| src/libraries/variable/actions/BorrowVariable.sol                 | 100.00% (7/7)     | 100.00% (7/7)     | 100.00% (2/2)    | 100.00% (2/2)    |
-| src/libraries/variable/actions/DepositVariable.sol                | 100.00% (13/13)   | 100.00% (19/19)   | 83.33% (5/6)     | 100.00% (2/2)    |
-| src/libraries/variable/actions/RepayVariable.sol                  | 0.00% (0/5)       | 0.00% (0/5)       | 0.00% (0/2)      | 0.00% (0/2)      |
-| src/libraries/variable/actions/WithdrawVariable.sol               | 100.00% (13/13)   | 100.00% (19/19)   | 83.33% (5/6)     | 100.00% (2/2)    |
 | src/oracle/PriceFeed.sol                                          | 100.00% (12/12)   | 100.00% (21/21)   | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/token/NonTransferrableToken.sol                               | 100.00% (8/8)     | 100.00% (9/9)     | 100.00% (0/0)    | 100.00% (6/6)    |
-| src/token/ScaledBorrowToken.sol                                   | 75.00% (3/4)      | 66.67% (4/6)      | 100.00% (0/0)    | 75.00% (3/4)     |
-| src/token/ScaledDebtToken.sol                                     | 0.00% (0/4)       | 0.00% (0/6)       | 100.00% (0/0)    | 0.00% (0/4)      |
-| src/token/ScaledToken.sol                                         | 42.31% (11/26)    | 44.74% (17/38)    | 33.33% (2/6)     | 41.67% (5/12)    |
 
 ### Scenarios
 
@@ -58,12 +45,10 @@ Size V2 Solidity
 │              BORROW               │   1    │
 │        BorrowAsLimitOrder         │   3    │
 │        BorrowAsMarketOrder        │   15   │
-│          BorrowVariable           │   5    │
 │           BorrowerExit            │   4    │
 │               Claim               │   7    │
 │            Compensate             │   6    │
 │         ConversionLibrary         │   6    │
-│          DepositVariable          │   3    │
 │              Deposit              │   2    │
 │            Experiments            │   10   │
 │            Initialize             │   3    │
@@ -84,7 +69,6 @@ Size V2 Solidity
 │              TOKENS               │   1    │
 │           UpdateConfig            │   3    │
 │              Upgrade              │   2    │
-│         WithdrawVariable          │   3    │
 │             Withdraw              │   8    │
 │            YieldCurve             │   12   │
 └───────────────────────────────────┴────────┘
