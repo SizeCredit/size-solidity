@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {Deploy} from "@test/Deploy.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

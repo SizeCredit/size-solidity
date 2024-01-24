@@ -2,9 +2,10 @@
 pragma solidity 0.8.20;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
-import {UserView} from "@src/libraries/UserLibrary.sol";
-import {Vars} from "@test/BaseTest.sol";
+
+import {UserView} from "@src/SizeView.sol";
+import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Vars} from "@test/BaseTestGeneral.sol";
 import {Test} from "forge-std/Test.sol";
 
 abstract contract AssertsHelper is Test {
@@ -21,9 +22,12 @@ abstract contract AssertsHelper is Test {
     }
 
     function assertEq(UserView memory a, UserView memory b) internal {
-        assertEq(a.collateralAmount, b.collateralAmount, "collateralAmount");
+        assertEq(a.fixedCollateralAmount, b.fixedCollateralAmount, "fixedCollateralAmount");
         assertEq(a.borrowAmount, b.borrowAmount, "borrowAmount");
         assertEq(a.debtAmount, b.debtAmount, "debtAmount");
+        assertEq(a.variableCollateralAmount, b.variableCollateralAmount, "variableCollateralAmount");
+        assertEq(a.variableBorrowAmount, b.variableBorrowAmount, "variableBorrowAmount");
+        assertEq(a.variableDebtAmount, b.variableDebtAmount, "variableDebtAmount");
     }
 
     function assertEq(uint256 a, uint256 b, uint256 c) internal {

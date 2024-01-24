@@ -79,6 +79,39 @@ jobs:
       - name: Run solhint
         run: npm run solhint
 
+  invariants:
+    strategy:
+      matrix:
+        mode: [assertion, property]
+
+    name: Echidna
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install Crytic-compile
+        run: |
+          pip install crytic-compile
+
+      - name: Install Echidna
+        run: |
+          wget https://github.com/crytic/echidna/releases/download/v2.2.1/echidna-2.2.1-Linux.zip -O echidna.zip
+          unzip echidna.zip
+          tar -xvkf echidna.tar.gz
+          rm echidna.zip echidna.tar.gz
+          ./echidna --version
+
+      - name: Echidna ${{ matrix.mode }}
+        run: |
+          ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --test-limit 100000 --corpus-dir corpus
+
   typechain-coverage:
     strategy:
       fail-fast: true

@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {Test} from "forge-std/Test.sol";
 

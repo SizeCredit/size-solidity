@@ -249,17 +249,27 @@ class GenericLoan:
         return True
 
     def reduceDebt(self, amount: float, dryRun=False):
+        # NOTE: Can't reduce more debt than this specific loan credit
         if amount > self.getCredit():
             print(f"WARNING: amount={amount} is too big, self.getDebt()={self.getDebt()}")
             return False
         if not dryRun:
+            # NOTE: Reduce credit of the lender and in case it is FOL also the debt of the borrower
             self.FV -= amount
+            if not self.isFOL():
+                # NOTE: In case it is a SOL then also reduce debt of the borrower
+                self.getFOL().FV -= amount
+                # NOTE: Reduce also the amount exited this way the credit of the FOL lender is the same
+                # NOTE: This operation should be safe because the FOL.amountFVExited should be the sum of all SOL.amountFVExited
+                self.getFOL().amountFVExited -= amount
+                assert self.getFOL().amountFVExited >= 0, "This should never happen"
+                assert self.getFOL().amountFVExited <= self.getFOL().FV, "This should never happen"
             # NOTE: This guarantees that `loan.FV >= loan.amountFVExited` is always true
             # NOTE: Even after debt reduction, it should be guaranteed that `FOL.FV == Sum of all SOL.credit()`
             assert self.getCredit() >= 0, "This should never happen"
 
-            self.borrower.totDebtCoveredByRealCollateral -= amount
-            assert self.borrower.totDebtCoveredByRealCollateral >= 0, "This should never happen"
+            self.getFOL().borrower.totDebtCoveredByRealCollateral -= amount
+            assert self.getFOL().borrower.totDebtCoveredByRealCollateral >= 0, "This should never happen"
         return True
 
 
@@ -293,6 +303,153 @@ class SOL(GenericLoan):
 
 class VariableLoan:
     pass
+
+
+
+
+@dataclass
+class AaveV3LikePoolParams:
+    minCollateralRatio: float = 1.3
+    minRate: float = 0.1
+    maxRate: float = 1
+    slope: float = 0.1
+    optimalUR: float = 0.9
+    reserveFactor: float = 0.0
+
+    def getSlope2(self):
+        return (self.maxRate - self.minRate) / (1 - self.optimalUR)
+
+    def getOptimalIR(self):
+        return self.minRate + self.slope * self.optimalUR
+
+    def getBorrowAPR(self, ur):
+        if ur <= self.optimalUR:
+            return self.minRate + self.slope * ur
+        else:
+            return self.getOptimalIR() + self.getSlope2() * (ur - self.optimalUR)
+
+    def getSupplyAPR(self, ur):
+        return self.getBorrowAPR(ur) * ur * (1 - self.reserveFactor)
+
+
+
+@dataclass
+class AaveV3LikePool:
+    context: Context
+    params: AaveV3LikePoolParams
+    cash: RealCollateral
+    eth: RealCollateral
+    usersScaledCash: Dict[User, float] = field(default_factory=dict)
+    usersScaledDebt: Dict[User, float] = field(default_factory=dict)
+    usersETHTotDeposited: Dict[User, float] = field(default_factory=dict)
+    liquidityIndexBorrow : float = 1
+    liquidityIndexSupply : float = 1
+    lastUpdate : int = 0
+    capSupply: float = 0
+    capBorrowed: float = 0
+
+    def initialize(self):
+        self.lastUpdate = self.context.time
+
+    def getUR(self):
+        return self.capBorrowed / self.capSupply if self.capSupply != 0 else 0
+
+    def getBorrowAPR(self):
+        return self.params.getBorrowAPR(self.getUR())
+
+    def getSupplyAPR(self):
+        return self.params.getSupplyAPR(self.getUR())
+
+    def getPerSecondBorrowIR(self):
+        return self.getBorrowAPR() / (365 * 24 * 60 * 60)
+
+    def getPerSecondSupplyIR(self):
+        return self.getSupplyAPR() / (365 * 24 * 60 * 60)
+
+    def _updateLiquidityIndex(self):
+        deltaT = self.context.time - self.lastUpdate
+        assert deltaT >= 0, "This should never happen"
+        self.liquidityIndexSupply *= (1 + self.getPerSecondSupplyIR() * deltaT)
+        self.liquidityIndexBorrow *= (1 + self.getPerSecondBorrowIR() * deltaT)
+
+    def supply(self, lender: User, amount: float):
+        if not myAssert(amount > 0, "Can't supply 0"):
+            return False
+        if not myAssert(lender.cash.transfer(creditorRealCollateral=self.cash, amount=amount, dryRun=False), "Not enough reserves"):
+            return False
+        # NOTE: First let's update the liquidity index to accrue interest on the previous deposits
+        self._updateLiquidityIndex()
+
+        # NOTE: We use the updated liquidity index to compute the scaled amount
+        self.usersScaledCash[lender] += amount / self.liquidityIndexSupply
+
+        # NOTE: This changes the index as a result of the supply changing
+        self.capSupply += amount
+
+        self.lastUpdate = self.context.time
+        return True
+
+    def withdraw(self, lender: User, amount: float):
+        if not myAssert(amount > 0, "Can't withdraw 0"):
+            return False
+        if not myAssert(self.cash.transfer(creditorRealCollateral=lender.cash, amount=amount, dryRun=False), "Not enough reserves"):
+            return False
+        # NOTE: First let's update the liquidity index to accrue interest on the previous deposits
+        self._updateLiquidityIndex()
+
+        # NOTE: We use the updated liquidity index to compute the scaled amount
+        self.usersScaledCash[lender] -= amount / self.liquidityIndexSupply
+        assert self.usersScaledCash[lender] >= 0, "This should never happen"
+
+        # NOTE: This changes the index as a result of the supply changing
+        self.capSupply -= amount
+        assert self.capSupply >= 0, "This should never happen"
+
+        self.lastUpdate = self.context.time
+        return True
+
+
+
+    def borrow(self, borrower: User, amount: float):
+        if not myAssert(amount > 0, "Can't borrow 0"):
+            return False
+        if not myAssert(self.cash.transfer(creditorRealCollateral=borrower.cash, amount=amount, dryRun=False), "Not enough reserves"):
+            return False
+
+        # NOTE: First let's update the liquidity index to accrue interest on the previous deposits
+        self._updateLiquidityIndex()
+
+        # NOTE: We use the updated liquidity index to compute the scaled amount
+        self.usersScaledDebt[borrower] += amount / self.liquidityIndexBorrow
+
+        # NOTE: This changes the index as a result of the supply changing
+        self.capBorrowed += amount
+
+        self.lastUpdate = self.context.time
+        return True
+
+    def repay(self, borrower: User, amount: float):
+        if not myAssert(amount > 0, "Can't repay 0"):
+            return False
+        if not myAssert(borrower.cash.transfer(creditorRealCollateral=self.cash, amount=amount, dryRun=False), "Not enough reserves"):
+            return False
+
+        # NOTE: First let's update the liquidity index to accrue interest on the previous deposits
+        self._updateLiquidityIndex()
+
+        # NOTE: We use the updated liquidity index to compute the scaled amount
+        self.usersScaledDebt[borrower] -= amount / self.liquidityIndexBorrow
+        assert self.usersScaledDebt[borrower] >= 0, "This should never happen"
+
+        # NOTE: This changes the index as a result of the supply changing
+        self.capBorrowed -= amount
+        assert self.capBorrowed >= 0, "This should never happen"
+
+        self.lastUpdate = self.context.time
+        return True
+
+
+
 
 @dataclass
 class VariablePool:
@@ -926,10 +1083,12 @@ class LendingOB:
         if loanToRepay.repaid:
             print("compensate() Nothing to compensate")
             return False
-        if loanToCompensate.repaid:
-            print("compensate() Nothing to compensate")
-            return False
-        if loanToRepay.getDueDate() < loanToCompensate.getDueDate():
+        # NOTE: This is not necessary anymore since we can allow borrowers to compensate with repaid loans if they want as they are equivalent to cash
+        # and using them directly is more efficient than taking the cash and repaying
+        # if loanToCompensate.repaid:
+        #     print("compensate() Nothing to compensate")
+        #     return False
+        if not loanToCompensate.repaid and loanToRepay.getDueDate() < loanToCompensate.getDueDate():
             print("compensate() Due date not compatible")
             return False
 
@@ -944,6 +1103,15 @@ class LendingOB:
         assert loanToCompensate.lock(amountToCompensate), "This should never happen"
         # NOTE: Transfering the credit
         self.createSOL(fol=loanToCompensate.getFOL(), lender=loanToRepay.lender, borrower=loanToRepay.borrower, FV=amountToCompensate)
+        return True
+
+    def partialRepayment(self, loanToRepayId: int, amount: float):
+        loanToRepay = self.activeLoans[loanToRepayId]
+        if loanToRepay.repaid:
+            print("compensate() Nothing to compensate")
+            return False
+        assert loanToRepay.reduceDebt(amount), "This should never happen"
+        assert self._transferInternal(debtor=loanToRepay.borrower, creditor=loanToRepay.lender, amount=amount, isUSDC=True, dryRun=False), "This should never happen"
         return True
 
 
@@ -1043,6 +1211,17 @@ class LendingOB:
 
     def _computeCollateralForDebt(self, amountUSDC: float) -> float:
         return amountUSDC / self.context.price
+
+    def _transferInternal(self, debtor: User, creditor: User, amount: float, isUSDC=True, dryRun=False):
+        if isUSDC:
+            self.usersCash[debtor.uid] -= amount
+            assert self.usersCash[debtor.uid] >= 0, "This should never happen"
+            self.usersCash[creditor.uid] += amount
+        else:
+            self.usersETHTotDeposited[debtor.uid] -= amount
+            assert self.usersETHTotDeposited[debtor.uid] >= 0, "This should never happen"
+            self.usersETHTotDeposited[creditor.uid] += amount
+        return False
 
 
     def _liquidationSwap(self, liquidator: User, borrower: User, amountUSDC: float, amountETH: float, dryRun=False):

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {console2 as console} from "forge-std/Script.sol";
 
 import {Size} from "@src/Size.sol";
@@ -14,8 +13,6 @@ import {BaseScript} from "./BaseScript.sol";
 import {Deploy} from "@test/Deploy.sol";
 
 contract DeployScript is BaseScript, Addresses, Deploy {
-    address public protocolVault = address(0x60000);
-
     function setUp() public {}
 
     function run() public broadcast {

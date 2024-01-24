@@ -51,14 +51,14 @@ abstract contract BaseScript is Script {
             vm.serializeString(jsonWrite, vm.toString(deployments[i].addr), deployments[i].name);
         }
 
-        string memory chainName;
+        string memory networkName;
 
         try this.getChain() returns (Chain memory chain) {
-            chainName = chain.name;
+            networkName = chain.name;
         } catch {
-            chainName = findChainName();
+            networkName = findChainName();
         }
-        jsonWrite = vm.serializeString(jsonWrite, "networkName", chainName);
+        jsonWrite = vm.serializeString(jsonWrite, "networkName", networkName);
         vm.writeJson(jsonWrite, path);
     }
 

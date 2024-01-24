@@ -89,26 +89,30 @@ npm run deploy-sepolia
 - you can exit a SOL
 - Taking loan with only virtual collateral does not decrease the borrower CR
 - Taking loan with real collateral decreases the borrower CR
-
+- The user cannot withdraw more than their deposits
 - If isLiquidatable && liquidator has enough cash, the liquidation should always succeed (requires adding more checks to isLiquidatable)
 - When a user self liquidates a SOL, it will improve the collateralization ratio of other SOLs. This is because self liquidating decreases the FOL's face value, so it decreases all SOL's debt
 - No loan (FOL/SOL) can ever become a dust loan
 - the protocol vault is always solvent (how to check for that?)
 - $Credit(i) = FV(i) - \sum\limits_{j~where~Exiter(j)=i}{FV(j)}$ /// For example, when a loan i exits to another j, Exiter(j) = i. This isn't tracked anywhere on-chain, as it's not necessary under the correct accounting conditions, as the loan structure only tracks the folId, not the "originator". But the originator can also be a SOL, when a SOL exits to another SOL. But it can be emitted, which may be used for off-chain metrics, so I guess I'll add that to the event. Also, when doing fuzzing/formal verification, we can also add "ghost variables" to track the "originator", so no need to add it to the protocol, but this concept can be useful in assessing the correct behavior of the exit logic
 - The VP utilization ratio should never be greater than 1
-
-## TODO before testnet
-
-- VP
-- test for dueDate NOW
-- events tests
-- origination fee & loan fee
+- the collateral ratio of a loan should always be >= than before, after a partial liquidation. We can apply the same invariant in the fixed rate OB for operations like self liquidations and credit debt compensation
 
 ## TODO before audit
 
-- add more invariants
+- gas optimize the 80/20 rule
+- add tests for fixed borrows with dueDate now
 - review all input validation functions
-- natspec
+- add natspec
+
+## TODO before mainnet
+
+- Do the Aave fork, document and automate mitigations
+- Learn how to do liquidations in our Aave fork
+- add aave tests
+- test events
+- monitoring
+- incident response plan
 
 ## Gas optimizations
 
@@ -120,6 +124,10 @@ npm run deploy-sepolia
 
 - // @audit Check rounding direction of `FixedPointMath.mulDiv*`
 - // @audit Check if borrower == lender == liquidator may cause any issues
+
+## Questions
+
+- Check how Aave does insurance
 
 ## Known limitations
 

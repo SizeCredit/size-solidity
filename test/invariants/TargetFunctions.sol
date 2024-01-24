@@ -8,30 +8,31 @@ import "@crytic/properties/contracts/util/Hevm.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Deploy} from "@test/Deploy.sol";
 
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
-import {BorrowAsLimitOrderParams} from "@src/libraries/actions/BorrowAsLimitOrder.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/actions/BorrowAsMarketOrder.sol";
+import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
-import {BorrowerExitParams} from "@src/libraries/actions/BorrowerExit.sol";
-import {ClaimParams} from "@src/libraries/actions/Claim.sol";
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/actions/LendAsLimitOrder.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/actions/LendAsMarketOrder.sol";
-import {LiquidateFixedLoanParams} from "@src/libraries/actions/LiquidateFixedLoan.sol";
-import {MoveToVariablePoolParams} from "@src/libraries/actions/MoveToVariablePool.sol";
+import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
+import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
+import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
+import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
+import {MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 
-import {LiquidateFixedLoanWithReplacementParams} from "@src/libraries/actions/LiquidateFixedLoanWithReplacement.sol";
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
-import {SelfLiquidateFixedLoanParams} from "@src/libraries/actions/SelfLiquidateFixedLoan.sol";
-import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {LiquidateFixedLoanWithReplacementParams} from
+    "@src/libraries/fixed/actions/LiquidateFixedLoanWithReplacement.sol";
+import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
+import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
+import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
     event L1(uint256 a);
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
     function setup() internal override {
-        setup(address(this), address(0x1), address(this));
+        setup(address(this), address(this));
         address[] memory users = new address[](3);
         users[0] = USER1;
         users[1] = USER2;
@@ -60,7 +61,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
 
         if (token == address(weth)) {
-            eq(_after.sender.collateralAmount, _before.sender.collateralAmount + amount, DEPOSIT_01);
+            eq(_after.sender.fixedCollateralAmount, _before.sender.fixedCollateralAmount + amount, DEPOSIT_01);
             eq(_after.senderCollateralAmount, _before.senderCollateralAmount - amount, DEPOSIT_01);
         } else {
             eq(_after.sender.borrowAmount, _before.sender.borrowAmount + amount * 1e12, DEPOSIT_01);
@@ -81,7 +82,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
 
         if (token == address(weth)) {
-            eq(_after.sender.collateralAmount, _before.sender.collateralAmount - amount, WITHDRAW_01);
+            eq(_after.sender.fixedCollateralAmount, _before.sender.fixedCollateralAmount - amount, WITHDRAW_01);
             eq(_after.senderCollateralAmount, _before.senderCollateralAmount + amount, WITHDRAW_01);
         } else {
             eq(_after.sender.borrowAmount, _before.sender.borrowAmount - amount * 1e12, WITHDRAW_01);
@@ -123,7 +124,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after();
 
-        if (amount > size.f().minimumCredit) {
+        if (amount > size.config().minimumCredit) {
             if (lender == sender) {
                 eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
             } else {
@@ -255,7 +256,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after(loanId);
 
-        gt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
+        gt(_after.sender.fixedCollateralAmount, _before.sender.fixedCollateralAmount, LIQUIDATE_01);
         lt(_after.sender.borrowAmount, _before.sender.borrowAmount, LIQUIDATE_02);
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
         t(_before.isSenderLiquidatable, LIQUIDATE_03);
@@ -273,7 +274,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after(loanId);
 
-        lt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
+        lt(_after.sender.fixedCollateralAmount, _before.sender.fixedCollateralAmount, LIQUIDATE_01);
         lt(_after.sender.debtAmount, _before.sender.debtAmount, LIQUIDATE_02);
     }
 

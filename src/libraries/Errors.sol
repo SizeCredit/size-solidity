@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {FixedLoanStatus} from "@src/libraries/FixedLoanLibrary.sol";
+import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 library Errors {
     error USER_IS_LIQUIDATABLE(address account, uint256 cr);
@@ -12,6 +12,8 @@ library Errors {
     error TIME_BUCKETS_NOT_STRICTLY_INCREASING();
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
+    error INVALID_UR(uint256 ur);
+    error INVALID_RESERVE_FACTOR(uint256 reserveFactor);
     error INVALID_KEY(bytes32 key);
     error INVALID_COLLATERAL_RATIO(uint256 cr);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM(uint256 percentage);

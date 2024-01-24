@@ -6,10 +6,11 @@ import {console2 as console} from "forge-std/console2.sol";
 import {BeforeAfter} from "./BeforeAfter.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
-import {FixedLoan} from "@src/libraries/FixedLoanLibrary.sol";
-import {UserView} from "@src/libraries/UserLibrary.sol";
 
-import {RESERVED_ID} from "@src/libraries/FixedLoanLibrary.sol";
+import {UserView} from "@src/SizeView.sol";
+import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+
+import {RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender in wad";
@@ -50,7 +51,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
 
     function invariant_LOAN() public returns (bool) {
-        uint256 minimumCredit = size.f().minimumCredit;
+        uint256 minimumCredit = size.config().minimumCredit;
         uint256 activeFixedLoans = size.activeFixedLoans();
         uint256[] memory folCreditsSumByFolId = new uint256[](activeFixedLoans);
         uint256[] memory solCreditsSumByFolId = new uint256[](activeFixedLoans);
@@ -140,7 +141,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         for (uint256 i = 0; i < users.length; i++) {
             UserView memory userView = size.getUserView(users[i]);
             borrowAmount += userView.borrowAmount;
-            collateralAmount += userView.collateralAmount;
+            collateralAmount += userView.fixedCollateralAmount;
         }
         uint256 collateralTemp;
         uint256 borrowTemp;

@@ -5,17 +5,12 @@ import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 
 uint256 constant PERCENT = 1e18;
 
+enum Rounding {
+    DOWN,
+    UP
+}
+
 library Math {
-    function amountToWad(uint256 amount, uint8 decimals) internal pure returns (uint256) {
-        // @audit-info The protocol does not support tokens with more than 18 decimals
-        return amount * 10 ** (18 - decimals);
-    }
-
-    function wadToAmountDown(uint256 wad, uint8 decimals) internal pure returns (uint256) {
-        // @audit-info The protocol does not support tokens with more than 18 decimals
-        return wad / 10 ** (18 - decimals);
-    }
-
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
         return FixedPointMathLib.min(a, b);
     }
@@ -23,6 +18,10 @@ library Math {
     function min(uint256 a, uint256 b, uint256 c) internal pure returns (uint256) {
         uint256 minAB = FixedPointMathLib.min(a, b);
         return FixedPointMathLib.min(minAB, c);
+    }
+
+    function mulDiv(uint256 x, uint256 y, uint256 z, Rounding rounding) internal pure returns (uint256) {
+        return rounding == Rounding.DOWN ? mulDivDown(x, y, z) : mulDivUp(x, y, z);
     }
 
     function mulDivUp(uint256 x, uint256 y, uint256 z) internal pure returns (uint256) {
