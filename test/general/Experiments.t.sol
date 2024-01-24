@@ -28,7 +28,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().alice.borrowAmount, 100e18);
         _lendAsLimitOrder(alice, 100e18, 10, 0.03e18, 12);
         _deposit(james, weth, 50e18);
-        assertEq(_state().james.fixedCollateralAmount, 50e18);
+        assertEq(_state().james.collateralAmount, 50e18);
 
         _borrowAsMarketOrder(james, alice, 100e18, 6);
         assertGt(size.activeFixedLoans(), 0);
@@ -193,14 +193,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(size.activeFixedLoans(), 1, "Expect one active loan");
 
         assertTrue(!fol.repaid, "FixedLoan should not be repaid before moving to the variable pool");
-        uint256 aliceCollateralBefore = _state().alice.fixedCollateralAmount;
+        uint256 aliceCollateralBefore = _state().alice.collateralAmount;
         assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
 
         // Move to variable pool
         _moveToVariablePool(liquidator, 0);
 
         fol = size.getFixedLoan(0);
-        uint256 aliceCollateralAfter = _state().alice.fixedCollateralAmount;
+        uint256 aliceCollateralAfter = _state().alice.collateralAmount;
 
         // Assert post-move conditions
         assertTrue(fol.repaid, "FixedLoan should be repaid by moving into the variable pool");
@@ -235,12 +235,12 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         // Perform self liquidation
         assertGt(size.getFixedLoan(0).faceValue, 0, "FixedLoan faceValue should be greater than 0");
-        assertEq(_state().bob.fixedCollateralAmount, 0, "Bob should have no free ETH initially");
+        assertEq(_state().bob.collateralAmount, 0, "Bob should have no free ETH initially");
 
         _selfLiquidateFixedLoan(bob, 0);
 
         // Assert post-liquidation conditions
-        assertGt(_state().bob.fixedCollateralAmount, 0, "Bob should have free ETH after self liquidation");
+        assertGt(_state().bob.collateralAmount, 0, "Bob should have free ETH after self liquidation");
         assertEq(size.getFixedLoan(0).faceValue, 0, "FixedLoan faceValue should be 0 after self liquidation");
     }
 
@@ -311,7 +311,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
         _deposit(candy, weth, 200e18);
-        assertEq(_state().candy.fixedCollateralAmount, 200e18);
+        assertEq(_state().candy.collateralAmount, 200e18);
         _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
 
         // Update the context (time and price)

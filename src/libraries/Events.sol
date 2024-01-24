@@ -2,16 +2,12 @@
 pragma solidity 0.8.20;
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {
-    InitializeFixedParams,
-    InitializeGeneralParams,
-    InitializeVariableParams
-} from "@src/libraries/general/actions/Initialize.sol";
+import {InitializeFixedParams, InitializeGeneralParams} from "@src/libraries/general/actions/Initialize.sol";
 
 // solhint-disable var-name-mixedcase
 library Events {
     // General
-    event Initialize(InitializeGeneralParams g, InitializeFixedParams f, InitializeVariableParams v);
+    event Initialize(InitializeGeneralParams g, InitializeFixedParams f);
     event UpdateConfig(bytes32 key, uint256 value);
 
     // Fixed
@@ -51,10 +47,4 @@ library Events {
     );
     event MoveToVariablePool(uint256 indexed loanId);
     event Compensate(uint256 indexed loanToRepayId, uint256 indexed loanToCompensateId, uint256 amount);
-
-    // Variable
-    event DepositVariable(address indexed token, uint256 wad);
-    event WithdrawVariable(address indexed token, uint256 wad);
-    event BorrowVariable(uint256 amount);
-    event RepayVariable(uint256 amount);
 }

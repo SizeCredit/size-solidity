@@ -21,13 +21,13 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, address(weth), 23e18);
         UserView memory aliceUser = size.getUserView(alice);
         assertEq(aliceUser.borrowAmount, 12e18);
-        assertEq(aliceUser.fixedCollateralAmount, 23e18);
+        assertEq(aliceUser.collateralAmount, 23e18);
 
         _withdraw(alice, address(usdc), 9e6);
         _withdraw(alice, address(weth), 7e18);
         aliceUser = size.getUserView(alice);
         assertEq(aliceUser.borrowAmount, 3e18);
-        assertEq(aliceUser.fixedCollateralAmount, 16e18);
+        assertEq(aliceUser.collateralAmount, 16e18);
     }
 
     function testFuzz_Withdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
@@ -40,7 +40,7 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, address(weth), y * 1e18);
         UserView memory aliceUser = size.getUserView(alice);
         assertEq(aliceUser.borrowAmount, x * 1e18);
-        assertEq(aliceUser.fixedCollateralAmount, y * 1e18);
+        assertEq(aliceUser.collateralAmount, y * 1e18);
 
         z = bound(z, 1, x);
         w = bound(w, 1, y);
@@ -49,7 +49,7 @@ contract WithdrawTest is BaseTest {
         _withdraw(alice, address(weth), w * 1e18);
         aliceUser = size.getUserView(alice);
         assertEq(aliceUser.borrowAmount, (x - z) * 1e18);
-        assertEq(aliceUser.fixedCollateralAmount, (y - w) * 1e18);
+        assertEq(aliceUser.collateralAmount, (y - w) * 1e18);
     }
 
     function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
