@@ -96,9 +96,14 @@ jobs:
         with:
           version: nightly
 
-      - name: Echidna ${{ matrix.mode }}
-        run: |
-          echidna . --contract CryticTester --config echidna.yaml --mode ${{ matrix.mode }} --test-limit 100000
+      - uses: crytic/echidna-action@v2
+        name: Echidna ${{ matrix.mode }}
+        with:
+          files: .
+          contract: CryticTester
+          config: echidna.yaml
+          test-mode: ${{ matrix.mode }}
+          test-limit: 100000
 
   typechain-coverage:
     strategy:
