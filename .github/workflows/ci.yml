@@ -96,19 +96,18 @@ jobs:
         with:
           version: nightly
 
-      - name: Compile contracts
+      - name: Install Echidna
         run: |
-          forge build --build-info
+          wget https://github.com/crytic/echidna/releases/download/v2.2.1/echidna-2.2.1-Linux.zip -O echidna.zip
+          unzip echidna.zip
+          tar -xvkf echidna.tar.gz
+          mv echidna /usr/bin/
+          rm echidna.zip echidna.tar.gz
+          echidna --version
 
-      - uses: crytic/echidna-action@v2
-        name: Echidna ${{ matrix.mode }}
-        with:
-          files: .
-          contract: CryticTester
-          config: echidna.yaml
-          test-mode: ${{ matrix.mode }}
-          test-limit: 100000
-          crytic-args: --ignore-compile
+      - name: Echidna ${{ matrix.mode }}
+        run: |
+          echidna . --contract CryticTester --config echidna.yaml --mode ${{ matrix.mode }} --test-limit 100000
 
   typechain-coverage:
     strategy:
