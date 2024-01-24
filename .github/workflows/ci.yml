@@ -110,7 +110,7 @@ jobs:
 
       - name: Echidna ${{ matrix.mode }}
         run: |
-          ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --test-limit 100000 --corpus-dir corpus
+          CI= ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --test-limit 100000 --corpus-dir corpus
 
   typechain-coverage:
     strategy:
