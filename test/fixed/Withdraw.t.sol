@@ -181,7 +181,8 @@ contract WithdrawTest is BaseTest {
         assertLt(borrowToken.totalSupply(), debtToken.totalSupply());
     }
 
-    function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_borrow_followed_by_withdraw() public {
+    function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_borrow_followed_by_withdraw(
+    ) public {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
