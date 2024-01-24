@@ -90,7 +90,6 @@ npm run deploy-sepolia
 - Taking loan with only virtual collateral does not decrease the borrower CR
 - Taking loan with real collateral decreases the borrower CR
 - The user cannot withdraw more than their deposits
-
 - If isLiquidatable && liquidator has enough cash, the liquidation should always succeed (requires adding more checks to isLiquidatable)
 - When a user self liquidates a SOL, it will improve the collateralization ratio of other SOLs. This is because self liquidating decreases the FOL's face value, so it decreases all SOL's debt
 - No loan (FOL/SOL) can ever become a dust loan
@@ -99,33 +98,19 @@ npm run deploy-sepolia
 - The VP utilization ratio should never be greater than 1
 - the collateral ratio of a loan should always be >= than before, after a partial liquidation. We can apply the same invariant in the fixed rate OB for operations like self liquidations and credit debt compensation
 
-## TODO before testnet
-
-- Do the Aave fork, document and automate mitigations
-- Implement Aave price hooks using real Aave's spot rate, with configurable address connector, and a possibility to upgrade it later to e.g. TWAP
-- Learn how to do liquidations in our Aave fork
-- Insurance pool by pooling funds during liquidations
-- Check how Aave does insurance
-- liquidateWithReplacement permissioned, admin can add other people or make it permissionless
-
-- add aave tests
-- add ACLUpgradeable & add PAUSER_ROLE
-- add origination fee & loan fee
-- add caps for everything
-- add tests for fixed borrows with dueDate now
-- add invariant tests to the CI
-- add support for withdrawVariable max
-
 ## TODO before audit
 
-- add more invariants
-- review all input validation functions
-- review internal vs external libs and gas costs
 - gas optimize the 80/20 rule
+- add tests for fixed borrows with dueDate now
+- add invariant tests to the CI
+- review all input validation functions
 - add natspec
 
 ## TODO before mainnet
 
+- Do the Aave fork, document and automate mitigations
+- Learn how to do liquidations in our Aave fork
+- add aave tests
 - test events
 - monitoring
 - incident response plan
@@ -140,6 +125,10 @@ npm run deploy-sepolia
 
 - // @audit Check rounding direction of `FixedPointMath.mulDiv*`
 - // @audit Check if borrower == lender == liquidator may cause any issues
+
+## Questions
+
+- Check how Aave does insurance
 
 ## Known limitations
 
