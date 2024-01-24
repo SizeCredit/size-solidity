@@ -101,13 +101,12 @@ jobs:
           wget https://github.com/crytic/echidna/releases/download/v2.2.1/echidna-2.2.1-Linux.zip -O echidna.zip
           unzip echidna.zip
           tar -xvkf echidna.tar.gz
-          mv echidna /usr/bin/
           rm echidna.zip echidna.tar.gz
-          echidna --version
+          ./echidna --version
 
       - name: Echidna ${{ matrix.mode }}
         run: |
-          echidna . --contract CryticTester --config echidna.yaml --mode ${{ matrix.mode }} --test-limit 100000
+          ./echidna . --contract CryticTester --config echidna.yaml --mode ${{ matrix.mode }} --test-limit 100000
 
   typechain-coverage:
     strategy:
