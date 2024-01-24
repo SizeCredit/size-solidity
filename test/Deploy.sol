@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -31,7 +32,7 @@ abstract contract Deploy {
     IPool internal variablePool;
 
     function setup(address owner, address feeRecipient) internal {
-        variablePool = IPool(address(0x1));
+        variablePool = new PoolMock();
         priceFeed = new PriceFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
