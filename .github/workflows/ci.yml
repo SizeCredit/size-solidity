@@ -98,7 +98,7 @@ jobs:
 
       - name: Install Crytic-compile
         run: |
-          pip install crytic-compile
+          pip install crytic-compile==0.3.4
 
       - name: Install Echidna
         run: |
@@ -110,7 +110,7 @@ jobs:
 
       - name: Echidna ${{ matrix.mode }}
         run: |
-          CI= ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --test-limit 100000 --corpus-dir corpus
+          ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --test-limit 100000 --corpus-dir corpus
 
   typechain-coverage:
     strategy:
