@@ -108,6 +108,7 @@ jobs:
           config: echidna.yaml
           test-mode: ${{ matrix.mode }}
           test-limit: 100000
+          crytic-args: --ignore-compile
 
   typechain-coverage:
     strategy:

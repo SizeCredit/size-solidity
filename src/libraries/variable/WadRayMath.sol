@@ -10,7 +10,7 @@ pragma solidity ^0.8.0;
  * with 27 digits of precision)
  * @dev Operations are rounded. If a value is >=.5, will be rounded up, otherwise rounded down.
  */
-library WadRayMath {
+library AaveWadRayMath {
     // HALF_WAD and HALF_RAY expressed with extended notation as constant with operations are not supported in Yul assembly
     uint256 internal constant WAD = 1e18;
     uint256 internal constant HALF_WAD = 0.5e18;
