@@ -98,7 +98,7 @@ contract MulticallTest is BaseTest {
 
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt, 0);
         assertEq(_after.liquidator.borrowAmount, _before.liquidator.borrowAmount, 0);
-        assertEq(_after.liquidator.fixedCollateralAmount, _before.liquidator.fixedCollateralAmount, 0);
+        assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount, 0);
         assertEq(beforeLiquidatorWETH, 0);
         assertGt(afterLiquidatorWETH, beforeLiquidatorWETH);
         assertEq(beforeLiquidatorUSDC, debtUSDC);

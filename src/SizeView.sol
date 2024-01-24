@@ -17,14 +17,9 @@ import {InitializeFixedParams} from "@src/libraries/general/actions/Initialize.s
 struct UserView {
     User user;
     address account;
-    uint256 fixedCollateralAmount;
+    uint256 collateralAmount;
     uint256 borrowAmount;
     uint256 debtAmount;
-    uint256 variableCollateralAmount;
-    uint256 variableBorrowAmount;
-    uint256 variableDebtAmount;
-    uint256 scaledBorrowAmount;
-    uint256 scaledDebtAmount;
 }
 
 abstract contract SizeView is SizeStorage {
@@ -73,14 +68,9 @@ abstract contract SizeView is SizeStorage {
         return UserView({
             user: state._fixed.users[user],
             account: user,
-            fixedCollateralAmount: state._fixed.collateralToken.balanceOf(user),
+            collateralAmount: state._fixed.collateralToken.balanceOf(user),
             borrowAmount: state._fixed.borrowToken.balanceOf(user),
-            debtAmount: state._fixed.debtToken.balanceOf(user),
-            variableCollateralAmount: state._variable.collateralToken.balanceOf(user),
-            variableBorrowAmount: state._variable.scaledBorrowToken.balanceOf(user),
-            variableDebtAmount: state._variable.scaledDebtToken.balanceOf(user),
-            scaledBorrowAmount: state._variable.scaledBorrowToken.scaledBalanceOf(user),
-            scaledDebtAmount: state._variable.scaledDebtToken.scaledBalanceOf(user)
+            debtAmount: state._fixed.debtToken.balanceOf(user)
         });
     }
 

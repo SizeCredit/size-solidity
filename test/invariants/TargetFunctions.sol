@@ -61,7 +61,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
 
         if (token == address(weth)) {
-            eq(_after.sender.fixedCollateralAmount, _before.sender.fixedCollateralAmount + amount, DEPOSIT_01);
+            eq(_after.sender.collateralAmount, _before.sender.collateralAmount + amount, DEPOSIT_01);
             eq(_after.senderCollateralAmount, _before.senderCollateralAmount - amount, DEPOSIT_01);
         } else {
             eq(_after.sender.borrowAmount, _before.sender.borrowAmount + amount * 1e12, DEPOSIT_01);
@@ -82,7 +82,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
 
         if (token == address(weth)) {
-            eq(_after.sender.fixedCollateralAmount, _before.sender.fixedCollateralAmount - amount, WITHDRAW_01);
+            eq(_after.sender.collateralAmount, _before.sender.collateralAmount - amount, WITHDRAW_01);
             eq(_after.senderCollateralAmount, _before.senderCollateralAmount + amount, WITHDRAW_01);
         } else {
             eq(_after.sender.borrowAmount, _before.sender.borrowAmount - amount * 1e12, WITHDRAW_01);
@@ -256,7 +256,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after(loanId);
 
-        gt(_after.sender.fixedCollateralAmount, _before.sender.fixedCollateralAmount, LIQUIDATE_01);
+        gt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
         lt(_after.sender.borrowAmount, _before.sender.borrowAmount, LIQUIDATE_02);
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
         t(_before.isSenderLiquidatable, LIQUIDATE_03);
@@ -274,7 +274,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after(loanId);
 
-        lt(_after.sender.fixedCollateralAmount, _before.sender.fixedCollateralAmount, LIQUIDATE_01);
+        lt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
         lt(_after.sender.debtAmount, _before.sender.debtAmount, LIQUIDATE_02);
     }
 

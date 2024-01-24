@@ -10,8 +10,6 @@ import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
-import {ScaledBorrowToken} from "@src/token/ScaledBorrowToken.sol";
-import {ScaledDebtToken} from "@src/token/ScaledDebtToken.sol";
 
 // NOTE changing any of these structs' order or variables may change the storage layout
 struct General {
@@ -36,25 +34,9 @@ struct Fixed {
     DebtToken debtToken;
 }
 
-struct Variable {
-    uint256 minimumCollateralRatio;
-    uint256 minRate;
-    uint256 maxRate;
-    uint256 slope;
-    uint256 optimalUR;
-    uint256 reserveFactor;
-    uint256 indexBorrowRAY;
-    uint256 indexSupplyRAY;
-    uint256 lastUpdate;
-    CollateralToken collateralToken;
-    ScaledBorrowToken scaledBorrowToken;
-    ScaledDebtToken scaledDebtToken;
-}
-
 struct State {
     General _general;
     Fixed _fixed;
-    Variable _variable;
 }
 
 abstract contract SizeStorage {

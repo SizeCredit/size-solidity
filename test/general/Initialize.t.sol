@@ -11,7 +11,7 @@ contract InitializeTest is BaseTest {
     function test_Initialize_implementation_cannot_be_initialized() public {
         Size implementation = new Size();
         vm.expectRevert();
-        implementation.initialize(g, f, v);
+        implementation.initialize(g, f);
 
         assertEq(implementation.config().crLiquidation, 0);
     }
@@ -19,7 +19,7 @@ contract InitializeTest is BaseTest {
     function test_Initialize_proxy_can_be_initialized() public {
         Size implementation = new Size();
         ERC1967Proxy proxy =
-            new ERC1967Proxy(address(implementation), abi.encodeWithSelector(Size.initialize.selector, g, f, v));
+            new ERC1967Proxy(address(implementation), abi.encodeWithSelector(Size.initialize.selector, g, f));
 
         assertEq(Size(address(proxy)).config().crLiquidation, 1.3e18);
     }

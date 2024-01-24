@@ -35,8 +35,8 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.fixedCollateralAmount, _before.bob.fixedCollateralAmount - 150e18, 0);
-        assertEq(_after.alice.fixedCollateralAmount, _before.alice.fixedCollateralAmount + 150e18);
+        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - 150e18, 0);
+        assertEq(_after.alice.collateralAmount, _before.alice.collateralAmount + 150e18);
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e18);
     }
 
@@ -77,8 +77,8 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.fixedCollateralAmount, _before.bob.fixedCollateralAmount - 150e18, 0);
-        assertEq(_after.candy.fixedCollateralAmount, _before.candy.fixedCollateralAmount + 150e18);
+        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - 150e18, 0);
+        assertEq(_after.candy.collateralAmount, _before.candy.collateralAmount + 150e18);
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e18);
     }
 

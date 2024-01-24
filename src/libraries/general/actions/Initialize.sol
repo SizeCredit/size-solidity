@@ -4,13 +4,10 @@ pragma solidity 0.8.20;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
-import {RAY} from "@src/libraries/variable/WadRayMathLibrary.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
-import {ScaledBorrowToken} from "@src/token/ScaledBorrowToken.sol";
-import {ScaledDebtToken} from "@src/token/ScaledDebtToken.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -31,15 +28,6 @@ struct InitializeFixedParams {
     uint256 collateralPremiumToLiquidator;
     uint256 collateralPremiumToProtocol;
     uint256 minimumCredit;
-}
-
-struct InitializeVariableParams {
-    uint256 minimumCollateralRatio;
-    uint256 minRate;
-    uint256 maxRate;
-    uint256 slope;
-    uint256 optimalUR;
-    uint256 reserveFactor;
 }
 
 library Initialize {
@@ -103,43 +91,12 @@ library Initialize {
         }
     }
 
-    function _validateInitializeVariableParams(InitializeVariableParams memory v) internal pure {
-        // validate minimumCollateralRatio
-        if (v.minimumCollateralRatio < PERCENT) {
-            revert Errors.INVALID_COLLATERAL_RATIO(v.minimumCollateralRatio);
-        }
-
-        // validate minRate
-        // N/A
-
-        // validate maxRate
-        // N/A
-
-        // validate slope
-        // N/A
-
-        // validate optimalUR
-        if (v.optimalUR > PERCENT) {
-            revert Errors.INVALID_UR(v.optimalUR);
-        }
-
-        // validate reserveFactor
-        if (v.reserveFactor > PERCENT) {
-            revert Errors.INVALID_RESERVE_FACTOR(v.reserveFactor);
-        }
-
-        // TODO validate sum?
-    }
-
-    function validateInitialize(
-        State storage,
-        InitializeGeneralParams memory g,
-        InitializeFixedParams memory f,
-        InitializeVariableParams memory v
-    ) external pure {
+    function validateInitialize(State storage, InitializeGeneralParams memory g, InitializeFixedParams memory f)
+        external
+        pure
+    {
         _validateInitializeGeneralParams(g);
         _validateInitializeFixedParams(f);
-        _validateInitializeVariableParams(v);
     }
 
     function _executeInitializeGeneral(State storage state, InitializeGeneralParams memory g) internal {
@@ -162,31 +119,11 @@ library Initialize {
         state._fixed.minimumCredit = f.minimumCredit;
     }
 
-    function _executeInitializeVariable(State storage state, InitializeVariableParams memory v) internal {
-        state._variable.minimumCollateralRatio = v.minimumCollateralRatio;
-        state._variable.minRate = v.minRate;
-        state._variable.maxRate = v.maxRate;
-        state._variable.slope = v.slope;
-        state._variable.optimalUR = v.optimalUR;
-        state._variable.reserveFactor = v.reserveFactor;
-        state._variable.indexSupplyRAY = RAY;
-        state._variable.indexBorrowRAY = RAY;
-        state._variable.lastUpdate = block.timestamp;
-
-        state._variable.collateralToken = new CollateralToken(address(this), "Size Variable ETH", "szvETH");
-        state._variable.scaledBorrowToken = new ScaledBorrowToken(address(this), "Size Variable USDC", "szvUSDC");
-        state._variable.scaledDebtToken = new ScaledDebtToken(address(this), "Size Variable Debt", "szvDebt");
-    }
-
-    function executeInitialize(
-        State storage state,
-        InitializeGeneralParams memory g,
-        InitializeFixedParams memory f,
-        InitializeVariableParams memory v
-    ) external {
+    function executeInitialize(State storage state, InitializeGeneralParams memory g, InitializeFixedParams memory f)
+        external
+    {
         _executeInitializeGeneral(state, g);
         _executeInitializeFixed(state, f);
-        _executeInitializeVariable(state, v);
-        emit Events.Initialize(g, f, v);
+        emit Events.Initialize(g, f);
     }
 }
