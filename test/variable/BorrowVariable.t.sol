@@ -47,7 +47,7 @@ contract BorrowVariableTest is BaseTest {
         Vars memory _time = _state();
 
         uint256 amount = 50e18;
-        uint256 indexSupplyRAY = InterestMath.linearInterestRAY(RAY, 1 days);
+        // uint256 indexSupplyRAY = InterestMath.linearInterestRAY(RAY, 1 days);
         uint256 indexBorrowRAY = InterestMath.compoundInterestRAY(RAY, 1 days);
         // uint256 scaledSupplyAmount = WadRayMath.rayDiv(amount, indexSupplyRAY);
         uint256 scaledDebt = WadRayMath.rayDiv(amount, indexBorrowRAY);
