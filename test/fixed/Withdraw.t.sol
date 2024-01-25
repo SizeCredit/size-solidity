@@ -145,7 +145,7 @@ contract WithdrawTest is BaseTest {
         assertEq(weth.balanceOf(address(alice)), 0);
     }
 
-    function test_Withdraw_withdraw_everything_may_leave_dust_due_to_wad_conversion() public {
+    function test_Withdraw_withdraw_everything_may_leave_dust_in_vp_due_to_wad_conversion() public {
         _setPrice(1e18);
         uint256 liquidatorAmount = 10_000e6;
         _deposit(alice, usdc, 100e6);
@@ -164,10 +164,9 @@ contract WithdrawTest is BaseTest {
         _liquidateFixedLoan(liquidator, loanId);
         _withdraw(liquidator, usdc, type(uint256).max);
 
-        uint256 a = usdc.balanceOf(liquidator);
-        assertEq(a, liquidatorAmount - debtUSDC);
-        assertEq(_state().liquidator.borrowAmount, dust);
-        assertGt(_state().liquidator.borrowAmount, 0);
+        assertEq(usdc.balanceOf(liquidator), liquidatorAmount - debtUSDC);
+        assertEq(_state().vpBorrowAmount, debt + dust);
+        assertGt(_state().vpBorrowAmount, 0);
     }
 
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_self_borrow() public {

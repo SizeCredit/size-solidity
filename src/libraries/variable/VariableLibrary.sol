@@ -6,10 +6,8 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {State} from "@src/SizeStorage.sol";
-import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-import {IPool} from "@aave/interfaces/IPool.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 
 import {Deposit, DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
@@ -38,7 +36,7 @@ library VariableLibrary {
 
     function depositBorrowToken(State storage state, address, /*from*/ uint256 wad, address /*onBehalfOf*/ ) public {
         address asset = address(state._general.borrowAsset);
-        uint256 amount = ConversionLibrary.wadToAmountDown(wad, state._general.borrowAsset.decimals());
+        uint256 amount = ConversionLibrary.wadToAmountUp(wad, state._general.borrowAsset.decimals());
 
         // unwrap borrowAsset (e.g. szUSDC) to borrowToken (e.g. USDC) from `msg.sender` to `address(this)`
         state.executeWithdraw(
