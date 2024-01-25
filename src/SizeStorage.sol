@@ -35,9 +35,14 @@ struct Fixed {
     DebtToken debtToken; // e.g. szDebt
 }
 
+struct Variable {
+    address userProxyImplementation;
+}
+
 struct State {
     General _general;
     Fixed _fixed;
+    Variable _variable;
 }
 
 abstract contract SizeStorage {

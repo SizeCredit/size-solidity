@@ -64,6 +64,6 @@ library Withdraw {
         nonTransferrableToken.burn(msg.sender, wadDown);
         token.safeTransfer(params.to, withdrawAmountDown);
 
-        emit Events.Withdraw(params.token, wadDown);
+        emit Events.Withdraw(params.token, params.to, wadDown);
     }
 }

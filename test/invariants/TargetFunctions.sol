@@ -56,7 +56,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         hevm.prank(sender);
         IERC20Metadata(token).approve(address(size), amount);
         hevm.prank(sender);
-        size.deposit(DepositParams({token: token, amount: amount}));
+        size.deposit(DepositParams({token: token, amount: amount, to: sender}));
 
         __after();
 

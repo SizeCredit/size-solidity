@@ -24,7 +24,6 @@ library Claim {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         // validate msg.sender
-        // @audit Check if this should be permissioned
 
         // validate loanId
         if (state.getFixedLoanStatus(loan) != FixedLoanStatus.REPAID) {

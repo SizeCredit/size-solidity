@@ -9,6 +9,7 @@ import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
@@ -96,9 +97,15 @@ abstract contract SizeView is SizeStorage {
 
     function getVariablePool() external view returns (uint256, uint256, uint256) {
         return (
-            state._fixed.collateralToken.balanceOf(address(state._general.variablePool)),
-            state._fixed.borrowToken.balanceOf(address(state._general.variablePool)),
-            state._fixed.debtToken.balanceOf(address(state._general.variablePool))
+            ConversionLibrary.amountToWad(
+                state._general.collateralAsset.balanceOf(address(state._general.variablePool)),
+                state._general.collateralAsset.decimals()
+                ),
+            ConversionLibrary.amountToWad(
+                state._general.borrowAsset.balanceOf(address(state._general.variablePool)),
+                state._general.borrowAsset.decimals()
+                ),
+            0
         );
     }
 

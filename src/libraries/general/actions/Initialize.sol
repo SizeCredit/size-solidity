@@ -10,6 +10,8 @@ import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
+import {UserProxy} from "@src/proxy/UserProxy.sol";
+
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -121,11 +123,16 @@ library Initialize {
         state._fixed.minimumCredit = f.minimumCredit;
     }
 
+    function _executeInitializeVariable(State storage state) internal {
+        state._variable.userProxyImplementation = address(new UserProxy());
+    }
+
     function executeInitialize(State storage state, InitializeGeneralParams memory g, InitializeFixedParams memory f)
         external
     {
         _executeInitializeGeneral(state, g);
         _executeInitializeFixed(state, f);
+        _executeInitializeVariable(state);
         emit Events.Initialize(g, f);
     }
 }

@@ -65,9 +65,9 @@ contract WithdrawTest is BaseTest {
         assertEq(usdc.balanceOf(address(alice)), valueUSDC);
         assertEq(weth.balanceOf(address(alice)), valueWETH);
 
-        size.deposit(DepositParams({token: address(usdc), amount: valueUSDC}));
+        size.deposit(DepositParams({token: address(usdc), amount: valueUSDC, to: alice}));
 
-        size.deposit(DepositParams({token: address(weth), amount: valueWETH}));
+        size.deposit(DepositParams({token: address(weth), amount: valueWETH, to: alice}));
 
         assertEq(usdc.balanceOf(address(size)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), valueWETH);

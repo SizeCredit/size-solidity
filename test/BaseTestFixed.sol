@@ -42,10 +42,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _deposit(address user, address token, uint256 amount) internal {
+        return _deposit(user, token, amount, user);
+    }
+
+    function _deposit(address user, address token, uint256 amount, address to) internal {
         _mint(token, user, amount);
         _approve(user, token, address(size), amount);
         vm.prank(user);
-        size.deposit(DepositParams({token: token, amount: amount}));
+        size.deposit(DepositParams({token: token, amount: amount, to: to}));
     }
 
     function _withdraw(address user, IERC20Metadata token, uint256 amount) internal {

@@ -27,7 +27,7 @@ contract MulticallTest is BaseTest {
         assertEq(size.getUserView(alice).user.loanOffer.maxAmount, 0);
 
         bytes[] memory data = new bytes[](2);
-        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount})));
+        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
         data[1] = abi.encodeCall(
             size.lendAsLimitOrder,
             LendAsLimitOrderParams({
@@ -50,7 +50,7 @@ contract MulticallTest is BaseTest {
         IERC20Metadata(token).approve(address(size), amount);
 
         bytes[] memory data = new bytes[](2);
-        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount})));
+        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
         data[1] = abi.encodeCall(size.transferOwnership, (alice));
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
         size.multicall(data);
@@ -81,7 +81,7 @@ contract MulticallTest is BaseTest {
 
         bytes[] memory data = new bytes[](4);
         // deposit only the necessary to cover for the borrower's debt
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: debtUSDC}));
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: debtUSDC, to: liquidator}));
         // liquidate profitably
         data[1] = abi.encodeCall(
             size.liquidateFixedLoan, LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: 1e18})

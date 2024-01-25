@@ -4,8 +4,6 @@ pragma solidity 0.8.20;
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
-
 import {PERCENT} from "@src/libraries/MathLibrary.sol";
 import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
