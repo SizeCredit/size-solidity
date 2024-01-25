@@ -36,7 +36,7 @@ library VariableLibrary {
         return address(getUserProxy(state, user));
     }
 
-    function depositBorrowToken(State storage state, address, /*from*/ uint256 wad, address onBehalfOf) public {
+    function depositBorrowToken(State storage state, address, /*from*/ uint256 wad, address /*onBehalfOf*/ ) public {
         address asset = address(state._general.borrowAsset);
         uint256 amount = ConversionLibrary.wadToAmountDown(wad, state._general.borrowAsset.decimals());
 
@@ -46,25 +46,18 @@ library VariableLibrary {
         );
 
         state._general.borrowAsset.forceApprove(address(state._general.variablePool), amount);
-        state._general.variablePool.supply(asset, amount, getUserProxyAddress(state, onBehalfOf), 0);
-        state._general.borrowAsset.forceApprove(address(state._general.variablePool), 0);
+        state._general.variablePool.supply(asset, amount, address(this), 0);
     }
 
     function withdrawBorrowToken(State storage state, address to, uint256 wad) public {
         address asset = address(state._general.borrowAsset);
         uint256 amount = ConversionLibrary.wadToAmountDown(wad, state._general.borrowAsset.decimals());
 
-        UserProxy userProxy = getUserProxy(state, to);
-        address target = address(state._general.variablePool);
-        bytes memory data = abi.encodeCall(IPool.withdraw, (asset, amount, address(this)));
-        (bool success,) = userProxy.proxy(target, data);
-        if (!success) {
-            revert Errors.PROXY_CALL_FAILED(target, data);
-        }
+        state._general.variablePool.withdraw(asset, amount, address(this));
+
         state._general.borrowAsset.forceApprove(address(this), amount);
         state.executeDeposit(
             DepositParams({token: address(state._general.borrowAsset), amount: amount, to: to}), address(this)
         );
-        state._general.borrowAsset.forceApprove(address(this), 0);
     }
 }
