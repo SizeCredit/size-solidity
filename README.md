@@ -100,6 +100,10 @@ npm run deploy-sepolia
 - The VP utilization ratio should never be greater than 1
 - the collateral ratio of a loan should always be >= than before, after a partial liquidation. We can apply the same invariant in the fixed rate OB for operations like self liquidations and credit debt compensation
 
+## TODO if there's time
+
+- merge EOA CR and UserProxy CR
+
 ## TODO before audit
 
 - gas optimize the 80/20 rule

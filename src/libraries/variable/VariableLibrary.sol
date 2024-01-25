@@ -14,12 +14,16 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 
 import {Deposit, DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
+
+import {AaveLibrary} from "@src/libraries/variable/AaveLibrary.sol";
 import {UserProxy} from "@src/proxy/UserProxy.sol";
 
+// TODO: this library be optimized to avoid unnecessary approvals when transferring tokens from Size to Size
 library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
     using Withdraw for State;
     using Deposit for State;
+    using AaveLibrary for State;
 
     function getUserProxy(State storage state, address user) public returns (UserProxy) {
         if (address(state._fixed.users[user].proxy) != address(0)) {
@@ -32,12 +36,11 @@ library VariableLibrary {
         return userProxy;
     }
 
-    function getUserProxyAddress(State storage state, address user) public returns (address) {
+    function getUserProxyAddress(State storage state, address user) external returns (address) {
         return address(getUserProxy(state, user));
     }
 
-    function depositBorrowToken(State storage state, address, /*from*/ uint256 wad, address /*onBehalfOf*/ ) public {
-        address asset = address(state._general.borrowAsset);
+    function depositBorrowToken(State storage state, address, /*from*/ uint256 wad, address /*onBehalfOf*/ ) external {
         uint256 amount = ConversionLibrary.wadToAmountUp(wad, state._general.borrowAsset.decimals());
 
         // unwrap borrowToken (e.g. szUSDC) to borrowAsset (e.g. USDC) from `msg.sender` to `address(this)`
@@ -45,16 +48,17 @@ library VariableLibrary {
             WithdrawParams({token: address(state._general.borrowAsset), amount: amount, to: address(this)})
         );
 
-        state._general.borrowAsset.forceApprove(address(state._general.variablePool), amount);
-        state._general.variablePool.supply(asset, amount, address(this), 0);
+        state._general.borrowAsset.forceApprove(address(this), amount);
+        state.supplyBorrowAssets(amount, address(this), msg.sender);
     }
 
-    function withdrawBorrowToken(State storage state, address to, uint256 wad) public {
-        address asset = address(state._general.borrowAsset);
+    function withdrawBorrowToken(State storage state, address to, uint256 wad) external {
         uint256 amount = ConversionLibrary.wadToAmountDown(wad, state._general.borrowAsset.decimals());
 
-        amount = state._general.variablePool.withdraw(asset, amount, address(this));
+        // withdraw from Aave
+        state.withdrawBorrowAssets(amount, msg.sender, address(this));
 
+        // deposit to Size
         state._general.borrowAsset.forceApprove(address(this), amount);
         state.executeDeposit(
             DepositParams({token: address(state._general.borrowAsset), amount: amount, to: to}), address(this)
@@ -66,7 +70,7 @@ library VariableLibrary {
         address borrower,
         uint256 collateralAmountWad,
         uint256 borrowAmountWad
-    ) public {
+    ) external {
         address collateralAsset = address(state._general.collateralAsset);
         uint256 collateralAmount =
             ConversionLibrary.wadToAmountUp(collateralAmountWad, state._general.collateralAsset.decimals());

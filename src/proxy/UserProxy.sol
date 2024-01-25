@@ -16,37 +16,37 @@ contract UserProxy is Initializable, OwnableUpgradeable {
         __Ownable_init(owner);
     }
 
-    function proxy(address _target, bytes memory _calldata)
+    function proxy(address target, bytes memory data)
         public
         onlyOwner
         returns (bool success, bytes memory returnData)
     {
-        if (_target == address(0)) {
+        if (target == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        (success, returnData) = address(_target).call(_calldata);
+        (success, returnData) = address(target).call(data);
     }
 
-    function proxy(address _target, bytes memory _calldata, uint256 _value)
+    function proxy(address target, bytes memory data, uint256 _value)
         public
         onlyOwner
         returns (bool success, bytes memory returnData)
     {
-        if (_target == address(0)) {
+        if (target == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        (success, returnData) = address(_target).call{value: _value}(_calldata);
+        (success, returnData) = address(target).call{value: _value}(data);
     }
 
-    function proxy(address[] memory _targets, bytes[] memory _calldatas) public onlyOwner {
-        if (_targets.length != _calldatas.length) {
+    function proxy(address[] memory targets, bytes[] memory datas) public onlyOwner {
+        if (targets.length != datas.length) {
             revert Errors.ARRAY_LENGTHS_MISMATCH();
         }
         bool success;
-        for (uint256 i = 0; i < _targets.length; i++) {
-            (success,) = address(_targets[i]).call(_calldatas[i]);
+        for (uint256 i = 0; i < targets.length; i++) {
+            (success,) = address(targets[i]).call(datas[i]);
             if (!success) {
-                revert Errors.PROXY_CALL_FAILED(_targets[i], _calldatas[i]);
+                revert Errors.PROXY_CALL_FAILED(targets[i], datas[i]);
             }
         }
     }

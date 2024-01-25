@@ -5,9 +5,10 @@ import {BorrowOffer, FixedLoanOffer} from "@src/libraries/fixed/OfferLibrary.sol
 import {UserProxy} from "@src/proxy/UserProxy.sol";
 
 struct User {
-    UserProxy proxy;
     FixedLoanOffer loanOffer;
     BorrowOffer borrowOffer;
+    UserProxy proxy;
+    uint256 vpBorrowAssetScaledDeposits; // in `decimals` (not necessarily WAD)
 }
 
 library UserLibrary {}
