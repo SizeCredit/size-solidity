@@ -10,7 +10,7 @@ library ConversionLibrary {
     }
 
     function wadToAmountDown(uint256 wad, uint8 decimals) internal pure returns (uint256) {
-        return Math.mulDivDown(wad, 10 ** decimals, 10 ** 18);
+        return wad / 10 ** (18 - decimals);
     }
 
     function wadToAmountUp(uint256 wad, uint8 decimals) internal pure returns (uint256) {
