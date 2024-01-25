@@ -37,7 +37,7 @@ abstract contract Deploy {
         priceFeed = new PriceFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
-        variablePool = new PoolMock();
+        variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         g = InitializeGeneralParams({
             owner: owner,
