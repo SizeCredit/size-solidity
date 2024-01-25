@@ -22,9 +22,11 @@ abstract contract AssertsHelper is Test {
     }
 
     function assertEq(UserView memory a, UserView memory b) internal {
+        assertEq(a.account, b.account, "account");
         assertEq(a.collateralAmount, b.collateralAmount, "collateralAmount");
         assertEq(a.borrowAmount, b.borrowAmount, "borrowAmount");
         assertEq(a.debtAmount, b.debtAmount, "debtAmount");
+        assertEq(a.vpBorrowAmount, b.vpBorrowAmount, "vpBorrowAmount");
     }
 
     function assertEq(uint256 a, uint256 b, uint256 c) internal {

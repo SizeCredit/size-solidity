@@ -33,8 +33,9 @@ library Claim {
 
     function executeClaim(State storage state, ClaimParams calldata params) external {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
+        FixedLoan storage fol = state.getFOL(loan);
 
-        state.withdrawBorrowToken(loan.lender, loan.getCredit());
+        state.withdrawBorrowTokenFromVariablePool(fol.lender, loan.lender, loan.getCredit());
         loan.faceValueExited = loan.faceValue;
 
         emit Events.Claim(params.loanId);

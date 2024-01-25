@@ -49,7 +49,7 @@ library Repay {
         uint256 repayAmount = Math.min(loan.faceValue, params.amount);
 
         if (repayAmount == loan.faceValue && loan.isFOL()) {
-            state.depositBorrowToken(msg.sender, repayAmount, loan.lender);
+            state.depositBorrowTokenToVariablePool(msg.sender, loan.lender, repayAmount);
             state._fixed.debtToken.burn(msg.sender, repayAmount);
             loan.repaid = true;
         } else {

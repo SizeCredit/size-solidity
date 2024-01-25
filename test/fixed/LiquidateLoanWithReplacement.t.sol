@@ -94,7 +94,11 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         FixedLoan memory loanAfter = size.getFixedLoan(loanId);
         Vars memory _after = _state();
 
-        assertEq(_after.alice, _before.alice);
+        assertEq(_after.alice.collateralAmount, _before.alice.collateralAmount);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount);
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
+        assertEq(_after.alice.vpBorrowAmount * 1e12, _before.alice.vpBorrowAmount * 1e12 + dust);
+
         assertEq(_after.candy.debtAmount, _before.candy.debtAmount + debt);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + newAmountAfterConversions);
         assertEq(_before.vpBorrowAmount, 0);

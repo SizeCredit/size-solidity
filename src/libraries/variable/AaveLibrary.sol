@@ -40,7 +40,7 @@ library AaveLibrary {
     }
 
     /// @notice Returns the total amount of underlying assets held by the specified in decimals (not WAD)
-    function balanceOf(State storage state, address account) external view returns (uint256) {
+    function balanceOfBorrowAssets(State storage state, address account) external view returns (uint256) {
         uint256 scaledDeposits = state._fixed.users[account].vpBorrowAssetScaledDeposits;
         uint256 liquidityIndexRAY = getLiquidityIndexRAY(state);
         // TODO round down

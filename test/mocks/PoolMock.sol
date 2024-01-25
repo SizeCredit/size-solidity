@@ -24,7 +24,6 @@ contract PoolMock is Ownable, IPool {
     uint256 public constant RATE = 1.01e27;
     EnumerableMap.AddressToUintMap internal reserveIndexes;
     PoolAddressesProvider internal addressesProvider;
-    mapping(address user => mapping(address asset => uint256 amount)) internal deposits;
     mapping(address user => mapping(address asset => uint256 amount)) internal debts;
     mapping(address asset => AToken aToken) internal aTokens;
 
@@ -42,7 +41,8 @@ contract PoolMock is Ownable, IPool {
             aTokens[asset] = new AToken(this);
             reserveIndexes.set(asset, WadRayMath.RAY);
         } else {
-            index = index * RATE / WadRayMath.RAY;
+            // TODO: simulate interest
+            // index = index * RATE / WadRayMath.RAY;
             reserveIndexes.set(asset, index);
         }
     }
@@ -58,7 +58,7 @@ contract PoolMock is Ownable, IPool {
     function supply(address asset, uint256 amount, address onBehalfOf, uint16) external override {
         _updateLiquidityIndex(asset);
         IERC20Metadata(asset).transferFrom(msg.sender, address(this), amount);
-        deposits[onBehalfOf][asset] += amount;
+        aTokens[asset].mint(address(this), onBehalfOf, amount, reserveIndexes.get(asset));
     }
 
     function supplyWithPermit(address, uint256, address, uint16, uint256, uint8, bytes32, bytes32)
@@ -71,7 +71,7 @@ contract PoolMock is Ownable, IPool {
 
     function withdraw(address asset, uint256 amount, address to) external override returns (uint256) {
         _updateLiquidityIndex(asset);
-        deposits[msg.sender][asset] -= amount;
+        aTokens[asset].burn(msg.sender, address(aTokens[asset]), amount, reserveIndexes.get(asset));
         IERC20Metadata(asset).safeTransfer(to, amount);
         return amount;
     }

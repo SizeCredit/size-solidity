@@ -21,6 +21,7 @@ contract RepayTest is BaseTest {
         uint256 amountFixedLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
+        uint256 faceValueUSDC = Math.mulDivUp(faceValue, 1e6, 1e18);
 
         Vars memory _before = _state();
 
@@ -30,6 +31,8 @@ contract RepayTest is BaseTest {
 
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue);
+        assertEq(_after.bob.vpBorrowAmount, _before.bob.vpBorrowAmount, 0);
+        assertEq(_after.alice.vpBorrowAmount, _before.alice.vpBorrowAmount + faceValueUSDC);
         assertEq(_after.vpBorrowAmount, _before.vpBorrowAmount + faceValue);
         assertTrue(size.getFixedLoan(loanId).repaid);
     }
@@ -52,6 +55,8 @@ contract RepayTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue / 2);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue / 2);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + faceValue / 2);
+        assertEq(_after.bob.vpBorrowAmount, _before.bob.vpBorrowAmount, 0);
+        assertEq(_after.alice.vpBorrowAmount, _before.alice.vpBorrowAmount, 0);
         assertTrue(!size.getFixedLoan(loanId).repaid);
     }
 
@@ -63,6 +68,7 @@ contract RepayTest is BaseTest {
         uint256 amountFixedLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
+        uint256 faceValueUSDC = Math.mulDivUp(faceValue, 1e6, 1e18);
 
         Vars memory _before = _state();
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
@@ -84,6 +90,8 @@ contract RepayTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue);
         assertEq(_after.vpBorrowAmount, _before.vpBorrowAmount + faceValue);
+        assertEq(_after.bob.vpBorrowAmount, _before.bob.vpBorrowAmount, 0);
+        assertEq(_after.alice.vpBorrowAmount, _before.alice.vpBorrowAmount + faceValueUSDC);
         assertTrue(size.getFixedLoan(loanId).repaid);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.REPAID);
     }
@@ -106,6 +114,8 @@ contract RepayTest is BaseTest {
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e18);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e18);
+        assertEq(_after.bob.vpBorrowAmount, _before.bob.vpBorrowAmount, 0);
+        assertEq(_after.alice.vpBorrowAmount, _before.alice.vpBorrowAmount, 0);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId));
         _repay(bob, loanId);
@@ -131,6 +141,8 @@ contract RepayTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + faceValue);
+        assertEq(_after.bob.vpBorrowAmount, _before.bob.vpBorrowAmount, 0);
+        assertEq(_after.alice.vpBorrowAmount, _before.alice.vpBorrowAmount, 0);
         // @audit this is not correct
         assertTrue(!size.getFixedLoan(loanId).repaid);
     }
@@ -155,6 +167,8 @@ contract RepayTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue / 2);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + faceValue / 2);
+        assertEq(_after.bob.vpBorrowAmount, _before.bob.vpBorrowAmount, 0);
+        assertEq(_after.alice.vpBorrowAmount, _before.alice.vpBorrowAmount, 0);
         assertTrue(!size.getFixedLoan(loanId).repaid);
     }
 
