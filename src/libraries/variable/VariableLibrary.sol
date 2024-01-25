@@ -49,6 +49,7 @@ library VariableLibrary {
         );
 
         state._general.borrowAsset.forceApprove(address(this), amount);
+        // slither-disable-next-line unused-return
         state.supplyBorrowAssets(amount, address(this), to);
     }
 

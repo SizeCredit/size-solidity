@@ -44,6 +44,7 @@ contract UserProxy is Initializable, OwnableUpgradeable {
         }
         bool success;
         for (uint256 i = 0; i < targets.length; i++) {
+            // slither-disable-next-line calls-loop
             (success,) = address(targets[i]).call(datas[i]);
             if (!success) {
                 revert Errors.PROXY_CALL_FAILED(targets[i], datas[i]);
