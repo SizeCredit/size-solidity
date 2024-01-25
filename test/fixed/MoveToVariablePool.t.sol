@@ -17,6 +17,7 @@ contract MoveToVariablePoolTest is BaseTest {
         _deposit(alice, address(usdc), 100e6);
         _deposit(bob, address(weth), 150e18);
         _deposit(candy, address(usdc), 100e6);
+        _depositVariable(alice, address(usdc), 100e6);
         _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 100e18, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e18, 12);
@@ -38,9 +39,11 @@ contract MoveToVariablePoolTest is BaseTest {
 
         assertEq(_after.alice, _before.alice);
         assertEq(loansBefore, loansAfter);
-        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - assignedCollateral);
+        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - assignedCollateral, "x");
         assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount + assignedCollateral);
         assertTrue(!loanBefore.repaid);
         assertTrue(loanAfter.repaid);
     }
+
+    function test_MoveToVariablePool_moveToVariablePool_fails_if_VP_does_not_have_enough_liquidity() internal {}
 }

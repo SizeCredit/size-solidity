@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.20;
+
+import {Test} from "forge-std/Test.sol";
+
+import {BaseTestGeneral} from "@test/BaseTestGeneral.sol";
+
+abstract contract BaseTestVariable is Test, BaseTestGeneral {
+    function _depositVariable(address user, address token, uint256 amount) internal {
+        _mint(token, user, amount);
+        _approve(user, token, address(variablePool), amount);
+        vm.prank(user);
+        variablePool.supply(token, amount, user, 0);
+    }
+}

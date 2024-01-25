@@ -49,19 +49,23 @@ library Withdraw {
     }
 
     function executeWithdraw(State storage state, WithdrawParams calldata params) external {
+        return executeWithdraw(state, params, msg.sender);
+    }
+
+    function executeWithdraw(State storage state, WithdrawParams calldata params, address from) public {
         NonTransferrableToken nonTransferrableToken = params.token == address(state._general.collateralAsset)
             ? NonTransferrableToken(state._fixed.collateralToken)
             : NonTransferrableToken(state._fixed.borrowToken);
         IERC20Metadata token = IERC20Metadata(params.token);
         uint8 decimals = token.decimals();
 
-        uint256 userBalanceWad = nonTransferrableToken.balanceOf(msg.sender);
+        uint256 userBalanceWad = nonTransferrableToken.balanceOf(from);
         uint256 userBalanceAmountDown = ConversionLibrary.wadToAmountDown(userBalanceWad, decimals);
 
         uint256 withdrawAmountDown = Math.min(params.amount, userBalanceAmountDown);
         uint256 wadDown = ConversionLibrary.amountToWad(withdrawAmountDown, decimals);
 
-        nonTransferrableToken.burn(msg.sender, wadDown);
+        nonTransferrableToken.burn(from, wadDown);
         token.safeTransfer(params.to, withdrawAmountDown);
 
         emit Events.Withdraw(params.token, params.to, wadDown);

@@ -196,6 +196,9 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         uint256 aliceCollateralBefore = _state().alice.collateralAmount;
         assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
 
+        // add funds to the V
+        _depositVariable(liquidator, address(usdc), 1_000e6);
+
         // Move to variable pool
         _moveToVariablePool(liquidator, 0);
 

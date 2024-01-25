@@ -87,24 +87,6 @@ library FixedLibrary {
         emit Events.CreateFixedLoan(solId, lender, borrower, exiterId, folId, faceValue, fol.dueDate);
     }
 
-    function createVariableFixedLoan(
-        State storage state,
-        address borrower,
-        uint256 amountBorrowAssetLentOut,
-        uint256 amountCollateral
-    ) public {
-        // TODO
-        // state.variableFixedLoans.push(
-        //     VariableFixedLoan({
-        //         borrower: borrower,
-        //         amountBorrowAssetLentOut: amountBorrowAssetLentOut,
-        //         amountCollateral: amountCollateral,
-        //         startTime: block.timestamp,
-        //         repaid: false
-        //     })
-        // );
-    }
-
     function getFOL(State storage state, FixedLoan storage self) public view returns (FixedLoan storage) {
         return self.isFOL() ? self : state._fixed.loans[self.folId];
     }
