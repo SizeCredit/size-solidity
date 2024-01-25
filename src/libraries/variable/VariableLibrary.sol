@@ -53,7 +53,7 @@ library VariableLibrary {
         address asset = address(state._general.borrowAsset);
         uint256 amount = ConversionLibrary.wadToAmountDown(wad, state._general.borrowAsset.decimals());
 
-        state._general.variablePool.withdraw(asset, amount, address(this));
+        amount = state._general.variablePool.withdraw(asset, amount, address(this));
 
         state._general.borrowAsset.forceApprove(address(this), amount);
         state.executeDeposit(

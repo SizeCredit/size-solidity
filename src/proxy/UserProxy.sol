@@ -21,6 +21,9 @@ contract UserProxy is Initializable, OwnableUpgradeable {
         onlyOwner
         returns (bool success, bytes memory returnData)
     {
+        if (_target == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
         (success, returnData) = address(_target).call(_calldata);
     }
 
@@ -29,6 +32,9 @@ contract UserProxy is Initializable, OwnableUpgradeable {
         onlyOwner
         returns (bool success, bytes memory returnData)
     {
+        if (_target == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
         (success, returnData) = address(_target).call{value: _value}(_calldata);
     }
 
