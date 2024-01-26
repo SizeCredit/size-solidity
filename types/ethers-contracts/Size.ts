@@ -117,11 +117,16 @@ export type InitializeFixedParamsStructOutput = [
   minimumCredit: BigNumber;
 };
 
-export type DepositParamsStruct = { token: string; amount: BigNumberish };
+export type DepositParamsStruct = {
+  token: string;
+  amount: BigNumberish;
+  to: string;
+};
 
-export type DepositParamsStructOutput = [string, BigNumber] & {
+export type DepositParamsStructOutput = [string, BigNumber, string] & {
   token: string;
   amount: BigNumber;
+  to: string;
 };
 
 export type FixedLoanStruct = {
@@ -181,14 +186,20 @@ export type BorrowOfferStructOutput = [BigNumber, YieldCurveStructOutput] & {
 export type UserStruct = {
   loanOffer: FixedLoanOfferStruct;
   borrowOffer: BorrowOfferStruct;
+  proxy: string;
+  vpBorrowAssetScaledDeposits: BigNumberish;
 };
 
 export type UserStructOutput = [
   FixedLoanOfferStructOutput,
-  BorrowOfferStructOutput
+  BorrowOfferStructOutput,
+  string,
+  BigNumber
 ] & {
   loanOffer: FixedLoanOfferStructOutput;
   borrowOffer: BorrowOfferStructOutput;
+  proxy: string;
+  vpBorrowAssetScaledDeposits: BigNumber;
 };
 
 export type UserViewStruct = {
@@ -197,11 +208,13 @@ export type UserViewStruct = {
   collateralAmount: BigNumberish;
   borrowAmount: BigNumberish;
   debtAmount: BigNumberish;
+  vpBorrowAmount: BigNumberish;
 };
 
 export type UserViewStructOutput = [
   UserStructOutput,
   string,
+  BigNumber,
   BigNumber,
   BigNumber,
   BigNumber
@@ -211,6 +224,7 @@ export type UserViewStructOutput = [
   collateralAmount: BigNumber;
   borrowAmount: BigNumber;
   debtAmount: BigNumber;
+  vpBorrowAmount: BigNumber;
 };
 
 export type InitializeGeneralParamsStruct = {
@@ -219,9 +233,11 @@ export type InitializeGeneralParamsStruct = {
   collateralAsset: string;
   borrowAsset: string;
   feeRecipient: string;
+  variablePool: string;
 };
 
 export type InitializeGeneralParamsStructOutput = [
+  string,
   string,
   string,
   string,
@@ -233,6 +249,7 @@ export type InitializeGeneralParamsStructOutput = [
   collateralAsset: string;
   borrowAsset: string;
   feeRecipient: string;
+  variablePool: string;
 };
 
 export type LendAsLimitOrderParamsStruct = {
@@ -318,11 +335,16 @@ export type UpdateConfigParamsStructOutput = [string, BigNumber] & {
   value: BigNumber;
 };
 
-export type WithdrawParamsStruct = { token: string; amount: BigNumberish };
+export type WithdrawParamsStruct = {
+  token: string;
+  amount: BigNumberish;
+  to: string;
+};
 
-export type WithdrawParamsStructOutput = [string, BigNumber] & {
+export type WithdrawParamsStructOutput = [string, BigNumber, string] & {
   token: string;
   amount: BigNumber;
+  to: string;
 };
 
 export interface SizeInterface extends utils.Interface {
@@ -337,7 +359,7 @@ export interface SizeInterface extends utils.Interface {
     "collateralRatio(address)": FunctionFragment;
     "compensate((uint256,uint256,uint256))": FunctionFragment;
     "config()": FunctionFragment;
-    "deposit((address,uint256))": FunctionFragment;
+    "deposit((address,uint256,address))": FunctionFragment;
     "getCredit(uint256)": FunctionFragment;
     "getDebt(uint256)": FunctionFragment;
     "getFOLAssignedCollateral(uint256)": FunctionFragment;
@@ -347,7 +369,7 @@ export interface SizeInterface extends utils.Interface {
     "getFixedLoans()": FunctionFragment;
     "getUserView(address)": FunctionFragment;
     "getVariablePool()": FunctionFragment;
-    "initialize((address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
+    "initialize((address,address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
     "isFOL(uint256)": FunctionFragment;
     "isLiquidatable(address)": FunctionFragment;
     "isLiquidatable(uint256)": FunctionFragment;
@@ -367,7 +389,7 @@ export interface SizeInterface extends utils.Interface {
     "transferOwnership(address)": FunctionFragment;
     "updateConfig((bytes32,uint256))": FunctionFragment;
     "upgradeToAndCall(address,bytes)": FunctionFragment;
-    "withdraw((address,uint256))": FunctionFragment;
+    "withdraw((address,uint256,address))": FunctionFragment;
   };
 
   getFunction(
