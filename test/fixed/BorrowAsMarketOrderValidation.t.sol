@@ -18,12 +18,15 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
     using FixedLoanLibrary for FixedLoan;
 
     function test_BorrowAsMarketOrder_validation() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _lendAsLimitOrder(bob, 100e18, 5, 0.03e18, 5);
-        _lendAsLimitOrder(candy, 100e18, 10, 0.03e18, 10);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 100e6, 5, 0.03e18, 5);
+        _lendAsLimitOrder(candy, 100e6, 10, 0.03e18, 10);
         uint256 loanId = _borrowAsMarketOrder(alice, candy, 5e18, 10);
 
         uint256 amount = 10e18;

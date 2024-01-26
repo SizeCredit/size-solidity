@@ -84,8 +84,8 @@ contract WithdrawTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
-        _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
+        _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, bob, 0));
@@ -150,7 +150,7 @@ contract WithdrawTest is BaseTest {
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
         uint256 rate = 1;
-        _lendAsLimitOrder(alice, 100e18, 12, rate, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, rate, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
@@ -171,8 +171,8 @@ contract WithdrawTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(alice, weth, 150e18);
-        _borrowAsLimitOrder(alice, 100e18, 1e18, 12);
-        _lendAsMarketOrder(alice, alice, 100e18, 12);
+        _borrowAsLimitOrder(alice, 100e6, 1e18, 12);
+        _lendAsMarketOrder(alice, alice, 100e6, 12);
         _withdraw(alice, usdc, 10e6);
         (, IAToken borrowAToken, DebtToken debtToken) = size.tokens();
         assertLt(borrowAToken.totalSupply(), debtToken.totalSupply());
@@ -183,8 +183,8 @@ contract WithdrawTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
-        _borrowAsLimitOrder(bob, 100e18, 1e18, 12);
-        _lendAsMarketOrder(alice, bob, 100e18, 12);
+        _borrowAsLimitOrder(bob, 100e6, 1e18, 12);
+        _lendAsMarketOrder(alice, bob, 100e6, 12);
         _withdraw(bob, usdc, 10e6);
         (, IAToken borrowAToken, DebtToken debtToken) = size.tokens();
         assertLt(borrowAToken.totalSupply(), debtToken.totalSupply());

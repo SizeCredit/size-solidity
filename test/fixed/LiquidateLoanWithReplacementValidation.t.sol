@@ -18,11 +18,14 @@ contract LiquidateFixedLoanWithReplacementValidationTest is BaseTest {
 
     function test_LiquidateFixedLoanWithReplacement_validation() public {
         _setPrice(1e18);
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 4);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(liquidator, weth, 100e18);
+        _deposit(liquidator, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 4);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
         uint256 minimumCollateralRatio = 1e18;
 

@@ -16,10 +16,10 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _borrowAsMarketOrder(bob, candy, 100e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _borrowAsMarketOrder(bob, candy, 100e6, 12);
 
         vm.startPrank(james);
         vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATOR_IS_NOT_LENDER.selector, james, alice));

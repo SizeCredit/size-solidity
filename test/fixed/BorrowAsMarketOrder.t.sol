@@ -23,12 +23,14 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
     uint256 private constant MAX_RATE = 2e18;
     uint256 private constant MAX_DUE_DATE = 12;
-    uint256 private constant MAX_AMOUNT = 100e18;
+    uint256 private constant MAX_AMOUNT = 100e6;
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_real_collateral() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         FixedLoanOffer memory offerBefore = size.getUserView(alice).user.loanOffer;
 
         Vars memory _before = _state();
@@ -65,8 +67,10 @@ contract BorrowAsMarketOrderTest is BaseTest {
         rate = 0.03e18;
         dueDate = 12;
 
-        _deposit(alice, MAX_AMOUNT, MAX_AMOUNT);
-        _deposit(bob, MAX_AMOUNT, MAX_AMOUNT);
+        _deposit(alice, weth, MAX_AMOUNT);
+        _deposit(alice, usdc, MAX_AMOUNT);
+        _deposit(bob, weth, MAX_AMOUNT);
+        _deposit(bob, usdc, MAX_AMOUNT);
 
         _lendAsLimitOrder(alice, MAX_AMOUNT, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
         FixedLoanOffer memory offerBefore = size.getUserView(alice).user.loanOffer;
@@ -89,12 +93,15 @@ contract BorrowAsMarketOrderTest is BaseTest {
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
         uint256 amount = 30e18;
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 60e18, 12);
         uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
         virtualCollateralFixedLoanIds[0] = loanId;
@@ -122,9 +129,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
         rate = bound(rate, 0, MAX_RATE);
         dueDate = bound(dueDate, block.timestamp, block.timestamp + MAX_DUE_DATE - 1);
 
-        _deposit(alice, MAX_AMOUNT, MAX_AMOUNT);
-        _deposit(bob, MAX_AMOUNT, MAX_AMOUNT);
-        _deposit(candy, MAX_AMOUNT, MAX_AMOUNT);
+        _deposit(alice, weth, MAX_AMOUNT);
+        _deposit(alice, usdc, MAX_AMOUNT);
+        _deposit(bob, weth, MAX_AMOUNT);
+        _deposit(bob, usdc, MAX_AMOUNT);
+        _deposit(candy, weth, MAX_AMOUNT);
+        _deposit(candy, usdc, MAX_AMOUNT);
 
         _lendAsLimitOrder(alice, MAX_AMOUNT, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
         _lendAsLimitOrder(candy, MAX_AMOUNT, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
@@ -147,11 +157,14 @@ contract BorrowAsMarketOrderTest is BaseTest {
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_and_real_collateral() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.05e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0.05e18, 12);
         uint256 amountFixedLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         FixedLoanOffer memory loanOffer = size.getUserView(candy).user.loanOffer;
@@ -190,11 +203,14 @@ contract BorrowAsMarketOrderTest is BaseTest {
         amountFixedLoanId1 = bound(amountFixedLoanId1, MAX_AMOUNT / 10, 2 * MAX_AMOUNT / 10); // arbitrary divisor so that user does not get unhealthy
         amountFixedLoanId2 = bound(amountFixedLoanId2, 3 * MAX_AMOUNT / 10, 3 * 2 * MAX_AMOUNT / 10); // arbitrary divisor so that user does not get unhealthy
 
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.05e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0.05e18, 12);
         uint256 loanId1 = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
         virtualCollateralFixedLoanIds[0] = loanId1;
@@ -227,11 +243,14 @@ contract BorrowAsMarketOrderTest is BaseTest {
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_properties() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 30e18, 12);
         uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
         virtualCollateralFixedLoanIds[0] = loanId;
@@ -251,8 +270,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_free_eth_is_lower_than_locked_amount() public {
-        _deposit(alice, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         FixedLoanOffer memory loanOffer = size.getUserView(alice).user.loanOffer;
         uint256 amount = 100e18;
         uint256 dueDate = 12;
@@ -277,7 +297,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_lender_cannot_transfer_borrowAsset() public {
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
 
         _withdraw(alice, usdc, 999e6);
 
@@ -311,16 +331,16 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
-        _lendAsLimitOrder(james, 100e18, 12, 0.03e18, 12);
-        uint256 folId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _borrowAsMarketOrder(alice, candy, 100e18, 12, [folId]);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(james, 100e6, 12, 0.03e18, 12);
+        uint256 folId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _borrowAsMarketOrder(alice, candy, 100e6, 12, [folId]);
 
         uint256 loansBefore = size.activeFixedLoans();
         Vars memory _before = _state();
 
-        _borrowAsMarketOrder(alice, james, 100e18, 12, [folId]);
+        _borrowAsMarketOrder(alice, james, 100e6, 12, [folId]);
 
         uint256 loansAfter = size.activeFixedLoans();
         Vars memory _after = _state();
@@ -341,11 +361,11 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
-        _lendAsLimitOrder(bob, 100e18, 12, 0, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 200e18, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 49e18, 12, [loanId]);
         uint256 solId2 = _borrowAsMarketOrder(candy, bob, 42e18, 12, [solId]);
 
@@ -365,11 +385,11 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
-        _lendAsLimitOrder(bob, 100e18, 12, 0, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 200e18, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 49e18, 12, [loanId]);
 
         FixedLoan memory solBefore = size.getFixedLoan(solId);
@@ -391,12 +411,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
-        _lendAsLimitOrder(bob, 100e18, 12, 0, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 200e18, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _borrowAsMarketOrder(alice, candy, 100e18, 12, [loanId]);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _borrowAsMarketOrder(alice, candy, 100e6, 12, [loanId]);
 
         console.log("User attempts to fully exit twice, but a FOL is attempted to be craeted, which reverts");
 
@@ -415,9 +435,11 @@ contract BorrowAsMarketOrderTest is BaseTest {
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_does_not_create_loans_if_dust_amount() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.1e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.1e18, 12);
 
         Vars memory _before = _state();
 

@@ -12,13 +12,16 @@ contract LiquidateFixedLoanTest is BaseTest {
     function test_LiquidateFixedLoan_liquidateFixedLoan_seizes_borrower_collateral() public {
         _setPrice(1e18);
 
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(liquidator, 100e18, 100e18);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(liquidator, weth, 100e18);
+        _deposit(liquidator, usdc, 100e6);
 
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
@@ -79,11 +82,14 @@ contract LiquidateFixedLoanTest is BaseTest {
     function test_LiquidateFixedLoan_liquidateFixedLoan_repays_loan() public {
         _setPrice(1e18);
 
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(liquidator, 100e18, 100e18);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(liquidator, weth, 100e18);
+        _deposit(liquidator, usdc, 100e6);
 
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
 
         _setPrice(0.2e18);
@@ -99,11 +105,14 @@ contract LiquidateFixedLoanTest is BaseTest {
     function test_LiquidateFixedLoan_liquidateFixedLoan_reduces_borrower_debt() public {
         _setPrice(1e18);
 
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(liquidator, 100e18, 100e18);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(liquidator, weth, 100e18);
+        _deposit(liquidator, usdc, 100e6);
 
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
@@ -124,11 +133,14 @@ contract LiquidateFixedLoanTest is BaseTest {
     function test_LiquidateFixedLoan_liquidateFixedLoan_can_be_called_unprofitably() public {
         _setPrice(1e18);
 
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(liquidator, 1000e18, 1000e18);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(liquidator, weth, 1000e18);
+        _deposit(liquidator, usdc, 1000e6);
 
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
 

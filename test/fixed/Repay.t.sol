@@ -14,10 +14,13 @@ import {Math} from "@src/libraries/Math.sol";
 
 contract RepayTest is BaseTest {
     function test_Repay_repay_full_FOL() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
         uint256 amountFixedLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
@@ -38,10 +41,13 @@ contract RepayTest is BaseTest {
     }
 
     function test_Repay_repay_partial_FOL() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
         uint256 amountFixedLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
@@ -61,10 +67,13 @@ contract RepayTest is BaseTest {
     }
 
     function test_Repay_overdue_does_not_increase_debt() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
         uint256 amountFixedLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
@@ -97,13 +106,16 @@ contract RepayTest is BaseTest {
     }
 
     function test_Repay_repay_claimed_should_revert() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _borrowAsMarketOrder(bob, candy, 100e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _borrowAsMarketOrder(bob, candy, 100e6, 12);
 
         Vars memory _before = _state();
 
@@ -122,11 +134,14 @@ contract RepayTest is BaseTest {
     }
 
     function test_Repay_repay_full_of_SOL() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.05e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0.05e18, 12);
         uint256 amountFixedLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
@@ -148,11 +163,14 @@ contract RepayTest is BaseTest {
     }
 
     function test_Repay_repay_partial_of_SOL() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.05e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0.05e18, 12);
         uint256 amountFixedLoanId1 = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
@@ -176,7 +194,7 @@ contract RepayTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
         uint256 amount = 10e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
 
@@ -196,7 +214,7 @@ contract RepayTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, borrowAmount, 12);
 
         vm.prank(bob);

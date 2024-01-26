@@ -11,12 +11,15 @@ import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol"
 
 contract BorrowerExitTest is BaseTest {
     function test_BorrowerExit_borrowerExit_transfer_cash_from_sender_to_borrowOffer_properties() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
 
         Vars memory _before = _state();
 
@@ -46,11 +49,13 @@ contract BorrowerExitTest is BaseTest {
 
     // @audit exit to self should not change anything except for maxAmount
     function test_BorrowerExit_borrowerExit_to_self_is_possible_properties() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _borrowAsLimitOrder(bob, 100e18, 0.03e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _borrowAsLimitOrder(bob, 100e6, 0.03e18, 12);
 
         Vars memory _before = _state();
 
@@ -81,8 +86,8 @@ contract BorrowerExitTest is BaseTest {
         _deposit(bob, weth, 2 * 150e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsLimitOrder(candy, 200e18, 0, 12);
 
         vm.startPrank(bob);

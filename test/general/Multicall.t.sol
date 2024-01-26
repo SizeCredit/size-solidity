@@ -59,10 +59,12 @@ contract MulticallTest is BaseTest {
     function test_Multicall_liquiadtor_can_liquidate_and_withdraw() public {
         _setPrice(1e18);
 
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
 
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         uint256 amount = 15e18;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);

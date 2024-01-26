@@ -21,9 +21,11 @@ contract LendAsMarketOrderTest is BaseTest {
     using FixedLoanLibrary for FixedLoan;
 
     function test_LendAsMarketOrder_lendAsMarketOrder_transfers_to_borrower() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _borrowAsLimitOrder(alice, 100e18, 0.03e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _borrowAsLimitOrder(alice, 100e6, 0.03e18, 12);
 
         uint256 faceValue = 10e18;
         uint256 dueDate = 12;
@@ -51,9 +53,11 @@ contract LendAsMarketOrderTest is BaseTest {
     }
 
     function test_LendAsMarketOrder_lendAsMarketOrder_exactAmountIn() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _borrowAsLimitOrder(alice, 100e18, 0.03e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _borrowAsLimitOrder(alice, 100e6, 0.03e18, 12);
 
         uint256 amountIn = 10e18;
         uint256 dueDate = 12;
@@ -81,10 +85,12 @@ contract LendAsMarketOrderTest is BaseTest {
     }
 
     function test_LendAsMarketOrder_lendAsMarketOrder_exactAmountIn(uint256 amountIn, uint256 seed) public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
-        _borrowAsLimitOrder(alice, 100e18, curve.timeBuckets, curve.rates);
+        _borrowAsLimitOrder(alice, 100e6, curve.timeBuckets, curve.rates);
 
         amountIn = bound(amountIn, 5e18, 100e18);
         uint256 dueDate = block.timestamp + (curve.timeBuckets[0] + curve.timeBuckets[1]) / 2;

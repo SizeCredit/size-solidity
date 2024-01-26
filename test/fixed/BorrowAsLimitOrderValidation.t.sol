@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
-
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 
@@ -18,8 +14,8 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
     using OfferLibrary for BorrowOffer;
 
     function test_BorrowAsLimitOrder_validation() public {
-        _deposit(alice, 100e18, 100e18);
-        uint256 maxAmount = 100e18;
+        _deposit(alice, weth, 100e18);
+        uint256 maxAmount = 100e6;
         uint256[] memory timeBuckets = new uint256[](2);
         timeBuckets[0] = 1 days;
         timeBuckets[1] = 2 days;
