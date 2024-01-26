@@ -8,7 +8,6 @@ struct User {
     FixedLoanOffer loanOffer;
     BorrowOffer borrowOffer;
     UserProxy proxy;
-    uint256 vpBorrowAssetScaledDeposits; // in `decimals` (not necessarily WAD)
 }
 
 library UserLibrary {}

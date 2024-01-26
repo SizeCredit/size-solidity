@@ -2,6 +2,7 @@
 pragma solidity 0.8.20;
 
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
@@ -23,6 +24,7 @@ library BorrowerExit {
     using OfferLibrary for BorrowOffer;
     using FixedLoanLibrary for FixedLoan;
     using FixedLoanLibrary for FixedLoan[];
+    using VariableLibrary for State;
 
     function validateBorrowerExit(State storage state, BorrowerExitParams calldata params) external view {
         BorrowOffer memory borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
@@ -37,8 +39,8 @@ library BorrowerExit {
         if (msg.sender != fol.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, fol.borrower);
         }
-        if (state._fixed.borrowToken.balanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowToken.balanceOf(msg.sender), amountIn);
+        if (state._fixed.borrowAToken.balanceOf(msg.sender) < amountIn) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowAToken.balanceOf(msg.sender), amountIn);
         }
 
         // validate loanId
@@ -67,7 +69,7 @@ library BorrowerExit {
         uint256 faceValue = fol.faceValue;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
 
-        state._fixed.borrowToken.transferFrom(msg.sender, params.borrowerToExitTo, amountIn);
+        state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
         state._fixed.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
         fol.borrower = params.borrowerToExitTo;
         borrowOffer.maxAmount -= amountIn;

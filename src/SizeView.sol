@@ -5,7 +5,7 @@ import {SizeStorage, State} from "@src/SizeStorage.sol";
 
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
-import {BorrowToken} from "@src/token/BorrowToken.sol";
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
@@ -23,7 +23,6 @@ struct UserView {
     uint256 collateralAmount;
     uint256 borrowAmount;
     uint256 debtAmount;
-    uint256 vpBorrowAmount;
 }
 
 abstract contract SizeView is SizeStorage {
@@ -74,9 +73,8 @@ abstract contract SizeView is SizeStorage {
             user: state._fixed.users[user],
             account: user,
             collateralAmount: state._fixed.collateralToken.balanceOf(user),
-            borrowAmount: state._fixed.borrowToken.balanceOf(user),
-            debtAmount: state._fixed.debtToken.balanceOf(user),
-            vpBorrowAmount: state.variablePoolBalanceOfBorrowAssets(user)
+            borrowAmount: state._fixed.borrowAToken.balanceOf(user),
+            debtAmount: state._fixed.debtToken.balanceOf(user)
         });
     }
 
@@ -117,12 +115,12 @@ abstract contract SizeView is SizeStorage {
     function getFeeRecipient() external view returns (uint256, uint256, uint256) {
         return (
             state._fixed.collateralToken.balanceOf(state._general.feeRecipient),
-            state._fixed.borrowToken.balanceOf(state._general.feeRecipient),
+            state._fixed.borrowAToken.balanceOf(state._general.feeRecipient),
             state._fixed.debtToken.balanceOf(state._general.feeRecipient)
         );
     }
 
-    function tokens() public view returns (CollateralToken, BorrowToken, DebtToken) {
-        return (state._fixed.collateralToken, state._fixed.borrowToken, state._fixed.debtToken);
+    function tokens() public view returns (CollateralToken, IAToken, DebtToken) {
+        return (state._fixed.collateralToken, state._fixed.borrowAToken, state._fixed.debtToken);
     }
 }

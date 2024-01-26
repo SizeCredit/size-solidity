@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -9,21 +10,14 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {State} from "@src/SizeStorage.sol";
 import {Events} from "@src/libraries/Events.sol";
+import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-
-import {Deposit, DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
-import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
-
-import {AaveLibrary} from "@src/libraries/variable/AaveLibrary.sol";
 import {UserProxy} from "@src/proxy/UserProxy.sol";
 
 // TODO: this library can be optimized to avoid unnecessary approvals when transferring tokens from Size to Size
 library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
-    using Withdraw for State;
-    using Deposit for State;
-    using AaveLibrary for State;
+    using CollateralLibrary for State;
 
     function getUserProxy(State storage state, address user) public returns (UserProxy) {
         if (address(state._fixed.users[user].proxy) != address(0)) {
@@ -40,44 +34,45 @@ library VariableLibrary {
         return address(getUserProxy(state, user));
     }
 
-    function depositBorrowTokenToVariablePool(State storage state, address from, address to, uint256 wad) external {
-        uint256 amount = ConversionLibrary.wadToAmountUp(wad, state._general.borrowAsset.decimals());
+    function depositBorrowTokenToVariablePool(State storage state, address from, address to, uint256 amount) external {
+        IERC20Metadata borrowAsset = IERC20Metadata(state._general.borrowAsset);
 
-        // unwrap borrowToken (e.g. szUSDC) to borrowAsset (e.g. USDC) from `from` to `address(this)`
-        state.executeWithdraw(
-            WithdrawParams({token: address(state._general.borrowAsset), amount: amount, to: address(this)}), from
-        );
+        borrowAsset.safeTransferFrom(from, address(this), amount);
 
-        state._general.borrowAsset.forceApprove(address(this), amount);
-        // slither-disable-next-line unused-return
-        state.supplyBorrowAssets(amount, address(this), to);
+        UserProxy userProxyTo = getUserProxy(state, to);
+
+        state._general.variablePool.supply(address(borrowAsset), amount, address(userProxyTo), 0);
     }
 
-    function withdrawBorrowTokenFromVariablePool(State storage state, address from, address to, uint256 wad) external {
-        uint256 amount = ConversionLibrary.wadToAmountDown(wad, state._general.borrowAsset.decimals());
+    function withdrawBorrowTokenFromVariablePool(State storage state, address from, address to, uint256 amount)
+        external
+    {
+        IERC20Metadata borrowAsset = IERC20Metadata(state._general.borrowAsset);
 
-        // withdraw borrowAssets (e.g. USDC) from Aave, deduct from `from` and send to `address(this)`
-        // slither-disable-next-line unused-return
-        (amount,) = state.withdrawBorrowAssets(amount, from, address(this));
+        UserProxy userProxyFrom = getUserProxy(state, from);
 
-        // deposit to Size
-        state._general.borrowAsset.forceApprove(address(this), amount);
-        state.executeDeposit(
-            DepositParams({token: address(state._general.borrowAsset), amount: amount, to: to}), address(this)
+        userProxyFrom.proxy(
+            address(state._general.variablePool), abi.encodeCall(IPool.withdraw, (address(borrowAsset), amount, to))
         );
+    }
+
+    function transferBorrowAToken(State storage state, address from, address to, uint256 amount) external {
+        IAToken borrowAToken = state._fixed.borrowAToken;
+
+        UserProxy userProxyFrom = getUserProxy(state, from);
+        UserProxy userProxyTo = getUserProxy(state, to);
+
+        userProxyFrom.proxy(address(borrowAToken), abi.encodeCall(IERC20.transfer, (address(userProxyTo), amount)));
     }
 
     function borrowFromVariablePool(
         State storage state,
         address borrower,
-        uint256 collateralAmountWad,
-        uint256 borrowAmountWad
+        uint256 collateralAmount,
+        uint256 borrowAmount
     ) external {
         address collateralAsset = address(state._general.collateralAsset);
-        uint256 collateralAmount =
-            ConversionLibrary.wadToAmountUp(collateralAmountWad, state._general.collateralAsset.decimals());
         address borrowAsset = address(state._general.borrowAsset);
-        uint256 borrowAmount = ConversionLibrary.wadToAmountDown(borrowAmountWad, state._general.borrowAsset.decimals());
 
         UserProxy userProxy = getUserProxy(state, borrower);
 
@@ -85,10 +80,7 @@ library VariableLibrary {
         bytes[] memory data = new bytes[](2);
 
         // unwrap collateralToken (e.g. szETH) to collateralAsset (e.g. WETH) from `borrower` to `address(this)`
-        state.executeWithdraw(
-            WithdrawParams({token: address(state._general.collateralAsset), amount: collateralAmount, to: address(this)}),
-            borrower
-        );
+        state.withdrawCollateralToken(borrower, address(this), collateralAmount);
 
         // supply collateral asset
         state._general.collateralAsset.forceApprove(address(state._general.variablePool), collateralAmount);
@@ -103,9 +95,5 @@ library VariableLibrary {
         data[1] = abi.encodeCall(IERC20.transfer, (borrower, borrowAmount));
 
         userProxy.proxy(targets, data);
-    }
-
-    function variablePoolBalanceOfBorrowAssets(State storage state, address user) external view returns (uint256) {
-        return state.balanceOfBorrowAssets(user);
     }
 }

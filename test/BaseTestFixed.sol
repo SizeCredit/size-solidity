@@ -12,10 +12,6 @@ import {WETH} from "@test/mocks/WETH.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {BorrowToken} from "@src/token/BorrowToken.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
-
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 

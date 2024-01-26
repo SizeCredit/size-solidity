@@ -10,7 +10,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct LendAsLimitOrderParams {
-    uint256 maxAmount;
+    uint256 maxAmount; // in decimals (e.g. 1_000e6 for 1000 USDC)
     uint256 maxDueDate;
     YieldCurve curveRelativeTime;
 }
@@ -23,8 +23,8 @@ library LendAsLimitOrder {
         if (params.maxAmount == 0) {
             revert Errors.NULL_AMOUNT();
         }
-        if (params.maxAmount > state._fixed.borrowToken.balanceOf(msg.sender)) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowToken.balanceOf(msg.sender), params.maxAmount);
+        if (params.maxAmount > state._fixed.borrowAToken.balanceOf(msg.sender)) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowAToken.balanceOf(msg.sender), params.maxAmount);
         }
 
         // validate maxDueDate

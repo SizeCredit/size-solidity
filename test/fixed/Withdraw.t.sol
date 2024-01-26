@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {UserView} from "@src/SizeView.sol";
@@ -174,8 +174,8 @@ contract WithdrawTest is BaseTest {
         _borrowAsLimitOrder(alice, 100e18, 1e18, 12);
         _lendAsMarketOrder(alice, alice, 100e18, 12);
         _withdraw(alice, usdc, 10e6);
-        (, BorrowToken borrowToken, DebtToken debtToken) = size.tokens();
-        assertLt(borrowToken.totalSupply(), debtToken.totalSupply());
+        (, IAToken borrowAToken, DebtToken debtToken) = size.tokens();
+        assertLt(borrowAToken.totalSupply(), debtToken.totalSupply());
     }
 
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_borrow_followed_by_withdraw(
@@ -186,7 +186,7 @@ contract WithdrawTest is BaseTest {
         _borrowAsLimitOrder(bob, 100e18, 1e18, 12);
         _lendAsMarketOrder(alice, bob, 100e18, 12);
         _withdraw(bob, usdc, 10e6);
-        (, BorrowToken borrowToken, DebtToken debtToken) = size.tokens();
-        assertLt(borrowToken.totalSupply(), debtToken.totalSupply());
+        (, IAToken borrowAToken, DebtToken debtToken) = size.tokens();
+        assertLt(borrowAToken.totalSupply(), debtToken.totalSupply());
     }
 }

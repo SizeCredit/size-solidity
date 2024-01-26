@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
 
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
@@ -27,9 +28,9 @@ library SelfLiquidateFixedLoan {
     {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
-        uint256 debtCollateral = Math.mulDivDown(
-            loan.getDebt(), 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
-        );
+        uint256 debtWad = ConversionLibrary.amountToWad(loan.getDebt(), state._general.borrowAsset.decimals());
+        uint256 debtCollateral =
+            Math.mulDivDown(debtWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
 
         // validate msg.sender
         if (msg.sender != loan.lender) {

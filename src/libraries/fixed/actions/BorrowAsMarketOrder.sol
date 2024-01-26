@@ -12,13 +12,14 @@ import {Math} from "@src/libraries/Math.sol";
 
 import {State} from "@src/SizeStorage.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct BorrowAsMarketOrderParams {
     address lender;
-    uint256 amount; // in WAD (e.g. 1_000e18 for 1000 BorrowToken)
+    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC or 1_000e18 for 1000 WETH)
     uint256 dueDate;
     bool exactAmountIn;
     uint256[] virtualCollateralFixedLoanIds;
@@ -29,6 +30,7 @@ library BorrowAsMarketOrder {
     using FixedLoanLibrary for FixedLoan;
     using FixedLoanLibrary for FixedLoan[];
     using FixedLibrary for State;
+    using VariableLibrary for State;
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
         User memory lenderUser = state._fixed.users[params.lender];
@@ -122,7 +124,7 @@ library BorrowAsMarketOrder {
             }
 
             state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, faceValue: deltaAmountIn});
-            state._fixed.borrowToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
+            state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
             loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
         }
@@ -154,7 +156,7 @@ library BorrowAsMarketOrder {
 
         state._fixed.debtToken.mint(msg.sender, faceValue);
         state.createFOL({lender: params.lender, borrower: msg.sender, faceValue: faceValue, dueDate: params.dueDate});
-        state._fixed.borrowToken.transferFrom(params.lender, msg.sender, params.amount);
+        state.transferBorrowAToken(params.lender, msg.sender, params.amount);
         loanOffer.maxAmount -= params.amount;
     }
 }

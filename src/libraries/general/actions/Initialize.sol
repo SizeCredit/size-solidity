@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
@@ -113,7 +113,8 @@ library Initialize {
 
     function _executeInitializeFixed(State storage state, InitializeFixedParams memory f) internal {
         state._fixed.collateralToken = new CollateralToken(address(this), "Size Fixed ETH", "szETH");
-        state._fixed.borrowToken = new BorrowToken(address(this), "Size USDC", "szUSDC");
+        state._fixed.borrowAToken =
+            IAToken(state._general.variablePool.getReserveData(address(state._general.borrowAsset)).aTokenAddress);
         state._fixed.debtToken = new DebtToken(address(this), "Size Debt", "szDebt");
 
         state._fixed.crOpening = f.crOpening;

@@ -9,7 +9,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct BorrowAsLimitOrderParams {
-    uint256 maxAmount;
+    uint256 maxAmount; // in decimals (e.g. 1_000e6 for 1000 USDC)
     YieldCurve curveRelativeTime;
 }
 

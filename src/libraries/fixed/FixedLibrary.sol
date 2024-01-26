@@ -2,6 +2,8 @@
 pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
+
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
@@ -138,10 +140,11 @@ library FixedLibrary {
     function collateralRatio(State storage state, address account) public view returns (uint256) {
         uint256 collateral = state._fixed.collateralToken.balanceOf(account);
         uint256 debt = state._fixed.debtToken.balanceOf(account);
+        uint256 debtWad = ConversionLibrary.amountToWad(debt, state._general.borrowAsset.decimals());
         uint256 price = state._general.priceFeed.getPrice();
 
         if (debt > 0) {
-            return Math.mulDivDown(collateral, price, debt);
+            return Math.mulDivDown(collateral, price, debtWad);
         } else {
             return type(uint256).max;
         }
@@ -158,6 +161,7 @@ library FixedLibrary {
     }
 
     function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
-        return Math.mulDivUp(faceValue, state._fixed.crOpening, state._general.priceFeed.getPrice());
+        uint256 faceValueWad = ConversionLibrary.amountToWad(faceValue, state._general.borrowAsset.decimals());
+        return Math.mulDivUp(faceValueWad, state._fixed.crOpening, state._general.priceFeed.getPrice());
     }
 }

@@ -12,8 +12,8 @@ library Events {
     event CreateUserProxy(address indexed user, address indexed proxy);
 
     // Fixed
-    event Deposit(address indexed token, address indexed to, uint256 wad);
-    event Withdraw(address indexed token, address indexed to, uint256 wad);
+    event Deposit(address indexed token, address indexed to, uint256 amount);
+    event Withdraw(address indexed token, address indexed to, uint256 amount);
     event BorrowAsMarketOrder(
         address indexed lender,
         uint256 amount,

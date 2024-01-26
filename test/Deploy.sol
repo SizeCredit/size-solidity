@@ -13,12 +13,8 @@ import {Size} from "@src/Size.sol";
 import {
     Initialize, InitializeFixedParams, InitializeGeneralParams
 } from "@src/libraries/general/actions/Initialize.sol";
-import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
-
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
 
 abstract contract Deploy {
     ERC1967Proxy internal proxy;
@@ -26,9 +22,6 @@ abstract contract Deploy {
     PriceFeedMock internal priceFeed;
     WETH internal weth;
     USDC internal usdc;
-    CollateralToken internal fixedCollateralToken;
-    BorrowToken internal borrowToken;
-    DebtToken internal debtToken;
     InitializeGeneralParams internal g;
     InitializeFixedParams internal f;
     IPool internal variablePool;

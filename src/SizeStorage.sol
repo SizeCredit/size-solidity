@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
@@ -8,7 +9,6 @@ import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
@@ -31,7 +31,7 @@ struct Fixed {
     uint256 collateralPremiumToLiquidator;
     uint256 collateralPremiumToProtocol;
     CollateralToken collateralToken; // e.g. szWETH
-    BorrowToken borrowToken; // e.g. szUSDC
+    IAToken borrowAToken; // e.g. aszUSDC
     DebtToken debtToken; // e.g. szDebt
 }
 
