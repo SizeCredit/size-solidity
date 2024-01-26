@@ -65,7 +65,7 @@ contract MulticallTest is BaseTest {
         _deposit(bob, usdc, 100e6);
 
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
-        uint256 amount = 15e18;
+        uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
 

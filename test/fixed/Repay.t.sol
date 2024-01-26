@@ -21,7 +21,7 @@ contract RepayTest is BaseTest {
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e18;
+        uint256 amountFixedLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
         uint256 faceValueUSDC = Math.mulDivUp(faceValue, 1e6, 1e18);
@@ -48,7 +48,7 @@ contract RepayTest is BaseTest {
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e18;
+        uint256 amountFixedLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
 
@@ -74,7 +74,7 @@ contract RepayTest is BaseTest {
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e18;
+        uint256 amountFixedLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
         uint256 faceValueUSDC = Math.mulDivUp(faceValue, 1e6, 1e18);
@@ -142,7 +142,7 @@ contract RepayTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e18;
+        uint256 amountFixedLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
@@ -171,7 +171,7 @@ contract RepayTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e18;
+        uint256 amountFixedLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
@@ -195,7 +195,7 @@ contract RepayTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
-        uint256 amount = 10e18;
+        uint256 amount = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
 
         vm.expectRevert(

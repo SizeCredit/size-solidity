@@ -29,7 +29,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         _lendAsLimitOrder(candy, 100e6, 10, 0.03e18, 10);
         uint256 loanId = _borrowAsMarketOrder(alice, candy, 5e18, 10);
 
-        uint256 amount = 10e18;
+        uint256 amount = 10e6;
         uint256 dueDate = 12;
         bool exactAmountIn = false;
         uint256[] memory virtualCollateralFixedLoanIds;

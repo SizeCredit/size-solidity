@@ -29,7 +29,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
-        uint256 amount = 15e18;
+        uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 delta = debt - amount;
@@ -74,7 +74,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         _borrowAsLimitOrder(candy, 100e6, 0.01e18, 12);
-        uint256 amount = 15e18;
+        uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 newAmount = Math.mulDivDown(debt, PERCENT, (PERCENT + 0.01e18));

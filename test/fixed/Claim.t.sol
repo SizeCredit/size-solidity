@@ -16,7 +16,7 @@ contract ClaimTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e18;
+        uint256 amountFixedLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         _repay(bob, loanId);
 

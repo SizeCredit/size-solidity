@@ -22,7 +22,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
-        uint256 amount = 15e18;
+        uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
@@ -113,7 +113,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
 
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
-        uint256 amount = 15e18;
+        uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
 
@@ -141,7 +141,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         _deposit(liquidator, usdc, 1000e6);
 
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
-        uint256 amount = 15e18;
+        uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
 
         _setPrice(0.1e18);

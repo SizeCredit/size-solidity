@@ -110,7 +110,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
         _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(james, 200e18, 12, 0, 12);
+        _lendAsLimitOrder(james, 200e6, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e18, 12);
         _borrowAsMarketOrder(alice, candy, 5e18, 12, [loanId]);
         _borrowAsMarketOrder(alice, james, 80e18, 12);
@@ -143,7 +143,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
         _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(james, 200e18, 12, 0, 12);
+        _lendAsLimitOrder(james, 200e6, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 49e18, 12, [loanId]);
         uint256 solId2 = _borrowAsMarketOrder(candy, bob, 44e18, 12, [solId]);

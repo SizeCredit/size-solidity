@@ -80,9 +80,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _liquidateFixedLoan(liquidator, 0);
     }
 
-    function test_Experiments_testBasicExit1(uint256 amountToExitPercent) public {
-        amountToExitPercent = bound(amountToExitPercent, 0.1e18, 1e18);
-        amountToExitPercent = 1e18;
+    function test_Experiments_testBasicExit1() public {
+        uint256 amountToExitPercent = 1e18;
         // Deposit by bob in USDC
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e18);

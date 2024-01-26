@@ -151,7 +151,7 @@ contract WithdrawTest is BaseTest {
         _deposit(liquidator, usdc, 10_000e6);
         uint256 rate = 1;
         _lendAsLimitOrder(alice, 100e6, 12, rate, 12);
-        uint256 amount = 15e18;
+        uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
         uint256 debtUSDC = Math.mulDivUp(debt, 1e6, 1e18);

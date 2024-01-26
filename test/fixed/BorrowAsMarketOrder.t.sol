@@ -35,7 +35,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _before = _state();
 
-        uint256 amount = 10e18;
+        uint256 amount = 10e6;
         uint256 dueDate = 12;
 
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
@@ -63,7 +63,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         rate = bound(rate, 0, MAX_RATE);
         dueDate = bound(dueDate, block.timestamp, block.timestamp + MAX_DUE_DATE - 1);
 
-        amount = 10e18;
+        amount = 10e6;
         rate = 0.03e18;
         dueDate = 12;
 
@@ -99,7 +99,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        uint256 amount = 30e18;
+        uint256 amount = 30e6;
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 60e18, 12);
@@ -165,7 +165,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e18;
+        uint256 amountFixedLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         FixedLoanOffer memory loanOffer = size.getUserView(candy).user.loanOffer;
         uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
@@ -174,7 +174,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         Vars memory _before = _state();
 
         uint256 dueDate = 12;
-        uint256 amountFixedLoanId2 = 30e18;
+        uint256 amountFixedLoanId2 = 30e6;
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amountFixedLoanId2, dueDate, virtualCollateralFixedLoanIds);
         FixedLoan memory loan2 = size.getFixedLoan(loanId2);
 
@@ -274,7 +274,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         FixedLoanOffer memory loanOffer = size.getUserView(alice).user.loanOffer;
-        uint256 amount = 100e18;
+        uint256 amount = 100e6;
         uint256 dueDate = 12;
         uint256 r = PERCENT + loanOffer.getRate(dueDate);
         uint256 faceValue = Math.mulDivUp(r, amount, PERCENT);
@@ -301,7 +301,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         _withdraw(alice, usdc, 999e6);
 
-        uint256 amount = 10e18;
+        uint256 amount = 10e6;
         uint256 dueDate = 12;
 
         vm.startPrank(bob);
@@ -364,7 +364,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
         _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(james, 200e18, 12, 0, 12);
+        _lendAsLimitOrder(james, 200e6, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 49e18, 12, [loanId]);
         uint256 solId2 = _borrowAsMarketOrder(candy, bob, 42e18, 12, [solId]);
@@ -388,7 +388,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
         _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(james, 200e18, 12, 0, 12);
+        _lendAsLimitOrder(james, 200e6, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 49e18, 12, [loanId]);
 
@@ -414,7 +414,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
         _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(james, 200e18, 12, 0, 12);
+        _lendAsLimitOrder(james, 200e6, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsMarketOrder(alice, candy, 100e6, 12, [loanId]);
 
