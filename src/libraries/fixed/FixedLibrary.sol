@@ -5,7 +5,7 @@ import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus, RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 library FixedLibrary {

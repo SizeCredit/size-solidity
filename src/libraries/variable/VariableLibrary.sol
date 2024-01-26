@@ -57,7 +57,8 @@ library VariableLibrary {
         uint256 amount = ConversionLibrary.wadToAmountDown(wad, state._general.borrowAsset.decimals());
 
         // withdraw borrowAssets (e.g. USDC) from Aave, deduct from `from` and send to `address(this)`
-        state.withdrawBorrowAssets(amount, from, address(this));
+        // slither-disable-next-line unused-return
+        (amount,) = state.withdrawBorrowAssets(amount, from, address(this));
 
         // deposit to Size
         state._general.borrowAsset.forceApprove(address(this), amount);

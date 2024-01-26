@@ -7,7 +7,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 

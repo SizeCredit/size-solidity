@@ -5,8 +5,8 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-import {Math} from "@src/libraries/MathLibrary.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {BorrowOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 

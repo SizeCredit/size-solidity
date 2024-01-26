@@ -11,7 +11,7 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 import {UserView} from "@src/SizeView.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 

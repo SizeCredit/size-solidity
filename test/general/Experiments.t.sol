@@ -4,13 +4,13 @@ pragma solidity 0.8.20;
 import {BaseTest} from "@test/BaseTest.sol";
 import {ExperimentsHelper} from "@test/helpers/ExperimentsHelper.sol";
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {Test} from "forge-std/Test.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {

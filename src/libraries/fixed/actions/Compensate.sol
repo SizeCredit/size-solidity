@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";

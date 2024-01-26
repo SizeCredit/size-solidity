@@ -6,11 +6,11 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 contract RepayTest is BaseTest {
     function test_Repay_repay_full_FOL() public {
