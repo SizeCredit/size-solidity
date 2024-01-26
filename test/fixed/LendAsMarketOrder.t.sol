@@ -27,7 +27,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _borrowAsLimitOrder(alice, 100e6, 0.03e18, 12);
 
-        uint256 faceValue = 10e18;
+        uint256 faceValue = 10e6;
         uint256 dueDate = 12;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + 0.03e18);
 
@@ -127,7 +127,7 @@ contract LendAsMarketOrderTest is BaseTest {
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, alice, 1.5e18 / 2));
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 200e18, exactAmountIn: false})
+            LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 200e6, exactAmountIn: false})
         );
     }
 
@@ -144,7 +144,7 @@ contract LendAsMarketOrderTest is BaseTest {
             LendAsMarketOrderParams({
                 borrower: alice,
                 dueDate: block.timestamp + 6 days,
-                amount: 10e18,
+                amount: 10e6,
                 exactAmountIn: false
             })
         );
@@ -154,7 +154,7 @@ contract LendAsMarketOrderTest is BaseTest {
             LendAsMarketOrderParams({
                 borrower: alice,
                 dueDate: block.timestamp + 151 days,
-                amount: 10e18,
+                amount: 10e6,
                 exactAmountIn: false
             })
         );
@@ -163,7 +163,7 @@ contract LendAsMarketOrderTest is BaseTest {
             LendAsMarketOrderParams({
                 borrower: alice,
                 dueDate: block.timestamp + 150 days,
-                amount: 10e18,
+                amount: 10e6,
                 exactAmountIn: false
             })
         );

@@ -27,10 +27,10 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
         _lendAsLimitOrder(bob, 100e6, 12, 0.03e18, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
         _lendAsLimitOrder(james, 100e6, 12, 0.03e18, 12);
-        _borrowAsMarketOrder(bob, candy, 90e18, 12);
+        _borrowAsMarketOrder(bob, candy, 90e6, 12);
 
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, james, 5e18, 12, [loanId]);
+        uint256 solId = _borrowAsMarketOrder(alice, james, 5e6, 12, [loanId]);
         uint256 minimumCollateralRatio = 1e18;
 
         vm.startPrank(liquidator);
@@ -58,8 +58,8 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
-        _borrowAsMarketOrder(alice, james, 50e18, 12);
+        _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
+        _borrowAsMarketOrder(alice, james, 50e6, 12);
 
         vm.startPrank(liquidator);
         vm.expectRevert(

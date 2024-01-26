@@ -20,13 +20,13 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, address(usdc), 12e6);
         _deposit(alice, address(weth), 23e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, 12e18);
+        assertEq(aliceUser.borrowAmount, 12e6);
         assertEq(aliceUser.collateralAmount, 23e18);
 
         _withdraw(alice, address(usdc), 9e6);
         _withdraw(alice, address(weth), 7e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, 3e18);
+        assertEq(aliceUser.borrowAmount, 3e6);
         assertEq(aliceUser.collateralAmount, 16e18);
     }
 
@@ -39,7 +39,7 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, address(usdc), x * 1e6);
         _deposit(alice, address(weth), y * 1e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, x * 1e18);
+        assertEq(aliceUser.borrowAmount, x * 1e6);
         assertEq(aliceUser.collateralAmount, y * 1e18);
 
         z = bound(z, 1, x);
@@ -48,12 +48,12 @@ contract WithdrawTest is BaseTest {
         _withdraw(alice, address(usdc), z * 1e6);
         _withdraw(alice, address(weth), w * 1e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, (x - z) * 1e18);
+        assertEq(aliceUser.borrowAmount, (x - z) * 1e6);
         assertEq(aliceUser.collateralAmount, (y - w) * 1e18);
     }
 
     function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
-        valueUSDC = bound(valueUSDC, 1, type(uint256).max / 1e12);
+        valueUSDC = bound(valueUSDC, 1, type(uint256).max);
         valueWETH = bound(valueWETH, 1, type(uint256).max);
         deal(address(usdc), alice, valueUSDC);
         deal(address(weth), alice, valueWETH);
@@ -68,13 +68,13 @@ contract WithdrawTest is BaseTest {
         size.deposit(DepositParams({token: address(usdc), amount: valueUSDC, to: alice}));
         size.deposit(DepositParams({token: address(weth), amount: valueWETH, to: alice}));
 
-        assertEq(usdc.balanceOf(address(size)), valueUSDC);
+        assertEq(usdc.balanceOf(address(variablePool)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), valueWETH);
 
         size.withdraw(WithdrawParams({token: address(usdc), amount: valueUSDC, to: bob}));
         size.withdraw(WithdrawParams({token: address(weth), amount: valueWETH, to: bob}));
 
-        assertEq(usdc.balanceOf(address(size)), 0);
+        assertEq(usdc.balanceOf(address(variablePool)), 0);
         assertEq(usdc.balanceOf(address(bob)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), 0);
         assertEq(weth.balanceOf(address(bob)), valueWETH);
@@ -89,11 +89,11 @@ contract WithdrawTest is BaseTest {
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, bob, 0));
-        size.withdraw(WithdrawParams({token: address(weth), amount: 150e18, to: bob}));
+        size.withdraw(WithdrawParams({token: address(weth), amount: 150e6, to: bob}));
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, bob, 0.01e18));
-        size.withdraw(WithdrawParams({token: address(weth), amount: 149e18, to: bob}));
+        size.withdraw(WithdrawParams({token: address(weth), amount: 149e6, to: bob}));
     }
 
     function test_Withdraw_withdraw_everything() public {
@@ -123,6 +123,7 @@ contract WithdrawTest is BaseTest {
         assertEq(beforeUSDC, 0);
         assertEq(beforeWETH, 0);
 
+        vm.expectRevert();
         _withdraw(alice, usdc, type(uint256).max);
         assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
         assertEq(weth.balanceOf(address(alice)), beforeWETH);
@@ -131,6 +132,7 @@ contract WithdrawTest is BaseTest {
         assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
         assertEq(weth.balanceOf(address(alice)), beforeWETH);
 
+        vm.expectRevert();
         _withdraw(alice, usdc, 1);
         assertEq(usdc.balanceOf(address(alice)), beforeUSDC);
         assertEq(weth.balanceOf(address(alice)), beforeWETH);

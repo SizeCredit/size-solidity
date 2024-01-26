@@ -45,7 +45,7 @@ contract ClaimTest is BaseTest {
         _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
         uint256 r = PERCENT + 0.03e18;
 
-        uint256 faceValueExited = 10e18;
+        uint256 faceValueExited = 10e6;
         uint256 amount = Math.mulDivDown(faceValueExited, PERCENT, r);
         _borrowAsMarketOrder(alice, candy, amount, 12, [loanId]);
         _repay(bob, loanId);
@@ -57,7 +57,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 faceValue = Math.mulDivUp(100e18, r, PERCENT);
+        uint256 faceValue = Math.mulDivUp(100e6, r, PERCENT);
         uint256 credit = faceValue - faceValueExited;
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + credit);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.CLAIMED);
@@ -73,7 +73,7 @@ contract ClaimTest is BaseTest {
         _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
 
         Vars memory _before = _state();
 
@@ -81,8 +81,8 @@ contract ClaimTest is BaseTest {
         _claim(alice, solId);
 
         Vars memory _after = _state();
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 2 * 100e18);
-        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + 2 * 10e18);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 2 * 100e6);
+        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + 2 * 10e6);
     }
 
     function test_Claim_claim_twice_does_not_work() public {
@@ -103,8 +103,8 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e18);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e18);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e6);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e6);
 
         vm.expectRevert();
         _claim(alice, loanId);
@@ -128,8 +128,8 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e18);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e18);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e6);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e6);
     }
 
     function test_Claim_claim_of_liquidated_loan_retrieves_borrow_amount() public {
@@ -151,6 +151,6 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 2 * 100e18);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 2 * 100e6);
     }
 }

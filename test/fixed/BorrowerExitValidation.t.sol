@@ -23,8 +23,8 @@ contract BorrowerExitValidationTest is BaseTest {
         _lendAsLimitOrder(james, 100e6, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsLimitOrder(candy, 10e18, 0, 12);
-        uint256 loanId2 = _borrowAsMarketOrder(candy, james, 50e18, 12);
-        uint256 solId = _borrowAsMarketOrder(james, candy, 10e18, 12, [loanId2]);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, james, 50e6, 12);
+        uint256 solId = _borrowAsMarketOrder(james, candy, 10e6, 12, [loanId2]);
 
         address borrowerToExitTo = candy;
 

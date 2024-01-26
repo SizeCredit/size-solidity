@@ -2,6 +2,8 @@
 pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
+
+import {Math} from "@src/libraries/Math.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -42,9 +44,11 @@ library Withdraw {
 
     function executeWithdraw(State storage state, WithdrawParams calldata params) public {
         if (params.token == address(state._general.collateralAsset)) {
-            state.withdrawCollateralToken(msg.sender, params.to, params.amount);
+            uint256 amount = Math.min(params.amount, state._fixed.collateralToken.balanceOf(msg.sender));
+            state.withdrawCollateralToken(msg.sender, params.to, amount);
         } else {
-            state.withdrawBorrowTokenFromVariablePool(msg.sender, params.to, params.amount);
+            uint256 amount = Math.min(params.amount, state.borrowATokenBalanceOf(msg.sender));
+            state.withdrawBorrowTokenFromVariablePool(msg.sender, params.to, amount);
         }
 
         emit Events.Withdraw(params.token, params.to, params.amount);

@@ -111,4 +111,6 @@ contract PoolMock is Ownable {
     function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider) {
         return addressesProvider;
     }
+
+    function finalizeTransfer(address, address, address, uint256, uint256, uint256) external pure {}
 }

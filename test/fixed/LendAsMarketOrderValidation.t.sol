@@ -24,7 +24,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
 
         vm.expectRevert();
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: address(0), dueDate: dueDate, amount: 100e18, exactAmountIn: false})
+            LendAsMarketOrderParams({borrower: address(0), dueDate: dueDate, amount: 100e6, exactAmountIn: false})
         );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 200e18 + 1, 200e18));
@@ -34,7 +34,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 10e18, 100e18));
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: alice, dueDate: dueDate, amount: 100e18, exactAmountIn: false})
+            LendAsMarketOrderParams({borrower: alice, dueDate: dueDate, amount: 100e6, exactAmountIn: false})
         );
 
         // @audit-info LAMO-01
@@ -43,7 +43,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
             LendAsMarketOrderParams({
                 borrower: alice,
                 dueDate: block.timestamp - 1,
-                amount: 100e18,
+                amount: 100e6,
                 exactAmountIn: false
             })
         );

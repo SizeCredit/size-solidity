@@ -90,7 +90,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
 
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
 
         _setPrice(0.2e18);
 

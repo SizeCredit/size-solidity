@@ -20,7 +20,7 @@ contract MoveToVariablePoolTest is BaseTest {
         _depositVariable(alice, address(usdc), 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
 
         vm.warp(block.timestamp + 12);
 

@@ -22,8 +22,8 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(bob, 100e6, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
         _lendAsLimitOrder(james, 100e6, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e18, 12);
-        uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
+        uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
 
         uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(loanId3).getDebt();
         uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(loanId).getCredit();
@@ -54,8 +54,8 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 100e6, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e18, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 15e18, 12, [loanId]);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 15e6, 12, [loanId]);
 
         uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(solId).getDebt();
         uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(loanId).getCredit();
@@ -86,10 +86,10 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 100e6, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e18, 12);
-        uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e18, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 15e18, 12, [loanId]);
-        uint256 solId2 = _borrowAsMarketOrder(bob, alice, 10e18, 12, [loanId2]);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 15e6, 12, [loanId]);
+        uint256 solId2 = _borrowAsMarketOrder(bob, alice, 10e6, 12, [loanId2]);
 
         uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(solId).getDebt();
         uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(solId2).getCredit();
@@ -120,8 +120,8 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 100e6, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e18, 12);
-        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 20e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
+        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 20e6, 12);
 
         _repay(alice, loanId2);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId2));
@@ -141,10 +141,10 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 100e6, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e18, 12);
-        uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 20e18, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 15e18, 12, [loanId]);
-        _borrowAsMarketOrder(bob, james, 40e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 20e6, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 15e6, 12, [loanId]);
+        _borrowAsMarketOrder(bob, james, 40e6, 12);
 
         assertEq(size.activeFixedLoans(), 4);
 

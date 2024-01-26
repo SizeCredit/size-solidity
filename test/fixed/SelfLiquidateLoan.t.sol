@@ -18,7 +18,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         assertEq(size.getFOLAssignedCollateral(loanId), 150e18);
-        assertEq(size.getDebt(loanId), 100e18);
+        assertEq(size.getDebt(loanId), 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isLiquidatable(bob));
         assertTrue(!size.isLiquidatable(loanId));
@@ -37,7 +37,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
         assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - 150e18, 0);
         assertEq(_after.alice.collateralAmount, _before.alice.collateralAmount + 150e18);
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e18);
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e6);
     }
 
     function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_SOL_keeps_accounting_in_check() public {
@@ -60,7 +60,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _borrowAsMarketOrder(alice, james, 100e6, 12);
 
         assertEq(size.getFOLAssignedCollateral(folId), 150e18);
-        assertEq(size.getDebt(folId), 100e18);
+        assertEq(size.getDebt(folId), 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isLiquidatable(bob));
         assertTrue(!size.isLiquidatable(folId));
@@ -79,7 +79,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
         assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - 150e18, 0);
         assertEq(_after.candy.collateralAmount, _before.candy.collateralAmount + 150e18);
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e18);
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e6);
     }
 
     function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_FOL_should_not_leave_dust_loan_when_no_exits() public {
@@ -111,21 +111,21 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 200e6, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e18, 12);
-        _borrowAsMarketOrder(alice, candy, 5e18, 12, [loanId]);
-        _borrowAsMarketOrder(alice, james, 80e18, 12);
-        _borrowAsMarketOrder(bob, james, 40e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
+        _borrowAsMarketOrder(alice, candy, 5e6, 12, [loanId]);
+        _borrowAsMarketOrder(alice, james, 80e6, 12);
+        _borrowAsMarketOrder(bob, james, 40e6, 12);
 
         _setPrice(0.25e18);
 
-        assertEq(size.getFixedLoan(loanId).faceValue, 50e18);
-        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e18);
+        assertEq(size.getFixedLoan(loanId).faceValue, 50e6);
+        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e6);
         assertEq(size.getCredit(loanId), 45e18);
 
         _selfLiquidateFixedLoan(alice, loanId);
 
-        assertEq(size.getFixedLoan(loanId).faceValue, 5e18);
-        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e18);
+        assertEq(size.getFixedLoan(loanId).faceValue, 5e6);
+        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e6);
         assertEq(size.getCredit(loanId), 0);
     }
 
@@ -145,10 +145,10 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 200e6, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 49e18, 12, [loanId]);
-        uint256 solId2 = _borrowAsMarketOrder(candy, bob, 44e18, 12, [solId]);
-        _borrowAsMarketOrder(alice, james, 60e18, 12);
-        _borrowAsMarketOrder(candy, james, 80e18, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 49e6, 12, [loanId]);
+        uint256 solId2 = _borrowAsMarketOrder(candy, bob, 44e6, 12, [solId]);
+        _borrowAsMarketOrder(alice, james, 60e6, 12);
+        _borrowAsMarketOrder(candy, james, 80e6, 12);
 
         _setPrice(0.25e18);
 

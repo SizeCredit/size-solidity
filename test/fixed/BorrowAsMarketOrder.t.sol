@@ -102,7 +102,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 amount = 30e6;
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 60e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 60e6, 12);
         uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
         virtualCollateralFixedLoanIds[0] = loanId;
 
@@ -251,13 +251,13 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 30e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 30e6, 12);
         uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
         virtualCollateralFixedLoanIds[0] = loanId;
 
         Vars memory _before = _state();
 
-        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 30e18, 12, virtualCollateralFixedLoanIds);
+        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 30e6, 12, virtualCollateralFixedLoanIds);
 
         Vars memory _after = _state();
 
@@ -286,7 +286,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: 12,
                 exactAmountIn: false,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -346,7 +346,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 100e18);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 100e6);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + 103e18);
     }
 
@@ -366,8 +366,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 200e6, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 49e18, 12, [loanId]);
-        uint256 solId2 = _borrowAsMarketOrder(candy, bob, 42e18, 12, [solId]);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 49e6, 12, [loanId]);
+        uint256 solId2 = _borrowAsMarketOrder(candy, bob, 42e6, 12, [solId]);
 
         assertEq(size.getFixedLoan(loanId).folId, RESERVED_ID);
         assertEq(size.getFixedLoan(solId).folId, loanId);
@@ -390,11 +390,11 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
         _lendAsLimitOrder(james, 200e6, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 49e18, 12, [loanId]);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 49e6, 12, [loanId]);
 
         FixedLoan memory solBefore = size.getFixedLoan(solId);
 
-        _borrowAsMarketOrder(candy, bob, 40e18, 12, [solId]);
+        _borrowAsMarketOrder(candy, bob, 40e6, 12, [solId]);
 
         FixedLoan memory solAfter = size.getFixedLoan(solId);
 
@@ -424,7 +424,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         virtualCollateralFixedLoanIds[0] = loanId;
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             lender: james,
-            amount: 100e18,
+            amount: 100e6,
             dueDate: 12,
             exactAmountIn: false,
             virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds

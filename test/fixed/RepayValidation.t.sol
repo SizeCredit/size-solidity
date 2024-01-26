@@ -21,11 +21,11 @@ contract RepayValidationTest is BaseTest {
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
         uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, 20e18, PERCENT);
         _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
 
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.REPAYER_IS_NOT_BORROWER.selector, alice, bob));
@@ -38,7 +38,7 @@ contract RepayValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(bob);
-        size.withdraw(WithdrawParams({token: address(usdc), amount: 100e18, to: bob}));
+        size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 20e18, faceValue));
         size.repay(RepayParams({loanId: loanId, amount: type(uint256).max}));
         vm.stopPrank();

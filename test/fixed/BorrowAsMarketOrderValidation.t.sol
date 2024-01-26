@@ -27,7 +27,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
         _lendAsLimitOrder(bob, 100e6, 5, 0.03e18, 5);
         _lendAsLimitOrder(candy, 100e6, 10, 0.03e18, 10);
-        uint256 loanId = _borrowAsMarketOrder(alice, candy, 5e18, 10);
+        uint256 loanId = _borrowAsMarketOrder(alice, candy, 5e6, 10);
 
         uint256 amount = 10e6;
         uint256 dueDate = 12;
@@ -61,7 +61,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 110e18,
+                amount: 110e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -72,7 +72,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: 0,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -83,7 +83,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: 13,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -98,7 +98,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 1e18,
+                amount: 1e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -111,7 +111,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -123,7 +123,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: bob,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: 4,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -135,7 +135,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: bob,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: 4,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
