@@ -124,7 +124,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after();
 
-        if (amount > size.config().minimumCredit) {
+        if (amount > size.config().minimumCreditBorrowAsset) {
             if (lender == sender) {
                 eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
             } else {

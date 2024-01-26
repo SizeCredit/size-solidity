@@ -31,7 +31,7 @@ struct InitializeFixedParams {
     uint256 crLiquidation;
     uint256 collateralPremiumToLiquidator;
     uint256 collateralPremiumToProtocol;
-    uint256 minimumCredit;
+    uint256 minimumCreditBorrowAsset;
 }
 
 library Initialize {
@@ -89,8 +89,8 @@ library Initialize {
             );
         }
 
-        // validate minimumCredit
-        if (f.minimumCredit == 0) {
+        // validate minimumCreditBorrowAsset
+        if (f.minimumCreditBorrowAsset == 0) {
             revert Errors.NULL_AMOUNT();
         }
     }
@@ -121,7 +121,7 @@ library Initialize {
         state._fixed.crLiquidation = f.crLiquidation;
         state._fixed.collateralPremiumToLiquidator = f.collateralPremiumToLiquidator;
         state._fixed.collateralPremiumToProtocol = f.collateralPremiumToProtocol;
-        state._fixed.minimumCredit = f.minimumCredit;
+        state._fixed.minimumCreditBorrowAsset = f.minimumCreditBorrowAsset;
     }
 
     function _executeInitializeVariable(State storage state) internal {

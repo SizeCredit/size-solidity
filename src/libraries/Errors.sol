@@ -45,7 +45,7 @@ library Errors {
     error NOT_ENOUGH_CREDIT(uint256 credit, uint256 amount);
     error NOT_ENOUGH_FREE_CASH(uint256 free, uint256 amount);
     error NOT_ENOUGH_LOCKED_CASH(uint256 locked, uint256 amount);
-    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCredit);
+    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAsset);
 
     error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
     error ONLY_FOL_CAN_BE_EXITED(uint256 loanId);

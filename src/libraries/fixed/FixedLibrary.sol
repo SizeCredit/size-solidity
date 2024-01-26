@@ -29,14 +29,14 @@ library FixedLibrary {
     }
 
     function validateMinimumCredit(State storage state, uint256 credit) public view {
-        if (0 < credit && credit < state._fixed.minimumCredit) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state._fixed.minimumCredit);
+        if (0 < credit && credit < state._fixed.minimumCreditBorrowAsset) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state._fixed.minimumCreditBorrowAsset);
         }
     }
 
     function validateMinimumCreditOpening(State storage state, uint256 credit) public view {
-        if (credit < state._fixed.minimumCredit) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state._fixed.minimumCredit);
+        if (credit < state._fixed.minimumCreditBorrowAsset) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state._fixed.minimumCreditBorrowAsset);
         }
     }
 

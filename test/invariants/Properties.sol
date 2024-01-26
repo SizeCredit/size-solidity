@@ -41,7 +41,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant LOAN_02 = "LOAN_02: SUM(loan.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
     string internal constant LOAN_03 = "LOAN_03: loan.faceValueExited <= loan.faceValue";
     string internal constant LOAN_04 = "LOAN_04: loan.repaid => !loan.isFOL()";
-    string internal constant LOAN_05 = "LOAN_05: loan.credit >= minimumCredit";
+    string internal constant LOAN_05 = "LOAN_05: loan.credit >= minimumCreditBorrowAsset";
     string internal constant LOAN_06 = "LOAN_06: SUM(SOL(loanId).faceValue) == FOL(loanId).faceValue";
     string internal constant LOAN_07 = "LOAN_07: FOL.faceValueExited = SUM(SOL.getCredit)";
 
@@ -51,7 +51,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
 
     function invariant_LOAN() public returns (bool) {
-        uint256 minimumCredit = size.config().minimumCredit;
+        uint256 minimumCreditBorrowAsset = size.config().minimumCreditBorrowAsset;
         uint256 activeFixedLoans = size.activeFixedLoans();
         uint256[] memory folCreditsSumByFolId = new uint256[](activeFixedLoans);
         uint256[] memory solCreditsSumByFolId = new uint256[](activeFixedLoans);
@@ -89,7 +89,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 return false;
             }
 
-            if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCredit) {
+            if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCreditBorrowAsset) {
                 t(false, LOAN_05);
                 return false;
             }

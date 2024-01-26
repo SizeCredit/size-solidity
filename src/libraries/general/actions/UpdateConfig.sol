@@ -21,8 +21,8 @@ library UpdateConfig {
 
     function executeUpdateConfig(State storage state, UpdateConfigParams memory params) external {
         // TODO validate params
-        if (params.key == "minimumCredit") {
-            state._fixed.minimumCredit = params.value;
+        if (params.key == "minimumCreditBorrowAsset") {
+            state._fixed.minimumCreditBorrowAsset = params.value;
         } else {
             revert Errors.INVALID_KEY(params.key);
         }

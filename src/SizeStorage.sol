@@ -27,7 +27,7 @@ struct Fixed {
     FixedLoan[] loans;
     uint256 crOpening;
     uint256 crLiquidation;
-    uint256 minimumCredit;
+    uint256 minimumCreditBorrowAsset;
     uint256 collateralPremiumToLiquidator;
     uint256 collateralPremiumToProtocol;
     CollateralToken collateralToken; // e.g. szWETH
