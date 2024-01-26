@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IAaveIncentivesController} from "@aave/interfaces/IAaveIncentivesController.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/interfaces/IPoolAddressesProvider.sol";
 
@@ -37,6 +38,17 @@ contract PoolMock is Ownable {
         if (!exists) {
             addressesProvider = new PoolAddressesProvider(IERC20Metadata(asset).name(), address(this));
             aTokens[asset] = new AToken(IPool(address(this)));
+
+            aTokens[asset].initialize(
+                IPool(address(this)),
+                owner(),
+                asset,
+                IAaveIncentivesController(address(0)),
+                IERC20Metadata(asset).decimals(),
+                string.concat("Size aToken ", IERC20Metadata(asset).name()),
+                string.concat("asz", IERC20Metadata(asset).symbol()),
+                ""
+            );
             reserveIndexes.set(asset, WadRayMath.RAY);
         } else {
             // TODO: simulate interest

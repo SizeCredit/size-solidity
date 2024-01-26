@@ -39,8 +39,8 @@ library BorrowerExit {
         if (msg.sender != fol.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, fol.borrower);
         }
-        if (state._fixed.borrowAToken.balanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowAToken.balanceOf(msg.sender), amountIn);
+        if (state.borrowATokenBalanceOf(msg.sender) < amountIn) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), amountIn);
         }
 
         // validate loanId

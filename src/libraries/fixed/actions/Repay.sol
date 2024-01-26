@@ -29,8 +29,8 @@ library Repay {
         if (msg.sender != loan.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.borrower);
         }
-        if (state._fixed.borrowAToken.balanceOf(msg.sender) < loan.faceValue) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowAToken.balanceOf(msg.sender), loan.faceValue);
+        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.faceValue);
         }
 
         // validate loanId

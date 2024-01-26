@@ -73,7 +73,7 @@ abstract contract SizeView is SizeStorage {
             user: state._fixed.users[user],
             account: user,
             collateralAmount: state._fixed.collateralToken.balanceOf(user),
-            borrowAmount: state._fixed.borrowAToken.balanceOf(user),
+            borrowAmount: state.borrowATokenBalanceOf(user),
             debtAmount: state._fixed.debtToken.balanceOf(user)
         });
     }
@@ -115,7 +115,7 @@ abstract contract SizeView is SizeStorage {
     function getFeeRecipient() external view returns (uint256, uint256, uint256) {
         return (
             state._fixed.collateralToken.balanceOf(state._general.feeRecipient),
-            state._fixed.borrowAToken.balanceOf(state._general.feeRecipient),
+            state.borrowATokenBalanceOf(state._general.feeRecipient),
             state._fixed.debtToken.balanceOf(state._general.feeRecipient)
         );
     }

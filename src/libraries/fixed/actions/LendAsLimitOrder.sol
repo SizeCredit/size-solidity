@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {FixedLoanOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -16,6 +17,8 @@ struct LendAsLimitOrderParams {
 }
 
 library LendAsLimitOrder {
+    using VariableLibrary for State;
+
     function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external view {
         // validate msg.sender
 
@@ -23,8 +26,8 @@ library LendAsLimitOrder {
         if (params.maxAmount == 0) {
             revert Errors.NULL_AMOUNT();
         }
-        if (params.maxAmount > state._fixed.borrowAToken.balanceOf(msg.sender)) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowAToken.balanceOf(msg.sender), params.maxAmount);
+        if (params.maxAmount > state.borrowATokenBalanceOf(msg.sender)) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), params.maxAmount);
         }
 
         // validate maxDueDate

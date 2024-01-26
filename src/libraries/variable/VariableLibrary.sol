@@ -41,6 +41,7 @@ library VariableLibrary {
 
         UserProxy userProxyTo = getUserProxy(state, to);
 
+        borrowAsset.forceApprove(address(state._general.variablePool), amount);
         state._general.variablePool.supply(address(borrowAsset), amount, address(userProxyTo), 0);
     }
 
@@ -95,5 +96,14 @@ library VariableLibrary {
         data[1] = abi.encodeCall(IERC20.transfer, (borrower, borrowAmount));
 
         userProxy.proxy(targets, data);
+    }
+
+    function borrowATokenBalanceOf(State storage state, address account) external view returns (uint256) {
+        UserProxy userProxy = state._fixed.users[account].proxy;
+        if (address(userProxy) == address(0)) {
+            return 0;
+        } else {
+            return state._fixed.borrowAToken.balanceOf(address(userProxy));
+        }
     }
 }
