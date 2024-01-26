@@ -61,11 +61,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
     }
 
-    function _deposit(address user, uint256 collateralAssetValue, uint256 debtAssetValue) internal {
-        _deposit(user, weth, collateralAssetValue);
-        _deposit(user, usdc, debtAssetValue);
-    }
-
     function _lendAsLimitOrder(
         address lender,
         uint256 maxAmount,
