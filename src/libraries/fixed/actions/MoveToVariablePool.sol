@@ -7,6 +7,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
@@ -17,6 +18,7 @@ struct MoveToVariablePoolParams {
 library MoveToVariablePool {
     using FixedLoanLibrary for FixedLoan;
     using FixedLibrary for State;
+    using VariableLibrary for State;
 
     function validateMoveToVariablePool(State storage state, MoveToVariablePoolParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
@@ -41,16 +43,12 @@ library MoveToVariablePool {
         uint256 assignedCollateral = state.getFOLAssignedCollateral(loan);
         uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(loan.faceValue);
 
+        // TODO: validate if this makes sense
         if (assignedCollateral < minimumCollateralOpening) {
             revert Errors.INSUFFICIENT_COLLATERAL(assignedCollateral, minimumCollateralOpening);
         }
 
-        state._fixed.collateralToken.transferFrom(loan.borrower, state._general.variablePool, assignedCollateral);
+        state.borrowFromVariablePool(loan.borrower, assignedCollateral, loan.faceValue);
         loan.repaid = true;
-        state.createVariableFixedLoan({
-            borrower: loan.borrower,
-            amountBorrowAssetLentOut: loan.faceValue,
-            amountCollateral: assignedCollateral
-        });
     }
 }

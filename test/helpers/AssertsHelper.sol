@@ -15,16 +15,18 @@ abstract contract AssertsHelper is Test {
         assertEq(a.candy, b.candy);
         assertEq(a.james, b.james);
         assertEq(a.liquidator, b.liquidator);
-        assertEq(a.protocolCollateralAmount, b.protocolCollateralAmount, "protocolCollateralAmount");
-        assertEq(a.protocolBorrowAmount, b.protocolBorrowAmount, "protocolBorrowAmount");
+        assertEq(a.vpCollateralAmount, b.vpCollateralAmount, "vpCollateralAmount");
+        assertEq(a.vpBorrowAmount, b.vpBorrowAmount, "vpBorrowAmount");
         assertEq(a.feeRecipientCollateralAmount, b.feeRecipientCollateralAmount, "feeRecipientCollateralAmount");
         assertEq(a.feeRecipientBorrowAmount, b.feeRecipientBorrowAmount, "feeRecipientBorrowAmount");
     }
 
     function assertEq(UserView memory a, UserView memory b) internal {
+        assertEq(a.account, b.account, "account");
         assertEq(a.collateralAmount, b.collateralAmount, "collateralAmount");
         assertEq(a.borrowAmount, b.borrowAmount, "borrowAmount");
         assertEq(a.debtAmount, b.debtAmount, "debtAmount");
+        assertEq(a.vpBorrowAmount, b.vpBorrowAmount, "vpBorrowAmount");
     }
 
     function assertEq(uint256 a, uint256 b, uint256 c) internal {

@@ -7,7 +7,7 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {Math, PERCENT} from "@src/libraries/MathLibrary.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
@@ -27,7 +27,7 @@ contract MulticallTest is BaseTest {
         assertEq(size.getUserView(alice).user.loanOffer.maxAmount, 0);
 
         bytes[] memory data = new bytes[](2);
-        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount})));
+        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
         data[1] = abi.encodeCall(
             size.lendAsLimitOrder,
             LendAsLimitOrderParams({
@@ -50,7 +50,7 @@ contract MulticallTest is BaseTest {
         IERC20Metadata(token).approve(address(size), amount);
 
         bytes[] memory data = new bytes[](2);
-        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount})));
+        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
         data[1] = abi.encodeCall(size.transferOwnership, (alice));
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
         size.multicall(data);
@@ -81,14 +81,18 @@ contract MulticallTest is BaseTest {
 
         bytes[] memory data = new bytes[](4);
         // deposit only the necessary to cover for the borrower's debt
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: debtUSDC}));
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: debtUSDC, to: liquidator}));
         // liquidate profitably
         data[1] = abi.encodeCall(
             size.liquidateFixedLoan, LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: 1e18})
         );
         // withdraw everything
-        data[2] = abi.encodeCall(size.withdraw, WithdrawParams({token: address(weth), amount: type(uint256).max}));
-        data[3] = abi.encodeCall(size.withdraw, WithdrawParams({token: address(usdc), amount: type(uint256).max}));
+        data[2] = abi.encodeCall(
+            size.withdraw, WithdrawParams({token: address(weth), amount: type(uint256).max, to: liquidator})
+        );
+        data[3] = abi.encodeCall(
+            size.withdraw, WithdrawParams({token: address(usdc), amount: type(uint256).max, to: liquidator})
+        );
         vm.prank(liquidator);
         size.multicall(data);
 

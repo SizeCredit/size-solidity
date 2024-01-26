@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
+
+import {UserProxy} from "@src/proxy/UserProxy.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -20,6 +23,7 @@ struct InitializeGeneralParams {
     address collateralAsset;
     address borrowAsset;
     address feeRecipient;
+    address variablePool;
 }
 
 struct InitializeFixedParams {
@@ -104,7 +108,7 @@ library Initialize {
         state._general.collateralAsset = IERC20Metadata(g.collateralAsset);
         state._general.borrowAsset = IERC20Metadata(g.borrowAsset);
         state._general.feeRecipient = g.feeRecipient;
-        state._general.variablePool = address(this);
+        state._general.variablePool = IPool(g.variablePool);
     }
 
     function _executeInitializeFixed(State storage state, InitializeFixedParams memory f) internal {
@@ -119,11 +123,16 @@ library Initialize {
         state._fixed.minimumCredit = f.minimumCredit;
     }
 
+    function _executeInitializeVariable(State storage state) internal {
+        state._variable.userProxyImplementation = address(new UserProxy());
+    }
+
     function executeInitialize(State storage state, InitializeGeneralParams memory g, InitializeFixedParams memory f)
         external
     {
         _executeInitializeGeneral(state, g);
         _executeInitializeFixed(state, f);
+        _executeInitializeVariable(state);
         emit Events.Initialize(g, f);
     }
 }

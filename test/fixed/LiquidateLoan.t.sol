@@ -4,8 +4,8 @@ pragma solidity 0.8.20;
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
-import {Math} from "@src/libraries/MathLibrary.sol";
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 contract LiquidateFixedLoanTest is BaseTest {
@@ -51,7 +51,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.liquidator.borrowAmount, _before.liquidator.borrowAmount - debt);
-        assertEq(_after.protocolBorrowAmount, _before.protocolBorrowAmount + debt);
+        assertEq(_after.vpBorrowAmount, _before.vpBorrowAmount + debt);
         assertEq(
             _after.feeRecipientCollateralAmount,
             _before.feeRecipientCollateralAmount

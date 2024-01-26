@@ -7,7 +7,7 @@ import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 contract SelfLiquidateFixedLoanValidationTest is BaseTest {
     function test_SelfLiquidateFixedLoan_validation() public {

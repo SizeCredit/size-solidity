@@ -3,12 +3,12 @@ pragma solidity 0.8.20;
 
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 import {State} from "@src/SizeStorage.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";

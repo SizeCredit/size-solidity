@@ -11,7 +11,7 @@ import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 contract LiquidateFixedLoanValidationTest is BaseTest {
     function test_LiquidateFixedLoan_validation() public {

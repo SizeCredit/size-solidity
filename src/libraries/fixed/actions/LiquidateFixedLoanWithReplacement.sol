@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -26,6 +28,7 @@ struct LiquidateFixedLoanWithReplacementParams {
 library LiquidateFixedLoanWithReplacement {
     using FixedLoanLibrary for FixedLoan;
     using OfferLibrary for BorrowOffer;
+    using VariableLibrary for State;
     using FixedLibrary for State;
     using LiquidateFixedLoan for State;
 
@@ -77,11 +80,8 @@ library LiquidateFixedLoanWithReplacement {
         fol.repaid = false;
 
         state._fixed.debtToken.mint(params.borrower, faceValue);
-        state._fixed.borrowToken.transferFrom(state._general.variablePool, params.borrower, amountOut);
-        // TODO evaliate who gets this profit, msg.sender or state._general.feeRecipient
-        state._fixed.borrowToken.transferFrom(
-            state._general.variablePool, state._general.feeRecipient, liquidatorProfitBorrowAsset
-        );
+        state.withdrawBorrowTokenFromVariablePool(fol.lender, params.borrower, amountOut);
+        state.withdrawBorrowTokenFromVariablePool(fol.lender, state._general.feeRecipient, liquidatorProfitBorrowAsset);
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

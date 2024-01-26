@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 import {IPriceFeed} from "./IPriceFeed.sol";
 import {Errors} from "@src/libraries/Errors.sol";

@@ -5,7 +5,7 @@ import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus, RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 library FixedLibrary {
@@ -85,24 +85,6 @@ library FixedLibrary {
         validateMinimumCredit(state, exiter.getCredit());
 
         emit Events.CreateFixedLoan(solId, lender, borrower, exiterId, folId, faceValue, fol.dueDate);
-    }
-
-    function createVariableFixedLoan(
-        State storage state,
-        address borrower,
-        uint256 amountBorrowAssetLentOut,
-        uint256 amountCollateral
-    ) public {
-        // TODO
-        // state.variableFixedLoans.push(
-        //     VariableFixedLoan({
-        //         borrower: borrower,
-        //         amountBorrowAssetLentOut: amountBorrowAssetLentOut,
-        //         amountCollateral: amountCollateral,
-        //         startTime: block.timestamp,
-        //         repaid: false
-        //     })
-        // );
     }
 
     function getFOL(State storage state, FixedLoan storage self) public view returns (FixedLoan storage) {

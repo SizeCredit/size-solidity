@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IPool} from "@aave/interfaces/IPool.sol";
+
+import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {PoolMock} from "@test/mocks/PoolMock.sol";
 
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
@@ -27,17 +31,21 @@ abstract contract Deploy {
     DebtToken internal debtToken;
     InitializeGeneralParams internal g;
     InitializeFixedParams internal f;
+    IPool internal variablePool;
 
     function setup(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
+        variablePool = IPool(address(new PoolMock()));
+        PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         g = InitializeGeneralParams({
             owner: owner,
             priceFeed: address(priceFeed),
             collateralAsset: address(weth),
             borrowAsset: address(usdc),
-            feeRecipient: feeRecipient
+            feeRecipient: feeRecipient,
+            variablePool: address(variablePool)
         });
         f = InitializeFixedParams({
             crOpening: 1.5e18,
@@ -52,14 +60,16 @@ abstract contract Deploy {
         priceFeed.setPrice(1337e18);
     }
 
-    function setupChain(address _owner, address _weth, address _usdc) internal {
+    function setupChain(address _owner, address pool, address _weth, address _usdc) internal {
+        variablePool = IPool(pool);
         priceFeed = new PriceFeedMock(_owner);
         g = InitializeGeneralParams({
             owner: _owner,
             priceFeed: address(priceFeed),
             collateralAsset: _weth,
             borrowAsset: _usdc,
-            feeRecipient: _owner
+            feeRecipient: _owner,
+            variablePool: address(variablePool)
         });
         f = InitializeFixedParams({
             crOpening: 1.5e18,

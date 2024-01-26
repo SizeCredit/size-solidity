@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
@@ -14,9 +15,9 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 // NOTE changing any of these structs' order or variables may change the storage layout
 struct General {
     IPriceFeed priceFeed;
-    IERC20Metadata collateralAsset;
-    IERC20Metadata borrowAsset;
-    address variablePool;
+    IERC20Metadata collateralAsset; // e.g. WETH
+    IERC20Metadata borrowAsset; // e.g. USDC
+    IPool variablePool;
     address insurance;
     address feeRecipient;
 }
@@ -29,14 +30,19 @@ struct Fixed {
     uint256 minimumCredit;
     uint256 collateralPremiumToLiquidator;
     uint256 collateralPremiumToProtocol;
-    CollateralToken collateralToken;
-    BorrowToken borrowToken;
-    DebtToken debtToken;
+    CollateralToken collateralToken; // e.g. szWETH
+    BorrowToken borrowToken; // e.g. szUSDC
+    DebtToken debtToken; // e.g. szDebt
+}
+
+struct Variable {
+    address userProxyImplementation;
 }
 
 struct State {
     General _general;
     Fixed _fixed;
+    Variable _variable;
 }
 
 abstract contract SizeStorage {

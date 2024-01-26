@@ -7,6 +7,7 @@ abstract contract Addresses {
     error InvalidChain(string chain);
 
     struct AddressInfo {
+        address variablePool;
         address weth;
         address usdc;
     }
@@ -14,6 +15,7 @@ abstract contract Addresses {
     function addresses(string memory chain) public pure returns (AddressInfo memory) {
         if (Strings.equal(chain, "sepolia")) {
             return AddressInfo({
+                variablePool: address(1),
                 weth: 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14,
                 usdc: 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238
             });

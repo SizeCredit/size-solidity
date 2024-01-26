@@ -9,10 +9,11 @@ library Events {
     // General
     event Initialize(InitializeGeneralParams g, InitializeFixedParams f);
     event UpdateConfig(bytes32 key, uint256 value);
+    event CreateUserProxy(address indexed user, address indexed proxy);
 
     // Fixed
-    event Deposit(address indexed token, uint256 wad);
-    event Withdraw(address indexed token, uint256 wad);
+    event Deposit(address indexed token, address indexed to, uint256 wad);
+    event Withdraw(address indexed token, address indexed to, uint256 wad);
     event BorrowAsMarketOrder(
         address indexed lender,
         uint256 amount,

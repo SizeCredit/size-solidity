@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -19,6 +21,7 @@ struct LiquidateFixedLoanParams {
 }
 
 library LiquidateFixedLoan {
+    using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
     using FixedLibrary for State;
 
@@ -87,7 +90,7 @@ library LiquidateFixedLoan {
         }
 
         state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
-        state._fixed.borrowToken.transferFrom(msg.sender, state._general.variablePool, debtBorrowToken);
+        state.depositBorrowTokenToVariablePool(msg.sender, loan.lender, debtBorrowToken);
         state._fixed.debtToken.burn(loan.borrower, debtBorrowToken);
         loan.repaid = true;
 

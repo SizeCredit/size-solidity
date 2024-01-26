@@ -3,9 +3,11 @@ pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -16,6 +18,7 @@ struct RepayParams {
 }
 
 library Repay {
+    using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
     using FixedLibrary for State;
 
@@ -46,7 +49,7 @@ library Repay {
         uint256 repayAmount = Math.min(loan.faceValue, params.amount);
 
         if (repayAmount == loan.faceValue && loan.isFOL()) {
-            state._fixed.borrowToken.transferFrom(msg.sender, state._general.variablePool, repayAmount);
+            state.depositBorrowTokenToVariablePool(msg.sender, loan.lender, repayAmount);
             state._fixed.debtToken.burn(msg.sender, repayAmount);
             loan.repaid = true;
         } else {

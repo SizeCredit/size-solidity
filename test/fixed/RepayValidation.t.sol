@@ -3,14 +3,14 @@ pragma solidity 0.8.20;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 contract RepayValidationTest is BaseTest {
     function test_Repay_validation() public {
@@ -35,7 +35,7 @@ contract RepayValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(bob);
-        size.withdraw(WithdrawParams({token: address(usdc), amount: 100e18}));
+        size.withdraw(WithdrawParams({token: address(usdc), amount: 100e18, to: bob}));
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 20e18, faceValue));
         size.repay(RepayParams({loanId: loanId, amount: type(uint256).max}));
         vm.stopPrank();

@@ -9,10 +9,13 @@ import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {InitializeFixedParams} from "@src/libraries/general/actions/Initialize.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 struct UserView {
     User user;
@@ -20,6 +23,7 @@ struct UserView {
     uint256 collateralAmount;
     uint256 borrowAmount;
     uint256 debtAmount;
+    uint256 vpBorrowAmount;
 }
 
 abstract contract SizeView is SizeStorage {
@@ -27,6 +31,7 @@ abstract contract SizeView is SizeStorage {
     using OfferLibrary for BorrowOffer;
     using FixedLoanLibrary for FixedLoan;
     using FixedLibrary for State;
+    using VariableLibrary for State;
 
     function collateralRatio(address user) external view returns (uint256) {
         return state.collateralRatio(user);
@@ -70,7 +75,8 @@ abstract contract SizeView is SizeStorage {
             account: user,
             collateralAmount: state._fixed.collateralToken.balanceOf(user),
             borrowAmount: state._fixed.borrowToken.balanceOf(user),
-            debtAmount: state._fixed.debtToken.balanceOf(user)
+            debtAmount: state._fixed.debtToken.balanceOf(user),
+            vpBorrowAmount: state.variablePoolBalanceOfBorrowAssets(user)
         });
     }
 
@@ -96,9 +102,15 @@ abstract contract SizeView is SizeStorage {
 
     function getVariablePool() external view returns (uint256, uint256, uint256) {
         return (
-            state._fixed.collateralToken.balanceOf(state._general.variablePool),
-            state._fixed.borrowToken.balanceOf(state._general.variablePool),
-            state._fixed.debtToken.balanceOf(state._general.variablePool)
+            ConversionLibrary.amountToWad(
+                state._general.collateralAsset.balanceOf(address(state._general.variablePool)),
+                state._general.collateralAsset.decimals()
+                ),
+            ConversionLibrary.amountToWad(
+                state._general.borrowAsset.balanceOf(address(state._general.variablePool)),
+                state._general.borrowAsset.decimals()
+                ),
+            0
         );
     }
 

@@ -67,5 +67,7 @@ library Errors {
     error STALE_PRICE(address aggregator, uint256 updatedAt);
     error NULL_STALE_PRICE();
 
+    error PROXY_CALL_FAILED(address target, bytes data);
+
     error NOT_SUPPORTED();
 }

@@ -4,13 +4,13 @@ pragma solidity 0.8.20;
 import {BaseTest} from "@test/BaseTest.sol";
 import {ExperimentsHelper} from "@test/helpers/ExperimentsHelper.sol";
 
-import {Math} from "@src/libraries/MathLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {Test} from "forge-std/Test.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-import {PERCENT} from "@src/libraries/MathLibrary.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
@@ -195,6 +195,9 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(!fol.repaid, "FixedLoan should not be repaid before moving to the variable pool");
         uint256 aliceCollateralBefore = _state().alice.collateralAmount;
         assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
+
+        // add funds to the VP
+        _depositVariable(liquidator, address(usdc), 1_000e6);
 
         // Move to variable pool
         _moveToVariablePool(liquidator, 0);
