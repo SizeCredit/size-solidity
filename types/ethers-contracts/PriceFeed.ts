@@ -23,24 +23,24 @@ export interface PriceFeedInterface extends utils.Interface {
   functions: {
     "base()": FunctionFragment;
     "baseDecimals()": FunctionFragment;
-    "baseStalePrice()": FunctionFragment;
+    "baseStalePriceInterval()": FunctionFragment;
     "decimals()": FunctionFragment;
     "getPrice()": FunctionFragment;
     "quote()": FunctionFragment;
     "quoteDecimals()": FunctionFragment;
-    "quoteStalePrice()": FunctionFragment;
+    "quoteStalePriceInterval()": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "base"
       | "baseDecimals"
-      | "baseStalePrice"
+      | "baseStalePriceInterval"
       | "decimals"
       | "getPrice"
       | "quote"
       | "quoteDecimals"
-      | "quoteStalePrice"
+      | "quoteStalePriceInterval"
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "base", values?: undefined): string;
@@ -49,7 +49,7 @@ export interface PriceFeedInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "baseStalePrice",
+    functionFragment: "baseStalePriceInterval",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
@@ -60,7 +60,7 @@ export interface PriceFeedInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "quoteStalePrice",
+    functionFragment: "quoteStalePriceInterval",
     values?: undefined
   ): string;
 
@@ -70,7 +70,7 @@ export interface PriceFeedInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "baseStalePrice",
+    functionFragment: "baseStalePriceInterval",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
@@ -81,7 +81,7 @@ export interface PriceFeedInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "quoteStalePrice",
+    functionFragment: "quoteStalePriceInterval",
     data: BytesLike
   ): Result;
 
@@ -119,7 +119,7 @@ export interface PriceFeed extends BaseContract {
 
     baseDecimals(overrides?: CallOverrides): Promise<[number]>;
 
-    baseStalePrice(overrides?: CallOverrides): Promise<[BigNumber]>;
+    baseStalePriceInterval(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     decimals(overrides?: CallOverrides): Promise<[number]>;
 
@@ -129,14 +129,14 @@ export interface PriceFeed extends BaseContract {
 
     quoteDecimals(overrides?: CallOverrides): Promise<[number]>;
 
-    quoteStalePrice(overrides?: CallOverrides): Promise<[BigNumber]>;
+    quoteStalePriceInterval(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   base(overrides?: CallOverrides): Promise<string>;
 
   baseDecimals(overrides?: CallOverrides): Promise<number>;
 
-  baseStalePrice(overrides?: CallOverrides): Promise<BigNumber>;
+  baseStalePriceInterval(overrides?: CallOverrides): Promise<BigNumber>;
 
   decimals(overrides?: CallOverrides): Promise<number>;
 
@@ -146,14 +146,14 @@ export interface PriceFeed extends BaseContract {
 
   quoteDecimals(overrides?: CallOverrides): Promise<number>;
 
-  quoteStalePrice(overrides?: CallOverrides): Promise<BigNumber>;
+  quoteStalePriceInterval(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
     base(overrides?: CallOverrides): Promise<string>;
 
     baseDecimals(overrides?: CallOverrides): Promise<number>;
 
-    baseStalePrice(overrides?: CallOverrides): Promise<BigNumber>;
+    baseStalePriceInterval(overrides?: CallOverrides): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
@@ -163,7 +163,7 @@ export interface PriceFeed extends BaseContract {
 
     quoteDecimals(overrides?: CallOverrides): Promise<number>;
 
-    quoteStalePrice(overrides?: CallOverrides): Promise<BigNumber>;
+    quoteStalePriceInterval(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
@@ -173,7 +173,7 @@ export interface PriceFeed extends BaseContract {
 
     baseDecimals(overrides?: CallOverrides): Promise<BigNumber>;
 
-    baseStalePrice(overrides?: CallOverrides): Promise<BigNumber>;
+    baseStalePriceInterval(overrides?: CallOverrides): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -183,7 +183,7 @@ export interface PriceFeed extends BaseContract {
 
     quoteDecimals(overrides?: CallOverrides): Promise<BigNumber>;
 
-    quoteStalePrice(overrides?: CallOverrides): Promise<BigNumber>;
+    quoteStalePriceInterval(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -191,7 +191,9 @@ export interface PriceFeed extends BaseContract {
 
     baseDecimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    baseStalePrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    baseStalePriceInterval(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -201,6 +203,8 @@ export interface PriceFeed extends BaseContract {
 
     quoteDecimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    quoteStalePrice(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    quoteStalePriceInterval(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
   };
 }
