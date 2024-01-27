@@ -76,8 +76,8 @@ contract LiquidateFixedLoanTest is BaseTest {
             _before.bob.collateralAmount - (debtWad * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
-        uint256 liquidatorProfitAmount =
-            (debtWad * 5) + Math.mulDivDown(collateralRemainder, size.fixedConfig().collateralPremiumToLiquidator, PERCENT);
+        uint256 liquidatorProfitAmount = (debtWad * 5)
+            + Math.mulDivDown(collateralRemainder, size.fixedConfig().collateralPremiumToLiquidator, PERCENT);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount + liquidatorProfitAmount);
         assertEq(liquidatorProfit, liquidatorProfitAmount);
     }

@@ -27,7 +27,7 @@ contract PoolMock is Ownable {
     mapping(address asset => AToken aToken) internal aTokens;
 
     constructor() Ownable(msg.sender) {
-            addressesProvider = new PoolAddressesProvider("", address(this));
+        addressesProvider = new PoolAddressesProvider("", address(this));
     }
 
     function setLiquidityIndex(address asset, uint256 index) external onlyOwner {

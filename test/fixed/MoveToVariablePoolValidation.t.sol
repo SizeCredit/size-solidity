@@ -38,7 +38,9 @@ contract MoveToVariablePoolValidationTest is BaseTest {
         vm.warp(block.timestamp + 12);
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.INSUFFICIENT_COLLATERAL.selector, 130e18, 100e18 * size.fixedConfig().crOpening / 1e18)
+            abi.encodeWithSelector(
+                Errors.INSUFFICIENT_COLLATERAL.selector, 130e18, 100e18 * size.fixedConfig().crOpening / 1e18
+            )
         );
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
     }
