@@ -51,7 +51,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
 
     function invariant_LOAN() public returns (bool) {
-        uint256 minimumCreditBorrowAsset = size.f().minimumCreditBorrowAsset;
+        uint256 minimumCreditBorrowAsset = size.fixedConfig().minimumCreditBorrowAsset;
         uint256 activeFixedLoans = size.activeFixedLoans();
         uint256[] memory folCreditsSumByFolId = new uint256[](activeFixedLoans);
         uint256[] memory solCreditsSumByFolId = new uint256[](activeFixedLoans);
@@ -136,7 +136,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         users[2] = USER3;
         users[3] = address(size);
         users[4] = address(variablePool);
-        users[5] = address(size.g().feeRecipient);
+        users[5] = address(size.generalConfig().feeRecipient);
 
         uint256 borrowAmount;
         uint256 collateralAmount;

@@ -22,11 +22,13 @@ contract PoolMock is Ownable {
 
     uint256 public constant RATE = 1.01e27;
     EnumerableMap.AddressToUintMap internal reserveIndexes;
-    PoolAddressesProvider internal addressesProvider;
+    PoolAddressesProvider internal immutable addressesProvider;
     mapping(address user => mapping(address asset => uint256 amount)) internal debts;
     mapping(address asset => AToken aToken) internal aTokens;
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable(msg.sender) {
+            addressesProvider = new PoolAddressesProvider("", address(this));
+    }
 
     function setLiquidityIndex(address asset, uint256 index) external onlyOwner {
         _updateLiquidityIndex(asset);
@@ -36,7 +38,6 @@ contract PoolMock is Ownable {
     function _updateLiquidityIndex(address asset) private {
         (bool exists, uint256 index) = reserveIndexes.tryGet(asset);
         if (!exists) {
-            addressesProvider = new PoolAddressesProvider(IERC20Metadata(asset).name(), address(this));
             aTokens[asset] = new AToken(IPool(address(this)));
 
             aTokens[asset].initialize(

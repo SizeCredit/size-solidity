@@ -96,7 +96,7 @@ contract WithdrawTest is BaseTest {
         size.withdraw(WithdrawParams({token: address(weth), amount: 149e18, to: bob}));
     }
 
-    function test_Withdraw_withdraw_everything() public {
+    function test_Withdraw_withdraw_everythingeneralConfig() public {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
@@ -116,7 +116,7 @@ contract WithdrawTest is BaseTest {
         assertEq(afterWETH, 150e18);
     }
 
-    function test_Withdraw_withdraw_everything_without_depositing() public {
+    function test_Withdraw_withdraw_everything_without_depositingeneralConfig() public {
         uint256 beforeUSDC = usdc.balanceOf(address(alice));
         uint256 beforeWETH = weth.balanceOf(address(alice));
 

@@ -52,6 +52,7 @@ library VariableLibrary {
 
         UserProxy userProxyFrom = getUserProxy(state, from);
 
+        // slither-disable-next-line unused-return
         userProxyFrom.proxy(
             address(state._general.variablePool), abi.encodeCall(IPool.withdraw, (address(borrowAsset), amount, to))
         );
@@ -63,6 +64,7 @@ library VariableLibrary {
         UserProxy userProxyFrom = getUserProxy(state, from);
         UserProxy userProxyTo = getUserProxy(state, to);
 
+        // slither-disable-next-line unused-return
         userProxyFrom.proxy(address(borrowAToken), abi.encodeCall(IERC20.transfer, (address(userProxyTo), amount)));
     }
 
@@ -95,6 +97,7 @@ library VariableLibrary {
         targets[1] = address(state._general.variablePool);
         data[1] = abi.encodeCall(IPool.borrow, (borrowAsset, borrowAmount, 2, 0, address(userProxy)));
 
+        // slither-disable-next-line unused-return
         userProxy.proxy(targets, data);
     }
 

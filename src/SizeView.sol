@@ -57,7 +57,7 @@ abstract contract SizeView is SizeStorage {
         return state._fixed.loans[loanId].getCredit();
     }
 
-    function g() external view returns (InitializeGeneralParams memory) {
+    function generalConfig() external view returns (InitializeGeneralParams memory) {
         return InitializeGeneralParams({
             owner: address(0), // TODO return correct owner
             priceFeed: address(state._general.priceFeed),
@@ -68,7 +68,7 @@ abstract contract SizeView is SizeStorage {
         });
     }
 
-    function f() external view returns (InitializeFixedParams memory) {
+    function fixedConfig() external view returns (InitializeFixedParams memory) {
         return InitializeFixedParams({
             crOpening: state._fixed.crOpening,
             crLiquidation: state._fixed.crLiquidation,
