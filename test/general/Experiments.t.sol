@@ -261,7 +261,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(size.activeFixedLoans(), 0, "There should be no active loans initially");
 
         // Bob lends to Alice's offer in the market order
-        _lendAsMarketOrder(bob, alice, 70e18, 5);
+        _lendAsMarketOrder(bob, alice, 70e6, 5);
 
         // Assert a loan is active after lending
         assertEq(size.activeFixedLoans(), 1, "There should be one active loan after lending");

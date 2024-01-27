@@ -153,10 +153,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         collateralAmount += collateralTemp;
         borrowAmount += borrowTemp;
 
-        if (
-            (usdc.balanceOf(address(size)) != (borrowAmount / 1e12))
-                || (weth.balanceOf(address(size)) != collateralAmount)
-        ) {
+        if ((usdc.balanceOf(address(size)) != (borrowAmount)) || (weth.balanceOf(address(size)) != collateralAmount)) {
             t(false, TOKENS_01);
             return false;
         }

@@ -88,7 +88,7 @@ contract BorrowerExitTest is BaseTest {
         _deposit(candy, weth, 150e18);
         _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        _borrowAsLimitOrder(candy, 200e18, 0, 12);
+        _borrowAsLimitOrder(candy, 200e6, 0, 12);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, candy, 1.5e18 / 2));

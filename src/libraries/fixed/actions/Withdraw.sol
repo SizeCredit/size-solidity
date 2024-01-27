@@ -45,10 +45,14 @@ library Withdraw {
     function executeWithdraw(State storage state, WithdrawParams calldata params) public {
         if (params.token == address(state._general.collateralAsset)) {
             uint256 amount = Math.min(params.amount, state._fixed.collateralToken.balanceOf(msg.sender));
-            state.withdrawCollateralToken(msg.sender, params.to, amount);
+            if (amount > 0) {
+                state.withdrawCollateralToken(msg.sender, params.to, amount);
+            }
         } else {
             uint256 amount = Math.min(params.amount, state.borrowATokenBalanceOf(msg.sender));
-            state.withdrawBorrowTokenFromVariablePool(msg.sender, params.to, amount);
+            if (amount > 0) {
+                state.withdrawBorrowTokenFromVariablePool(msg.sender, params.to, amount);
+            }
         }
 
         emit Events.Withdraw(params.token, params.to, params.amount);

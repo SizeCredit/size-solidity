@@ -33,8 +33,8 @@ contract CompensateTest is BaseTest {
         uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(loanId3).getDebt();
         uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(loanId).getCredit();
 
-        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 2 * 20e18);
-        assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 2 * 20e18);
+        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 2 * 20e6);
+        assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 2 * 20e6);
         assertEq(
             repaidFixedLoanDebtBefore - repaidFixedLoanDebtAfter,
             compensatedFixedLoanCreditBefore - compensatedFixedLoanCreditAfter
@@ -65,8 +65,8 @@ contract CompensateTest is BaseTest {
         uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(solId).getDebt();
         uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(loanId).getCredit();
 
-        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 15e18);
-        assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 15e18);
+        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 15e6);
+        assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 15e6);
         assertEq(
             repaidFixedLoanDebtBefore - repaidFixedLoanDebtAfter,
             compensatedFixedLoanCreditBefore - compensatedFixedLoanCreditAfter
@@ -99,8 +99,8 @@ contract CompensateTest is BaseTest {
         uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(solId).getDebt();
         uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(solId2).getCredit();
 
-        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 10e18);
-        assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 10e18);
+        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 10e6);
+        assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 10e6);
         assertEq(
             repaidFixedLoanDebtBefore - repaidFixedLoanDebtAfter,
             compensatedFixedLoanCreditBefore - compensatedFixedLoanCreditAfter

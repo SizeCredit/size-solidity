@@ -34,7 +34,7 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
         uint256 minimumCollateralRatio = 1e18;
 
         vm.startPrank(liquidator);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, 103e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, 103e6));
         size.liquidateFixedLoan(
             LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
         );

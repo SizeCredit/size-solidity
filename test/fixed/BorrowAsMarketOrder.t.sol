@@ -5,6 +5,7 @@ import {console2 as console} from "forge-std/console2.sol";
 
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -42,7 +43,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
-        uint256 minimumCollateral = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
+        uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
         FixedLoanOffer memory offerAfter = size.getUserView(alice).user.loanOffer;
 
@@ -80,7 +82,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _borrowAsMarketOrder(bob, alice, amount, dueDate);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
         uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
-        uint256 minimumCollateral = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
+        uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
         FixedLoanOffer memory offerAfter = size.getUserView(alice).user.loanOffer;
 

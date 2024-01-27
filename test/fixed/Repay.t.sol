@@ -77,7 +77,6 @@ contract RepayTest is BaseTest {
         uint256 amountFixedLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
-        uint256 faceValueUSDC = Math.mulDivUp(faceValue, 1e6, 1e6);
 
         Vars memory _before = _state();
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
@@ -200,10 +199,10 @@ contract RepayTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 4e18, size.config().minimumCreditBorrowAsset
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 4e6, size.config().minimumCreditBorrowAsset
             )
         );
-        _repay(bob, loanId, 6e18);
+        _repay(bob, loanId, 6e6);
         assertGt(size.getCredit(loanId), size.config().minimumCreditBorrowAsset);
     }
 

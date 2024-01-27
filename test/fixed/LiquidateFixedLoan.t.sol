@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
@@ -25,7 +26,8 @@ contract LiquidateFixedLoanTest is BaseTest {
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
+        uint256 debtWad = ConversionLibrary.amountToWad(debt, usdc.decimals());
+        uint256 debtOpening = Math.mulDivUp(debtWad, size.config().crOpening, PERCENT);
         uint256 lock = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         // nothing is locked anymore on v2
         lock = 0;
@@ -33,7 +35,7 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         assertEq(size.getFOLAssignedCollateral(loanId), assigned);
         assertEq(size.getDebt(loanId), debt);
-        assertEq(size.collateralRatio(bob), Math.mulDivDown(assigned, PERCENT, (debt * 1)));
+        assertEq(size.collateralRatio(bob), Math.mulDivDown(assigned, PERCENT, (debtWad * 1)));
         assertTrue(!size.isLiquidatable(bob));
         assertTrue(!size.isLiquidatable(loanId));
 
@@ -41,7 +43,7 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         assertEq(size.getFOLAssignedCollateral(loanId), assigned);
         assertEq(size.getDebt(loanId), debt);
-        assertEq(size.collateralRatio(bob), Math.mulDivDown(assigned, PERCENT, (debt * 5)));
+        assertEq(size.collateralRatio(bob), Math.mulDivDown(assigned, PERCENT, (debtWad * 5)));
         assertTrue(size.isLiquidatable(bob));
         assertTrue(size.isLiquidatable(loanId));
 
@@ -49,7 +51,7 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         uint256 liquidatorProfit = _liquidateFixedLoan(liquidator, loanId);
 
-        uint256 collateralRemainder = assigned - (debt * 5);
+        uint256 collateralRemainder = assigned - (debtWad * 5);
 
         Vars memory _after = _state();
 
@@ -64,17 +66,17 @@ contract LiquidateFixedLoanTest is BaseTest {
             PERCENT - size.config().collateralPremiumToProtocol - size.config().collateralPremiumToLiquidator;
         assertEq(
             _after.bob.collateralAmount,
-            _before.bob.collateralAmount - (debt * 5)
+            _before.bob.collateralAmount - (debtWad * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
                     (size.config().collateralPremiumToProtocol + size.config().collateralPremiumToLiquidator),
                     PERCENT
                 ),
-            _before.bob.collateralAmount - (debt * 5) - collateralRemainder
+            _before.bob.collateralAmount - (debtWad * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
         uint256 liquidatorProfitAmount =
-            (debt * 5) + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToLiquidator, PERCENT);
+            (debtWad * 5) + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToLiquidator, PERCENT);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount + liquidatorProfitAmount);
         assertEq(liquidatorProfit, liquidatorProfitAmount);
     }
@@ -148,7 +150,8 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         assertTrue(size.isLiquidatable(loanId));
         uint256 assignedCollateral = size.getFOLAssignedCollateral(loanId);
-        uint256 debtCollateral = Math.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 debtWad = ConversionLibrary.amountToWad(size.getDebt(loanId), usdc.decimals());
+        uint256 debtCollateral = Math.mulDivDown(debtWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         (uint256 feeRecipientCollateralAssetBefore, uint256 feeRecipientBorrowAssetBefore,) = size.getFeeRecipient();
 
         uint256 liquidatorProfit = _liquidateFixedLoan(liquidator, loanId, 0);
