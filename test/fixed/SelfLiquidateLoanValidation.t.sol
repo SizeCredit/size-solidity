@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
 
@@ -34,7 +35,8 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
         _setPrice(0.75e18);
 
         uint256 assignedCollateral = size.getFOLAssignedCollateral(loanId);
-        uint256 debtCollateral = Math.mulDivDown(size.getDebt(loanId), 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 debtWad = ConversionLibrary.amountToWad(size.getDebt(loanId), usdc.decimals());
+        uint256 debtCollateral = Math.mulDivDown(debtWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         vm.startPrank(alice);
         vm.expectRevert(

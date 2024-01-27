@@ -113,4 +113,6 @@ contract PoolMock is Ownable {
     }
 
     function finalizeTransfer(address, address, address, uint256, uint256, uint256) external pure {}
+
+    function setUserUseReserveAsCollateral(address, bool) external pure {}
 }

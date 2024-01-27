@@ -27,7 +27,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtWad = ConversionLibrary.amountToWad(debt, usdc.decimals());
-        uint256 debtOpening = Math.mulDivUp(debtWad, size.config().crOpening, PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debtWad, size.f().crOpening, PERCENT);
         uint256 lock = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         // nothing is locked anymore on v2
         lock = 0;
@@ -56,27 +56,28 @@ contract LiquidateFixedLoanTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.liquidator.borrowAmount, _before.liquidator.borrowAmount - debt);
-        assertEq(_after.vpBorrowAmount, _before.vpBorrowAmount + debt);
+        assertEq(_after.size.borrowAmount, _before.size.borrowAmount + debt);
+        assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
         assertEq(
-            _after.feeRecipientCollateralAmount,
-            _before.feeRecipientCollateralAmount
-                + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToProtocol, PERCENT)
+            _after.feeRecipient.collateralAmount,
+            _before.feeRecipient.collateralAmount
+                + Math.mulDivDown(collateralRemainder, size.f().collateralPremiumToProtocol, PERCENT)
         );
         uint256 collateralPremiumToBorrower =
-            PERCENT - size.config().collateralPremiumToProtocol - size.config().collateralPremiumToLiquidator;
+            PERCENT - size.f().collateralPremiumToProtocol - size.f().collateralPremiumToLiquidator;
         assertEq(
             _after.bob.collateralAmount,
             _before.bob.collateralAmount - (debtWad * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
-                    (size.config().collateralPremiumToProtocol + size.config().collateralPremiumToLiquidator),
+                    (size.f().collateralPremiumToProtocol + size.f().collateralPremiumToLiquidator),
                     PERCENT
                 ),
             _before.bob.collateralAmount - (debtWad * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
         uint256 liquidatorProfitAmount =
-            (debtWad * 5) + Math.mulDivDown(collateralRemainder, size.config().collateralPremiumToLiquidator, PERCENT);
+            (debtWad * 5) + Math.mulDivDown(collateralRemainder, size.f().collateralPremiumToLiquidator, PERCENT);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount + liquidatorProfitAmount);
         assertEq(liquidatorProfit, liquidatorProfitAmount);
     }
@@ -152,16 +153,17 @@ contract LiquidateFixedLoanTest is BaseTest {
         uint256 assignedCollateral = size.getFOLAssignedCollateral(loanId);
         uint256 debtWad = ConversionLibrary.amountToWad(size.getDebt(loanId), usdc.decimals());
         uint256 debtCollateral = Math.mulDivDown(debtWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
-        (uint256 feeRecipientCollateralAssetBefore, uint256 feeRecipientBorrowAssetBefore,) = size.getFeeRecipient();
+
+        Vars memory _before = _state();
 
         uint256 liquidatorProfit = _liquidateFixedLoan(liquidator, loanId, 0);
 
-        (uint256 feeRecipientCollateralAssetAfter, uint256 feeRecipientBorrowAssetAfter,) = size.getFeeRecipient();
+        Vars memory _after = _state();
 
         assertLt(liquidatorProfit, debtCollateral);
         assertEq(liquidatorProfit, assignedCollateral);
-        assertEq(feeRecipientBorrowAssetBefore, feeRecipientBorrowAssetAfter, 0);
-        assertEq(feeRecipientCollateralAssetBefore, feeRecipientCollateralAssetAfter, 0);
+        assertEq(_before.feeRecipient.borrowAmount, _after.feeRecipient.borrowAmount, 0);
+        assertEq(_before.feeRecipient.collateralAmount, _after.feeRecipient.collateralAmount, 0);
         assertEq(size.getFOLAssignedCollateral(loanId), 0);
         assertEq(size.getUserView(bob).collateralAmount, 0);
     }

@@ -67,7 +67,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
         _deposit(alice, weth, 2e18);
         _borrowAsMarketOrder(alice, bob, 100e6, 6);
-        assertGe(size.collateralRatio(alice), size.config().crOpening);
+        assertGe(size.collateralRatio(alice), size.f().crOpening);
         assertTrue(!size.isLiquidatable(alice), "borrower should not be liquidatable");
         vm.warp(block.timestamp + 1);
         _setPrice(60e18);
@@ -158,7 +158,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(bob, james, 35e6, 10, [uint256(0)]);
 
         // Check conditions after Bob borrows
-        assertEq(_state().bob.borrowAmount, 100e18 - 70e6 + 35e6, "Bob should have borrowed 35e6");
+        assertEq(_state().bob.borrowAmount, 100e6 - 70e6 + 35e6, "Bob should have borrowed 35e6");
         assertEq(size.activeFixedLoans(), 2, "Expected two active loans");
         FixedLoan memory loan_James_Bob = size.getFixedLoan(1);
         assertEq(loan_James_Bob.lender, james, "James should be the lender");
@@ -225,7 +225,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(alice, bob, 100e6, 6);
 
         // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.config().crOpening);
+        assertGe(size.collateralRatio(alice), size.f().crOpening);
         assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
 
         vm.warp(block.timestamp + 1);
@@ -308,7 +308,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(alice, bob, 100e6, 6);
 
         // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.config().crOpening, "Alice should be above CR opening");
+        assertGe(size.collateralRatio(alice), size.f().crOpening, "Alice should be above CR opening");
         assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)

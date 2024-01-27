@@ -124,7 +124,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after();
 
-        if (amount > size.config().minimumCreditBorrowAsset) {
+        if (amount > size.f().minimumCreditBorrowAsset) {
             if (lender == sender) {
                 eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
             } else {
@@ -224,7 +224,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after(loanId);
 
         lte(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
-        gte(_after.vpBorrowAmount, _before.vpBorrowAmount, REPAY_01);
+        gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
         lt(_after.sender.debtAmount, _before.sender.debtAmount, REPAY_02);
     }
 

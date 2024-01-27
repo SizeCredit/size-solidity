@@ -15,14 +15,15 @@ import {Math} from "@src/libraries/Math.sol";
 contract RepayValidationTest is BaseTest {
     function test_Repay_validation() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 300e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
-        uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, 20e18, PERCENT);
+        uint256 amount = 20e6;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 faceValue = Math.mulDivUp(amount, PERCENT + 0.05e18, PERCENT);
         _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
 
         uint256 solId = _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);

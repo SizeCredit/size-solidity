@@ -2,7 +2,6 @@
 pragma solidity 0.8.20;
 
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 
@@ -22,7 +21,7 @@ contract BorrowerExitValidationTest is BaseTest {
         _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
         _lendAsLimitOrder(james, 100e6, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        _borrowAsLimitOrder(candy, 10e18, 0, 12);
+        _borrowAsLimitOrder(candy, 10e6, 0, 12);
         uint256 loanId2 = _borrowAsMarketOrder(candy, james, 50e6, 12);
         uint256 solId = _borrowAsMarketOrder(james, candy, 10e6, 12, [loanId2]);
 
@@ -32,7 +31,7 @@ contract BorrowerExitValidationTest is BaseTest {
         size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 100e18, 200e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 100e6, 200e6));
         size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
         vm.stopPrank();
 
@@ -50,7 +49,7 @@ contract BorrowerExitValidationTest is BaseTest {
 
         vm.startPrank(bob);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 200e18, 1));
+        vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 200e6, 1));
         size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
 
         // @audit-info BE-01

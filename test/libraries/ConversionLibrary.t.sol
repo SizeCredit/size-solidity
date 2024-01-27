@@ -67,7 +67,7 @@ contract ConversionLibraryTest is Test {
     }
 
     function test_ConversionLibrary_wadToAmountDown_lt_18() public {
-        uint256 amount = 1e6;
+        uint256 amount = 1e18;
         uint8 decimals = 6;
 
         uint256 wad = ConversionLibrary.wadToAmountDown(amount, decimals);

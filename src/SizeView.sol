@@ -9,12 +9,11 @@ import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
-import {InitializeFixedParams} from "@src/libraries/general/actions/Initialize.sol";
+import {InitializeFixedParams, InitializeGeneralParams} from "@src/libraries/general/actions/Initialize.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 struct UserView {
@@ -58,7 +57,18 @@ abstract contract SizeView is SizeStorage {
         return state._fixed.loans[loanId].getCredit();
     }
 
-    function config() external view returns (InitializeFixedParams memory) {
+    function g() external view returns (InitializeGeneralParams memory) {
+        return InitializeGeneralParams({
+            owner: address(0), // TODO return correct owner
+            priceFeed: address(state._general.priceFeed),
+            collateralAsset: address(state._general.collateralAsset),
+            borrowAsset: address(state._general.borrowAsset),
+            feeRecipient: state._general.feeRecipient,
+            variablePool: address(state._general.variablePool)
+        });
+    }
+
+    function f() external view returns (InitializeFixedParams memory) {
         return InitializeFixedParams({
             crOpening: state._fixed.crOpening,
             crLiquidation: state._fixed.crLiquidation,
@@ -96,28 +106,6 @@ abstract contract SizeView is SizeStorage {
 
     function getFixedLoanStatus(uint256 loanId) external view returns (FixedLoanStatus) {
         return state.getFixedLoanStatus(state._fixed.loans[loanId]);
-    }
-
-    function getVariablePool() external view returns (uint256, uint256, uint256) {
-        return (
-            ConversionLibrary.amountToWad(
-                state._general.collateralAsset.balanceOf(address(state._general.variablePool)),
-                state._general.collateralAsset.decimals()
-                ),
-            ConversionLibrary.amountToWad(
-                state._general.borrowAsset.balanceOf(address(state._general.variablePool)),
-                state._general.borrowAsset.decimals()
-                ),
-            0
-        );
-    }
-
-    function getFeeRecipient() external view returns (uint256, uint256, uint256) {
-        return (
-            state._fixed.collateralToken.balanceOf(state._general.feeRecipient),
-            state.borrowATokenBalanceOf(state._general.feeRecipient),
-            state._fixed.debtToken.balanceOf(state._general.feeRecipient)
-        );
     }
 
     function tokens() public view returns (CollateralToken, IAToken, DebtToken) {

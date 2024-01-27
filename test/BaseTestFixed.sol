@@ -7,8 +7,6 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {Size} from "@src/Size.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {USDC} from "@test/mocks/USDC.sol";
-import {WETH} from "@test/mocks/WETH.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
-
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -57,7 +53,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 110e18, 100e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 110e6, 100e6));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
@@ -92,7 +88,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 1.03e18, size.config().minimumCreditBorrowAsset
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 1.03e6, size.f().minimumCreditBorrowAsset
             )
         );
         size.borrowAsMarketOrder(

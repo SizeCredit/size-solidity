@@ -120,7 +120,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
         assertEq(size.getFixedLoan(loanId).faceValue, 50e6);
         assertEq(size.getFixedLoan(loanId).faceValueExited, 5e6);
-        assertEq(size.getCredit(loanId), 45e18);
+        assertEq(size.getCredit(loanId), 45e6);
 
         _selfLiquidateFixedLoan(alice, loanId);
 

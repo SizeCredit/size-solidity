@@ -77,9 +77,6 @@ library VariableLibrary {
 
         UserProxy userProxy = getUserProxy(state, borrower);
 
-        address[] memory targets = new address[](2);
-        bytes[] memory data = new bytes[](2);
-
         // unwrap collateralToken (e.g. szETH) to collateralAsset (e.g. WETH) from `borrower` to `address(this)`
         state.withdrawCollateralToken(borrower, address(this), collateralAmount);
 
@@ -87,13 +84,16 @@ library VariableLibrary {
         state._general.collateralAsset.forceApprove(address(state._general.variablePool), collateralAmount);
         state._general.variablePool.supply(collateralAsset, collateralAmount, address(userProxy), 0);
 
-        // borrow
-        targets[0] = address(state._general.variablePool);
-        data[0] = abi.encodeCall(IPool.borrow, (borrowAsset, borrowAmount, 2, 0, address(userProxy)));
+        address[] memory targets = new address[](2);
+        bytes[] memory data = new bytes[](2);
 
-        // transfer
-        targets[1] = address(state._general.borrowAsset);
-        data[1] = abi.encodeCall(IERC20.transfer, (borrower, borrowAmount));
+        // set collateralAsset as collateral
+        targets[0] = address(state._general.variablePool);
+        data[0] = abi.encodeCall(IPool.setUserUseReserveAsCollateral, (collateralAsset, true));
+
+        // borrow
+        targets[1] = address(state._general.variablePool);
+        data[1] = abi.encodeCall(IPool.borrow, (borrowAsset, borrowAmount, 2, 0, address(userProxy)));
 
         userProxy.proxy(targets, data);
     }

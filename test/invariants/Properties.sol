@@ -51,7 +51,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
 
     function invariant_LOAN() public returns (bool) {
-        uint256 minimumCreditBorrowAsset = size.config().minimumCreditBorrowAsset;
+        uint256 minimumCreditBorrowAsset = size.f().minimumCreditBorrowAsset;
         uint256 activeFixedLoans = size.activeFixedLoans();
         uint256[] memory folCreditsSumByFolId = new uint256[](activeFixedLoans);
         uint256[] memory solCreditsSumByFolId = new uint256[](activeFixedLoans);
@@ -130,10 +130,13 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     }
 
     function invariant_TOKENS_01() public returns (bool) {
-        address[] memory users = new address[](3);
+        address[] memory users = new address[](6);
         users[0] = USER1;
         users[1] = USER2;
         users[2] = USER3;
+        users[3] = address(size);
+        users[4] = address(variablePool);
+        users[5] = address(size.g().feeRecipient);
 
         uint256 borrowAmount;
         uint256 collateralAmount;
@@ -143,17 +146,11 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
             borrowAmount += userView.borrowAmount;
             collateralAmount += userView.collateralAmount;
         }
-        uint256 collateralTemp;
-        uint256 borrowTemp;
-        (collateralTemp, borrowTemp,) = size.getVariablePool();
-        collateralAmount += collateralTemp;
-        borrowAmount += borrowTemp;
 
-        (collateralTemp, borrowTemp,) = size.getFeeRecipient();
-        collateralAmount += collateralTemp;
-        borrowAmount += borrowTemp;
-
-        if ((usdc.balanceOf(address(size)) != (borrowAmount)) || (weth.balanceOf(address(size)) != collateralAmount)) {
+        if (
+            (usdc.balanceOf(address(variablePool)) != (borrowAmount))
+                || (weth.balanceOf(address(size)) != collateralAmount)
+        ) {
             t(false, TOKENS_01);
             return false;
         }
