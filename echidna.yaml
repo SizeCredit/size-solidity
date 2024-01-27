@@ -2,6 +2,7 @@ testMode: "assertion"
 prefix: "invariant_"
 coverage: true
 corpusDir: "echidna"
+codeSize: 0xffffff
 balanceAddr: 0x1043561a8829300000
 balanceContract: 0x1043561a8829300000
 cryticArgs: ["--compile-libraries=(Errors,0x10),(VariableLibrary,0x11),(AaveLibrary,0x12),(UpdateConfig,0x13),(Initialize,0x14),(Events,0x15),(ConversionLibrary,0x16),(OfferLibrary,0x17),(FixedLoanLibrary,0x18),(FixedLibrary,0x19),(SelfLiquidateFixedLoan,0x1a),(Claim,0x1b),(Deposit,0x1c),(Compensate,0x1d),(MoveToVariablePool,0x1e),(BorrowAsMarketOrder,0x1f),(Withdraw,0x20),(Repay,0x21),(BorrowerExit,0x22),(LendAsLimitOrder,0x23),(LiquidateFixedLoanWithReplacement,0x24),(LiquidateFixedLoan,0x25),(LendAsMarketOrder,0x26),(BorrowAsLimitOrder,0x27),(UserLibrary,0x28),(YieldCurveLibrary,0x29),(Math,0x2a),(YieldCurveHelper,0x2b)","--foundry-compile-all"]
