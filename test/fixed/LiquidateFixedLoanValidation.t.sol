@@ -15,22 +15,26 @@ import {Math} from "@src/libraries/Math.sol";
 
 contract LiquidateFixedLoanValidationTest is BaseTest {
     function test_LiquidateFixedLoan_validation() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _deposit(james, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _lendAsLimitOrder(bob, 100e18, 12, 0.03e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
-        _lendAsLimitOrder(james, 100e18, 12, 0.03e18, 12);
-        _borrowAsMarketOrder(bob, candy, 90e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _deposit(james, weth, 100e18);
+        _deposit(james, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(james, 100e6, 12, 0.03e18, 12);
+        _borrowAsMarketOrder(bob, candy, 90e6, 12);
 
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, james, 5e18, 12, [loanId]);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, james, 5e6, 12, [loanId]);
         uint256 minimumCollateralRatio = 1e18;
 
         vm.startPrank(liquidator);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, 103e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, 103e6));
         size.liquidateFixedLoan(
             LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
         );
@@ -54,8 +58,8 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
-        _borrowAsMarketOrder(alice, james, 50e18, 12);
+        _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
+        _borrowAsMarketOrder(alice, james, 50e6, 12);
 
         vm.startPrank(liquidator);
         vm.expectRevert(

@@ -16,36 +16,42 @@ contract UserProxy is Initializable, OwnableUpgradeable {
         __Ownable_init(owner);
     }
 
-    function proxy(address target, bytes memory data)
-        public
-        onlyOwner
-        returns (bool success, bytes memory returnData)
-    {
+    function proxy(address target, bytes memory data) public onlyOwner returns (bytes memory returnData) {
         if (target == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+        bool success;
         (success, returnData) = address(target).call(data);
+        if (!success) {
+            revert Errors.PROXY_CALL_FAILED(target, data);
+        }
     }
 
-    function proxy(address target, bytes memory data, uint256 _value)
+    function proxy(address target, bytes memory data, uint256 value)
         public
         onlyOwner
-        returns (bool success, bytes memory returnData)
+        returns (bytes memory returnData)
     {
         if (target == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        (success, returnData) = address(target).call{value: _value}(data);
+        bool success;
+        (success, returnData) = address(target).call{value: value}(data);
+        if (!success) {
+            revert Errors.PROXY_CALL_FAILED(target, data);
+        }
     }
 
-    function proxy(address[] memory targets, bytes[] memory datas) public onlyOwner {
+    function proxy(address[] memory targets, bytes[] memory datas) public onlyOwner returns (bytes[] memory results) {
         if (targets.length != datas.length) {
             revert Errors.ARRAY_LENGTHS_MISMATCH();
         }
+
+        results = new bytes[](datas.length);
         bool success;
         for (uint256 i = 0; i < targets.length; i++) {
             // slither-disable-next-line calls-loop
-            (success,) = address(targets[i]).call(datas[i]);
+            (success, results[i]) = address(targets[i]).call(datas[i]);
             if (!success) {
                 revert Errors.PROXY_CALL_FAILED(targets[i], datas[i]);
             }

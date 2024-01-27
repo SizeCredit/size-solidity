@@ -64,7 +64,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             eq(_after.sender.collateralAmount, _before.sender.collateralAmount + amount, DEPOSIT_01);
             eq(_after.senderCollateralAmount, _before.senderCollateralAmount - amount, DEPOSIT_01);
         } else {
-            eq(_after.sender.borrowAmount, _before.sender.borrowAmount + amount * 1e12, DEPOSIT_01);
+            eq(_after.sender.borrowAmount, _before.sender.borrowAmount + amount, DEPOSIT_01);
             eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
         }
     }
@@ -85,7 +85,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             eq(_after.sender.collateralAmount, _before.sender.collateralAmount - amount, WITHDRAW_01);
             eq(_after.senderCollateralAmount, _before.senderCollateralAmount + amount, WITHDRAW_01);
         } else {
-            eq(_after.sender.borrowAmount, _before.sender.borrowAmount - amount * 1e12, WITHDRAW_01);
+            eq(_after.sender.borrowAmount, _before.sender.borrowAmount - amount, WITHDRAW_01);
             eq(_after.senderBorrowAmount, _before.senderBorrowAmount + amount, WITHDRAW_01);
         }
     }
@@ -101,7 +101,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __before();
 
         lender = _getRandomUser(lender);
-        amount = between(amount, 0, MAX_AMOUNT_USDC * 1e12 / 100);
+        amount = between(amount, 0, MAX_AMOUNT_USDC / 100);
         dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
 
         uint256[] memory virtualCollateralFixedLoanIds;
@@ -124,7 +124,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after();
 
-        if (amount > size.config().minimumCredit) {
+        if (amount > size.fixedConfig().minimumCreditBorrowAsset) {
             if (lender == sender) {
                 eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
             } else {
@@ -142,7 +142,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     function borrowAsLimitOrder(uint256 maxAmount, uint256 yieldCurveSeed) public getSender {
         __before();
 
-        maxAmount = between(maxAmount, 0, MAX_AMOUNT_USDC * 1e12);
+        maxAmount = between(maxAmount, 0, MAX_AMOUNT_USDC);
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
         hevm.prank(sender);
@@ -224,7 +224,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after(loanId);
 
         lte(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
-        gte(_after.vpBorrowAmount, _before.vpBorrowAmount, REPAY_01);
+        gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
         lt(_after.sender.debtAmount, _before.sender.debtAmount, REPAY_02);
     }
 

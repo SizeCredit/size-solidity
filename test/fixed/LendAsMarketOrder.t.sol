@@ -21,11 +21,13 @@ contract LendAsMarketOrderTest is BaseTest {
     using FixedLoanLibrary for FixedLoan;
 
     function test_LendAsMarketOrder_lendAsMarketOrder_transfers_to_borrower() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _borrowAsLimitOrder(alice, 100e18, 0.03e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _borrowAsLimitOrder(alice, 100e6, 0.03e18, 12);
 
-        uint256 faceValue = 10e18;
+        uint256 faceValue = 10e6;
         uint256 dueDate = 12;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + 0.03e18);
 
@@ -51,11 +53,13 @@ contract LendAsMarketOrderTest is BaseTest {
     }
 
     function test_LendAsMarketOrder_lendAsMarketOrder_exactAmountIn() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _borrowAsLimitOrder(alice, 100e18, 0.03e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _borrowAsLimitOrder(alice, 100e6, 0.03e18, 12);
 
-        uint256 amountIn = 10e18;
+        uint256 amountIn = 10e6;
         uint256 dueDate = 12;
         uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + 0.03e18, PERCENT);
 
@@ -81,12 +85,14 @@ contract LendAsMarketOrderTest is BaseTest {
     }
 
     function test_LendAsMarketOrder_lendAsMarketOrder_exactAmountIn(uint256 amountIn, uint256 seed) public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
-        _borrowAsLimitOrder(alice, 100e18, curve.timeBuckets, curve.rates);
+        _borrowAsLimitOrder(alice, 100e6, curve.timeBuckets, curve.rates);
 
-        amountIn = bound(amountIn, 5e18, 100e18);
+        amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.timeBuckets[0] + curve.timeBuckets[1]) / 2;
         uint256 r = PERCENT + YieldCurveLibrary.getRate(curve, dueDate);
         uint256 faceValue = Math.mulDivDown(amountIn, r, PERCENT);
@@ -116,12 +122,12 @@ contract LendAsMarketOrderTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
-        _borrowAsLimitOrder(alice, 200e18, 0, 12);
+        _borrowAsLimitOrder(alice, 200e6, 0, 12);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, alice, 1.5e18 / 2));
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 200e18, exactAmountIn: false})
+            LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 200e6, exactAmountIn: false})
         );
     }
 
@@ -130,7 +136,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        _borrowAsLimitOrder(alice, 200e18, curve.timeBuckets, curve.rates);
+        _borrowAsLimitOrder(alice, 200e6, curve.timeBuckets, curve.rates);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));
@@ -138,7 +144,7 @@ contract LendAsMarketOrderTest is BaseTest {
             LendAsMarketOrderParams({
                 borrower: alice,
                 dueDate: block.timestamp + 6 days,
-                amount: 10e18,
+                amount: 10e6,
                 exactAmountIn: false
             })
         );
@@ -148,7 +154,7 @@ contract LendAsMarketOrderTest is BaseTest {
             LendAsMarketOrderParams({
                 borrower: alice,
                 dueDate: block.timestamp + 151 days,
-                amount: 10e18,
+                amount: 10e6,
                 exactAmountIn: false
             })
         );
@@ -157,7 +163,7 @@ contract LendAsMarketOrderTest is BaseTest {
             LendAsMarketOrderParams({
                 borrower: alice,
                 dueDate: block.timestamp + 150 days,
-                amount: 10e18,
+                amount: 10e6,
                 exactAmountIn: false
             })
         );

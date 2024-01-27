@@ -6,7 +6,7 @@ import {Test} from "forge-std/Test.sol";
 
 contract ConversionLibraryTest is Test {
     function test_ConversionLibrary_amountToWad_18_decimals() public {
-        uint256 amount = 1e18;
+        uint256 amount = 1e6;
         uint8 decimals = 18;
 
         uint256 wad = ConversionLibrary.amountToWad(amount, decimals);
@@ -52,7 +52,7 @@ contract ConversionLibraryTest is Test {
     }
 
     function test_ConversionLibrary_wadToAmountDown_18_decimals() public {
-        uint256 amount = 1e18;
+        uint256 amount = 1e6;
         uint8 decimals = 18;
 
         uint256 wad = ConversionLibrary.wadToAmountDown(amount, decimals);

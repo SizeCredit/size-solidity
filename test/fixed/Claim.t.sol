@@ -11,10 +11,12 @@ import {Math} from "@src/libraries/Math.sol";
 
 contract ClaimTest is BaseTest {
     function test_Claim_claim_gets_loan_FV_back() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e18;
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
+        uint256 amountFixedLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         _repay(bob, loanId);
 
@@ -32,15 +34,18 @@ contract ClaimTest is BaseTest {
     }
 
     function test_Claim_claim_of_exited_loan_gets_credit_back() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 0.03e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
         uint256 r = PERCENT + 0.03e18;
 
-        uint256 faceValueExited = 10e18;
+        uint256 faceValueExited = 10e6;
         uint256 amount = Math.mulDivDown(faceValueExited, PERCENT, r);
         _borrowAsMarketOrder(alice, candy, amount, 12, [loanId]);
         _repay(bob, loanId);
@@ -52,20 +57,23 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 faceValue = Math.mulDivUp(100e18, r, PERCENT);
+        uint256 faceValue = Math.mulDivUp(100e6, r, PERCENT);
         uint256 credit = faceValue - faceValueExited;
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + credit);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.CLAIMED);
     }
 
     function test_Claim_claim_of_SOL_where_FOL_is_repaid_works() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e18, 12, [loanId]);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
 
         Vars memory _before = _state();
 
@@ -73,17 +81,20 @@ contract ClaimTest is BaseTest {
         _claim(alice, solId);
 
         Vars memory _after = _state();
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 2 * 100e18);
-        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + 2 * 10e18);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 2 * 100e6);
+        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + 2 * 10e6);
     }
 
     function test_Claim_claim_twice_does_not_work() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         Vars memory _before = _state();
 
@@ -92,20 +103,23 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e18);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e18);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e6);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e6);
 
         vm.expectRevert();
         _claim(alice, loanId);
     }
 
     function test_Claim_claim_is_permissionless() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         Vars memory _before = _state();
 
@@ -114,8 +128,8 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e18);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e18);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e6);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e6);
     }
 
     function test_Claim_claim_of_liquidated_loan_retrieves_borrow_amount() public {
@@ -124,8 +138,8 @@ contract ClaimTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 300e18);
         _deposit(liquidator, usdc, 10000e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         _setPrice(0.75e18);
 
@@ -137,6 +151,6 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 2 * 100e18);
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 2 * 100e6);
     }
 }

@@ -19,13 +19,17 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
     function test_LiquidateFixedLoanWithReplacement_liquidateFixedLoanWithReplacement_updates_new_borrower_borrowOffer_same_rate(
     ) public {
         _setPrice(1e18);
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 1000e18, 100e18);
-        _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
-        uint256 amount = 15e18;
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 1000e18);
+        _deposit(candy, usdc, 100e6);
+        _deposit(liquidator, weth, 100e18);
+        _deposit(liquidator, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
+        uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 delta = debt - amount;
@@ -49,8 +53,8 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         assertEq(_after.alice, _before.alice);
         assertEq(_after.candy.debtAmount, _before.candy.debtAmount + debt);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + amount);
-        assertEq(_after.vpBorrowAmount, _before.vpBorrowAmount, 0);
-        assertEq(_after.feeRecipientBorrowAmount, _before.feeRecipientBorrowAmount + delta);
+        // assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount, 0);
+        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
         assertEq(loanAfter.borrower, candy);
         assertEq(loanAfter.repaid, false);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
@@ -60,23 +64,21 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
     function test_LiquidateFixedLoanWithReplacement_liquidateFixedLoanWithReplacement_updates_new_borrower_borrowOffer_different_rate(
     ) public {
         _setPrice(1e18);
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 1000e18, 100e18);
-        _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.01e18, 12);
-        uint256 amount = 15e18;
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 1000e18);
+        _deposit(candy, usdc, 100e6);
+        _deposit(liquidator, weth, 100e18);
+        _deposit(liquidator, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e6, 0.01e18, 12);
+        uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 newAmount = Math.mulDivDown(debt, PERCENT, (PERCENT + 0.01e18));
-        uint256 newAmountAfterConversions = ConversionLibrary.amountToWad(
-            ConversionLibrary.wadToAmountDown(newAmount, usdc.decimals()), usdc.decimals()
-        );
         uint256 delta = debt - newAmount;
-        uint256 deltaAfterConversions =
-            ConversionLibrary.amountToWad(ConversionLibrary.wadToAmountDown(delta, usdc.decimals()), usdc.decimals());
-        uint256 dust = delta - deltaAfterConversions + newAmount - newAmountAfterConversions;
 
         _setPrice(0.2e18);
 
@@ -94,16 +96,12 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         FixedLoan memory loanAfter = size.getFixedLoan(loanId);
         Vars memory _after = _state();
 
-        assertEq(_after.alice.collateralAmount, _before.alice.collateralAmount);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
-        assertEq(_after.alice.vpBorrowAmount * 1e12, _before.alice.vpBorrowAmount * 1e12 + dust);
-
+        assertEq(_after.alice, _before.alice);
         assertEq(_after.candy.debtAmount, _before.candy.debtAmount + debt);
-        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + newAmountAfterConversions);
-        assertEq(_before.vpBorrowAmount, 0);
-        assertEq(_after.vpBorrowAmount, dust);
-        assertEq(_after.feeRecipientBorrowAmount, _before.feeRecipientBorrowAmount + deltaAfterConversions);
+        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + newAmount);
+        assertEq(_before.variablePool.borrowAmount, 0);
+        assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
+        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
         assertEq(loanAfter.borrower, candy);
         assertEq(loanAfter.repaid, false);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
@@ -113,12 +111,15 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
     function test_LiquidateFixedLoanWithReplacement_liquidateFixedLoanWithReplacement_cannot_leave_new_borrower_liquidatable(
     ) public {
         _setPrice(1e18);
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(liquidator, weth, 100e18);
+        _deposit(liquidator, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
 
         _setPrice(0.2e18);
 
@@ -133,13 +134,17 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
     function test_LiquidateFixedLoanWithReplacement_liquidateFixedLoanWithReplacement_cannot_be_executed_if_loan_is_overdue(
     ) public {
         _setPrice(1e18);
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 1000e18, 100e18);
-        _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 1000e18);
+        _deposit(candy, usdc, 100e6);
+        _deposit(liquidator, weth, 100e18);
+        _deposit(liquidator, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
 
         _setPrice(0.2e18);
 

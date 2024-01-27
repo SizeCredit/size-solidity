@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
-
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 
@@ -18,7 +14,7 @@ contract LendAsLimitOrderValidationTest is BaseTest {
 
     function test_LendAsLimitOrder_validation() public {
         _deposit(alice, address(usdc), 100e6);
-        uint256 maxAmount = 100e18;
+        uint256 maxAmount = 100e6;
         uint256 maxDueDate = 12;
         uint256[] memory timeBuckets = new uint256[](2);
         timeBuckets[0] = 1 days;
@@ -73,7 +69,7 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         timeBuckets[0] = 1 days;
         timeBuckets[1] = 2 days;
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 100e18, 100e18 + 1));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 100e6, 100e6 + 1));
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
                 maxAmount: maxAmount + 1,

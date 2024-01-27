@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {Math} from "@src/libraries/Math.sol";
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
@@ -27,11 +28,10 @@ library LiquidateFixedLoan {
 
     function validateLiquidateFixedLoan(State storage state, LiquidateFixedLoanParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
-        uint256 debtBorrowToken = loan.getDebt();
 
         // validate msg.sender
-        if (state._fixed.borrowToken.balanceOf(msg.sender) < debtBorrowToken) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowToken.balanceOf(msg.sender), debtBorrowToken);
+        if (state.borrowATokenBalanceOf(msg.sender) < loan.getDebt()) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.getDebt());
         }
 
         // validate loanId
@@ -61,9 +61,10 @@ library LiquidateFixedLoan {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         uint256 assignedCollateral = state.getFOLAssignedCollateral(loan);
-        uint256 debtBorrowToken = loan.getDebt();
+        uint256 debtBorrowTokenWad =
+            ConversionLibrary.amountToWad(loan.getDebt(), state._general.borrowAsset.decimals());
         uint256 debtInCollateralToken = Math.mulDivDown(
-            debtBorrowToken, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
+            debtBorrowTokenWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
         );
 
         emit Events.LiquidateFixedLoan(
@@ -90,8 +91,8 @@ library LiquidateFixedLoan {
         }
 
         state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
-        state.depositBorrowTokenToVariablePool(msg.sender, loan.lender, debtBorrowToken);
-        state._fixed.debtToken.burn(loan.borrower, debtBorrowToken);
+        state.transferBorrowAToken(msg.sender, address(this), loan.getDebt());
+        state._fixed.debtToken.burn(loan.borrower, loan.getDebt());
         loan.repaid = true;
 
         return liquidatorProfitCollateralToken;

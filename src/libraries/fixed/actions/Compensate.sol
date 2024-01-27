@@ -14,7 +14,7 @@ import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 struct CompensateParams {
     uint256 loanToRepayId;
     uint256 loanToCompensateId;
-    uint256 amount;
+    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC)
 }
 
 library Compensate {
@@ -60,7 +60,6 @@ library Compensate {
 
         FixedLoan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
         FixedLoan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
-        // @audit Check the implications of a user-provided compensation amount
         uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.getCredit(), loanToRepay.getCredit());
 
         state.reduceDebt(params.loanToRepayId, amountToCompensate);

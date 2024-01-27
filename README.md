@@ -80,7 +80,11 @@ Size V2 Solidity
 
 ## Documentation
 
-- Inside the protocol, all values are expressed in WAD (18 decimals), including price feed decimals and percentages
+- decimals:
+  - USDC/aszUSDC: 6
+  - WETH/szETH: 18
+  - szDebt: 6
+  - PriceFeed: 18
 
 ## Deployment
 

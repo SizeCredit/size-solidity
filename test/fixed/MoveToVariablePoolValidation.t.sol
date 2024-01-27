@@ -18,10 +18,10 @@ contract MoveToVariablePoolValidationTest is BaseTest {
         _deposit(alice, address(usdc), 100e6);
         _deposit(bob, address(weth), 150e18);
         _deposit(candy, address(usdc), 100e6);
-        _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e18, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, alice, 40e18, 12, false, [loanId]);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
+        uint256 solId = _borrowAsMarketOrder(alice, alice, 40e6, 12, false, [loanId]);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_MOVED_TO_VP.selector, solId));
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: solId}));
@@ -39,7 +39,7 @@ contract MoveToVariablePoolValidationTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.INSUFFICIENT_COLLATERAL.selector, 130e18, 100e18 * size.config().crOpening / 1e18
+                Errors.INSUFFICIENT_COLLATERAL.selector, 130e18, 100e18 * size.fixedConfig().crOpening / 1e18
             )
         );
         size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));

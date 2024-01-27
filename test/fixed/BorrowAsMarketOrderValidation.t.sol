@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
-
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -18,15 +14,18 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
     using FixedLoanLibrary for FixedLoan;
 
     function test_BorrowAsMarketOrder_validation() public {
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(candy, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _lendAsLimitOrder(bob, 100e18, 5, 0.03e18, 5);
-        _lendAsLimitOrder(candy, 100e18, 10, 0.03e18, 10);
-        uint256 loanId = _borrowAsMarketOrder(alice, candy, 5e18, 10);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 100e6, 5, 0.03e18, 5);
+        _lendAsLimitOrder(candy, 100e6, 10, 0.03e18, 10);
+        uint256 loanId = _borrowAsMarketOrder(alice, candy, 5e6, 10);
 
-        uint256 amount = 10e18;
+        uint256 amount = 10e6;
         uint256 dueDate = 12;
         bool exactAmountIn = false;
         uint256[] memory virtualCollateralFixedLoanIds;
@@ -54,11 +53,11 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 110e18, 100e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 110e6, 100e6));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 110e18,
+                amount: 110e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -69,7 +68,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: 0,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -80,7 +79,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: 13,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -89,13 +88,13 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 1.03e18, size.config().minimumCredit
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 1.03e6, size.fixedConfig().minimumCreditBorrowAsset
             )
         );
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 1e18,
+                amount: 1e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -108,7 +107,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -120,7 +119,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: bob,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: 4,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
@@ -132,7 +131,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: bob,
-                amount: 100e18,
+                amount: 100e6,
                 dueDate: 4,
                 exactAmountIn: exactAmountIn,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds

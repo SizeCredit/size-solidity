@@ -31,15 +31,15 @@ contract MulticallTest is BaseTest {
         data[1] = abi.encodeCall(
             size.lendAsLimitOrder,
             LendAsLimitOrderParams({
-                maxAmount: amount * 1e12 / 2,
+                maxAmount: amount / 2,
                 maxDueDate: block.timestamp + 1 days,
                 curveRelativeTime: YieldCurveHelper.flatCurve()
             })
         );
         size.multicall(data);
 
-        assertEq(size.getUserView(alice).borrowAmount, amount * 1e12, "x");
-        assertEq(size.getUserView(alice).user.loanOffer.maxAmount, amount * 1e12 / 2, "a");
+        assertEq(size.getUserView(alice).borrowAmount, amount);
+        assertEq(size.getUserView(alice).user.loanOffer.maxAmount, amount / 2);
     }
 
     function test_Multicall_multicall_cannot_execute_unauthorized_actions() public {
@@ -56,14 +56,16 @@ contract MulticallTest is BaseTest {
         size.multicall(data);
     }
 
-    function test_Multicall_liquiadtor_can_liquidate_and_withdraw() public {
+    function test_Multicall_liquidator_can_liquidate_and_withdraw() public {
         _setPrice(1e18);
 
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
 
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        uint256 amount = 15e18;
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
 
@@ -71,9 +73,8 @@ contract MulticallTest is BaseTest {
 
         assertTrue(size.isLiquidatable(loanId));
 
-        uint256 debtUSDC = Math.mulDivUp(debt, 1e6, 1e18);
-        _mint(address(usdc), liquidator, debtUSDC);
-        _approve(liquidator, address(usdc), address(size), debtUSDC);
+        _mint(address(usdc), liquidator, debt);
+        _approve(liquidator, address(usdc), address(size), debt);
 
         Vars memory _before = _state();
         uint256 beforeLiquidatorUSDC = usdc.balanceOf(liquidator);
@@ -81,7 +82,7 @@ contract MulticallTest is BaseTest {
 
         bytes[] memory data = new bytes[](4);
         // deposit only the necessary to cover for the borrower's debt
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: debtUSDC, to: liquidator}));
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: debt, to: liquidator}));
         // liquidate profitably
         data[1] = abi.encodeCall(
             size.liquidateFixedLoan, LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: 1e18})
@@ -105,7 +106,7 @@ contract MulticallTest is BaseTest {
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount, 0);
         assertEq(beforeLiquidatorWETH, 0);
         assertGt(afterLiquidatorWETH, beforeLiquidatorWETH);
-        assertEq(beforeLiquidatorUSDC, debtUSDC);
+        assertEq(beforeLiquidatorUSDC, debt);
         assertEq(afterLiquidatorUSDC, 0);
     }
 }

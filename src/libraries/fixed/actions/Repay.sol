@@ -14,7 +14,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct RepayParams {
     uint256 loanId;
-    uint256 amount;
+    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC)
 }
 
 library Repay {
@@ -29,8 +29,8 @@ library Repay {
         if (msg.sender != loan.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.borrower);
         }
-        if (state._fixed.borrowToken.balanceOf(msg.sender) < loan.faceValue) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state._fixed.borrowToken.balanceOf(msg.sender), loan.faceValue);
+        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.faceValue);
         }
 
         // validate loanId
@@ -49,11 +49,11 @@ library Repay {
         uint256 repayAmount = Math.min(loan.faceValue, params.amount);
 
         if (repayAmount == loan.faceValue && loan.isFOL()) {
-            state.depositBorrowTokenToVariablePool(msg.sender, loan.lender, repayAmount);
+            state.transferBorrowAToken(msg.sender, address(this), repayAmount);
             state._fixed.debtToken.burn(msg.sender, repayAmount);
             loan.repaid = true;
         } else {
-            state._fixed.borrowToken.transferFrom(msg.sender, loan.lender, repayAmount);
+            state.transferBorrowAToken(msg.sender, loan.lender, repayAmount);
             state.reduceDebt(params.loanId, repayAmount);
         }
 

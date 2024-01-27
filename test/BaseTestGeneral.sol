@@ -15,10 +15,9 @@ struct Vars {
     UserView candy;
     UserView james;
     UserView liquidator;
-    uint256 vpCollateralAmount;
-    uint256 vpBorrowAmount;
-    uint256 feeRecipientCollateralAmount;
-    uint256 feeRecipientBorrowAmount;
+    UserView variablePool;
+    UserView size;
+    UserView feeRecipient;
 }
 
 abstract contract BaseTestGeneral is Test, Deploy {
@@ -55,9 +54,9 @@ abstract contract BaseTestGeneral is Test, Deploy {
         vars.candy = size.getUserView(candy);
         vars.james = size.getUserView(james);
         vars.liquidator = size.getUserView(liquidator);
-        (vars.vpCollateralAmount, vars.vpBorrowAmount,) = size.getVariablePool();
-        vars.feeRecipientCollateralAmount = size.getUserView(feeRecipient).collateralAmount;
-        vars.feeRecipientBorrowAmount = size.getUserView(feeRecipient).borrowAmount;
+        vars.variablePool = size.getUserView(address(variablePool));
+        vars.size = size.getUserView(address(size));
+        vars.feeRecipient = size.getUserView(feeRecipient);
     }
 
     function _setPrice(uint256 price) internal {

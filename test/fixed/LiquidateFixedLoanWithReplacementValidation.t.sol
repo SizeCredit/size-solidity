@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {console2 as console} from "forge-std/console2.sol";
-
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {LiquidateFixedLoanWithReplacementParams} from
     "@src/libraries/fixed/actions/LiquidateFixedLoanWithReplacement.sol";
 
@@ -18,12 +14,15 @@ contract LiquidateFixedLoanWithReplacementValidationTest is BaseTest {
 
     function test_LiquidateFixedLoanWithReplacement_validation() public {
         _setPrice(1e18);
-        _deposit(alice, 100e18, 100e18);
-        _deposit(bob, 100e18, 100e18);
-        _deposit(liquidator, 100e18, 100e18);
-        _lendAsLimitOrder(alice, 100e18, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 100e18, 0.03e18, 4);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e18, 12);
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(liquidator, weth, 100e18);
+        _deposit(liquidator, usdc, 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 4);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
         uint256 minimumCollateralRatio = 1e18;
 
         _setPrice(0.2e18);

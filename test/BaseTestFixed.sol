@@ -7,14 +7,8 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {Size} from "@src/Size.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {USDC} from "@test/mocks/USDC.sol";
-import {WETH} from "@test/mocks/WETH.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
-
-import {BorrowToken} from "@src/token/BorrowToken.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
@@ -63,11 +57,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     function _withdraw(address user, address token, uint256 amount, address to) internal {
         vm.prank(user);
         size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
-    }
-
-    function _deposit(address user, uint256 collateralAssetValue, uint256 debtAssetValue) internal {
-        _deposit(user, weth, collateralAssetValue);
-        _deposit(user, usdc, debtAssetValue);
     }
 
     function _lendAsLimitOrder(

@@ -15,10 +15,10 @@ abstract contract AssertsHelper is Test {
         assertEq(a.candy, b.candy);
         assertEq(a.james, b.james);
         assertEq(a.liquidator, b.liquidator);
-        assertEq(a.vpCollateralAmount, b.vpCollateralAmount, "vpCollateralAmount");
-        assertEq(a.vpBorrowAmount, b.vpBorrowAmount, "vpBorrowAmount");
-        assertEq(a.feeRecipientCollateralAmount, b.feeRecipientCollateralAmount, "feeRecipientCollateralAmount");
-        assertEq(a.feeRecipientBorrowAmount, b.feeRecipientBorrowAmount, "feeRecipientBorrowAmount");
+        assertEq(a.variablePool.collateralAmount, b.variablePool.collateralAmount, "variablePool.collateralAmount");
+        assertEq(a.variablePool.borrowAmount, b.variablePool.borrowAmount, "variablePool.borrowAmount");
+        assertEq(a.feeRecipient.collateralAmount, b.feeRecipient.collateralAmount, "feeRecipient.collateralAmount");
+        assertEq(a.feeRecipient.borrowAmount, b.feeRecipient.borrowAmount, "feeRecipient.borrowAmount");
     }
 
     function assertEq(UserView memory a, UserView memory b) internal {
@@ -26,7 +26,6 @@ abstract contract AssertsHelper is Test {
         assertEq(a.collateralAmount, b.collateralAmount, "collateralAmount");
         assertEq(a.borrowAmount, b.borrowAmount, "borrowAmount");
         assertEq(a.debtAmount, b.debtAmount, "debtAmount");
-        assertEq(a.vpBorrowAmount, b.vpBorrowAmount, "vpBorrowAmount");
     }
 
     function assertEq(uint256 a, uint256 b, uint256 c) internal {

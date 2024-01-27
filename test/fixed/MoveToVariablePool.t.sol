@@ -18,15 +18,16 @@ contract MoveToVariablePoolTest is BaseTest {
         _deposit(bob, address(weth), 150e18);
         _deposit(candy, address(usdc), 100e6);
         _depositVariable(alice, address(usdc), 100e6);
-        _lendAsLimitOrder(alice, 100e18, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e18, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e18, 12);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
 
         vm.warp(block.timestamp + 12);
 
         Vars memory _before = _state();
         uint256 loansBefore = size.activeFixedLoans();
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
+        uint256 variablePoolWETHBefore = weth.balanceOf(address(size.generalConfig().variablePool));
 
         uint256 assignedCollateral =
             Math.mulDivDown(_before.bob.collateralAmount, loanBefore.faceValue, _before.bob.debtAmount);
@@ -36,11 +37,12 @@ contract MoveToVariablePoolTest is BaseTest {
         Vars memory _after = _state();
         uint256 loansAfter = size.activeFixedLoans();
         FixedLoan memory loanAfter = size.getFixedLoan(loanId);
+        uint256 variablePoolWETHAfter = weth.balanceOf(address(size.generalConfig().variablePool));
 
         assertEq(_after.alice, _before.alice);
         assertEq(loansBefore, loansAfter);
-        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - assignedCollateral, "x");
-        assertEq(_after.vpCollateralAmount, _before.vpCollateralAmount + assignedCollateral);
+        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - assignedCollateral);
+        assertEq(variablePoolWETHAfter, variablePoolWETHBefore + assignedCollateral);
         assertTrue(!loanBefore.repaid);
         assertTrue(loanAfter.repaid);
     }

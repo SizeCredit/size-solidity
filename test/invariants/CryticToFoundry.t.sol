@@ -102,4 +102,9 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         );
         assertTrue(invariant_LOAN());
     }
+
+    function test_DEPOSIT_1() public {
+        deposit(address(0x0000000000000000000000000000000000002029), 1997);
+        assertTrue(invariant_TOKENS_01());
+    }
 }

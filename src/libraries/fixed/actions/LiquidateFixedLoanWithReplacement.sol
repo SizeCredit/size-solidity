@@ -80,8 +80,8 @@ library LiquidateFixedLoanWithReplacement {
         fol.repaid = false;
 
         state._fixed.debtToken.mint(params.borrower, faceValue);
-        state.withdrawBorrowTokenFromVariablePool(fol.lender, params.borrower, amountOut);
-        state.withdrawBorrowTokenFromVariablePool(fol.lender, state._general.feeRecipient, liquidatorProfitBorrowAsset);
+        state.transferBorrowAToken(address(this), params.borrower, amountOut);
+        state.transferBorrowAToken(address(this), state._general.feeRecipient, liquidatorProfitBorrowAsset);
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

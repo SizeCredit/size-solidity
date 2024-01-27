@@ -10,7 +10,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
     using OfferLibrary for BorrowOffer;
 
     function test_BorrowAsLimitOrder_borrowAsLimitOrder_adds_borrowOffer_to_orderbook() public {
-        _deposit(alice, 100e18, 100e18);
+        _deposit(alice, weth, 100e18);
         uint256[] memory timeBuckets = new uint256[](2);
         timeBuckets[0] = 1 days;
         timeBuckets[1] = 2 days;
@@ -18,7 +18,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         rates[0] = 1.01e18;
         rates[1] = 1.02e18;
         assertTrue(_state().alice.user.borrowOffer.isNull());
-        _borrowAsLimitOrder(alice, 50e18, timeBuckets, rates);
+        _borrowAsLimitOrder(alice, 50e6, timeBuckets, rates);
         assertTrue(!_state().alice.user.borrowOffer.isNull());
     }
 

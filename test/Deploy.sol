@@ -13,12 +13,8 @@ import {Size} from "@src/Size.sol";
 import {
     Initialize, InitializeFixedParams, InitializeGeneralParams
 } from "@src/libraries/general/actions/Initialize.sol";
-import {BorrowToken} from "@src/token/BorrowToken.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
-
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
 
 abstract contract Deploy {
     ERC1967Proxy internal proxy;
@@ -26,9 +22,6 @@ abstract contract Deploy {
     PriceFeedMock internal priceFeed;
     WETH internal weth;
     USDC internal usdc;
-    CollateralToken internal fixedCollateralToken;
-    BorrowToken internal borrowToken;
-    DebtToken internal debtToken;
     InitializeGeneralParams internal g;
     InitializeFixedParams internal f;
     IPool internal variablePool;
@@ -52,7 +45,7 @@ abstract contract Deploy {
             crLiquidation: 1.3e18,
             collateralPremiumToLiquidator: 0.3e18,
             collateralPremiumToProtocol: 0.1e18,
-            minimumCredit: 5e18
+            minimumCreditBorrowAsset: 5e6
         });
         proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (g, f)));
         size = Size(address(proxy));
@@ -76,7 +69,7 @@ abstract contract Deploy {
             crLiquidation: 1.3e18,
             collateralPremiumToLiquidator: 0.3e18,
             collateralPremiumToProtocol: 0.1e18,
-            minimumCredit: 5e18
+            minimumCreditBorrowAsset: 5e6
         });
         size = new Size();
         proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (g, f)));
