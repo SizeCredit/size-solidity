@@ -87,6 +87,10 @@ abstract contract SizeView is SizeStorage {
         });
     }
 
+    function getUserProxyAddress(address user) external view returns (address) {
+        return address(state._fixed.users[user].proxy);
+    }
+
     function activeFixedLoans() external view returns (uint256) {
         return state._fixed.loans.length;
     }
