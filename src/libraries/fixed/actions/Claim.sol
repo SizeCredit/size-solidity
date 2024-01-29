@@ -34,9 +34,10 @@ library Claim {
 
     function executeClaim(State storage state, ClaimParams calldata params) external {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
+        FixedLoan storage fol = state.getFOL(loan);
 
         uint256 claimAmount =
-            Math.mulDivDown(loan.getCredit(), state.borrowATokenLiquidityIndex(), loan.liquidityIndexAtRepayment);
+            Math.mulDivDown(loan.getCredit(), state.borrowATokenLiquidityIndex(), fol.liquidityIndexAtRepayment);
         state.transferBorrowAToken(address(this), loan.lender, claimAmount);
         loan.faceValueExited = loan.faceValue;
 
