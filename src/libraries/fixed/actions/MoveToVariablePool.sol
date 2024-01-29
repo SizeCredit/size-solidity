@@ -41,14 +41,10 @@ library MoveToVariablePool {
 
         // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
         uint256 assignedCollateral = state.getFOLAssignedCollateral(loan);
-        uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(loan.faceValue);
 
-        // TODO: validate if this makes sense
-        if (assignedCollateral < minimumCollateralOpening) {
-            revert Errors.INSUFFICIENT_COLLATERAL(assignedCollateral, minimumCollateralOpening);
-        }
-
-        state.borrowFromVariablePool(loan.borrower, assignedCollateral, loan.faceValue);
+        state.borrowFromVariablePool(loan.borrower, address(this), assignedCollateral, loan.faceValue);
+        // @audit Check if the liquidity index snapshot should happen before or after Aave borrow
+        loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         loan.repaid = true;
     }
 }

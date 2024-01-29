@@ -115,7 +115,8 @@ library Initialize {
         state._fixed.collateralToken = new CollateralToken(address(this), "Size Fixed ETH", "szETH");
         state._fixed.borrowAToken =
             IAToken(state._general.variablePool.getReserveData(address(state._general.borrowAsset)).aTokenAddress);
-        state._fixed.debtToken = new DebtToken(address(this), "Size Debt", "szDebt");
+        state._fixed.debtToken =
+            new DebtToken(address(this), "Size Debt", "szDebt", IERC20Metadata(state._general.borrowAsset).decimals());
 
         state._fixed.crOpening = f.crOpening;
         state._fixed.crLiquidation = f.crLiquidation;

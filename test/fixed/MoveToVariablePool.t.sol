@@ -47,5 +47,34 @@ contract MoveToVariablePoolTest is BaseTest {
         assertTrue(loanAfter.repaid);
     }
 
+    function test_MoveToVariablePool_moveToVariablePool_should_claim_later_with_interest() public {
+        _setPrice(1e18);
+        _deposit(alice, address(usdc), 100e6);
+        _deposit(bob, address(weth), 150e18);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
+
+        vm.warp(block.timestamp + 12);
+
+        FixedLoan memory loan = size.getFixedLoan(loanId);
+
+        _moveToVariablePool(liquidator, loanId);
+
+        _deposit(liquidator, address(usdc), 1_000e6);
+
+        Vars memory _before = _state();
+
+        _setLiquidityIndex(1.1e27);
+
+        Vars memory _interest = _state();
+
+        _claim(alice, loanId);
+
+        Vars memory _after = _state();
+
+        assertEq(_interest.alice.borrowAmount, _before.alice.borrowAmount * 1.1e27 / 1e27);
+        assertEq(_after.alice.borrowAmount, _interest.alice.borrowAmount + loan.faceValue * 1.1e27 / 1e27);
+    }
+
     function test_MoveToVariablePool_moveToVariablePool_fails_if_VP_does_not_have_enough_liquidity() internal {}
 }
