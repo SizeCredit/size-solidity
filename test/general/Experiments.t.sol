@@ -69,12 +69,12 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _deposit(alice, weth, 2e18);
         _borrowAsMarketOrder(alice, bob, 100e6, 6);
         assertGe(size.collateralRatio(alice), size.fixedConfig().crOpening);
-        assertTrue(!size.isLiquidatable(alice), "borrower should not be liquidatable");
+        assertTrue(!size.isUserLiquidatable(alice), "borrower should not be liquidatable");
         vm.warp(block.timestamp + 1);
         _setPrice(60e18);
 
-        assertTrue(size.isLiquidatable(alice), "borrower should be liquidatable");
-        assertTrue(size.isLiquidatable(0), "loan should be liquidatable");
+        assertTrue(size.isUserLiquidatable(alice), "borrower should be liquidatable");
+        assertTrue(size.isLoanLiquidatable(0), "loan should be liquidatable");
 
         _deposit(liquidator, usdc, 10_000e6);
         console.log("loan should be liquidated");
@@ -227,14 +227,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.fixedConfig().crOpening);
-        assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
+        assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
 
         vm.warp(block.timestamp + 1);
         _setPrice(30e18);
 
         // Assert conditions for liquidation
-        assertTrue(size.isLiquidatable(alice), "Borrower should be liquidatable");
-        assertTrue(size.isLiquidatable(0), "FixedLoan should be liquidatable");
+        assertTrue(size.isUserLiquidatable(alice), "Borrower should be liquidatable");
+        assertTrue(size.isLoanLiquidatable(0), "FixedLoan should be liquidatable");
 
         // Perform self liquidation
         assertGt(size.getFixedLoan(0).faceValue, 0, "FixedLoan faceValue should be greater than 0");
@@ -310,7 +310,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.fixedConfig().crOpening, "Alice should be above CR opening");
-        assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
+        assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
         _deposit(candy, weth, 200e18);
@@ -322,8 +322,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _setPrice(60e18);
 
         // Assert conditions for liquidation
-        assertTrue(size.isLiquidatable(alice), "Borrower should be liquidatable");
-        assertTrue(size.isLiquidatable(0), "FixedLoan should be liquidatable");
+        assertTrue(size.isUserLiquidatable(alice), "Borrower should be liquidatable");
+        assertTrue(size.isLoanLiquidatable(0), "FixedLoan should be liquidatable");
 
         FixedLoan memory fol = size.getFixedLoan(0);
         assertEq(fol.borrower, alice, "Alice should be the borrower");

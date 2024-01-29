@@ -5,6 +5,7 @@ import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 library Errors {
     error USER_IS_LIQUIDATABLE(address account, uint256 cr);
+    error USER_NOT_LIQUIDATABLE(address account, uint256 cr);
     error NULL_ADDRESS();
     error NULL_AMOUNT();
     error NULL_MAX_DUE_DATE();
@@ -49,7 +50,6 @@ library Errors {
 
     error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
     error ONLY_FOL_CAN_BE_EXITED(uint256 loanId);
-    error ONLY_FOL_CAN_BE_LIQUIDATED(uint256 loanId);
     error ONLY_FOL_CAN_BE_MOVED_TO_VP(uint256 loanId);
     error LOAN_ALREADY_REPAID(uint256 loanId);
     error LOAN_NOT_REPAID(uint256 loanId);
@@ -57,8 +57,7 @@ library Errors {
     error INVALID_PARTIAL_REPAY_AMOUNT(uint256 amount, uint256 fv);
 
     error NOT_LIQUIDATABLE(address account);
-    error LOAN_NOT_LIQUIDATABLE_STATUS(uint256 loanId, FixedLoanStatus status);
-    error LOAN_NOT_LIQUIDATABLE_CR(uint256 loanId, uint256 cr);
+    error LOAN_NOT_LIQUIDATABLE(uint256 loanId, uint256 cr, FixedLoanStatus status);
     error COLLATERAL_RATIO_BELOW_MINIMUM_COLLATERAL_RATIO(uint256 collateralRatio, uint256 minimumCollateralRatio);
     error LIQUIDATION_NOT_AT_LOSS(uint256 loanId, uint256 assignedCollateral, uint256 debtCollateral);
 

@@ -35,15 +35,16 @@ library LiquidateFixedLoan {
         }
 
         // validate loanId
-        if (!state.isLiquidatable(loan.borrower)) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, state.collateralRatio(loan.borrower));
+        if (!state.isLoanLiquidatable(params.loanId)) {
+            revert Errors.LOAN_NOT_LIQUIDATABLE(
+                params.loanId, state.collateralRatio(loan.borrower), state.getFixedLoanStatus(loan)
+            );
         }
-        if (!loan.isFOL()) {
-            revert Errors.ONLY_FOL_CAN_BE_LIQUIDATED(params.loanId);
-        }
-        // @audit is this reachable?
-        if (!state.either(loan, [FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, state.getFixedLoanStatus(loan));
+        // TODO: deal with overdue loans
+        if (state.getFixedLoanStatus(loan) != FixedLoanStatus.ACTIVE) {
+            revert Errors.LOAN_NOT_LIQUIDATABLE(
+                params.loanId, state.collateralRatio(loan.borrower), state.getFixedLoanStatus(loan)
+            );
         }
 
         // validate minimumCollateralRatio
@@ -66,12 +67,18 @@ library LiquidateFixedLoan {
         uint256 debtInCollateralToken = Math.mulDivDown(
             debtBorrowTokenWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
         );
+        FixedLoanStatus loanStatus = state.getFixedLoanStatus(loan);
 
         emit Events.LiquidateFixedLoan(
-            params.loanId, params.minimumCollateralRatio, assignedCollateral, debtInCollateralToken
+            params.loanId, params.minimumCollateralRatio, assignedCollateral, debtInCollateralToken, loanStatus
         );
 
         uint256 liquidatorProfitCollateralToken;
+
+        // TODO
+        if (loanStatus == FixedLoanStatus.OVERDUE) {} else { // is FixedLoanStatus.ACTIVE as per validateLiquidateFixedLoan
+        }
+
         if (assignedCollateral > debtInCollateralToken) {
             // split remaining collateral between liquidator and protocol
             uint256 collateralRemainder = assignedCollateral - debtInCollateralToken;

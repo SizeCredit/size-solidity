@@ -35,13 +35,12 @@ abstract contract SizeView is SizeStorage {
         return state.collateralRatio(user);
     }
 
-    function isLiquidatable(address user) external view returns (bool) {
-        return state.isLiquidatable(user);
+    function isUserLiquidatable(address user) external view returns (bool) {
+        return state.isUserLiquidatable(user);
     }
 
-    function isLiquidatable(uint256 loanId) external view returns (bool) {
-        FixedLoan memory loan = state._fixed.loans[loanId];
-        return state.isLiquidatable(loan.borrower);
+    function isLoanLiquidatable(uint256 loanId) external view returns (bool) {
+        return state.isLoanLiquidatable(loanId);
     }
 
     function getFOLAssignedCollateral(uint256 loanId) external view returns (uint256) {

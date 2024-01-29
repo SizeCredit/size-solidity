@@ -36,16 +36,16 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(size.getFOLAssignedCollateral(loanId), assigned);
         assertEq(size.getDebt(loanId), debt);
         assertEq(size.collateralRatio(bob), Math.mulDivDown(assigned, PERCENT, (debtWad * 1)));
-        assertTrue(!size.isLiquidatable(bob));
-        assertTrue(!size.isLiquidatable(loanId));
+        assertTrue(!size.isUserLiquidatable(bob));
+        assertTrue(!size.isLoanLiquidatable(loanId));
 
         _setPrice(0.2e18);
 
         assertEq(size.getFOLAssignedCollateral(loanId), assigned);
         assertEq(size.getDebt(loanId), debt);
         assertEq(size.collateralRatio(bob), Math.mulDivDown(assigned, PERCENT, (debtWad * 5)));
-        assertTrue(size.isLiquidatable(bob));
-        assertTrue(size.isLiquidatable(loanId));
+        assertTrue(size.isUserLiquidatable(bob));
+        assertTrue(size.isLoanLiquidatable(loanId));
 
         Vars memory _before = _state();
 
@@ -97,7 +97,7 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        assertTrue(size.isLiquidatable(loanId));
+        assertTrue(size.isLoanLiquidatable(loanId));
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
 
         _liquidateFixedLoan(liquidator, loanId);
@@ -122,7 +122,7 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        assertTrue(size.isLiquidatable(loanId));
+        assertTrue(size.isLoanLiquidatable(loanId));
 
         Vars memory _before = _state();
 
@@ -149,7 +149,7 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         _setPrice(0.1e18);
 
-        assertTrue(size.isLiquidatable(loanId));
+        assertTrue(size.isLoanLiquidatable(loanId));
         uint256 assignedCollateral = size.getFOLAssignedCollateral(loanId);
         uint256 debtWad = ConversionLibrary.amountToWad(size.getDebt(loanId), usdc.decimals());
         uint256 debtCollateral = Math.mulDivDown(debtWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());

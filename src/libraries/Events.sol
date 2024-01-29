@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {InitializeFixedParams, InitializeGeneralParams} from "@src/libraries/general/actions/Initialize.sol";
 
@@ -40,7 +41,8 @@ library Events {
         uint256 indexed loanId,
         uint256 minimumCollateralRatio,
         uint256 assignedCollateral,
-        uint256 debtInCollateralToken
+        uint256 debtInCollateralToken,
+        FixedLoanStatus loanStatus
     );
     event SelfLiquidateFixedLoan(uint256 indexed loanId);
     event LiquidateFixedLoanWithReplacement(

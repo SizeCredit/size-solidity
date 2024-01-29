@@ -152,7 +152,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        assertTrue(size.isLiquidatable(loanId));
+        assertTrue(size.isLoanLiquidatable(loanId));
 
         vm.startPrank(liquidator);
 

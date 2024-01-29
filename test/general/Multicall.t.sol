@@ -72,7 +72,7 @@ contract MulticallTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        assertTrue(size.isLiquidatable(loanId));
+        assertTrue(size.isLoanLiquidatable(loanId));
 
         _mint(address(usdc), liquidator, debt);
         _approve(liquidator, address(usdc), address(size), debt);

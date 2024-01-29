@@ -7,8 +7,15 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract NonTransferrableToken is Ownable, ERC20 {
+    uint8 internal immutable _decimals;
+
     // solhint-disable-next-line no-empty-blocks
-    constructor(address owner_, string memory name_, string memory symbol_) Ownable(owner_) ERC20(name_, symbol_) {}
+    constructor(address owner_, string memory name_, string memory symbol_, uint8 decimals_)
+        Ownable(owner_)
+        ERC20(name_, symbol_)
+    {
+        _decimals = decimals_;
+    }
 
     function mint(address to, uint256 amount) external virtual onlyOwner {
         _mint(to, amount);
@@ -34,5 +41,9 @@ contract NonTransferrableToken is Ownable, ERC20 {
 
     function approve(address, uint256) public virtual override returns (bool) {
         revert Errors.NOT_SUPPORTED();
+    }
+
+    function decimals() public view virtual override returns (uint8) {
+        return _decimals;
     }
 }

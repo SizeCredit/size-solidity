@@ -28,7 +28,9 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_CR.selector, loanId, 1.5e18));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, 1.5e18, FixedLoanStatus.ACTIVE)
+        );
         size.selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));
         vm.stopPrank();
 
@@ -50,7 +52,9 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
 
         vm.startPrank(alice);
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE_STATUS.selector, loanId, FixedLoanStatus.REPAID)
+            abi.encodeWithSelector(
+                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), FixedLoanStatus.REPAID
+            )
         );
         size.selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));
         vm.stopPrank();

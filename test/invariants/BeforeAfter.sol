@@ -35,8 +35,8 @@ abstract contract BeforeAfter is Deploy {
         _before.sender = size.getUserView(sender);
         _before.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.borrower);
         _before.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.lender);
-        _before.isSenderLiquidatable = size.isLiquidatable(sender);
-        _before.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isLiquidatable(loan.borrower);
+        _before.isSenderLiquidatable = size.isUserLiquidatable(sender);
+        _before.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isUserLiquidatable(loan.borrower);
         _before.senderCollateralAmount = weth.balanceOf(sender);
         _before.senderBorrowAmount = usdc.balanceOf(sender);
         _before.activeFixedLoans = size.activeFixedLoans();
@@ -50,8 +50,8 @@ abstract contract BeforeAfter is Deploy {
         _after.sender = size.getUserView(sender);
         _after.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.borrower);
         _after.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.lender);
-        _after.isSenderLiquidatable = size.isLiquidatable(sender);
-        _after.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isLiquidatable(loan.borrower);
+        _after.isSenderLiquidatable = size.isUserLiquidatable(sender);
+        _after.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isUserLiquidatable(loan.borrower);
         _after.senderCollateralAmount = weth.balanceOf(sender);
         _after.senderBorrowAmount = usdc.balanceOf(sender);
         _after.activeFixedLoans = size.activeFixedLoans();

@@ -12,7 +12,7 @@ contract NonTransferrableTokenTest is Test {
     address owner = address(0x2);
 
     function setUp() public {
-        token = new NonTransferrableToken(owner, "Test", "TEST");
+        token = new NonTransferrableToken(owner, "Test", "TEST", 18);
 
         vm.label(owner, "owner");
     }

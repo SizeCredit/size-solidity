@@ -114,7 +114,9 @@ library Initialize {
     }
 
     function _executeInitializeFixed(State storage state, InitializeFixedParams memory f) internal {
-        state._fixed.collateralToken = new CollateralToken(address(this), "Size Fixed ETH", "szETH");
+        state._fixed.collateralToken = new CollateralToken(
+            address(this), "Size Fixed ETH", "szETH", IERC20Metadata(state._general.collateralAsset).decimals()
+        );
         state._fixed.borrowAToken =
             IAToken(state._general.variablePool.getReserveData(address(state._general.borrowAsset)).aTokenAddress);
         state._fixed.debtToken =

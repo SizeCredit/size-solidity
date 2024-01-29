@@ -40,12 +40,14 @@ library SelfLiquidateFixedLoan {
         // validate loanId
         // @audit is this necessary? seems redundant with the check `assignedCollateral > debtCollateral` below,
         //   as CR < CRL ==> CR <= 100%
-        if (!state.isLiquidatable(loan.borrower)) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, state.collateralRatio(loan.borrower));
+        if (!state.isUserLiquidatable(loan.borrower)) {
+            revert Errors.USER_NOT_LIQUIDATABLE(loan.borrower, state.collateralRatio(loan.borrower));
         }
         // @audit is this reachable?
         if (!state.either(loan, [FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, state.getFixedLoanStatus(loan));
+            revert Errors.LOAN_NOT_LIQUIDATABLE(
+                params.loanId, state.collateralRatio(loan.borrower), state.getFixedLoanStatus(loan)
+            );
         }
         if (assignedCollateral > debtCollateral) {
             revert Errors.LIQUIDATION_NOT_AT_LOSS(params.loanId, assignedCollateral, debtCollateral);

@@ -152,12 +152,21 @@ library FixedLibrary {
         }
     }
 
-    function isLiquidatable(State storage state, address account) public view returns (bool) {
+    function isLoanLiquidatable(State storage state, uint256 loanId) public view returns (bool) {
+        FixedLoan storage loan = state._fixed.loans[loanId];
+        return loan.isFOL()
+            && (
+                isUserLiquidatable(state, loan.borrower)
+                    && either(state, loan, [FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])
+            );
+    }
+
+    function isUserLiquidatable(State storage state, address account) public view returns (bool) {
         return collateralRatio(state, account) < state._fixed.crLiquidation;
     }
 
     function validateUserIsNotLiquidatable(State storage state, address account) external view {
-        if (isLiquidatable(state, account)) {
+        if (isUserLiquidatable(state, account)) {
             revert Errors.USER_IS_LIQUIDATABLE(account, collateralRatio(state, account));
         }
     }

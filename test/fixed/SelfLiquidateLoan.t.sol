@@ -20,8 +20,8 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         assertEq(size.getFOLAssignedCollateral(loanId), 150e18);
         assertEq(size.getDebt(loanId), 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
-        assertTrue(!size.isLiquidatable(bob));
-        assertTrue(!size.isLiquidatable(loanId));
+        assertTrue(!size.isUserLiquidatable(bob));
+        assertTrue(!size.isLoanLiquidatable(loanId));
 
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(bob), 0.75e18);
@@ -62,8 +62,8 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         assertEq(size.getFOLAssignedCollateral(folId), 150e18);
         assertEq(size.getDebt(folId), 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
-        assertTrue(!size.isLiquidatable(bob));
-        assertTrue(!size.isLiquidatable(folId));
+        assertTrue(!size.isUserLiquidatable(bob));
+        assertTrue(!size.isLoanLiquidatable(folId));
 
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(bob), 0.75e18);
