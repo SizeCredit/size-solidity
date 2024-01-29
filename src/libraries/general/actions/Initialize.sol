@@ -37,7 +37,9 @@ struct InitializeFixedParams {
 library Initialize {
     function _validateInitializeGeneralParams(InitializeGeneralParams memory g) internal pure {
         // validate owner
-        // OwnableUpgradeable already performs this check
+        if (g.owner == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
 
         // validate price feed
         if (g.priceFeed == address(0)) {

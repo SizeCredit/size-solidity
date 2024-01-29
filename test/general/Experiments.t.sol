@@ -21,6 +21,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         vm.warp(0);
         super.setUp();
         _setPrice(100e18);
+        _setKeeperRole(liquidator);
     }
 
     function test_Experiments_test1() public {

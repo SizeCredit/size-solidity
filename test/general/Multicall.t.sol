@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {Math, PERCENT} from "@src/libraries/Math.sol";
@@ -51,13 +51,14 @@ contract MulticallTest is BaseTest {
 
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
-        data[1] = abi.encodeCall(size.transferOwnership, (alice));
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
+        data[1] = abi.encodeCall(size.grantRole, (0x00, alice));
+        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, 0x00));
         size.multicall(data);
     }
 
     function test_Multicall_liquidator_can_liquidate_and_withdraw() public {
         _setPrice(1e18);
+        _setKeeperRole(liquidator);
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);

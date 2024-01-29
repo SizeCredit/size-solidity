@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {
     Initialize, InitializeFixedParams, InitializeGeneralParams
@@ -47,7 +49,15 @@ import {State} from "@src/SizeStorage.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
-contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, MulticallUpgradeable, UUPSUpgradeable {
+contract Size is
+    ISize,
+    SizeView,
+    Initializable,
+    AccessControlUpgradeable,
+    PausableUpgradeable,
+    MulticallUpgradeable,
+    UUPSUpgradeable
+{
     using Initialize for State;
     using UpdateConfig for State;
     using Deposit for State;
@@ -66,6 +76,9 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, Multic
     using Compensate for State;
     using FixedLibrary for State;
 
+    bytes32 public constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -74,76 +87,77 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, Multic
     function initialize(InitializeGeneralParams calldata g, InitializeFixedParams calldata f) external initializer {
         state.validateInitialize(g, f);
 
-        __Ownable_init(g.owner);
-        __Ownable2Step_init();
+        __AccessControl_init();
+        __Pausable_init();
         __Multicall_init();
         __UUPSUpgradeable_init();
 
         state.executeInitialize(g, f);
+        _grantRole(DEFAULT_ADMIN_ROLE, g.owner);
     }
 
     // solhint-disable-next-line no-empty-blocks
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
-    function updateConfig(UpdateConfigParams calldata params) external onlyOwner {
+    function updateConfig(UpdateConfigParams calldata params) external onlyRole(DEFAULT_ADMIN_ROLE) {
         state.validateUpdateConfig(params);
         state.executeUpdateConfig(params);
     }
 
     /// @inheritdoc ISize
-    function deposit(DepositParams calldata params) external override(ISize) {
+    function deposit(DepositParams calldata params) external override(ISize) whenNotPaused {
         state.validateDeposit(params);
         state.executeDeposit(params);
     }
 
     /// @inheritdoc ISize
-    function withdraw(WithdrawParams calldata params) external override(ISize) {
+    function withdraw(WithdrawParams calldata params) external override(ISize) whenNotPaused {
         state.validateWithdraw(params);
         state.executeWithdraw(params);
         state.validateUserIsNotLiquidatable(msg.sender);
     }
 
     /// @inheritdoc ISize
-    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external override(ISize) {
+    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external override(ISize) whenNotPaused {
         state.validateLendAsLimitOrder(params);
         state.executeLendAsLimitOrder(params);
     }
 
     /// @inheritdoc ISize
-    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) external override(ISize) {
+    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) external override(ISize) whenNotPaused {
         state.validateBorrowAsLimitOrder(params);
         state.executeBorrowAsLimitOrder(params);
     }
 
     /// @inheritdoc ISize
-    function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external override(ISize) {
+    function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external override(ISize) whenNotPaused {
         state.validateLendAsMarketOrder(params);
         state.executeLendAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(params.borrower);
     }
 
     /// @inheritdoc ISize
-    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external override(ISize) {
+    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external override(ISize) whenNotPaused {
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(msg.sender);
     }
 
     /// @inheritdoc ISize
-    function borrowerExit(BorrowerExitParams calldata params) external override(ISize) {
+    function borrowerExit(BorrowerExitParams calldata params) external override(ISize) whenNotPaused {
         state.validateBorrowerExit(params);
         state.executeBorrowerExit(params);
         state.validateUserIsNotLiquidatable(params.borrowerToExitTo);
     }
 
     /// @inheritdoc ISize
-    function repay(RepayParams calldata params) external override(ISize) {
+    function repay(RepayParams calldata params) external override(ISize) whenNotPaused {
         state.validateRepay(params);
         state.executeRepay(params);
     }
 
     /// @inheritdoc ISize
-    function claim(ClaimParams calldata params) external override(ISize) {
+    function claim(ClaimParams calldata params) external override(ISize) whenNotPaused {
         state.validateClaim(params);
         state.executeClaim(params);
     }
@@ -159,7 +173,11 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, Multic
     }
 
     /// @inheritdoc ISize
-    function selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams calldata params) external override(ISize) {
+    function selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams calldata params)
+        external
+        override(ISize)
+        whenNotPaused
+    {
         state.validateSelfLiquidateFixedLoan(params);
         state.executeSelfLiquidateFixedLoan(params);
     }
@@ -168,6 +186,8 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, Multic
     function liquidateFixedLoanWithReplacement(LiquidateFixedLoanWithReplacementParams calldata params)
         external
         override(ISize)
+        whenNotPaused
+        onlyRole(KEEPER_ROLE)
         returns (uint256 liquidatorProfitCollateralAsset, uint256 liquidatorProfitBorrowAsset)
     {
         state.validateLiquidateFixedLoanWithReplacement(params);
@@ -177,13 +197,13 @@ contract Size is ISize, SizeView, Initializable, Ownable2StepUpgradeable, Multic
     }
 
     /// @inheritdoc ISize
-    function moveToVariablePool(MoveToVariablePoolParams calldata params) external override(ISize) {
+    function moveToVariablePool(MoveToVariablePoolParams calldata params) external override(ISize) whenNotPaused {
         state.validateMoveToVariablePool(params);
         state.executeMoveToVariablePool(params);
     }
 
     /// @inheritdoc ISize
-    function compensate(CompensateParams calldata params) external override(ISize) {
+    function compensate(CompensateParams calldata params) external override(ISize) whenNotPaused {
         state.validateCompensate(params);
         state.executeCompensate(params);
     }

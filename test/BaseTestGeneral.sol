@@ -63,4 +63,9 @@ abstract contract BaseTestGeneral is Test, Deploy {
         vm.prank(address(this));
         priceFeed.setPrice(price);
     }
+
+    function _setKeeperRole(address user) internal {
+        vm.prank(address(this));
+        size.grantRole(size.KEEPER_ROLE(), user);
+    }
 }
