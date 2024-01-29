@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
@@ -152,5 +153,83 @@ contract ClaimTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 2 * 100e6);
+    }
+
+    function test_Claim_claim_at_different_times_may_have_different_interest() public {
+        _setPrice(1e18);
+
+        _deposit(alice, weth, 150e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, usdc, 10e6);
+        _deposit(liquidator, usdc, 1000e18);
+        _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(candy, 10e6, 12, 0, 12);
+        uint256 loanId = _borrowAsMarketOrder(alice, bob, 100e6, 12);
+        uint256 solId = _borrowAsMarketOrder(bob, candy, 10e6, 12, [loanId]);
+        (, IAToken borrowAToken,) = size.tokens();
+
+        Vars memory _s1 = _state();
+
+        assertEq(_s1.alice.borrowAmount, 100e6, "Alice borrowed 100e6");
+        assertEq(_s1.size.borrowAmount, 0, "Size has 0");
+
+        _setLiquidityIndex(2e27);
+        _repay(alice, loanId);
+
+        Vars memory _s2 = _state();
+
+        assertEq(_s2.alice.borrowAmount, 100e6, "Alice borrowed 100e6 and it 2x, but she repaid 100e6");
+        assertEq(_s2.size.borrowAmount, 100e6, "Alice repaid amount is now on Size for claiming for FOL/SOL");
+        assertEq(
+            borrowAToken.scaledBalanceOf(size.getUserProxyAddress(address(alice))),
+            50e6,
+            "Alice has 50e6 Scaled aTokens"
+        );
+        assertEq(
+            borrowAToken.scaledBalanceOf(size.getUserProxyAddress(address(size))),
+            50e6,
+            "Size has 50e6 Scaled aTokens for claiming"
+        );
+
+        _setLiquidityIndex(8e27);
+        _claim(candy, solId);
+
+        Vars memory _s3 = _state();
+
+        assertEq(_s3.candy.borrowAmount, 40e6, "Candy borrowed 10e6 4x, so it is now 40e6");
+        assertEq(
+            _s3.size.borrowAmount,
+            360e6,
+            "Size had 100e6 for claiming, it 4x to 400e6, and Candy claimed 40e6, now there's 360e6 left for claiming"
+        );
+        assertEq(
+            borrowAToken.scaledBalanceOf(size.getUserProxyAddress(address(candy))), 5e6, "Alice has 5e6 Scaled aTokens"
+        );
+        assertEq(
+            borrowAToken.scaledBalanceOf(size.getUserProxyAddress(address(size))),
+            45e6,
+            "Size has 45e6 Scaled aTokens for claiming"
+        );
+
+        _setLiquidityIndex(16e27);
+        _claim(bob, loanId);
+
+        Vars memory _s4 = _state();
+
+        assertEq(
+            _s4.bob.borrowAmount,
+            80e6 + 800e6,
+            "Bob lent 100e6 and was repaid and it 8x, and it borrowed 10e6 and it 8x, so it is now 880e6"
+        );
+        assertEq(_s4.candy.borrowAmount, 80e6, "Candy borrowed 40e6 2x, so it is now 80e6");
+        assertEq(_s4.size.borrowAmount, 0, "Size has 0 because everything was claimed");
+        assertEq(
+            borrowAToken.scaledBalanceOf(size.getUserProxyAddress(address(candy))), 5e6, "Alice has 5e6 Scaled aTokens"
+        );
+        assertEq(
+            borrowAToken.scaledBalanceOf(size.getUserProxyAddress(address(size))),
+            0,
+            "Size has 0 Scaled aTokens for claiming"
+        );
     }
 }
