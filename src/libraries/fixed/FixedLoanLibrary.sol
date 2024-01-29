@@ -4,16 +4,13 @@ pragma solidity 0.8.20;
 uint256 constant RESERVED_ID = type(uint256).max;
 
 struct FixedLoan {
-    // generic
     uint256 faceValue;
     uint256 faceValueExited;
     address lender;
     address borrower;
-    // FOL-specific
-    uint256 dueDate;
-    bool repaid;
-    // SOL-specific
-    uint256 folId;
+    uint256 dueDate; // same for FOL and SOL
+    uint256 folId; // SOL-specific
+    bool repaid; // FOL-specific
 }
 
 // When the loan is created, it is in ACTIVE status
