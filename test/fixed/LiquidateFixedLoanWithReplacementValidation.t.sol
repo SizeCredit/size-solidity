@@ -12,6 +12,11 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract LiquidateFixedLoanWithReplacementValidationTest is BaseTest {
     using FixedLoanLibrary for FixedLoan;
 
+    function setUp() public override {
+        super.setUp();
+        _setKeeperRole(liquidator);
+    }
+
     function test_LiquidateFixedLoanWithReplacement_validation() public {
         _setPrice(1e18);
         _deposit(alice, weth, 100e18);

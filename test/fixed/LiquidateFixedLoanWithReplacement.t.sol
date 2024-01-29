@@ -4,7 +4,6 @@ pragma solidity 0.8.20;
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
@@ -16,6 +15,11 @@ import {LiquidateFixedLoanWithReplacementParams} from
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract LiquidateFixedLoanWithReplacementTest is BaseTest {
+    function setUp() public override {
+        super.setUp();
+        _setKeeperRole(liquidator);
+    }
+
     function test_LiquidateFixedLoanWithReplacement_liquidateFixedLoanWithReplacement_updates_new_borrower_borrowOffer_same_rate(
     ) public {
         _setPrice(1e18);
