@@ -51,6 +51,7 @@ library Repay {
         if (repayAmount == loan.faceValue && loan.isFOL()) {
             state.transferBorrowAToken(msg.sender, address(this), repayAmount);
             state._fixed.debtToken.burn(msg.sender, repayAmount);
+            loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
             loan.repaid = true;
         } else {
             state.transferBorrowAToken(msg.sender, loan.lender, repayAmount);

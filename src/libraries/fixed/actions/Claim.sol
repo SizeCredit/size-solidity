@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {Math} from "@src/libraries/Math.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
@@ -34,7 +35,9 @@ library Claim {
     function executeClaim(State storage state, ClaimParams calldata params) external {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
 
-        state.transferBorrowAToken(address(this), loan.lender, loan.getCredit());
+        uint256 claimAmount =
+            Math.mulDivDown(loan.getCredit(), state.borrowATokenLiquidityIndex(), loan.liquidityIndexAtRepayment);
+        state.transferBorrowAToken(address(this), loan.lender, claimAmount);
         loan.faceValueExited = loan.faceValue;
 
         emit Events.Claim(params.loanId);

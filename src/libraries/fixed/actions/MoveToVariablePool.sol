@@ -48,7 +48,9 @@ library MoveToVariablePool {
             revert Errors.INSUFFICIENT_COLLATERAL(assignedCollateral, minimumCollateralOpening);
         }
 
-        state.borrowFromVariablePool(loan.borrower, assignedCollateral, loan.faceValue);
+        state.borrowFromVariablePool(loan.borrower, address(this), assignedCollateral, loan.faceValue);
+        // @audit Check if the liquidity index snapshot should happen before or after Aave borrow
+        loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         loan.repaid = true;
     }
 }

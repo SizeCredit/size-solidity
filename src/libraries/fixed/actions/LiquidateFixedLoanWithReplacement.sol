@@ -77,6 +77,7 @@ library LiquidateFixedLoanWithReplacement {
         borrowOffer.maxAmount -= amountOut;
 
         fol.borrower = params.borrower;
+        fol.liquidityIndexAtRepayment = 0;
         fol.repaid = false;
 
         state._fixed.debtToken.mint(params.borrower, faceValue);

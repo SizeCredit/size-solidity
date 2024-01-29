@@ -51,6 +51,7 @@ library FixedLibrary {
             borrower: borrower,
             dueDate: dueDate,
             repaid: false,
+            liquidityIndexAtRepayment: 0,
             folId: RESERVED_ID
         });
         validateMinimumCreditOpening(state, fol.getCredit());
@@ -75,6 +76,7 @@ library FixedLibrary {
             borrower: borrower,
             dueDate: fol.dueDate,
             repaid: false,
+            liquidityIndexAtRepayment: 0,
             folId: folId
         });
 

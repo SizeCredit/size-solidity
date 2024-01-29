@@ -9,6 +9,7 @@ struct FixedLoan {
     address lender;
     address borrower;
     uint256 dueDate; // same for FOL and SOL
+    uint256 liquidityIndexAtRepayment; // FOL-specific
     uint256 folId; // SOL-specific
     bool repaid; // FOL-specific
 }

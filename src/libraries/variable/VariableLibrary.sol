@@ -70,35 +70,45 @@ library VariableLibrary {
 
     function borrowFromVariablePool(
         State storage state,
-        address borrower,
+        address from,
+        address to,
         uint256 collateralAmount,
         uint256 borrowAmount
     ) external {
-        address collateralAsset = address(state._general.collateralAsset);
-        address borrowAsset = address(state._general.borrowAsset);
+        IERC20Metadata collateralAsset = IERC20Metadata(state._general.collateralAsset);
+        IERC20Metadata borrowAsset = IERC20Metadata(state._general.borrowAsset);
 
-        UserProxy userProxy = getUserProxy(state, borrower);
+        UserProxy userProxyFrom = getUserProxy(state, from);
+        UserProxy userProxyTo = getUserProxy(state, to);
 
-        // unwrap collateralToken (e.g. szETH) to collateralAsset (e.g. WETH) from `borrower` to `address(this)`
-        state.withdrawCollateralToken(borrower, address(this), collateralAmount);
+        // unwrap collateralToken (e.g. szETH) to collateralAsset (e.g. WETH) from `from` to `address(this)`
+        state.withdrawCollateralToken(from, address(this), collateralAmount);
 
         // supply collateral asset
         state._general.collateralAsset.forceApprove(address(state._general.variablePool), collateralAmount);
-        state._general.variablePool.supply(collateralAsset, collateralAmount, address(userProxy), 0);
+        state._general.variablePool.supply(address(collateralAsset), collateralAmount, address(userProxyFrom), 0);
 
-        address[] memory targets = new address[](2);
-        bytes[] memory data = new bytes[](2);
+        address[] memory targets = new address[](3);
+        bytes[] memory data = new bytes[](3);
 
         // set collateralAsset as collateral
         targets[0] = address(state._general.variablePool);
-        data[0] = abi.encodeCall(IPool.setUserUseReserveAsCollateral, (collateralAsset, true));
+        data[0] = abi.encodeCall(IPool.setUserUseReserveAsCollateral, (address(collateralAsset), true));
 
         // borrow
         targets[1] = address(state._general.variablePool);
-        data[1] = abi.encodeCall(IPool.borrow, (borrowAsset, borrowAmount, 2, 0, address(userProxy)));
+        data[1] = abi.encodeCall(IPool.borrow, (address(borrowAsset), borrowAmount, 2, 0, address(userProxyFrom)));
+
+        // transfer to `address(this)`
+        targets[2] = address(state._general.borrowAsset);
+        data[2] = abi.encodeCall(IERC20.transfer, (address(this), borrowAmount));
 
         // slither-disable-next-line unused-return
-        userProxy.proxy(targets, data);
+        userProxyFrom.proxy(targets, data);
+
+        // supply to `to`
+        borrowAsset.forceApprove(address(state._general.variablePool), borrowAmount);
+        state._general.variablePool.supply(address(borrowAsset), borrowAmount, address(userProxyTo), 0);
     }
 
     function borrowATokenBalanceOf(State storage state, address account) external view returns (uint256) {
@@ -108,5 +118,9 @@ library VariableLibrary {
         } else {
             return state._fixed.borrowAToken.balanceOf(address(userProxy));
         }
+    }
+
+    function borrowATokenLiquidityIndex(State storage state) external view returns (uint256) {
+        return state._general.variablePool.getReserveNormalizedIncome(address(state._general.borrowAsset));
     }
 }
