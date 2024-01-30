@@ -327,14 +327,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         FixedLoan memory fol = size.getFixedLoan(0);
         assertEq(fol.borrower, alice, "Alice should be the borrower");
-        assertEq(_state().alice.debtAmount, fol.getDebt(), "Alice should have the debt");
+        assertEq(_state().alice.debtAmount, fol.faceValue, "Alice should have the debt");
 
         assertEq(_state().candy.debtAmount, 0, "Candy should have no debt");
         // Perform the liquidation with replacement
         _deposit(liquidator, usdc, 10_000e6);
         _liquidateFixedLoanWithReplacement(liquidator, 0, candy);
         assertEq(_state().alice.debtAmount, 0, "Alice should have no debt after");
-        assertEq(_state().candy.debtAmount, fol.getDebt(), "Candy should have the debt after");
+        assertEq(_state().candy.debtAmount, fol.faceValue, "Candy should have the debt after");
     }
 
     function test_Experiments_testBasicCompensate1() public {

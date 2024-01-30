@@ -30,18 +30,12 @@ library LiquidateFixedLoan {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         // validate msg.sender
-        if (state.borrowATokenBalanceOf(msg.sender) < loan.getDebt()) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.getDebt());
+        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.faceValue);
         }
 
         // validate loanId
         if (!state.isLoanLiquidatable(params.loanId)) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE(
-                params.loanId, state.collateralRatio(loan.borrower), state.getFixedLoanStatus(loan)
-            );
-        }
-        // TODO: deal with overdue loans
-        if (state.getFixedLoanStatus(loan) != FixedLoanStatus.ACTIVE) {
             revert Errors.LOAN_NOT_LIQUIDATABLE(
                 params.loanId, state.collateralRatio(loan.borrower), state.getFixedLoanStatus(loan)
             );
@@ -55,54 +49,99 @@ library LiquidateFixedLoan {
         }
     }
 
-    function executeLiquidateFixedLoan(State storage state, LiquidateFixedLoanParams calldata params)
-        external
-        returns (uint256)
-    {
+    function _executeLiquidateFixedLoanTakeCollateral(
+        State storage state,
+        LiquidateFixedLoanParams calldata params,
+        bool splitCollateralRemainder
+    ) private returns (uint256 liquidatorProfitCollateralToken) {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         uint256 assignedCollateral = state.getFOLAssignedCollateral(loan);
         uint256 debtBorrowTokenWad =
-            ConversionLibrary.amountToWad(loan.getDebt(), state._general.borrowAsset.decimals());
+            ConversionLibrary.amountToWad(loan.faceValue, state._general.borrowAsset.decimals());
         uint256 debtInCollateralToken = Math.mulDivDown(
             debtBorrowTokenWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
         );
-        FixedLoanStatus loanStatus = state.getFixedLoanStatus(loan);
 
-        emit Events.LiquidateFixedLoan(
-            params.loanId, params.minimumCollateralRatio, assignedCollateral, debtInCollateralToken, loanStatus
-        );
-
-        uint256 liquidatorProfitCollateralToken;
-
-        // TODO
-        if (loanStatus == FixedLoanStatus.OVERDUE) {} else { // is FixedLoanStatus.ACTIVE as per validateLiquidateFixedLoan
-        }
-
+        // CR > 100%
         if (assignedCollateral > debtInCollateralToken) {
-            // split remaining collateral between liquidator and protocol
-            uint256 collateralRemainder = assignedCollateral - debtInCollateralToken;
+            liquidatorProfitCollateralToken = debtInCollateralToken;
 
-            uint256 collateralRemainderToLiquidator =
-                Math.mulDivDown(collateralRemainder, state._fixed.collateralPremiumToLiquidator, PERCENT);
-            uint256 collateralRemainderToProtocol =
-                Math.mulDivDown(collateralRemainder, state._fixed.collateralPremiumToProtocol, PERCENT);
+            if (splitCollateralRemainder) {
+                // split remaining collateral between liquidator and protocol
+                uint256 collateralRemainder = assignedCollateral - debtInCollateralToken;
 
-            liquidatorProfitCollateralToken = debtInCollateralToken + collateralRemainderToLiquidator;
-            state._fixed.collateralToken.transferFrom(
-                loan.borrower, state._general.feeRecipient, collateralRemainderToProtocol
-            );
+                uint256 collateralRemainderToLiquidator =
+                    Math.mulDivDown(collateralRemainder, state._fixed.collateralPremiumToLiquidator, PERCENT);
+                uint256 collateralRemainderToProtocol =
+                    Math.mulDivDown(collateralRemainder, state._fixed.collateralPremiumToProtocol, PERCENT);
+
+                liquidatorProfitCollateralToken += collateralRemainderToLiquidator;
+                state._fixed.collateralToken.transferFrom(
+                    loan.borrower, state._general.feeRecipient, collateralRemainderToProtocol
+                );
+            }
+            // CR <= 100%
         } else {
             // unprofitable liquidation
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 
         state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
-        state.transferBorrowAToken(msg.sender, address(this), loan.getDebt());
-        state._fixed.debtToken.burn(loan.borrower, loan.getDebt());
+        state.transferBorrowAToken(msg.sender, address(this), loan.faceValue);
+        state._fixed.debtToken.burn(loan.borrower, loan.faceValue);
+    }
+
+    function _executeLiquidateFixedLoanOverdue(State storage state, LiquidateFixedLoanParams calldata params)
+        private
+        returns (uint256 liquidatorProfitCollateralToken)
+    {
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
+
+        // case 2a: the loan is overdue and can be moved to the variable pool
+        try state.moveFixedLoanToVariablePool(loan) returns (uint256 _liquidatorProfitCollateralToken) {
+            emit Events.LiquidateFixedLoanOverdueMoveToVariablePool(params.loanId);
+            liquidatorProfitCollateralToken = _liquidatorProfitCollateralToken;
+            // case 2b: the loan is overdue and cannot be moved to the variable pool
+        } catch {
+            emit Events.LiquidateFixedLoanOverdueNoSplitRemainder(params.loanId);
+            liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, params, false);
+        }
+    }
+
+    function executeLiquidateFixedLoan(State storage state, LiquidateFixedLoanParams calldata params)
+        external
+        returns (uint256 liquidatorProfitCollateralToken)
+    {
+        FixedLoan storage loan = state._fixed.loans[params.loanId];
+        FixedLoanStatus loanStatus = state.getFixedLoanStatus(loan);
+        uint256 collateralRatio = state.collateralRatio(loan.borrower);
+
+        emit Events.LiquidateFixedLoan(params.loanId, params.minimumCollateralRatio, collateralRatio, loanStatus);
+
+        // case 1a: the user is liquidatable
+        if (PERCENT <= collateralRatio && collateralRatio < state._fixed.crLiquidation) {
+            emit Events.LiquidateFixedLoanUserLiquidatableProfitably(params.loanId);
+            liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, params, true);
+            // case 1b: the user is liquidatable
+        } else if (0 <= collateralRatio && collateralRatio <= PERCENT) {
+            emit Events.LiquidateFixedLoanUserLiquidatableUnprofitably(params.loanId);
+            liquidatorProfitCollateralToken =
+                _executeLiquidateFixedLoanTakeCollateral(state, params, false /* this parameter should not matter */ );
+            // case 2: the loan is overdue
+        } else {
+            // collateralRatio > state._fixed.crLiquidation
+            if (loanStatus == FixedLoanStatus.OVERDUE) {
+                liquidatorProfitCollateralToken = _executeLiquidateFixedLoanOverdue(state, params);
+                // loan is ACTIVE
+            } else {
+                // @audit unreachable code, check if the validation function is correct and not making this branch possible
+                revert Errors.LOAN_NOT_LIQUIDATABLE(params.loanId, collateralRatio, loanStatus);
+            }
+        }
+
+        // @audit Check if the liquidity index snapshot should happen before or after the Aave borrow
         loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         loan.repaid = true;
-
-        return liquidatorProfitCollateralToken;
     }
 }

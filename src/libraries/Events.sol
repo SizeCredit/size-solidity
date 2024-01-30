@@ -38,16 +38,15 @@ library Events {
     event Repay(uint256 indexed loanId, uint256 amount);
     event Claim(uint256 indexed loanId);
     event LiquidateFixedLoan(
-        uint256 indexed loanId,
-        uint256 minimumCollateralRatio,
-        uint256 assignedCollateral,
-        uint256 debtInCollateralToken,
-        FixedLoanStatus loanStatus
+        uint256 indexed loanId, uint256 minimumCollateralRatio, uint256 collateralRatio, FixedLoanStatus loanStatus
     );
     event SelfLiquidateFixedLoan(uint256 indexed loanId);
     event LiquidateFixedLoanWithReplacement(
         uint256 indexed loanId, address indexed borrower, uint256 minimumCollateralRatio
     );
-    event MoveToVariablePool(uint256 indexed loanId);
+    event LiquidateFixedLoanUserLiquidatableProfitably(uint256 indexed loanId);
+    event LiquidateFixedLoanUserLiquidatableUnprofitably(uint256 indexed loanId);
+    event LiquidateFixedLoanOverdueMoveToVariablePool(uint256 indexed loanId);
+    event LiquidateFixedLoanOverdueNoSplitRemainder(uint256 indexed loanId);
     event Compensate(uint256 indexed loanToRepayId, uint256 indexed loanToCompensateId, uint256 amount);
 }

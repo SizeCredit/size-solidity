@@ -110,7 +110,7 @@ npm run deploy-sepolia
 
 ## TODO if there's time
 
-- merge EOA CR and UserProxy CR
+- mint szWETH to user vault
 
 ## TODO before audit
 

@@ -28,7 +28,7 @@ library SelfLiquidateFixedLoan {
     {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
-        uint256 debtWad = ConversionLibrary.amountToWad(loan.getDebt(), state._general.borrowAsset.decimals());
+        uint256 debtWad = ConversionLibrary.amountToWad(loan.faceValue, state._general.borrowAsset.decimals());
         uint256 debtCollateral =
             Math.mulDivDown(debtWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
 

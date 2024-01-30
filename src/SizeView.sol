@@ -49,7 +49,7 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getDebt(uint256 loanId) external view returns (uint256) {
-        return state._fixed.loans[loanId].getDebt();
+        return state._fixed.loans[loanId].faceValue;
     }
 
     function getCredit(uint256 loanId) external view returns (uint256) {

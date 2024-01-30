@@ -37,6 +37,7 @@ struct Fixed {
 
 struct Variable {
     address userProxyImplementation;
+    uint256 collateralOverdueTransferFee;
 }
 
 struct State {

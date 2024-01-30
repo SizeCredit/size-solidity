@@ -120,6 +120,10 @@ library FixedLibrary {
         return getFixedLoanStatus(state, self) == status[0] || getFixedLoanStatus(state, self) == status[1];
     }
 
+    function _either(FixedLoanStatus s, FixedLoanStatus[2] memory status) private pure returns (bool) {
+        return s == status[0] || s == status[1];
+    }
+
     function getFOLAssignedCollateral(State storage state, FixedLoan memory loan) public view returns (uint256) {
         if (!loan.isFOL()) revert Errors.NOT_SUPPORTED();
 
@@ -136,7 +140,7 @@ library FixedLibrary {
         FixedLoan storage loan = state._fixed.loans[loanId];
         FixedLoan storage fol = getFOL(state, loan);
         uint256 folCollateral = getFOLAssignedCollateral(state, fol);
-        return Math.mulDivDown(folCollateral, loan.getCredit(), fol.getDebt());
+        return Math.mulDivDown(folCollateral, loan.getCredit(), fol.faceValue);
     }
 
     function collateralRatio(State storage state, address account) public view returns (uint256) {
@@ -154,11 +158,18 @@ library FixedLibrary {
 
     function isLoanLiquidatable(State storage state, uint256 loanId) public view returns (bool) {
         FixedLoan storage loan = state._fixed.loans[loanId];
+        FixedLoanStatus status = getFixedLoanStatus(state, loan);
+        // only FOLs can be liquidated
         return loan.isFOL()
-            && (
+        // case 1: if the user is liquidatable, only active/overdue FOLs can be liquidated
+        && (
+            (
                 isUserLiquidatable(state, loan.borrower)
-                    && either(state, loan, [FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])
-            );
+                    && _either(status, [FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])
+            )
+            // case 2: overdue loans can always be liquidated regardless of the user's CR
+            || status == FixedLoanStatus.OVERDUE
+        );
     }
 
     function isUserLiquidatable(State storage state, address account) public view returns (bool) {

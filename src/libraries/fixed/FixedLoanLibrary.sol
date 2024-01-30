@@ -37,8 +37,4 @@ library FixedLoanLibrary {
     function getCredit(FixedLoan memory self) internal pure returns (uint256) {
         return self.faceValue - self.faceValueExited;
     }
-
-    function getDebt(FixedLoan memory self) internal pure returns (uint256) {
-        return self.faceValue;
-    }
 }

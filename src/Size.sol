@@ -23,7 +23,6 @@ import {Deposit, DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateFixedLoan, LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
-import {MoveToVariablePool, MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
@@ -72,7 +71,6 @@ contract Size is
     using LiquidateFixedLoan for State;
     using SelfLiquidateFixedLoan for State;
     using LiquidateFixedLoanWithReplacement for State;
-    using MoveToVariablePool for State;
     using Compensate for State;
     using FixedLibrary for State;
 
@@ -194,12 +192,6 @@ contract Size is
         (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
             state.executeLiquidateFixedLoanWithReplacement(params);
         state.validateUserIsNotLiquidatable(params.borrower);
-    }
-
-    /// @inheritdoc ISize
-    function moveToVariablePool(MoveToVariablePoolParams calldata params) external override(ISize) whenNotPaused {
-        state.validateMoveToVariablePool(params);
-        state.executeMoveToVariablePool(params);
     }
 
     /// @inheritdoc ISize

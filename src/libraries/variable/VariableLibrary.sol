@@ -12,12 +12,16 @@ import {State} from "@src/SizeStorage.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 
+import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+
 import {UserProxy} from "@src/proxy/UserProxy.sol";
 
 // TODO: this library can be optimized to avoid unnecessary approvals when transferring tokens from Size to Size
 library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
     using CollateralLibrary for State;
+    using FixedLibrary for State;
 
     function getUserProxy(State storage state, address user) public returns (UserProxy) {
         if (address(state._fixed.users[user].proxy) != address(0)) {
@@ -58,7 +62,7 @@ library VariableLibrary {
         );
     }
 
-    function transferBorrowAToken(State storage state, address from, address to, uint256 amount) external {
+    function transferBorrowAToken(State storage state, address from, address to, uint256 amount) public {
         IAToken borrowAToken = state._fixed.borrowAToken;
 
         UserProxy userProxyFrom = getUserProxy(state, from);
@@ -68,13 +72,13 @@ library VariableLibrary {
         userProxyFrom.proxy(address(borrowAToken), abi.encodeCall(IERC20.transfer, (address(userProxyTo), amount)));
     }
 
-    function borrowFromVariablePool(
+    function _borrowFromVariablePool(
         State storage state,
         address from,
         address to,
         uint256 collateralAmount,
         uint256 borrowAmount
-    ) external {
+    ) internal {
         IERC20Metadata collateralAsset = IERC20Metadata(state._general.collateralAsset);
         IERC20Metadata borrowAsset = IERC20Metadata(state._general.borrowAsset);
 
@@ -120,7 +124,21 @@ library VariableLibrary {
         }
     }
 
-    function borrowATokenLiquidityIndex(State storage state) external view returns (uint256) {
+    function borrowATokenLiquidityIndex(State storage state) public view returns (uint256) {
         return state._general.variablePool.getReserveNormalizedIncome(address(state._general.borrowAsset));
+    }
+
+    function moveFixedLoanToVariablePool(State storage state, FixedLoan storage loan)
+        external
+        returns (uint256 liquidatorProfitCollateralToken)
+    {
+        liquidatorProfitCollateralToken = state._variable.collateralOverdueTransferFee;
+        // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
+        uint256 assignedCollateral = state.getFOLAssignedCollateral(loan);
+
+        state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
+        _borrowFromVariablePool(
+            state, loan.borrower, address(this), assignedCollateral - liquidatorProfitCollateralToken, loan.faceValue
+        );
     }
 }
