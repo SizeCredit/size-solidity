@@ -10,8 +10,6 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 contract LiquidateFixedLoanValidationTest is BaseTest {
     function test_LiquidateFixedLoan_validation() public {
-        // TODO fix validaiton
-
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -29,13 +27,6 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, james, 5e6, 12, [loanId]);
         uint256 minimumCollateralRatio = 1e18;
-
-        vm.startPrank(liquidator);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 0, 103e6));
-        size.liquidateFixedLoan(
-            LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
-        );
-        vm.stopPrank();
 
         _deposit(liquidator, usdc, 10_000e18);
 

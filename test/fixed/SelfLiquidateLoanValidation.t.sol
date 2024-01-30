@@ -28,9 +28,7 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, 1.5e18, FixedLoanStatus.ACTIVE)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.USER_NOT_LIQUIDATABLE.selector, bob, 1.5e18));
         size.selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));
         vm.stopPrank();
 

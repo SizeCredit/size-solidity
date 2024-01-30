@@ -30,9 +30,6 @@ library LiquidateFixedLoan {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         // validate msg.sender
-        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.faceValue);
-        }
 
         // validate loanId
         if (!state.isLoanLiquidatable(params.loanId)) {
