@@ -69,9 +69,9 @@ interface ISize {
     /// else: // CR >= CRL
     ///     if loan is overdue:
     ///         if loan can be moved to the variable pool:
-    ///             move loan to the variable pool, charge move fee in collateral from the borrower
+    ///             move loan to the variable pool, charge move transfer fee in collateral from the borrower
     ///         else:
-    ///             liquidate loan but do not split the collateral remainder
+    ///             liquidate loan, do not split the collateral remainder, charge move transfer fee in collateral from the borrower
     ///     else:
     ///         loan cannot be liquidated
     function liquidateFixedLoan(LiquidateFixedLoanParams calldata params) external returns (uint256);

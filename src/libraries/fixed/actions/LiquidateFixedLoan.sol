@@ -105,7 +105,11 @@ library LiquidateFixedLoan {
             // case 2b: the loan is overdue and cannot be moved to the variable pool
         } catch {
             emit Events.LiquidateFixedLoanOverdueNoSplitRemainder(params.loanId);
-            liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, params, false);
+            liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, params, false)
+                + state._variable.collateralOverdueTransferFee;
+            state._fixed.collateralToken.transferFrom(
+                loan.borrower, msg.sender, state._variable.collateralOverdueTransferFee
+            );
         }
     }
 

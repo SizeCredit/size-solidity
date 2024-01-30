@@ -2,7 +2,6 @@
 pragma solidity 0.8.20;
 
 import {BaseTest} from "@test/BaseTest.sol";
-import {console} from "forge-std/console.sol";
 
 import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
@@ -11,6 +10,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 contract LiquidateFixedLoanValidationTest is BaseTest {
     function test_LiquidateFixedLoan_validation() public {
+        // TODO fix validaiton
+
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);

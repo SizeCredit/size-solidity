@@ -19,7 +19,6 @@ import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
-import {MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {LiquidateFixedLoanWithReplacementParams} from
@@ -266,11 +265,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 minimumCollateralRatio: minimumCollateralRatio
             })
         );
-    }
-
-    function _moveToVariablePool(address user, uint256 loanId) internal {
-        vm.prank(user);
-        size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
     }
 
     function _compensate(address user, uint256 loanToRepayId, uint256 loanToCompensateId) internal {

@@ -7,7 +7,7 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 contract LiquidateFixedLoanTest is BaseTest {
     function test_LiquidateFixedLoan_liquidateFixedLoan_seizes_borrower_collateral() public {
@@ -167,4 +167,72 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(size.getFOLAssignedCollateral(loanId), 0);
         assertEq(size.getUserView(bob).collateralAmount, 0);
     }
+
+    function test_LiquidateFixedLoan_liquidateFixedLoan_move_to_VP_if_overdue_and_high_CR_borrows_from_VP() public {
+        _setPrice(1e18);
+        _deposit(alice, address(usdc), 100e6);
+        _deposit(bob, address(weth), 150e18);
+        _deposit(candy, address(usdc), 100e6);
+        _depositVariable(alice, address(usdc), 100e6);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
+
+        vm.warp(block.timestamp + 12);
+
+        Vars memory _before = _state();
+        uint256 loansBefore = size.activeFixedLoans();
+        FixedLoan memory loanBefore = size.getFixedLoan(loanId);
+        uint256 variablePoolWETHBefore = weth.balanceOf(address(size.generalConfig().variablePool));
+
+        uint256 assignedCollateral =
+            Math.mulDivDown(_before.bob.collateralAmount, loanBefore.faceValue, _before.bob.debtAmount);
+
+        _liquidateFixedLoan(liquidator, loanId);
+
+        Vars memory _after = _state();
+        uint256 loansAfter = size.activeFixedLoans();
+        FixedLoan memory loanAfter = size.getFixedLoan(loanId);
+        uint256 variablePoolWETHAfter = weth.balanceOf(address(size.generalConfig().variablePool));
+
+        assertEq(_after.alice, _before.alice);
+        assertEq(loansBefore, loansAfter);
+        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - assignedCollateral);
+        assertEq(variablePoolWETHAfter, variablePoolWETHBefore + assignedCollateral);
+        assertTrue(!loanBefore.repaid);
+        assertTrue(loanAfter.repaid);
+    }
+
+    function test_LiquidateFixedLoan_liquidateFixedLoan_move_to_VP_should_claim_later_with_interest() public {
+        _setPrice(1e18);
+        _deposit(alice, address(usdc), 100e6);
+        _deposit(bob, address(weth), 150e18);
+        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
+
+        vm.warp(block.timestamp + 12);
+
+        FixedLoan memory loan = size.getFixedLoan(loanId);
+
+        _liquidateFixedLoan(liquidator, loanId);
+
+        _deposit(liquidator, address(usdc), 1_000e6);
+
+        Vars memory _before = _state();
+
+        _setLiquidityIndex(1.1e27);
+
+        Vars memory _interest = _state();
+
+        _claim(alice, loanId);
+
+        Vars memory _after = _state();
+
+        assertEq(_interest.alice.borrowAmount, _before.alice.borrowAmount * 1.1e27 / 1e27);
+        assertEq(_after.alice.borrowAmount, _interest.alice.borrowAmount + loan.faceValue * 1.1e27 / 1e27);
+    }
+
+    function test_LiquidateFixedLoan_liquidateFixedLoan_move_to_VP_fails_if_VP_does_not_have_enough_liquidity()
+        internal
+    {}
 }

@@ -200,7 +200,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _depositVariable(liquidator, address(usdc), 1_000e6);
 
         // Move to variable pool
-        _moveToVariablePool(liquidator, 0);
+        _liquidateFixedLoan(liquidator, 0);
 
         fol = size.getFixedLoan(0);
         uint256 aliceCollateralAfter = _state().alice.collateralAmount;
