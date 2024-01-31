@@ -53,6 +53,31 @@ abstract contract Deploy {
         priceFeed.setPrice(1337e18);
     }
 
+    function setupChainMockVariablePool(address _owner, address _weth, address _usdc) internal {
+        variablePool = IPool(address(new PoolMock()));
+        PoolMock(address(variablePool)).setLiquidityIndex(_usdc, WadRayMath.RAY);
+        priceFeed = new PriceFeedMock(address(this));
+        priceFeed.setPrice(2468e18);
+        priceFeed.transferOwnership(_owner);
+        g = InitializeGeneralParams({
+            owner: _owner,
+            priceFeed: address(priceFeed),
+            collateralAsset: _weth,
+            borrowAsset: _usdc,
+            feeRecipient: _owner,
+            variablePool: address(variablePool)
+        });
+        f = InitializeFixedParams({
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            collateralPremiumToLiquidator: 0.3e18,
+            collateralPremiumToProtocol: 0.1e18,
+            minimumCreditBorrowAsset: 5e6
+        });
+        size = new Size();
+        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (g, f)));
+    }
+
     function setupChain(address _owner, address pool, address _weth, address _usdc) internal {
         variablePool = IPool(pool);
         priceFeed = new PriceFeedMock(_owner);
