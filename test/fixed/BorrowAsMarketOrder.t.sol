@@ -461,4 +461,27 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
         assertEq(size.activeFixedLoans(), 0);
     }
+
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_cannot_surpass_debtTokenCap() public {
+        _setPrice(1e18);
+        _updateConfig("debtTokenCap", 5e6);
+        _deposit(alice, weth, 150e18);
+        _deposit(bob, usdc, 200e6);
+        _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
+
+        vm.startPrank(alice);
+        uint256[] memory virtualCollateralFixedLoanIds;
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.fixedConfig().debtTokenCap, 10e6)
+        );
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: bob,
+                amount: 10e6,
+                dueDate: 12,
+                exactAmountIn: false,
+                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+            })
+        );
+    }
 }

@@ -131,6 +131,22 @@ contract LendAsMarketOrderTest is BaseTest {
         );
     }
 
+    function test_LendAsMarketOrder_lendAsMarketOrder_cannot_surpass_debtTokenCap() public {
+        _setPrice(1e18);
+        _updateConfig("debtTokenCap", 5e6);
+        _deposit(alice, weth, 150e18);
+        _deposit(bob, usdc, 200e6);
+        _borrowAsLimitOrder(alice, 200e6, 0, 12);
+
+        vm.startPrank(bob);
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.fixedConfig().debtTokenCap, 10e6)
+        );
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 10e6, exactAmountIn: false})
+        );
+    }
+
     function test_LendAsMarketOrder_lendAsMarketOrder_reverts_if_dueDate_out_of_range() public {
         _setPrice(1e18);
         _deposit(alice, weth, 150e18);

@@ -198,7 +198,6 @@ contract Size is
         (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
             state.executeLiquidateFixedLoanWithReplacement(params);
         state.validateUserIsNotLiquidatable(params.borrower);
-        state.validateDebtTokenCap();
     }
 
     /// @inheritdoc ISize

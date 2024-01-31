@@ -95,6 +95,8 @@ library LiquidateFixedLoan {
     {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
 
+        // TODO: should we decrease the borrower total debt?
+
         // case 2a: the loan is overdue and can be moved to the variable pool
         try state.moveFixedLoanToVariablePool(loan) returns (uint256 _liquidatorProfitCollateralToken) {
             emit Events.LiquidateFixedLoanOverdueMoveToVariablePool(params.loanId);

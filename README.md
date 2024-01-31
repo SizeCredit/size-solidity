@@ -97,6 +97,7 @@ npm run deploy-sepolia
 
 - creating a FOL/SOL decreases a offer maxAmount
 - you can exit a SOL
+- liquidation with replacement does not increase the total system debt
 - Taking loan with only virtual collateral does not decrease the borrower CR
 - Taking loan with real collateral decreases the borrower CR
 - The user cannot withdraw more than their deposits
