@@ -73,7 +73,10 @@ abstract contract SizeView is SizeStorage {
             crLiquidation: state._fixed.crLiquidation,
             collateralPremiumToLiquidator: state._fixed.collateralPremiumToLiquidator,
             collateralPremiumToProtocol: state._fixed.collateralPremiumToProtocol,
-            minimumCreditBorrowAsset: state._fixed.minimumCreditBorrowAsset
+            minimumCreditBorrowAsset: state._fixed.minimumCreditBorrowAsset,
+            collateralTokenCap: state._fixed.collateralTokenCap,
+            borrowATokenCap: state._fixed.borrowATokenCap,
+            debtTokenCap: state._fixed.debtTokenCap
         });
     }
 

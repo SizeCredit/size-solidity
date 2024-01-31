@@ -28,7 +28,7 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
         uint256 solId = _borrowAsMarketOrder(alice, james, 5e6, 12, [loanId]);
         uint256 minimumCollateralRatio = 1e18;
 
-        _deposit(liquidator, usdc, 10_000e18);
+        _deposit(liquidator, usdc, 10_000e6);
 
         vm.startPrank(liquidator);
         vm.expectRevert(

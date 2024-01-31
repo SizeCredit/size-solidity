@@ -27,7 +27,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _deposit(candy, weth, 1000e18);
+        _deposit(candy, weth, 400e18);
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
@@ -72,7 +72,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _deposit(candy, weth, 1000e18);
+        _deposit(candy, weth, 400e18);
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
@@ -142,7 +142,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _deposit(candy, weth, 1000e18);
+        _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);

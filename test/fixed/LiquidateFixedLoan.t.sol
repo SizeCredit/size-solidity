@@ -140,7 +140,6 @@ contract LiquidateFixedLoanTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _deposit(liquidator, weth, 1000e18);
         _deposit(liquidator, usdc, 1000e6);
 
         _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);

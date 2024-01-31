@@ -68,5 +68,9 @@ library Errors {
 
     error PROXY_CALL_FAILED(address target, bytes data);
 
+    error COLLATERAL_TOKEN_CAP_EXCEEDED();
+    error BORROW_ATOKEN_CAP_EXCEEDED();
+    error DEBT_TOKEN_CAP_EXCEEDED();
+
     error NOT_SUPPORTED();
 }

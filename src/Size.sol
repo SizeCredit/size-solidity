@@ -40,6 +40,7 @@ import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.so
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
+import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
@@ -73,6 +74,7 @@ contract Size is
     using LiquidateFixedLoanWithReplacement for State;
     using Compensate for State;
     using FixedLibrary for State;
+    using CapsLibrary for State;
 
     bytes32 public constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
@@ -106,6 +108,8 @@ contract Size is
     function deposit(DepositParams calldata params) external override(ISize) whenNotPaused {
         state.validateDeposit(params);
         state.executeDeposit(params);
+        state.validateCollateralTokenCap();
+        state.validateBorrowATokenCap();
     }
 
     /// @inheritdoc ISize
@@ -132,6 +136,7 @@ contract Size is
         state.validateLendAsMarketOrder(params);
         state.executeLendAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(params.borrower);
+        state.validateDebtTokenCap();
     }
 
     /// @inheritdoc ISize
@@ -139,6 +144,7 @@ contract Size is
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(msg.sender);
+        state.validateDebtTokenCap();
     }
 
     /// @inheritdoc ISize
@@ -192,6 +198,7 @@ contract Size is
         (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
             state.executeLiquidateFixedLoanWithReplacement(params);
         state.validateUserIsNotLiquidatable(params.borrower);
+        state.validateDebtTokenCap();
     }
 
     /// @inheritdoc ISize
