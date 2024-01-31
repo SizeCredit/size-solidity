@@ -15,7 +15,7 @@ import {Deploy} from "@test/Deploy.sol";
 contract DeployScript is BaseScript, Addresses, Deploy {
     function setUp() public {}
 
-    function run() public {
+    function run() public broadcast {
         console.log("[Size v2] deploying...");
         uint256 deployerPk = setupLocalhostEnv(0);
         address deployer = vm.addr(deployerPk);
