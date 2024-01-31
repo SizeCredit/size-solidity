@@ -10,7 +10,7 @@ import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
-import {UserProxy} from "@src/proxy/UserProxy.sol";
+import {Vault} from "@src/proxy/Vault.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -130,7 +130,7 @@ library Initialize {
     }
 
     function _executeInitializeVariable(State storage state) internal {
-        state._variable.userProxyImplementation = address(new UserProxy());
+        state._variable.vaultImplementation = address(new Vault());
     }
 
     function executeInitialize(State storage state, InitializeGeneralParams memory g, InitializeFixedParams memory f)

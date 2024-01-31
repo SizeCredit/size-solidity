@@ -10,7 +10,7 @@ library Events {
     // General
     event Initialize(InitializeGeneralParams g, InitializeFixedParams f);
     event UpdateConfig(bytes32 key, uint256 value);
-    event CreateUserProxy(address indexed user, address indexed proxy);
+    event CreateVault(address indexed user, address indexed vault);
 
     // Fixed
     event Deposit(address indexed token, address indexed to, uint256 amount);

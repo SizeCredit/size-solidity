@@ -36,7 +36,7 @@ struct Fixed {
 }
 
 struct Variable {
-    address userProxyImplementation;
+    address vaultImplementation;
     uint256 collateralOverdueTransferFee;
 }
 
