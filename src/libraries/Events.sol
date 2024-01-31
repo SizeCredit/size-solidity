@@ -3,12 +3,16 @@ pragma solidity 0.8.20;
 
 import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {InitializeFixedParams, InitializeGeneralParams} from "@src/libraries/general/actions/Initialize.sol";
+import {
+    InitializeFixedParams,
+    InitializeGeneralParams,
+    InitializeVariableParams
+} from "@src/libraries/general/actions/Initialize.sol";
 
 // solhint-disable var-name-mixedcase
 library Events {
     // General
-    event Initialize(InitializeGeneralParams g, InitializeFixedParams f);
+    event Initialize(InitializeGeneralParams g, InitializeFixedParams f, InitializeVariableParams v);
     event UpdateConfig(bytes32 key, uint256 value);
     event CreateUserProxy(address indexed user, address indexed proxy);
 

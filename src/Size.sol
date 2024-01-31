@@ -9,7 +9,10 @@ import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Mu
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {
-    Initialize, InitializeFixedParams, InitializeGeneralParams
+    Initialize,
+    InitializeFixedParams,
+    InitializeGeneralParams,
+    InitializeVariableParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
@@ -82,15 +85,19 @@ contract Size is
         _disableInitializers();
     }
 
-    function initialize(InitializeGeneralParams calldata g, InitializeFixedParams calldata f) external initializer {
-        state.validateInitialize(g, f);
+    function initialize(
+        InitializeGeneralParams calldata g,
+        InitializeFixedParams calldata f,
+        InitializeVariableParams calldata v
+    ) external initializer {
+        state.validateInitialize(g, f, v);
 
         __AccessControl_init();
         __Pausable_init();
         __Multicall_init();
         __UUPSUpgradeable_init();
 
-        state.executeInitialize(g, f);
+        state.executeInitialize(g, f, v);
         _grantRole(DEFAULT_ADMIN_ROLE, g.owner);
     }
 
