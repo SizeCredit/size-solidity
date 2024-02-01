@@ -7,6 +7,7 @@ import "../src/libraries/fixed/YieldCurveLibrary.sol";
 
 contract BorrowLimitOrder is Script {
     function run() external {
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
 
         Size sizeContract = Size(sizeContractAddress);
@@ -30,7 +31,7 @@ contract BorrowLimitOrder is Script {
             curveRelativeTime: curveRelativeTime
         });
 
-        vm.startBroadcast();
+        vm.startBroadcast(deployerPrivateKey);
         sizeContract.borrowAsLimitOrder(params);
         vm.stopBroadcast();
     }
