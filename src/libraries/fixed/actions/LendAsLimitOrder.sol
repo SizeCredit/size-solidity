@@ -11,7 +11,6 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct LendAsLimitOrderParams {
-    uint256 maxAmount; // in decimals (e.g. 1_000e6 for 1000 USDC)
     uint256 maxDueDate;
     YieldCurve curveRelativeTime;
 }
@@ -19,16 +18,8 @@ struct LendAsLimitOrderParams {
 library LendAsLimitOrder {
     using VariableLibrary for State;
 
-    function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external view {
+    function validateLendAsLimitOrder(State storage, LendAsLimitOrderParams calldata params) external view {
         // validate msg.sender
-
-        // validate params.maxAmount
-        if (params.maxAmount == 0) {
-            revert Errors.NULL_AMOUNT();
-        }
-        if (params.maxAmount > state.borrowATokenBalanceOf(msg.sender)) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), params.maxAmount);
-        }
 
         // validate maxDueDate
         if (params.maxDueDate == 0) {
@@ -43,11 +34,8 @@ library LendAsLimitOrder {
     }
 
     function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external {
-        state._fixed.users[msg.sender].loanOffer = FixedLoanOffer({
-            maxAmount: params.maxAmount,
-            maxDueDate: params.maxDueDate,
-            curveRelativeTime: params.curveRelativeTime
-        });
-        emit Events.LendAsLimitOrder(params.maxAmount, params.maxDueDate, params.curveRelativeTime);
+        state._fixed.users[msg.sender].loanOffer =
+            FixedLoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
+        emit Events.LendAsLimitOrder(params.maxDueDate, params.curveRelativeTime);
     }
 }

@@ -17,8 +17,8 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(alice, 12, 0, 12);
+        _lendAsLimitOrder(candy, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsMarketOrder(bob, candy, 100e6, 12);
 
@@ -28,7 +28,9 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.USER_NOT_LIQUIDATABLE.selector, bob, 1.5e18));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, loanId, 1.5e18, FixedLoanStatus.ACTIVE)
+        );
         size.selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));
         vm.stopPrank();
 
@@ -51,7 +53,7 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
         vm.startPrank(alice);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), FixedLoanStatus.REPAID
+                Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), FixedLoanStatus.REPAID
             )
         );
         size.selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));

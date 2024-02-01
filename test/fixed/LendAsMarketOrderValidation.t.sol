@@ -16,7 +16,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, weth, 2 * 150e18);
         _deposit(bob, usdc, 10e6);
-        _borrowAsLimitOrder(alice, 200e6, 0, 12);
+        _borrowAsLimitOrder(alice, 0, 12);
 
         uint256 dueDate = block.timestamp;
 
@@ -25,11 +25,6 @@ contract LendAsMarketOrderValidationTest is BaseTest {
         vm.expectRevert();
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: address(0), dueDate: dueDate, amount: 100e6, exactAmountIn: false})
-        );
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 200e6 + 1, 200e6));
-        size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: alice, dueDate: dueDate, amount: 200e6 + 1, exactAmountIn: true})
         );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 10e6, 100e6));

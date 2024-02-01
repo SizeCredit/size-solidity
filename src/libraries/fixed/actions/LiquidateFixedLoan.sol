@@ -123,11 +123,11 @@ library LiquidateFixedLoan {
         emit Events.LiquidateFixedLoan(params.loanId, params.minimumCollateralRatio, collateralRatio, loanStatus);
 
         // case 1a: the user is liquidatable
-        if (PERCENT < collateralRatio && collateralRatio < state._fixed.crLiquidation) {
+        if (PERCENT <= collateralRatio && collateralRatio < state._fixed.crLiquidation) {
             emit Events.LiquidateFixedLoanUserLiquidatableProfitably(params.loanId);
             liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, params, true);
             // case 1b: the user is liquidatable
-        } else if (0 <= collateralRatio && collateralRatio <= PERCENT) {
+        } else if (0 <= collateralRatio && collateralRatio < PERCENT) {
             emit Events.LiquidateFixedLoanUserLiquidatableUnprofitably(params.loanId);
             liquidatorProfitCollateralToken =
                 _executeLiquidateFixedLoanTakeCollateral(state, params, false /* this parameter should not matter */ );

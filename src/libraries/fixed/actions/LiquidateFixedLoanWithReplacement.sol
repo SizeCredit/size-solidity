@@ -74,8 +74,6 @@ library LiquidateFixedLoanWithReplacement {
         uint256 amountOut = Math.mulDivDown(faceValue, PERCENT, r);
         uint256 liquidatorProfitBorrowAsset = faceValue - amountOut;
 
-        borrowOffer.maxAmount -= amountOut;
-
         fol.borrower = params.borrower;
         fol.liquidityIndexAtRepayment = 0;
         fol.repaid = false;
