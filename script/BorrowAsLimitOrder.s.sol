@@ -11,7 +11,6 @@ contract BorrowLimitOrder is Script {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
 
         Size sizeContract = Size(sizeContractAddress);
-        uint256 maxAmount = 1e6;
 
         uint256[] memory timeBuckets = new uint256[](2);
         timeBuckets[0] = 3600;
@@ -23,11 +22,12 @@ contract BorrowLimitOrder is Script {
 
         YieldCurve memory curveRelativeTime = YieldCurve({
             timeBuckets: timeBuckets,
+            marketRateMultipliers: new int256[](2),
             rates: rates
         });
 
         BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({
-            maxAmount: maxAmount,
+            riskCR: 0,
             curveRelativeTime: curveRelativeTime
         });
 

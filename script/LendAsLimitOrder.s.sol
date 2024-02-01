@@ -4,7 +4,6 @@ pragma solidity ^0.8.20;
 import "forge-std/Script.sol";
 import "../src/Size.sol";
 import "../src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import "../src/libraries/fixed/YieldCurveLibrary.sol";
 
 contract DepositScript is Script {
     function run() external {
@@ -28,11 +27,11 @@ contract DepositScript is Script {
 
         YieldCurve memory curveRelativeTime = YieldCurve({
             timeBuckets: timeBuckets,
+            marketRateMultipliers: new int256[](2),
             rates: rates
         });
 
         LendAsLimitOrderParams memory params = LendAsLimitOrderParams({
-            maxAmount: maxAmount,
             maxDueDate: maxDueDate,
             curveRelativeTime: curveRelativeTime
         });
