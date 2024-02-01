@@ -27,7 +27,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     function test_Experiments_test1() public {
         _deposit(alice, usdc, 100e6);
         assertEq(_state().alice.borrowAmount, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 10, 0.03e18, 12);
         _deposit(james, weth, 50e18);
         assertEq(_state().james.collateralAmount, 50e18);
 
@@ -39,7 +39,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e6);
-        _lendAsLimitOrder(bob, 100e6, 10, 0.02e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.02e18, 12);
         console.log("alice borrows form bob using virtual collateral");
         console.log("(do not use full SOL credit)");
         _borrowAsMarketOrder(alice, bob, 50e6, 6, [uint256(0)]);
@@ -65,7 +65,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     function test_Experiments_test3() public {
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e6);
-        _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
         _deposit(alice, weth, 2e18);
         _borrowAsMarketOrder(alice, bob, 100e6, 6);
         assertGe(size.collateralRatio(alice), size.fixedConfig().crOpening);
@@ -88,14 +88,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lending as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
 
         // Deposit by candy in USDC
         _deposit(candy, usdc, 100e6);
         assertEq(_state().candy.borrowAmount, 100e6);
 
         // Candy lending as limit order
-        _lendAsLimitOrder(candy, 100e6, 10, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 10, 0.05e18, 12);
 
         // Deposit by alice in WETH
         _deposit(alice, weth, 50e18);
@@ -129,14 +129,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
 
         // James deposits in USDC
         _deposit(james, usdc, 100e6);
         assertEq(_state().james.borrowAmount, 100e6);
 
         // James lends as limit order
-        _lendAsLimitOrder(james, 100e6, 12, 0.05e18, 12);
+        _lendAsLimitOrder(james, 12, 0.05e18, 12);
 
         // Alice deposits in ETH and USDC
         _deposit(alice, weth, 50e18);
@@ -176,7 +176,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 50e18);
@@ -217,7 +217,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 2e18);
@@ -252,7 +252,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _deposit(alice, weth, 2e18);
 
         // Alice places a borrow limit order
-        _borrowAsLimitOrder(alice, 100e6, 0.03e18, 12);
+        _borrowAsLimitOrder(alice, 0.03e18, 12);
 
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
@@ -274,13 +274,13 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
 
         // Candy deposits in WETH
         _deposit(candy, weth, 2e18);
 
         // Candy places a borrow limit order
-        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 0.03e18, 12);
 
         // Alice deposits in WETH and USDC
         _deposit(alice, weth, 50e18);
@@ -300,7 +300,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 2e18);
@@ -315,7 +315,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
         _deposit(candy, weth, 200e18);
         assertEq(_state().candy.collateralAmount, 200e18);
-        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 0.03e18, 12);
 
         // Update the context (time and price)
         vm.warp(block.timestamp + 1);
@@ -343,14 +343,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6, "Bob's borrow amount should be 100e6");
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
 
         // Candy deposits in USDC
         _deposit(candy, usdc, 100e6);
         assertEq(_state().candy.borrowAmount, 100e6, "Candy's borrow amount should be 100e6");
 
         // Candy lends as limit order
-        _lendAsLimitOrder(candy, 100e6, 10, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 10, 0.05e18, 12);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 50e18);

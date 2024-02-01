@@ -140,9 +140,12 @@ contract YieldCurveTest is Test {
         assertGe(rate1, rate0);
     }
 
-    function test_YieldCurve_getRate_full_random_does_not_revert(uint256 seed, uint256 p0, uint256 p1, uint256 interval)
-        public
-    {
+    function testFuzz_YieldCurve_getRate_full_random_does_not_revert(
+        uint256 seed,
+        uint256 p0,
+        uint256 p1,
+        uint256 interval
+    ) public {
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
         p0 = bound(p0, 0, curve.timeBuckets.length - 1);
         p1 = bound(p1, p0, curve.timeBuckets.length - 1);

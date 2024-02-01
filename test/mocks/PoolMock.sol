@@ -36,7 +36,7 @@ contract PoolMock is Ownable {
     }
 
     function _updateLiquidityIndex(address asset) private {
-        (bool exists, uint256 index) = reserveIndexes.tryGet(asset);
+        (bool exists,) = reserveIndexes.tryGet(asset);
         if (!exists) {
             aTokens[asset] = new AToken(IPool(address(this)));
 
@@ -54,7 +54,7 @@ contract PoolMock is Ownable {
         } else {
             // TODO: simulate interest
             // index = index * RATE / WadRayMath.RAY;
-            reserveIndexes.set(asset, index);
+            // reserveIndexes.set(asset, index);
         }
     }
 

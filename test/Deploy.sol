@@ -49,13 +49,43 @@ abstract contract Deploy {
             crLiquidation: 1.3e18,
             collateralPremiumToLiquidator: 0.3e18,
             collateralPremiumToProtocol: 0.1e18,
-            minimumCreditBorrowAsset: 5e6
+            minimumCreditBorrowAsset: 5e6,
+            collateralTokenCap: 1000e18,
+            borrowATokenCap: 1_000_000e6,
+            debtTokenCap: 500_000e6
         });
         v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (g, f, v)));
         size = Size(address(proxy));
 
         priceFeed.setPrice(1337e18);
+    }
+
+    function setupChainMockVariablePool(address _owner, address _weth, address _usdc) internal {
+        variablePool = IPool(address(new PoolMock()));
+        PoolMock(address(variablePool)).setLiquidityIndex(_usdc, WadRayMath.RAY);
+        priceFeed = new PriceFeedMock(_owner);
+        priceFeed.setPrice(2468e18);
+        g = InitializeGeneralParams({
+            owner: _owner,
+            priceFeed: address(priceFeed),
+            collateralAsset: _weth,
+            borrowAsset: _usdc,
+            feeRecipient: _owner,
+            variablePool: address(variablePool)
+        });
+        f = InitializeFixedParams({
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            collateralPremiumToLiquidator: 0.3e18,
+            collateralPremiumToProtocol: 0.1e18,
+            minimumCreditBorrowAsset: 5e6,
+            collateralTokenCap: 1000e18,
+            borrowATokenCap: 1_000_000e6,
+            debtTokenCap: 500_000e6
+        });
+        size = new Size();
+        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (g, f)));
     }
 
     function setupChain(address _owner, address pool, address _weth, address _usdc) internal {
@@ -74,7 +104,10 @@ abstract contract Deploy {
             crLiquidation: 1.3e18,
             collateralPremiumToLiquidator: 0.3e18,
             collateralPremiumToProtocol: 0.1e18,
-            minimumCreditBorrowAsset: 5e6
+            minimumCreditBorrowAsset: 5e6,
+            collateralTokenCap: 1000e18,
+            borrowATokenCap: 1_000_000e6,
+            debtTokenCap: 500_000e6
         });
         v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         size = new Size();

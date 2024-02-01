@@ -31,6 +31,9 @@ contract WithdrawTest is BaseTest {
     }
 
     function testFuzz_Withdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
+        _updateConfig("collateralTokenCap", type(uint256).max);
+        _updateConfig("borrowATokenCap", type(uint256).max);
+
         x = bound(x, 1, type(uint96).max);
         y = bound(y, 1, type(uint96).max);
         z = bound(z, 1, type(uint128).max);
@@ -53,6 +56,9 @@ contract WithdrawTest is BaseTest {
     }
 
     function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
+        _updateConfig("collateralTokenCap", type(uint256).max);
+        _updateConfig("borrowATokenCap", type(uint256).max);
+
         valueUSDC = bound(valueUSDC, 1, type(uint96).max);
         valueWETH = bound(valueWETH, 1, type(uint256).max);
         deal(address(usdc), alice, valueUSDC);
@@ -84,7 +90,7 @@ contract WithdrawTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
-        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(alice, 12, 0, 12);
         _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         vm.startPrank(bob);
@@ -150,7 +156,7 @@ contract WithdrawTest is BaseTest {
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
         uint256 rate = 1;
-        _lendAsLimitOrder(alice, 100e6, 12, rate, 12);
+        _lendAsLimitOrder(alice, 12, rate, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
@@ -168,7 +174,7 @@ contract WithdrawTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(alice, weth, 150e18);
-        _borrowAsLimitOrder(alice, 100e6, 1e18, 12);
+        _borrowAsLimitOrder(alice, 1e18, 12);
         _lendAsMarketOrder(alice, alice, 100e6, 12);
         _withdraw(alice, usdc, 10e6);
         (, IAToken borrowAToken, DebtToken debtToken) = size.tokens();
@@ -180,7 +186,7 @@ contract WithdrawTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
-        _borrowAsLimitOrder(bob, 100e6, 1e18, 12);
+        _borrowAsLimitOrder(bob, 1e18, 12);
         _lendAsMarketOrder(alice, bob, 100e6, 12);
         _withdraw(bob, usdc, 10e6);
         (, IAToken borrowAToken, DebtToken debtToken) = size.tokens();

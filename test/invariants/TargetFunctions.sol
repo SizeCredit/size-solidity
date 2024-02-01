@@ -145,7 +145,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
         hevm.prank(sender);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
 
         __after();
     }
@@ -183,9 +183,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
         hevm.prank(sender);
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
-        );
+        size.lendAsLimitOrder(LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
 
         __after();
     }
