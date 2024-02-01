@@ -10,7 +10,7 @@ library Events {
     // General
     event Initialize(InitializeGeneralParams g, InitializeFixedParams f);
     event UpdateConfig(bytes32 key, uint256 value);
-    event CreateUserProxy(address indexed user, address indexed proxy);
+    event CreateVault(address indexed user, address indexed vault);
 
     // Fixed
     event Deposit(address indexed token, address indexed to, uint256 amount);
@@ -22,9 +22,9 @@ library Events {
         bool exactAmountIn,
         uint256[] virtualCollateralFixedLoanIds
     );
-    event BorrowAsLimitOrder(uint256 maxAmount, YieldCurve curveRelativeTime);
+    event BorrowAsLimitOrder(YieldCurve curveRelativeTime);
     event LendAsMarketOrder(address indexed borrower, uint256 dueDate, uint256 amount, bool exactAmountIn);
-    event LendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, YieldCurve curveRelativeTime);
+    event LendAsLimitOrder(uint256 maxDueDate, YieldCurve curveRelativeTime);
     event CreateFixedLoan(
         uint256 indexed loanId,
         address indexed lender,

@@ -58,6 +58,7 @@ library Errors {
 
     error NOT_LIQUIDATABLE(address account);
     error LOAN_NOT_LIQUIDATABLE(uint256 loanId, uint256 cr, FixedLoanStatus status);
+    error LOAN_NOT_SELF_LIQUIDATABLE(uint256 loanId, uint256 cr, FixedLoanStatus status);
     error COLLATERAL_RATIO_BELOW_MINIMUM_COLLATERAL_RATIO(uint256 collateralRatio, uint256 minimumCollateralRatio);
     error LIQUIDATION_NOT_AT_LOSS(uint256 loanId, uint256 assignedCollateral, uint256 debtCollateral);
 
@@ -67,6 +68,10 @@ library Errors {
     error NULL_STALE_PRICE();
 
     error PROXY_CALL_FAILED(address target, bytes data);
+
+    error COLLATERAL_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
+    error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
+    error DEBT_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
 
     error NOT_SUPPORTED();
 }

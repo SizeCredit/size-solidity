@@ -17,10 +17,10 @@ contract CompensateValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
-        _lendAsLimitOrder(bob, 100e6, 12, 0.05e18, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 0.05e18, 12);
-        _lendAsLimitOrder(james, 100e6, 12, 0.05e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
+        _lendAsLimitOrder(bob, 12, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 12, 0.05e18, 12);
+        _lendAsLimitOrder(james, 12, 0.05e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
         uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, 12);
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);

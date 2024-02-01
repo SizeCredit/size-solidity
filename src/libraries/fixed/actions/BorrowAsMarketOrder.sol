@@ -19,10 +19,10 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct BorrowAsMarketOrderParams {
     address lender;
-    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC or 1_000e18 for 1000 WETH)
+    uint256 amount; // in decimals (e.g. 1_000e6)
     uint256 dueDate;
     bool exactAmountIn;
-    uint256[] virtualCollateralFixedLoanIds;
+    uint256[] virtualCollateralFixedLoanIds; // TODO: rename this (loan receivables? notional?)
 }
 
 library BorrowAsMarketOrder {
@@ -46,9 +46,6 @@ library BorrowAsMarketOrder {
         // validate params.amount
         if (params.amount == 0) {
             revert Errors.NULL_AMOUNT();
-        }
-        if (params.amount > loanOffer.maxAmount) {
-            revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(params.amount, loanOffer.maxAmount);
         }
 
         // validate params.dueDate
@@ -125,7 +122,6 @@ library BorrowAsMarketOrder {
 
             state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, faceValue: deltaAmountIn});
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
-            loanOffer.maxAmount -= deltaAmountOut;
             amountOutLeft -= deltaAmountOut;
         }
     }
@@ -157,6 +153,5 @@ library BorrowAsMarketOrder {
         state._fixed.debtToken.mint(msg.sender, faceValue);
         state.createFOL({lender: params.lender, borrower: msg.sender, faceValue: faceValue, dueDate: params.dueDate});
         state.transferBorrowAToken(params.lender, msg.sender, params.amount);
-        loanOffer.maxAmount -= params.amount;
     }
 }

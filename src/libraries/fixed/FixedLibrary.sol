@@ -156,6 +156,16 @@ library FixedLibrary {
         }
     }
 
+    function isLoanSelfLiquidatable(State storage state, uint256 loanId) public view returns (bool) {
+        FixedLoan storage loan = state._fixed.loans[loanId];
+        FixedLoanStatus status = getFixedLoanStatus(state, loan);
+        // both FOLs and SOLs can be self liquidated
+        return (
+            isUserLiquidatable(state, loan.borrower)
+                && _either(status, [FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])
+        );
+    }
+
     function isLoanLiquidatable(State storage state, uint256 loanId) public view returns (bool) {
         FixedLoan storage loan = state._fixed.loans[loanId];
         FixedLoanStatus status = getFixedLoanStatus(state, loan);

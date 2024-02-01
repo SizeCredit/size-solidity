@@ -73,7 +73,10 @@ abstract contract SizeView is SizeStorage {
             crLiquidation: state._fixed.crLiquidation,
             collateralPremiumToLiquidator: state._fixed.collateralPremiumToLiquidator,
             collateralPremiumToProtocol: state._fixed.collateralPremiumToProtocol,
-            minimumCreditBorrowAsset: state._fixed.minimumCreditBorrowAsset
+            minimumCreditBorrowAsset: state._fixed.minimumCreditBorrowAsset,
+            collateralTokenCap: state._fixed.collateralTokenCap,
+            borrowATokenCap: state._fixed.borrowATokenCap,
+            debtTokenCap: state._fixed.debtTokenCap
         });
     }
 
@@ -87,8 +90,8 @@ abstract contract SizeView is SizeStorage {
         });
     }
 
-    function getUserProxyAddress(address user) external view returns (address) {
-        return address(state._fixed.users[user].proxy);
+    function getVaultAddress(address user) external view returns (address) {
+        return address(state._fixed.users[user].vault);
     }
 
     function activeFixedLoans() external view returns (uint256) {

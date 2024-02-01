@@ -25,7 +25,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _borrowAsLimitOrder(alice, 100e6, 0.03e18, 12);
+        _borrowAsLimitOrder(alice, 0.03e18, 12);
 
         uint256 faceValue = 10e6;
         uint256 dueDate = 12;
@@ -45,7 +45,6 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue);
-        assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amountIn);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(loan.faceValue, faceValue);
         assertEq(loan.dueDate, dueDate);
@@ -57,7 +56,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _borrowAsLimitOrder(alice, 100e6, 0.03e18, 12);
+        _borrowAsLimitOrder(alice, 0.03e18, 12);
 
         uint256 amountIn = 10e6;
         uint256 dueDate = 12;
@@ -77,20 +76,19 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue);
-        assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amountIn);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(loan.faceValue, faceValue);
         assertEq(loan.dueDate, dueDate);
         assertTrue(loan.isFOL());
     }
 
-    function test_LendAsMarketOrder_lendAsMarketOrder_exactAmountIn(uint256 amountIn, uint256 seed) public {
+    function testFuzz_LendAsMarketOrder_lendAsMarketOrder_exactAmountIn(uint256 amountIn, uint256 seed) public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
-        _borrowAsLimitOrder(alice, 100e6, curve.timeBuckets, curve.rates);
+        _borrowAsLimitOrder(alice, curve.timeBuckets, curve.rates);
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.timeBuckets[0] + curve.timeBuckets[1]) / 2;
@@ -111,7 +109,6 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue);
-        assertEq(offerAfter.maxAmount, offerBefore.maxAmount - amountIn);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(loan.faceValue, faceValue);
         assertEq(loan.dueDate, dueDate);
@@ -122,7 +119,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
-        _borrowAsLimitOrder(alice, 200e6, 0, 12);
+        _borrowAsLimitOrder(alice, 0, 12);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, alice, 1.5e18 / 2));
@@ -131,12 +128,28 @@ contract LendAsMarketOrderTest is BaseTest {
         );
     }
 
+    function test_LendAsMarketOrder_lendAsMarketOrder_cannot_surpass_debtTokenCap() public {
+        _setPrice(1e18);
+        _updateConfig("debtTokenCap", 5e6);
+        _deposit(alice, weth, 150e18);
+        _deposit(bob, usdc, 200e6);
+        _borrowAsLimitOrder(alice, 0, 12);
+
+        vm.startPrank(bob);
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.fixedConfig().debtTokenCap, 10e6)
+        );
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 10e6, exactAmountIn: false})
+        );
+    }
+
     function test_LendAsMarketOrder_lendAsMarketOrder_reverts_if_dueDate_out_of_range() public {
         _setPrice(1e18);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        _borrowAsLimitOrder(alice, 200e6, curve.timeBuckets, curve.rates);
+        _borrowAsLimitOrder(alice, curve.timeBuckets, curve.rates);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));
