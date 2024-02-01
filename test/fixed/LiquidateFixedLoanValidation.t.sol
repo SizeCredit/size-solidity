@@ -18,10 +18,10 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
-        _lendAsLimitOrder(bob, 100e6, 12, 0.03e18, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
-        _lendAsLimitOrder(james, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 12, 0.03e18, 12);
+        _lendAsLimitOrder(candy, 12, 0.03e18, 12);
+        _lendAsLimitOrder(james, 12, 0.03e18, 12);
         _borrowAsMarketOrder(bob, candy, 90e6, 12);
 
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);

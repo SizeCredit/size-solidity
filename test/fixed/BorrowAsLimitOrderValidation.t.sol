@@ -24,41 +24,25 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
         size.borrowAsLimitOrder(
-            BorrowAsLimitOrderParams({
-                maxAmount: maxAmount,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates1})
-            })
+            BorrowAsLimitOrderParams({curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates1})})
         );
 
         uint256[] memory empty;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
         size.borrowAsLimitOrder(
-            BorrowAsLimitOrderParams({
-                maxAmount: maxAmount,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: empty})
-            })
+            BorrowAsLimitOrderParams({curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: empty})})
         );
 
         uint256[] memory rates = new uint256[](2);
         rates[0] = 1.01e18;
         rates[1] = 1.02e18;
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        size.borrowAsLimitOrder(
-            BorrowAsLimitOrderParams({
-                maxAmount: 0,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
-            })
-        );
 
         timeBuckets[0] = 2 days;
         timeBuckets[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.TIME_BUCKETS_NOT_STRICTLY_INCREASING.selector));
         size.borrowAsLimitOrder(
-            BorrowAsLimitOrderParams({
-                maxAmount: maxAmount,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
-            })
+            BorrowAsLimitOrderParams({curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})})
         );
     }
 }

@@ -16,7 +16,7 @@ contract ClaimTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
         uint256 amountFixedLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
         _repay(bob, loanId);
@@ -41,9 +41,9 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(candy, 12, 0.03e18, 12);
         uint256 r = PERCENT + 0.03e18;
 
         uint256 faceValueExited = 10e6;
@@ -71,8 +71,8 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(alice, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
 
@@ -93,8 +93,8 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(alice, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         Vars memory _before = _state();
@@ -118,8 +118,8 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(alice, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         Vars memory _before = _state();
@@ -139,7 +139,7 @@ contract ClaimTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 300e18);
         _deposit(liquidator, usdc, 10000e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(alice, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         _setPrice(0.75e18);
@@ -162,8 +162,8 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, usdc, 10e6);
         _deposit(liquidator, usdc, 1000e6);
-        _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(candy, 10e6, 12, 0, 12);
+        _lendAsLimitOrder(bob, 12, 0, 12);
+        _lendAsLimitOrder(candy, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(alice, bob, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(bob, candy, 10e6, 12, [loanId]);
         (, IAToken borrowAToken,) = size.tokens();

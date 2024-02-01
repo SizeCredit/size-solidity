@@ -17,11 +17,11 @@ contract BorrowerExitValidationTest is BaseTest {
         _deposit(candy, weth, 150e18);
         _deposit(james, usdc, 100e6);
         _deposit(james, weth, 150e18);
-        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
-        _lendAsLimitOrder(james, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(alice, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 12, 1e18, 12);
+        _lendAsLimitOrder(james, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        _borrowAsLimitOrder(candy, 10e6, 0, 12);
+        _borrowAsLimitOrder(candy, 0, 12);
         uint256 loanId2 = _borrowAsMarketOrder(candy, james, 50e6, 12);
         uint256 solId = _borrowAsMarketOrder(james, candy, 10e6, 12, [loanId2]);
 
@@ -45,12 +45,9 @@ contract BorrowerExitValidationTest is BaseTest {
         vm.stopPrank();
 
         _deposit(bob, usdc, 100e6);
-        _borrowAsLimitOrder(candy, 1, 0, 12);
+        _borrowAsLimitOrder(candy, 0, 12);
 
         vm.startPrank(bob);
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT.selector, 200e6, 1));
-        size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
 
         // @audit-info BE-01
         vm.warp(block.timestamp + 12);
