@@ -165,4 +165,16 @@ contract YieldCurveTest is Test {
         assertGe(r, min);
         assertLe(r, max);
     }
+
+    function test_YieldCurve_getRate_with_non_null_marketBorrowRate() public {
+        YieldCurve memory curve = YieldCurveHelper.marketCurve();
+
+        assertEq(YieldCurveLibrary.getRate(curve, 0.31415e18, block.timestamp + 60 days), 0.31415e18 + 0.02e18);
+    }
+
+    function test_YieldCurve_getRate_with_non_null_marketBorrowRate_negative_multiplier() public {
+        YieldCurve memory curve = YieldCurveHelper.negativeMarketCurve();
+
+        assertEq(YieldCurveLibrary.getRate(curve, 0.01337e18, block.timestamp + 60 days), 0.04e18 - 0.01337e18);
+    }
 }

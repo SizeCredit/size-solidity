@@ -185,39 +185,41 @@ library YieldCurveHelper {
         return YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
     }
 
-    function marketCurve() public pure returns (YieldCurve memory) {
-        uint256[] memory timeBuckets = new uint256[](5);
-        uint256[] memory rates = new uint256[](5);
-        int256[] memory marketRateMultipliers = new int256[](5);
+    function marketCurve() public pure returns (YieldCurve memory curve) {
+        curve = normalCurve();
 
-        timeBuckets[0] = 0 days;
-        timeBuckets[1] = 60 days;
-        timeBuckets[2] = 180 days;
-        timeBuckets[3] = 360 days;
-        timeBuckets[4] = 720 days;
+        curve.marketRateMultipliers[0] = 1e18;
+        curve.marketRateMultipliers[1] = 1e18;
+        curve.marketRateMultipliers[2] = 1e18;
+        curve.marketRateMultipliers[3] = 1e18;
+        curve.marketRateMultipliers[4] = 1e18;
+    }
 
-        marketRateMultipliers[0] = 1e18;
-        marketRateMultipliers[1] = 1e18;
-        marketRateMultipliers[2] = 1e18;
-        marketRateMultipliers[3] = 1e18;
-        marketRateMultipliers[4] = 1e18;
+    function negativeMarketCurve() public pure returns (YieldCurve memory curve) {
+        curve = negativeCurve();
 
-        return YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
+        curve.marketRateMultipliers[0] = -1e18;
+        curve.marketRateMultipliers[1] = -1e18;
+        curve.marketRateMultipliers[2] = -1e18;
+        curve.marketRateMultipliers[3] = -1e18;
+        curve.marketRateMultipliers[4] = -1e18;
     }
 
     function getRandomYieldCurve(uint256 seed) public pure returns (YieldCurve memory) {
-        if (seed % 6 == 0) {
+        if (seed % 7 == 0) {
             return normalCurve();
-        } else if (seed % 6 == 1) {
+        } else if (seed % 7 == 1) {
             return flatCurve();
-        } else if (seed % 6 == 2) {
+        } else if (seed % 7 == 2) {
             return invertedCurve();
-        } else if (seed % 6 == 3) {
+        } else if (seed % 7 == 3) {
             return humpedCurve();
-        } else if (seed % 6 == 4) {
+        } else if (seed % 7 == 4) {
             return steepCurve();
-        } else if (seed % 6 == 5) {
+        } else if (seed % 7 == 5) {
             return marketCurve();
+        } else if (seed % 7 == 6) {
+            return negativeMarketCurve();
         } else {
             return negativeCurve();
         }
