@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 import "../src/Size.sol";
 import "../src/libraries/fixed/YieldCurveLibrary.sol";
 
-contract DepositScript is Script {
+contract BorrowLimitOrder is Script {
     function run() external {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
 
