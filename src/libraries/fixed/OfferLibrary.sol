@@ -9,6 +9,7 @@ struct FixedLoanOffer {
 }
 
 struct BorrowOffer {
+    uint256 riskCR;
     YieldCurve curveRelativeTime;
 }
 
@@ -25,11 +26,11 @@ library OfferLibrary {
         return self.curveRelativeTime.timeBuckets.length == 0 && self.curveRelativeTime.rates.length == 0;
     }
 
-    function getRate(FixedLoanOffer memory self, uint256 dueDate) internal view returns (uint256) {
-        return YieldCurveLibrary.getRate(self.curveRelativeTime, dueDate);
+    function getRate(FixedLoanOffer memory self, uint256 marketRate, uint256 dueDate) internal view returns (uint256) {
+        return YieldCurveLibrary.getRate(self.curveRelativeTime, marketRate, dueDate);
     }
 
-    function getRate(BorrowOffer memory self, uint256 dueDate) internal view returns (uint256) {
-        return YieldCurveLibrary.getRate(self.curveRelativeTime, dueDate);
+    function getRate(BorrowOffer memory self, uint256 marketRate, uint256 dueDate) internal view returns (uint256) {
+        return YieldCurveLibrary.getRate(self.curveRelativeTime, marketRate, dueDate);
     }
 }

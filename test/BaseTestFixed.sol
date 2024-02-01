@@ -66,11 +66,13 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     ) internal {
         uint256[] memory rates = new uint256[](2);
         uint256[] memory timeBuckets = new uint256[](2);
+        int256[] memory marketRateMultipliers = new int256[](2);
         rates[0] = ratesArray[0];
         rates[1] = ratesArray[1];
         timeBuckets[0] = timeBucketsArray[0];
         timeBuckets[1] = timeBucketsArray[1];
-        YieldCurve memory curveRelativeTime = YieldCurve({timeBuckets: timeBuckets, rates: rates});
+        YieldCurve memory curveRelativeTime =
+            YieldCurve({timeBuckets: timeBuckets, marketRateMultipliers: marketRateMultipliers, rates: rates});
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
@@ -155,16 +157,19 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return size.activeFixedLoans() > 0 ? size.activeFixedLoans() - 1 : type(uint256).max;
     }
 
-    function _borrowAsLimitOrder(address borrower, uint256[] memory timeBuckets, uint256[] memory rates) internal {
-        YieldCurve memory curveRelativeTime = YieldCurve({timeBuckets: timeBuckets, rates: rates});
+    function _borrowAsLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {
         vm.prank(borrower);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({riskCR: 0, curveRelativeTime: curveRelativeTime}));
     }
 
     function _borrowAsLimitOrder(address borrower, uint256 rate, uint256 timeBucketsLength) internal {
         YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(timeBucketsLength, rate);
+        return _borrowAsLimitOrder(borrower, 0, curveRelativeTime);
+    }
+
+    function _borrowAsLimitOrder(address borrower, uint256 riskCR, YieldCurve memory curveRelativeTime) internal {
         vm.prank(borrower);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({riskCR: riskCR, curveRelativeTime: curveRelativeTime}));
     }
 
     function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate)

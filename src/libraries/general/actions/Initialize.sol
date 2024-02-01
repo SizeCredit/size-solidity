@@ -6,6 +6,8 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
+
+import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
@@ -20,6 +22,7 @@ import {Events} from "@src/libraries/Events.sol";
 struct InitializeGeneralParams {
     address owner;
     address priceFeed;
+    address marketBorrowRateFeed;
     address collateralAsset;
     address borrowAsset;
     address feeRecipient;
@@ -50,6 +53,11 @@ library Initialize {
 
         // validate price feed
         if (g.priceFeed == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate marketBorrowRateFeed
+        if (g.marketBorrowRateFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
@@ -131,6 +139,7 @@ library Initialize {
 
     function _executeInitializeGeneral(State storage state, InitializeGeneralParams memory g) internal {
         state._general.priceFeed = IPriceFeed(g.priceFeed);
+        state._general.marketBorrowRateFeed = IMarketBorrowRateFeed(g.marketBorrowRateFeed);
         state._general.collateralAsset = IERC20Metadata(g.collateralAsset);
         state._general.borrowAsset = IERC20Metadata(g.borrowAsset);
         state._general.feeRecipient = g.feeRecipient;
@@ -158,7 +167,7 @@ library Initialize {
     }
 
     function _executeInitializeVariable(State storage state, InitializeVariableParams memory v) internal {
-        state._variable.userProxyImplementation = address(new UserProxy());
+        state._variable.vaultImplementation = address(new Vault());
         state._variable.collateralOverdueTransferFee = v.collateralOverdueTransferFee;
     }
 

@@ -32,14 +32,12 @@ contract LendAsMarketOrderTest is BaseTest {
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + 0.03e18);
 
         Vars memory _before = _state();
-        BorrowOffer memory offerBefore = size.getUserView(alice).user.borrowOffer;
         uint256 loansBefore = size.activeFixedLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, faceValue, dueDate);
         FixedLoan memory loan = size.getFixedLoan(loanId);
 
         Vars memory _after = _state();
-        BorrowOffer memory offerAfter = size.getUserView(alice).user.borrowOffer;
         uint256 loansAfter = size.activeFixedLoans();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
@@ -63,14 +61,12 @@ contract LendAsMarketOrderTest is BaseTest {
         uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + 0.03e18, PERCENT);
 
         Vars memory _before = _state();
-        BorrowOffer memory offerBefore = size.getUserView(alice).user.borrowOffer;
         uint256 loansBefore = size.activeFixedLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
         FixedLoan memory loan = size.getFixedLoan(loanId);
 
         Vars memory _after = _state();
-        BorrowOffer memory offerAfter = size.getUserView(alice).user.borrowOffer;
         uint256 loansAfter = size.activeFixedLoans();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
@@ -88,22 +84,20 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
-        _borrowAsLimitOrder(alice, curve.timeBuckets, curve.rates);
+        _borrowAsLimitOrder(alice, curve);
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.timeBuckets[0] + curve.timeBuckets[1]) / 2;
-        uint256 r = PERCENT + YieldCurveLibrary.getRate(curve, dueDate);
+        uint256 r = PERCENT + YieldCurveLibrary.getRate(curve, 0, dueDate);
         uint256 faceValue = Math.mulDivDown(amountIn, r, PERCENT);
 
         Vars memory _before = _state();
-        BorrowOffer memory offerBefore = size.getUserView(alice).user.borrowOffer;
         uint256 loansBefore = size.activeFixedLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
         FixedLoan memory loan = size.getFixedLoan(loanId);
 
         Vars memory _after = _state();
-        BorrowOffer memory offerAfter = size.getUserView(alice).user.borrowOffer;
         uint256 loansAfter = size.activeFixedLoans();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
@@ -122,7 +116,11 @@ contract LendAsMarketOrderTest is BaseTest {
         _borrowAsLimitOrder(alice, 0, 12);
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, alice, 1.5e18 / 2));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, alice, 1.5e18 / 2, 1.5e18
+            )
+        );
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 200e6, exactAmountIn: false})
         );
@@ -149,7 +147,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        _borrowAsLimitOrder(alice, curve.timeBuckets, curve.rates);
+        _borrowAsLimitOrder(alice, curve);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));

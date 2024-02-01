@@ -30,7 +30,7 @@ library BorrowerExit {
         BorrowOffer memory borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
         FixedLoan memory fol = state._fixed.loans[params.loanId];
 
-        uint256 rate = borrowOffer.getRate(fol.dueDate);
+        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), fol.dueDate);
         uint256 r = PERCENT + rate;
         uint256 faceValue = fol.faceValue;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
@@ -61,7 +61,7 @@ library BorrowerExit {
         BorrowOffer storage borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
         FixedLoan storage fol = state._fixed.loans[params.loanId];
 
-        uint256 rate = borrowOffer.getRate(fol.dueDate);
+        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), fol.dueDate);
         uint256 r = PERCENT + rate;
         uint256 faceValue = fol.faceValue;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
