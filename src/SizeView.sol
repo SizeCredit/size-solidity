@@ -13,7 +13,11 @@ import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
-import {InitializeFixedParams, InitializeGeneralParams} from "@src/libraries/general/actions/Initialize.sol";
+import {
+    InitializeFixedParams,
+    InitializeGeneralParams,
+    InitializeVariableParams
+} from "@src/libraries/general/actions/Initialize.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 struct UserView {
@@ -78,6 +82,10 @@ abstract contract SizeView is SizeStorage {
             borrowATokenCap: state._fixed.borrowATokenCap,
             debtTokenCap: state._fixed.debtTokenCap
         });
+    }
+
+    function variableConfig() external view returns (InitializeVariableParams memory) {
+        return InitializeVariableParams({collateralOverdueTransferFee: state._variable.collateralOverdueTransferFee});
     }
 
     function getUserView(address user) external view returns (UserView memory) {

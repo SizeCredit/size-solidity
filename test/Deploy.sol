@@ -11,7 +11,10 @@ import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {Size} from "@src/Size.sol";
 import {
-    Initialize, InitializeFixedParams, InitializeGeneralParams
+    Initialize,
+    InitializeFixedParams,
+    InitializeGeneralParams,
+    InitializeVariableParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
@@ -24,6 +27,7 @@ abstract contract Deploy {
     USDC internal usdc;
     InitializeGeneralParams internal g;
     InitializeFixedParams internal f;
+    InitializeVariableParams internal v;
     IPool internal variablePool;
 
     function setup(address owner, address feeRecipient) internal {
@@ -37,8 +41,8 @@ abstract contract Deploy {
             priceFeed: address(priceFeed),
             collateralAsset: address(weth),
             borrowAsset: address(usdc),
-            feeRecipient: feeRecipient,
-            variablePool: address(variablePool)
+            feeRecipient: feeRecipient, // our multisig
+            variablePool: address(variablePool) // SizeAave
         });
         f = InitializeFixedParams({
             crOpening: 1.5e18,
@@ -50,7 +54,8 @@ abstract contract Deploy {
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6
         });
-        proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (g, f)));
+        v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
+        proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (g, f, v)));
         size = Size(address(proxy));
 
         priceFeed.setPrice(1337e18);
@@ -104,8 +109,9 @@ abstract contract Deploy {
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6
         });
+        v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         size = new Size();
-        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (g, f)));
+        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (g, f, v)));
         priceFeed.setPrice(2468e18);
     }
 }

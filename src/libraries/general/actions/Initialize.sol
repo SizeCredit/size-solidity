@@ -37,6 +37,10 @@ struct InitializeFixedParams {
     uint256 debtTokenCap;
 }
 
+struct InitializeVariableParams {
+    uint256 collateralOverdueTransferFee;
+}
+
 library Initialize {
     function _validateInitializeGeneralParams(InitializeGeneralParams memory g) internal pure {
         // validate owner
@@ -109,12 +113,20 @@ library Initialize {
         }
     }
 
-    function validateInitialize(State storage, InitializeGeneralParams memory g, InitializeFixedParams memory f)
-        external
-        pure
-    {
+    function _validateInitializeVariableParams(InitializeVariableParams memory) internal pure {
+        // validate collateralOverdueTransferFee
+        // N/A
+    }
+
+    function validateInitialize(
+        State storage,
+        InitializeGeneralParams memory g,
+        InitializeFixedParams memory f,
+        InitializeVariableParams memory v
+    ) external pure {
         _validateInitializeGeneralParams(g);
         _validateInitializeFixedParams(f);
+        _validateInitializeVariableParams(v);
     }
 
     function _executeInitializeGeneral(State storage state, InitializeGeneralParams memory g) internal {
@@ -145,16 +157,20 @@ library Initialize {
         state._fixed.debtTokenCap = f.debtTokenCap;
     }
 
-    function _executeInitializeVariable(State storage state) internal {
-        state._variable.vaultImplementation = address(new Vault());
+    function _executeInitializeVariable(State storage state, InitializeVariableParams memory v) internal {
+        state._variable.userProxyImplementation = address(new UserProxy());
+        state._variable.collateralOverdueTransferFee = v.collateralOverdueTransferFee;
     }
 
-    function executeInitialize(State storage state, InitializeGeneralParams memory g, InitializeFixedParams memory f)
-        external
-    {
+    function executeInitialize(
+        State storage state,
+        InitializeGeneralParams memory g,
+        InitializeFixedParams memory f,
+        InitializeVariableParams memory v
+    ) external {
         _executeInitializeGeneral(state, g);
         _executeInitializeFixed(state, f);
-        _executeInitializeVariable(state);
-        emit Events.Initialize(g, f);
+        _executeInitializeVariable(state, v);
+        emit Events.Initialize(g, f, v);
     }
 }
