@@ -5,6 +5,8 @@ import {Test} from "forge-std/Test.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
+import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
+
 import {UserView} from "@src/SizeView.sol";
 
 import {Deploy} from "./Deploy.sol";
@@ -62,6 +64,11 @@ abstract contract BaseTestGeneral is Test, Deploy {
     function _setPrice(uint256 price) internal {
         vm.prank(address(this));
         priceFeed.setPrice(price);
+    }
+
+    function _updateConfig(bytes32 key, uint256 value) internal {
+        vm.prank(address(this));
+        size.updateConfig(UpdateConfigParams({key: key, value: value}));
     }
 
     function _setKeeperRole(address user) internal {

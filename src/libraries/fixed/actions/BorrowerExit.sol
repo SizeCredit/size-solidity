@@ -30,7 +30,7 @@ library BorrowerExit {
         BorrowOffer memory borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
         FixedLoan memory fol = state._fixed.loans[params.loanId];
 
-        uint256 rate = borrowOffer.getRate(fol.dueDate);
+        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), fol.dueDate);
         uint256 r = PERCENT + rate;
         uint256 faceValue = fol.faceValue;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
@@ -53,9 +53,6 @@ library BorrowerExit {
         }
 
         // validate borrowerToExitTo
-        if (amountIn > borrowOffer.maxAmount) {
-            revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(amountIn, borrowOffer.maxAmount);
-        }
     }
 
     function executeBorrowerExit(State storage state, BorrowerExitParams calldata params) external {
@@ -64,7 +61,7 @@ library BorrowerExit {
         BorrowOffer storage borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
         FixedLoan storage fol = state._fixed.loans[params.loanId];
 
-        uint256 rate = borrowOffer.getRate(fol.dueDate);
+        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), fol.dueDate);
         uint256 r = PERCENT + rate;
         uint256 faceValue = fol.faceValue;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
@@ -72,6 +69,5 @@ library BorrowerExit {
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
         state._fixed.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
         fol.borrower = params.borrowerToExitTo;
-        borrowOffer.maxAmount -= amountIn;
     }
 }

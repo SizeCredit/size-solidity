@@ -8,6 +8,8 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
+
+import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
@@ -15,6 +17,7 @@ import {DebtToken} from "@src/token/DebtToken.sol";
 // NOTE changing any of these structs' order or variables may change the storage layout
 struct General {
     IPriceFeed priceFeed;
+    IMarketBorrowRateFeed marketBorrowRateFeed;
     IERC20Metadata collateralAsset; // e.g. WETH
     IERC20Metadata borrowAsset; // e.g. USDC
     IPool variablePool;
@@ -33,10 +36,13 @@ struct Fixed {
     CollateralToken collateralToken; // e.g. szWETH
     IAToken borrowAToken; // e.g. aszUSDC
     DebtToken debtToken; // e.g. szDebt
+    uint256 collateralTokenCap;
+    uint256 borrowATokenCap;
+    uint256 debtTokenCap;
 }
 
 struct Variable {
-    address userProxyImplementation;
+    address vaultImplementation;
     uint256 collateralOverdueTransferFee;
 }
 

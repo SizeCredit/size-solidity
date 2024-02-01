@@ -6,11 +6,13 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
+
+import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
-import {UserProxy} from "@src/proxy/UserProxy.sol";
+import {Vault} from "@src/proxy/Vault.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -20,6 +22,7 @@ import {Events} from "@src/libraries/Events.sol";
 struct InitializeGeneralParams {
     address owner;
     address priceFeed;
+    address marketBorrowRateFeed;
     address collateralAsset;
     address borrowAsset;
     address feeRecipient;
@@ -32,6 +35,13 @@ struct InitializeFixedParams {
     uint256 collateralPremiumToLiquidator;
     uint256 collateralPremiumToProtocol;
     uint256 minimumCreditBorrowAsset;
+    uint256 collateralTokenCap;
+    uint256 borrowATokenCap;
+    uint256 debtTokenCap;
+}
+
+struct InitializeVariableParams {
+    uint256 collateralOverdueTransferFee;
 }
 
 library Initialize {
@@ -46,6 +56,11 @@ library Initialize {
             revert Errors.NULL_ADDRESS();
         }
 
+        // validate marketBorrowRateFeed
+        if (g.marketBorrowRateFeed == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
         // validate collateral asset
         if (g.collateralAsset == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -55,6 +70,15 @@ library Initialize {
         if (g.borrowAsset == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+
+        // validate collateralAssetCap
+        // N/A
+
+        // validate borrowAssetCap
+        // N/A
+
+        // validate debtCap
+        // N/A
 
         // validate feeRecipient
         if (g.feeRecipient == address(0)) {
@@ -97,16 +121,25 @@ library Initialize {
         }
     }
 
-    function validateInitialize(State storage, InitializeGeneralParams memory g, InitializeFixedParams memory f)
-        external
-        pure
-    {
+    function _validateInitializeVariableParams(InitializeVariableParams memory) internal pure {
+        // validate collateralOverdueTransferFee
+        // N/A
+    }
+
+    function validateInitialize(
+        State storage,
+        InitializeGeneralParams memory g,
+        InitializeFixedParams memory f,
+        InitializeVariableParams memory v
+    ) external pure {
         _validateInitializeGeneralParams(g);
         _validateInitializeFixedParams(f);
+        _validateInitializeVariableParams(v);
     }
 
     function _executeInitializeGeneral(State storage state, InitializeGeneralParams memory g) internal {
         state._general.priceFeed = IPriceFeed(g.priceFeed);
+        state._general.marketBorrowRateFeed = IMarketBorrowRateFeed(g.marketBorrowRateFeed);
         state._general.collateralAsset = IERC20Metadata(g.collateralAsset);
         state._general.borrowAsset = IERC20Metadata(g.borrowAsset);
         state._general.feeRecipient = g.feeRecipient;
@@ -127,18 +160,26 @@ library Initialize {
         state._fixed.collateralPremiumToLiquidator = f.collateralPremiumToLiquidator;
         state._fixed.collateralPremiumToProtocol = f.collateralPremiumToProtocol;
         state._fixed.minimumCreditBorrowAsset = f.minimumCreditBorrowAsset;
+
+        state._fixed.collateralTokenCap = f.collateralTokenCap;
+        state._fixed.borrowATokenCap = f.borrowATokenCap;
+        state._fixed.debtTokenCap = f.debtTokenCap;
     }
 
-    function _executeInitializeVariable(State storage state) internal {
-        state._variable.userProxyImplementation = address(new UserProxy());
+    function _executeInitializeVariable(State storage state, InitializeVariableParams memory v) internal {
+        state._variable.vaultImplementation = address(new Vault());
+        state._variable.collateralOverdueTransferFee = v.collateralOverdueTransferFee;
     }
 
-    function executeInitialize(State storage state, InitializeGeneralParams memory g, InitializeFixedParams memory f)
-        external
-    {
+    function executeInitialize(
+        State storage state,
+        InitializeGeneralParams memory g,
+        InitializeFixedParams memory f,
+        InitializeVariableParams memory v
+    ) external {
         _executeInitializeGeneral(state, g);
         _executeInitializeFixed(state, f);
-        _executeInitializeVariable(state);
-        emit Events.Initialize(g, f);
+        _executeInitializeVariable(state, v);
+        emit Events.Initialize(g, f, v);
     }
 }

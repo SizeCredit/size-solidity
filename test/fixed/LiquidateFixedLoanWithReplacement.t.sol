@@ -27,12 +27,12 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _deposit(candy, weth, 1000e18);
+        _deposit(candy, weth, 400e18);
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 0.03e18, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
@@ -40,7 +40,6 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        BorrowOffer memory borrowOfferBefore = size.getUserView(candy).user.borrowOffer;
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
         Vars memory _before = _state();
 
@@ -50,7 +49,6 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
 
         _liquidateFixedLoanWithReplacement(liquidator, loanId, candy);
 
-        BorrowOffer memory borrowOfferAfter = size.getUserView(candy).user.borrowOffer;
         FixedLoan memory loanAfter = size.getFixedLoan(loanId);
         Vars memory _after = _state();
 
@@ -62,7 +60,6 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         assertEq(loanAfter.borrower, candy);
         assertEq(loanAfter.repaid, false);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
-        assertEq(borrowOfferAfter.maxAmount, borrowOfferBefore.maxAmount - amount);
     }
 
     function test_LiquidateFixedLoanWithReplacement_liquidateFixedLoanWithReplacement_updates_new_borrower_borrowOffer_different_rate(
@@ -72,12 +69,12 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _deposit(candy, weth, 1000e18);
+        _deposit(candy, weth, 400e18);
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 100e6, 0.01e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 0.01e18, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
@@ -86,7 +83,6 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        BorrowOffer memory borrowOfferBefore = size.getUserView(candy).user.borrowOffer;
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
         Vars memory _before = _state();
 
@@ -96,7 +92,6 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
 
         _liquidateFixedLoanWithReplacement(liquidator, loanId, candy);
 
-        BorrowOffer memory borrowOfferAfter = size.getUserView(candy).user.borrowOffer;
         FixedLoan memory loanAfter = size.getFixedLoan(loanId);
         Vars memory _after = _state();
 
@@ -109,7 +104,6 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         assertEq(loanAfter.borrower, candy);
         assertEq(loanAfter.repaid, false);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
-        assertEq(borrowOfferAfter.maxAmount, borrowOfferBefore.maxAmount - newAmount);
     }
 
     function test_LiquidateFixedLoanWithReplacement_liquidateFixedLoanWithReplacement_cannot_leave_new_borrower_liquidatable(
@@ -121,15 +115,17 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
 
         _setPrice(0.2e18);
 
         vm.startPrank(liquidator);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, candy, 0));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, candy, 0, 1.5e18)
+        );
         size.liquidateFixedLoanWithReplacement(
             LiquidateFixedLoanWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralRatio: 1e18})
         );
@@ -142,12 +138,12 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _deposit(candy, weth, 1000e18);
+        _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
 
         _setPrice(0.2e18);

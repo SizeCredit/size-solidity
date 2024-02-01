@@ -70,11 +70,9 @@ library LiquidateFixedLoanWithReplacement {
             LiquidateFixedLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
         );
 
-        uint256 r = (PERCENT + borrowOffer.getRate(dueDate));
+        uint256 r = (PERCENT + borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), dueDate));
         uint256 amountOut = Math.mulDivDown(faceValue, PERCENT, r);
         uint256 liquidatorProfitBorrowAsset = faceValue - amountOut;
-
-        borrowOffer.maxAmount -= amountOut;
 
         fol.borrower = params.borrower;
         fol.liquidityIndexAtRepayment = 0;

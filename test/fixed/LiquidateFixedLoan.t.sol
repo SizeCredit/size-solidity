@@ -22,7 +22,7 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
@@ -92,7 +92,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
 
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
 
         _setPrice(0.2e18);
@@ -115,7 +115,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
 
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
@@ -140,10 +140,9 @@ contract LiquidateFixedLoanTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _deposit(liquidator, weth, 1000e18);
         _deposit(liquidator, usdc, 1000e6);
 
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
 
@@ -174,8 +173,8 @@ contract LiquidateFixedLoanTest is BaseTest {
         _deposit(bob, address(weth), 150e18);
         _deposit(candy, address(usdc), 100e6);
         _depositVariable(alice, address(usdc), 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(alice, 12, 1e18, 12);
+        _lendAsLimitOrder(candy, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
 
         vm.warp(block.timestamp + 12);
@@ -198,7 +197,11 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(_after.alice, _before.alice);
         assertEq(loansBefore, loansAfter);
         assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - assignedCollateral);
-        assertEq(variablePoolWETHAfter, variablePoolWETHBefore + assignedCollateral);
+        assertGt(size.variableConfig().collateralOverdueTransferFee, 0);
+        assertEq(
+            variablePoolWETHAfter,
+            variablePoolWETHBefore + assignedCollateral - size.variableConfig().collateralOverdueTransferFee
+        );
         assertTrue(!loanBefore.repaid);
         assertTrue(loanAfter.repaid);
     }
@@ -207,7 +210,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, address(usdc), 100e6);
         _deposit(bob, address(weth), 150e18);
-        _lendAsLimitOrder(alice, 100e6, 12, 1e18, 12);
+        _lendAsLimitOrder(alice, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
 
         vm.warp(block.timestamp + 12);

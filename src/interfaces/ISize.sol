@@ -62,9 +62,9 @@ interface ISize {
     //    either by a previous claim or by exiting before
     function claim(ClaimParams calldata params) external;
 
-    /// if 100% < CR < CRL:
+    /// if 100% <= CR < CRL:
     ///     liquidate loan and split the collateral remainder
-    /// else if 0% <= CR <= 100%:
+    /// else if 0% <= CR < 100%:
     ///     liquidate unprofitably depending on minCR parameter
     /// else: // CR >= CRL
     ///     if loan is overdue:

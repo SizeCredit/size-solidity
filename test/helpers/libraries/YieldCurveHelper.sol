@@ -7,10 +7,12 @@ library YieldCurveHelper {
     function getFlatRate(uint256 timeBucketsLength, uint256 rate) public pure returns (YieldCurve memory curve) {
         curve.rates = new uint256[](timeBucketsLength);
         curve.timeBuckets = new uint256[](timeBucketsLength);
+        curve.marketRateMultipliers = new int256[](timeBucketsLength);
 
         for (uint256 i = 0; i < timeBucketsLength; ++i) {
             curve.rates[i] = rate;
             curve.timeBuckets[i] = i;
+            curve.marketRateMultipliers[i] = 0;
         }
     }
 
@@ -23,6 +25,7 @@ library YieldCurveHelper {
     function normalCurve() public pure returns (YieldCurve memory) {
         uint256[] memory timeBuckets = new uint256[](5);
         uint256[] memory rates = new uint256[](5);
+        int256[] memory marketRateMultipliers = new int256[](5);
 
         rates[0] = 0.01e18;
         rates[1] = 0.02e18;
@@ -36,7 +39,7 @@ library YieldCurveHelper {
         timeBuckets[3] = 120 days;
         timeBuckets[4] = 150 days;
 
-        return YieldCurve({timeBuckets: timeBuckets, rates: rates});
+        return YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Flat Yield Curve: In a flat yield curve, yields across different
@@ -45,6 +48,7 @@ library YieldCurveHelper {
     function flatCurve() public pure returns (YieldCurve memory) {
         uint256[] memory timeBuckets = new uint256[](5);
         uint256[] memory rates = new uint256[](5);
+        int256[] memory marketRateMultipliers = new int256[](5);
 
         rates[0] = 0.04e18;
         rates[1] = 0.04e18;
@@ -58,7 +62,7 @@ library YieldCurveHelper {
         timeBuckets[3] = 90 days;
         timeBuckets[4] = 120 days;
 
-        return YieldCurve({timeBuckets: timeBuckets, rates: rates});
+        return YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Inverted Yield Curve: An inverted yield curve occurs when
@@ -68,6 +72,7 @@ library YieldCurveHelper {
     function invertedCurve() public pure returns (YieldCurve memory) {
         uint256[] memory timeBuckets = new uint256[](5);
         uint256[] memory rates = new uint256[](5);
+        int256[] memory marketRateMultipliers = new int256[](5);
 
         rates[0] = 0.05e18;
         rates[1] = 0.04e18;
@@ -81,7 +86,7 @@ library YieldCurveHelper {
         timeBuckets[3] = 120 days;
         timeBuckets[4] = 240 days;
 
-        return YieldCurve({timeBuckets: timeBuckets, rates: rates});
+        return YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Humped (or Peaked) Yield Curve: A humped yield curve features higher
@@ -92,6 +97,7 @@ library YieldCurveHelper {
     function humpedCurve() public pure returns (YieldCurve memory) {
         uint256[] memory timeBuckets = new uint256[](5);
         uint256[] memory rates = new uint256[](5);
+        int256[] memory marketRateMultipliers = new int256[](5);
 
         rates[0] = 0.01e18;
         rates[1] = 0.02e18;
@@ -105,7 +111,7 @@ library YieldCurveHelper {
         timeBuckets[3] = 4 weeks;
         timeBuckets[4] = 5 weeks;
 
-        return YieldCurve({timeBuckets: timeBuckets, rates: rates});
+        return YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Steep Yield Curve: A steep yield curve indicates a wide spread between
@@ -116,6 +122,7 @@ library YieldCurveHelper {
     function steepCurve() public pure returns (YieldCurve memory) {
         uint256[] memory timeBuckets = new uint256[](5);
         uint256[] memory rates = new uint256[](5);
+        int256[] memory marketRateMultipliers = new int256[](5);
 
         rates[0] = 0.01e18;
         rates[1] = 0.05e18;
@@ -129,7 +136,7 @@ library YieldCurveHelper {
         timeBuckets[3] = 48 days;
         timeBuckets[4] = 96 days;
 
-        return YieldCurve({timeBuckets: timeBuckets, rates: rates});
+        return YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Negative Yield Curve: In rare instances, a negative yield curve
@@ -140,6 +147,7 @@ library YieldCurveHelper {
     function negativeCurve() public pure returns (YieldCurve memory) {
         uint256[] memory timeBuckets = new uint256[](5);
         uint256[] memory rates = new uint256[](5);
+        int256[] memory marketRateMultipliers = new int256[](5);
 
         rates[0] = 0.05e18;
         rates[1] = 0.04e18;
@@ -153,7 +161,7 @@ library YieldCurveHelper {
         timeBuckets[3] = 360 days;
         timeBuckets[4] = 720 days;
 
-        return YieldCurve({timeBuckets: timeBuckets, rates: rates});
+        return YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Simple way to create a line between two points, in case you need to
@@ -166,6 +174,7 @@ library YieldCurveHelper {
     function customCurve(uint128 m1, uint24 r1, uint128 m2, uint24 r2) public pure returns (YieldCurve memory) {
         uint256[] memory timeBuckets = new uint256[](2);
         uint256[] memory rates = new uint256[](2);
+        int256[] memory marketRateMultipliers = new int256[](2);
 
         rates[0] = r1;
         rates[1] = r2;
@@ -173,20 +182,44 @@ library YieldCurveHelper {
         timeBuckets[0] = m1;
         timeBuckets[1] = m2;
 
-        return YieldCurve({timeBuckets: timeBuckets, rates: rates});
+        return YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
+    }
+
+    function marketCurve() public pure returns (YieldCurve memory curve) {
+        curve = normalCurve();
+
+        curve.marketRateMultipliers[0] = 1e18;
+        curve.marketRateMultipliers[1] = 1e18;
+        curve.marketRateMultipliers[2] = 1e18;
+        curve.marketRateMultipliers[3] = 1e18;
+        curve.marketRateMultipliers[4] = 1e18;
+    }
+
+    function negativeMarketCurve() public pure returns (YieldCurve memory curve) {
+        curve = negativeCurve();
+
+        curve.marketRateMultipliers[0] = -1e18;
+        curve.marketRateMultipliers[1] = -1e18;
+        curve.marketRateMultipliers[2] = -1e18;
+        curve.marketRateMultipliers[3] = -1e18;
+        curve.marketRateMultipliers[4] = -1e18;
     }
 
     function getRandomYieldCurve(uint256 seed) public pure returns (YieldCurve memory) {
-        if (seed % 5 == 0) {
+        if (seed % 7 == 0) {
             return normalCurve();
-        } else if (seed % 5 == 1) {
+        } else if (seed % 7 == 1) {
             return flatCurve();
-        } else if (seed % 5 == 2) {
+        } else if (seed % 7 == 2) {
             return invertedCurve();
-        } else if (seed % 5 == 3) {
+        } else if (seed % 7 == 3) {
             return humpedCurve();
-        } else if (seed % 5 == 4) {
+        } else if (seed % 7 == 4) {
             return steepCurve();
+        } else if (seed % 7 == 5) {
+            return marketCurve();
+        } else if (seed % 7 == 6) {
+            return negativeMarketCurve();
         } else {
             return negativeCurve();
         }

@@ -14,8 +14,8 @@ contract LendAsLimitOrderValidationTest is BaseTest {
 
     function test_LendAsLimitOrder_validation() public {
         _deposit(alice, address(usdc), 100e6);
-        uint256 maxAmount = 100e6;
         uint256 maxDueDate = 12;
+        int256[] memory marketRateMultipliers = new int256[](2);
         uint256[] memory timeBuckets = new uint256[](2);
         timeBuckets[0] = 1 days;
         timeBuckets[1] = 2 days;
@@ -26,9 +26,12 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
-                maxAmount: maxAmount,
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates1})
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates1
+                })
             })
         );
 
@@ -37,64 +40,47 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
-                maxAmount: maxAmount,
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: empty})
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: empty
+                })
             })
         );
 
         uint256[] memory rates = new uint256[](2);
         rates[0] = 1.01e18;
         rates[1] = 1.02e18;
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({
-                maxAmount: 0,
-                maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
-            })
-        );
 
         timeBuckets[0] = 2 days;
         timeBuckets[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.TIME_BUCKETS_NOT_STRICTLY_INCREASING.selector));
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
-                maxAmount: maxAmount,
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates
+                })
             })
         );
 
         timeBuckets[0] = 1 days;
         timeBuckets[1] = 2 days;
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 100e6, 100e6 + 1));
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({
-                maxAmount: maxAmount + 1,
-                maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
-            })
-        );
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_MAX_DUE_DATE.selector));
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({
-                maxAmount: maxAmount,
-                maxDueDate: 0,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
-            })
-        );
-
         vm.warp(3);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_MAX_DUE_DATE.selector, 2));
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
-                maxAmount: maxAmount,
                 maxDueDate: 2,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates
+                })
             })
         );
     }

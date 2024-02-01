@@ -34,7 +34,8 @@ library LendAsMarketOrder {
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
-        uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
+        uint256 r =
+            PERCENT + borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 amountIn;
         if (params.exactAmountIn) {
             amountIn = params.amount;
@@ -53,9 +54,6 @@ library LendAsMarketOrder {
         }
 
         // validate amount
-        if (amountIn > borrowOffer.maxAmount) {
-            revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(amountIn, borrowOffer.maxAmount);
-        }
         if (state.borrowATokenBalanceOf(msg.sender) < amountIn) {
             revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), amountIn);
         }
@@ -68,7 +66,8 @@ library LendAsMarketOrder {
 
         BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
-        uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
+        uint256 r =
+            PERCENT + borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 faceValue;
         uint256 amountIn;
         if (params.exactAmountIn) {
@@ -82,6 +81,5 @@ library LendAsMarketOrder {
         state._fixed.debtToken.mint(params.borrower, faceValue);
         state.createFOL({lender: msg.sender, borrower: params.borrower, faceValue: faceValue, dueDate: params.dueDate});
         state.transferBorrowAToken(msg.sender, params.borrower, amountIn);
-        borrowOffer.maxAmount -= amountIn;
     }
 }

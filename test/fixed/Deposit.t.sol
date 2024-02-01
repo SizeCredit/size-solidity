@@ -20,6 +20,8 @@ contract DepositTest is BaseTest {
     }
 
     function testFuzz_Deposit_deposit_increases_user_balance(uint256 x, uint256 y) public {
+        _updateConfig("collateralTokenCap", type(uint256).max);
+        _updateConfig("borrowATokenCap", type(uint256).max);
         x = bound(x, 1, type(uint128).max);
         y = bound(y, 1, type(uint128).max);
 
