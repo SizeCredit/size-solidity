@@ -21,8 +21,8 @@ contract BorrowLimitOrder is Script {
     
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             lender: lender,
-            amount: 100000,
-            dueDate: 60,
+            amount: 1e6,
+            dueDate: 2592e3,
             exactAmountIn: false,
             virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
 

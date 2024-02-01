@@ -11,12 +11,12 @@ contract DepositScript is Script {
         Size sizeContract = Size(sizeContractAddress);
 
         address lender = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8; //0xf44b17b31d0D364D43A77454424d5BB8Ac97AFD1; //0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
-        uint256 amount = 100;
+        uint256 amount = 1e6; /// USDC has 6 decimals
         address to = sizeContractAddress;
 
         LendAsMarketOrderParams memory params = LendAsMarketOrderParams({
             borrower: to,
-            dueDate: 60,
+            dueDate: 2592e3,
             amount: amount,
             exactAmountIn: false
         });

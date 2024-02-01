@@ -12,7 +12,7 @@ contract DepositScript is Script {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         address usdcAddress = vm.envAddress("TOKEN_ADDRESS");
 
-        uint256 amount = 100000; /// USDC has 6 decimals
+        uint256 amount = 1e6; /// USDC has 6 decimals
 
         Size sizeContract = Size(sizeContractAddress);
 
