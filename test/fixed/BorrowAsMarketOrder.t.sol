@@ -182,7 +182,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 r = PERCENT + loanOffer.getRate(dueDate);
+        uint256 r = PERCENT + loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
 
         uint256 faceValue = Math.mulDivUp(r, (amountFixedLoanId2 - amountFixedLoanId1), PERCENT);
         uint256 faceValueOpening = Math.mulDivUp(faceValue, size.fixedConfig().crOpening, PERCENT);
@@ -218,7 +218,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         virtualCollateralFixedLoanIds[0] = loanId1;
 
         uint256 dueDate = 12;
-        uint256 r = PERCENT + size.getUserView(candy).user.loanOffer.getRate(dueDate);
+        uint256 r = PERCENT + size.getUserView(candy).user.loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
         uint256 deltaAmountOut = (
             Math.mulDivUp(r, amountFixedLoanId2, PERCENT) > size.getFixedLoan(loanId1).getCredit()
         ) ? Math.mulDivDown(size.getFixedLoan(loanId1).getCredit(), PERCENT, r) : amountFixedLoanId2;
@@ -278,7 +278,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         FixedLoanOffer memory loanOffer = size.getUserView(alice).user.loanOffer;
         uint256 amount = 100e6;
         uint256 dueDate = 12;
-        uint256 r = PERCENT + loanOffer.getRate(dueDate);
+        uint256 r = PERCENT + loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
         uint256 faceValue = Math.mulDivUp(r, amount, PERCENT);
         uint256 faceValueWad = ConversionLibrary.amountToWad(faceValue, usdc.decimals());
         uint256 faceValueOpening = Math.mulDivUp(faceValueWad, size.fixedConfig().crOpening, PERCENT);

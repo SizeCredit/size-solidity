@@ -64,6 +64,7 @@ abstract contract SizeView is SizeStorage {
         return InitializeGeneralParams({
             owner: address(0), // TODO return correct owner
             priceFeed: address(state._general.priceFeed),
+            marketBorrowRateFeed: address(state._general.marketBorrowRateFeed),
             collateralAsset: address(state._general.collateralAsset),
             borrowAsset: address(state._general.borrowAsset),
             feeRecipient: state._general.feeRecipient,

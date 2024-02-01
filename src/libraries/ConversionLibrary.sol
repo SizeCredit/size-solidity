@@ -16,4 +16,9 @@ library ConversionLibrary {
     function wadToAmountUp(uint256 wad, uint8 decimals) internal pure returns (uint256) {
         return Math.mulDivUp(wad, 10 ** decimals, 10 ** 18);
     }
+
+    function rayToWadDown(uint256 ray) internal pure returns (uint256) {
+        return ray / 1e9;
+    }
+
 }

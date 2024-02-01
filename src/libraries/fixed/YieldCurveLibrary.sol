@@ -38,14 +38,14 @@ library YieldCurveLibrary {
         // N/A
     }
 
-    function getRateAdjustedByMarketRate(uint256 rate, uint256 marketRate, int256 marketRateMultipliers)
+    function getRateAdjustedByMarketRate(uint256 rate, uint256 marketRate, int256 marketRateMultiplier)
         internal
         pure
         returns (uint256)
     {
         return SafeCast.toUint256(
             SafeCast.toInt256(rate)
-                + Math.mulDiv(SafeCast.toInt256(marketRate), marketRateMultipliers, SafeCast.toInt256(PERCENT))
+                + Math.mulDiv(SafeCast.toInt256(marketRate), marketRateMultiplier, SafeCast.toInt256(PERCENT))
         );
     }
 

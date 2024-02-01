@@ -34,7 +34,7 @@ library LendAsMarketOrder {
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
-        uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
+        uint256 r = PERCENT + borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 amountIn;
         if (params.exactAmountIn) {
             amountIn = params.amount;
@@ -65,7 +65,7 @@ library LendAsMarketOrder {
 
         BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
-        uint256 r = PERCENT + borrowOffer.getRate(params.dueDate);
+        uint256 r = PERCENT + borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 faceValue;
         uint256 amountIn;
         if (params.exactAmountIn) {
