@@ -76,12 +76,13 @@ abstract contract SizeView is SizeStorage {
         return InitializeFixedParams({
             crOpening: state._fixed.crOpening,
             crLiquidation: state._fixed.crLiquidation,
-            collateralPremiumToLiquidator: state._fixed.collateralPremiumToLiquidator,
-            collateralPremiumToProtocol: state._fixed.collateralPremiumToProtocol,
+            collateralSplitLiquidatorPercent: state._fixed.collateralSplitLiquidatorPercent,
+            collateralSplitProtocolPercent: state._fixed.collateralSplitProtocolPercent,
             minimumCreditBorrowAsset: state._fixed.minimumCreditBorrowAsset,
             collateralTokenCap: state._fixed.collateralTokenCap,
             borrowATokenCap: state._fixed.borrowATokenCap,
-            debtTokenCap: state._fixed.debtTokenCap
+            debtTokenCap: state._fixed.debtTokenCap,
+            repaymentFeeAPR: state._fixed.repaymentFeeAPR
         });
     }
 

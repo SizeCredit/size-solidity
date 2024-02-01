@@ -7,7 +7,7 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus, RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 library FixedLibrary {
@@ -40,10 +40,17 @@ library FixedLibrary {
         }
     }
 
+    function validateRepaymentFee(State storage, FixedLoan memory fol) internal pure {
+        if(fol.repaymentFee > fol.faceValue) {
+            revert Errors.INVALID_REPAYMENT_FEE(fol.repaymentFee, fol.faceValue);
+        }
+    }
+
     // solhint-disable-next-line var-name-mixedcase
     function createFOL(State storage state, address lender, address borrower, uint256 faceValue, uint256 dueDate)
         public
     {
+        uint256 repaymentFee = Math.mulDivUp(faceValue, state._fixed.repaymentFeeAPR, PERCENT);
         FixedLoan memory fol = FixedLoan({
             faceValue: faceValue,
             faceValueExited: 0,
@@ -52,9 +59,11 @@ library FixedLibrary {
             dueDate: dueDate,
             repaid: false,
             liquidityIndexAtRepayment: 0,
+            repaymentFee: repaymentFee,
             folId: RESERVED_ID
         });
         validateMinimumCreditOpening(state, fol.getCredit());
+        validateRepaymentFee(state, fol);
 
         state._fixed.loans.push(fol);
         uint256 folId = state._fixed.loans.length - 1;
@@ -77,6 +86,7 @@ library FixedLibrary {
             dueDate: fol.dueDate,
             repaid: false,
             liquidityIndexAtRepayment: 0,
+            repaymentFee: 0,
             folId: folId
         });
 

@@ -31,14 +31,15 @@ struct Fixed {
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 minimumCreditBorrowAsset;
-    uint256 collateralPremiumToLiquidator;
-    uint256 collateralPremiumToProtocol;
+    uint256 collateralSplitLiquidatorPercent;
+    uint256 collateralSplitProtocolPercent;
     CollateralToken collateralToken; // e.g. szWETH
     IAToken borrowAToken; // e.g. aszUSDC
     DebtToken debtToken; // e.g. szDebt
     uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
+    uint256 repaymentFeeAPR;
 }
 
 struct Variable {

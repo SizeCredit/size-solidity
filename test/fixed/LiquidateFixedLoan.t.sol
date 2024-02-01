@@ -61,23 +61,23 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(
             _after.feeRecipient.collateralAmount,
             _before.feeRecipient.collateralAmount
-                + Math.mulDivDown(collateralRemainder, size.fixedConfig().collateralPremiumToProtocol, PERCENT)
+                + Math.mulDivDown(collateralRemainder, size.fixedConfig().collateralSplitProtocolPercent, PERCENT)
         );
         uint256 collateralPremiumToBorrower =
-            PERCENT - size.fixedConfig().collateralPremiumToProtocol - size.fixedConfig().collateralPremiumToLiquidator;
+            PERCENT - size.fixedConfig().collateralSplitProtocolPercent - size.fixedConfig().collateralSplitLiquidatorPercent;
         assertEq(
             _after.bob.collateralAmount,
             _before.bob.collateralAmount - (debtWad * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
-                    (size.fixedConfig().collateralPremiumToProtocol + size.fixedConfig().collateralPremiumToLiquidator),
+                    (size.fixedConfig().collateralSplitProtocolPercent + size.fixedConfig().collateralSplitLiquidatorPercent),
                     PERCENT
                 ),
             _before.bob.collateralAmount - (debtWad * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
         uint256 liquidatorProfitAmount = (debtWad * 5)
-            + Math.mulDivDown(collateralRemainder, size.fixedConfig().collateralPremiumToLiquidator, PERCENT);
+            + Math.mulDivDown(collateralRemainder, size.fixedConfig().collateralSplitLiquidatorPercent, PERCENT);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount + liquidatorProfitAmount);
         assertEq(liquidatorProfit, liquidatorProfitAmount);
     }

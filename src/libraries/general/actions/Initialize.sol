@@ -32,12 +32,13 @@ struct InitializeGeneralParams {
 struct InitializeFixedParams {
     uint256 crOpening;
     uint256 crLiquidation;
-    uint256 collateralPremiumToLiquidator;
-    uint256 collateralPremiumToProtocol;
+    uint256 collateralSplitLiquidatorPercent;
+    uint256 collateralSplitProtocolPercent;
     uint256 minimumCreditBorrowAsset;
     uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
+    uint256 repaymentFeeAPR;
 }
 
 struct InitializeVariableParams {
@@ -100,18 +101,18 @@ library Initialize {
             revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(f.crOpening, f.crLiquidation);
         }
 
-        // validate collateralPremiumToLiquidator
-        if (f.collateralPremiumToLiquidator > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralPremiumToLiquidator);
+        // validate collateralSplitLiquidatorPercent
+        if (f.collateralSplitLiquidatorPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralSplitLiquidatorPercent);
         }
 
-        // validate collateralPremiumToProtocol
-        if (f.collateralPremiumToProtocol > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralPremiumToProtocol);
+        // validate collateralSplitProtocolPercent
+        if (f.collateralSplitProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralSplitProtocolPercent);
         }
-        if (f.collateralPremiumToLiquidator + f.collateralPremiumToProtocol > PERCENT) {
+        if (f.collateralSplitLiquidatorPercent + f.collateralSplitProtocolPercent > PERCENT) {
             revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                f.collateralPremiumToLiquidator + f.collateralPremiumToProtocol
+                f.collateralSplitLiquidatorPercent + f.collateralSplitProtocolPercent
             );
         }
 
@@ -119,6 +120,9 @@ library Initialize {
         if (f.minimumCreditBorrowAsset == 0) {
             revert Errors.NULL_AMOUNT();
         }
+
+        // validate repaymentFeeAPR
+        // N/A
     }
 
     function _validateInitializeVariableParams(InitializeVariableParams memory) internal pure {
@@ -157,13 +161,15 @@ library Initialize {
 
         state._fixed.crOpening = f.crOpening;
         state._fixed.crLiquidation = f.crLiquidation;
-        state._fixed.collateralPremiumToLiquidator = f.collateralPremiumToLiquidator;
-        state._fixed.collateralPremiumToProtocol = f.collateralPremiumToProtocol;
+        state._fixed.collateralSplitLiquidatorPercent = f.collateralSplitLiquidatorPercent;
+        state._fixed.collateralSplitProtocolPercent = f.collateralSplitProtocolPercent;
         state._fixed.minimumCreditBorrowAsset = f.minimumCreditBorrowAsset;
 
         state._fixed.collateralTokenCap = f.collateralTokenCap;
         state._fixed.borrowATokenCap = f.borrowATokenCap;
         state._fixed.debtTokenCap = f.debtTokenCap;
+
+        state._fixed.repaymentFeeAPR = f.repaymentFeeAPR;
     }
 
     function _executeInitializeVariable(State storage state, InitializeVariableParams memory v) internal {
