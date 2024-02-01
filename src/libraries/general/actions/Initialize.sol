@@ -10,7 +10,7 @@ import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
-import {UserProxy} from "@src/proxy/UserProxy.sol";
+import {Vault} from "@src/proxy/Vault.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -32,6 +32,13 @@ struct InitializeFixedParams {
     uint256 collateralPremiumToLiquidator;
     uint256 collateralPremiumToProtocol;
     uint256 minimumCreditBorrowAsset;
+    uint256 collateralTokenCap;
+    uint256 borrowATokenCap;
+    uint256 debtTokenCap;
+}
+
+struct InitializeVariableParams {
+    uint256 collateralOverdueTransferFee;
 }
 
 library Initialize {
@@ -55,6 +62,15 @@ library Initialize {
         if (g.borrowAsset == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+
+        // validate collateralAssetCap
+        // N/A
+
+        // validate borrowAssetCap
+        // N/A
+
+        // validate debtCap
+        // N/A
 
         // validate feeRecipient
         if (g.feeRecipient == address(0)) {
@@ -97,12 +113,20 @@ library Initialize {
         }
     }
 
-    function validateInitialize(State storage, InitializeGeneralParams memory g, InitializeFixedParams memory f)
-        external
-        pure
-    {
+    function _validateInitializeVariableParams(InitializeVariableParams memory) internal pure {
+        // validate collateralOverdueTransferFee
+        // N/A
+    }
+
+    function validateInitialize(
+        State storage,
+        InitializeGeneralParams memory g,
+        InitializeFixedParams memory f,
+        InitializeVariableParams memory v
+    ) external pure {
         _validateInitializeGeneralParams(g);
         _validateInitializeFixedParams(f);
+        _validateInitializeVariableParams(v);
     }
 
     function _executeInitializeGeneral(State storage state, InitializeGeneralParams memory g) internal {
@@ -114,7 +138,9 @@ library Initialize {
     }
 
     function _executeInitializeFixed(State storage state, InitializeFixedParams memory f) internal {
-        state._fixed.collateralToken = new CollateralToken(address(this), "Size Fixed ETH", "szETH");
+        state._fixed.collateralToken = new CollateralToken(
+            address(this), "Size Fixed ETH", "szETH", IERC20Metadata(state._general.collateralAsset).decimals()
+        );
         state._fixed.borrowAToken =
             IAToken(state._general.variablePool.getReserveData(address(state._general.borrowAsset)).aTokenAddress);
         state._fixed.debtToken =
@@ -125,18 +151,26 @@ library Initialize {
         state._fixed.collateralPremiumToLiquidator = f.collateralPremiumToLiquidator;
         state._fixed.collateralPremiumToProtocol = f.collateralPremiumToProtocol;
         state._fixed.minimumCreditBorrowAsset = f.minimumCreditBorrowAsset;
+
+        state._fixed.collateralTokenCap = f.collateralTokenCap;
+        state._fixed.borrowATokenCap = f.borrowATokenCap;
+        state._fixed.debtTokenCap = f.debtTokenCap;
     }
 
-    function _executeInitializeVariable(State storage state) internal {
+    function _executeInitializeVariable(State storage state, InitializeVariableParams memory v) internal {
         state._variable.userProxyImplementation = address(new UserProxy());
+        state._variable.collateralOverdueTransferFee = v.collateralOverdueTransferFee;
     }
 
-    function executeInitialize(State storage state, InitializeGeneralParams memory g, InitializeFixedParams memory f)
-        external
-    {
+    function executeInitialize(
+        State storage state,
+        InitializeGeneralParams memory g,
+        InitializeFixedParams memory f,
+        InitializeVariableParams memory v
+    ) external {
         _executeInitializeGeneral(state, g);
         _executeInitializeFixed(state, f);
-        _executeInitializeVariable(state);
-        emit Events.Initialize(g, f);
+        _executeInitializeVariable(state, v);
+        emit Events.Initialize(g, f, v);
     }
 }

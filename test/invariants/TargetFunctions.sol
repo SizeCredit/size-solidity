@@ -19,7 +19,6 @@ import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
-import {MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 
 import {LiquidateFixedLoanWithReplacementParams} from
     "@src/libraries/fixed/actions/LiquidateFixedLoanWithReplacement.sol";
@@ -146,7 +145,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
         hevm.prank(sender);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
 
         __after();
     }
@@ -184,9 +183,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
         hevm.prank(sender);
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
-        );
+        size.lendAsLimitOrder(LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
 
         __after();
     }
@@ -294,19 +291,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after(loanId);
 
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
-    }
-
-    function moveToVariablePool(uint256 loanId) internal getSender {
-        __before(loanId);
-
-        precondition(_before.activeFixedLoans > 0);
-
-        loanId = between(loanId, 0, _before.activeFixedLoans - 1);
-
-        hevm.prank(sender);
-        size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
-
-        __after(loanId);
     }
 
     function setPrice(uint256 price) public {

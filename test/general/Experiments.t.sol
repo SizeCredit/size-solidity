@@ -27,7 +27,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     function test_Experiments_test1() public {
         _deposit(alice, usdc, 100e6);
         assertEq(_state().alice.borrowAmount, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 10, 0.03e18, 12);
         _deposit(james, weth, 50e18);
         assertEq(_state().james.collateralAmount, 50e18);
 
@@ -39,7 +39,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e6);
-        _lendAsLimitOrder(bob, 100e6, 10, 0.02e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.02e18, 12);
         console.log("alice borrows form bob using virtual collateral");
         console.log("(do not use full SOL credit)");
         _borrowAsMarketOrder(alice, bob, 50e6, 6, [uint256(0)]);
@@ -65,16 +65,16 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     function test_Experiments_test3() public {
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e6);
-        _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
         _deposit(alice, weth, 2e18);
         _borrowAsMarketOrder(alice, bob, 100e6, 6);
         assertGe(size.collateralRatio(alice), size.fixedConfig().crOpening);
-        assertTrue(!size.isLiquidatable(alice), "borrower should not be liquidatable");
+        assertTrue(!size.isUserLiquidatable(alice), "borrower should not be liquidatable");
         vm.warp(block.timestamp + 1);
         _setPrice(60e18);
 
-        assertTrue(size.isLiquidatable(alice), "borrower should be liquidatable");
-        assertTrue(size.isLiquidatable(0), "loan should be liquidatable");
+        assertTrue(size.isUserLiquidatable(alice), "borrower should be liquidatable");
+        assertTrue(size.isLoanLiquidatable(0), "loan should be liquidatable");
 
         _deposit(liquidator, usdc, 10_000e6);
         console.log("loan should be liquidated");
@@ -88,14 +88,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lending as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
 
         // Deposit by candy in USDC
         _deposit(candy, usdc, 100e6);
         assertEq(_state().candy.borrowAmount, 100e6);
 
         // Candy lending as limit order
-        _lendAsLimitOrder(candy, 100e6, 10, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 10, 0.05e18, 12);
 
         // Deposit by alice in WETH
         _deposit(alice, weth, 50e18);
@@ -129,14 +129,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
 
         // James deposits in USDC
         _deposit(james, usdc, 100e6);
         assertEq(_state().james.borrowAmount, 100e6);
 
         // James lends as limit order
-        _lendAsLimitOrder(james, 100e6, 12, 0.05e18, 12);
+        _lendAsLimitOrder(james, 12, 0.05e18, 12);
 
         // Alice deposits in ETH and USDC
         _deposit(alice, weth, 50e18);
@@ -176,7 +176,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 50e18);
@@ -200,7 +200,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _depositVariable(liquidator, address(usdc), 1_000e6);
 
         // Move to variable pool
-        _moveToVariablePool(liquidator, 0);
+        _liquidateFixedLoan(liquidator, 0);
 
         fol = size.getFixedLoan(0);
         uint256 aliceCollateralAfter = _state().alice.collateralAmount;
@@ -217,7 +217,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 2e18);
@@ -227,14 +227,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.fixedConfig().crOpening);
-        assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
+        assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
 
         vm.warp(block.timestamp + 1);
         _setPrice(30e18);
 
         // Assert conditions for liquidation
-        assertTrue(size.isLiquidatable(alice), "Borrower should be liquidatable");
-        assertTrue(size.isLiquidatable(0), "FixedLoan should be liquidatable");
+        assertTrue(size.isUserLiquidatable(alice), "Borrower should be liquidatable");
+        assertTrue(size.isLoanLiquidatable(0), "FixedLoan should be liquidatable");
 
         // Perform self liquidation
         assertGt(size.getFixedLoan(0).faceValue, 0, "FixedLoan faceValue should be greater than 0");
@@ -252,7 +252,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _deposit(alice, weth, 2e18);
 
         // Alice places a borrow limit order
-        _borrowAsLimitOrder(alice, 100e6, 0.03e18, 12);
+        _borrowAsLimitOrder(alice, 0.03e18, 12);
 
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
@@ -274,13 +274,13 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
 
         // Candy deposits in WETH
         _deposit(candy, weth, 2e18);
 
         // Candy places a borrow limit order
-        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 0.03e18, 12);
 
         // Alice deposits in WETH and USDC
         _deposit(alice, weth, 50e18);
@@ -300,7 +300,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 2e18);
@@ -310,31 +310,31 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.fixedConfig().crOpening, "Alice should be above CR opening");
-        assertTrue(!size.isLiquidatable(alice), "Borrower should not be liquidatable");
+        assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
         _deposit(candy, weth, 200e18);
         assertEq(_state().candy.collateralAmount, 200e18);
-        _borrowAsLimitOrder(candy, 100e6, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 0.03e18, 12);
 
         // Update the context (time and price)
         vm.warp(block.timestamp + 1);
         _setPrice(60e18);
 
         // Assert conditions for liquidation
-        assertTrue(size.isLiquidatable(alice), "Borrower should be liquidatable");
-        assertTrue(size.isLiquidatable(0), "FixedLoan should be liquidatable");
+        assertTrue(size.isUserLiquidatable(alice), "Borrower should be liquidatable");
+        assertTrue(size.isLoanLiquidatable(0), "FixedLoan should be liquidatable");
 
         FixedLoan memory fol = size.getFixedLoan(0);
         assertEq(fol.borrower, alice, "Alice should be the borrower");
-        assertEq(_state().alice.debtAmount, fol.getDebt(), "Alice should have the debt");
+        assertEq(_state().alice.debtAmount, fol.faceValue, "Alice should have the debt");
 
         assertEq(_state().candy.debtAmount, 0, "Candy should have no debt");
         // Perform the liquidation with replacement
         _deposit(liquidator, usdc, 10_000e6);
         _liquidateFixedLoanWithReplacement(liquidator, 0, candy);
         assertEq(_state().alice.debtAmount, 0, "Alice should have no debt after");
-        assertEq(_state().candy.debtAmount, fol.getDebt(), "Candy should have the debt after");
+        assertEq(_state().candy.debtAmount, fol.faceValue, "Candy should have the debt after");
     }
 
     function test_Experiments_testBasicCompensate1() public {
@@ -343,14 +343,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6, "Bob's borrow amount should be 100e6");
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 100e6, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
 
         // Candy deposits in USDC
         _deposit(candy, usdc, 100e6);
         assertEq(_state().candy.borrowAmount, 100e6, "Candy's borrow amount should be 100e6");
 
         // Candy lends as limit order
-        _lendAsLimitOrder(candy, 100e6, 10, 0.05e18, 12);
+        _lendAsLimitOrder(candy, 10, 0.05e18, 12);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 50e18);

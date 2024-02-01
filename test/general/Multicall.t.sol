@@ -24,14 +24,12 @@ contract MulticallTest is BaseTest {
         IERC20Metadata(token).approve(address(size), amount);
 
         assertEq(size.getUserView(alice).borrowAmount, 0);
-        assertEq(size.getUserView(alice).user.loanOffer.maxAmount, 0);
 
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
         data[1] = abi.encodeCall(
             size.lendAsLimitOrder,
             LendAsLimitOrderParams({
-                maxAmount: amount / 2,
                 maxDueDate: block.timestamp + 1 days,
                 curveRelativeTime: YieldCurveHelper.flatCurve()
             })
@@ -39,7 +37,6 @@ contract MulticallTest is BaseTest {
         size.multicall(data);
 
         assertEq(size.getUserView(alice).borrowAmount, amount);
-        assertEq(size.getUserView(alice).user.loanOffer.maxAmount, amount / 2);
     }
 
     function test_Multicall_multicall_cannot_execute_unauthorized_actions() public {
@@ -65,14 +62,14 @@ contract MulticallTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
 
-        _lendAsLimitOrder(alice, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
 
         _setPrice(0.2e18);
 
-        assertTrue(size.isLiquidatable(loanId));
+        assertTrue(size.isLoanLiquidatable(loanId));
 
         _mint(address(usdc), liquidator, debt);
         _approve(liquidator, address(usdc), address(size), debt);

@@ -17,7 +17,6 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
-import {MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 interface ISize {
@@ -63,12 +62,18 @@ interface ISize {
     //    either by a previous claim or by exiting before
     function claim(ClaimParams calldata params) external;
 
-    // As soon as a fixed rate loan gets overdue, it should be transformed into a
-    //   variable rate one but in reality that might not happen so if it becomes eligible
-    //   for liquidation even when overdue then it is good to liquidate that.
-    // decreases borrower debtAmount
-    // sets loan to repaid
-    // etc
+    /// if 100% <= CR < CRL:
+    ///     liquidate loan and split the collateral remainder
+    /// else if 0% <= CR < 100%:
+    ///     liquidate unprofitably depending on minCR parameter
+    /// else: // CR >= CRL
+    ///     if loan is overdue:
+    ///         if loan can be moved to the variable pool:
+    ///             move loan to the variable pool, charge move transfer fee in collateral from the borrower
+    ///         else:
+    ///             liquidate loan, do not split the collateral remainder, charge move transfer fee in collateral from the borrower
+    ///     else:
+    ///         loan cannot be liquidated
     function liquidateFixedLoan(LiquidateFixedLoanParams calldata params) external returns (uint256);
 
     function selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams calldata params) external;
@@ -80,8 +85,6 @@ interface ISize {
     function liquidateFixedLoanWithReplacement(LiquidateFixedLoanWithReplacementParams calldata params)
         external
         returns (uint256, uint256);
-
-    function moveToVariablePool(MoveToVariablePoolParams calldata params) external;
 
     // The borrower compensate his debt in `loanToRepayId` with his credit in `loanToCompensateId`
     // The compensation can not exceed both 1) the credit the lender of `loanToRepayId` to the borrower and 2) the credit the lender of `loanToCompensateId` there

@@ -33,10 +33,14 @@ struct Fixed {
     CollateralToken collateralToken; // e.g. szWETH
     IAToken borrowAToken; // e.g. aszUSDC
     DebtToken debtToken; // e.g. szDebt
+    uint256 collateralTokenCap;
+    uint256 borrowATokenCap;
+    uint256 debtTokenCap;
 }
 
 struct Variable {
-    address userProxyImplementation;
+    address vaultImplementation;
+    uint256 collateralOverdueTransferFee;
 }
 
 struct State {

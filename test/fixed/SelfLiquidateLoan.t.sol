@@ -14,14 +14,14 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
-        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(alice, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         assertEq(size.getFOLAssignedCollateral(loanId), 150e18);
         assertEq(size.getDebt(loanId), 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
-        assertTrue(!size.isLiquidatable(bob));
-        assertTrue(!size.isLiquidatable(loanId));
+        assertTrue(!size.isUserLiquidatable(bob));
+        assertTrue(!size.isLoanLiquidatable(loanId));
 
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(bob), 0.75e18);
@@ -52,9 +52,9 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
-        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(james, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(alice, 12, 0, 12);
+        _lendAsLimitOrder(candy, 12, 0, 12);
+        _lendAsLimitOrder(james, 12, 0, 12);
         uint256 folId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 100e6, 12, [folId]);
         _borrowAsMarketOrder(alice, james, 100e6, 12);
@@ -62,8 +62,8 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         assertEq(size.getFOLAssignedCollateral(folId), 150e18);
         assertEq(size.getDebt(folId), 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
-        assertTrue(!size.isLiquidatable(bob));
-        assertTrue(!size.isLiquidatable(folId));
+        assertTrue(!size.isUserLiquidatable(bob));
+        assertTrue(!size.isLoanLiquidatable(folId));
 
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(bob), 0.75e18);
@@ -88,7 +88,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
+        _lendAsLimitOrder(alice, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         _setPrice(0.0001e18);
@@ -107,10 +107,10 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _deposit(james, usdc, 200e6);
         _deposit(james, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(james, 200e6, 12, 0, 12);
+        _lendAsLimitOrder(alice, 12, 0, 12);
+        _lendAsLimitOrder(bob, 12, 0, 12);
+        _lendAsLimitOrder(candy, 12, 0, 12);
+        _lendAsLimitOrder(james, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
         _borrowAsMarketOrder(alice, candy, 5e6, 12, [loanId]);
         _borrowAsMarketOrder(alice, james, 80e6, 12);
@@ -140,10 +140,10 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(bob, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(candy, 100e6, 12, 0, 12);
-        _lendAsLimitOrder(james, 200e6, 12, 0, 12);
+        _lendAsLimitOrder(alice, 12, 0, 12);
+        _lendAsLimitOrder(bob, 12, 0, 12);
+        _lendAsLimitOrder(candy, 12, 0, 12);
+        _lendAsLimitOrder(james, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 49e6, 12, [loanId]);
         uint256 solId2 = _borrowAsMarketOrder(candy, bob, 44e6, 12, [solId]);

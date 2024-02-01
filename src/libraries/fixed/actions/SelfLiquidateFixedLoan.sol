@@ -28,7 +28,7 @@ library SelfLiquidateFixedLoan {
     {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
-        uint256 debtWad = ConversionLibrary.amountToWad(loan.getDebt(), state._general.borrowAsset.decimals());
+        uint256 debtWad = ConversionLibrary.amountToWad(loan.faceValue, state._general.borrowAsset.decimals());
         uint256 debtCollateral =
             Math.mulDivDown(debtWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
 
@@ -38,16 +38,12 @@ library SelfLiquidateFixedLoan {
         }
 
         // validate loanId
-        // @audit is this necessary? seems redundant with the check `assignedCollateral > debtCollateral` below,
-        //   as CR < CRL ==> CR <= 100%
-        if (!state.isLiquidatable(loan.borrower)) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_CR(params.loanId, state.collateralRatio(loan.borrower));
+        if (!state.isLoanSelfLiquidatable(params.loanId)) {
+            revert Errors.LOAN_NOT_SELF_LIQUIDATABLE(
+                params.loanId, state.collateralRatio(loan.borrower), state.getFixedLoanStatus(loan)
+            );
         }
-        // @audit is this reachable?
-        if (!state.either(loan, [FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])) {
-            revert Errors.LOAN_NOT_LIQUIDATABLE_STATUS(params.loanId, state.getFixedLoanStatus(loan));
-        }
-        if (assignedCollateral > debtCollateral) {
+        if (!(assignedCollateral < debtCollateral)) {
             revert Errors.LIQUIDATION_NOT_AT_LOSS(params.loanId, assignedCollateral, debtCollateral);
         }
     }

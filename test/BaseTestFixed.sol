@@ -19,7 +19,6 @@ import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
-import {MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {LiquidateFixedLoanWithReplacementParams} from
@@ -61,7 +60,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _lendAsLimitOrder(
         address lender,
-        uint256 maxAmount,
         uint256 maxDueDate,
         uint256[2] memory ratesArray,
         uint256[2] memory timeBucketsArray
@@ -73,30 +71,17 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         timeBuckets[0] = timeBucketsArray[0];
         timeBuckets[1] = timeBucketsArray[1];
         YieldCurve memory curveRelativeTime = YieldCurve({timeBuckets: timeBuckets, rates: rates});
-        return _lendAsLimitOrder(lender, maxAmount, maxDueDate, curveRelativeTime);
+        return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
-    function _lendAsLimitOrder(
-        address lender,
-        uint256 maxAmount,
-        uint256 maxDueDate,
-        uint256 rate,
-        uint256 timeBucketsLength
-    ) internal {
+    function _lendAsLimitOrder(address lender, uint256 maxDueDate, uint256 rate, uint256 timeBucketsLength) internal {
         YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(timeBucketsLength, rate);
-        return _lendAsLimitOrder(lender, maxAmount, maxDueDate, curveRelativeTime);
+        return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
-    function _lendAsLimitOrder(
-        address lender,
-        uint256 maxAmount,
-        uint256 maxDueDate,
-        YieldCurve memory curveRelativeTime
-    ) internal {
+    function _lendAsLimitOrder(address lender, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {
         vm.prank(lender);
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({maxAmount: maxAmount, maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
-        );
+        size.lendAsLimitOrder(LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
     }
 
     function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate)
@@ -170,23 +155,16 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return size.activeFixedLoans() > 0 ? size.activeFixedLoans() - 1 : type(uint256).max;
     }
 
-    function _borrowAsLimitOrder(
-        address borrower,
-        uint256 maxAmount,
-        uint256[] memory timeBuckets,
-        uint256[] memory rates
-    ) internal {
+    function _borrowAsLimitOrder(address borrower, uint256[] memory timeBuckets, uint256[] memory rates) internal {
         YieldCurve memory curveRelativeTime = YieldCurve({timeBuckets: timeBuckets, rates: rates});
         vm.prank(borrower);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
     }
 
-    function _borrowAsLimitOrder(address borrower, uint256 maxAmount, uint256 rate, uint256 timeBucketsLength)
-        internal
-    {
+    function _borrowAsLimitOrder(address borrower, uint256 rate, uint256 timeBucketsLength) internal {
         YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(timeBucketsLength, rate);
         vm.prank(borrower);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({maxAmount: maxAmount, curveRelativeTime: curveRelativeTime}));
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
     }
 
     function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate)
@@ -266,11 +244,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 minimumCollateralRatio: minimumCollateralRatio
             })
         );
-    }
-
-    function _moveToVariablePool(address user, uint256 loanId) internal {
-        vm.prank(user);
-        size.moveToVariablePool(MoveToVariablePoolParams({loanId: loanId}));
     }
 
     function _compensate(address user, uint256 loanToRepayId, uint256 loanToCompensateId) internal {

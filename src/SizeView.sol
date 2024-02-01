@@ -13,7 +13,11 @@ import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
-import {InitializeFixedParams, InitializeGeneralParams} from "@src/libraries/general/actions/Initialize.sol";
+import {
+    InitializeFixedParams,
+    InitializeGeneralParams,
+    InitializeVariableParams
+} from "@src/libraries/general/actions/Initialize.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 struct UserView {
@@ -35,13 +39,12 @@ abstract contract SizeView is SizeStorage {
         return state.collateralRatio(user);
     }
 
-    function isLiquidatable(address user) external view returns (bool) {
-        return state.isLiquidatable(user);
+    function isUserLiquidatable(address user) external view returns (bool) {
+        return state.isUserLiquidatable(user);
     }
 
-    function isLiquidatable(uint256 loanId) external view returns (bool) {
-        FixedLoan memory loan = state._fixed.loans[loanId];
-        return state.isLiquidatable(loan.borrower);
+    function isLoanLiquidatable(uint256 loanId) external view returns (bool) {
+        return state.isLoanLiquidatable(loanId);
     }
 
     function getFOLAssignedCollateral(uint256 loanId) external view returns (uint256) {
@@ -50,7 +53,7 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getDebt(uint256 loanId) external view returns (uint256) {
-        return state._fixed.loans[loanId].getDebt();
+        return state._fixed.loans[loanId].faceValue;
     }
 
     function getCredit(uint256 loanId) external view returns (uint256) {
@@ -74,8 +77,15 @@ abstract contract SizeView is SizeStorage {
             crLiquidation: state._fixed.crLiquidation,
             collateralPremiumToLiquidator: state._fixed.collateralPremiumToLiquidator,
             collateralPremiumToProtocol: state._fixed.collateralPremiumToProtocol,
-            minimumCreditBorrowAsset: state._fixed.minimumCreditBorrowAsset
+            minimumCreditBorrowAsset: state._fixed.minimumCreditBorrowAsset,
+            collateralTokenCap: state._fixed.collateralTokenCap,
+            borrowATokenCap: state._fixed.borrowATokenCap,
+            debtTokenCap: state._fixed.debtTokenCap
         });
+    }
+
+    function variableConfig() external view returns (InitializeVariableParams memory) {
+        return InitializeVariableParams({collateralOverdueTransferFee: state._variable.collateralOverdueTransferFee});
     }
 
     function getUserView(address user) external view returns (UserView memory) {
@@ -88,8 +98,8 @@ abstract contract SizeView is SizeStorage {
         });
     }
 
-    function getUserProxyAddress(address user) external view returns (address) {
-        return address(state._fixed.users[user].proxy);
+    function getVaultAddress(address user) external view returns (address) {
+        return address(state._fixed.users[user].vault);
     }
 
     function activeFixedLoans() external view returns (uint256) {

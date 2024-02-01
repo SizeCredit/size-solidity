@@ -20,11 +20,11 @@ contract RepayValidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 100e6, 12, 0.05e18, 12);
+        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
         uint256 amount = 20e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 faceValue = Math.mulDivUp(amount, PERCENT + 0.05e18, PERCENT);
-        _lendAsLimitOrder(candy, 100e6, 12, 0.03e18, 12);
+        _lendAsLimitOrder(candy, 12, 0.03e18, 12);
 
         uint256 solId = _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
 

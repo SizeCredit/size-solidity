@@ -23,6 +23,12 @@ library UpdateConfig {
         // TODO validate params
         if (params.key == "minimumCreditBorrowAsset") {
             state._fixed.minimumCreditBorrowAsset = params.value;
+        } else if (params.key == "collateralTokenCap") {
+            state._fixed.collateralTokenCap = params.value;
+        } else if (params.key == "borrowATokenCap") {
+            state._fixed.borrowATokenCap = params.value;
+        } else if (params.key == "debtTokenCap") {
+            state._fixed.debtTokenCap = params.value;
         } else {
             revert Errors.INVALID_KEY(params.key);
         }

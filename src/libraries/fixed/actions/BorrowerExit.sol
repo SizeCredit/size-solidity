@@ -53,9 +53,6 @@ library BorrowerExit {
         }
 
         // validate borrowerToExitTo
-        if (amountIn > borrowOffer.maxAmount) {
-            revert Errors.AMOUNT_GREATER_THAN_MAX_AMOUNT(amountIn, borrowOffer.maxAmount);
-        }
     }
 
     function executeBorrowerExit(State storage state, BorrowerExitParams calldata params) external {
@@ -72,6 +69,5 @@ library BorrowerExit {
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
         state._fixed.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
         fol.borrower = params.borrowerToExitTo;
-        borrowOffer.maxAmount -= amountIn;
     }
 }

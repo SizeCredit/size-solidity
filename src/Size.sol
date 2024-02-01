@@ -9,7 +9,10 @@ import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Mu
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 
 import {
-    Initialize, InitializeFixedParams, InitializeGeneralParams
+    Initialize,
+    InitializeFixedParams,
+    InitializeGeneralParams,
+    InitializeVariableParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
@@ -23,7 +26,6 @@ import {Deposit, DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateFixedLoan, LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
-import {MoveToVariablePool, MoveToVariablePoolParams} from "@src/libraries/fixed/actions/MoveToVariablePool.sol";
 
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
@@ -41,6 +43,7 @@ import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.so
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
+import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
@@ -72,9 +75,9 @@ contract Size is
     using LiquidateFixedLoan for State;
     using SelfLiquidateFixedLoan for State;
     using LiquidateFixedLoanWithReplacement for State;
-    using MoveToVariablePool for State;
     using Compensate for State;
     using FixedLibrary for State;
+    using CapsLibrary for State;
 
     bytes32 public constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
@@ -84,15 +87,19 @@ contract Size is
         _disableInitializers();
     }
 
-    function initialize(InitializeGeneralParams calldata g, InitializeFixedParams calldata f) external initializer {
-        state.validateInitialize(g, f);
+    function initialize(
+        InitializeGeneralParams calldata g,
+        InitializeFixedParams calldata f,
+        InitializeVariableParams calldata v
+    ) external initializer {
+        state.validateInitialize(g, f, v);
 
         __AccessControl_init();
         __Pausable_init();
         __Multicall_init();
         __UUPSUpgradeable_init();
 
-        state.executeInitialize(g, f);
+        state.executeInitialize(g, f, v);
         _grantRole(DEFAULT_ADMIN_ROLE, g.owner);
     }
 
@@ -108,6 +115,8 @@ contract Size is
     function deposit(DepositParams calldata params) external override(ISize) whenNotPaused {
         state.validateDeposit(params);
         state.executeDeposit(params);
+        state.validateCollateralTokenCap();
+        state.validateBorrowATokenCap();
     }
 
     /// @inheritdoc ISize
@@ -134,6 +143,7 @@ contract Size is
         state.validateLendAsMarketOrder(params);
         state.executeLendAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(params.borrower);
+        state.validateDebtTokenCap();
     }
 
     /// @inheritdoc ISize
@@ -141,6 +151,7 @@ contract Size is
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotLiquidatable(msg.sender);
+        state.validateDebtTokenCap();
     }
 
     /// @inheritdoc ISize
@@ -194,12 +205,6 @@ contract Size is
         (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
             state.executeLiquidateFixedLoanWithReplacement(params);
         state.validateUserIsNotLiquidatable(params.borrower);
-    }
-
-    /// @inheritdoc ISize
-    function moveToVariablePool(MoveToVariablePoolParams calldata params) external override(ISize) whenNotPaused {
-        state.validateMoveToVariablePool(params);
-        state.executeMoveToVariablePool(params);
     }
 
     /// @inheritdoc ISize
