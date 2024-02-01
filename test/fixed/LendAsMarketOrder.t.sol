@@ -88,11 +88,11 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
-        _borrowAsLimitOrder(alice, curve.timeBuckets, curve.rates);
+        _borrowAsLimitOrder(alice, curve.timeBuckets, curve.rates, curve.marketRateMultipliers);
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.timeBuckets[0] + curve.timeBuckets[1]) / 2;
-        uint256 r = PERCENT + YieldCurveLibrary.getRate(curve, dueDate);
+        uint256 r = PERCENT + YieldCurveLibrary.getRate(curve, 0, dueDate);
         uint256 faceValue = Math.mulDivDown(amountIn, r, PERCENT);
 
         Vars memory _before = _state();
@@ -149,7 +149,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        _borrowAsLimitOrder(alice, curve.timeBuckets, curve.rates);
+        _borrowAsLimitOrder(alice, curve.timeBuckets, curve.rates, curve.marketRateMultipliers);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));

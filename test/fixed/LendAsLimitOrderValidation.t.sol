@@ -15,6 +15,7 @@ contract LendAsLimitOrderValidationTest is BaseTest {
     function test_LendAsLimitOrder_validation() public {
         _deposit(alice, address(usdc), 100e6);
         uint256 maxDueDate = 12;
+        int256[] memory marketRateMultipliers = new int256[](2);
         uint256[] memory timeBuckets = new uint256[](2);
         timeBuckets[0] = 1 days;
         timeBuckets[1] = 2 days;
@@ -26,7 +27,11 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates1})
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates1
+                })
             })
         );
 
@@ -36,7 +41,11 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: empty})
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: empty
+                })
             })
         );
 
@@ -50,7 +59,11 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates
+                })
             })
         );
 
@@ -63,7 +76,11 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
                 maxDueDate: 2,
-                curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates
+                })
             })
         );
     }

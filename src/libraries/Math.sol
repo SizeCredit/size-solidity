@@ -5,11 +5,6 @@ import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 
 uint256 constant PERCENT = 1e18;
 
-enum Rounding {
-    DOWN,
-    UP
-}
-
 library Math {
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
         return FixedPointMathLib.min(a, b);
@@ -20,16 +15,16 @@ library Math {
         return FixedPointMathLib.min(minAB, c);
     }
 
-    function mulDiv(uint256 x, uint256 y, uint256 z, Rounding rounding) internal pure returns (uint256) {
-        return rounding == Rounding.DOWN ? mulDivDown(x, y, z) : mulDivUp(x, y, z);
-    }
-
     function mulDivUp(uint256 x, uint256 y, uint256 z) internal pure returns (uint256) {
         return FixedPointMathLib.mulDivUp(x, y, z);
     }
 
     function mulDivDown(uint256 x, uint256 y, uint256 z) internal pure returns (uint256) {
         return FixedPointMathLib.mulDiv(x, y, z);
+    }
+
+    function mulDiv(int256 x, int256 y, int256 z) internal pure returns (int256) {
+        return x * y / z;
     }
 
     function binarySearch(uint256[] memory array, uint256 value) internal pure returns (uint256 low, uint256 high) {

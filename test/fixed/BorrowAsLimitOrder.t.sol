@@ -17,8 +17,9 @@ contract BorrowAsLimitOrderTest is BaseTest {
         uint256[] memory rates = new uint256[](2);
         rates[0] = 1.01e18;
         rates[1] = 1.02e18;
+        int256[] memory marketRateMultipliers = new int256[](2);
         assertTrue(_state().alice.user.borrowOffer.isNull());
-        _borrowAsLimitOrder(alice, timeBuckets, rates);
+        _borrowAsLimitOrder(alice, timeBuckets, rates, marketRateMultipliers);
         assertTrue(!_state().alice.user.borrowOffer.isNull());
     }
 
@@ -28,11 +29,12 @@ contract BorrowAsLimitOrderTest is BaseTest {
         buckets = bound(buckets, 1, 365);
         uint256[] memory timeBuckets = new uint256[](buckets);
         uint256[] memory rates = new uint256[](buckets);
+        int256[] memory marketRateMultipliers = new int256[](buckets);
 
         for (uint256 i = 0; i < buckets; i++) {
             timeBuckets[i] = i * 1 days;
             rates[i] = bound(uint256(keccak256(abi.encode(seed, i))), 0, 10e18);
         }
-        _borrowAsLimitOrder(alice, timeBuckets, rates);
+        _borrowAsLimitOrder(alice, timeBuckets, rates, marketRateMultipliers);
     }
 }

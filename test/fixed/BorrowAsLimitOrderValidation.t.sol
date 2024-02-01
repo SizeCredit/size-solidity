@@ -17,6 +17,7 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
         _deposit(alice, weth, 100e18);
         uint256 maxAmount = 100e6;
         uint256[] memory timeBuckets = new uint256[](2);
+        int256[] memory marketRateMultipliers = new int256[](2);
         timeBuckets[0] = 1 days;
         timeBuckets[1] = 2 days;
         uint256[] memory rates1 = new uint256[](1);
@@ -24,14 +25,26 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
         size.borrowAsLimitOrder(
-            BorrowAsLimitOrderParams({curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates1})})
+            BorrowAsLimitOrderParams({
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates1
+                })
+            })
         );
 
         uint256[] memory empty;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
         size.borrowAsLimitOrder(
-            BorrowAsLimitOrderParams({curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: empty})})
+            BorrowAsLimitOrderParams({
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: empty
+                })
+            })
         );
 
         uint256[] memory rates = new uint256[](2);
@@ -42,7 +55,13 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
         timeBuckets[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.TIME_BUCKETS_NOT_STRICTLY_INCREASING.selector));
         size.borrowAsLimitOrder(
-            BorrowAsLimitOrderParams({curveRelativeTime: YieldCurve({timeBuckets: timeBuckets, rates: rates})})
+            BorrowAsLimitOrderParams({
+                curveRelativeTime: YieldCurve({
+                    timeBuckets: timeBuckets,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates
+                })
+            })
         );
     }
 }

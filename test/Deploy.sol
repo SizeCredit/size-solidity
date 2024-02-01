@@ -84,8 +84,9 @@ abstract contract Deploy {
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6
         });
+        v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         size = new Size();
-        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (g, f)));
+        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (g, f, v)));
     }
 
     function setupChain(address _owner, address pool, address _weth, address _usdc) internal {

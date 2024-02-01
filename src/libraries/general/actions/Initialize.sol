@@ -158,7 +158,7 @@ library Initialize {
     }
 
     function _executeInitializeVariable(State storage state, InitializeVariableParams memory v) internal {
-        state._variable.userProxyImplementation = address(new UserProxy());
+        state._variable.vaultImplementation = address(new Vault());
         state._variable.collateralOverdueTransferFee = v.collateralOverdueTransferFee;
     }
 

@@ -66,11 +66,13 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     ) internal {
         uint256[] memory rates = new uint256[](2);
         uint256[] memory timeBuckets = new uint256[](2);
+        int256[] memory marketRateMultipliers = new int256[](2);
         rates[0] = ratesArray[0];
         rates[1] = ratesArray[1];
         timeBuckets[0] = timeBucketsArray[0];
         timeBuckets[1] = timeBucketsArray[1];
-        YieldCurve memory curveRelativeTime = YieldCurve({timeBuckets: timeBuckets, rates: rates});
+        YieldCurve memory curveRelativeTime =
+            YieldCurve({timeBuckets: timeBuckets, marketRateMultipliers: marketRateMultipliers, rates: rates});
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
@@ -155,8 +157,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return size.activeFixedLoans() > 0 ? size.activeFixedLoans() - 1 : type(uint256).max;
     }
 
-    function _borrowAsLimitOrder(address borrower, uint256[] memory timeBuckets, uint256[] memory rates) internal {
-        YieldCurve memory curveRelativeTime = YieldCurve({timeBuckets: timeBuckets, rates: rates});
+    function _borrowAsLimitOrder(
+        address borrower,
+        uint256[] memory timeBuckets,
+        uint256[] memory rates,
+        int256[] memory marketRateMultipliers
+    ) internal {
+        YieldCurve memory curveRelativeTime =
+            YieldCurve({timeBuckets: timeBuckets, marketRateMultipliers: marketRateMultipliers, rates: rates});
         vm.prank(borrower);
         size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
     }
