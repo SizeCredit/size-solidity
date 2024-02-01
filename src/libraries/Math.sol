@@ -10,6 +10,10 @@ library Math {
         return FixedPointMathLib.min(a, b);
     }
 
+    function max(uint256 a, uint256 b) internal pure returns (uint256) {
+        return FixedPointMathLib.max(a, b);
+    }
+
     function min(uint256 a, uint256 b, uint256 c) internal pure returns (uint256) {
         uint256 minAB = FixedPointMathLib.min(a, b);
         return FixedPointMathLib.min(minAB, c);

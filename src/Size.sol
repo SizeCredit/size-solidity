@@ -123,7 +123,7 @@ contract Size is
     function withdraw(WithdrawParams calldata params) external override(ISize) whenNotPaused {
         state.validateWithdraw(params);
         state.executeWithdraw(params);
-        state.validateUserIsNotLiquidatable(msg.sender);
+        state.validateUserIsNotBelowRiskCR(msg.sender);
     }
 
     /// @inheritdoc ISize
@@ -142,7 +142,7 @@ contract Size is
     function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external override(ISize) whenNotPaused {
         state.validateLendAsMarketOrder(params);
         state.executeLendAsMarketOrder(params);
-        state.validateUserIsNotLiquidatable(params.borrower);
+        state.validateUserIsNotBelowRiskCR(params.borrower);
         state.validateDebtTokenCap();
     }
 
@@ -150,7 +150,7 @@ contract Size is
     function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external override(ISize) whenNotPaused {
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
-        state.validateUserIsNotLiquidatable(msg.sender);
+        state.validateUserIsNotBelowRiskCR(msg.sender);
         state.validateDebtTokenCap();
     }
 
@@ -158,7 +158,7 @@ contract Size is
     function borrowerExit(BorrowerExitParams calldata params) external override(ISize) whenNotPaused {
         state.validateBorrowerExit(params);
         state.executeBorrowerExit(params);
-        state.validateUserIsNotLiquidatable(params.borrowerToExitTo);
+        state.validateUserIsNotBelowRiskCR(params.borrowerToExitTo);
     }
 
     /// @inheritdoc ISize
@@ -204,7 +204,7 @@ contract Size is
         state.validateLiquidateFixedLoanWithReplacement(params);
         (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
             state.executeLiquidateFixedLoanWithReplacement(params);
-        state.validateUserIsNotLiquidatable(params.borrower);
+        state.validateUserIsNotBelowRiskCR(params.borrower);
     }
 
     /// @inheritdoc ISize

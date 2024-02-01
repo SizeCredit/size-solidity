@@ -15,7 +15,6 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
 
     function test_BorrowAsLimitOrder_validation() public {
         _deposit(alice, weth, 100e18);
-        uint256 maxAmount = 100e6;
         uint256[] memory timeBuckets = new uint256[](2);
         int256[] memory marketRateMultipliers = new int256[](2);
         timeBuckets[0] = 1 days;
@@ -26,6 +25,7 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
         size.borrowAsLimitOrder(
             BorrowAsLimitOrderParams({
+                riskCR: 0,
                 curveRelativeTime: YieldCurve({
                     timeBuckets: timeBuckets,
                     marketRateMultipliers: marketRateMultipliers,
@@ -39,6 +39,7 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
         size.borrowAsLimitOrder(
             BorrowAsLimitOrderParams({
+                riskCR: 0,
                 curveRelativeTime: YieldCurve({
                     timeBuckets: timeBuckets,
                     marketRateMultipliers: marketRateMultipliers,
@@ -56,6 +57,7 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.TIME_BUCKETS_NOT_STRICTLY_INCREASING.selector));
         size.borrowAsLimitOrder(
             BorrowAsLimitOrderParams({
+                riskCR: 0,
                 curveRelativeTime: YieldCurve({
                     timeBuckets: timeBuckets,
                     marketRateMultipliers: marketRateMultipliers,

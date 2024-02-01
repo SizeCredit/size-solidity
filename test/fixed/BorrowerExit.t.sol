@@ -6,7 +6,6 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {BorrowOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 
 contract BorrowerExitTest is BaseTest {
@@ -23,13 +22,11 @@ contract BorrowerExitTest is BaseTest {
 
         Vars memory _before = _state();
 
-        BorrowOffer memory borrowOfferBefore = size.getUserView(candy).user.borrowOffer;
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
         uint256 loansBefore = size.activeFixedLoans();
 
         _borrowerExit(bob, loanId, candy);
 
-        BorrowOffer memory borrowOfferAfter = size.getUserView(candy).user.borrowOffer;
         FixedLoan memory loanAfter = size.getFixedLoan(loanId);
         uint256 loansAfter = size.activeFixedLoans();
 
@@ -60,13 +57,11 @@ contract BorrowerExitTest is BaseTest {
 
         address borrowerToExitTo = bob;
 
-        BorrowOffer memory borrowOfferBefore = size.getUserView(bob).user.borrowOffer;
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
         uint256 loansBefore = size.activeFixedLoans();
 
         _borrowerExit(bob, loanId, borrowerToExitTo);
 
-        BorrowOffer memory borrowOfferAfter = size.getUserView(bob).user.borrowOffer;
         FixedLoan memory loanAfter = size.getFixedLoan(loanId);
         uint256 loansAfter = size.activeFixedLoans();
 
@@ -89,7 +84,11 @@ contract BorrowerExitTest is BaseTest {
         _borrowAsLimitOrder(candy, 0, 12);
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, candy, 1.5e18 / 2));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, candy, 1.5e18 / 2, 1.5e18
+            )
+        );
         size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: candy}));
     }
 }

@@ -40,7 +40,6 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        BorrowOffer memory borrowOfferBefore = size.getUserView(candy).user.borrowOffer;
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
         Vars memory _before = _state();
 
@@ -50,7 +49,6 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
 
         _liquidateFixedLoanWithReplacement(liquidator, loanId, candy);
 
-        BorrowOffer memory borrowOfferAfter = size.getUserView(candy).user.borrowOffer;
         FixedLoan memory loanAfter = size.getFixedLoan(loanId);
         Vars memory _after = _state();
 
@@ -85,7 +83,6 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        BorrowOffer memory borrowOfferBefore = size.getUserView(candy).user.borrowOffer;
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
         Vars memory _before = _state();
 
@@ -95,7 +92,6 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
 
         _liquidateFixedLoanWithReplacement(liquidator, loanId, candy);
 
-        BorrowOffer memory borrowOfferAfter = size.getUserView(candy).user.borrowOffer;
         FixedLoan memory loanAfter = size.getFixedLoan(loanId);
         Vars memory _after = _state();
 
@@ -127,7 +123,9 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
 
         vm.startPrank(liquidator);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.USER_IS_LIQUIDATABLE.selector, candy, 0));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, candy, 0, 1.5e18)
+        );
         size.liquidateFixedLoanWithReplacement(
             LiquidateFixedLoanWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralRatio: 1e18})
         );

@@ -186,9 +186,13 @@ library FixedLibrary {
         return collateralRatio(state, account) < state._fixed.crLiquidation;
     }
 
-    function validateUserIsNotLiquidatable(State storage state, address account) external view {
-        if (isUserLiquidatable(state, account)) {
-            revert Errors.USER_IS_LIQUIDATABLE(account, collateralRatio(state, account));
+    function validateUserIsNotBelowRiskCR(State storage state, address account) external view {
+        uint256 riskCR = Math.max(
+            state._fixed.crOpening,
+            state._fixed.users[account].borrowOffer.riskCR // 0 by default, or user-defined if BorrowAsLimitOrder has been placed
+        );
+        if (collateralRatio(state, account) < riskCR) {
+            revert Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO(account, collateralRatio(state, account), riskCR);
         }
     }
 
