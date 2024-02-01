@@ -20,5 +20,4 @@ library ConversionLibrary {
     function rayToWadDown(uint256 ray) internal pure returns (uint256) {
         return ray / 1e9;
     }
-
 }

@@ -97,7 +97,8 @@ library BorrowAsMarketOrder {
 
         FixedLoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        uint256 r = PERCENT + loanOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 r =
+            PERCENT + loanOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
 
         amountOutLeft = params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, r) : params.amount;
 
@@ -139,7 +140,8 @@ library BorrowAsMarketOrder {
 
         FixedLoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        uint256 r = PERCENT + loanOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 r =
+            PERCENT + loanOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
 
         uint256 faceValue = Math.mulDivUp(params.amount, r, PERCENT);
         uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(faceValue);

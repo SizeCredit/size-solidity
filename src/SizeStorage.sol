@@ -8,8 +8,9 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
-import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+
 import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 

@@ -218,7 +218,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         virtualCollateralFixedLoanIds[0] = loanId1;
 
         uint256 dueDate = 12;
-        uint256 r = PERCENT + size.getUserView(candy).user.loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
+        uint256 r = PERCENT
+            + size.getUserView(candy).user.loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
         uint256 deltaAmountOut = (
             Math.mulDivUp(r, amountFixedLoanId2, PERCENT) > size.getFixedLoan(loanId1).getCredit()
         ) ? Math.mulDivDown(size.getFixedLoan(loanId1).getCredit(), PERCENT, r) : amountFixedLoanId2;
