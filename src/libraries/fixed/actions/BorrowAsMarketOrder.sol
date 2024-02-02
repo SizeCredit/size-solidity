@@ -4,6 +4,8 @@ pragma solidity 0.8.20;
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
+
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
@@ -31,6 +33,7 @@ library BorrowAsMarketOrder {
     using FixedLoanLibrary for FixedLoan[];
     using FixedLibrary for State;
     using VariableLibrary for State;
+    using FeeLibrary for State;
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
         User memory lenderUser = state._fixed.users[params.lender];
@@ -121,7 +124,13 @@ library BorrowAsMarketOrder {
                 break;
             }
 
-            state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, faceValue: deltaAmountIn});
+            state.createSOL({
+                exiterId: loanId,
+                lender: params.lender,
+                borrower: msg.sender,
+                issuanceValue: deltaAmountOut,
+                faceValue: deltaAmountIn
+            });
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
             amountOutLeft -= deltaAmountOut;
         }
@@ -153,14 +162,15 @@ library BorrowAsMarketOrder {
             );
         }
 
-        state._fixed.debtToken.mint(msg.sender, faceValue);
-        state.createFOL({
+        FixedLoan memory fol = state.createFOL({
             lender: params.lender,
             borrower: msg.sender,
             issuanceValue: issuanceValue,
             faceValue: faceValue,
             dueDate: params.dueDate
         });
+        uint256 repayFee = state.repayFee(fol);
+        state._fixed.debtToken.mint(msg.sender, faceValue + repayFee);
         state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
     }
 }

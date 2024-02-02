@@ -126,8 +126,8 @@ abstract contract SizeView is SizeStorage {
         return state.getFixedLoanStatus(state._fixed.loans[loanId]);
     }
 
-    function repayFeeCollateral(uint256 loanId) external view returns (uint256) {
-        return state.repayFeeCollateral(state._fixed.loans[loanId]);
+    function repayFee(uint256 loanId) external view returns (uint256) {
+        return state.repayFee(state._fixed.loans[loanId]);
     }
 
     function tokens() public view returns (CollateralToken, IAToken, DebtToken) {

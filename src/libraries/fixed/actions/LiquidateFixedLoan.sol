@@ -123,7 +123,10 @@ library LiquidateFixedLoan {
 
         emit Events.LiquidateFixedLoan(params.loanId, params.minimumCollateralRatio, collateralRatio, loanStatus);
 
-        uint256 repayFeeCollateral = state.repayFeeCollateral(loan);
+        uint256 repayFee = state.repayFee(loan);
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
+        uint256 repayFeeCollateral =
+            Math.mulDivUp(repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
         state._fixed.collateralToken.transferFrom(loan.borrower, state._general.feeRecipient, repayFeeCollateral);
 
         // case 1a: the user is liquidatable
@@ -147,7 +150,7 @@ library LiquidateFixedLoan {
             }
         }
 
-        state._fixed.debtToken.burn(loan.borrower, loan.faceValue);
+        state._fixed.debtToken.burn(loan.borrower, loan.faceValue + repayFee);
         loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         loan.repaid = true;
     }

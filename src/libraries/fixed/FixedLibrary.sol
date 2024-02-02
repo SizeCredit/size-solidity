@@ -7,7 +7,7 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus, RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 library FixedLibrary {
@@ -19,10 +19,12 @@ library FixedLibrary {
 
         state._fixed.debtToken.burn(fol.borrower, amount);
 
+        loan.issuanceValue -= Math.mulDivUp(amount, loan.issuanceValue, loan.faceValue);
         loan.faceValue -= amount;
         validateMinimumCredit(state, loan.getCredit());
 
         if (!loan.isFOL()) {
+            fol.issuanceValue -= Math.mulDivUp(amount, fol.issuanceValue, fol.faceValue);
             fol.faceValue -= amount;
             fol.faceValueExited -= amount;
         }
@@ -48,8 +50,8 @@ library FixedLibrary {
         uint256 issuanceValue,
         uint256 faceValue,
         uint256 dueDate
-    ) public {
-        FixedLoan memory fol = FixedLoan({
+    ) public returns (FixedLoan memory fol) {
+        fol = FixedLoan({
             issuanceValue: issuanceValue,
             faceValue: faceValue,
             faceValueExited: 0,
@@ -72,19 +74,24 @@ library FixedLibrary {
     }
 
     // solhint-disable-next-line var-name-mixedcase
-    function createSOL(State storage state, uint256 exiterId, address lender, address borrower, uint256 faceValue)
-        public
-    {
+    function createSOL(
+        State storage state,
+        uint256 exiterId,
+        address lender,
+        address borrower,
+        uint256 issuanceValue,
+        uint256 faceValue
+    ) public returns (FixedLoan memory sol) {
         uint256 folId = getFOLId(state, exiterId);
         FixedLoan storage fol = state._fixed.loans[folId];
 
-        FixedLoan memory sol = FixedLoan({
-            issuanceValue: fol.issuanceValue, // TODO confirm
+        sol = FixedLoan({
+            issuanceValue: issuanceValue,
             faceValue: faceValue,
             faceValueExited: 0,
             lender: lender,
             borrower: borrower,
-            startDate: fol.startDate, // TODO confirm
+            startDate: block.timestamp,
             dueDate: fol.dueDate,
             repaid: false,
             liquidityIndexAtRepayment: 0,
@@ -99,7 +106,7 @@ library FixedLibrary {
         exiter.faceValueExited += faceValue;
         validateMinimumCredit(state, exiter.getCredit());
 
-        emit Events.CreateFixedLoan(solId, lender, borrower, exiterId, folId, fol.issuanceValue, faceValue, fol.dueDate);
+        emit Events.CreateFixedLoan(solId, lender, borrower, exiterId, folId, issuanceValue, faceValue, fol.dueDate);
     }
 
     function getFOL(State storage state, FixedLoan storage self) public view returns (FixedLoan storage) {

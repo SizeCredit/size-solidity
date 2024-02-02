@@ -7,6 +7,7 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
@@ -30,6 +31,7 @@ library LendAsMarketOrder {
     using FixedLoanLibrary for FixedLoan[];
     using FixedLibrary for State;
     using VariableLibrary for State;
+    using FeeLibrary for State;
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state._fixed.users[params.borrower].borrowOffer;
@@ -78,14 +80,15 @@ library LendAsMarketOrder {
             issuanceValue = Math.mulDivUp(params.amount, PERCENT, r);
         }
 
-        state._fixed.debtToken.mint(params.borrower, faceValue);
-        state.createFOL({
+        FixedLoan memory fol = state.createFOL({
             lender: msg.sender,
             borrower: params.borrower,
             issuanceValue: issuanceValue,
             faceValue: faceValue,
             dueDate: params.dueDate
         });
+        uint256 repayFee = state.repayFee(fol);
+        state._fixed.debtToken.mint(params.borrower, faceValue + repayFee);
         state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
     }
 }

@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {ExperimentsHelper} from "@test/helpers/ExperimentsHelper.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
@@ -385,5 +388,36 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
             bobDebtBefore,
             "Bob's total debt covered by real collateral should revert to previous state"
         );
+    }
+
+    function test_Experiments_repayFeeAPR_simple() public {
+        _setPrice(1e18);
+        _deposit(bob, weth, 165e18);
+        _deposit(alice, usdc, 100e6);
+        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        // Borrower B1 submits a borror market order for
+        // Loan1
+        // - Lender=L
+        // - Borrower=B1
+        // - IV=100
+        // - DD=1Y
+        // - Rate=10%/Y so
+        // - FV=110
+        // - InitiTime=0
+
+        vm.warp(block.timestamp + 365 days);
+
+        _deposit(bob, usdc, 10e6);
+        _repay(bob, loanId);
+
+        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
+        uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+
+        // If the loan completes its lifecycle, we have
+        // protocolFee = 100 * (0.005 * 1) --> 0.5
+        assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral);
     }
 }

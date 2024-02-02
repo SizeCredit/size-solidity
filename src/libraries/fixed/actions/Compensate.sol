@@ -68,6 +68,7 @@ library Compensate {
             exiterId: params.loanToCompensateId,
             lender: loanToRepay.lender,
             borrower: msg.sender,
+            issuanceValue: amountToCompensate, // @audit review if this is the same as faceValue
             faceValue: amountToCompensate
         });
     }

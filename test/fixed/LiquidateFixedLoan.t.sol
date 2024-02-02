@@ -189,7 +189,10 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         uint256 assignedCollateral =
             Math.mulDivDown(_before.bob.collateralAmount, loanBefore.faceValue, _before.bob.debtAmount);
-        uint256 repayFeeCollateral = size.repayFeeCollateral(loanId);
+
+        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
+        uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         _liquidateFixedLoan(liquidator, loanId);
 

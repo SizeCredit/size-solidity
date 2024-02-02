@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.20;
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -69,9 +70,14 @@ library BorrowerExit {
         uint256 faceValue = fol.faceValue;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
 
-        uint256 repayFeeCollateral = state.repayFeeCollateral(fol);
+        uint256 repayFee = state.currentRepayFee(fol);
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
+        uint256 repayFeeCollateral =
+            Math.mulDivUp(repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
         state._fixed.collateralToken.transferFrom(msg.sender, state._general.feeRecipient, repayFeeCollateral);
+
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
+        state._fixed.debtToken.burn(msg.sender, repayFee);
         state._fixed.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
         fol.borrower = params.borrowerToExitTo;
         fol.startDate = block.timestamp;

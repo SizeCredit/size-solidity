@@ -219,4 +219,6 @@ contract RepayTest is BaseTest {
         try size.repay(RepayParams({loanId: loanId, amount: repayAmount})) {} catch {}
         assertGe(size.getCredit(loanId), size.fixedConfig().minimumCreditBorrowAsset);
     }
+
+    function test_Repay_repay_pays_repayFeeAPR() private {}
 }

@@ -3,6 +3,7 @@ pragma solidity 0.8.20;
 
 import {State} from "@src/SizeStorage.sol";
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
@@ -51,10 +52,15 @@ library Repay {
         uint256 repayAmount = Math.min(loan.faceValue, params.amount);
 
         if (repayAmount == loan.faceValue && loan.isFOL()) {
-            uint256 repayFeeCollateral = state.repayFeeCollateral(loan);
+            uint256 repayFee = state.repayFee(loan);
+            uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
+            uint256 repayFeeCollateral = Math.mulDivUp(
+                repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
+            );
             state._fixed.collateralToken.transferFrom(msg.sender, state._general.feeRecipient, repayFeeCollateral);
+
             state.transferBorrowAToken(msg.sender, address(this), repayAmount);
-            state._fixed.debtToken.burn(msg.sender, repayAmount);
+            state._fixed.debtToken.burn(msg.sender, repayAmount + repayFee);
             loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
             loan.repaid = true;
         } else {
