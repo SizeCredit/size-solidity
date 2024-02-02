@@ -9,8 +9,8 @@ contract DepositScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         Size sizeContract = Size(sizeContractAddress);
-
-        address lender = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8; //0xf44b17b31d0D364D43A77454424d5BB8Ac97AFD1; //0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
+        
+        address lender = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8; 
         uint256 amount = 1e6; /// USDC has 6 decimals
         address to = sizeContractAddress;
 

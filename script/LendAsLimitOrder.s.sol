@@ -11,7 +11,7 @@ contract DepositScript is Script {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         Size sizeContract = Size(sizeContractAddress);
 
-        address lender = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8; //0xf44b17b31d0D364D43A77454424d5BB8Ac97AFD1; //0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
+        address lender = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
 
         address to = 0xCa57A4211d0F8819Bd0845e6E3eD6eDcBc245ffb;
         uint256 maxAmount = 10000;
