@@ -56,7 +56,9 @@ abstract contract Deploy {
             minimumCreditBorrowAsset: 5e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
-            debtTokenCap: 500_000e6
+            debtTokenCap: 500_000e6,
+            earlyLenderExitFee: 5e6,
+            earlyBorrowerExitFee: 1e6
         });
         v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (g, f, v)));
@@ -89,7 +91,9 @@ abstract contract Deploy {
             minimumCreditBorrowAsset: 5e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
-            debtTokenCap: 500_000e6
+            debtTokenCap: 500_000e6,
+            earlyLenderExitFee: 5e6,
+            earlyBorrowerExitFee: 1e6
         });
         v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         size = new Size();
@@ -118,7 +122,9 @@ abstract contract Deploy {
             minimumCreditBorrowAsset: 5e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
-            debtTokenCap: 500_000e6
+            debtTokenCap: 500_000e6,
+            earlyLenderExitFee: 5e6,
+            earlyBorrowerExitFee: 1e6
         });
         v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         size = new Size();
