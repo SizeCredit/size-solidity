@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 import "../src/Size.sol";
 import "../src/libraries/fixed/actions/LendAsLimitOrder.sol";
 
-contract DepositScript is Script {
+contract LendAsLimitOrderScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
