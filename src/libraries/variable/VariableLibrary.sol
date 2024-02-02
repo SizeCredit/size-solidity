@@ -137,8 +137,4 @@ library VariableLibrary {
             state, loan.borrower, address(this), assignedCollateral - liquidatorProfitCollateralToken, loan.faceValue
         );
     }
-
-    function getMarketRate(State storage state) public view returns (uint256) {
-        return 0;
-    }
 }

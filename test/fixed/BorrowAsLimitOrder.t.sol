@@ -73,7 +73,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, alice, 1.5e18, 1.7e18)
         );
-        uint256 loanId = _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
+        _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
     }
 
     function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_crOpening_even_if_riskCR_is_below(
@@ -98,6 +98,6 @@ contract BorrowAsLimitOrderTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, alice, 1.4e18, 1.5e18)
         );
-        uint256 loanId = _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
+        _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
     }
 }
