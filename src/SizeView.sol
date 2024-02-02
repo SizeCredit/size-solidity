@@ -9,6 +9,7 @@ import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
@@ -34,6 +35,7 @@ abstract contract SizeView is SizeStorage {
     using FixedLoanLibrary for FixedLoan;
     using FixedLibrary for State;
     using VariableLibrary for State;
+    using FeeLibrary for State;
 
     function collateralRatio(address user) external view returns (uint256) {
         return state.collateralRatio(user);
@@ -82,7 +84,7 @@ abstract contract SizeView is SizeStorage {
             collateralTokenCap: state._fixed.collateralTokenCap,
             borrowATokenCap: state._fixed.borrowATokenCap,
             debtTokenCap: state._fixed.debtTokenCap,
-            repaymentFeeAPR: state._fixed.repaymentFeeAPR
+            repayFeeAPR: state._fixed.repayFeeAPR
         });
     }
 
@@ -122,6 +124,10 @@ abstract contract SizeView is SizeStorage {
 
     function getFixedLoanStatus(uint256 loanId) external view returns (FixedLoanStatus) {
         return state.getFixedLoanStatus(state._fixed.loans[loanId]);
+    }
+
+    function repayFeeCollateral(uint256 loanId) external view returns (uint256) {
+        return state.repayFeeCollateral(state._fixed.loans[loanId]);
     }
 
     function tokens() public view returns (CollateralToken, IAToken, DebtToken) {

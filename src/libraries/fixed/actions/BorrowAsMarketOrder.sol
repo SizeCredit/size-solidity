@@ -143,7 +143,8 @@ library BorrowAsMarketOrder {
         uint256 r =
             PERCENT + loanOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
 
-        uint256 faceValue = Math.mulDivUp(params.amount, r, PERCENT);
+        uint256 issuanceValue = params.amount;
+        uint256 faceValue = Math.mulDivUp(issuanceValue, r, PERCENT);
         uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(faceValue);
 
         if (state._fixed.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {
@@ -153,7 +154,13 @@ library BorrowAsMarketOrder {
         }
 
         state._fixed.debtToken.mint(msg.sender, faceValue);
-        state.createFOL({lender: params.lender, borrower: msg.sender, faceValue: faceValue, dueDate: params.dueDate});
-        state.transferBorrowAToken(params.lender, msg.sender, params.amount);
+        state.createFOL({
+            lender: params.lender,
+            borrower: msg.sender,
+            issuanceValue: issuanceValue,
+            faceValue: faceValue,
+            dueDate: params.dueDate
+        });
+        state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
     }
 }

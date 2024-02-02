@@ -39,7 +39,7 @@ struct Fixed {
     uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
-    uint256 repaymentFeeAPR;
+    uint256 repayFeeAPR;
 }
 
 struct Variable {

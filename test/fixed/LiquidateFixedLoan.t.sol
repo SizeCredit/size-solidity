@@ -63,14 +63,17 @@ contract LiquidateFixedLoanTest is BaseTest {
             _before.feeRecipient.collateralAmount
                 + Math.mulDivDown(collateralRemainder, size.fixedConfig().collateralSplitProtocolPercent, PERCENT)
         );
-        uint256 collateralPremiumToBorrower =
-            PERCENT - size.fixedConfig().collateralSplitProtocolPercent - size.fixedConfig().collateralSplitLiquidatorPercent;
+        uint256 collateralPremiumToBorrower = PERCENT - size.fixedConfig().collateralSplitProtocolPercent
+            - size.fixedConfig().collateralSplitLiquidatorPercent;
         assertEq(
             _after.bob.collateralAmount,
             _before.bob.collateralAmount - (debtWad * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
-                    (size.fixedConfig().collateralSplitProtocolPercent + size.fixedConfig().collateralSplitLiquidatorPercent),
+                    (
+                        size.fixedConfig().collateralSplitProtocolPercent
+                            + size.fixedConfig().collateralSplitLiquidatorPercent
+                    ),
                     PERCENT
                 ),
             _before.bob.collateralAmount - (debtWad * 5) - collateralRemainder
@@ -186,6 +189,7 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         uint256 assignedCollateral =
             Math.mulDivDown(_before.bob.collateralAmount, loanBefore.faceValue, _before.bob.debtAmount);
+        uint256 repayFeeCollateral = size.repayFeeCollateral(loanId);
 
         _liquidateFixedLoan(liquidator, loanId);
 
@@ -198,14 +202,16 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(loansBefore, loansAfter);
         assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - assignedCollateral);
         assertGt(size.variableConfig().collateralOverdueTransferFee, 0);
+        assertEq(_after.feeRecipient.collateralAmount, _before.feeRecipient.collateralAmount + repayFeeCollateral);
         assertEq(
             variablePoolWETHAfter,
             variablePoolWETHBefore + assignedCollateral - size.variableConfig().collateralOverdueTransferFee
+                - repayFeeCollateral
         );
         assertTrue(!loanBefore.repaid);
         assertTrue(loanAfter.repaid);
-        assertLt(_after.bob.debtAmount , _before.bob.debtAmount);
-        assertEq(_after.bob.debtAmount , 0);
+        assertLt(_after.bob.debtAmount, _before.bob.debtAmount);
+        assertEq(_after.bob.debtAmount, 0);
     }
 
     function test_LiquidateFixedLoan_liquidateFixedLoan_move_to_VP_should_claim_later_with_interest() public {

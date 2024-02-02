@@ -35,6 +35,7 @@ library Events {
         address indexed borrower,
         uint256 exiterId,
         uint256 folId,
+        uint256 issuanceValue,
         uint256 faceValue,
         uint256 dueDate
     );

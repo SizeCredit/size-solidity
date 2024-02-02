@@ -38,7 +38,7 @@ struct InitializeFixedParams {
     uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
-    uint256 repaymentFeeAPR;
+    uint256 repayFeeAPR;
 }
 
 struct InitializeVariableParams {
@@ -121,7 +121,7 @@ library Initialize {
             revert Errors.NULL_AMOUNT();
         }
 
-        // validate repaymentFeeAPR
+        // validate repayFeeAPR
         // N/A
     }
 
@@ -169,7 +169,7 @@ library Initialize {
         state._fixed.borrowATokenCap = f.borrowATokenCap;
         state._fixed.debtTokenCap = f.debtTokenCap;
 
-        state._fixed.repaymentFeeAPR = f.repaymentFeeAPR;
+        state._fixed.repayFeeAPR = f.repayFeeAPR;
     }
 
     function _executeInitializeVariable(State storage state, InitializeVariableParams memory v) internal {

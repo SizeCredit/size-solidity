@@ -4,13 +4,14 @@ pragma solidity 0.8.20;
 uint256 constant RESERVED_ID = type(uint256).max;
 
 struct FixedLoan {
-    uint256 faceValue;
-    uint256 faceValueExited;
     address lender;
     address borrower;
+    uint256 issuanceValue; // ?
+    uint256 faceValue;
+    uint256 faceValueExited;
+    uint256 startDate; // ?
     uint256 dueDate; // same for FOL and SOL
     uint256 liquidityIndexAtRepayment; // FOL-specific
-    uint256 repaymentFee; // FOL-specific
     uint256 folId; // SOL-specific
     bool repaid; // FOL-specific
 }

@@ -165,6 +165,7 @@ contract Size is
     function repay(RepayParams calldata params) external override(ISize) whenNotPaused {
         state.validateRepay(params);
         state.executeRepay(params);
+        state.validateUserIsNotLiquidatable(msg.sender);
     }
 
     /// @inheritdoc ISize
@@ -177,6 +178,7 @@ contract Size is
     function liquidateFixedLoan(LiquidateFixedLoanParams calldata params)
         external
         override(ISize)
+        whenNotPaused
         returns (uint256 liquidatorProfitCollateralAsset)
     {
         state.validateLiquidateFixedLoan(params);

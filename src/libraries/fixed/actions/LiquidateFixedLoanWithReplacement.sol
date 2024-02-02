@@ -75,6 +75,7 @@ library LiquidateFixedLoanWithReplacement {
         uint256 liquidatorProfitBorrowAsset = faceValue - amountOut;
 
         fol.borrower = params.borrower;
+        fol.startDate = block.timestamp;
         fol.liquidityIndexAtRepayment = 0;
         fol.repaid = false;
 

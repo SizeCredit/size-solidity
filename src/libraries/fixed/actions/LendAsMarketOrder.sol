@@ -68,18 +68,24 @@ library LendAsMarketOrder {
 
         uint256 r =
             PERCENT + borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 issuanceValue;
         uint256 faceValue;
-        uint256 amountIn;
         if (params.exactAmountIn) {
             faceValue = Math.mulDivDown(params.amount, r, PERCENT);
-            amountIn = params.amount;
+            issuanceValue = params.amount;
         } else {
             faceValue = params.amount;
-            amountIn = Math.mulDivUp(params.amount, PERCENT, r);
+            issuanceValue = Math.mulDivUp(params.amount, PERCENT, r);
         }
 
         state._fixed.debtToken.mint(params.borrower, faceValue);
-        state.createFOL({lender: msg.sender, borrower: params.borrower, faceValue: faceValue, dueDate: params.dueDate});
-        state.transferBorrowAToken(msg.sender, params.borrower, amountIn);
+        state.createFOL({
+            lender: msg.sender,
+            borrower: params.borrower,
+            issuanceValue: issuanceValue,
+            faceValue: faceValue,
+            dueDate: params.dueDate
+        });
+        state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
     }
 }

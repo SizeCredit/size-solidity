@@ -6,6 +6,7 @@ import {State} from "@src/SizeStorage.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -21,6 +22,7 @@ library Repay {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
     using FixedLibrary for State;
+    using FeeLibrary for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
@@ -49,6 +51,8 @@ library Repay {
         uint256 repayAmount = Math.min(loan.faceValue, params.amount);
 
         if (repayAmount == loan.faceValue && loan.isFOL()) {
+            uint256 repayFeeCollateral = state.repayFeeCollateral(loan);
+            state._fixed.collateralToken.transferFrom(msg.sender, state._general.feeRecipient, repayFeeCollateral);
             state.transferBorrowAToken(msg.sender, address(this), repayAmount);
             state._fixed.debtToken.burn(msg.sender, repayAmount);
             loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();

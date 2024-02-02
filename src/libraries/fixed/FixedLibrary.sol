@@ -40,35 +40,35 @@ library FixedLibrary {
         }
     }
 
-    function validateRepaymentFee(State storage, FixedLoan memory fol) internal pure {
-        if(fol.repaymentFee > fol.faceValue) {
-            revert Errors.INVALID_REPAYMENT_FEE(fol.repaymentFee, fol.faceValue);
-        }
-    }
-
     // solhint-disable-next-line var-name-mixedcase
-    function createFOL(State storage state, address lender, address borrower, uint256 faceValue, uint256 dueDate)
-        public
-    {
-        uint256 repaymentFee = Math.mulDivUp(faceValue, state._fixed.repaymentFeeAPR, PERCENT);
+    function createFOL(
+        State storage state,
+        address lender,
+        address borrower,
+        uint256 issuanceValue,
+        uint256 faceValue,
+        uint256 dueDate
+    ) public {
         FixedLoan memory fol = FixedLoan({
+            issuanceValue: issuanceValue,
             faceValue: faceValue,
             faceValueExited: 0,
             lender: lender,
             borrower: borrower,
+            startDate: block.timestamp,
             dueDate: dueDate,
             repaid: false,
             liquidityIndexAtRepayment: 0,
-            repaymentFee: repaymentFee,
             folId: RESERVED_ID
         });
         validateMinimumCreditOpening(state, fol.getCredit());
-        validateRepaymentFee(state, fol);
 
         state._fixed.loans.push(fol);
         uint256 folId = state._fixed.loans.length - 1;
 
-        emit Events.CreateFixedLoan(folId, lender, borrower, RESERVED_ID, RESERVED_ID, faceValue, dueDate);
+        emit Events.CreateFixedLoan(
+            folId, lender, borrower, RESERVED_ID, RESERVED_ID, issuanceValue, faceValue, dueDate
+        );
     }
 
     // solhint-disable-next-line var-name-mixedcase
@@ -79,14 +79,15 @@ library FixedLibrary {
         FixedLoan storage fol = state._fixed.loans[folId];
 
         FixedLoan memory sol = FixedLoan({
+            issuanceValue: fol.issuanceValue, // TODO confirm
             faceValue: faceValue,
             faceValueExited: 0,
             lender: lender,
             borrower: borrower,
+            startDate: fol.startDate, // TODO confirm
             dueDate: fol.dueDate,
             repaid: false,
             liquidityIndexAtRepayment: 0,
-            repaymentFee: 0,
             folId: folId
         });
 
@@ -98,7 +99,7 @@ library FixedLibrary {
         exiter.faceValueExited += faceValue;
         validateMinimumCredit(state, exiter.getCredit());
 
-        emit Events.CreateFixedLoan(solId, lender, borrower, exiterId, folId, faceValue, fol.dueDate);
+        emit Events.CreateFixedLoan(solId, lender, borrower, exiterId, folId, fol.issuanceValue, faceValue, fol.dueDate);
     }
 
     function getFOL(State storage state, FixedLoan storage self) public view returns (FixedLoan storage) {
@@ -194,6 +195,12 @@ library FixedLibrary {
 
     function isUserLiquidatable(State storage state, address account) public view returns (bool) {
         return collateralRatio(state, account) < state._fixed.crLiquidation;
+    }
+
+    function validateUserIsNotLiquidatable(State storage state, address account) external view {
+        if (isUserLiquidatable(state, account)) {
+            revert Errors.USER_IS_LIQUIDATABLE(account, collateralRatio(state, account));
+        }
     }
 
     function validateUserIsNotBelowRiskCR(State storage state, address account) external view {

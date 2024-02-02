@@ -7,6 +7,7 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
@@ -25,6 +26,7 @@ library LiquidateFixedLoan {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
     using FixedLibrary for State;
+    using FeeLibrary for State;
 
     function validateLiquidateFixedLoan(State storage state, LiquidateFixedLoanParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
@@ -120,6 +122,9 @@ library LiquidateFixedLoan {
         uint256 collateralRatio = state.collateralRatio(loan.borrower);
 
         emit Events.LiquidateFixedLoan(params.loanId, params.minimumCollateralRatio, collateralRatio, loanStatus);
+
+        uint256 repayFeeCollateral = state.repayFeeCollateral(loan);
+        state._fixed.collateralToken.transferFrom(loan.borrower, state._general.feeRecipient, repayFeeCollateral);
 
         // case 1a: the user is liquidatable
         if (PERCENT <= collateralRatio && collateralRatio < state._fixed.crLiquidation) {
