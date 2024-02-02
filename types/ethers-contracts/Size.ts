@@ -30,22 +30,24 @@ import type {
 export type YieldCurveStruct = {
   timeBuckets: BigNumberish[];
   rates: BigNumberish[];
+  marketRateMultipliers: BigNumberish[];
 };
 
-export type YieldCurveStructOutput = [BigNumber[], BigNumber[]] & {
+export type YieldCurveStructOutput = [BigNumber[], BigNumber[], BigNumber[]] & {
   timeBuckets: BigNumber[];
   rates: BigNumber[];
+  marketRateMultipliers: BigNumber[];
 };
 
 export type BorrowAsLimitOrderParamsStruct = {
-  maxAmount: BigNumberish;
+  riskCR: BigNumberish;
   curveRelativeTime: YieldCurveStruct;
 };
 
 export type BorrowAsLimitOrderParamsStructOutput = [
   BigNumber,
   YieldCurveStructOutput
-] & { maxAmount: BigNumber; curveRelativeTime: YieldCurveStructOutput };
+] & { riskCR: BigNumber; curveRelativeTime: YieldCurveStructOutput };
 
 export type BorrowAsMarketOrderParamsStruct = {
   lender: string;
@@ -113,9 +115,15 @@ export type InitializeFixedParamsStruct = {
   collateralPremiumToLiquidator: BigNumberish;
   collateralPremiumToProtocol: BigNumberish;
   minimumCreditBorrowAsset: BigNumberish;
+  collateralTokenCap: BigNumberish;
+  borrowATokenCap: BigNumberish;
+  debtTokenCap: BigNumberish;
 };
 
 export type InitializeFixedParamsStructOutput = [
+  BigNumber,
+  BigNumber,
+  BigNumber,
   BigNumber,
   BigNumber,
   BigNumber,
@@ -127,11 +135,15 @@ export type InitializeFixedParamsStructOutput = [
   collateralPremiumToLiquidator: BigNumber;
   collateralPremiumToProtocol: BigNumber;
   minimumCreditBorrowAsset: BigNumber;
+  collateralTokenCap: BigNumber;
+  borrowATokenCap: BigNumber;
+  debtTokenCap: BigNumber;
 };
 
 export type InitializeGeneralParamsStruct = {
   owner: string;
   priceFeed: string;
+  marketBorrowRateFeed: string;
   collateralAsset: string;
   borrowAsset: string;
   feeRecipient: string;
@@ -144,10 +156,12 @@ export type InitializeGeneralParamsStructOutput = [
   string,
   string,
   string,
+  string,
   string
 ] & {
   owner: string;
   priceFeed: string;
+  marketBorrowRateFeed: string;
   collateralAsset: string;
   borrowAsset: string;
   feeRecipient: string;
@@ -160,8 +174,9 @@ export type FixedLoanStruct = {
   lender: string;
   borrower: string;
   dueDate: BigNumberish;
-  repaid: boolean;
+  liquidityIndexAtRepayment: BigNumberish;
   folId: BigNumberish;
+  repaid: boolean;
 };
 
 export type FixedLoanStructOutput = [
@@ -170,48 +185,44 @@ export type FixedLoanStructOutput = [
   string,
   string,
   BigNumber,
-  boolean,
-  BigNumber
+  BigNumber,
+  BigNumber,
+  boolean
 ] & {
   faceValue: BigNumber;
   faceValueExited: BigNumber;
   lender: string;
   borrower: string;
   dueDate: BigNumber;
-  repaid: boolean;
+  liquidityIndexAtRepayment: BigNumber;
   folId: BigNumber;
+  repaid: boolean;
 };
 
 export type FixedLoanOfferStruct = {
-  maxAmount: BigNumberish;
   maxDueDate: BigNumberish;
   curveRelativeTime: YieldCurveStruct;
 };
 
-export type FixedLoanOfferStructOutput = [
-  BigNumber,
-  BigNumber,
-  YieldCurveStructOutput
-] & {
-  maxAmount: BigNumber;
+export type FixedLoanOfferStructOutput = [BigNumber, YieldCurveStructOutput] & {
   maxDueDate: BigNumber;
   curveRelativeTime: YieldCurveStructOutput;
 };
 
 export type BorrowOfferStruct = {
-  maxAmount: BigNumberish;
+  riskCR: BigNumberish;
   curveRelativeTime: YieldCurveStruct;
 };
 
 export type BorrowOfferStructOutput = [BigNumber, YieldCurveStructOutput] & {
-  maxAmount: BigNumber;
+  riskCR: BigNumber;
   curveRelativeTime: YieldCurveStructOutput;
 };
 
 export type UserStruct = {
   loanOffer: FixedLoanOfferStruct;
   borrowOffer: BorrowOfferStruct;
-  proxy: string;
+  vault: string;
 };
 
 export type UserStructOutput = [
@@ -221,7 +232,7 @@ export type UserStructOutput = [
 ] & {
   loanOffer: FixedLoanOfferStructOutput;
   borrowOffer: BorrowOfferStructOutput;
-  proxy: string;
+  vault: string;
 };
 
 export type UserViewStruct = {
@@ -246,21 +257,23 @@ export type UserViewStructOutput = [
   debtAmount: BigNumber;
 };
 
+export type InitializeVariableParamsStruct = {
+  collateralOverdueTransferFee: BigNumberish;
+};
+
+export type InitializeVariableParamsStructOutput = [BigNumber] & {
+  collateralOverdueTransferFee: BigNumber;
+};
+
 export type LendAsLimitOrderParamsStruct = {
-  maxAmount: BigNumberish;
   maxDueDate: BigNumberish;
   curveRelativeTime: YieldCurveStruct;
 };
 
 export type LendAsLimitOrderParamsStructOutput = [
   BigNumber,
-  BigNumber,
   YieldCurveStructOutput
-] & {
-  maxAmount: BigNumber;
-  maxDueDate: BigNumber;
-  curveRelativeTime: YieldCurveStructOutput;
-};
+] & { maxDueDate: BigNumber; curveRelativeTime: YieldCurveStructOutput };
 
 export type LendAsMarketOrderParamsStruct = {
   borrower: string;
@@ -303,12 +316,6 @@ export type LiquidateFixedLoanWithReplacementParamsStructOutput = [
   BigNumber
 ] & { loanId: BigNumber; borrower: string; minimumCollateralRatio: BigNumber };
 
-export type MoveToVariablePoolParamsStruct = { loanId: BigNumberish };
-
-export type MoveToVariablePoolParamsStructOutput = [BigNumber] & {
-  loanId: BigNumber;
-};
-
 export type RepayParamsStruct = { loanId: BigNumberish; amount: BigNumberish };
 
 export type RepayParamsStructOutput = [BigNumber, BigNumber] & {
@@ -343,10 +350,12 @@ export type WithdrawParamsStructOutput = [string, BigNumber, string] & {
 
 export interface SizeInterface extends utils.Interface {
   functions: {
+    "DEFAULT_ADMIN_ROLE()": FunctionFragment;
+    "KEEPER_ROLE()": FunctionFragment;
+    "PAUSER_ROLE()": FunctionFragment;
     "UPGRADE_INTERFACE_VERSION()": FunctionFragment;
-    "acceptOwnership()": FunctionFragment;
     "activeFixedLoans()": FunctionFragment;
-    "borrowAsLimitOrder((uint256,(uint256[],uint256[])))": FunctionFragment;
+    "borrowAsLimitOrder((uint256,(uint256[],uint256[],int256[])))": FunctionFragment;
     "borrowAsMarketOrder((address,uint256,uint256,bool,uint256[]))": FunctionFragment;
     "borrowerExit((uint256,address))": FunctionFragment;
     "claim((uint256))": FunctionFragment;
@@ -361,34 +370,40 @@ export interface SizeInterface extends utils.Interface {
     "getFixedLoan(uint256)": FunctionFragment;
     "getFixedLoanStatus(uint256)": FunctionFragment;
     "getFixedLoans()": FunctionFragment;
+    "getRoleAdmin(bytes32)": FunctionFragment;
     "getUserView(address)": FunctionFragment;
-    "initialize((address,address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256))": FunctionFragment;
+    "getVaultAddress(address)": FunctionFragment;
+    "grantRole(bytes32,address)": FunctionFragment;
+    "hasRole(bytes32,address)": FunctionFragment;
+    "initialize((address,address,address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256),(uint256))": FunctionFragment;
     "isFOL(uint256)": FunctionFragment;
-    "isLiquidatable(address)": FunctionFragment;
-    "isLiquidatable(uint256)": FunctionFragment;
-    "lendAsLimitOrder((uint256,uint256,(uint256[],uint256[])))": FunctionFragment;
+    "isLoanLiquidatable(uint256)": FunctionFragment;
+    "isUserLiquidatable(address)": FunctionFragment;
+    "lendAsLimitOrder((uint256,(uint256[],uint256[],int256[])))": FunctionFragment;
     "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
     "liquidateFixedLoan((uint256,uint256))": FunctionFragment;
     "liquidateFixedLoanWithReplacement((uint256,address,uint256))": FunctionFragment;
-    "moveToVariablePool((uint256))": FunctionFragment;
     "multicall(bytes[])": FunctionFragment;
-    "owner()": FunctionFragment;
-    "pendingOwner()": FunctionFragment;
+    "paused()": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
+    "renounceRole(bytes32,address)": FunctionFragment;
     "repay((uint256,uint256))": FunctionFragment;
+    "revokeRole(bytes32,address)": FunctionFragment;
     "selfLiquidateFixedLoan((uint256))": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
     "tokens()": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
     "updateConfig((bytes32,uint256))": FunctionFragment;
     "upgradeToAndCall(address,bytes)": FunctionFragment;
+    "variableConfig()": FunctionFragment;
     "withdraw((address,uint256,address))": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "DEFAULT_ADMIN_ROLE"
+      | "KEEPER_ROLE"
+      | "PAUSER_ROLE"
       | "UPGRADE_INTERFACE_VERSION"
-      | "acceptOwnership"
       | "activeFixedLoans"
       | "borrowAsLimitOrder"
       | "borrowAsMarketOrder"
@@ -405,36 +420,48 @@ export interface SizeInterface extends utils.Interface {
       | "getFixedLoan"
       | "getFixedLoanStatus"
       | "getFixedLoans"
+      | "getRoleAdmin"
       | "getUserView"
+      | "getVaultAddress"
+      | "grantRole"
+      | "hasRole"
       | "initialize"
       | "isFOL"
-      | "isLiquidatable(address)"
-      | "isLiquidatable(uint256)"
+      | "isLoanLiquidatable"
+      | "isUserLiquidatable"
       | "lendAsLimitOrder"
       | "lendAsMarketOrder"
       | "liquidateFixedLoan"
       | "liquidateFixedLoanWithReplacement"
-      | "moveToVariablePool"
       | "multicall"
-      | "owner"
-      | "pendingOwner"
+      | "paused"
       | "proxiableUUID"
-      | "renounceOwnership"
+      | "renounceRole"
       | "repay"
+      | "revokeRole"
       | "selfLiquidateFixedLoan"
+      | "supportsInterface"
       | "tokens"
-      | "transferOwnership"
       | "updateConfig"
       | "upgradeToAndCall"
+      | "variableConfig"
       | "withdraw"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "UPGRADE_INTERFACE_VERSION",
+    functionFragment: "DEFAULT_ADMIN_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "acceptOwnership",
+    functionFragment: "KEEPER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "PAUSER_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -501,19 +528,39 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "getFixedLoans",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "getRoleAdmin",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "getUserView", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "initialize",
-    values: [InitializeGeneralParamsStruct, InitializeFixedParamsStruct]
-  ): string;
-  encodeFunctionData(functionFragment: "isFOL", values: [BigNumberish]): string;
-  encodeFunctionData(
-    functionFragment: "isLiquidatable(address)",
+    functionFragment: "getVaultAddress",
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "isLiquidatable(uint256)",
+    functionFragment: "grantRole",
+    values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasRole",
+    values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [
+      InitializeGeneralParamsStruct,
+      InitializeFixedParamsStruct,
+      InitializeVariableParamsStruct
+    ]
+  ): string;
+  encodeFunctionData(functionFragment: "isFOL", values: [BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "isLoanLiquidatable",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isUserLiquidatable",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "lendAsLimitOrder",
@@ -532,39 +579,35 @@ export interface SizeInterface extends utils.Interface {
     values: [LiquidateFixedLoanWithReplacementParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "moveToVariablePool",
-    values: [MoveToVariablePoolParamsStruct]
-  ): string;
-  encodeFunctionData(
     functionFragment: "multicall",
     values: [BytesLike[]]
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "pendingOwner",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "proxiableUUID",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
+    functionFragment: "renounceRole",
+    values: [BytesLike, string]
   ): string;
   encodeFunctionData(
     functionFragment: "repay",
     values: [RepayParamsStruct]
   ): string;
   encodeFunctionData(
+    functionFragment: "revokeRole",
+    values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "selfLiquidateFixedLoan",
     values: [SelfLiquidateFixedLoanParamsStruct]
   ): string;
-  encodeFunctionData(functionFragment: "tokens", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [string]
+    functionFragment: "supportsInterface",
+    values: [BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: "tokens", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "updateConfig",
     values: [UpdateConfigParamsStruct]
@@ -574,16 +617,28 @@ export interface SizeInterface extends utils.Interface {
     values: [string, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "variableConfig",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "withdraw",
     values: [WithdrawParamsStruct]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "UPGRADE_INTERFACE_VERSION",
+    functionFragment: "DEFAULT_ADMIN_ROLE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "acceptOwnership",
+    functionFragment: "KEEPER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "PAUSER_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "UPGRADE_INTERFACE_VERSION",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -636,17 +691,27 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getRoleAdmin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getUserView",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getVaultAddress",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isFOL", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "isLiquidatable(address)",
+    functionFragment: "isLoanLiquidatable",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isLiquidatable(uint256)",
+    functionFragment: "isUserLiquidatable",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -665,34 +730,27 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "liquidateFixedLoanWithReplacement",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "moveToVariablePool",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "multicall", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "pendingOwner",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "proxiableUUID",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "repay", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "selfLiquidateFixedLoan",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "tokens", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "transferOwnership",
+    functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "tokens", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "updateConfig",
     data: BytesLike
@@ -701,18 +759,28 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "upgradeToAndCall",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "variableConfig",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {
     "Initialized(uint64)": EventFragment;
-    "OwnershipTransferStarted(address,address)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
+    "Paused(address)": EventFragment;
+    "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
+    "RoleGranted(bytes32,address,address)": EventFragment;
+    "RoleRevoked(bytes32,address,address)": EventFragment;
+    "Unpaused(address)": EventFragment;
     "Upgraded(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferStarted"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Upgraded"): EventFragment;
 }
 
@@ -723,29 +791,56 @@ export type InitializedEvent = TypedEvent<[BigNumber], InitializedEventObject>;
 
 export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
 
-export interface OwnershipTransferStartedEventObject {
-  previousOwner: string;
-  newOwner: string;
+export interface PausedEventObject {
+  account: string;
 }
-export type OwnershipTransferStartedEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferStartedEventObject
+export type PausedEvent = TypedEvent<[string], PausedEventObject>;
+
+export type PausedEventFilter = TypedEventFilter<PausedEvent>;
+
+export interface RoleAdminChangedEventObject {
+  role: string;
+  previousAdminRole: string;
+  newAdminRole: string;
+}
+export type RoleAdminChangedEvent = TypedEvent<
+  [string, string, string],
+  RoleAdminChangedEventObject
 >;
 
-export type OwnershipTransferStartedEventFilter =
-  TypedEventFilter<OwnershipTransferStartedEvent>;
+export type RoleAdminChangedEventFilter =
+  TypedEventFilter<RoleAdminChangedEvent>;
 
-export interface OwnershipTransferredEventObject {
-  previousOwner: string;
-  newOwner: string;
+export interface RoleGrantedEventObject {
+  role: string;
+  account: string;
+  sender: string;
 }
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
+export type RoleGrantedEvent = TypedEvent<
+  [string, string, string],
+  RoleGrantedEventObject
 >;
 
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
+export type RoleGrantedEventFilter = TypedEventFilter<RoleGrantedEvent>;
+
+export interface RoleRevokedEventObject {
+  role: string;
+  account: string;
+  sender: string;
+}
+export type RoleRevokedEvent = TypedEvent<
+  [string, string, string],
+  RoleRevokedEventObject
+>;
+
+export type RoleRevokedEventFilter = TypedEventFilter<RoleRevokedEvent>;
+
+export interface UnpausedEventObject {
+  account: string;
+}
+export type UnpausedEvent = TypedEvent<[string], UnpausedEventObject>;
+
+export type UnpausedEventFilter = TypedEventFilter<UnpausedEvent>;
 
 export interface UpgradedEventObject {
   implementation: string;
@@ -781,11 +876,13 @@ export interface Size extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<[string]>;
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-    acceptOwnership(
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
+    KEEPER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
+    UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<[string]>;
 
     activeFixedLoans(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -861,26 +958,43 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[FixedLoanStructOutput[]]>;
 
+    getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
+
     getUserView(
       user: string,
       overrides?: CallOverrides
     ): Promise<[UserViewStructOutput]>;
 
+    getVaultAddress(user: string, overrides?: CallOverrides): Promise<[string]>;
+
+    grantRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     initialize(
       g: InitializeGeneralParamsStruct,
       f: InitializeFixedParamsStruct,
+      v: InitializeVariableParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
     isFOL(loanId: BigNumberish, overrides?: CallOverrides): Promise<[boolean]>;
 
-    "isLiquidatable(address)"(
-      user: string,
+    isLoanLiquidatable(
+      loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    "isLiquidatable(uint256)"(
-      loanId: BigNumberish,
+    isUserLiquidatable(
+      user: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -904,23 +1018,18 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    moveToVariablePool(
-      params: MoveToVariablePoolParamsStruct,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
-
     multicall(
       data: BytesLike[],
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
-    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
+    paused(overrides?: CallOverrides): Promise<[boolean]>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<[string]>;
 
-    renounceOwnership(
+    renounceRole(
+      role: BytesLike,
+      callerConfirmation: string,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -929,17 +1038,23 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
     selfLiquidateFixedLoan(
       params: SelfLiquidateFixedLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string }
-    ): Promise<ContractTransaction>;
+    tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
 
     updateConfig(
       params: UpdateConfigParamsStruct,
@@ -952,17 +1067,23 @@ export interface Size extends BaseContract {
       overrides?: PayableOverrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    variableConfig(
+      overrides?: CallOverrides
+    ): Promise<[InitializeVariableParamsStructOutput]>;
+
     withdraw(
       params: WithdrawParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
   };
 
-  UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<string>;
+  DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
-  acceptOwnership(
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
+  KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+  UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<string>;
 
   activeFixedLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1030,28 +1151,42 @@ export interface Size extends BaseContract {
 
   getFixedLoans(overrides?: CallOverrides): Promise<FixedLoanStructOutput[]>;
 
+  getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
+
   getUserView(
     user: string,
     overrides?: CallOverrides
   ): Promise<UserViewStructOutput>;
 
+  getVaultAddress(user: string, overrides?: CallOverrides): Promise<string>;
+
+  grantRole(
+    role: BytesLike,
+    account: string,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
+  hasRole(
+    role: BytesLike,
+    account: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   initialize(
     g: InitializeGeneralParamsStruct,
     f: InitializeFixedParamsStruct,
+    v: InitializeVariableParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
   isFOL(loanId: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
-  "isLiquidatable(address)"(
-    user: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  "isLiquidatable(uint256)"(
+  isLoanLiquidatable(
     loanId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  isUserLiquidatable(user: string, overrides?: CallOverrides): Promise<boolean>;
 
   lendAsLimitOrder(
     params: LendAsLimitOrderParamsStruct,
@@ -1073,23 +1208,18 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  moveToVariablePool(
-    params: MoveToVariablePoolParamsStruct,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
-
   multicall(
     data: BytesLike[],
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
-
-  pendingOwner(overrides?: CallOverrides): Promise<string>;
+  paused(overrides?: CallOverrides): Promise<boolean>;
 
   proxiableUUID(overrides?: CallOverrides): Promise<string>;
 
-  renounceOwnership(
+  renounceRole(
+    role: BytesLike,
+    callerConfirmation: string,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1098,17 +1228,23 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
+  revokeRole(
+    role: BytesLike,
+    account: string,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
   selfLiquidateFixedLoan(
     params: SelfLiquidateFixedLoanParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
+  supportsInterface(
+    interfaceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  transferOwnership(
-    newOwner: string,
-    overrides?: Overrides & { from?: string }
-  ): Promise<ContractTransaction>;
+  tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
 
   updateConfig(
     params: UpdateConfigParamsStruct,
@@ -1121,15 +1257,23 @@ export interface Size extends BaseContract {
     overrides?: PayableOverrides & { from?: string }
   ): Promise<ContractTransaction>;
 
+  variableConfig(
+    overrides?: CallOverrides
+  ): Promise<InitializeVariableParamsStructOutput>;
+
   withdraw(
     params: WithdrawParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<string>;
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
 
-    acceptOwnership(overrides?: CallOverrides): Promise<void>;
+    KEEPER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
+
+    UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<string>;
 
     activeFixedLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1200,26 +1344,43 @@ export interface Size extends BaseContract {
 
     getFixedLoans(overrides?: CallOverrides): Promise<FixedLoanStructOutput[]>;
 
+    getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
+
     getUserView(
       user: string,
       overrides?: CallOverrides
     ): Promise<UserViewStructOutput>;
 
+    getVaultAddress(user: string, overrides?: CallOverrides): Promise<string>;
+
+    grantRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     initialize(
       g: InitializeGeneralParamsStruct,
       f: InitializeFixedParamsStruct,
+      v: InitializeVariableParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
     isFOL(loanId: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
-    "isLiquidatable(address)"(
-      user: string,
+    isLoanLiquidatable(
+      loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    "isLiquidatable(uint256)"(
-      loanId: BigNumberish,
+    isUserLiquidatable(
+      user: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -1248,34 +1409,37 @@ export interface Size extends BaseContract {
       }
     >;
 
-    moveToVariablePool(
-      params: MoveToVariablePoolParamsStruct,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     multicall(data: BytesLike[], overrides?: CallOverrides): Promise<string[]>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
-
-    pendingOwner(overrides?: CallOverrides): Promise<string>;
+    paused(overrides?: CallOverrides): Promise<boolean>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<string>;
 
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+    renounceRole(
+      role: BytesLike,
+      callerConfirmation: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     repay(params: RepayParamsStruct, overrides?: CallOverrides): Promise<void>;
+
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     selfLiquidateFixedLoan(
       params: SelfLiquidateFixedLoanParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
-
-    transferOwnership(
-      newOwner: string,
+    supportsInterface(
+      interfaceId: BytesLike,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<boolean>;
+
+    tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
 
     updateConfig(
       params: UpdateConfigParamsStruct,
@@ -1288,6 +1452,10 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    variableConfig(
+      overrides?: CallOverrides
+    ): Promise<InitializeVariableParamsStructOutput>;
+
     withdraw(
       params: WithdrawParamsStruct,
       overrides?: CallOverrides
@@ -1298,34 +1466,57 @@ export interface Size extends BaseContract {
     "Initialized(uint64)"(version?: null): InitializedEventFilter;
     Initialized(version?: null): InitializedEventFilter;
 
-    "OwnershipTransferStarted(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferStartedEventFilter;
-    OwnershipTransferStarted(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferStartedEventFilter;
+    "Paused(address)"(account?: null): PausedEventFilter;
+    Paused(account?: null): PausedEventFilter;
 
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
-    OwnershipTransferred(
-      previousOwner?: string | null,
-      newOwner?: string | null
-    ): OwnershipTransferredEventFilter;
+    "RoleAdminChanged(bytes32,bytes32,bytes32)"(
+      role?: BytesLike | null,
+      previousAdminRole?: BytesLike | null,
+      newAdminRole?: BytesLike | null
+    ): RoleAdminChangedEventFilter;
+    RoleAdminChanged(
+      role?: BytesLike | null,
+      previousAdminRole?: BytesLike | null,
+      newAdminRole?: BytesLike | null
+    ): RoleAdminChangedEventFilter;
+
+    "RoleGranted(bytes32,address,address)"(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): RoleGrantedEventFilter;
+    RoleGranted(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): RoleGrantedEventFilter;
+
+    "RoleRevoked(bytes32,address,address)"(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): RoleRevokedEventFilter;
+    RoleRevoked(
+      role?: BytesLike | null,
+      account?: string | null,
+      sender?: string | null
+    ): RoleRevokedEventFilter;
+
+    "Unpaused(address)"(account?: null): UnpausedEventFilter;
+    Unpaused(account?: null): UnpausedEventFilter;
 
     "Upgraded(address)"(implementation?: string | null): UpgradedEventFilter;
     Upgraded(implementation?: string | null): UpgradedEventFilter;
   };
 
   estimateGas: {
-    UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<BigNumber>;
+    DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    acceptOwnership(
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
+    KEEPER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<BigNumber>;
 
     activeFixedLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1395,23 +1586,46 @@ export interface Size extends BaseContract {
 
     getFixedLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getRoleAdmin(
+      role: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getUserView(user: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    getVaultAddress(
+      user: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    grantRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    hasRole(
+      role: BytesLike,
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     initialize(
       g: InitializeGeneralParamsStruct,
       f: InitializeFixedParamsStruct,
+      v: InitializeVariableParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
     isFOL(loanId: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "isLiquidatable(address)"(
-      user: string,
+    isLoanLiquidatable(
+      loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "isLiquidatable(uint256)"(
-      loanId: BigNumberish,
+    isUserLiquidatable(
+      user: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1435,23 +1649,18 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    moveToVariablePool(
-      params: MoveToVariablePoolParamsStruct,
-      overrides?: Overrides & { from?: string }
-    ): Promise<BigNumber>;
-
     multicall(
       data: BytesLike[],
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
+    paused(overrides?: CallOverrides): Promise<BigNumber>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<BigNumber>;
 
-    renounceOwnership(
+    renounceRole(
+      role: BytesLike,
+      callerConfirmation: string,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -1460,17 +1669,23 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
     selfLiquidateFixedLoan(
       params: SelfLiquidateFixedLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    tokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string }
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    tokens(overrides?: CallOverrides): Promise<BigNumber>;
 
     updateConfig(
       params: UpdateConfigParamsStruct,
@@ -1483,6 +1698,8 @@ export interface Size extends BaseContract {
       overrides?: PayableOverrides & { from?: string }
     ): Promise<BigNumber>;
 
+    variableConfig(overrides?: CallOverrides): Promise<BigNumber>;
+
     withdraw(
       params: WithdrawParamsStruct,
       overrides?: Overrides & { from?: string }
@@ -1490,12 +1707,16 @@ export interface Size extends BaseContract {
   };
 
   populateTransaction: {
-    UPGRADE_INTERFACE_VERSION(
+    DEFAULT_ADMIN_ROLE(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    acceptOwnership(
-      overrides?: Overrides & { from?: string }
+    KEEPER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    PAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    UPGRADE_INTERFACE_VERSION(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     activeFixedLoans(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1566,14 +1787,37 @@ export interface Size extends BaseContract {
 
     getFixedLoans(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getRoleAdmin(
+      role: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getUserView(
       user: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getVaultAddress(
+      user: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    grantRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    hasRole(
+      role: BytesLike,
+      account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     initialize(
       g: InitializeGeneralParamsStruct,
       f: InitializeFixedParamsStruct,
+      v: InitializeVariableParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
@@ -1582,13 +1826,13 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "isLiquidatable(address)"(
-      user: string,
+    isLoanLiquidatable(
+      loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "isLiquidatable(uint256)"(
-      loanId: BigNumberish,
+    isUserLiquidatable(
+      user: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1612,23 +1856,18 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    moveToVariablePool(
-      params: MoveToVariablePoolParamsStruct,
-      overrides?: Overrides & { from?: string }
-    ): Promise<PopulatedTransaction>;
-
     multicall(
       data: BytesLike[],
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
+    renounceRole(
+      role: BytesLike,
+      callerConfirmation: string,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
@@ -1637,17 +1876,23 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
+    revokeRole(
+      role: BytesLike,
+      account: string,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
     selfLiquidateFixedLoan(
       params: SelfLiquidateFixedLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    tokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: string,
-      overrides?: Overrides & { from?: string }
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    tokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     updateConfig(
       params: UpdateConfigParamsStruct,
@@ -1659,6 +1904,8 @@ export interface Size extends BaseContract {
       data: BytesLike,
       overrides?: PayableOverrides & { from?: string }
     ): Promise<PopulatedTransaction>;
+
+    variableConfig(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdraw(
       params: WithdrawParamsStruct,

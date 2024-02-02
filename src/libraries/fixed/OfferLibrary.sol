@@ -9,6 +9,7 @@ struct FixedLoanOffer {
 }
 
 struct BorrowOffer {
+    uint256 riskCR;
     YieldCurve curveRelativeTime;
 }
 

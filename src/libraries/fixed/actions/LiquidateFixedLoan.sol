@@ -86,7 +86,6 @@ library LiquidateFixedLoan {
 
         state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
         state.transferBorrowAToken(msg.sender, address(this), loan.faceValue);
-        state._fixed.debtToken.burn(loan.borrower, loan.faceValue);
     }
 
     function _executeLiquidateFixedLoanOverdue(State storage state, LiquidateFixedLoanParams calldata params)
@@ -143,7 +142,7 @@ library LiquidateFixedLoan {
             }
         }
 
-        // @audit Check if the liquidity index snapshot should happen before or after the Aave borrow
+        state._fixed.debtToken.burn(loan.borrower, loan.faceValue);
         loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         loan.repaid = true;
     }

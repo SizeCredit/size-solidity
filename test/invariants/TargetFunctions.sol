@@ -145,7 +145,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
         hevm.prank(sender);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({riskCR: 0, curveRelativeTime: curveRelativeTime}));
 
         __after();
     }

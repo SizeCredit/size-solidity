@@ -33,7 +33,6 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        FixedLoanOffer memory offerBefore = size.getUserView(alice).user.loanOffer;
 
         Vars memory _before = _state();
 
@@ -47,7 +46,6 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
         uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
-        FixedLoanOffer memory offerAfter = size.getUserView(alice).user.loanOffer;
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
@@ -75,7 +73,6 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(bob, usdc, MAX_AMOUNT_USDC);
 
         _lendAsLimitOrder(alice, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
-        FixedLoanOffer memory offerBefore = size.getUserView(alice).user.loanOffer;
 
         Vars memory _before = _state();
 
@@ -85,7 +82,6 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
         uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
-        FixedLoanOffer memory offerAfter = size.getUserView(alice).user.loanOffer;
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
