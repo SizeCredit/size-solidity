@@ -10,14 +10,14 @@ uint256 constant RESERVED_ID = type(uint256).max;
 struct FixedLoan {
     address lender;
     address borrower;
+    uint256 debt;
+    uint256 credit;
     uint256 issuanceValue;
     uint256 faceValue;
-    uint256 faceValueExited;
     uint256 startDate;
-    uint256 dueDate; // same for FOL and SOL
-    uint256 liquidityIndexAtRepayment; // FOL-specific
-    uint256 folId; // SOL-specific
-    bool repaid; // FOL-specific
+    uint256 dueDate;
+    uint256 liquidityIndexAtRepayment;
+    uint256 folId;
 }
 
 // When the loan is created, it is in ACTIVE status
@@ -40,10 +40,6 @@ library FixedLoanLibrary {
         return self.folId == RESERVED_ID;
     }
 
-    function getCredit(FixedLoan memory self) internal pure returns (uint256) {
-        return self.faceValue - self.faceValueExited;
-    }
-
     function getFOL(State storage state, FixedLoan storage loan) public view returns (FixedLoan storage) {
         return isFOL(loan) ? loan : state._fixed.loans[loan.folId];
     }
@@ -54,9 +50,9 @@ library FixedLoanLibrary {
     }
 
     function getFixedLoanStatus(State storage state, FixedLoan storage self) public view returns (FixedLoanStatus) {
-        if (self.faceValueExited == self.faceValue) {
+        if (self.credit == 0) {
             return FixedLoanStatus.CLAIMED;
-        } else if (getFOL(state, self).repaid) {
+        } else if (getFOL(state, self).debt == 0) {
             return FixedLoanStatus.REPAID;
         } else if (block.timestamp >= self.dueDate) {
             return FixedLoanStatus.OVERDUE;
@@ -93,6 +89,6 @@ library FixedLoanLibrary {
         FixedLoan storage loan = state._fixed.loans[loanId];
         FixedLoan storage fol = getFOL(state, loan);
         uint256 folCollateral = getFOLAssignedCollateral(state, fol);
-        return Math.mulDivDown(folCollateral, getCredit(loan), fol.faceValue);
+        return Math.mulDivDown(folCollateral, loan.credit, fol.faceValue);
     }
 }

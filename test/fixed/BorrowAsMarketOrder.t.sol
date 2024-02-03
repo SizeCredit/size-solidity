@@ -216,9 +216,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 r = PERCENT
             + size.getUserView(candy).user.loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
-        uint256 deltaAmountOut = (
-            Math.mulDivUp(r, amountFixedLoanId2, PERCENT) > size.getFixedLoan(loanId1).getCredit()
-        ) ? Math.mulDivDown(size.getFixedLoan(loanId1).getCredit(), PERCENT, r) : amountFixedLoanId2;
+        uint256 deltaAmountOut = (Math.mulDivUp(r, amountFixedLoanId2, PERCENT) > size.getFixedLoan(loanId1).credit)
+            ? Math.mulDivDown(size.getFixedLoan(loanId1).credit, PERCENT, r)
+            : amountFixedLoanId2;
         uint256 faceValue = Math.mulDivUp(r, amountFixedLoanId2 - deltaAmountOut, PERCENT);
 
         Vars memory _before = _state();
@@ -398,7 +398,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         FixedLoan memory solAfter = size.getFixedLoan(solId);
 
-        assertEq(solAfter.getCredit(), solBefore.getCredit() - 40e6);
+        assertEq(solAfter.credit, solBefore.credit - 40e6);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_SOL_cannot_be_fully_exited_twice() public {

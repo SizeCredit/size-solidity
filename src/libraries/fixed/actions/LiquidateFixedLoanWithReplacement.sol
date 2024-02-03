@@ -75,7 +75,7 @@ library LiquidateFixedLoanWithReplacement {
         fol.borrower = params.borrower;
         fol.startDate = block.timestamp;
         fol.liquidityIndexAtRepayment = 0;
-        fol.repaid = false;
+        fol.debt += faceValue;
 
         state._fixed.debtToken.mint(params.borrower, faceValue);
         state.transferBorrowAToken(address(this), params.borrower, amountOut);

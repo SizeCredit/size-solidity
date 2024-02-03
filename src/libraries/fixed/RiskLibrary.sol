@@ -22,7 +22,7 @@ library RiskLibrary {
 
     function validateMinimumCreditOpening(State storage state, uint256 credit) public view {
         if (credit < state._fixed.minimumCreditBorrowAsset) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state._fixed.minimumCreditBorrowAsset);
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(credit, state._fixed.minimumCreditBorrowAsset);
         }
     }
 

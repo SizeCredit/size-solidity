@@ -10,6 +10,7 @@ import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -27,6 +28,7 @@ library LiquidateFixedLoan {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
     using FixedLoanLibrary for State;
+    using AccountingLibrary for State;
     using RiskLibrary for State;
     using FeeLibrary for State;
 
@@ -98,8 +100,6 @@ library LiquidateFixedLoan {
     {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
 
-        // TODO: should we decrease the borrower total debt?
-
         // case 2a: the loan is overdue and can be moved to the variable pool
         try state.moveFixedLoanToVariablePool(loan) returns (uint256 _liquidatorProfitCollateralToken) {
             emit Events.LiquidateFixedLoanOverdueMoveToVariablePool(params.loanId);
@@ -152,8 +152,6 @@ library LiquidateFixedLoan {
             }
         }
 
-        state._fixed.debtToken.burn(loan.borrower, loan.faceValue + repayFee);
-        loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
-        loan.repaid = true;
+        state.reduceDebt(params.loanId, loan.faceValue);
     }
 }

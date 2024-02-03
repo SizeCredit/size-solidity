@@ -62,7 +62,7 @@ library Compensate {
 
         FixedLoan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
         FixedLoan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
-        uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.getCredit(), loanToRepay.getCredit());
+        uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.credit, loanToRepay.credit);
 
         state.reduceDebt(params.loanToRepayId, amountToCompensate);
 

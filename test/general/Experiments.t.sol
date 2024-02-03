@@ -38,7 +38,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertGt(size.activeFixedLoans(), 0);
         FixedLoan memory loan = size.getFixedLoan(0);
         assertEq(loan.faceValue, 100e6 * 1.03e18 / 1e18);
-        assertEq(loan.getCredit(), loan.faceValue);
+        assertEq(loan.credit, loan.faceValue);
 
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e6);
@@ -55,7 +55,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         console.log("loan is repaid");
         _repay(james, 0);
         loan = size.getFixedLoan(0);
-        assertTrue(loan.repaid);
+        assertEq(loan.debt, 0);
 
         console.log("should be able to claim");
         _claim(alice, 0);
@@ -123,7 +123,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(!sol.isFOL(), "The second loan should be SOL");
         assertEq(sol.faceValue, amountToExit, "Amount to Exit should match");
         fol = size.getFixedLoan(0);
-        assertEq(fol.getCredit(), fol.faceValue - amountToExit, "Should be able to exit the full amount");
+        assertEq(fol.credit, fol.faceValue - amountToExit, "Should be able to exit the full amount");
     }
 
     function test_Experiments_testBorrowWithExit1() public {
@@ -195,7 +195,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(size.getFixedLoanStatus(0), FixedLoanStatus.OVERDUE, "FixedLoan should be overdue");
         assertEq(size.activeFixedLoans(), 1, "Expect one active loan");
 
-        assertTrue(!fol.repaid, "FixedLoan should not be repaid before moving to the variable pool");
+        assertGt(fol.debt, 0, "FixedLoan should not be repaid before moving to the variable pool");
         uint256 aliceCollateralBefore = _state().alice.collateralAmount;
         assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
 
@@ -209,7 +209,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         uint256 aliceCollateralAfter = _state().alice.collateralAmount;
 
         // Assert post-move conditions
-        assertTrue(fol.repaid, "FixedLoan should be repaid by moving into the variable pool");
+        assertEq(fol.debt, 0, "FixedLoan should be repaid by moving into the variable pool");
         // assertEq(size.activeVariableFixedLoans(), 1, "Expect one active loan in variable pool");
         assertEq(aliceCollateralAfter, 0, "Alice should have locked ETH after moving to variable pool");
     }

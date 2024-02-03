@@ -40,7 +40,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant LOAN_01 = "LOAN_01: loan.faceValue <= FOL(loan).faceValue";
     string internal constant LOAN_02 = "LOAN_02: SUM(loan.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
     string internal constant LOAN_03 = "LOAN_03: loan.faceValueExited <= loan.faceValue";
-    string internal constant LOAN_04 = "LOAN_04: loan.repaid => !loan.isFOL()";
+    string internal constant LOAN_04 = "LOAN_04: loan.debt > 0 => !loan.isFOL()";
     string internal constant LOAN_05 = "LOAN_05: loan.credit >= minimumCreditBorrowAsset";
     string internal constant LOAN_06 = "LOAN_06: SUM(SOL(loanId).faceValue) == FOL(loanId).faceValue";
     string internal constant LOAN_07 = "LOAN_07: FOL.faceValueExited = SUM(SOL.getCredit)";
@@ -56,7 +56,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         uint256[] memory folCreditsSumByFolId = new uint256[](activeFixedLoans);
         uint256[] memory solCreditsSumByFolId = new uint256[](activeFixedLoans);
         uint256[] memory folFaceValueByFolId = new uint256[](activeFixedLoans);
-        uint256[] memory folFaceValueExitedByFolId = new uint256[](activeFixedLoans);
+        uint256[] memory folCreditByFolId = new uint256[](activeFixedLoans);
         uint256[] memory folFaceValuesSumByFolId = new uint256[](activeFixedLoans);
         for (uint256 loanId; loanId < activeFixedLoans; loanId++) {
             FixedLoan memory loan = size.getFixedLoan(loanId);
@@ -67,11 +67,11 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
             solCreditsSumByFolId[folId] =
                 solCreditsSumByFolId[folId] == type(uint256).max ? solCreditsSumByFolId[folId] : type(uint256).max; // set to -1 by default
             folFaceValueByFolId[folId] = fol.faceValue;
-            folFaceValueExitedByFolId[folId] = fol.faceValueExited;
+            folCreditByFolId[folId] = fol.credit;
             folFaceValuesSumByFolId[folId] += fol.faceValue;
 
             if (!size.isFOL(loanId)) {
-                if (loan.repaid) {
+                if (loan.debt > 0) {
                     t(false, LOAN_04);
                     return false;
                 }
@@ -84,7 +84,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 }
             }
 
-            if (!(loan.faceValueExited <= loan.faceValue)) {
+            if (!(loan.credit <= loan.faceValue)) {
                 t(false, LOAN_03);
                 return false;
             }
@@ -111,7 +111,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 }
                 if (
                     solCreditsSumByFolId[loanId] != type(uint256).max
-                        && solCreditsSumByFolId[loanId] != folFaceValueExitedByFolId[loanId]
+                        && solCreditsSumByFolId[loanId] != folCreditByFolId[loanId]
                 ) {
                     t(false, LOAN_07);
                     return false;

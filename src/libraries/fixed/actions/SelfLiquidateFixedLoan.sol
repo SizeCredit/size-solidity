@@ -56,12 +56,10 @@ library SelfLiquidateFixedLoan {
         emit Events.SelfLiquidateFixedLoan(params.loanId);
 
         FixedLoan storage loan = state._fixed.loans[params.loanId];
-
-        uint256 credit = loan.getCredit();
         FixedLoan storage fol = state.getFOL(loan);
 
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
         state._fixed.collateralToken.transferFrom(fol.borrower, msg.sender, assignedCollateral);
-        state.reduceDebt(params.loanId, credit);
+        state.reduceDebt(params.loanId, loan.credit);
     }
 }

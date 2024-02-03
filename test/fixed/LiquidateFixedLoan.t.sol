@@ -211,8 +211,8 @@ contract LiquidateFixedLoanTest is BaseTest {
             variablePoolWETHBefore + assignedCollateral - size.variableConfig().collateralOverdueTransferFee
                 - repayFeeCollateral
         );
-        assertTrue(!loanBefore.repaid);
-        assertTrue(loanAfter.repaid);
+        assertGt(loanBefore.debt, 0);
+        assertEq(loanAfter.debt, 0);
         assertLt(_after.bob.debtAmount, _before.bob.debtAmount);
         assertEq(_after.bob.debtAmount, 0);
     }

@@ -33,8 +33,8 @@ library Repay {
         if (msg.sender != loan.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.faceValue);
+        if (state.borrowATokenBalanceOf(msg.sender) < loan.debt) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.debt);
         }
 
         // validate loanId
@@ -50,23 +50,15 @@ library Repay {
 
     function executeRepay(State storage state, RepayParams calldata params) external {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
-        uint256 repayAmount = Math.min(loan.faceValue, params.amount);
+        uint256 repayAmount = Math.min(loan.debt, params.amount);
 
-        uint256 repayFee = state.currentRepayFee(loan, repayAmount);
-        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
-        uint256 repayFeeCollateral =
-            Math.mulDivUp(repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
-        state._fixed.collateralToken.transferFrom(msg.sender, state._general.feeRecipient, repayFeeCollateral);
-
-        if (repayAmount == loan.faceValue && loan.isFOL()) {
+        if (repayAmount == loan.debt && loan.isFOL()) {
+            // TODO: clear outstanding repayFee
             state.transferBorrowAToken(msg.sender, address(this), repayAmount);
-            state._fixed.debtToken.burn(msg.sender, repayAmount + repayFee);
-            loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
-            loan.repaid = true;
         } else {
             state.transferBorrowAToken(msg.sender, loan.lender, repayAmount);
-            state.reduceDebt(params.loanId, repayAmount);
         }
+        state.reduceDebt(params.loanId, repayAmount);
 
         emit Events.Repay(params.loanId, repayAmount);
     }

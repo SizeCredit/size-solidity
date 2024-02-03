@@ -5,6 +5,8 @@ import {Math} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
+
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -18,6 +20,7 @@ library Claim {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
     using FixedLoanLibrary for State;
+    using AccountingLibrary for State;
 
     function validateClaim(State storage state, ClaimParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
@@ -35,9 +38,9 @@ library Claim {
         FixedLoan storage fol = state.getFOL(loan);
 
         uint256 claimAmount =
-            Math.mulDivDown(loan.getCredit(), state.borrowATokenLiquidityIndex(), fol.liquidityIndexAtRepayment);
+            Math.mulDivDown(loan.credit, state.borrowATokenLiquidityIndex(), fol.liquidityIndexAtRepayment);
         state.transferBorrowAToken(address(this), loan.lender, claimAmount);
-        loan.faceValueExited = loan.faceValue;
+        state.reduceCredit(params.loanId, loan.credit);
 
         emit Events.Claim(params.loanId);
     }

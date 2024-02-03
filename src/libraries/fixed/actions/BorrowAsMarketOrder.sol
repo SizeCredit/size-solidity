@@ -113,10 +113,9 @@ library BorrowAsMarketOrder {
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, r, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
-            uint256 loanCredit = loan.getCredit();
-            if (deltaAmountIn > loanCredit) {
-                deltaAmountIn = loanCredit;
-                deltaAmountOut = Math.mulDivDown(loanCredit, PERCENT, r);
+            if (deltaAmountIn > loan.credit) {
+                deltaAmountIn = loan.credit;
+                deltaAmountOut = Math.mulDivDown(loan.credit, PERCENT, r);
             } else {
                 deltaAmountOut = amountOutLeft;
             }
@@ -156,6 +155,7 @@ library BorrowAsMarketOrder {
 
         uint256 issuanceValue = params.amount;
         uint256 faceValue = Math.mulDivUp(issuanceValue, r, PERCENT);
+        // TODO: remove, unnecessary as there are CR checks
         uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(faceValue);
 
         if (state._fixed.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {
