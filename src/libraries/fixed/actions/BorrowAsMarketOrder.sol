@@ -13,7 +13,9 @@ import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
 
 import {State} from "@src/SizeStorage.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -30,8 +32,8 @@ struct BorrowAsMarketOrderParams {
 library BorrowAsMarketOrder {
     using OfferLibrary for FixedLoanOffer;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for FixedLoan[];
-    using FixedLibrary for State;
+    using RiskLibrary for State;
+    using AccountingLibrary for State;
     using VariableLibrary for State;
     using FeeLibrary for State;
 
@@ -169,8 +171,8 @@ library BorrowAsMarketOrder {
             faceValue: faceValue,
             dueDate: params.dueDate
         });
-        uint256 repayFee = state.repayFee(fol);
-        state._fixed.debtToken.mint(msg.sender, faceValue + repayFee);
+        uint256 maximumRepayFee = state.maximumRepayFee(fol);
+        state._fixed.debtToken.mint(msg.sender, faceValue + maximumRepayFee);
         state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
     }
 }

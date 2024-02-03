@@ -27,8 +27,6 @@ import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/act
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateFixedLoan, LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
 
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
-
 import {Compensate, CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {
     LiquidateFixedLoanWithReplacement,
@@ -44,7 +42,7 @@ import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.so
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
 import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 
@@ -76,7 +74,7 @@ contract Size is
     using SelfLiquidateFixedLoan for State;
     using LiquidateFixedLoanWithReplacement for State;
     using Compensate for State;
-    using FixedLibrary for State;
+    using RiskLibrary for State;
     using CapsLibrary for State;
 
     bytes32 public constant KEEPER_ROLE = keccak256("KEEPER_ROLE");

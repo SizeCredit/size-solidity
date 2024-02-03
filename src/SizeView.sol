@@ -10,7 +10,7 @@ import {CollateralToken} from "@src/token/CollateralToken.sol";
 import {DebtToken} from "@src/token/DebtToken.sol";
 
 import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
@@ -33,7 +33,8 @@ abstract contract SizeView is SizeStorage {
     using OfferLibrary for FixedLoanOffer;
     using OfferLibrary for BorrowOffer;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
+    using RiskLibrary for State;
     using VariableLibrary for State;
     using FeeLibrary for State;
 
@@ -126,11 +127,15 @@ abstract contract SizeView is SizeStorage {
         return state.getFixedLoanStatus(state._fixed.loans[loanId]);
     }
 
-    function repayFee(uint256 loanId) external view returns (uint256) {
-        return state.repayFee(state._fixed.loans[loanId]);
+    function repayFee(uint256 loanId, uint256 repayAmount) public view returns (uint256) {
+        return state.currentRepayFee(state._fixed.loans[loanId], repayAmount);
     }
 
-    function tokens() public view returns (CollateralToken, IAToken, DebtToken) {
+    function repayFee(uint256 loanId) external view returns (uint256) {
+        return repayFee(loanId, state._fixed.loans[loanId].faceValue);
+    }
+
+    function tokens() external view returns (CollateralToken, IAToken, DebtToken) {
         return (state._fixed.collateralToken, state._fixed.borrowAToken, state._fixed.debtToken);
     }
 }

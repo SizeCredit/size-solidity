@@ -5,8 +5,6 @@ import {Math} from "@src/libraries/Math.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
-
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
@@ -29,7 +27,7 @@ library LiquidateFixedLoanWithReplacement {
     using FixedLoanLibrary for FixedLoan;
     using OfferLibrary for BorrowOffer;
     using VariableLibrary for State;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
     using LiquidateFixedLoan for State;
 
     function validateLiquidateFixedLoanWithReplacement(

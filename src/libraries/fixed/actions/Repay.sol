@@ -5,7 +5,7 @@ import {State} from "@src/SizeStorage.sol";
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
@@ -22,7 +22,8 @@ struct RepayParams {
 library Repay {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
+    using AccountingLibrary for State;
     using FeeLibrary for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
@@ -51,14 +52,13 @@ library Repay {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
         uint256 repayAmount = Math.min(loan.faceValue, params.amount);
 
-        if (repayAmount == loan.faceValue && loan.isFOL()) {
-            uint256 repayFee = state.repayFee(loan);
-            uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
-            uint256 repayFeeCollateral = Math.mulDivUp(
-                repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
-            );
-            state._fixed.collateralToken.transferFrom(msg.sender, state._general.feeRecipient, repayFeeCollateral);
+        uint256 repayFee = state.currentRepayFee(loan, repayAmount);
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
+        uint256 repayFeeCollateral =
+            Math.mulDivUp(repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
+        state._fixed.collateralToken.transferFrom(msg.sender, state._general.feeRecipient, repayFeeCollateral);
 
+        if (repayAmount == loan.faceValue && loan.isFOL()) {
             state.transferBorrowAToken(msg.sender, address(this), repayAmount);
             state._fixed.debtToken.burn(msg.sender, repayAmount + repayFee);
             loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();

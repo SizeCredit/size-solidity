@@ -12,8 +12,7 @@ import {State} from "@src/SizeStorage.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {Vault} from "@src/proxy/Vault.sol";
 
@@ -21,7 +20,7 @@ import {Vault} from "@src/proxy/Vault.sol";
 library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
     using CollateralLibrary for State;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
 
     function getVault(State storage state, address user) public returns (Vault) {
         if (address(state._fixed.users[user].vault) != address(0)) {

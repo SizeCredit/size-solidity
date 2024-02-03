@@ -4,12 +4,13 @@ pragma solidity 0.8.20;
 import {State} from "@src/SizeStorage.sol";
 
 import {Math} from "@src/libraries/Math.sol";
+
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 struct CompensateParams {
     uint256 loanToRepayId;
@@ -18,7 +19,8 @@ struct CompensateParams {
 }
 
 library Compensate {
-    using FixedLibrary for State;
+    using AccountingLibrary for State;
+    using FixedLoanLibrary for State;
     using FixedLoanLibrary for FixedLoan;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {

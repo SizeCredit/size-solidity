@@ -2,11 +2,9 @@
 pragma solidity 0.8.20;
 
 import {Math} from "@src/libraries/Math.sol";
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -19,7 +17,7 @@ struct ClaimParams {
 library Claim {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
 
     function validateClaim(State storage state, ClaimParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];

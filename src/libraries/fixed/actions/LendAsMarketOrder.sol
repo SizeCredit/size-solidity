@@ -5,8 +5,7 @@ import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
-
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
@@ -28,8 +27,8 @@ struct LendAsMarketOrderParams {
 
 library LendAsMarketOrder {
     using OfferLibrary for BorrowOffer;
-    using FixedLoanLibrary for FixedLoan[];
-    using FixedLibrary for State;
+    using AccountingLibrary for State;
+    using FixedLoanLibrary for State;
     using VariableLibrary for State;
     using FeeLibrary for State;
 
@@ -87,8 +86,8 @@ library LendAsMarketOrder {
             faceValue: faceValue,
             dueDate: params.dueDate
         });
-        uint256 repayFee = state.repayFee(fol);
-        state._fixed.debtToken.mint(params.borrower, faceValue + repayFee);
+        uint256 maximumRepayFee = state.maximumRepayFee(fol);
+        state._fixed.debtToken.mint(params.borrower, faceValue + maximumRepayFee);
         state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
     }
 }

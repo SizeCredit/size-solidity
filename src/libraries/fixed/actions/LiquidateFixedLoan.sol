@@ -5,11 +5,12 @@ import {Math} from "@src/libraries/Math.sol";
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -25,7 +26,8 @@ struct LiquidateFixedLoanParams {
 library LiquidateFixedLoan {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
+    using RiskLibrary for State;
     using FeeLibrary for State;
 
     function validateLiquidateFixedLoan(State storage state, LiquidateFixedLoanParams calldata params) external view {
@@ -123,7 +125,7 @@ library LiquidateFixedLoan {
 
         emit Events.LiquidateFixedLoan(params.loanId, params.minimumCollateralRatio, collateralRatio, loanStatus);
 
-        uint256 repayFee = state.repayFee(loan);
+        uint256 repayFee = state.currentRepayFee(loan, loan.faceValue);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
         uint256 repayFeeCollateral =
             Math.mulDivUp(repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
