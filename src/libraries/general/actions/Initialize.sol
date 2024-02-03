@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
@@ -9,8 +9,7 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {Vault} from "@src/proxy/Vault.sol";
 
@@ -151,13 +150,13 @@ library Initialize {
     }
 
     function _executeInitializeFixed(State storage state, InitializeFixedParams memory f) internal {
-        state._fixed.collateralToken = new CollateralToken(
+        state._fixed.collateralToken = new NonTransferrableToken(
             address(this), "Size Fixed ETH", "szETH", IERC20Metadata(state._general.collateralAsset).decimals()
         );
         state._fixed.borrowAToken =
             IAToken(state._general.variablePool.getReserveData(address(state._general.borrowAsset)).aTokenAddress);
         state._fixed.debtToken =
-            new DebtToken(address(this), "Size Debt", "szDebt", IERC20Metadata(state._general.borrowAsset).decimals());
+            new NonTransferrableToken(address(this), "Size Debt", "szDebt", IERC20Metadata(state._general.borrowAsset).decimals());
 
         state._fixed.crOpening = f.crOpening;
         state._fixed.crLiquidation = f.crLiquidation;

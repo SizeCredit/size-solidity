@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
@@ -135,7 +134,7 @@ abstract contract SizeView is SizeStorage {
         return repayFee(loanId, state._fixed.loans[loanId].faceValue);
     }
 
-    function tokens() external view returns (CollateralToken, IAToken, DebtToken) {
+    function tokens() external view returns (NonTransferrableToken, IAToken, NonTransferrableToken) {
         return (state._fixed.collateralToken, state._fixed.borrowAToken, state._fixed.debtToken);
     }
 }

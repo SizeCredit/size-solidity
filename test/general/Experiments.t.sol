@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
