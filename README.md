@@ -21,7 +21,7 @@ Size V2 Solidity
 | src/libraries/fixed/YieldCurveLibrary.sol                         | 36.00% (9/25)     | 37.78% (17/45)     | 42.86% (6/14)    | 33.33% (1/3)     |
 | src/libraries/fixed/actions/BorrowAsLimitOrder.sol                | 100.00% (3/3)     | 100.00% (3/3)      | 100.00% (0/0)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/BorrowAsMarketOrder.sol               | 100.00% (53/53)   | 100.00% (66/66)    | 95.00% (19/20)   | 100.00% (4/4)    |
-| src/libraries/fixed/actions/BorrowerExit.sol                      | 95.83% (23/24)    | 96.77% (30/31)     | 75.00% (6/8)     | 100.00% (2/2)    |
+| src/libraries/fixed/actions/BorrowerExit.sol                      | 96.00% (24/25)    | 96.88% (31/32)     | 75.00% (6/8)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Claim.sol                             | 100.00% (10/10)   | 100.00% (12/12)    | 100.00% (2/2)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Compensate.sol                        | 100.00% (21/21)   | 100.00% (26/26)    | 100.00% (12/12)  | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Deposit.sol                           | 90.91% (10/11)    | 93.75% (15/16)     | 75.00% (6/8)     | 100.00% (2/2)    |
@@ -32,7 +32,7 @@ Size V2 Solidity
 | src/libraries/fixed/actions/Repay.sol                             | 100.00% (19/19)   | 100.00% (23/23)    | 80.00% (8/10)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol            | 100.00% (18/18)   | 100.00% (23/23)    | 83.33% (5/6)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Withdraw.sol                          | 100.00% (15/15)   | 100.00% (22/22)    | 75.00% (9/12)    | 100.00% (2/2)    |
-| src/libraries/general/actions/Initialize.sol                      | 98.08% (51/52)    | 98.31% (58/59)     | 96.15% (25/26)   | 100.00% (8/8)    |
+| src/libraries/general/actions/Initialize.sol                      | 98.15% (53/54)    | 98.36% (60/61)     | 96.15% (25/26)   | 100.00% (8/8)    |
 | src/libraries/general/actions/UpdateConfig.sol                    | 100.00% (10/10)   | 100.00% (10/10)    | 100.00% (8/8)    | 100.00% (2/2)    |
 | src/libraries/variable/VariableLibrary.sol                        | 100.00% (46/46)   | 100.00% (66/66)    | 100.00% (4/4)    | 87.50% (7/8)     |
 | src/oracle/MarketBorrowRateFeed.sol                               | 0.00% (0/1)       | 0.00% (0/2)        | 100.00% (0/0)    | 0.00% (0/1)      |
