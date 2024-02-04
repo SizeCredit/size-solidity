@@ -13,7 +13,7 @@ contract BorrowerExitTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
-        _deposit(bob, usdc, 100e6);
+        _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyBorrowerExitFee);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
@@ -37,6 +37,10 @@ contract BorrowerExitTest is BaseTest {
         assertGt(_after.candy.debtAmount, _before.candy.debtAmount);
         assertLt(_after.bob.debtAmount, _before.bob.debtAmount);
         assertEq(loanAfter.credit, loanBefore.credit);
+        assertEq(
+            _after.feeRecipient.borrowAmount,
+            _before.feeRecipient.borrowAmount + size.fixedConfig().earlyBorrowerExitFee
+        );
         assertEq(loanBefore.borrower, bob);
         assertEq(loanAfter.borrower, candy);
         assertEq(_before.alice, _after.alice);
@@ -48,7 +52,7 @@ contract BorrowerExitTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
-        _deposit(bob, usdc, 100e6);
+        _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyBorrowerExitFee);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsLimitOrder(bob, 0.03e18, 12);
@@ -69,7 +73,13 @@ contract BorrowerExitTest is BaseTest {
 
         assertEq(loanAfter.credit, loanBefore.credit);
         assertEq(_before.alice, _after.alice);
-        assertEq(_before.bob, _after.bob);
+        assertEq(
+            _after.feeRecipient.borrowAmount,
+            _before.feeRecipient.borrowAmount + size.fixedConfig().earlyBorrowerExitFee
+        );
+        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount);
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount);
+        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - size.fixedConfig().earlyBorrowerExitFee);
         assertEq(loansAfter, loansBefore);
     }
 
@@ -77,7 +87,7 @@ contract BorrowerExitTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
-        _deposit(bob, usdc, 100e6);
+        _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyBorrowerExitFee);
         _deposit(candy, weth, 150e18);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);

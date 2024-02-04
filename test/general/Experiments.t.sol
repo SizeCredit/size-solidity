@@ -28,8 +28,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     }
 
     function test_Experiments_test1() public {
-        _deposit(alice, usdc, 100e6);
-        assertEq(_state().alice.borrowAmount, 100e6);
+        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        assertEq(_state().alice.borrowAmount, 100e6 + size.fixedConfig().earlyLenderExitFee);
         _lendAsLimitOrder(alice, 10, 0.03e18, 12);
         _deposit(james, weth, 50e18);
         assertEq(_state().james.collateralAmount, 50e18);
@@ -87,8 +87,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     function test_Experiments_testBasicExit1() public {
         uint256 amountToExitPercent = 1e18;
         // Deposit by bob in USDC
-        _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowAmount, 100e6);
+        _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        assertEq(_state().bob.borrowAmount, 100e6 + size.fixedConfig().earlyLenderExitFee);
 
         // Bob lending as limit order
         _lendAsLimitOrder(bob, 10, 0.03e18, 12);
@@ -128,8 +128,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
     function test_Experiments_testBorrowWithExit1() public {
         // Bob deposits in USDC
-        _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowAmount, 100e6);
+        _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        assertEq(_state().bob.borrowAmount, 100e6 + size.fixedConfig().earlyLenderExitFee);
 
         // Bob lends as limit order
         _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
@@ -148,7 +148,11 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(alice, bob, 70e6, 5);
 
         // Check conditions after Alice borrows from Bob
-        assertEq(_state().bob.borrowAmount, 100e6 - 70e6, "Bob should have 30e6 left to borrow");
+        assertEq(
+            _state().bob.borrowAmount,
+            100e6 - 70e6 + size.fixedConfig().earlyLenderExitFee,
+            "Bob should have 30e6 left to borrow"
+        );
         assertEq(size.activeFixedLoans(), 1, "Expected one active loan");
         FixedLoan memory loan_Bob_Alice = size.getFixedLoan(0);
         assertTrue(loan_Bob_Alice.lender == bob, "Bob should be the lender");

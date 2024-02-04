@@ -19,7 +19,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
 
     string internal constant BORROW_01 = "BORROW_01: Borrow increases the borrower cash";
     string internal constant BORROW_02 = "BORROW_02: Borrow increases the number of loans";
-    string internal constant BORROW_03 = "BORROW_03: Borrow from self does not change the borrower cash";
+    string internal constant BORROW_03 = "BORROW_03: Borrow from self does not change the borrower cash except for fees";
 
     string internal constant CLAIM_01 = "CLAIM_01: Claim does not decrease the sender cash";
     string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for FOLs";

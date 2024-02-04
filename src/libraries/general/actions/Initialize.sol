@@ -38,6 +38,8 @@ struct InitializeFixedParams {
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
     uint256 repayFeeAPR;
+    uint256 earlyLenderExitFee;
+    uint256 earlyBorrowerExitFee;
 }
 
 struct InitializeVariableParams {
@@ -122,6 +124,12 @@ library Initialize {
 
         // validate repayFeeAPR
         // N/A
+
+        // validate earlyLenderExitFee
+        // N/A
+
+        // validate earlyBorrowerExitFee
+        // N/A
     }
 
     function _validateInitializeVariableParams(InitializeVariableParams memory) internal pure {
@@ -170,6 +178,8 @@ library Initialize {
         state._fixed.debtTokenCap = f.debtTokenCap;
 
         state._fixed.repayFeeAPR = f.repayFeeAPR;
+        state._fixed.earlyLenderExitFee = f.earlyLenderExitFee;
+        state._fixed.earlyBorrowerExitFee = f.earlyBorrowerExitFee;
     }
 
     function _executeInitializeVariable(State storage state, InitializeVariableParams memory v) internal {

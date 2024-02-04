@@ -132,6 +132,7 @@ library BorrowAsMarketOrder {
                 issuanceValue: deltaAmountOut,
                 faceValue: deltaAmountIn
             });
+            state.transferBorrowAToken(msg.sender, state._general.feeRecipient, state._fixed.earlyLenderExitFee);
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
             amountOutLeft -= deltaAmountOut;
         }

@@ -57,7 +57,9 @@ abstract contract Deploy {
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            repayFeeAPR: 0
+            repayFeeAPR: 0,
+            earlyLenderExitFee: 5e6,
+            earlyBorrowerExitFee: 1e6
         });
         // repayFeeAPR: 0.005e18
 
@@ -93,7 +95,9 @@ abstract contract Deploy {
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            repayFeeAPR: 0.005e18
+            repayFeeAPR: 0.005e18,
+            earlyLenderExitFee: 5e6,
+            earlyBorrowerExitFee: 1e6
         });
         v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         size = new Size();
@@ -123,7 +127,9 @@ abstract contract Deploy {
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            repayFeeAPR: 0.005e18
+            repayFeeAPR: 0.005e18,
+            earlyLenderExitFee: 5e6,
+            earlyBorrowerExitFee: 1e6
         });
         v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         size = new Size();

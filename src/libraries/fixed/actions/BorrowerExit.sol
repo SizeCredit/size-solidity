@@ -71,6 +71,7 @@ library BorrowerExit {
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
 
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
+        state.transferBorrowAToken(msg.sender, state._general.feeRecipient, state._fixed.earlyBorrowerExitFee);
         state.transferDebt(msg.sender, params.borrowerToExitTo, faceValue);
         fol.borrower = params.borrowerToExitTo;
         fol.startDate = block.timestamp;
