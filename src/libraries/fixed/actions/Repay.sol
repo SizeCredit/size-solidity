@@ -3,7 +3,6 @@ pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
@@ -52,12 +51,11 @@ library Repay {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
         uint256 repayAmount = Math.min(loan.debt, params.amount);
 
-        // TODO: clear outstanding repayFee
         if (loan.isFOL() && repayAmount == loan.debt) {
             state.transferBorrowAToken(msg.sender, address(this), repayAmount);
             state.reduceDebt(params.loanId, repayAmount);
-            // state.reduceCredit(params.loanId, repayAmount);
         } else {
+            // @audit Is this logic correct for partial repayment of FOLs? Should you send to `loan.lender` directly???
             state.transferBorrowAToken(msg.sender, loan.lender, repayAmount);
             state.reduceDebt(params.loanId, repayAmount);
             state.reduceCredit(params.loanId, repayAmount);

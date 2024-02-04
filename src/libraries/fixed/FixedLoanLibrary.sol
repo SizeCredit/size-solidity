@@ -16,6 +16,7 @@ struct FixedLoan {
     uint256 faceValue;
     uint256 startDate;
     uint256 dueDate;
+    uint256 repayFeeSum;
     uint256 liquidityIndexAtRepayment;
     uint256 folId;
 }
