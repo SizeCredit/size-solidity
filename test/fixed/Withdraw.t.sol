@@ -87,6 +87,7 @@ contract WithdrawTest is BaseTest {
 
     function test_Withdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _lendAsLimitOrder(alice, 12, 0, 12);
@@ -176,7 +177,7 @@ contract WithdrawTest is BaseTest {
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_self_borrow() public {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
-        _deposit(alice, weth, 150e18);
+        _deposit(alice, weth, 160e18);
         _borrowAsLimitOrder(alice, 1e18, 12);
         _lendAsMarketOrder(alice, alice, 100e6, 12);
         _withdraw(alice, usdc, 10e6);
@@ -188,7 +189,7 @@ contract WithdrawTest is BaseTest {
     ) public {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 150e18);
+        _deposit(bob, weth, 160e18);
         _borrowAsLimitOrder(bob, 1e18, 12);
         _lendAsMarketOrder(alice, bob, 100e6, 12);
         _withdraw(bob, usdc, 10e6);

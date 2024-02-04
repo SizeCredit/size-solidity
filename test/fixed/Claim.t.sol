@@ -137,7 +137,7 @@ contract ClaimTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 300e18);
+        _deposit(bob, weth, 320e18);
         _deposit(liquidator, usdc, 10000e6);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
@@ -158,7 +158,7 @@ contract ClaimTest is BaseTest {
     function test_Claim_claim_at_different_times_may_have_different_interest() public {
         _setPrice(1e18);
 
-        _deposit(alice, weth, 150e18);
+        _deposit(alice, weth, 160e18);
         _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
         _deposit(candy, usdc, 10e6);
         _deposit(liquidator, usdc, 1000e6);

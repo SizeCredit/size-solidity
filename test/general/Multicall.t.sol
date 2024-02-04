@@ -66,6 +66,7 @@ contract MulticallTest is BaseTest {
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        uint256 repayFee = size.maximumRepayFee(loanId);
 
         _setPrice(0.2e18);
 
@@ -99,7 +100,7 @@ contract MulticallTest is BaseTest {
         uint256 afterLiquidatorUSDC = usdc.balanceOf(liquidator);
         uint256 afterLiquidatorWETH = weth.balanceOf(liquidator);
 
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt, 0);
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt - repayFee, 0);
         assertEq(_after.liquidator.borrowAmount, _before.liquidator.borrowAmount, 0);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount, 0);
         assertEq(beforeLiquidatorWETH, 0);

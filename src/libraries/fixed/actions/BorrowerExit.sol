@@ -74,7 +74,9 @@ library BorrowerExit {
 
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
         state.transferBorrowAToken(msg.sender, state._general.feeRecipient, state._fixed.earlyBorrowerExitFee);
-        state._fixed.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue + (repayFee - fol.repayFeeSum));
+        state._fixed.debtToken.transferFrom(
+            msg.sender, params.borrowerToExitTo, faceValue + (repayFee - fol.repayFeeSum)
+        );
         fol.borrower = params.borrowerToExitTo;
         fol.startDate = block.timestamp;
     }

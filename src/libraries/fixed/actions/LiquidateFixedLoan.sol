@@ -125,11 +125,7 @@ library LiquidateFixedLoan {
 
         emit Events.LiquidateFixedLoan(params.loanId, params.minimumCollateralRatio, collateralRatio, loanStatus);
 
-        uint256 repayFee = state.currentRepayFee(loan, loan.faceValue);
-        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
-        uint256 repayFeeCollateral =
-            Math.mulDivUp(repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
-        state._fixed.collateralToken.transferFrom(loan.borrower, state._general.feeRecipient, repayFeeCollateral);
+        state.chargeRepayFee(loan, loan.faceValue);
 
         // case 1a: the user is liquidatable
         if (PERCENT <= collateralRatio && collateralRatio < state._fixed.crLiquidation) {

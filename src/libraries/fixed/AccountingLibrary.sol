@@ -4,8 +4,9 @@ pragma solidity 0.8.24;
 import {State} from "@src/SizeStorage.sol";
 
 import {Events} from "@src/libraries/Events.sol";
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+
 import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {FixedLoan, FixedLoanLibrary, RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
@@ -48,7 +49,7 @@ library AccountingLibrary {
             fol.debt -= amount;
         }
 
-        state.chargeRepayFee(fol, amount);
+        // state.chargeRepayFee(fol, amount);
         if (fol.debt == 0) {
             fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }

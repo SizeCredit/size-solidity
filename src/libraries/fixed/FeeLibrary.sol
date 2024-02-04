@@ -3,14 +3,14 @@ pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Math, Rounding, PERCENT} from "@src/libraries/Math.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 library FeeLibrary {
     function maximumRepayFee(State storage state, FixedLoan memory fol) internal view returns (uint256) {
-        return _repayFee(state, fol, fol.dueDate, fol.faceValue, Rounding.UP);
+        return _repayFee(state, fol, fol.dueDate, fol.faceValue);
     }
 
     function currentRepayFee(State storage state, FixedLoan memory fol, uint256 repayAmount)
@@ -18,22 +18,20 @@ library FeeLibrary {
         view
         returns (uint256)
     {
-        return _repayFee(state, fol, block.timestamp, repayAmount, Rounding.DOWN);
+        return _repayFee(state, fol, block.timestamp, repayAmount);
     }
 
-    function _repayFee(State storage state, FixedLoan memory fol, uint256 dueDate, uint256 repayAmount, Rounding rounding)
+    function _repayFee(State storage state, FixedLoan memory fol, uint256 dueDate, uint256 repayAmount)
         internal
         view
         returns (uint256)
     {
-        Rounding oppositeRounding = rounding == Rounding.UP ? Rounding.DOWN : Rounding.UP;
         uint256 interval = dueDate - fol.startDate;
-
-        // if you want to charge more fees (round up), assume the repayment was low (round down), and vice versa
-        uint256 repayAmountPercent = Math.mulDiv(repayAmount, PERCENT, fol.faceValue, oppositeRounding);
-        uint256 repayFeePercent = Math.mulDiv(state._fixed.repayFeeAPR, interval, 365 days, rounding);
-        uint256 totalFee = Math.mulDiv(fol.issuanceValue, repayFeePercent, PERCENT, rounding);
-        uint256 fee = Math.mulDiv(repayAmountPercent, totalFee, PERCENT, rounding);
+        // if you want to charge more fees (round up), assume the repayment was low (round down)
+        uint256 repayAmountPercent = Math.mulDivDown(repayAmount, PERCENT, fol.faceValue);
+        uint256 repayFeePercent = Math.mulDivUp(state._fixed.repayFeeAPR, interval, 365 days);
+        uint256 totalFee = Math.mulDivUp(fol.issuanceValue, repayFeePercent, PERCENT);
+        uint256 fee = Math.mulDivUp(repayAmountPercent, totalFee, PERCENT);
 
         return fee;
     }
@@ -46,16 +44,21 @@ library FeeLibrary {
         uint256 repayFeeCollateral =
             Math.mulDivUp(repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
 
-        state._fixed.collateralToken.transferFrom(msg.sender, state._general.feeRecipient, repayFeeCollateral);
+        // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
+        uint256 cappedRepayFeeCollateral =
+            Math.min(repayFeeCollateral, state._fixed.collateralToken.balanceOf(fol.borrower));
+        state._fixed.collateralToken.transferFrom(fol.borrower, state._general.feeRecipient, cappedRepayFeeCollateral);
 
-        if(fol.debt > 0) {
+        if (repayAmount < fol.debt) {
             // track how much repayFee has been accumulated
-            // clear fees pessimistically, always rounding current repayment fee down, 
-            // and leaving the bulk of the remainder fees to the last repayment
             fol.repayFeeSum += repayFee;
-            state._fixed.debtToken.burn(fol.borrower, repayFee);
+
+            // due to rounding up, it is possible that repayFee is greater than the borrower debt
+            uint256 cappedRepayFee = Math.min(repayFee, state._fixed.debtToken.balanceOf(fol.borrower));
+            state._fixed.debtToken.burn(fol.borrower, cappedRepayFee);
         }
-        else {
+        // it is possible that fol.repayFeeSum is greater than maximumFee due to rounding up
+        else if (maximumFee > fol.repayFeeSum) {
             // clear outstanding repayFee debt
             state._fixed.debtToken.burn(fol.borrower, (maximumFee - fol.repayFeeSum));
         }

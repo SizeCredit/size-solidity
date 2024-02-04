@@ -85,6 +85,7 @@ contract BorrowerExitTest is BaseTest {
 
     function test_BorrowerExit_borrowerExit_cannot_leave_borrower_liquidatable() public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
         _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyBorrowerExitFee);

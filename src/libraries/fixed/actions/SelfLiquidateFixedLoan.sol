@@ -5,6 +5,7 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
@@ -22,6 +23,7 @@ library SelfLiquidateFixedLoan {
     using FixedLoanLibrary for FixedLoan;
     using FixedLoanLibrary for State;
     using AccountingLibrary for State;
+    using FeeLibrary for State;
     using RiskLibrary for State;
 
     function validateSelfLiquidateFixedLoan(State storage state, SelfLiquidateFixedLoanParams calldata params)
@@ -60,6 +62,7 @@ library SelfLiquidateFixedLoan {
 
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
         state._fixed.collateralToken.transferFrom(fol.borrower, msg.sender, assignedCollateral);
+        state.chargeRepayFee(loan, loan.credit);
         state.reduceDebt(params.loanId, loan.credit);
         state.reduceCredit(params.loanId, loan.credit);
     }

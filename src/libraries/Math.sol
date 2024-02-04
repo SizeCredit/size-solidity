@@ -25,7 +25,7 @@ library Math {
     }
 
     function mulDiv(uint256 x, uint256 y, uint256 z, Rounding rounding) internal pure returns (uint256) {
-        return rounding == Rounding.DOWN? FixedPointMathLib.mulDiv(x,y,z): FixedPointMathLib.mulDivUp(x, y, z);
+        return rounding == Rounding.DOWN ? FixedPointMathLib.mulDiv(x, y, z) : FixedPointMathLib.mulDivUp(x, y, z);
     }
 
     function mulDivUp(uint256 x, uint256 y, uint256 z) internal pure returns (uint256) {

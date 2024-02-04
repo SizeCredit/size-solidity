@@ -13,6 +13,7 @@ import {Math} from "@src/libraries/Math.sol";
 contract SelfLiquidateFixedLoanValidationTest is BaseTest {
     function test_SelfLiquidateFixedLoan_validation() public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);

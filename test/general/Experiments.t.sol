@@ -333,8 +333,9 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(size.isLoanLiquidatable(0), "FixedLoan should be liquidatable");
 
         FixedLoan memory fol = size.getFixedLoan(0);
+        uint256 repayFee = size.maximumRepayFee(0);
         assertEq(fol.borrower, alice, "Alice should be the borrower");
-        assertEq(_state().alice.debtAmount, fol.faceValue, "Alice should have the debt");
+        assertEq(_state().alice.debtAmount, fol.faceValue + repayFee, "Alice should have the debt");
 
         assertEq(_state().candy.debtAmount, 0, "Candy should have no debt");
         // Perform the liquidation with replacement
@@ -396,7 +397,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
     function test_Experiments_repayFeeAPR_simple() public {
         _setPrice(1e18);
-        _deposit(bob, weth, 165e18);
+        _deposit(bob, weth, 180e18);
         _deposit(alice, usdc, 100e6);
         YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
@@ -416,7 +417,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _deposit(bob, usdc, 10e6);
         _repay(bob, loanId);
 
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFee = size.maximumRepayFee(loanId);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 

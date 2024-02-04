@@ -6,6 +6,7 @@ import {State} from "@src/SizeStorage.sol";
 import {Math} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -22,6 +23,7 @@ library Compensate {
     using AccountingLibrary for State;
     using FixedLoanLibrary for State;
     using FixedLoanLibrary for FixedLoan;
+    using FeeLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
         FixedLoan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
@@ -64,6 +66,7 @@ library Compensate {
         FixedLoan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
         uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.credit, loanToRepay.credit);
 
+        state.chargeRepayFee(state.getFOL(loanToRepay), amountToCompensate);
         state.reduceDebt(params.loanToRepayId, amountToCompensate);
         state.reduceCredit(params.loanToRepayId, amountToCompensate);
 
