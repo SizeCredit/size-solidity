@@ -65,6 +65,7 @@ library Compensate {
         uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.credit, loanToRepay.credit);
 
         state.reduceDebt(params.loanToRepayId, amountToCompensate);
+        state.reduceCredit(params.loanToRepayId, amountToCompensate);
 
         state.createSOL({
             exiterId: params.loanToCompensateId,

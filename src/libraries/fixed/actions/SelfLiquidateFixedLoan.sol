@@ -61,5 +61,6 @@ library SelfLiquidateFixedLoan {
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
         state._fixed.collateralToken.transferFrom(fol.borrower, msg.sender, assignedCollateral);
         state.reduceDebt(params.loanId, loan.credit);
+        state.reduceCredit(params.loanId, loan.credit);
     }
 }

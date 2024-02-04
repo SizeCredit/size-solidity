@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
+import {console} from "forge-std/console.sol";
 
 import {Events} from "@src/libraries/Events.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
@@ -33,6 +34,8 @@ library AccountingLibrary {
 
     function reduceCredit(State storage state, uint256 loanId, uint256 amount) public {
         FixedLoan storage loan = state._fixed.loans[loanId];
+        console.log("credit", loan.credit);
+        console.log("amount", amount);
         loan.credit -= amount;
 
         state.validateMinimumCredit(loan.credit);
@@ -58,7 +61,7 @@ library AccountingLibrary {
         }
 
         if (fol.debt == 0) {
-            loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+            fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
     }
 

@@ -155,8 +155,9 @@ library Initialize {
         );
         state._fixed.borrowAToken =
             IAToken(state._general.variablePool.getReserveData(address(state._general.borrowAsset)).aTokenAddress);
-        state._fixed.debtToken =
-            new NonTransferrableToken(address(this), "Size Debt", "szDebt", IERC20Metadata(state._general.borrowAsset).decimals());
+        state._fixed.debtToken = new NonTransferrableToken(
+            address(this), "Size Debt", "szDebt", IERC20Metadata(state._general.borrowAsset).decimals()
+        );
 
         state._fixed.crOpening = f.crOpening;
         state._fixed.crLiquidation = f.crLiquidation;

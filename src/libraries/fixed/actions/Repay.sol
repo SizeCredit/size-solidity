@@ -52,13 +52,16 @@ library Repay {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
         uint256 repayAmount = Math.min(loan.debt, params.amount);
 
-        if (repayAmount == loan.debt && loan.isFOL()) {
-            // TODO: clear outstanding repayFee
+        // TODO: clear outstanding repayFee
+        if (loan.isFOL() && repayAmount == loan.debt) {
             state.transferBorrowAToken(msg.sender, address(this), repayAmount);
+            state.reduceDebt(params.loanId, repayAmount);
+            // state.reduceCredit(params.loanId, repayAmount);
         } else {
             state.transferBorrowAToken(msg.sender, loan.lender, repayAmount);
+            state.reduceDebt(params.loanId, repayAmount);
+            state.reduceCredit(params.loanId, repayAmount);
         }
-        state.reduceDebt(params.loanId, repayAmount);
 
         emit Events.Repay(params.loanId, repayAmount);
     }

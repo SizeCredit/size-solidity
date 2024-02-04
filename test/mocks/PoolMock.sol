@@ -52,7 +52,6 @@ contract PoolMock is Ownable {
             );
             reserveIndexes.set(asset, WadRayMath.RAY);
         } else {
-            // TODO: simulate interest
             // index = index * RATE / WadRayMath.RAY;
             // reserveIndexes.set(asset, index);
         }

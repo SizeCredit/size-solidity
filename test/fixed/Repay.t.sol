@@ -154,7 +154,8 @@ contract RepayTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + faceValue);
         assertEq(_after.size.borrowAmount, _before.size.borrowAmount, 0);
-        assertGt(size.getFixedLoan(loanId).debt, 0);
+        assertEq(size.getFixedLoan(loanId).debt, 0);
+        assertEq(size.getFixedLoan(solId).debt, 0);
     }
 
     function test_Repay_repay_partial_of_SOL() public {
@@ -202,7 +203,7 @@ contract RepayTest is BaseTest {
         assertGt(size.getCredit(loanId), size.fixedConfig().minimumCreditBorrowAsset);
     }
 
-    function test_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAsset(
+    function testFuzz_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAsset(
         uint256 borrowAmount,
         uint256 repayAmount
     ) public {

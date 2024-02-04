@@ -240,14 +240,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(size.isLoanLiquidatable(0), "FixedLoan should be liquidatable");
 
         // Perform self liquidation
-        assertGt(size.getFixedLoan(0).faceValue, 0, "FixedLoan faceValue should be greater than 0");
+        assertGt(size.getFixedLoan(0).debt, 0, "FixedLoan debt should be greater than 0");
         assertEq(_state().bob.collateralAmount, 0, "Bob should have no free ETH initially");
 
         _selfLiquidateFixedLoan(bob, 0);
 
         // Assert post-liquidation conditions
         assertGt(_state().bob.collateralAmount, 0, "Bob should have free ETH after self liquidation");
-        assertEq(size.getFixedLoan(0).faceValue, 0, "FixedLoan faceValue should be 0 after self liquidation");
+        assertEq(size.getFixedLoan(0).debt, 0, "FixedLoan debt should be 0 after self liquidation");
     }
 
     function test_Experiments_testLendAsLimitOrder1() public {
