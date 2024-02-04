@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -119,13 +119,14 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _setPrice(0.25e18);
 
         assertEq(size.getFixedLoan(loanId).faceValue, 50e6);
-        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e6);
+        assertEq(size.getFixedLoan(loanId).debt, 50e6);
+        assertEq(size.getFixedLoan(loanId).credit, 50e6 - 5e6);
         assertEq(size.getCredit(loanId), 45e6);
 
         _selfLiquidateFixedLoan(alice, loanId);
 
-        assertEq(size.getFixedLoan(loanId).faceValue, 5e6);
-        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e6);
+        assertEq(size.getFixedLoan(loanId).debt, 5e6);
+        assertEq(size.getFixedLoan(loanId).credit, 0);
         assertEq(size.getCredit(loanId), 0);
     }
 

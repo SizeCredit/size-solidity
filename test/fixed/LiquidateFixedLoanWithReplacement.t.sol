@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -7,7 +7,6 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {BorrowOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {LiquidateFixedLoanWithReplacementParams} from
     "@src/libraries/fixed/actions/LiquidateFixedLoanWithReplacement.sol";
@@ -44,7 +43,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         Vars memory _before = _state();
 
         assertEq(loanBefore.borrower, bob);
-        assertEq(loanBefore.repaid, false);
+        assertGt(loanBefore.debt, 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
 
         _liquidateFixedLoanWithReplacement(liquidator, loanId, candy);
@@ -58,7 +57,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         // assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount, 0);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
         assertEq(loanAfter.borrower, candy);
-        assertEq(loanAfter.repaid, false);
+        assertGt(loanAfter.debt, 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
     }
 
@@ -87,7 +86,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         Vars memory _before = _state();
 
         assertEq(loanBefore.borrower, bob);
-        assertEq(loanBefore.repaid, false);
+        assertGt(loanBefore.debt, 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
 
         _liquidateFixedLoanWithReplacement(liquidator, loanId, candy);
@@ -102,7 +101,7 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
         assertEq(loanAfter.borrower, candy);
-        assertEq(loanAfter.repaid, false);
+        assertGt(loanAfter.debt, 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
     }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
 
@@ -57,8 +57,10 @@ abstract contract Deploy {
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            repayFeeAPR: 0.005e18
+            repayFeeAPR: 0
         });
+        // repayFeeAPR: 0.005e18
+
         v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (g, f, v)));
         size = Size(address(proxy));

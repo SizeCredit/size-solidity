@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
@@ -21,7 +22,8 @@ struct RepayParams {
 library Repay {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
+    using AccountingLibrary for State;
     using FeeLibrary for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
@@ -31,8 +33,8 @@ library Repay {
         if (msg.sender != loan.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.faceValue);
+        if (state.borrowATokenBalanceOf(msg.sender) < loan.debt) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.debt);
         }
 
         // validate loanId
@@ -48,18 +50,17 @@ library Repay {
 
     function executeRepay(State storage state, RepayParams calldata params) external {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
-        uint256 repayAmount = Math.min(loan.faceValue, params.amount);
+        uint256 repayAmount = Math.min(loan.debt, params.amount);
 
-        if (repayAmount == loan.faceValue && loan.isFOL()) {
-            uint256 repayFeeCollateral = state.repayFeeCollateral(loan);
-            state._fixed.collateralToken.transferFrom(msg.sender, state._general.feeRecipient, repayFeeCollateral);
+        // TODO: clear outstanding repayFee
+        if (loan.isFOL() && repayAmount == loan.debt) {
             state.transferBorrowAToken(msg.sender, address(this), repayAmount);
-            state._fixed.debtToken.burn(msg.sender, repayAmount);
-            loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
-            loan.repaid = true;
+            state.reduceDebt(params.loanId, repayAmount);
+            // state.reduceCredit(params.loanId, repayAmount);
         } else {
             state.transferBorrowAToken(msg.sender, loan.lender, repayAmount);
             state.reduceDebt(params.loanId, repayAmount);
+            state.reduceCredit(params.loanId, repayAmount);
         }
 
         emit Events.Repay(params.loanId, repayAmount);

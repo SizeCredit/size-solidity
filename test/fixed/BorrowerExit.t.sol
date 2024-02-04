@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -36,7 +36,7 @@ contract BorrowerExitTest is BaseTest {
         assertLt(_after.bob.borrowAmount, _before.bob.borrowAmount);
         assertGt(_after.candy.debtAmount, _before.candy.debtAmount);
         assertLt(_after.bob.debtAmount, _before.bob.debtAmount);
-        assertEq(loanAfter.faceValueExited, loanBefore.faceValueExited);
+        assertEq(loanAfter.credit, loanBefore.credit);
         assertEq(loanBefore.borrower, bob);
         assertEq(loanAfter.borrower, candy);
         assertEq(_before.alice, _after.alice);
@@ -67,7 +67,7 @@ contract BorrowerExitTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(loanAfter.faceValueExited, loanBefore.faceValueExited);
+        assertEq(loanAfter.credit, loanBefore.credit);
         assertEq(_before.alice, _after.alice);
         assertEq(_before.bob, _after.bob);
         assertEq(loansAfter, loansBefore);

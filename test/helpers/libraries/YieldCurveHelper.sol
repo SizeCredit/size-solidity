@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
@@ -171,7 +171,7 @@ library YieldCurveHelper {
     // r1 = 0.01e18
     // m2 = 60 days
     // r2 = 0.03e18
-    function customCurve(uint128 m1, uint24 r1, uint128 m2, uint24 r2) public pure returns (YieldCurve memory) {
+    function customCurve(uint256 m1, uint256 r1, uint256 m2, uint256 r2) public pure returns (YieldCurve memory) {
         uint256[] memory timeBuckets = new uint256[](2);
         uint256[] memory rates = new uint256[](2);
         int256[] memory marketRateMultipliers = new int256[](2);

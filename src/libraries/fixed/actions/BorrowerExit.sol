@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
@@ -25,7 +26,7 @@ struct BorrowerExitParams {
 library BorrowerExit {
     using OfferLibrary for BorrowOffer;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for FixedLoan[];
+    using AccountingLibrary for State;
     using VariableLibrary for State;
     using FeeLibrary for State;
 
@@ -69,10 +70,8 @@ library BorrowerExit {
         uint256 faceValue = fol.faceValue;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, r);
 
-        uint256 repayFeeCollateral = state.repayFeeCollateral(fol);
-        state._fixed.collateralToken.transferFrom(msg.sender, state._general.feeRecipient, repayFeeCollateral);
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
-        state._fixed.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
+        state.transferDebt(msg.sender, params.borrowerToExitTo, faceValue);
         fol.borrower = params.borrowerToExitTo;
         fol.startDate = block.timestamp;
     }

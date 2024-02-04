@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -25,13 +25,13 @@ contract CompensateTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
 
-        uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(loanId3).faceValue;
-        uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(loanId).getCredit();
+        uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(loanId3).debt;
+        uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(loanId).credit;
 
         _compensate(alice, loanId3, loanId);
 
-        uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(loanId3).faceValue;
-        uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(loanId).getCredit();
+        uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(loanId3).debt;
+        uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(loanId).credit;
 
         assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 2 * 20e6);
         assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 2 * 20e6);
@@ -57,13 +57,13 @@ contract CompensateTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 15e6, 12, [loanId]);
 
-        uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(solId).faceValue;
-        uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(loanId).getCredit();
+        uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(solId).debt;
+        uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(loanId).credit;
 
         _compensate(alice, solId, loanId);
 
-        uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(solId).faceValue;
-        uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(loanId).getCredit();
+        uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(solId).debt;
+        uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(loanId).credit;
 
         assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 15e6);
         assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 15e6);
@@ -91,13 +91,13 @@ contract CompensateTest is BaseTest {
         uint256 solId = _borrowAsMarketOrder(alice, candy, 15e6, 12, [loanId]);
         uint256 solId2 = _borrowAsMarketOrder(bob, alice, 10e6, 12, [loanId2]);
 
-        uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(solId).faceValue;
-        uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(solId2).getCredit();
+        uint256 repaidFixedLoanDebtBefore = size.getFixedLoan(solId).debt;
+        uint256 compensatedFixedLoanCreditBefore = size.getFixedLoan(solId2).credit;
 
         _compensate(alice, solId, solId2);
 
-        uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(solId).faceValue;
-        uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(solId2).getCredit();
+        uint256 repaidFixedLoanDebtAfter = size.getFixedLoan(solId).debt;
+        uint256 compensatedFixedLoanCreditAfter = size.getFixedLoan(solId2).credit;
 
         assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 10e6);
         assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 10e6);

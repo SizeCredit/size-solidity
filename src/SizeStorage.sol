@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
@@ -11,8 +11,7 @@ import {User} from "@src/libraries/fixed/UserLibrary.sol";
 
 import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 // NOTE changing any of these structs' order or variables may change the storage layout
 struct General {
@@ -33,9 +32,9 @@ struct Fixed {
     uint256 minimumCreditBorrowAsset;
     uint256 collateralSplitLiquidatorPercent;
     uint256 collateralSplitProtocolPercent;
-    CollateralToken collateralToken; // e.g. szWETH
+    NonTransferrableToken collateralToken; // e.g. szWETH
     IAToken borrowAToken; // e.g. aszUSDC
-    DebtToken debtToken; // e.g. szDebt
+    NonTransferrableToken debtToken; // e.g. szDebt
     uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
