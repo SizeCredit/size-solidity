@@ -108,10 +108,9 @@ library BorrowAsMarketOrder {
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, r, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
-            uint256 loanCredit = loan.getCredit();
-            if (deltaAmountIn > loanCredit) {
-                deltaAmountIn = loanCredit;
-                deltaAmountOut = Math.mulDivDown(loanCredit, PERCENT, r);
+            if (deltaAmountIn > loan.getCredit()) {
+                deltaAmountIn = loan.getCredit();
+                deltaAmountOut = Math.mulDivDown(loan.getCredit(), PERCENT, r);
             } else {
                 deltaAmountOut = amountOutLeft;
             }
@@ -122,6 +121,7 @@ library BorrowAsMarketOrder {
             }
 
             state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, faceValue: deltaAmountIn});
+            state.transferBorrowAToken(msg.sender, state._general.feeRecipient, state._fixed.earlyLenderExitFee);
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
             amountOutLeft -= deltaAmountOut;
         }

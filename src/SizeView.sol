@@ -81,7 +81,9 @@ abstract contract SizeView is SizeStorage {
             minimumCreditBorrowAsset: state._fixed.minimumCreditBorrowAsset,
             collateralTokenCap: state._fixed.collateralTokenCap,
             borrowATokenCap: state._fixed.borrowATokenCap,
-            debtTokenCap: state._fixed.debtTokenCap
+            debtTokenCap: state._fixed.debtTokenCap,
+            earlyLenderExitFee: state._fixed.earlyLenderExitFee,
+            earlyBorrowerExitFee: state._fixed.earlyBorrowerExitFee
         });
     }
 

@@ -204,8 +204,8 @@ contract LiquidateFixedLoanTest is BaseTest {
         );
         assertTrue(!loanBefore.repaid);
         assertTrue(loanAfter.repaid);
-        assertLt(_after.bob.debtAmount , _before.bob.debtAmount);
-        assertEq(_after.bob.debtAmount , 0);
+        assertLt(_after.bob.debtAmount, _before.bob.debtAmount);
+        assertEq(_after.bob.debtAmount, 0);
     }
 
     function test_LiquidateFixedLoan_liquidateFixedLoan_move_to_VP_should_claim_later_with_interest() public {

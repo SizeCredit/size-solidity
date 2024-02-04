@@ -44,7 +44,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
         _deposit(bob, weth, 150e18);
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 100e6);
@@ -79,6 +79,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
         assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - 150e18, 0);
         assertEq(_after.candy.collateralAmount, _before.candy.collateralAmount + 150e18);
+        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount);
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e6);
     }
 
@@ -133,11 +134,11 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
         _deposit(bob, weth, 300e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
-        _deposit(candy, usdc, 100e6);
+        _deposit(candy, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
         _lendAsLimitOrder(alice, 12, 0, 12);

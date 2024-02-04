@@ -125,7 +125,12 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         if (amount > size.fixedConfig().minimumCreditBorrowAsset) {
             if (lender == sender) {
-                eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
+                eq(
+                    _after.sender.borrowAmount,
+                    _before.sender.borrowAmount
+                        - size.fixedConfig().earlyLenderExitFee * virtualCollateralFixedLoanIds.length,
+                    BORROW_03
+                );
             } else {
                 gt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
             }
