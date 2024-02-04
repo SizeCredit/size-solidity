@@ -17,7 +17,7 @@ abstract contract Addresses {
             return AddressInfo({
                 variablePool: 0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951,
                 weth: 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14,
-                usdc: 0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238
+                usdc: 0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8
             });
         } else {
             revert InvalidChain(chain);
