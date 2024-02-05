@@ -125,6 +125,7 @@ library BorrowAsMarketOrder {
                 break;
             }
 
+            // slither-disable-next-line unused-return
             state.createSOL({
                 exiterId: loanId,
                 lender: params.lender,
