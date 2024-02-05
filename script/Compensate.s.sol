@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import "forge-std/Script.sol";
 import "../src/Size.sol";
+import "forge-std/Script.sol";
 
 contract CompensateScript is Script {
     function run() external {
@@ -10,16 +10,14 @@ contract CompensateScript is Script {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         address usdcAddress = vm.envAddress("TOKEN_ADDRESS");
 
-        uint256 amount = 1e6; /// USDC has 6 decimals
+        uint256 amount = 1e6;
+
+        /// USDC has 6 decimals
 
         Size sizeContract = Size(sizeContractAddress);
 
         /// CompensateParams struct
-        CompensateParams memory params = CompensateParams({
-            loanToRepayId: 1,
-            loanToCompensateId: 1,
-            amount: amount
-        });
+        CompensateParams memory params = CompensateParams({loanToRepayId: 1, loanToCompensateId: 1, amount: amount});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.compensate(params);

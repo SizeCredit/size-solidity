@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import "forge-std/Script.sol";
 import "../src/Size.sol";
 import "../src/libraries/fixed/YieldCurveLibrary.sol";
+import "forge-std/Script.sol";
 
 contract BorrowLimitOrder is Script {
     function run() external {
@@ -20,16 +20,11 @@ contract BorrowLimitOrder is Script {
         rates[0] = 1e18;
         rates[1] = 2e18;
 
-        YieldCurve memory curveRelativeTime = YieldCurve({
-            timeBuckets: timeBuckets,
-            marketRateMultipliers: new int256[](2),
-            rates: rates
-        });
+        YieldCurve memory curveRelativeTime =
+            YieldCurve({timeBuckets: timeBuckets, marketRateMultipliers: new int256[](2), rates: rates});
 
-        BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({
-            riskCR: 0,
-            curveRelativeTime: curveRelativeTime
-        });
+        BorrowAsLimitOrderParams memory params =
+            BorrowAsLimitOrderParams({riskCR: 0, curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.borrowAsLimitOrder(params);

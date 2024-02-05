@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import "forge-std/Script.sol";
 import "../src/Size.sol";
+import "forge-std/Script.sol";
 
 contract DepositScript is Script {
     function run() external {
@@ -12,16 +12,14 @@ contract DepositScript is Script {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         address usdcAddress = vm.envAddress("TOKEN_ADDRESS");
 
-        uint256 amount = 1e6; /// USDC has 6 decimals
+        uint256 amount = 1e6;
+
+        /// USDC has 6 decimals
 
         Size sizeContract = Size(sizeContractAddress);
 
         /// DepositParams struct
-        DepositParams memory params = DepositParams({
-            token: usdcAddress,
-            amount: amount,
-            to: sizeContractAddress
-        });
+        DepositParams memory params = DepositParams({token: usdcAddress, amount: amount, to: sizeContractAddress});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.deposit(params);
