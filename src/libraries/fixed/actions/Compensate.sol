@@ -70,6 +70,7 @@ library Compensate {
         state.reduceDebt(params.loanToRepayId, amountToCompensate);
         state.reduceCredit(params.loanToRepayId, amountToCompensate);
 
+        // slither-disable-next-line unused-return
         state.createSOL({
             exiterId: params.loanToCompensateId,
             lender: loanToRepay.lender,

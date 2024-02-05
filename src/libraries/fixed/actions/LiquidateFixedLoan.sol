@@ -127,12 +127,12 @@ library LiquidateFixedLoan {
 
         state.chargeRepayFee(loan, loan.faceValue);
 
-        // case 1a: the user is liquidatable
+        // case 1a: the user is liquidatable profitably
         if (PERCENT <= collateralRatio && collateralRatio < state._fixed.crLiquidation) {
             emit Events.LiquidateFixedLoanUserLiquidatableProfitably(params.loanId);
             liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, params, true);
-            // case 1b: the user is liquidatable
-        } else if (0 <= collateralRatio && collateralRatio < PERCENT) {
+            // case 1b: the user is liquidatable unprofitably
+        } else if (collateralRatio < PERCENT) {
             emit Events.LiquidateFixedLoanUserLiquidatableUnprofitably(params.loanId);
             liquidatorProfitCollateralToken =
                 _executeLiquidateFixedLoanTakeCollateral(state, params, false /* this parameter should not matter */ );
