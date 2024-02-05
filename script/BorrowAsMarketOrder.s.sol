@@ -15,20 +15,20 @@ contract BorrowMarketOrder is Script {
 
         TimestampHelper helper = new TimestampHelper();
         uint256 currentTimestamp = helper.getCurrentTimestamp();
-        uint256 dueDate = currentTimestamp + 60 * 60 * 24 * 300; // 300 days from now
+        uint256 dueDate = currentTimestamp + 172800;   //60 * 60 * 24 * 28; // 300 days from now
 
         Size sizeContract = Size(sizeContractAddress);
 
-        uint256[] memory virtualCollateralFixedLoanIds = new uint256[](2);
+        /* uint256[] memory virtualCollateralFixedLoanIds = new uint256[](2);
         virtualCollateralFixedLoanIds[0] = uint256(0);
-        virtualCollateralFixedLoanIds[1] = uint256(0);
+        virtualCollateralFixedLoanIds[1] = uint256(0); */
 
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
-            lender: wallet2,
+            lender: wallet1,
             amount: 1e6,
             dueDate: dueDate,
             exactAmountIn: false,
-            virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+            virtualCollateralFixedLoanIds: new uint256[](0)
         });
 
         vm.startBroadcast(deployerPrivateKey);

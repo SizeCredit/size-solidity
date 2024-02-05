@@ -20,7 +20,7 @@ contract LendAsMarketOrderScript is Script {
         uint256 amount = 1e6; /// USDC has 6 decimals
 
         LendAsMarketOrderParams memory params = LendAsMarketOrderParams({
-            borrower: wallet2,
+            borrower: wallet1,
             dueDate: dueDate,
             amount: amount,
             exactAmountIn: false
