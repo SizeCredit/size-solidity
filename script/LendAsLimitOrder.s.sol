@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import "../src/Size.sol";
 import "../src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import "forge-std/Script.sol";
+import "./TimestampHelper.sol";
 
 contract LendAsLimitOrderScript is Script {
     function run() external {
@@ -11,8 +12,11 @@ contract LendAsLimitOrderScript is Script {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         Size sizeContract = Size(sizeContractAddress);
 
-        //TODO, get timestamp from chain
-        uint256 maxDueDate = 1709753450; // timestamp + duedate in seconds
+        TimestampHelper helper = new TimestampHelper();
+        uint256 currentTimestamp = helper.getCurrentTimestamp();
+        console.log("Current Timestamp:", currentTimestamp);
+
+        uint256 maxDueDate = (currentTimestamp + 259200); // timestamp + duedate in seconds
 
         uint256[] memory timeBuckets = new uint256[](2);
         timeBuckets[0] = 36000;
@@ -29,7 +33,7 @@ contract LendAsLimitOrderScript is Script {
         YieldCurve memory curveRelativeTime = YieldCurve({
             timeBuckets: timeBuckets,
             rates: rates,
-            marketRateMultipliers: marketRateMultipliers //new int256[](2)
+            marketRateMultipliers: marketRateMultipliers
         });
 
         LendAsLimitOrderParams memory params = LendAsLimitOrderParams({
