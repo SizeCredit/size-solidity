@@ -20,11 +20,17 @@ contract BorrowLimitOrder is Script {
         rates[0] = 1e18;
         rates[1] = 2e18;
 
-        YieldCurve memory curveRelativeTime =
-            YieldCurve({timeBuckets: timeBuckets, marketRateMultipliers: new int256[](2), rates: rates});
+        YieldCurve memory curveRelativeTime = YieldCurve({
+            timeBuckets: timeBuckets,
+            rates: rates,
+            marketRateMultipliers: new int256[](2)
+            
+        });
 
-        BorrowAsLimitOrderParams memory params =
-            BorrowAsLimitOrderParams({riskCR: 0, curveRelativeTime: curveRelativeTime});
+        BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({
+            riskCR: 0,
+            curveRelativeTime: curveRelativeTime
+        });
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.borrowAsLimitOrder(params);
