@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 
 import {Math} from "@src/libraries/Math.sol";
+
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 struct CompensateParams {
     uint256 loanToRepayId;
@@ -18,8 +20,10 @@ struct CompensateParams {
 }
 
 library Compensate {
-    using FixedLibrary for State;
+    using AccountingLibrary for State;
+    using FixedLoanLibrary for State;
     using FixedLoanLibrary for FixedLoan;
+    using FeeLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
         FixedLoan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
@@ -60,14 +64,18 @@ library Compensate {
 
         FixedLoan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
         FixedLoan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
-        uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.getCredit(), loanToRepay.getCredit());
+        uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.credit, loanToRepay.credit);
 
+        state.chargeRepayFee(state.getFOL(loanToRepay), amountToCompensate);
         state.reduceDebt(params.loanToRepayId, amountToCompensate);
+        state.reduceCredit(params.loanToRepayId, amountToCompensate);
 
+        // slither-disable-next-line unused-return
         state.createSOL({
             exiterId: params.loanToCompensateId,
             lender: loanToRepay.lender,
             borrower: msg.sender,
+            issuanceValue: amountToCompensate, // @audit review if this is the same as faceValue
             faceValue: amountToCompensate
         });
     }

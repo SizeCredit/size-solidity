@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {Math} from "@src/libraries/Math.sol";
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -24,7 +27,10 @@ struct LiquidateFixedLoanParams {
 library LiquidateFixedLoan {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
+    using AccountingLibrary for State;
+    using RiskLibrary for State;
+    using FeeLibrary for State;
 
     function validateLiquidateFixedLoan(State storage state, LiquidateFixedLoanParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
@@ -69,9 +75,9 @@ library LiquidateFixedLoan {
                 uint256 collateralRemainder = assignedCollateral - debtInCollateralToken;
 
                 uint256 collateralRemainderToLiquidator =
-                    Math.mulDivDown(collateralRemainder, state._fixed.collateralPremiumToLiquidator, PERCENT);
+                    Math.mulDivDown(collateralRemainder, state._fixed.collateralSplitLiquidatorPercent, PERCENT);
                 uint256 collateralRemainderToProtocol =
-                    Math.mulDivDown(collateralRemainder, state._fixed.collateralPremiumToProtocol, PERCENT);
+                    Math.mulDivDown(collateralRemainder, state._fixed.collateralSplitProtocolPercent, PERCENT);
 
                 liquidatorProfitCollateralToken += collateralRemainderToLiquidator;
                 state._fixed.collateralToken.transferFrom(
@@ -86,7 +92,6 @@ library LiquidateFixedLoan {
 
         state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
         state.transferBorrowAToken(msg.sender, address(this), loan.faceValue);
-        state._fixed.debtToken.burn(loan.borrower, loan.faceValue);
     }
 
     function _executeLiquidateFixedLoanOverdue(State storage state, LiquidateFixedLoanParams calldata params)
@@ -94,8 +99,6 @@ library LiquidateFixedLoan {
         returns (uint256 liquidatorProfitCollateralToken)
     {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
-
-        // TODO: should we decrease the borrower total debt?
 
         // case 2a: the loan is overdue and can be moved to the variable pool
         try state.moveFixedLoanToVariablePool(loan) returns (uint256 _liquidatorProfitCollateralToken) {
@@ -122,12 +125,14 @@ library LiquidateFixedLoan {
 
         emit Events.LiquidateFixedLoan(params.loanId, params.minimumCollateralRatio, collateralRatio, loanStatus);
 
-        // case 1a: the user is liquidatable
+        state.chargeRepayFee(loan, loan.faceValue);
+
+        // case 1a: the user is liquidatable profitably
         if (PERCENT <= collateralRatio && collateralRatio < state._fixed.crLiquidation) {
             emit Events.LiquidateFixedLoanUserLiquidatableProfitably(params.loanId);
             liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, params, true);
-            // case 1b: the user is liquidatable
-        } else if (0 <= collateralRatio && collateralRatio < PERCENT) {
+            // case 1b: the user is liquidatable unprofitably
+        } else if (collateralRatio < PERCENT) {
             emit Events.LiquidateFixedLoanUserLiquidatableUnprofitably(params.loanId);
             liquidatorProfitCollateralToken =
                 _executeLiquidateFixedLoanTakeCollateral(state, params, false /* this parameter should not matter */ );
@@ -143,8 +148,6 @@ library LiquidateFixedLoan {
             }
         }
 
-        // @audit Check if the liquidity index snapshot should happen before or after the Aave borrow
-        loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
-        loan.repaid = true;
+        state.reduceDebt(params.loanId, loan.faceValue);
     }
 }

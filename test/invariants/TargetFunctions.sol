@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {Helper} from "./Helper.sol";
 import {Properties} from "./Properties.sol";
@@ -125,7 +125,12 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         if (amount > size.fixedConfig().minimumCreditBorrowAsset) {
             if (lender == sender) {
-                eq(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
+                eq(
+                    _after.sender.borrowAmount,
+                    _before.sender.borrowAmount
+                        - size.fixedConfig().earlyLenderExitFee * virtualCollateralFixedLoanIds.length,
+                    BORROW_03
+                );
             } else {
                 gt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
             }

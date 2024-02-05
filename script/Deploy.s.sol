@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {console2 as console} from "forge-std/Script.sol";
 
 import {Size} from "@src/Size.sol";
-
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
 
 import {Addresses} from "./Addresses.sol";
 import {BaseScript, Deployment} from "./BaseScript.sol";

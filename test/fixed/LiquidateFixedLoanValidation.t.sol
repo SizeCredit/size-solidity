@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -11,7 +11,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract LiquidateFixedLoanValidationTest is BaseTest {
     function test_LiquidateFixedLoan_validation() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);

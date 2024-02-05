@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 
 uint256 constant PERCENT = 1e18;
+
+enum Rounding {
+    DOWN,
+    UP
+}
 
 library Math {
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -17,6 +22,10 @@ library Math {
     function min(uint256 a, uint256 b, uint256 c) internal pure returns (uint256) {
         uint256 minAB = FixedPointMathLib.min(a, b);
         return FixedPointMathLib.min(minAB, c);
+    }
+
+    function mulDiv(uint256 x, uint256 y, uint256 z, Rounding rounding) internal pure returns (uint256) {
+        return rounding == Rounding.DOWN ? FixedPointMathLib.mulDiv(x, y, z) : FixedPointMathLib.mulDivUp(x, y, z);
     }
 
     function mulDivUp(uint256 x, uint256 y, uint256 z) internal pure returns (uint256) {

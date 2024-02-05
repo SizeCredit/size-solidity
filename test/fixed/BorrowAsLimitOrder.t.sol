@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
@@ -54,6 +54,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
 
     function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_riskCR() public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
         _deposit(bob, usdc, 100e6);
         _deposit(alice, weth, 150e18);
         uint256[] memory timeBuckets = new uint256[](2);
@@ -73,12 +74,13 @@ contract BorrowAsLimitOrderTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, alice, 1.5e18, 1.7e18)
         );
-        uint256 loanId = _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
+        _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
     }
 
     function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_crOpening_even_if_riskCR_is_below(
     ) public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
         _deposit(bob, usdc, 100e6);
         _deposit(alice, weth, 140e18);
         uint256[] memory timeBuckets = new uint256[](2);
@@ -98,6 +100,6 @@ contract BorrowAsLimitOrderTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, alice, 1.4e18, 1.5e18)
         );
-        uint256 loanId = _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
+        _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
     }
 }

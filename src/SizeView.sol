@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
-import {CollateralToken} from "@src/token/CollateralToken.sol";
-import {DebtToken} from "@src/token/DebtToken.sol";
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
@@ -32,8 +32,10 @@ abstract contract SizeView is SizeStorage {
     using OfferLibrary for FixedLoanOffer;
     using OfferLibrary for BorrowOffer;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
+    using RiskLibrary for State;
     using VariableLibrary for State;
+    using FeeLibrary for State;
 
     function collateralRatio(address user) external view returns (uint256) {
         return state.collateralRatio(user);
@@ -53,11 +55,11 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getDebt(uint256 loanId) external view returns (uint256) {
-        return state._fixed.loans[loanId].faceValue;
+        return state._fixed.loans[loanId].debt;
     }
 
     function getCredit(uint256 loanId) external view returns (uint256) {
-        return state._fixed.loans[loanId].getCredit();
+        return state._fixed.loans[loanId].credit;
     }
 
     function generalConfig() external view returns (InitializeGeneralParams memory) {
@@ -76,12 +78,15 @@ abstract contract SizeView is SizeStorage {
         return InitializeFixedParams({
             crOpening: state._fixed.crOpening,
             crLiquidation: state._fixed.crLiquidation,
-            collateralPremiumToLiquidator: state._fixed.collateralPremiumToLiquidator,
-            collateralPremiumToProtocol: state._fixed.collateralPremiumToProtocol,
+            collateralSplitLiquidatorPercent: state._fixed.collateralSplitLiquidatorPercent,
+            collateralSplitProtocolPercent: state._fixed.collateralSplitProtocolPercent,
             minimumCreditBorrowAsset: state._fixed.minimumCreditBorrowAsset,
             collateralTokenCap: state._fixed.collateralTokenCap,
             borrowATokenCap: state._fixed.borrowATokenCap,
-            debtTokenCap: state._fixed.debtTokenCap
+            debtTokenCap: state._fixed.debtTokenCap,
+            repayFeeAPR: state._fixed.repayFeeAPR,
+            earlyLenderExitFee: state._fixed.earlyLenderExitFee,
+            earlyBorrowerExitFee: state._fixed.earlyBorrowerExitFee
         });
     }
 
@@ -123,7 +128,16 @@ abstract contract SizeView is SizeStorage {
         return state.getFixedLoanStatus(state._fixed.loans[loanId]);
     }
 
-    function tokens() public view returns (CollateralToken, IAToken, DebtToken) {
+    function repayFee(uint256 loanId, uint256 repayAmount) public view returns (uint256) {
+        return state.currentRepayFee(state._fixed.loans[loanId], repayAmount);
+    }
+
+    function maximumRepayFee(uint256 loanId) external view returns (uint256) {
+        FixedLoan memory loan = state._fixed.loans[loanId];
+        return state.maximumRepayFee(loan);
+    }
+
+    function tokens() external view returns (NonTransferrableToken, IAToken, NonTransferrableToken) {
         return (state._fixed.collateralToken, state._fixed.borrowAToken, state._fixed.debtToken);
     }
 }

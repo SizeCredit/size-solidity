@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";

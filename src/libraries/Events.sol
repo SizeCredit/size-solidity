@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
@@ -35,6 +35,7 @@ library Events {
         address indexed borrower,
         uint256 exiterId,
         uint256 folId,
+        uint256 issuanceValue,
         uint256 faceValue,
         uint256 dueDate
     );

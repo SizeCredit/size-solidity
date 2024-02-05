@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
+
+import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
@@ -11,7 +13,9 @@ import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
 
 import {State} from "@src/SizeStorage.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -28,9 +32,10 @@ struct BorrowAsMarketOrderParams {
 library BorrowAsMarketOrder {
     using OfferLibrary for FixedLoanOffer;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for FixedLoan[];
-    using FixedLibrary for State;
+    using RiskLibrary for State;
+    using AccountingLibrary for State;
     using VariableLibrary for State;
+    using FeeLibrary for State;
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
         User memory lenderUser = state._fixed.users[params.lender];
@@ -108,10 +113,9 @@ library BorrowAsMarketOrder {
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, r, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
-            uint256 loanCredit = loan.getCredit();
-            if (deltaAmountIn > loanCredit) {
-                deltaAmountIn = loanCredit;
-                deltaAmountOut = Math.mulDivDown(loanCredit, PERCENT, r);
+            if (deltaAmountIn > loan.credit) {
+                deltaAmountIn = loan.credit;
+                deltaAmountOut = Math.mulDivDown(loan.credit, PERCENT, r);
             } else {
                 deltaAmountOut = amountOutLeft;
             }
@@ -121,7 +125,15 @@ library BorrowAsMarketOrder {
                 break;
             }
 
-            state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, faceValue: deltaAmountIn});
+            // slither-disable-next-line unused-return
+            state.createSOL({
+                exiterId: loanId,
+                lender: params.lender,
+                borrower: msg.sender,
+                issuanceValue: deltaAmountOut,
+                faceValue: deltaAmountIn
+            });
+            state.transferBorrowAToken(msg.sender, state._general.feeRecipient, state._fixed.earlyLenderExitFee);
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
             amountOutLeft -= deltaAmountOut;
         }
@@ -143,7 +155,9 @@ library BorrowAsMarketOrder {
         uint256 r =
             PERCENT + loanOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
 
-        uint256 faceValue = Math.mulDivUp(params.amount, r, PERCENT);
+        uint256 issuanceValue = params.amount;
+        uint256 faceValue = Math.mulDivUp(issuanceValue, r, PERCENT);
+        // TODO: remove, unnecessary as there are CR checks
         uint256 minimumCollateralOpening = state.getMinimumCollateralOpening(faceValue);
 
         if (state._fixed.collateralToken.balanceOf(msg.sender) < minimumCollateralOpening) {
@@ -152,8 +166,15 @@ library BorrowAsMarketOrder {
             );
         }
 
-        state._fixed.debtToken.mint(msg.sender, faceValue);
-        state.createFOL({lender: params.lender, borrower: msg.sender, faceValue: faceValue, dueDate: params.dueDate});
-        state.transferBorrowAToken(params.lender, msg.sender, params.amount);
+        FixedLoan memory fol = state.createFOL({
+            lender: params.lender,
+            borrower: msg.sender,
+            issuanceValue: issuanceValue,
+            faceValue: faceValue,
+            dueDate: params.dueDate
+        });
+        uint256 maximumRepayFee = state.maximumRepayFee(fol);
+        state._fixed.debtToken.mint(msg.sender, faceValue + maximumRepayFee);
+        state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
     }
 }

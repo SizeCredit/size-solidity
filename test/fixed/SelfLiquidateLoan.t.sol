@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 contract SelfLiquidateFixedLoanTest is BaseTest {
     function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_rapays_with_collateral() public {
         _setPrice(1e18);
-
+        _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
@@ -42,9 +44,10 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
     function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_SOL_keeps_accounting_in_check() public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
         _deposit(bob, weth, 150e18);
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 100e6);
@@ -79,6 +82,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
         assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - 150e18, 0);
         assertEq(_after.candy.collateralAmount, _before.candy.collateralAmount + 150e18);
+        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount);
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e6);
     }
 
@@ -86,7 +90,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 150e18);
+        _deposit(bob, weth, 160e18);
         _deposit(liquidator, usdc, 10_000e6);
         _lendAsLimitOrder(alice, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
@@ -119,13 +123,14 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _setPrice(0.25e18);
 
         assertEq(size.getFixedLoan(loanId).faceValue, 50e6);
-        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e6);
+        assertEq(size.getFixedLoan(loanId).debt, 50e6);
+        assertEq(size.getFixedLoan(loanId).credit, 50e6 - 5e6);
         assertEq(size.getCredit(loanId), 45e6);
 
         _selfLiquidateFixedLoan(alice, loanId);
 
-        assertEq(size.getFixedLoan(loanId).faceValue, 5e6);
-        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e6);
+        assertEq(size.getFixedLoan(loanId).debt, 5e6);
+        assertEq(size.getFixedLoan(loanId).credit, 0);
         assertEq(size.getCredit(loanId), 0);
     }
 
@@ -133,11 +138,11 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
         _deposit(bob, weth, 300e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
-        _deposit(candy, usdc, 100e6);
+        _deposit(candy, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
         _lendAsLimitOrder(alice, 12, 0, 12);

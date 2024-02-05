@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {Math} from "@src/libraries/Math.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
-
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
 
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
@@ -29,7 +27,7 @@ library LiquidateFixedLoanWithReplacement {
     using FixedLoanLibrary for FixedLoan;
     using OfferLibrary for BorrowOffer;
     using VariableLibrary for State;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
     using LiquidateFixedLoan for State;
 
     function validateLiquidateFixedLoanWithReplacement(
@@ -75,8 +73,9 @@ library LiquidateFixedLoanWithReplacement {
         uint256 liquidatorProfitBorrowAsset = faceValue - amountOut;
 
         fol.borrower = params.borrower;
+        fol.startDate = block.timestamp;
         fol.liquidityIndexAtRepayment = 0;
-        fol.repaid = false;
+        fol.debt += faceValue;
 
         state._fixed.debtToken.mint(params.borrower, faceValue);
         state.transferBorrowAToken(address(this), params.borrower, amountOut);
