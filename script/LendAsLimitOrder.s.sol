@@ -11,32 +11,34 @@ contract LendAsLimitOrderScript is Script {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         Size sizeContract = Size(sizeContractAddress);
 
-        address lender = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
-
-        address to = 0xCa57A4211d0F8819Bd0845e6E3eD6eDcBc245ffb;
-        uint256 maxDueDate = 3600;
+        //TODO, get timestamp from chain
+        uint256 maxDueDate = 1709753450; // timestamp + duedate in seconds
 
         uint256[] memory timeBuckets = new uint256[](2);
-        timeBuckets[0] = 3600;
-        timeBuckets[1] = 7200;
+        timeBuckets[0] = 36000;
+        timeBuckets[1] = 72000;
 
         uint256[] memory rates = new uint256[](2);
-        rates[0] = 1;
-        rates[1] = 2;
+        rates[0] = 1e18;
+        rates[1] = 2e18;
 
-        YieldCurve memory curveRelativeTime =
-            YieldCurve({timeBuckets: timeBuckets, marketRateMultipliers: new int256[](2), rates: rates});
+        int256[] memory marketRateMultipliers = new int256[](2);
+        marketRateMultipliers[0] = 12;
+        marketRateMultipliers[1] = 12;
 
-        LendAsLimitOrderParams memory params =
-            LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
+        YieldCurve memory curveRelativeTime = YieldCurve({
+            timeBuckets: timeBuckets,
+            rates: rates,
+            marketRateMultipliers: marketRateMultipliers //new int256[](2)
+        });
+
+        LendAsLimitOrderParams memory params = LendAsLimitOrderParams({
+            maxDueDate: maxDueDate,
+            curveRelativeTime: curveRelativeTime
+        });
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.lendAsLimitOrder(params);
         vm.stopBroadcast();
     }
 }
-
-/* struct LendAsLimitOrderParams {
-    uint256 maxDueDate;
-    YieldCurve curveRelativeTime;
-} */
