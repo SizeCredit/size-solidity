@@ -13,22 +13,26 @@ contract BorrowLimitOrder is Script {
         Size sizeContract = Size(sizeContractAddress);
 
         uint256[] memory timeBuckets = new uint256[](2);
-        timeBuckets[0] = 3600;
-        timeBuckets[1] = 7200;
+        timeBuckets[0] = 360000;
+        timeBuckets[1] = 72000000;
 
         uint256[] memory rates = new uint256[](2);
         rates[0] = 1e18;
         rates[1] = 2e18;
 
+        int256[] memory marketRateMultipliers = new int256[](2);
+        marketRateMultipliers[0] =int256(0);
+        marketRateMultipliers[1] =int256(0);
+
         YieldCurve memory curveRelativeTime = YieldCurve({
             timeBuckets: timeBuckets,
             rates: rates,
-            marketRateMultipliers: new int256[](2)
+            marketRateMultipliers: marketRateMultipliers
             
         });
 
         BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({
-            riskCR: 0,
+            riskCR: 1,
             curveRelativeTime: curveRelativeTime
         });
 
