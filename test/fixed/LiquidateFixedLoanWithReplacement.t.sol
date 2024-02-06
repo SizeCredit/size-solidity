@@ -42,8 +42,8 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
         Vars memory _before = _state();
 
-        assertEq(loanBefore.borrower, bob);
-        assertGt(loanBefore.debt, 0);
+        assertEq(loanBefore.generic.borrower, bob);
+        assertGt(size.getDebt(loanId), 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
 
         _liquidateFixedLoanWithReplacement(liquidator, loanId, candy);
@@ -56,8 +56,8 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + amount);
         // assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount, 0);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
-        assertEq(loanAfter.borrower, candy);
-        assertGt(loanAfter.debt, 0);
+        assertEq(loanAfter.generic.borrower, candy);
+        assertGt(size.getDebt(loanId), 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
     }
 
@@ -85,8 +85,8 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
         Vars memory _before = _state();
 
-        assertEq(loanBefore.borrower, bob);
-        assertGt(loanBefore.debt, 0);
+        assertEq(loanBefore.generic.borrower, bob);
+        assertGt(size.getDebt(loanId), 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
 
         _liquidateFixedLoanWithReplacement(liquidator, loanId, candy);
@@ -100,8 +100,8 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         assertEq(_before.variablePool.borrowAmount, 0);
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
-        assertEq(loanAfter.borrower, candy);
-        assertGt(loanAfter.debt, 0);
+        assertEq(loanAfter.generic.borrower, candy);
+        assertGt(size.getDebt(loanId), 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
     }
 

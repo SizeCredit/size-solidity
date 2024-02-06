@@ -9,7 +9,6 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {BorrowOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -45,8 +44,8 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(loan.faceValue, faceValue);
-        assertEq(loan.dueDate, dueDate);
+        assertEq(loan.faceValue(), faceValue);
+        assertEq(loan.fol.dueDate, dueDate);
         assertTrue(loan.isFOL());
     }
 
@@ -75,8 +74,8 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(loan.faceValue, faceValue);
-        assertEq(loan.dueDate, dueDate);
+        assertEq(loan.faceValue(), faceValue);
+        assertEq(loan.fol.dueDate, dueDate);
         assertTrue(loan.isFOL());
     }
 
@@ -107,8 +106,8 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(loan.faceValue, faceValue);
-        assertEq(loan.dueDate, dueDate);
+        assertEq(loan.faceValue(), faceValue);
+        assertEq(loan.fol.dueDate, dueDate);
         assertTrue(loan.isFOL());
     }
 

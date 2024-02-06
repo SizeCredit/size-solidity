@@ -3,8 +3,6 @@ pragma solidity 0.8.24;
 
 import {console2 as console} from "forge-std/console2.sol";
 
-import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
-
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {BaseTest} from "@test/BaseTest.sol";
@@ -200,7 +198,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
-        assertEq(loan2.faceValue, faceValue);
+        assertEq(size.getDebt(loanId2), faceValue);
     }
 
     function testFuzz_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_and_real_collateral(
@@ -225,8 +223,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 r = PERCENT
             + size.getUserView(candy).user.loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
-        uint256 deltaAmountOut = (Math.mulDivUp(r, amountFixedLoanId2, PERCENT) > size.getFixedLoan(loanId1).credit)
-            ? Math.mulDivDown(size.getFixedLoan(loanId1).credit, PERCENT, r)
+        uint256 deltaAmountOut = (Math.mulDivUp(r, amountFixedLoanId2, PERCENT) > size.getCredit(loanId1))
+            ? Math.mulDivDown(size.getCredit(loanId1), PERCENT, r)
             : amountFixedLoanId2;
         uint256 faceValue = Math.mulDivUp(r, amountFixedLoanId2 - deltaAmountOut, PERCENT);
 
@@ -251,7 +249,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
-        assertEq(size.getFixedLoan(loanId2).faceValue, faceValue);
+        assertEq(size.getDebt(loanId2), faceValue);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_properties() public {
@@ -386,9 +384,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 solId = _borrowAsMarketOrder(alice, candy, 49e6, 12, [loanId]);
         uint256 solId2 = _borrowAsMarketOrder(candy, bob, 42e6, 12, [solId]);
 
-        assertEq(size.getFixedLoan(loanId).folId, RESERVED_ID);
-        assertEq(size.getFixedLoan(solId).folId, loanId);
-        assertEq(size.getFixedLoan(solId2).folId, loanId);
+        assertEq(size.getFixedLoan(loanId).sol.folId, RESERVED_ID);
+        assertEq(size.getFixedLoan(solId).sol.folId, loanId);
+        assertEq(size.getFixedLoan(solId2).sol.folId, loanId);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_SOL_credit_is_decreased_after_exit() public {
@@ -415,7 +413,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         FixedLoan memory solAfter = size.getFixedLoan(solId);
 
-        assertEq(solAfter.credit, solBefore.credit - 40e6);
+        assertEq(solAfter.generic.credit, solBefore.generic.credit - 40e6);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_SOL_cannot_be_fully_exited_twice() public {

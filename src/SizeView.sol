@@ -62,6 +62,11 @@ abstract contract SizeView is SizeStorage {
         return state._fixed.loans[loanId].generic.credit;
     }
 
+    function getDueDate(uint256 loanId) external view returns (uint256) {
+        FixedLoan storage loan = state._fixed.loans[loanId];
+        return state.getFOL(loan).fol.dueDate;
+    }
+
     function generalConfig() external view returns (InitializeGeneralParams memory) {
         return InitializeGeneralParams({
             owner: address(0), // N/A

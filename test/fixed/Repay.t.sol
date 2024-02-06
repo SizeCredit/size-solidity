@@ -37,7 +37,7 @@ contract RepayTest is BaseTest {
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount);
         assertEq(_after.size.borrowAmount, _before.size.borrowAmount + faceValue);
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
-        assertEq(size.getFixedLoan(loanId).debt, 0);
+        assertEq(size.getDebt(loanId), 0);
     }
 
     function test_Repay_repay_partial_FOL() public {
@@ -55,7 +55,7 @@ contract RepayTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _repay(bob, loanId, faceValue / 2);
+        _repay(bob, loanId);
 
         Vars memory _after = _state();
 
@@ -63,7 +63,7 @@ contract RepayTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue / 2);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + faceValue / 2);
         assertEq(_after.size.borrowAmount, _before.size.borrowAmount, 0);
-        assertGt(size.getFixedLoan(loanId).debt, 0);
+        assertGt(size.getDebt(loanId), 0);
     }
 
     function test_Repay_overdue_does_not_increase_debt() public {
@@ -89,7 +89,7 @@ contract RepayTest is BaseTest {
         assertEq(_overdue.bob.debtAmount, _before.bob.debtAmount);
         assertEq(_overdue.bob.borrowAmount, _before.bob.borrowAmount);
         assertEq(_overdue.variablePool.borrowAmount, _before.variablePool.borrowAmount);
-        assertGt(size.getFixedLoan(loanId).debt, 0);
+        assertGt(size.getDebt(loanId), 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.OVERDUE);
 
         _repay(bob, loanId);
@@ -101,7 +101,7 @@ contract RepayTest is BaseTest {
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount);
         assertEq(_after.size.borrowAmount, _before.size.borrowAmount + faceValue);
-        assertEq(size.getFixedLoan(loanId).debt, 0);
+        assertEq(size.getDebt(loanId), 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.REPAID);
     }
 
@@ -158,8 +158,8 @@ contract RepayTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + faceValue);
         assertEq(_after.size.borrowAmount, _before.size.borrowAmount, 0);
-        assertEq(size.getFixedLoan(loanId).debt, 0);
-        assertEq(size.getFixedLoan(solId).debt, 0);
+        assertEq(size.getDebt(loanId), 0);
+        assertEq(size.getDebt(solId), 0);
     }
 
     function test_Repay_repay_partial_of_SOL() public {
@@ -178,7 +178,7 @@ contract RepayTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _repay(alice, solId, faceValue / 2);
+        _repay(alice, solId);
 
         Vars memory _after = _state();
 
@@ -187,7 +187,7 @@ contract RepayTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount);
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
         assertEq(_after.size.borrowAmount, _before.size.borrowAmount, 0);
-        assertGt(size.getFixedLoan(loanId).debt, 0);
+        assertGt(size.getDebt(loanId), 0);
     }
 
     function test_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAsset() public {
@@ -203,7 +203,7 @@ contract RepayTest is BaseTest {
                 Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 4e6, size.fixedConfig().minimumCreditBorrowAsset
             )
         );
-        _repay(bob, loanId, 6e6);
+        _repay(bob, loanId);
         assertGt(size.getCredit(loanId), size.fixedConfig().minimumCreditBorrowAsset);
     }
 
@@ -221,7 +221,7 @@ contract RepayTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, borrowAmount, 12);
 
         vm.prank(bob);
-        try size.repay(RepayParams({loanId: loanId, amount: repayAmount})) {} catch {}
+        try size.repay(RepayParams({loanId: loanId})) {} catch {}
         assertGe(size.getCredit(loanId), size.fixedConfig().minimumCreditBorrowAsset);
     }
 
