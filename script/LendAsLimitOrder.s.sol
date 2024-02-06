@@ -27,8 +27,8 @@ contract LendAsLimitOrderScript is Script {
         rates[1] = 2e18;
 
         int256[] memory marketRateMultipliers = new int256[](2);
-        marketRateMultipliers[0] = 1;
-        marketRateMultipliers[1] = 1;
+        marketRateMultipliers[0] = 1e18;
+        marketRateMultipliers[1] = 1e18;
 
         YieldCurve memory curveRelativeTime = YieldCurve({
             timeBuckets: timeBuckets,

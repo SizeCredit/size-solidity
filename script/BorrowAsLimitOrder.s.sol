@@ -32,7 +32,7 @@ contract BorrowLimitOrder is Script {
         });
 
         BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({
-            riskCR: 1,
+            riskCR: 1e18,
             curveRelativeTime: curveRelativeTime
         });
 

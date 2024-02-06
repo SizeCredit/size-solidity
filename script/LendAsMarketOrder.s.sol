@@ -15,19 +15,20 @@ contract LendAsMarketOrderScript is Script {
         uint256 currentTimestamp = helper.getCurrentTimestamp();
         uint256 dueDate = currentTimestamp + 60 * 60 * 24 * 30; // 300 days from now
 
-        address wallet1 = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
-        address wallet2 = 0x979Af411D048b453E3334C95F392012B3BbD6215;
+        address LenderTest = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
+        address BorrowerTest = 0x979Af411D048b453E3334C95F392012B3BbD6215;
+
         uint256 amount = 6e6; /// USDC has 6 decimals
 
         LendAsMarketOrderParams memory params = LendAsMarketOrderParams({
-            borrower: wallet1,
+            borrower: LenderTest,
             dueDate: dueDate,
             amount: amount,
             exactAmountIn: false
         });
         console.log(
             "lender USDC",
-            sizeContract.getUserView(wallet1).borrowAmount
+            sizeContract.getUserView(LenderTest).borrowAmount
         );
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.lendAsMarketOrder(params);
