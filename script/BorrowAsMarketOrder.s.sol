@@ -20,13 +20,9 @@ contract BorrowMarketOrder is Script {
 
         Size sizeContract = Size(sizeContractAddress);
 
-        /* uint256[] memory virtualCollateralFixedLoanIds = new uint256[](2);
-        virtualCollateralFixedLoanIds[0] = uint256(0);
-        virtualCollateralFixedLoanIds[1] = uint256(0); */
-
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
-            lender: BorrowerTest,
-            amount: 6e6,
+            lender: LenderTest,
+            amount: 10e6,
             dueDate: dueDate,
             exactAmountIn: false,
             virtualCollateralFixedLoanIds: new uint256[](0)

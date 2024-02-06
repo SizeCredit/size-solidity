@@ -15,14 +15,16 @@ contract DepositScript is Script {
         address LenderTest = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
         address BorrowerTest = 0x979Af411D048b453E3334C95F392012B3BbD6215;
 
-        uint256 amount = 100e6;
-
-        /// USDC has 6 decimals
+        uint256 amount = 100e6; // USDC has 6 decimals
 
         Size sizeContract = Size(sizeContractAddress);
 
         /// DepositParams struct
-        DepositParams memory params = DepositParams({token: usdcAddress, amount: amount, to: BorrowerTest});
+        DepositParams memory params = DepositParams({
+            token: usdcAddress,
+            amount: amount,
+            to: BorrowerTest
+        });
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.deposit(params);
