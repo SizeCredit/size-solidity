@@ -12,7 +12,7 @@ contract DepositScript is Script {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         address wethAddress = vm.envAddress("WETH_ADDRESS");
 
-        uint256 amount = 1e15;
+        uint256 amount = 1e17;
 
         /// WETH has 18 decimals
 

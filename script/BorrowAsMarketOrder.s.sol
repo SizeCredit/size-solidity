@@ -25,7 +25,7 @@ contract BorrowMarketOrder is Script {
 
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             lender: wallet1,
-            amount: 1e6,
+            amount: 6e6,
             dueDate: dueDate,
             exactAmountIn: false,
             virtualCollateralFixedLoanIds: new uint256[](0)

@@ -16,19 +16,19 @@ contract LendAsLimitOrderScript is Script {
         uint256 currentTimestamp = helper.getCurrentTimestamp();
         console.log("Current Timestamp:", currentTimestamp);
 
-        uint256 maxDueDate = (currentTimestamp + 259200); // timestamp + duedate in seconds
+        uint256 maxDueDate = (currentTimestamp + 2592000); // timestamp + duedate in seconds
 
         uint256[] memory timeBuckets = new uint256[](2);
-        timeBuckets[0] = 36000;
-        timeBuckets[1] = 72000;
+        timeBuckets[0] = 86400;
+        timeBuckets[1] = 720000;
 
         uint256[] memory rates = new uint256[](2);
         rates[0] = 1e18;
         rates[1] = 2e18;
 
         int256[] memory marketRateMultipliers = new int256[](2);
-        marketRateMultipliers[0] = 12;
-        marketRateMultipliers[1] = 12;
+        marketRateMultipliers[0] = 1;
+        marketRateMultipliers[1] = 1;
 
         YieldCurve memory curveRelativeTime = YieldCurve({
             timeBuckets: timeBuckets,

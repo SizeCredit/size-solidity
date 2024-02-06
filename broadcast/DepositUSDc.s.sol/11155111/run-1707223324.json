@@ -1,0 +1,36 @@
+{
+  "transactions": [
+    {
+      "hash": "0x8f51532fb0221fc8998d4fa2ab2f608bacbcba302666e72e8880e5a5e4b47609",
+      "transactionType": "CALL",
+      "contractName": null,
+      "contractAddress": "0xcf62030BFd6c0c64B5569b7C76b03F97E9A31352",
+      "function": "deposit((address,uint256,address))",
+      "arguments": [
+        "(0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8, 1000000000, 0xcf62030BFd6c0c64B5569b7C76b03F97E9A31352)"
+      ],
+      "transaction": {
+        "type": "0x02",
+        "from": "0x979af411d048b453e3334c95f392012b3bbd6215",
+        "to": "0xcf62030bfd6c0c64b5569b7c76b03f97e9a31352",
+        "gas": "0x30ab5",
+        "value": "0x0",
+        "data": "0x0cf8542f00000000000000000000000094a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8000000000000000000000000000000000000000000000000000000003b9aca00000000000000000000000000cf62030bfd6c0c64b5569b7c76b03f97e9a31352",
+        "nonce": "0x13",
+        "accessList": []
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [
+    "0x8f51532fb0221fc8998d4fa2ab2f608bacbcba302666e72e8880e5a5e4b47609"
+  ],
+  "returns": {},
+  "timestamp": 1707223324,
+  "chain": 11155111,
+  "multi": false,
+  "commit": "be388e0"
+}

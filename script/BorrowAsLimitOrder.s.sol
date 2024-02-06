@@ -13,8 +13,8 @@ contract BorrowLimitOrder is Script {
         Size sizeContract = Size(sizeContractAddress);
 
         uint256[] memory timeBuckets = new uint256[](2);
-        timeBuckets[0] = 360000;
-        timeBuckets[1] = 72000000;
+        timeBuckets[0] = 86400;
+        timeBuckets[1] = 7200000;
 
         uint256[] memory rates = new uint256[](2);
         rates[0] = 1e18;
