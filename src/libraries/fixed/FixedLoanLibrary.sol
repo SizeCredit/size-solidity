@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
+import {console} from "forge-std/console.sol";
+
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
@@ -100,10 +102,12 @@ library FixedLoanLibrary {
     function getFOLAssignedCollateral(State storage state, FixedLoan memory fol) public view returns (uint256) {
         if (!isFOL(fol)) revert Errors.NOT_SUPPORTED();
 
+        uint256 folDebt = getDebt(state, fol);
         uint256 debt = state._fixed.debtToken.balanceOf(fol.generic.borrower);
         uint256 collateral = state._fixed.collateralToken.balanceOf(fol.generic.borrower);
+
         if (debt > 0) {
-            return Math.mulDivDown(collateral, getDebt(state, fol), debt);
+            return Math.mulDivDown(collateral, folDebt, debt);
         } else {
             return 0;
         }
@@ -112,8 +116,14 @@ library FixedLoanLibrary {
     function getProRataAssignedCollateral(State storage state, uint256 loanId) public view returns (uint256) {
         FixedLoan storage loan = state._fixed.loans[loanId];
         FixedLoan storage fol = getFOL(state, loan);
+        uint256 loanCredit = loan.generic.credit;
         uint256 folCollateral = getFOLAssignedCollateral(state, fol);
-        // TODO confirm
-        return Math.mulDivDown(folCollateral, loan.generic.credit, getDebt(state, fol));
+        uint256 folDebt = getDebt(state, fol);
+
+        if (folDebt > 0) {
+            return Math.mulDivDown(folCollateral, loanCredit, folDebt);
+        } else {
+            return 0;
+        }
     }
 }

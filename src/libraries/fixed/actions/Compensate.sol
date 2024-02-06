@@ -34,7 +34,7 @@ library Compensate {
         }
 
         // validate loanToRepayId
-        if (loanToRepay.isFOL()) {
+        if (!loanToRepay.isFOL()) {
             revert Errors.ONLY_FOL_CAN_BE_COMPENSATED(params.loanToRepayId);
         }
         if (state.getFixedLoanStatus(loanToRepay) == FixedLoanStatus.REPAID) {
@@ -70,6 +70,7 @@ library Compensate {
             Math.min(params.amount, loanToCompensate.generic.credit, state.getDebt(loanToRepay));
 
         state.chargeRepayFee(loanToRepay, amountToCompensate);
+        state._fixed.debtToken.burn(msg.sender, amountToCompensate);
         loanToRepay.fol.issuanceValue -= Math.mulDivDown(amountToCompensate, PERCENT, PERCENT + loanToRepay.fol.rate);
         if (state.getDebt(loanToRepay) == 0) {
             loanToRepay.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();

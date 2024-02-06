@@ -34,7 +34,7 @@ library Repay {
         }
 
         // validate loanId
-        if (loan.isFOL()) {
+        if (!loan.isFOL()) {
             revert Errors.ONLY_FOL_CAN_BE_REPAID(params.loanId);
         }
         if (state.either(loan, [FixedLoanStatus.REPAID, FixedLoanStatus.CLAIMED])) {
@@ -47,6 +47,7 @@ library Repay {
         uint256 debt = state.getDebt(fol);
 
         state.transferBorrowAToken(msg.sender, address(this), debt);
+
         state.chargeRepayFee(fol, debt);
         state._fixed.debtToken.burn(fol.generic.borrower, debt);
         fol.fol.issuanceValue = 0;

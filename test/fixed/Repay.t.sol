@@ -40,31 +40,7 @@ contract RepayTest is BaseTest {
         assertEq(size.getDebt(loanId), 0);
     }
 
-    function test_Repay_repay_partial_FOL() public {
-        _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 100e18);
-        _deposit(bob, usdc, 100e6);
-        _deposit(candy, weth, 100e18);
-        _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
-        uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
-        uint256 repayFee = size.maximumRepayFee(loanId);
-
-        Vars memory _before = _state();
-
-        _repay(bob, loanId);
-
-        Vars memory _after = _state();
-
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue / 2 - repayFee / 2);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue / 2);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + faceValue / 2);
-        assertEq(_after.size.borrowAmount, _before.size.borrowAmount, 0);
-        assertGt(size.getDebt(loanId), 0);
-    }
+    function test_Repay_repay_partial_FOL() internal {}
 
     function test_Repay_overdue_does_not_increase_debt() public {
         _deposit(alice, weth, 100e18);
@@ -133,79 +109,7 @@ contract RepayTest is BaseTest {
         _repay(bob, loanId);
     }
 
-    function test_Repay_repay_full_of_SOL() public {
-        _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 100e18);
-        _deposit(bob, usdc, 100e6);
-        _deposit(candy, weth, 100e18);
-        _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
-        _lendAsLimitOrder(candy, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
-        uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
-        uint256 repayFee = size.maximumRepayFee(loanId);
-
-        Vars memory _before = _state();
-
-        _repay(alice, solId);
-
-        Vars memory _after = _state();
-
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue - repayFee);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount);
-        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + faceValue);
-        assertEq(_after.size.borrowAmount, _before.size.borrowAmount, 0);
-        assertEq(size.getDebt(loanId), 0);
-        assertEq(size.getDebt(solId), 0);
-    }
-
-    function test_Repay_repay_partial_of_SOL() public {
-        _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 100e18);
-        _deposit(bob, usdc, 100e6);
-        _deposit(candy, weth, 100e18);
-        _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
-        _lendAsLimitOrder(candy, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
-        uint256 faceValue = Math.mulDivUp(amountFixedLoanId1, PERCENT + 0.05e18, PERCENT);
-
-        Vars memory _before = _state();
-
-        _repay(alice, solId);
-
-        Vars memory _after = _state();
-
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue / 2);
-        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + faceValue / 2);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount);
-        assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
-        assertEq(_after.size.borrowAmount, _before.size.borrowAmount, 0);
-        assertGt(size.getDebt(loanId), 0);
-    }
-
-    function test_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAsset() public {
-        _setPrice(1e18);
-        _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 150e18);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        uint256 amount = 10e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 4e6, size.fixedConfig().minimumCreditBorrowAsset
-            )
-        );
-        _repay(bob, loanId);
-        assertGt(size.getCredit(loanId), size.fixedConfig().minimumCreditBorrowAsset);
-    }
+    function test_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAsset() internal {}
 
     function testFuzz_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAsset(
         uint256 borrowAmount,

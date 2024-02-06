@@ -282,22 +282,18 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        FixedLoanOffer memory loanOffer = size.getUserView(alice).user.loanOffer;
         uint256 amount = 100e6;
         uint256 dueDate = 12;
-        uint256 r = PERCENT + loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
-        uint256 faceValue = Math.mulDivUp(r, amount, PERCENT);
-        uint256 faceValueWad = ConversionLibrary.amountToWad(faceValue, usdc.decimals());
-        uint256 faceValueOpening = Math.mulDivUp(faceValueWad, size.fixedConfig().crOpening, PERCENT);
-        uint256 maxCollateralToLock = Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         vm.startPrank(bob);
         uint256[] memory virtualCollateralFixedLoanIds;
-        vm.expectRevert(abi.encodeWithSelector(Errors.INSUFFICIENT_COLLATERAL.selector, 0, maxCollateralToLock));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, bob, 0, 1.5e18)
+        );
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
-                amount: 100e6,
-                dueDate: 12,
+                amount: amount,
+                dueDate: dueDate,
                 exactAmountIn: false,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
             })
@@ -432,7 +428,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsMarketOrder(alice, candy, 100e6, 12, [loanId]);
 
-        console.log("User attempts to fully exit twice, but a FOL is attempted to be craeted, which reverts");
+        console.log("User attempts to fully exit twice, but a FOL is attempted to be created, which reverts");
 
         uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
         virtualCollateralFixedLoanIds[0] = loanId;
@@ -444,7 +440,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
             virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
         });
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INSUFFICIENT_COLLATERAL.selector, 0, 150e18));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, alice, 0, 1.5e18)
+        );
         size.borrowAsMarketOrder(params);
     }
 
@@ -473,7 +471,10 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_cannot_surpass_debtTokenCap() public {
         _setPrice(1e18);
-        uint256 repayFee = 1;
+        uint256 dueDate = 12;
+        uint256 startDate = block.timestamp;
+        uint256 amount = 10e6;
+        uint256 repayFee = size.maximumRepayFee(amount, startDate, dueDate);
         _updateConfig("debtTokenCap", 5e6);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
@@ -489,8 +490,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: bob,
-                amount: 10e6,
-                dueDate: 12,
+                amount: amount,
+                dueDate: dueDate,
                 exactAmountIn: false,
                 virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
             })

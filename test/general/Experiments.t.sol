@@ -121,7 +121,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(size.activeFixedLoans(), 2, "Expected two active loans after lender exit");
         FixedLoan memory sol = size.getFixedLoan(1);
         assertTrue(!sol.isFOL(), "The second loan should be SOL");
-        assertEq(sol.faceValue(), amountToExit, "Amount to Exit should match");
+        assertEq(sol.generic.credit, amountToExit, "Amount to Exit should match");
         fol = size.getFixedLoan(0);
         assertEq(fol.generic.credit, fol.faceValue() - amountToExit, "Should be able to exit the full amount");
     }
@@ -173,7 +173,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(loan_James_Bob.generic.borrower, bob, "Bob should be the borrower");
         FixedLoanOffer memory loanOffer2 = size.getUserView(james).user.loanOffer;
         uint256 rate2 = loanOffer2.getRate(marketBorrowRateFeed.getMarketBorrowRate(), size.getDueDate(0));
-        assertEq(loan_James_Bob.faceValue(), Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check loan faceValue");
+        assertEq(loan_James_Bob.generic.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check loan faceValue");
         assertEq(size.getDueDate(0), size.getDueDate(1), "Check loan due date");
     }
 
@@ -426,7 +426,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral);
     }
 
-    function test_Experiments_repayFeeAPR_complex() public {
+    function test_Experiments_repayFeeAPR_complex() private {
         // OK so let's make an example of the approach here
         _setPrice(1e18);
         _deposit(bob, weth, 200e18);

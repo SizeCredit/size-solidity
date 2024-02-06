@@ -28,11 +28,19 @@ library AccountingLibrary {
         state.validateMinimumCredit(loan.generic.credit);
     }
 
-    function maximumRepayFee(State storage state, FixedLoan memory fol) internal view returns (uint256) {
-        uint256 interval = fol.fol.dueDate - fol.fol.startDate;
+    function maximumRepayFee(State storage state, uint256 issuanceValue, uint256 startDate, uint256 dueDate)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 interval = dueDate - startDate;
         uint256 repayFeePercent = Math.mulDivUp(state._fixed.repayFeeAPR, interval, 365 days);
-        uint256 fee = Math.mulDivUp(fol.fol.issuanceValue, repayFeePercent, PERCENT);
+        uint256 fee = Math.mulDivUp(issuanceValue, repayFeePercent, PERCENT);
         return fee;
+    }
+
+    function maximumRepayFee(State storage state, FixedLoan memory fol) internal view returns (uint256) {
+        return maximumRepayFee(state, fol.fol.issuanceValue, fol.fol.startDate, fol.fol.dueDate);
     }
 
     function partialRepayFee(State storage state, FixedLoan memory fol, uint256 repayAmount)

@@ -41,7 +41,7 @@ contract CompensateTest is BaseTest {
         );
     }
 
-    function test_Compensate_compensate_SOL_reduces_SOL_debt_and_FOL_loan_credit() public {
+    function test_Compensate_compensate_FOL_with_SOL_reduces_FOL_debt_and_SOL_credit() public {
         _deposit(alice, weth, 200e18);
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 200e18);
@@ -54,49 +54,16 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(bob, 12, 0, 12);
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 15e6, 12, [loanId]);
-
-        uint256 repaidFixedLoanDebtBefore = size.getDebt(solId);
-        uint256 compensatedFixedLoanCreditBefore = size.getCredit(loanId);
-
-        _compensate(alice, solId, loanId);
-
-        uint256 repaidFixedLoanDebtAfter = size.getDebt(solId);
-        uint256 compensatedFixedLoanCreditAfter = size.getCredit(loanId);
-
-        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 15e6);
-        assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 15e6);
-        assertEq(
-            repaidFixedLoanDebtBefore - repaidFixedLoanDebtAfter,
-            compensatedFixedLoanCreditBefore - compensatedFixedLoanCreditAfter
-        );
-    }
-
-    function test_Compensate_compensate_SOL_reduces_SOL_debt_and_SOL_loan_credit() public {
-        _deposit(alice, weth, 200e18);
-        _deposit(alice, usdc, 200e6);
-        _deposit(bob, weth, 200e18);
-        _deposit(bob, usdc, 200e6);
-        _deposit(candy, weth, 200e18);
-        _deposit(candy, usdc, 200e6);
-        _deposit(james, weth, 200e18);
-        _deposit(james, usdc, 200e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(bob, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
-        uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 15e6, 12, [loanId]);
+        _borrowAsMarketOrder(bob, alice, 40e6, 12);
+        uint256 loanId2 = _borrowAsMarketOrder(alice, bob, 20e6, 12);
         uint256 solId2 = _borrowAsMarketOrder(bob, alice, 10e6, 12, [loanId2]);
 
-        uint256 repaidFixedLoanDebtBefore = size.getDebt(solId);
+        uint256 repaidFixedLoanDebtBefore = size.getDebt(loanId2);
         uint256 compensatedFixedLoanCreditBefore = size.getCredit(solId2);
 
-        _compensate(alice, solId, solId2);
+        _compensate(alice, loanId2, solId2);
 
-        uint256 repaidFixedLoanDebtAfter = size.getDebt(solId);
+        uint256 repaidFixedLoanDebtAfter = size.getDebt(loanId2);
         uint256 compensatedFixedLoanCreditAfter = size.getCredit(solId2);
 
         assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 10e6);
@@ -126,31 +93,5 @@ contract CompensateTest is BaseTest {
         _repay(alice, loanId2);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId2));
         _compensate(alice, loanId2, loanId);
-    }
-
-    function test_Compensate_compensate_SOL_repaid_FOL_reverts() public {
-        _deposit(alice, weth, 200e18);
-        _deposit(alice, usdc, 200e6);
-        _deposit(bob, weth, 200e18);
-        _deposit(bob, usdc, 200e6);
-        _deposit(candy, weth, 200e18);
-        _deposit(candy, usdc, 200e6);
-        _deposit(james, weth, 200e18);
-        _deposit(james, usdc, 200e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(bob, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
-        uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 20e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 15e6, 12, [loanId]);
-        _borrowAsMarketOrder(bob, james, 40e6, 12);
-
-        assertEq(size.activeFixedLoans(), 4);
-
-        _repay(bob, loanId);
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, solId));
-        _compensate(alice, solId, loanId2);
     }
 }

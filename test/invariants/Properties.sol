@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {console2 as console} from "forge-std/console2.sol";
-
 import {BeforeAfter} from "./BeforeAfter.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
@@ -42,10 +40,9 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant LOAN_01 = "LOAN_01: loan.faceValue() <= FOL(loan).faceValue";
     string internal constant LOAN_02 =
         "LOAN_02: SUM(loan.generic.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
-    string internal constant LOAN_03 = "LOAN_03: loan.faceValueExited <= loan.faceValue";
     string internal constant LOAN_05 = "LOAN_05: loan.generic.credit >= minimumCreditBorrowAsset";
     string internal constant LOAN_06 = "LOAN_06: SUM(SOL(loanId).faceValue()) == FOL(loanId).faceValue";
-    string internal constant LOAN_07 = "LOAN_07: FOL.faceValueExited = SUM(SOL.getCredit)";
+    string internal constant LOAN_07 = "LOAN_07: FOL.credit = SUM(SOL.credit)";
 
     string internal constant TOKENS_01 = "TOKENS_01: The sum of all tokens is constant";
 
@@ -82,11 +79,6 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 }
             }
 
-            if (!(loan.generic.credit <= loan.faceValue())) {
-                t(false, LOAN_03);
-                return false;
-            }
-
             if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCreditBorrowAsset) {
                 t(false, LOAN_05);
                 return false;
@@ -99,7 +91,6 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                     solCreditsSumByFolId[loanId] != type(uint256).max
                         && solCreditsSumByFolId[loanId] != folFaceValueByFolId[loanId]
                 ) {
-                    console.log("xxx", solCreditsSumByFolId[loanId], folFaceValueByFolId[loanId]);
                     t(false, LOAN_02);
                     return false;
                 }

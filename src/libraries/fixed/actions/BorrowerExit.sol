@@ -33,10 +33,10 @@ library BorrowerExit {
     function validateBorrowerExit(State storage state, BorrowerExitParams calldata params) external view {
         BorrowOffer memory borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
         FixedLoan memory fol = state._fixed.loans[params.loanId];
+        uint256 dueDate = fol.fol.dueDate;
 
-        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), fol.fol.dueDate);
-        uint256 r = PERCENT + rate;
-        uint256 amountIn = Math.mulDivUp(state.getDebt(fol), PERCENT, r);
+        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
+        uint256 amountIn = Math.mulDivUp(state.getDebt(fol), PERCENT, PERCENT + rate);
 
         // validate msg.sender
         if (msg.sender != fol.generic.borrower) {
@@ -50,7 +50,7 @@ library BorrowerExit {
         if (!fol.isFOL()) {
             revert Errors.ONLY_FOL_CAN_BE_EXITED(params.loanId);
         }
-        if (fol.fol.dueDate <= block.timestamp) {
+        if (dueDate <= block.timestamp) {
             revert Errors.PAST_DUE_DATE(fol.fol.dueDate);
         }
 

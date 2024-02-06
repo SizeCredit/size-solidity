@@ -55,7 +55,9 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getDebt(uint256 loanId) external view returns (uint256) {
-        return state.getDebt(state._fixed.loans[loanId]);
+        FixedLoan storage loan = state._fixed.loans[loanId];
+        FixedLoan storage fol = state.getFOL(loan);
+        return state.getDebt(fol);
     }
 
     function getCredit(uint256 loanId) external view returns (uint256) {
@@ -139,6 +141,14 @@ abstract contract SizeView is SizeStorage {
 
     function maximumRepayFee(uint256 loanId) external view returns (uint256) {
         return state.maximumRepayFee(state._fixed.loans[loanId]);
+    }
+
+    function maximumRepayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate)
+        external
+        view
+        returns (uint256)
+    {
+        return state.maximumRepayFee(issuanceValue, startDate, dueDate);
     }
 
     function tokens() external view returns (NonTransferrableToken, IAToken, NonTransferrableToken) {
