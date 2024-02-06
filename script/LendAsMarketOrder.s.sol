@@ -25,7 +25,10 @@ contract LendAsMarketOrderScript is Script {
             amount: amount,
             exactAmountIn: false
         });
-
+        console.log(
+            "lender USDC",
+            sizeContract.getUserView(wallet1).borrowAmount
+        );
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.lendAsMarketOrder(params);
         vm.stopBroadcast();
