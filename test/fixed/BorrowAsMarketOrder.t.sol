@@ -181,7 +181,6 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 amountFixedLoanId2 = 30e6;
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amountFixedLoanId2, dueDate, virtualCollateralFixedLoanIds);
         uint256 repayFee = size.maximumRepayFee(loanId2);
-        FixedLoan memory loan2 = size.getFixedLoan(loanId2);
 
         Vars memory _after = _state();
 

@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
@@ -70,7 +70,8 @@ library SelfLiquidateFixedLoan {
 
         state.reduceLoanCredit(params.loanId, credit);
 
-        state.chargeRepayFeeAndUpdateLoanDebt(fol, credit);
+        state.chargeRepayFee(fol, credit);
+        fol.fol.issuanceValue -= Math.mulDivDown(credit, PERCENT, PERCENT + fol.fol.rate);
         state._fixed.debtToken.burn(fol.generic.borrower, credit);
         if (state.getDebt(fol) == 0) {
             fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();

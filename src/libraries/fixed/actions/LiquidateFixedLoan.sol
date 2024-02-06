@@ -125,7 +125,7 @@ library LiquidateFixedLoan {
 
         uint256 debt = state.getDebt(fol);
 
-        state.chargeRepayFeeAndUpdateLoanDebt(fol, debt);
+        state.chargeRepayFee(fol, debt);
 
         // case 1a: the user is liquidatable profitably
         if (PERCENT <= collateralRatio && collateralRatio < state._fixed.crLiquidation) {
@@ -149,6 +149,7 @@ library LiquidateFixedLoan {
         }
 
         state._fixed.debtToken.burn(fol.generic.borrower, debt);
+        fol.fol.issuanceValue = 0;
         fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
     }
 }

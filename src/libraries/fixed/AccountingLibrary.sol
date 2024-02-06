@@ -20,16 +20,6 @@ library AccountingLibrary {
     using FixedLoanLibrary for State;
     using VariableLibrary for State;
 
-    function transferLoanCredit(State storage state, uint256 loanIdFrom, uint256 loanIdTo, uint256 amount) public {
-        FixedLoan storage loanFrom = state._fixed.loans[loanIdFrom];
-        FixedLoan storage loanTo = state._fixed.loans[loanIdTo];
-
-        loanFrom.generic.credit -= amount;
-        loanTo.generic.credit += amount;
-
-        state.validateMinimumCredit(loanFrom.generic.credit);
-    }
-
     function reduceLoanCredit(State storage state, uint256 loanId, uint256 amount) public {
         FixedLoan storage loan = state._fixed.loans[loanId];
 
@@ -54,9 +44,7 @@ library AccountingLibrary {
         return Math.mulDivUp(repayAmount, maximumRepayFee(state, fol), fol.faceValue());
     }
 
-    function chargeRepayFeeAndUpdateLoanDebt(State storage state, FixedLoan storage fol, uint256 repayAmount)
-        internal
-    {
+    function chargeRepayFee(State storage state, FixedLoan storage fol, uint256 repayAmount) internal {
         uint256 repayFee = partialRepayFee(state, fol, repayAmount);
 
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
@@ -70,8 +58,6 @@ library AccountingLibrary {
         state._fixed.collateralToken.transferFrom(
             fol.generic.borrower, state._general.feeRecipient, cappedRepayFeeCollateral
         );
-
-        fol.fol.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + fol.fol.rate);
     }
 
     // solhint-disable-next-line var-name-mixedcase
@@ -109,10 +95,9 @@ library AccountingLibrary {
         returns (FixedLoan memory sol)
     {
         uint256 folId = state.getFOLId(exiterId);
-        FixedLoan storage fol = state._fixed.loans[folId];
 
         sol = FixedLoan({
-            generic: GenericLoan({lender: lender, borrower: borrower, credit: 0}),
+            generic: GenericLoan({lender: lender, borrower: borrower, credit: credit}),
             fol: FOL({issuanceValue: 0, rate: 0, startDate: 0, dueDate: 0, liquidityIndexAtRepayment: 0}),
             sol: SOL({folId: folId})
         });
@@ -120,7 +105,7 @@ library AccountingLibrary {
         state._fixed.loans.push(sol);
         uint256 solId = state._fixed.loans.length - 1;
 
-        transferLoanCredit(state, exiterId, solId, credit);
+        reduceLoanCredit(state, exiterId, credit);
         state.validateMinimumCreditOpening(sol.generic.credit);
 
         emit Events.CreateSOL(solId, lender, borrower, exiterId, folId, credit);

@@ -47,8 +47,9 @@ library Repay {
         uint256 debt = state.getDebt(fol);
 
         state.transferBorrowAToken(msg.sender, address(this), debt);
-        state.chargeRepayFeeAndUpdateLoanDebt(fol, debt);
+        state.chargeRepayFee(fol, debt);
         state._fixed.debtToken.burn(fol.generic.borrower, debt);
+        fol.fol.issuanceValue = 0;
         fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 
         emit Events.Repay(params.loanId);

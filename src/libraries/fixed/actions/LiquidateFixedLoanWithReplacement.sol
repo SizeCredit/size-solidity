@@ -81,7 +81,7 @@ library LiquidateFixedLoanWithReplacement {
 
         state._fixed.debtToken.mint(params.borrower, debt);
         state.transferBorrowAToken(address(this), params.borrower, amountOut);
-        state.transferBorrowAToken(address(this), msg.sender, liquidatorProfitBorrowAsset);
+        state.transferBorrowAToken(address(this), state._general.feeRecipient, liquidatorProfitBorrowAsset);
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

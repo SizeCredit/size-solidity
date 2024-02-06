@@ -207,7 +207,6 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         Vars memory _after = _state();
         uint256 loansAfter = size.activeFixedLoans();
-        FixedLoan memory loanAfter = size.getFixedLoan(loanId);
         uint256 variablePoolWETHAfter = weth.balanceOf(address(size.generalConfig().variablePool));
 
         assertEq(_after.alice, _before.alice);

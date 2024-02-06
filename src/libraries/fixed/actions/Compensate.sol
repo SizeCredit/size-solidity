@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
@@ -69,7 +69,8 @@ library Compensate {
         uint256 amountToCompensate =
             Math.min(params.amount, loanToCompensate.generic.credit, state.getDebt(loanToRepay));
 
-        state.chargeRepayFeeAndUpdateLoanDebt(loanToRepay, amountToCompensate);
+        state.chargeRepayFee(loanToRepay, amountToCompensate);
+        loanToRepay.fol.issuanceValue -= Math.mulDivDown(amountToCompensate, PERCENT, PERCENT + loanToRepay.fol.rate);
         if (state.getDebt(loanToRepay) == 0) {
             loanToRepay.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
