@@ -38,9 +38,10 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant REPAY_02 = "REPAY_02: Repay decreases the sender debt";
 
     string internal constant LOAN_01 = "LOAN_01: loan.faceValue <= FOL(loan).faceValue";
-    string internal constant LOAN_02 = "LOAN_02: SUM(loan.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
+    string internal constant LOAN_02 =
+        "LOAN_02: SUM(loan.generic.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
     string internal constant LOAN_03 = "LOAN_03: loan.faceValueExited <= loan.faceValue";
-    string internal constant LOAN_05 = "LOAN_05: loan.credit >= minimumCreditBorrowAsset";
+    string internal constant LOAN_05 = "LOAN_05: loan.generic.credit >= minimumCreditBorrowAsset";
     string internal constant LOAN_06 = "LOAN_06: SUM(SOL(loanId).faceValue) == FOL(loanId).faceValue";
     string internal constant LOAN_07 = "LOAN_07: FOL.faceValueExited = SUM(SOL.getCredit)";
 
@@ -79,7 +80,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 }
             }
 
-            if (!(loan.credit <= loan.faceValue)) {
+            if (!(loan.generic.credit <= loan.faceValue)) {
                 t(false, LOAN_03);
                 return false;
             }

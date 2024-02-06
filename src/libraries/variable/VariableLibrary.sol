@@ -21,6 +21,7 @@ library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
     using CollateralLibrary for State;
     using FixedLoanLibrary for State;
+    using FixedLoanLibrary for FixedLoan;
 
     function getVault(State storage state, address user) public returns (Vault) {
         if (address(state._fixed.users[user].vault) != address(0)) {
@@ -123,17 +124,21 @@ library VariableLibrary {
         return state._general.variablePool.getReserveNormalizedIncome(address(state._general.borrowAsset));
     }
 
-    function moveFixedLoanToVariablePool(State storage state, FixedLoan storage loan)
+    function moveFixedLoanToVariablePool(State storage state, FixedLoan storage fol)
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
         liquidatorProfitCollateralToken = state._variable.collateralOverdueTransferFee;
         // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
-        uint256 assignedCollateral = state.getFOLAssignedCollateral(loan);
+        uint256 assignedCollateral = state.getFOLAssignedCollateral(fol);
 
-        state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
+        state._fixed.collateralToken.transferFrom(fol.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
         _borrowFromVariablePool(
-            state, loan.borrower, address(this), assignedCollateral - liquidatorProfitCollateralToken, loan.faceValue
+            state,
+            fol.generic.borrower,
+            address(this),
+            assignedCollateral - liquidatorProfitCollateralToken,
+            state.getDebt(fol)
         );
     }
 }

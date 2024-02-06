@@ -38,9 +38,9 @@ library Claim {
         FixedLoan storage fol = state.getFOL(loan);
 
         uint256 claimAmount =
-            Math.mulDivDown(loan.credit, state.borrowATokenLiquidityIndex(), fol.liquidityIndexAtRepayment);
-        state.transferBorrowAToken(address(this), loan.lender, claimAmount);
-        state.reduceCredit(params.loanId, loan.credit);
+            Math.mulDivDown(loan.generic.credit, state.borrowATokenLiquidityIndex(), fol.fol.liquidityIndexAtRepayment);
+        state.transferBorrowAToken(address(this), loan.generic.lender, claimAmount);
+        state.reduceLoanCredit(params.loanId, loan.generic.credit);
 
         emit Events.Claim(params.loanId);
     }

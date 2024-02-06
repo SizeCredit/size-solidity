@@ -61,25 +61,27 @@ library LiquidateFixedLoanWithReplacement {
 
         FixedLoan storage fol = state._fixed.loans[params.loanId];
         BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
-        uint256 faceValue = fol.faceValue;
-        uint256 dueDate = fol.dueDate;
+        uint256 issuanceValue = fol.fol.issuanceValue;
+        uint256 debt = state.getDebt(fol);
+        uint256 dueDate = fol.fol.dueDate;
 
         uint256 liquidatorProfitCollateralAsset = state.executeLiquidateFixedLoan(
             LiquidateFixedLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
         );
 
-        uint256 r = (PERCENT + borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), dueDate));
-        uint256 amountOut = Math.mulDivDown(faceValue, PERCENT, r);
-        uint256 liquidatorProfitBorrowAsset = faceValue - amountOut;
+        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
+        uint256 amountOut = Math.mulDivDown(debt, PERCENT, PERCENT + rate);
+        uint256 liquidatorProfitBorrowAsset = debt - amountOut;
 
-        fol.borrower = params.borrower;
-        fol.startDate = block.timestamp;
-        fol.liquidityIndexAtRepayment = 0;
-        fol.debt += faceValue;
+        fol.generic.borrower = params.borrower;
+        fol.fol.startDate = block.timestamp;
+        fol.fol.liquidityIndexAtRepayment = 0;
+        fol.fol.issuanceValue = issuanceValue;
+        fol.fol.rate = rate;
 
-        state._fixed.debtToken.mint(params.borrower, faceValue);
+        state._fixed.debtToken.mint(params.borrower, debt);
         state.transferBorrowAToken(address(this), params.borrower, amountOut);
-        state.transferBorrowAToken(address(this), state._general.feeRecipient, liquidatorProfitBorrowAsset);
+        state.transferBorrowAToken(address(this), msg.sender, liquidatorProfitBorrowAsset);
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

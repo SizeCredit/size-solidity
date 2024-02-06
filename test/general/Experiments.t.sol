@@ -38,7 +38,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertGt(size.activeFixedLoans(), 0);
         FixedLoan memory loan = size.getFixedLoan(0);
         assertEq(loan.faceValue, 100e6 * 1.03e18 / 1e18);
-        assertEq(loan.credit, loan.faceValue);
+        assertEq(loan.generic.credit, loan.faceValue);
 
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e6);
@@ -424,5 +424,120 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         // If the loan completes its lifecycle, we have
         // protocolFee = 100 * (0.005 * 1) --> 0.5
         assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral);
+    }
+
+    function test_Experiments_repayFeeAPR_complex() public {
+        // OK so let's make an example of the approach here
+        _setPrice(1e18);
+        _deposit(bob, weth, 200e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(candy, usdc, 100e6);
+        _deposit(james, usdc, 200e6);
+        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, curve);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, curve);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 loanId2 = _borrowAsMarketOrder(bob, james, 200e6, 365 days);
+        uint256 solId = _borrowAsMarketOrder(bob, candy, 120e6, 365 days, [loanId2]);
+        // FOL1
+        // FOL.Borrower = B1
+        // FOL.IV = 100
+        // FOL.FullLenderRate = 10%
+        // FOL.startTime = 1 Jan 2023
+        // FOL.dueDate = 31 Dec 2023 (months)
+        // FOL.lastRepaymentTime=0
+
+        // Computable
+        // FOL.FV() = FOL.IV * FOL.FullLenderRate
+        assertEq(size.getFixedLoan(loanId).faceValue, 110e6);
+
+        assertEq(size.maximumRepayFee(loanId), 10e6);
+
+        // FOL.ProtocolFees(t) = FOL.IV * protocolFeeRate * (t - FOL.lastRepaymentTime)
+        assertEq(size.repayFee(loanId), 0);
+
+        FixedLoan memory loan = size.getFixedLoan(loanId);
+
+        // Also tracked
+        // FOL.credit = FOL.FV() --> 110
+        assertEq(loan.generic.credit, 110e6);
+
+        // At t=7 borrower compensates for an amount A=20
+        // Let's say this amount comes from a SOL SOL1 the borrower owns, so something like
+        // SOL1
+        // SOL.lender = B1
+        // SOL1.credit = 120
+        // SOL1.FOL().DueDate = 30 Dec 2023
+        assertEq(size.getLoan(solId).credit, 120e6);
+        _compensate(bob, loanId, solId, 20e6);
+
+        // then the update is
+        // SOL1.credit -= 20 --> 100
+        assertEq(size.getLoan(solId).credit, 100e6);
+
+        // Now Borrower has A=20 to compensate his debt on FOL1 which results in
+        // FOL1.protocolFees(t=7) = 100 * 0.005 * (7-0) / 12 --> 0.29
+
+        // At this point, we need to take 0.29 USDC in fees and we have 2 ways to do it
+
+        // 1) Taking it as USDC credit
+
+        // In this case we operate a debt reduction for NetA which is the initial amount of credit the borrower uses subtracting the fees
+        // NetA = A - FOL1.protocolFees(t=7) --> 20 - 0.29 --> 19.71
+
+        // then
+        // NetAScaled = NetA / (1 + FOL1.FullRate) --> 19.71 / (1.1) --> 17.918
+
+        // finally
+        // FOL1.IV -= NetAScaled --> 100 - 17.918 --> 82.018
+        // FOL1.lastRepaymentTime = 7
+
+        // To track the 0.29 protocolFees, a specific SOL has to be emitted
+        // SOL_For_Repayment.Lender = Protocol
+        // SOL_For_Repayment.FOL = SOL1.FOL
+        // SOL_For_Repayment.credit = FOL1.protocolFees(y=7) --> 0.29
+
+        // 2) Taking from collateral
+        // In this case, we do the same as the above with
+        // NetA = A
+
+        // and no SOL_For_Repayment is emitted
+        // and to take the fees instead, we do
+        // collateral[borrower] -= FOL1.protocolFees(t=7) / Oracle.CurrentPrice
+
+        // ---
+
+        // Then at t=10 compensation for A=30 then
+
+        // FOL.protocolFees(t=10) = 82.018 * 0.005 * (10 - 7) --> 1.23
+
+        // then
+
+        // 1) in case we charge in USDC credit
+        // NetA = 30 - 1.23 --> 28.768
+
+        // so
+        // NetAScaled = 28.768 / 1.1 --> 26.15
+
+        // finally
+        // FOL.IV -= NetAScaled = 82.018 - 26.15 --> 55.92
+        // FOL.lastRepaymentTime = 10
+
+        // 2) If instead we charge in collateral
+
+        // NetA = A --> 30
+        // NetAScaled = 30 / 1.1 --> 27.27
+        // FOL.IV -= NetAScaled --> 82.018 - 27.27 --> 54.74
+        // FOL.lastRepaymentTime = 10
+        // collateral[B1] -= 1.23 / Oracle.CurrentPrice
+
+        // Remarks
+
+        // 1) Min Repayment / Compensation is protocol fees.
+        // It is not possible to repay / compensate less than the FOL.protocolFees(t) since the FOL.lastRepaymentTime assumes the last time the fees have been repaid entirely
+
+        // 2) Denomination of the fees and risk related
+        // This is a cashless process so it is not possible to take the fees in USDC, we can go for either USDC Credit or Collateral and both have different implications and risk profiles
     }
 }

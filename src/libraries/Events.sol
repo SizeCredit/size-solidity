@@ -29,18 +29,24 @@ library Events {
     event BorrowAsLimitOrder(YieldCurve curveRelativeTime);
     event LendAsMarketOrder(address indexed borrower, uint256 dueDate, uint256 amount, bool exactAmountIn);
     event LendAsLimitOrder(uint256 maxDueDate, YieldCurve curveRelativeTime);
-    event CreateFixedLoan(
+    event CreateFOL(
+        uint256 indexed loanId,
+        address indexed lender,
+        address indexed borrower,
+        uint256 issuanceValue,
+        uint256 rate,
+        uint256 dueDate
+    );
+    event CreateSOL(
         uint256 indexed loanId,
         address indexed lender,
         address indexed borrower,
         uint256 exiterId,
         uint256 folId,
-        uint256 issuanceValue,
-        uint256 faceValue,
-        uint256 dueDate
+        uint256 credit
     );
     event BorrowerExit(uint256 indexed loanId, address borrowerExitedTo);
-    event Repay(uint256 indexed loanId, uint256 amount);
+    event Repay(uint256 indexed loanId);
     event Claim(uint256 indexed loanId);
     event LiquidateFixedLoan(
         uint256 indexed loanId, uint256 minimumCollateralRatio, uint256 collateralRatio, FixedLoanStatus loanStatus

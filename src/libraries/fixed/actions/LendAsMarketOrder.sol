@@ -6,7 +6,7 @@ import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
+
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
@@ -30,7 +30,7 @@ library LendAsMarketOrder {
     using AccountingLibrary for State;
     using FixedLoanLibrary for State;
     using VariableLibrary for State;
-    using FeeLibrary for State;
+    using AccountingLibrary for State;
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state._fixed.users[params.borrower].borrowOffer;
@@ -50,7 +50,6 @@ library LendAsMarketOrder {
 
         // validate dueDate
         if (params.dueDate < block.timestamp) {
-            // @audit-info LAMO-01 This line is not marked on the coverage report due to https://github.com/foundry-rs/foundry/issues/4854
             revert Errors.PAST_DUE_DATE(params.dueDate);
         }
 
@@ -67,27 +66,22 @@ library LendAsMarketOrder {
 
         BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
-        uint256 r =
-            PERCENT + borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 issuanceValue;
-        uint256 faceValue;
         if (params.exactAmountIn) {
-            faceValue = Math.mulDivDown(params.amount, r, PERCENT);
             issuanceValue = params.amount;
         } else {
-            faceValue = params.amount;
-            issuanceValue = Math.mulDivUp(params.amount, PERCENT, r);
+            issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + rate);
         }
 
         FixedLoan memory fol = state.createFOL({
             lender: msg.sender,
             borrower: params.borrower,
             issuanceValue: issuanceValue,
-            faceValue: faceValue,
+            rate: rate,
             dueDate: params.dueDate
         });
-        uint256 maximumRepayFee = state.maximumRepayFee(fol);
-        state._fixed.debtToken.mint(params.borrower, faceValue + maximumRepayFee);
+        state._fixed.debtToken.mint(params.borrower, state.getDebt(fol));
         state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
     }
 }
