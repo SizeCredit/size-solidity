@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {UserView} from "@src/SizeView.sol";
-import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {Test} from "forge-std/Test.sol";
 
@@ -35,21 +35,21 @@ abstract contract AssertsHelper is Test {
         assertTrue(a == b && b == c, reason);
     }
 
-    function assertEq(FixedLoanStatus a, FixedLoanStatus b) internal {
+    function assertEq(LoanStatus a, LoanStatus b) internal {
         string memory reason = string.concat("Expected ", str(a), " to be equal to ", str(b));
         return assertEq(a, b, reason);
     }
 
-    function assertEq(FixedLoanStatus a, FixedLoanStatus b, string memory reason) internal {
+    function assertEq(LoanStatus a, LoanStatus b, string memory reason) internal {
         assertTrue(uint256(a) == uint256(b), reason);
     }
 
-    function str(FixedLoanStatus a) internal pure returns (string memory) {
-        if (a == FixedLoanStatus.CLAIMED) {
+    function str(LoanStatus a) internal pure returns (string memory) {
+        if (a == LoanStatus.CLAIMED) {
             return "CLAIMED";
-        } else if (a == FixedLoanStatus.REPAID) {
+        } else if (a == LoanStatus.REPAID) {
             return "REPAID";
-        } else if (a == FixedLoanStatus.OVERDUE) {
+        } else if (a == LoanStatus.OVERDUE) {
             return "OVERDUE";
         } else {
             return "ACTIVE";

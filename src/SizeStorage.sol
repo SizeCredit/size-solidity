@@ -5,7 +5,7 @@ import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 
@@ -25,7 +25,7 @@ struct General {
 
 struct Fixed {
     mapping(address => User) users;
-    FixedLoan[] loans;
+    Loan[] loans;
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 minimumCreditBorrowAsset;

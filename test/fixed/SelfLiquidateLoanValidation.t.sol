@@ -4,14 +4,14 @@ pragma solidity 0.8.24;
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateLoan.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
 
-contract SelfLiquidateFixedLoanValidationTest is BaseTest {
-    function test_SelfLiquidateFixedLoan_validation() public {
+contract SelfLiquidateLoanValidationTest is BaseTest {
+    function test_SelfLiquidateLoan_validation() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
 
@@ -25,14 +25,14 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
 
         vm.startPrank(james);
         vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATOR_IS_NOT_LENDER.selector, james, alice));
-        size.selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));
+        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
         vm.stopPrank();
 
         vm.startPrank(alice);
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, loanId, 1.5e18, FixedLoanStatus.ACTIVE)
+            abi.encodeWithSelector(Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, loanId, 1.5e18, LoanStatus.ACTIVE)
         );
-        size.selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));
+        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
         vm.stopPrank();
 
         _setPrice(0.75e18);
@@ -45,7 +45,7 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, loanId, assignedCollateral, debtCollateral)
         );
-        size.selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));
+        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
         vm.stopPrank();
 
         _repay(bob, loanId);
@@ -54,10 +54,10 @@ contract SelfLiquidateFixedLoanValidationTest is BaseTest {
         vm.startPrank(alice);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), FixedLoanStatus.REPAID
+                Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.REPAID
             )
         );
-        size.selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams({loanId: loanId}));
+        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
         vm.stopPrank();
     }
 }

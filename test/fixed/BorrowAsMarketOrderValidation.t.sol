@@ -3,15 +3,15 @@ pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract BorrowAsMarketOrderValidationTest is BaseTest {
-    using OfferLibrary for FixedLoanOffer;
-    using FixedLoanLibrary for FixedLoan;
+    using OfferLibrary for LoanOffer;
+    using LoanLibrary for Loan;
 
     function test_BorrowAsMarketOrder_validation() public {
         _deposit(alice, weth, 100e18);
@@ -28,7 +28,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         uint256 amount = 10e6;
         uint256 dueDate = 12;
         bool exactAmountIn = false;
-        uint256[] memory virtualCollateralFixedLoanIds;
+        uint256[] memory virtualCollateralLoanIds;
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, address(0)));
@@ -38,7 +38,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
 
@@ -49,7 +49,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 0,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
 
@@ -60,7 +60,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 0,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
 
@@ -71,7 +71,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 13,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
 
@@ -88,12 +88,12 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 1e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
 
-        virtualCollateralFixedLoanIds = new uint256[](1);
-        virtualCollateralFixedLoanIds[0] = loanId;
+        virtualCollateralLoanIds = new uint256[](1);
+        virtualCollateralLoanIds[0] = loanId;
         vm.expectRevert(abi.encodeWithSelector(Errors.BORROWER_IS_NOT_LENDER.selector, bob, candy));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
@@ -101,7 +101,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
 
@@ -113,7 +113,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 4,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
 
@@ -125,7 +125,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 4,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                virtualCollateralLoanIds: virtualCollateralLoanIds
             })
         );
     }

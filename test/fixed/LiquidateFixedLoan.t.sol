@@ -7,12 +7,12 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
-contract LiquidateFixedLoanTest is BaseTest {
-    using FixedLoanLibrary for FixedLoan;
+contract LiquidateLoanTest is BaseTest {
+    using LoanLibrary for Loan;
 
-    function test_LiquidateFixedLoan_liquidateFixedLoan_seizes_borrower_collateral() public {
+    function test_LiquidateLoan_liquidateLoan_seizes_borrower_collateral() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
 
@@ -52,7 +52,7 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         Vars memory _before = _state();
 
-        uint256 liquidatorProfit = _liquidateFixedLoan(liquidator, loanId);
+        uint256 liquidatorProfit = _liquidateLoan(liquidator, loanId);
 
         uint256 collateralRemainder = assigned - (debtWad * 5);
 
@@ -88,7 +88,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(liquidatorProfit, liquidatorProfitAmount);
     }
 
-    function test_LiquidateFixedLoan_liquidateFixedLoan_repays_loan() public {
+    function test_LiquidateLoan_liquidateLoan_repays_loan() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 100e18);
@@ -104,14 +104,14 @@ contract LiquidateFixedLoanTest is BaseTest {
         _setPrice(0.2e18);
 
         assertTrue(size.isLoanLiquidatable(loanId));
-        assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
+        assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
 
-        _liquidateFixedLoan(liquidator, loanId);
+        _liquidateLoan(liquidator, loanId);
 
-        assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.REPAID);
+        assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
     }
 
-    function test_LiquidateFixedLoan_liquidateFixedLoan_reduces_borrower_debt() public {
+    function test_LiquidateLoan_liquidateLoan_reduces_borrower_debt() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 100e18);
@@ -134,14 +134,14 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _liquidateFixedLoan(liquidator, loanId);
+        _liquidateLoan(liquidator, loanId);
 
         Vars memory _after = _state();
 
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt - repayFee, 0);
     }
 
-    function test_LiquidateFixedLoan_liquidateFixedLoan_can_be_called_unprofitably() public {
+    function test_LiquidateLoan_liquidateLoan_can_be_called_unprofitably() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 100e18);
@@ -167,7 +167,7 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         Vars memory _before = _state();
 
-        uint256 liquidatorProfit = _liquidateFixedLoan(liquidator, loanId, 0);
+        uint256 liquidatorProfit = _liquidateLoan(liquidator, loanId, 0);
 
         Vars memory _after = _state();
 
@@ -179,7 +179,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(size.getUserView(bob).collateralAmount, 0);
     }
 
-    function test_LiquidateFixedLoan_liquidateFixedLoan_move_to_VP_if_overdue_and_high_CR_borrows_from_VP() public {
+    function test_LiquidateLoan_liquidateLoan_move_to_VP_if_overdue_and_high_CR_borrows_from_VP() public {
         _setPrice(1e18);
         _deposit(alice, address(usdc), 100e6);
         _deposit(bob, address(weth), 160e18);
@@ -192,8 +192,8 @@ contract LiquidateFixedLoanTest is BaseTest {
         vm.warp(block.timestamp + 12);
 
         Vars memory _before = _state();
-        uint256 loansBefore = size.activeFixedLoans();
-        FixedLoan memory loanBefore = size.getFixedLoan(loanId);
+        uint256 loansBefore = size.activeLoans();
+        Loan memory loanBefore = size.getLoan(loanId);
         assertGt(size.getDebt(loanId), 0);
         uint256 variablePoolWETHBefore = weth.balanceOf(address(size.generalConfig().variablePool));
 
@@ -207,10 +207,10 @@ contract LiquidateFixedLoanTest is BaseTest {
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
-        _liquidateFixedLoan(liquidator, loanId);
+        _liquidateLoan(liquidator, loanId);
 
         Vars memory _after = _state();
-        uint256 loansAfter = size.activeFixedLoans();
+        uint256 loansAfter = size.activeLoans();
         uint256 variablePoolWETHAfter = weth.balanceOf(address(size.generalConfig().variablePool));
 
         assertEq(_after.alice, _before.alice);
@@ -228,7 +228,7 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(_after.bob.debtAmount, 0);
     }
 
-    function test_LiquidateFixedLoan_liquidateFixedLoan_move_to_VP_should_claim_later_with_interest() public {
+    function test_LiquidateLoan_liquidateLoan_move_to_VP_should_claim_later_with_interest() public {
         _setPrice(1e18);
         _deposit(alice, address(usdc), 100e6);
         _deposit(bob, address(weth), 160e18);
@@ -237,9 +237,9 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         vm.warp(block.timestamp + 12);
 
-        FixedLoan memory loan = size.getFixedLoan(loanId);
+        Loan memory loan = size.getLoan(loanId);
 
-        _liquidateFixedLoan(liquidator, loanId);
+        _liquidateLoan(liquidator, loanId);
 
         _deposit(liquidator, address(usdc), 1_000e6);
 
@@ -257,13 +257,11 @@ contract LiquidateFixedLoanTest is BaseTest {
         assertEq(_after.alice.borrowAmount, _interest.alice.borrowAmount + loan.faceValue() * 1.1e27 / 1e27);
     }
 
-    function test_LiquidateFixedLoan_liquidateFixedLoan_move_to_VP_fails_if_VP_does_not_have_enough_liquidity()
-        internal
-    {}
+    function test_LiquidateLoan_liquidateLoan_move_to_VP_fails_if_VP_does_not_have_enough_liquidity() internal {}
 
-    function test_LiquidateFixedLoan_liquidateFixedLoan_charge_repayFee() internal {}
+    function test_LiquidateLoan_liquidateLoan_charge_repayFee() internal {}
 
-    function test_LiquidateFixedLoan_liquidateFixedLoan_with_CR_100_can_be_unprofitable_due_to_repayFee() internal {}
+    function test_LiquidateLoan_liquidateLoan_with_CR_100_can_be_unprofitable_due_to_repayFee() internal {}
 
-    function testFuzz_LiquidateFixedLoan_liquidateFixedLoan_charge_repayFee() internal {}
+    function testFuzz_LiquidateLoan_liquidateLoan_charge_repayFee() internal {}
 }

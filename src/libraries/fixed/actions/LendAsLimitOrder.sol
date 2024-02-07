@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {FixedLoanOffer} from "@src/libraries/fixed/OfferLibrary.sol";
+import {LoanOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -35,7 +35,7 @@ library LendAsLimitOrder {
 
     function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external {
         state._fixed.users[msg.sender].loanOffer =
-            FixedLoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
+            LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
         emit Events.LendAsLimitOrder(params.maxDueDate, params.curveRelativeTime);
     }
 }

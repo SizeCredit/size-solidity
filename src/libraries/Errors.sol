@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 library Errors {
     error USER_IS_LIQUIDATABLE(address account, uint256 cr);
@@ -30,7 +30,7 @@ library Errors {
     error INVALID_LENDER(address account);
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);
-    error INVALID_LOAN_STATUS(uint256 loanId, FixedLoanStatus actual, FixedLoanStatus expected);
+    error INVALID_LOAN_STATUS(uint256 loanId, LoanStatus actual, LoanStatus expected);
 
     error AMOUNT_GREATER_THAN_MAX_AMOUNT(uint256 amount, uint256 maxAmount);
     error AMOUNT_GREATER_THAN_LOAN_CREDIT(uint256 amount, uint256 loanCredit);
@@ -60,8 +60,8 @@ library Errors {
     error INVALID_REPAYMENT_FEE(uint256 repaymentFee, uint256 fv);
 
     error NOT_LIQUIDATABLE(address account);
-    error LOAN_NOT_LIQUIDATABLE(uint256 loanId, uint256 cr, FixedLoanStatus status);
-    error LOAN_NOT_SELF_LIQUIDATABLE(uint256 loanId, uint256 cr, FixedLoanStatus status);
+    error LOAN_NOT_LIQUIDATABLE(uint256 loanId, uint256 cr, LoanStatus status);
+    error LOAN_NOT_SELF_LIQUIDATABLE(uint256 loanId, uint256 cr, LoanStatus status);
     error COLLATERAL_RATIO_BELOW_MINIMUM_COLLATERAL_RATIO(uint256 collateralRatio, uint256 minimumCollateralRatio);
     error COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO(
         address account, uint256 collateralRatio, uint256 riskCollateralRatio

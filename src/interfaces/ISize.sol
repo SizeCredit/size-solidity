@@ -9,12 +9,11 @@ import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
-import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
+import {LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
 
-import {LiquidateFixedLoanWithReplacementParams} from
-    "@src/libraries/fixed/actions/LiquidateFixedLoanWithReplacement.sol";
+import {LiquidateLoanWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {SelfLiquidateFixedLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
+import {SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateLoan.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
@@ -74,15 +73,15 @@ interface ISize {
     ///             liquidate loan, do not split the collateral remainder, charge move transfer fee in collateral from the borrower
     ///     else:
     ///         loan cannot be liquidated
-    function liquidateFixedLoan(LiquidateFixedLoanParams calldata params) external returns (uint256);
+    function liquidateLoan(LiquidateLoanParams calldata params) external returns (uint256);
 
-    function selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams calldata params) external;
+    function selfLiquidateLoan(SelfLiquidateLoanParams calldata params) external;
 
     // What is not possible to do for an overdue which is eligible for liquidation is to apply
     //   the replacement because it only makes sense if there is some deltaT to cover between
     //   the liquidation time and the due date time, so for overdue that would be a negative
     //   time and therefore it does not make sense
-    function liquidateFixedLoanWithReplacement(LiquidateFixedLoanWithReplacementParams calldata params)
+    function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
         external
         returns (uint256, uint256);
 

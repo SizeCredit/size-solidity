@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -28,7 +28,7 @@ struct LendAsMarketOrderParams {
 library LendAsMarketOrder {
     using OfferLibrary for BorrowOffer;
     using AccountingLibrary for State;
-    using FixedLoanLibrary for State;
+    using LoanLibrary for State;
     using VariableLibrary for State;
     using AccountingLibrary for State;
 
@@ -73,7 +73,7 @@ library LendAsMarketOrder {
             issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + rate);
         }
 
-        FixedLoan memory fol = state.createFOL({
+        Loan memory fol = state.createFOL({
             lender: msg.sender,
             borrower: params.borrower,
             issuanceValue: issuanceValue,

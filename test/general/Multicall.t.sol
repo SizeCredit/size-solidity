@@ -11,7 +11,7 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
+import {LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -88,9 +88,8 @@ contract MulticallTest is BaseTest {
         // deposit only the necessary to cover for the loan's faceValue
         data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: faceValue, to: liquidator}));
         // liquidate profitably
-        data[1] = abi.encodeCall(
-            size.liquidateFixedLoan, LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: 1e18})
-        );
+        data[1] =
+            abi.encodeCall(size.liquidateLoan, LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: 1e18}));
         // withdraw everything
         data[2] = abi.encodeCall(
             size.withdraw, WithdrawParams({token: address(weth), amount: type(uint256).max, to: liquidator})

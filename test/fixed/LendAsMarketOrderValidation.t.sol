@@ -4,13 +4,13 @@ pragma solidity 0.8.24;
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract LendAsMarketOrderValidationTest is BaseTest {
-    using OfferLibrary for FixedLoanOffer;
+    using OfferLibrary for LoanOffer;
 
     function test_LendAsMarketOrder_validation() public {
         _setPrice(1e18);

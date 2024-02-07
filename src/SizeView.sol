@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
@@ -11,7 +11,7 @@ import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
-import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {
     InitializeFixedParams,
@@ -29,10 +29,10 @@ struct UserView {
 }
 
 abstract contract SizeView is SizeStorage {
-    using OfferLibrary for FixedLoanOffer;
+    using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
-    using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for State;
+    using LoanLibrary for Loan;
+    using LoanLibrary for State;
     using RiskLibrary for State;
     using VariableLibrary for State;
     using AccountingLibrary for State;
@@ -50,19 +50,19 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getFOLAssignedCollateral(uint256 loanId) external view returns (uint256) {
-        FixedLoan memory loan = state._fixed.loans[loanId];
+        Loan memory loan = state._fixed.loans[loanId];
         return state.getFOLAssignedCollateral(loan);
     }
 
     function getDebt(uint256 loanId) external view returns (uint256) {
-        FixedLoan storage loan = state._fixed.loans[loanId];
-        FixedLoan storage fol = state.getFOL(loan);
+        Loan storage loan = state._fixed.loans[loanId];
+        Loan storage fol = state.getFOL(loan);
         return state.getDebt(fol);
     }
 
     function faceValue(uint256 loanId) external view returns (uint256) {
-        FixedLoan storage loan = state._fixed.loans[loanId];
-        FixedLoan storage fol = state.getFOL(loan);
+        Loan storage loan = state._fixed.loans[loanId];
+        Loan storage fol = state.getFOL(loan);
         return fol.faceValue();
     }
 
@@ -71,7 +71,7 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getDueDate(uint256 loanId) external view returns (uint256) {
-        FixedLoan storage loan = state._fixed.loans[loanId];
+        Loan storage loan = state._fixed.loans[loanId];
         return state.getFOL(loan).fol.dueDate;
     }
 
@@ -121,7 +121,7 @@ abstract contract SizeView is SizeStorage {
         return address(state._fixed.users[user].vault);
     }
 
-    function activeFixedLoans() external view returns (uint256) {
+    function activeLoans() external view returns (uint256) {
         return state._fixed.loans.length;
     }
 
@@ -129,16 +129,16 @@ abstract contract SizeView is SizeStorage {
         return state._fixed.loans[loanId].isFOL();
     }
 
-    function getFixedLoan(uint256 loanId) external view returns (FixedLoan memory) {
+    function getLoan(uint256 loanId) external view returns (Loan memory) {
         return state._fixed.loans[loanId];
     }
 
-    function getFixedLoans() external view returns (FixedLoan[] memory) {
+    function getLoans() external view returns (Loan[] memory) {
         return state._fixed.loans;
     }
 
-    function getFixedLoanStatus(uint256 loanId) external view returns (FixedLoanStatus) {
-        return state.getFixedLoanStatus(state._fixed.loans[loanId]);
+    function getLoanStatus(uint256 loanId) external view returns (LoanStatus) {
+        return state.getLoanStatus(state._fixed.loans[loanId]);
     }
 
     function partialRepayFee(uint256 loanId, uint256 repayAmount) public view returns (uint256) {

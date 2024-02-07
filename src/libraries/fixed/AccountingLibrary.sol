@@ -9,19 +9,17 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
-import {
-    FOL, FixedLoan, FixedLoanLibrary, GenericLoan, RESERVED_ID, SOL
-} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FOL, GenericLoan, Loan, LoanLibrary, RESERVED_ID, SOL} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 library AccountingLibrary {
     using RiskLibrary for State;
-    using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for State;
+    using LoanLibrary for Loan;
+    using LoanLibrary for State;
     using VariableLibrary for State;
 
     function reduceLoanCredit(State storage state, uint256 loanId, uint256 amount) public {
-        FixedLoan storage loan = state._fixed.loans[loanId];
+        Loan storage loan = state._fixed.loans[loanId];
 
         loan.generic.credit -= amount;
 
@@ -39,11 +37,11 @@ library AccountingLibrary {
         return fee;
     }
 
-    function maximumRepayFee(State storage state, FixedLoan memory fol) internal view returns (uint256) {
+    function maximumRepayFee(State storage state, Loan memory fol) internal view returns (uint256) {
         return maximumRepayFee(state, fol.fol.issuanceValue, fol.fol.startDate, fol.fol.dueDate);
     }
 
-    function partialRepayFee(State storage state, FixedLoan memory fol, uint256 repayAmount)
+    function partialRepayFee(State storage state, Loan memory fol, uint256 repayAmount)
         internal
         view
         returns (uint256)
@@ -52,7 +50,7 @@ library AccountingLibrary {
         return Math.mulDivUp(repayAmount, maximumRepayFee(state, fol), fol.faceValue());
     }
 
-    function chargeRepayFee(State storage state, FixedLoan storage fol, uint256 repayAmount) internal {
+    function chargeRepayFee(State storage state, Loan storage fol, uint256 repayAmount) internal {
         uint256 repayFee = partialRepayFee(state, fol, repayAmount);
 
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.underlyingBorrowToken.decimals());
@@ -79,8 +77,8 @@ library AccountingLibrary {
         uint256 issuanceValue,
         uint256 rate,
         uint256 dueDate
-    ) public returns (FixedLoan memory fol) {
-        fol = FixedLoan({
+    ) public returns (Loan memory fol) {
+        fol = Loan({
             generic: GenericLoan({lender: lender, borrower: borrower, credit: 0}),
             fol: FOL({
                 issuanceValue: issuanceValue,
@@ -103,11 +101,11 @@ library AccountingLibrary {
     // solhint-disable-next-line var-name-mixedcase
     function createSOL(State storage state, uint256 exiterId, address lender, address borrower, uint256 credit)
         public
-        returns (FixedLoan memory sol)
+        returns (Loan memory sol)
     {
         uint256 folId = state.getFOLId(exiterId);
 
-        sol = FixedLoan({
+        sol = Loan({
             generic: GenericLoan({lender: lender, borrower: borrower, credit: credit}),
             fol: FOL({issuanceValue: 0, rate: 0, startDate: 0, dueDate: 0, liquidityIndexAtRepayment: 0}),
             sol: SOL({folId: folId})

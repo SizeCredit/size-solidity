@@ -5,46 +5,46 @@ import {Math} from "@src/libraries/Math.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {LiquidateFixedLoan, LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
+import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-struct LiquidateFixedLoanWithReplacementParams {
+struct LiquidateLoanWithReplacementParams {
     uint256 loanId;
     address borrower;
     uint256 minimumCollateralRatio;
 }
 
-library LiquidateFixedLoanWithReplacement {
-    using FixedLoanLibrary for FixedLoan;
+library LiquidateLoanWithReplacement {
+    using LoanLibrary for Loan;
     using OfferLibrary for BorrowOffer;
     using VariableLibrary for State;
-    using FixedLoanLibrary for State;
-    using LiquidateFixedLoan for State;
+    using LoanLibrary for State;
+    using LiquidateLoan for State;
 
-    function validateLiquidateFixedLoanWithReplacement(
+    function validateLiquidateLoanWithReplacement(
         State storage state,
-        LiquidateFixedLoanWithReplacementParams calldata params
+        LiquidateLoanWithReplacementParams calldata params
     ) external view {
-        FixedLoan storage loan = state._fixed.loans[params.loanId];
+        Loan storage loan = state._fixed.loans[params.loanId];
         BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
-        // validate liquidateFixedLoan
-        state.validateLiquidateFixedLoan(
-            LiquidateFixedLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
+        // validate liquidateLoan
+        state.validateLiquidateLoan(
+            LiquidateLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
         );
 
         // validate loanId
-        if (state.getFixedLoanStatus(loan) != FixedLoanStatus.ACTIVE) {
-            revert Errors.INVALID_LOAN_STATUS(params.loanId, state.getFixedLoanStatus(loan), FixedLoanStatus.ACTIVE);
+        if (state.getLoanStatus(loan) != LoanStatus.ACTIVE) {
+            revert Errors.INVALID_LOAN_STATUS(params.loanId, state.getLoanStatus(loan), LoanStatus.ACTIVE);
         }
 
         // validate borrower
@@ -53,18 +53,18 @@ library LiquidateFixedLoanWithReplacement {
         }
     }
 
-    function executeLiquidateFixedLoanWithReplacement(
+    function executeLiquidateLoanWithReplacement(
         State storage state,
-        LiquidateFixedLoanWithReplacementParams calldata params
+        LiquidateLoanWithReplacementParams calldata params
     ) external returns (uint256, uint256) {
-        emit Events.LiquidateFixedLoanWithReplacement(params.loanId, params.borrower, params.minimumCollateralRatio);
+        emit Events.LiquidateLoanWithReplacement(params.loanId, params.borrower, params.minimumCollateralRatio);
 
-        FixedLoan storage fol = state._fixed.loans[params.loanId];
-        FixedLoan memory folCopy = fol;
+        Loan storage fol = state._fixed.loans[params.loanId];
+        Loan memory folCopy = fol;
         BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
-        uint256 liquidatorProfitCollateralAsset = state.executeLiquidateFixedLoan(
-            LiquidateFixedLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
+        uint256 liquidatorProfitCollateralAsset = state.executeLiquidateLoan(
+            LiquidateLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
         );
 
         uint256 rate =

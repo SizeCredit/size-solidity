@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
@@ -25,14 +25,14 @@ struct BorrowerExitParams {
 
 library BorrowerExit {
     using OfferLibrary for BorrowOffer;
-    using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for State;
+    using LoanLibrary for Loan;
+    using LoanLibrary for State;
     using VariableLibrary for State;
     using AccountingLibrary for State;
 
     function validateBorrowerExit(State storage state, BorrowerExitParams calldata params) external view {
         BorrowOffer memory borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
-        FixedLoan memory fol = state._fixed.loans[params.loanId];
+        Loan memory fol = state._fixed.loans[params.loanId];
         uint256 dueDate = fol.fol.dueDate;
 
         uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
@@ -61,7 +61,7 @@ library BorrowerExit {
         emit Events.BorrowerExit(params.loanId, params.borrowerToExitTo);
 
         BorrowOffer storage borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
-        FixedLoan storage fol = state._fixed.loans[params.loanId];
+        Loan storage fol = state._fixed.loans[params.loanId];
 
         uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), fol.fol.dueDate);
         uint256 debt = state.getDebt(fol);

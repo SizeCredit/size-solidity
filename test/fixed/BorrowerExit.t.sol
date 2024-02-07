@@ -5,7 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 
 contract BorrowerExitTest is BaseTest {
@@ -22,13 +22,13 @@ contract BorrowerExitTest is BaseTest {
 
         Vars memory _before = _state();
 
-        FixedLoan memory loanBefore = size.getFixedLoan(loanId);
-        uint256 loansBefore = size.activeFixedLoans();
+        Loan memory loanBefore = size.getLoan(loanId);
+        uint256 loansBefore = size.activeLoans();
 
         _borrowerExit(bob, loanId, candy);
 
-        FixedLoan memory loanAfter = size.getFixedLoan(loanId);
-        uint256 loansAfter = size.activeFixedLoans();
+        Loan memory loanAfter = size.getLoan(loanId);
+        uint256 loansAfter = size.activeLoans();
 
         Vars memory _after = _state();
 
@@ -61,13 +61,13 @@ contract BorrowerExitTest is BaseTest {
 
         address borrowerToExitTo = bob;
 
-        FixedLoan memory loanBefore = size.getFixedLoan(loanId);
-        uint256 loansBefore = size.activeFixedLoans();
+        Loan memory loanBefore = size.getLoan(loanId);
+        uint256 loansBefore = size.activeLoans();
 
         _borrowerExit(bob, loanId, borrowerToExitTo);
 
-        FixedLoan memory loanAfter = size.getFixedLoan(loanId);
-        uint256 loansAfter = size.activeFixedLoans();
+        Loan memory loanAfter = size.getLoan(loanId);
+        uint256 loansAfter = size.activeLoans();
 
         Vars memory _after = _state();
 

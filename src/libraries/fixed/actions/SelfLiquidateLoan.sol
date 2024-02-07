@@ -6,8 +6,8 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
+import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -16,23 +16,20 @@ import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-struct SelfLiquidateFixedLoanParams {
+struct SelfLiquidateLoanParams {
     uint256 loanId;
 }
 
-library SelfLiquidateFixedLoan {
-    using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for State;
+library SelfLiquidateLoan {
+    using LoanLibrary for Loan;
+    using LoanLibrary for State;
     using VariableLibrary for State;
     using AccountingLibrary for State;
     using RiskLibrary for State;
 
-    function validateSelfLiquidateFixedLoan(State storage state, SelfLiquidateFixedLoanParams calldata params)
-        external
-        view
-    {
-        FixedLoan storage loan = state._fixed.loans[params.loanId];
-        FixedLoan storage fol = state.getFOL(loan);
+    function validateSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params) external view {
+        Loan storage loan = state._fixed.loans[params.loanId];
+        Loan storage fol = state.getFOL(loan);
 
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
         uint256 debtWad =
@@ -48,7 +45,7 @@ library SelfLiquidateFixedLoan {
         // validate loanId
         if (!state.isLoanSelfLiquidatable(params.loanId)) {
             revert Errors.LOAN_NOT_SELF_LIQUIDATABLE(
-                params.loanId, state.collateralRatio(loan.generic.borrower), state.getFixedLoanStatus(loan)
+                params.loanId, state.collateralRatio(loan.generic.borrower), state.getLoanStatus(loan)
             );
         }
         if (!(assignedCollateral < debtCollateral)) {
@@ -56,13 +53,11 @@ library SelfLiquidateFixedLoan {
         }
     }
 
-    function executeSelfLiquidateFixedLoan(State storage state, SelfLiquidateFixedLoanParams calldata params)
-        external
-    {
-        emit Events.SelfLiquidateFixedLoan(params.loanId);
+    function executeSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params) external {
+        emit Events.SelfLiquidateLoan(params.loanId);
 
-        FixedLoan storage loan = state._fixed.loans[params.loanId];
-        FixedLoan storage fol = state.getFOL(loan);
+        Loan storage loan = state._fixed.loans[params.loanId];
+        Loan storage fol = state.getFOL(loan);
 
         uint256 credit = loan.generic.credit;
 

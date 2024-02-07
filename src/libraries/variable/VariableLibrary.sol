@@ -12,7 +12,7 @@ import {State} from "@src/SizeStorage.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Vault} from "@src/proxy/Vault.sol";
 
@@ -20,8 +20,8 @@ import {Vault} from "@src/proxy/Vault.sol";
 library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
     using CollateralLibrary for State;
-    using FixedLoanLibrary for State;
-    using FixedLoanLibrary for FixedLoan;
+    using LoanLibrary for State;
+    using LoanLibrary for Loan;
 
     function getVault(State storage state, address user) public returns (Vault) {
         if (address(state._fixed.users[user].vault) != address(0)) {
@@ -125,7 +125,7 @@ library VariableLibrary {
         return state._general.variablePool.getReserveNormalizedIncome(address(state._general.underlyingBorrowToken));
     }
 
-    function moveFixedLoanToVariablePool(State storage state, FixedLoan memory folCopy)
+    function moveLoanToVariablePool(State storage state, Loan memory folCopy)
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
