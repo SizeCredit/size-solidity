@@ -14,7 +14,7 @@ struct UpdateConfigParams {
 library UpdateConfig {
     using Initialize for State;
 
-    function validateUpdateConfig(State storage, UpdateConfigParams memory params) external pure {
+    function validateUpdateConfig(State storage, UpdateConfigParams memory) external pure {
         // validation is done at execution
     }
 

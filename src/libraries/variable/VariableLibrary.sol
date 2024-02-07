@@ -16,7 +16,6 @@ import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Vault} from "@src/proxy/Vault.sol";
 
-// TODO: this library can be optimized to avoid unnecessary approvals when transferring tokens from Size to Size
 library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
     using CollateralLibrary for State;
