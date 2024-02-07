@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -36,13 +36,13 @@ contract BorrowerExitTest is BaseTest {
         assertLt(_after.bob.borrowAmount, _before.bob.borrowAmount);
         assertGt(_after.candy.debtAmount, _before.candy.debtAmount);
         assertLt(_after.bob.debtAmount, _before.bob.debtAmount);
-        assertEq(loanAfter.faceValueExited, loanBefore.faceValueExited);
+        assertEq(loanAfter.generic.credit, loanBefore.generic.credit);
         assertEq(
             _after.feeRecipient.borrowAmount,
             _before.feeRecipient.borrowAmount + size.fixedConfig().earlyBorrowerExitFee
         );
-        assertEq(loanBefore.borrower, bob);
-        assertEq(loanAfter.borrower, candy);
+        assertEq(loanBefore.generic.borrower, bob);
+        assertEq(loanAfter.generic.borrower, candy);
         assertEq(_before.alice, _after.alice);
         assertEq(loansAfter, loansBefore);
     }
@@ -71,12 +71,12 @@ contract BorrowerExitTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(loanAfter.faceValueExited, loanBefore.faceValueExited);
+        assertEq(loanAfter.generic.credit, loanBefore.generic.credit);
+        assertEq(_before.alice, _after.alice);
         assertEq(
             _after.feeRecipient.borrowAmount,
             _before.feeRecipient.borrowAmount + size.fixedConfig().earlyBorrowerExitFee
         );
-        assertEq(_after.alice, _before.alice);
         assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount);
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - size.fixedConfig().earlyBorrowerExitFee);
@@ -85,6 +85,7 @@ contract BorrowerExitTest is BaseTest {
 
     function test_BorrowerExit_borrowerExit_cannot_leave_borrower_liquidatable() public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
         _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyBorrowerExitFee);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
 
@@ -51,15 +51,17 @@ abstract contract Deploy {
         f = InitializeFixedParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            collateralPremiumToLiquidator: 0.3e18,
-            collateralPremiumToProtocol: 0.1e18,
+            collateralSplitLiquidatorPercent: 0.3e18,
+            collateralSplitProtocolPercent: 0.1e18,
             minimumCreditBorrowAsset: 5e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
+            repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
             earlyBorrowerExitFee: 1e6
         });
+
         v = InitializeVariableParams({collateralOverdueTransferFee: 0.1e18});
         proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (g, f, v)));
         size = Size(address(proxy));
@@ -86,12 +88,13 @@ abstract contract Deploy {
         f = InitializeFixedParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            collateralPremiumToLiquidator: 0.3e18,
-            collateralPremiumToProtocol: 0.1e18,
+            collateralSplitLiquidatorPercent: 0.3e18,
+            collateralSplitProtocolPercent: 0.1e18,
             minimumCreditBorrowAsset: 5e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
+            repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
             earlyBorrowerExitFee: 1e6
         });
@@ -117,12 +120,13 @@ abstract contract Deploy {
         f = InitializeFixedParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            collateralPremiumToLiquidator: 0.3e18,
-            collateralPremiumToProtocol: 0.1e18,
+            collateralSplitLiquidatorPercent: 0.3e18,
+            collateralSplitProtocolPercent: 0.1e18,
             minimumCreditBorrowAsset: 5e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
+            repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
             earlyBorrowerExitFee: 1e6
         });

@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
-
-import {console2 as console} from "forge-std/console2.sol";
+pragma solidity 0.8.24;
 
 import {BeforeAfter} from "./BeforeAfter.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 
 import {UserView} from "@src/SizeView.sol";
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
-    string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender in wad";
+    using FixedLoanLibrary for FixedLoan;
 
-    string internal constant WITHDRAW_01 = "WITHDRAW_01: Withdraw deducts from the sender in wad";
+    string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender";
+
+    string internal constant WITHDRAW_01 = "WITHDRAW_01: Withdraw deducts from the sender";
 
     string internal constant BORROW_01 = "BORROW_01: Borrow increases the borrower cash";
     string internal constant BORROW_02 = "BORROW_02: Borrow increases the number of loans";
@@ -37,13 +37,12 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant REPAY_01 = "REPAY_01: Repay transfers cash from the sender to the protocol";
     string internal constant REPAY_02 = "REPAY_02: Repay decreases the sender debt";
 
-    string internal constant LOAN_01 = "LOAN_01: loan.faceValue <= FOL(loan).faceValue";
-    string internal constant LOAN_02 = "LOAN_02: SUM(loan.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
-    string internal constant LOAN_03 = "LOAN_03: loan.faceValueExited <= loan.faceValue";
-    string internal constant LOAN_04 = "LOAN_04: loan.repaid => !loan.isFOL()";
-    string internal constant LOAN_05 = "LOAN_05: loan.credit >= minimumCreditBorrowAsset";
-    string internal constant LOAN_06 = "LOAN_06: SUM(SOL(loanId).faceValue) == FOL(loanId).faceValue";
-    string internal constant LOAN_07 = "LOAN_07: FOL.faceValueExited = SUM(SOL.getCredit)";
+    string internal constant LOAN_01 = "LOAN_01: loan.faceValue() <= FOL(loan).faceValue";
+    string internal constant LOAN_02 =
+        "LOAN_02: SUM(loan.generic.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
+    string internal constant LOAN_05 = "LOAN_05: loan.generic.credit >= minimumCreditBorrowAsset";
+    string internal constant LOAN_06 = "LOAN_06: SUM(SOL(loanId).faceValue()) == FOL(loanId).faceValue";
+    string internal constant LOAN_07 = "LOAN_07: FOL.credit = SUM(SOL.credit)";
 
     string internal constant TOKENS_01 = "TOKENS_01: The sum of all tokens is constant";
 
@@ -56,37 +55,28 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         uint256[] memory folCreditsSumByFolId = new uint256[](activeFixedLoans);
         uint256[] memory solCreditsSumByFolId = new uint256[](activeFixedLoans);
         uint256[] memory folFaceValueByFolId = new uint256[](activeFixedLoans);
-        uint256[] memory folFaceValueExitedByFolId = new uint256[](activeFixedLoans);
+        uint256[] memory folCreditByFolId = new uint256[](activeFixedLoans);
         uint256[] memory folFaceValuesSumByFolId = new uint256[](activeFixedLoans);
         for (uint256 loanId; loanId < activeFixedLoans; loanId++) {
             FixedLoan memory loan = size.getFixedLoan(loanId);
-            uint256 folId = loanId == RESERVED_ID ? loan.folId : loanId;
+            uint256 folId = loanId == RESERVED_ID ? loan.sol.folId : loanId;
             FixedLoan memory fol = size.getFixedLoan(folId);
 
             folCreditsSumByFolId[folId] += size.getCredit(folId);
             solCreditsSumByFolId[folId] =
                 solCreditsSumByFolId[folId] == type(uint256).max ? solCreditsSumByFolId[folId] : type(uint256).max; // set to -1 by default
-            folFaceValueByFolId[folId] = fol.faceValue;
-            folFaceValueExitedByFolId[folId] = fol.faceValueExited;
-            folFaceValuesSumByFolId[folId] += fol.faceValue;
+            folFaceValueByFolId[folId] = fol.faceValue();
+            folCreditByFolId[folId] = fol.generic.credit;
+            folFaceValuesSumByFolId[folId] += fol.faceValue();
 
             if (!size.isFOL(loanId)) {
-                if (loan.repaid) {
-                    t(false, LOAN_04);
-                    return false;
-                }
                 solCreditsSumByFolId[folId] =
                     solCreditsSumByFolId[folId] == type(uint256).max ? 0 : solCreditsSumByFolId[folId]; // set to 0 if is -1
                 solCreditsSumByFolId[folId] += size.getCredit(loanId);
-                if (!(loan.faceValue <= fol.faceValue)) {
+                if (!(loan.faceValue() <= fol.faceValue())) {
                     t(false, LOAN_01);
                     return false;
                 }
-            }
-
-            if (!(loan.faceValueExited <= loan.faceValue)) {
-                t(false, LOAN_03);
-                return false;
             }
 
             if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCreditBorrowAsset) {
@@ -101,7 +91,6 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                     solCreditsSumByFolId[loanId] != type(uint256).max
                         && solCreditsSumByFolId[loanId] != folFaceValueByFolId[loanId]
                 ) {
-                    console.log("xxx", solCreditsSumByFolId[loanId], folFaceValueByFolId[loanId]);
                     t(false, LOAN_02);
                     return false;
                 }
@@ -111,7 +100,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 }
                 if (
                     solCreditsSumByFolId[loanId] != type(uint256).max
-                        && solCreditsSumByFolId[loanId] != folFaceValueExitedByFolId[loanId]
+                        && solCreditsSumByFolId[loanId] != folCreditByFolId[loanId]
                 ) {
                     t(false, LOAN_07);
                     return false;

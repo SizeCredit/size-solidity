@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 contract SelfLiquidateFixedLoanTest is BaseTest {
+    using FixedLoanLibrary for FixedLoan;
+
     function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_rapays_with_collateral() public {
         _setPrice(1e18);
-
+        _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
@@ -42,6 +45,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
 
     function test_SelfLiquidateFixedLoan_selfliquidateFixedLoan_SOL_keeps_accounting_in_check() public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
 
         _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
@@ -87,7 +91,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 150e18);
+        _deposit(bob, weth, 160e18);
         _deposit(liquidator, usdc, 10_000e6);
         _lendAsLimitOrder(alice, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
@@ -113,20 +117,22 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
+        uint256 repayFee = size.maximumRepayFee(loanId);
         _borrowAsMarketOrder(alice, candy, 5e6, 12, [loanId]);
         _borrowAsMarketOrder(alice, james, 80e6, 12);
         _borrowAsMarketOrder(bob, james, 40e6, 12);
 
         _setPrice(0.25e18);
 
-        assertEq(size.getFixedLoan(loanId).faceValue, 50e6);
-        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e6);
+        assertEq(size.getFixedLoan(loanId).faceValue(), 50e6);
+        assertEq(size.getDebt(loanId), 50e6 + repayFee);
+        assertEq(size.getCredit(loanId), 50e6 - 5e6);
         assertEq(size.getCredit(loanId), 45e6);
 
         _selfLiquidateFixedLoan(alice, loanId);
 
-        assertEq(size.getFixedLoan(loanId).faceValue, 5e6);
-        assertEq(size.getFixedLoan(loanId).faceValueExited, 5e6);
+        assertEq(size.getDebt(loanId), 5e6 + repayFee);
+        assertEq(size.getCredit(loanId), 0);
         assertEq(size.getCredit(loanId), 0);
     }
 

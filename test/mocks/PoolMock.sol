@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {IAaveIncentivesController} from "@aave/interfaces/IAaveIncentivesController.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
@@ -52,7 +52,6 @@ contract PoolMock is Ownable {
             );
             reserveIndexes.set(asset, WadRayMath.RAY);
         } else {
-            // TODO: simulate interest
             // index = index * RATE / WadRayMath.RAY;
             // reserveIndexes.set(asset, index);
         }

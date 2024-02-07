@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {Test} from "forge-std/Test.sol";
 
@@ -196,12 +196,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _repay(address user, uint256 loanId) internal {
-        return _repay(user, loanId, type(uint256).max);
-    }
-
-    function _repay(address user, uint256 loanId, uint256 amount) internal {
         vm.prank(user);
-        size.repay(RepayParams({loanId: loanId, amount: amount}));
+        size.repay(RepayParams({loanId: loanId}));
     }
 
     function _claim(address user, uint256 loanId) internal {

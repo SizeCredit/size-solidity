@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {Helper} from "./Helper.sol";
 import {Properties} from "./Properties.sol";
@@ -213,7 +213,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function repay(uint256 loanId, uint256 amount) public getSender {
+    function repay(uint256 loanId) public getSender {
         __before(loanId);
 
         precondition(_before.activeFixedLoans > 0);
@@ -221,7 +221,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         loanId = between(loanId, 0, _before.activeFixedLoans - 1);
 
         hevm.prank(sender);
-        size.repay(RepayParams({loanId: loanId, amount: amount}));
+        size.repay(RepayParams({loanId: loanId}));
 
         __after(loanId);
 

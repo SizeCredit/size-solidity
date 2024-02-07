@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
+
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
@@ -115,6 +117,9 @@ contract ClaimTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
+        uint256 repayFee = size.maximumRepayFee(100e6, block.timestamp, block.timestamp + 12);
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
+        uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
@@ -131,13 +136,15 @@ contract ClaimTest is BaseTest {
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e6);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e6);
+        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - repayFeeCollateral);
+        assertEq(_after.feeRecipient.collateralAmount, _before.feeRecipient.collateralAmount + repayFeeCollateral);
     }
 
     function test_Claim_claim_of_liquidated_loan_retrieves_borrow_amount() public {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 300e18);
+        _deposit(bob, weth, 320e18);
         _deposit(liquidator, usdc, 10000e6);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
@@ -158,7 +165,7 @@ contract ClaimTest is BaseTest {
     function test_Claim_claim_at_different_times_may_have_different_interest() public {
         _setPrice(1e18);
 
-        _deposit(alice, weth, 150e18);
+        _deposit(alice, weth, 160e18);
         _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
         _deposit(candy, usdc, 10e6);
         _deposit(liquidator, usdc, 1000e6);

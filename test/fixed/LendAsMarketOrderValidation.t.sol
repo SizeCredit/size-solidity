@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -32,7 +32,6 @@ contract LendAsMarketOrderValidationTest is BaseTest {
             LendAsMarketOrderParams({borrower: alice, dueDate: dueDate, amount: 100e6, exactAmountIn: false})
         );
 
-        // @audit-info LAMO-01
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp - 1));
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: alice, dueDate: block.timestamp - 1, amount: 100e6, exactAmountIn: false})

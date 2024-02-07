@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -24,7 +24,7 @@ contract ClaimValidationTest is BaseTest {
         size.claim(ClaimParams({loanId: loanId}));
 
         vm.startPrank(bob);
-        size.repay(RepayParams({loanId: loanId, amount: type(uint256).max}));
+        size.repay(RepayParams({loanId: loanId}));
         size.claim(ClaimParams({loanId: loanId}));
     }
 }

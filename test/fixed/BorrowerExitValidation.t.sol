@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -10,6 +10,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract BorrowerExitValidationTest is BaseTest {
     function test_BorrowerExit_validation() public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
@@ -36,7 +37,7 @@ contract BorrowerExitValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(james);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_EXITED.selector, solId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 0));
         size.borrowerExit(BorrowerExitParams({loanId: solId, borrowerToExitTo: borrowerToExitTo}));
 
         vm.startPrank(bob);
@@ -49,7 +50,6 @@ contract BorrowerExitValidationTest is BaseTest {
 
         vm.startPrank(bob);
 
-        // @audit-info BE-01
         vm.warp(block.timestamp + 12);
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 12));
         size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));

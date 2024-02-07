@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
-import {Initialize, InitializeFixedParams} from "@src/libraries/general/actions/Initialize.sol";
-import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {Initialize} from "@src/libraries/general/actions/Initialize.sol";
 
 struct UpdateConfigParams {
     bytes32 key;
@@ -29,6 +28,8 @@ library UpdateConfig {
             state._fixed.borrowATokenCap = params.value;
         } else if (params.key == "debtTokenCap") {
             state._fixed.debtTokenCap = params.value;
+        } else if (params.key == "repayFeeAPR") {
+            state._fixed.repayFeeAPR = params.value;
         } else {
             revert Errors.INVALID_KEY(params.key);
         }

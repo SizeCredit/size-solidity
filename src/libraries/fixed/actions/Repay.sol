@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Math} from "@src/libraries/Math.sol";
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
@@ -14,50 +13,44 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct RepayParams {
     uint256 loanId;
-    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC)
 }
 
 library Repay {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
+    using AccountingLibrary for State;
+    using AccountingLibrary for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         // validate msg.sender
-        if (msg.sender != loan.borrower) {
-            revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.borrower);
+        if (msg.sender != loan.generic.borrower) {
+            revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.generic.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.faceValue);
+        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue()) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.faceValue());
         }
 
         // validate loanId
+        if (!loan.isFOL()) {
+            revert Errors.ONLY_FOL_CAN_BE_REPAID(params.loanId);
+        }
         if (state.either(loan, [FixedLoanStatus.REPAID, FixedLoanStatus.CLAIMED])) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanId);
-        }
-
-        // validate amount
-        if (params.amount == 0) {
-            revert Errors.NULL_AMOUNT();
         }
     }
 
     function executeRepay(State storage state, RepayParams calldata params) external {
-        FixedLoan storage loan = state._fixed.loans[params.loanId];
-        uint256 repayAmount = Math.min(loan.faceValue, params.amount);
+        FixedLoan storage fol = state._fixed.loans[params.loanId];
+        uint256 faceValue = fol.faceValue();
 
-        if (repayAmount == loan.faceValue && loan.isFOL()) {
-            state.transferBorrowAToken(msg.sender, address(this), repayAmount);
-            state._fixed.debtToken.burn(msg.sender, repayAmount);
-            loan.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
-            loan.repaid = true;
-        } else {
-            state.transferBorrowAToken(msg.sender, loan.lender, repayAmount);
-            state.reduceDebt(params.loanId, repayAmount);
-        }
+        state.transferBorrowAToken(msg.sender, address(this), faceValue);
+        state.chargeRepayFee(fol, faceValue);
+        state._fixed.debtToken.burn(fol.generic.borrower, faceValue);
+        fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 
-        emit Events.Repay(params.loanId, repayAmount);
+        emit Events.Repay(params.loanId);
     }
 }

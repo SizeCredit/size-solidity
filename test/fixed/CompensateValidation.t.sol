@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -24,6 +24,7 @@ contract CompensateValidationTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
         uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, 12);
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
+        uint256 solId = _borrowAsMarketOrder(bob, alice, 10e6, 12, [loanId2]);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.COMPENSATOR_IS_NOT_BORROWER.selector, bob, alice));
@@ -67,6 +68,13 @@ contract CompensateValidationTest is BaseTest {
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_NOT_COMPATIBLE.selector, l2, l1));
         size.compensate(CompensateParams({loanToRepayId: l2, loanToCompensateId: l1, amount: type(uint256).max}));
+        vm.stopPrank();
+
+        vm.startPrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_COMPENSATED.selector, solId));
+        size.compensate(
+            CompensateParams({loanToRepayId: solId, loanToCompensateId: loanId3, amount: type(uint256).max})
+        );
         vm.stopPrank();
     }
 }

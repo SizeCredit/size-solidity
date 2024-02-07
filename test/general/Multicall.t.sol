@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
@@ -65,22 +66,27 @@ contract MulticallTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        uint256 faceValue = size.faceValue(loanId);
+        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
+        uint256 debt = faceValue + repayFee;
 
         _setPrice(0.2e18);
 
+        uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+
         assertTrue(size.isLoanLiquidatable(loanId));
 
-        _mint(address(usdc), liquidator, debt);
-        _approve(liquidator, address(usdc), address(size), debt);
+        _mint(address(usdc), liquidator, faceValue);
+        _approve(liquidator, address(usdc), address(size), faceValue);
 
         Vars memory _before = _state();
         uint256 beforeLiquidatorUSDC = usdc.balanceOf(liquidator);
         uint256 beforeLiquidatorWETH = weth.balanceOf(liquidator);
 
         bytes[] memory data = new bytes[](4);
-        // deposit only the necessary to cover for the borrower's debt
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: debt, to: liquidator}));
+        // deposit only the necessary to cover for the loan's faceValue
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: faceValue, to: liquidator}));
         // liquidate profitably
         data[1] = abi.encodeCall(
             size.liquidateFixedLoan, LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: 1e18})
@@ -102,9 +108,14 @@ contract MulticallTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt, 0);
         assertEq(_after.liquidator.borrowAmount, _before.liquidator.borrowAmount, 0);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount, 0);
+        assertGt(
+            _after.feeRecipient.collateralAmount,
+            _before.feeRecipient.collateralAmount + repayFeeCollateral,
+            "feeRecipient has repayFee and liquidation split"
+        );
         assertEq(beforeLiquidatorWETH, 0);
         assertGt(afterLiquidatorWETH, beforeLiquidatorWETH);
-        assertEq(beforeLiquidatorUSDC, debt);
+        assertEq(beforeLiquidatorUSDC, faceValue);
         assertEq(afterLiquidatorUSDC, 0);
     }
 }

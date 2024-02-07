@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
@@ -12,8 +12,7 @@ import {State} from "@src/SizeStorage.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 
-import {FixedLibrary} from "@src/libraries/fixed/FixedLibrary.sol";
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
 import {Vault} from "@src/proxy/Vault.sol";
 
@@ -21,7 +20,8 @@ import {Vault} from "@src/proxy/Vault.sol";
 library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
     using CollateralLibrary for State;
-    using FixedLibrary for State;
+    using FixedLoanLibrary for State;
+    using FixedLoanLibrary for FixedLoan;
 
     function getVault(State storage state, address user) public returns (Vault) {
         if (address(state._fixed.users[user].vault) != address(0)) {
@@ -124,17 +124,23 @@ library VariableLibrary {
         return state._general.variablePool.getReserveNormalizedIncome(address(state._general.borrowAsset));
     }
 
-    function moveFixedLoanToVariablePool(State storage state, FixedLoan storage loan)
+    function moveFixedLoanToVariablePool(State storage state, FixedLoan memory folCopy)
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
-        liquidatorProfitCollateralToken = state._variable.collateralOverdueTransferFee;
-        // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
-        uint256 assignedCollateral = state.getFOLAssignedCollateral(loan);
+        uint256 assignedCollateral = state.getFOLAssignedCollateral(folCopy);
 
-        state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
+        liquidatorProfitCollateralToken = state._variable.collateralOverdueTransferFee;
+        state._fixed.collateralToken.transferFrom(folCopy.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
+
+        // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
+
         _borrowFromVariablePool(
-            state, loan.borrower, address(this), assignedCollateral - liquidatorProfitCollateralToken, loan.faceValue
+            state,
+            folCopy.generic.borrower,
+            address(this),
+            assignedCollateral - liquidatorProfitCollateralToken,
+            folCopy.faceValue()
         );
     }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {Test} from "forge-std/Test.sol";
 
@@ -58,22 +58,22 @@ contract InitializeValidationTest is Test, BaseTest {
         f.crLiquidation = 1.3e18;
         f.crOpening = 1.5e18;
 
-        f.collateralPremiumToLiquidator = 1.1e18;
+        f.collateralSplitLiquidatorPercent = 1.1e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        f.collateralPremiumToLiquidator = 0.3e18;
+        f.collateralSplitLiquidatorPercent = 0.3e18;
 
-        f.collateralPremiumToProtocol = 1.2e18;
+        f.collateralSplitProtocolPercent = 1.2e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        f.collateralPremiumToProtocol = 0.1e18;
+        f.collateralSplitProtocolPercent = 0.1e18;
 
-        f.collateralPremiumToLiquidator = 0.6e18;
-        f.collateralPremiumToProtocol = 0.6e18;
+        f.collateralSplitLiquidatorPercent = 0.6e18;
+        f.collateralSplitProtocolPercent = 0.6e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        f.collateralPremiumToLiquidator = 0.3e18;
-        f.collateralPremiumToProtocol = 0.1e18;
+        f.collateralSplitLiquidatorPercent = 0.3e18;
+        f.collateralSplitProtocolPercent = 0.1e18;
 
         f.minimumCreditBorrowAsset = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));

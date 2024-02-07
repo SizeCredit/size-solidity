@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.20;
+pragma solidity 0.8.24;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {DebtToken} from "@src/token/DebtToken.sol";
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {UserView} from "@src/SizeView.sol";
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
@@ -88,6 +87,7 @@ contract WithdrawTest is BaseTest {
 
     function test_Withdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _lendAsLimitOrder(alice, 12, 0, 12);
@@ -163,25 +163,26 @@ contract WithdrawTest is BaseTest {
         _lendAsLimitOrder(alice, 12, rate, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
+        uint256 faceValue = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
 
         _setPrice(0.125e18);
 
         _liquidateFixedLoan(liquidator, loanId);
         _withdraw(liquidator, usdc, type(uint256).max);
 
-        assertEq(usdc.balanceOf(liquidator), liquidatorAmount - debt);
+        assertEq(usdc.balanceOf(liquidator), liquidatorAmount - faceValue);
         assertEq(_state().variablePool.borrowAmount, 0);
+        assertGt(_state().feeRecipient.collateralAmount, 0);
     }
 
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_self_borrow() public {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
-        _deposit(alice, weth, 150e18);
+        _deposit(alice, weth, 160e18);
         _borrowAsLimitOrder(alice, 1e18, 12);
         _lendAsMarketOrder(alice, alice, 100e6, 12);
         _withdraw(alice, usdc, 10e6);
-        (, IAToken borrowAToken, DebtToken debtToken) = size.tokens();
+        (, IAToken borrowAToken, NonTransferrableToken debtToken) = size.tokens();
         assertLt(borrowAToken.totalSupply(), debtToken.totalSupply());
     }
 
@@ -189,11 +190,11 @@ contract WithdrawTest is BaseTest {
     ) public {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 150e18);
+        _deposit(bob, weth, 160e18);
         _borrowAsLimitOrder(bob, 1e18, 12);
         _lendAsMarketOrder(alice, bob, 100e6, 12);
         _withdraw(bob, usdc, 10e6);
-        (, IAToken borrowAToken, DebtToken debtToken) = size.tokens();
+        (, IAToken borrowAToken, NonTransferrableToken debtToken) = size.tokens();
         assertLt(borrowAToken.totalSupply(), debtToken.totalSupply());
     }
 }
