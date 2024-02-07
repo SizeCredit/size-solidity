@@ -3,7 +3,6 @@ pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Math} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
@@ -15,7 +14,6 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct RepayParams {
     uint256 loanId;
-    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC)
 }
 
 library Repay {
@@ -23,44 +21,37 @@ library Repay {
     using FixedLoanLibrary for FixedLoan;
     using FixedLoanLibrary for State;
     using AccountingLibrary for State;
-    using FeeLibrary for State;
+    using AccountingLibrary for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
 
         // validate msg.sender
-        if (msg.sender != loan.borrower) {
-            revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.borrower);
+        if (msg.sender != loan.generic.borrower) {
+            revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.generic.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < loan.debt) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.debt);
+        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue()) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.faceValue());
         }
 
         // validate loanId
+        if (!loan.isFOL()) {
+            revert Errors.ONLY_FOL_CAN_BE_REPAID(params.loanId);
+        }
         if (state.either(loan, [FixedLoanStatus.REPAID, FixedLoanStatus.CLAIMED])) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanId);
-        }
-
-        // validate amount
-        if (params.amount == 0) {
-            revert Errors.NULL_AMOUNT();
         }
     }
 
     function executeRepay(State storage state, RepayParams calldata params) external {
-        FixedLoan storage loan = state._fixed.loans[params.loanId];
-        uint256 repayAmount = Math.min(loan.debt, params.amount);
+        FixedLoan storage fol = state._fixed.loans[params.loanId];
+        uint256 faceValue = fol.faceValue();
 
-        state.chargeRepayFee(state.getFOL(loan), repayAmount);
-        if (loan.isFOL() && repayAmount == loan.debt) {
-            state.transferBorrowAToken(msg.sender, address(this), repayAmount);
-        } else {
-            // @audit Is this logic correct for partial repayment of FOLs? Should you send to `loan.lender` directly???
-            state.transferBorrowAToken(msg.sender, loan.lender, repayAmount);
-            state.reduceCredit(params.loanId, repayAmount);
-        }
-        state.reduceDebt(params.loanId, repayAmount);
+        state.transferBorrowAToken(msg.sender, address(this), faceValue);
+        state.chargeRepayFee(fol, faceValue);
+        state._fixed.debtToken.burn(fol.generic.borrower, faceValue);
+        fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 
-        emit Events.Repay(params.loanId, repayAmount);
+        emit Events.Repay(params.loanId);
     }
 }

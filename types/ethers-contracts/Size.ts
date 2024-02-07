@@ -118,9 +118,13 @@ export type InitializeFixedParamsStruct = {
   collateralTokenCap: BigNumberish;
   borrowATokenCap: BigNumberish;
   debtTokenCap: BigNumberish;
+  earlyLenderExitFee: BigNumberish;
+  earlyBorrowerExitFee: BigNumberish;
 };
 
 export type InitializeFixedParamsStructOutput = [
+  BigNumber,
+  BigNumber,
   BigNumber,
   BigNumber,
   BigNumber,
@@ -138,6 +142,8 @@ export type InitializeFixedParamsStructOutput = [
   collateralTokenCap: BigNumber;
   borrowATokenCap: BigNumber;
   debtTokenCap: BigNumber;
+  earlyLenderExitFee: BigNumber;
+  earlyBorrowerExitFee: BigNumber;
 };
 
 export type InitializeGeneralParamsStruct = {
@@ -375,7 +381,7 @@ export interface SizeInterface extends utils.Interface {
     "getVaultAddress(address)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
-    "initialize((address,address,address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256),(uint256))": FunctionFragment;
+    "initialize((address,address,address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256),(uint256))": FunctionFragment;
     "isFOL(uint256)": FunctionFragment;
     "isLoanLiquidatable(uint256)": FunctionFragment;
     "isUserLiquidatable(address)": FunctionFragment;

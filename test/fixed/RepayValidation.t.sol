@@ -30,38 +30,33 @@ contract RepayValidationTest is BaseTest {
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.REPAYER_IS_NOT_BORROWER.selector, alice, bob));
-        size.repay(RepayParams({loanId: loanId, amount: type(uint256).max}));
-        vm.stopPrank();
-
-        vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        size.repay(RepayParams({loanId: loanId, amount: 0}));
+        size.repay(RepayParams({loanId: loanId}));
         vm.stopPrank();
 
         vm.startPrank(bob);
         size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 20e6, faceValue));
-        size.repay(RepayParams({loanId: loanId, amount: type(uint256).max}));
+        size.repay(RepayParams({loanId: loanId}));
         vm.stopPrank();
 
         _deposit(bob, usdc, 100e6);
 
         vm.startPrank(bob);
-        size.repay(RepayParams({loanId: loanId, amount: type(uint256).max}));
+        size.repay(RepayParams({loanId: loanId}));
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId));
-        size.repay(RepayParams({loanId: loanId, amount: type(uint256).max}));
+        size.repay(RepayParams({loanId: loanId}));
         vm.stopPrank();
 
         _claim(bob, loanId);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId));
-        size.repay(RepayParams({loanId: loanId, amount: type(uint256).max}));
+        size.repay(RepayParams({loanId: loanId}));
         vm.stopPrank();
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, solId));
-        size.repay(RepayParams({loanId: solId, amount: type(uint256).max}));
+        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_REPAID.selector, solId));
+        size.repay(RepayParams({loanId: solId}));
         vm.stopPrank();
     }
 }

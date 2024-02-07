@@ -44,7 +44,8 @@ library RiskLibrary {
         FixedLoanStatus status = state.getFixedLoanStatus(loan);
         // both FOLs and SOLs can be self liquidated
         return (
-            isUserLiquidatable(state, loan.borrower) && status.either([FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])
+            isUserLiquidatable(state, loan.generic.borrower)
+                && status.either([FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])
         );
     }
 
@@ -56,7 +57,7 @@ library RiskLibrary {
         // case 1: if the user is liquidatable, only active/overdue FOLs can be liquidated
         && (
             (
-                isUserLiquidatable(state, loan.borrower)
+                isUserLiquidatable(state, loan.generic.borrower)
                     && status.either([FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])
             )
             // case 2: overdue loans can always be liquidated regardless of the user's CR

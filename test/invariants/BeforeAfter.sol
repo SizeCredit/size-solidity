@@ -33,10 +33,10 @@ abstract contract BeforeAfter is Deploy {
         UserView memory e;
         FixedLoan memory loan = loanId == RESERVED_ID ? l : size.getFixedLoan(loanId);
         _before.sender = size.getUserView(sender);
-        _before.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.borrower);
-        _before.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.lender);
+        _before.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.generic.borrower);
+        _before.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.generic.lender);
         _before.isSenderLiquidatable = size.isUserLiquidatable(sender);
-        _before.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isUserLiquidatable(loan.borrower);
+        _before.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isUserLiquidatable(loan.generic.borrower);
         _before.senderCollateralAmount = weth.balanceOf(sender);
         _before.senderBorrowAmount = usdc.balanceOf(sender);
         _before.activeFixedLoans = size.activeFixedLoans();
@@ -48,10 +48,10 @@ abstract contract BeforeAfter is Deploy {
         UserView memory e;
         FixedLoan memory loan = loanId == RESERVED_ID ? l : size.getFixedLoan(loanId);
         _after.sender = size.getUserView(sender);
-        _after.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.borrower);
-        _after.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.lender);
+        _after.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.generic.borrower);
+        _after.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.generic.lender);
         _after.isSenderLiquidatable = size.isUserLiquidatable(sender);
-        _after.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isUserLiquidatable(loan.borrower);
+        _after.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isUserLiquidatable(loan.generic.borrower);
         _after.senderCollateralAmount = weth.balanceOf(sender);
         _after.senderBorrowAmount = usdc.balanceOf(sender);
         _after.activeFixedLoans = size.activeFixedLoans();

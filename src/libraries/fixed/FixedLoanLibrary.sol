@@ -1,24 +1,37 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
+import {console} from "forge-std/console.sol";
+
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 uint256 constant RESERVED_ID = type(uint256).max;
 
-struct FixedLoan {
+struct GenericLoan {
     address lender;
     address borrower;
-    uint256 debt;
     uint256 credit;
-    uint256 issuanceValue;
-    uint256 faceValue;
+}
+
+struct FOL {
+    uint256 issuanceValue; // updated on repayment
+    uint256 rate;
     uint256 startDate;
     uint256 dueDate;
-    uint256 repayFeeSum;
     uint256 liquidityIndexAtRepayment;
+}
+
+struct SOL {
     uint256 folId;
+}
+
+struct FixedLoan {
+    GenericLoan generic;
+    FOL fol;
+    SOL sol;
 }
 
 // When the loan is created, it is in ACTIVE status
@@ -37,25 +50,37 @@ enum FixedLoanStatus {
 }
 
 library FixedLoanLibrary {
+    using AccountingLibrary for FixedLoan;
+    using AccountingLibrary for State;
+
     function isFOL(FixedLoan memory self) internal pure returns (bool) {
-        return self.folId == RESERVED_ID;
+        return self.sol.folId == RESERVED_ID;
+    }
+
+    function getDebt(State storage state, FixedLoan memory fol) internal view returns (uint256) {
+        return faceValue(fol) + state.maximumRepayFee(fol);
+    }
+
+    function faceValue(FixedLoan memory self) internal pure returns (uint256) {
+        return Math.mulDivUp(self.fol.issuanceValue, PERCENT + self.fol.rate, PERCENT);
     }
 
     function getFOL(State storage state, FixedLoan storage loan) public view returns (FixedLoan storage) {
-        return isFOL(loan) ? loan : state._fixed.loans[loan.folId];
+        return isFOL(loan) ? loan : state._fixed.loans[loan.sol.folId];
     }
 
     function getFOLId(State storage state, uint256 loanId) public view returns (uint256) {
         FixedLoan storage loan = state._fixed.loans[loanId];
-        return isFOL(loan) ? loanId : loan.folId;
+        return isFOL(loan) ? loanId : loan.sol.folId;
     }
 
     function getFixedLoanStatus(State storage state, FixedLoan storage self) public view returns (FixedLoanStatus) {
-        if (self.credit == 0) {
+        FixedLoan storage fol = getFOL(state, self);
+        if (self.generic.credit == 0) {
             return FixedLoanStatus.CLAIMED;
-        } else if (getFOL(state, self).debt == 0) {
+        } else if (getDebt(state, fol) == 0) {
             return FixedLoanStatus.REPAID;
-        } else if (block.timestamp >= self.dueDate) {
+        } else if (block.timestamp >= fol.fol.dueDate) {
             return FixedLoanStatus.OVERDUE;
         } else {
             return FixedLoanStatus.ACTIVE;
@@ -74,22 +99,32 @@ library FixedLoanLibrary {
         return s == status[0] || s == status[1];
     }
 
-    function getFOLAssignedCollateral(State storage state, FixedLoan memory loan) public view returns (uint256) {
-        if (!isFOL(loan)) revert Errors.NOT_SUPPORTED();
+    // assumes fees are already paid
+    function getFOLAssignedCollateral(State storage state, FixedLoan memory fol) public view returns (uint256) {
+        if (!isFOL(fol)) revert Errors.NOT_SUPPORTED();
 
-        uint256 debt = state._fixed.debtToken.balanceOf(loan.borrower);
-        uint256 collateral = state._fixed.collateralToken.balanceOf(loan.borrower);
+        uint256 debt = state._fixed.debtToken.balanceOf(fol.generic.borrower);
+        uint256 collateral = state._fixed.collateralToken.balanceOf(fol.generic.borrower);
+
         if (debt > 0) {
-            return Math.mulDivDown(collateral, loan.faceValue, debt);
+            return Math.mulDivDown(collateral, faceValue(fol), debt);
         } else {
             return 0;
         }
     }
 
+    // assumes fees are already paid
     function getProRataAssignedCollateral(State storage state, uint256 loanId) public view returns (uint256) {
         FixedLoan storage loan = state._fixed.loans[loanId];
         FixedLoan storage fol = getFOL(state, loan);
+        uint256 loanCredit = loan.generic.credit;
         uint256 folCollateral = getFOLAssignedCollateral(state, fol);
-        return Math.mulDivDown(folCollateral, loan.credit, fol.faceValue);
+        uint256 folFaceValue = faceValue(fol);
+
+        if (folFaceValue > 0) {
+            return Math.mulDivDown(folCollateral, loanCredit, folFaceValue);
+        } else {
+            return 0;
+        }
     }
 }

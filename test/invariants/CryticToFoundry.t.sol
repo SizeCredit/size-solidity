@@ -39,7 +39,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         deposit(address(0xdeadbeef), 91460117);
         borrowAsLimitOrder(4907270871702042502, 5894179853816920);
         lendAsMarketOrder(address(0x0), 19031769674707116036212, 5004820998700516064, false);
-        repay(115792089237316195423570985008687907853269984665640564039457584007913129639935, 400);
+        repay(115792089237316195423570985008687907853269984665640564039457584007913129639935);
     }
 
     function test_REPAY_01_2() public {
@@ -54,7 +54,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
             0,
             17145422572889695645779948228995886701899200731
         );
-        repay(0, 23008551643797667129);
+        repay(0);
     }
 
     function test_LOAN_05() public {
@@ -69,7 +69,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
             0,
             20428906037535863295274218098285099272042586872
         );
-        try this.repay(0, 14698502976581688395) {} catch {}
+        try this.repay(0) {} catch {}
         assertTrue(invariant_LOAN());
     }
 

@@ -50,6 +50,7 @@ library Errors {
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAsset);
 
     error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
+    error ONLY_FOL_CAN_BE_COMPENSATED(uint256 loanId);
     error ONLY_FOL_CAN_BE_EXITED(uint256 loanId);
     error ONLY_FOL_CAN_BE_MOVED_TO_VP(uint256 loanId);
     error LOAN_ALREADY_REPAID(uint256 loanId);

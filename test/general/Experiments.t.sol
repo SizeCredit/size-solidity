@@ -37,8 +37,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(james, alice, 100e6, 6);
         assertGt(size.activeFixedLoans(), 0);
         FixedLoan memory loan = size.getFixedLoan(0);
-        assertEq(loan.faceValue, 100e6 * 1.03e18 / 1e18);
-        assertEq(loan.credit, loan.faceValue);
+        assertEq(loan.faceValue(), 100e6 * 1.03e18 / 1e18);
+        assertEq(loan.generic.credit, loan.faceValue());
 
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e6);
@@ -51,11 +51,11 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         vm.expectRevert();
         _claim(alice, 0);
 
-        _deposit(james, usdc, loan.faceValue);
+        _deposit(james, usdc, loan.faceValue());
         console.log("loan is repaid");
         _repay(james, 0);
         loan = size.getFixedLoan(0);
-        assertEq(loan.debt, 0);
+        assertEq(size.getDebt(0), 0);
 
         console.log("should be able to claim");
         _claim(alice, 0);
@@ -113,7 +113,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(fol.isFOL(), "The first loan should be FOL");
 
         // Calculate amount to exit
-        uint256 amountToExit = Math.mulDivDown(fol.faceValue, amountToExitPercent, PERCENT);
+        uint256 amountToExit = Math.mulDivDown(fol.faceValue(), amountToExitPercent, PERCENT);
 
         // Lender exiting using borrow as market order
         _borrowAsMarketOrder(bob, candy, amountToExit, dueDate, true, [uint256(0)]);
@@ -121,9 +121,9 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(size.activeFixedLoans(), 2, "Expected two active loans after lender exit");
         FixedLoan memory sol = size.getFixedLoan(1);
         assertTrue(!sol.isFOL(), "The second loan should be SOL");
-        assertEq(sol.faceValue, amountToExit, "Amount to Exit should match");
+        assertEq(sol.generic.credit, amountToExit, "Amount to Exit should match");
         fol = size.getFixedLoan(0);
-        assertEq(fol.credit, fol.faceValue - amountToExit, "Should be able to exit the full amount");
+        assertEq(fol.generic.credit, fol.faceValue() - amountToExit, "Should be able to exit the full amount");
     }
 
     function test_Experiments_testBorrowWithExit1() public {
@@ -155,12 +155,12 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         );
         assertEq(size.activeFixedLoans(), 1, "Expected one active loan");
         FixedLoan memory loan_Bob_Alice = size.getFixedLoan(0);
-        assertTrue(loan_Bob_Alice.lender == bob, "Bob should be the lender");
-        assertTrue(loan_Bob_Alice.borrower == alice, "Alice should be the borrower");
+        assertTrue(loan_Bob_Alice.generic.lender == bob, "Bob should be the lender");
+        assertTrue(loan_Bob_Alice.generic.borrower == alice, "Alice should be the borrower");
         FixedLoanOffer memory loanOffer = size.getUserView(bob).user.loanOffer;
         uint256 rate = loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), 5);
-        assertEq(loan_Bob_Alice.faceValue, Math.mulDivUp(70e6, (PERCENT + rate), PERCENT), "Check loan faceValue");
-        assertEq(size.getFixedLoan(0).dueDate, 5, "Check loan due date");
+        assertEq(loan_Bob_Alice.faceValue(), Math.mulDivUp(70e6, (PERCENT + rate), PERCENT), "Check loan faceValue");
+        assertEq(size.getDueDate(0), 5, "Check loan due date");
 
         // Bob borrows using the loan as virtual collateral
         _borrowAsMarketOrder(bob, james, 35e6, 10, [uint256(0)]);
@@ -169,12 +169,12 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(_state().bob.borrowAmount, 100e6 - 70e6 + 35e6, "Bob should have borrowed 35e6");
         assertEq(size.activeFixedLoans(), 2, "Expected two active loans");
         FixedLoan memory loan_James_Bob = size.getFixedLoan(1);
-        assertEq(loan_James_Bob.lender, james, "James should be the lender");
-        assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
+        assertEq(loan_James_Bob.generic.lender, james, "James should be the lender");
+        assertEq(loan_James_Bob.generic.borrower, bob, "Bob should be the borrower");
         FixedLoanOffer memory loanOffer2 = size.getUserView(james).user.loanOffer;
-        uint256 rate2 = loanOffer2.getRate(marketBorrowRateFeed.getMarketBorrowRate(), size.getFixedLoan(0).dueDate);
-        assertEq(loan_James_Bob.faceValue, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check loan faceValue");
-        assertEq(size.getFixedLoan(0).dueDate, size.getFixedLoan(1).dueDate, "Check loan due date");
+        uint256 rate2 = loanOffer2.getRate(marketBorrowRateFeed.getMarketBorrowRate(), size.getDueDate(0));
+        assertEq(loan_James_Bob.generic.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check loan faceValue");
+        assertEq(size.getDueDate(0), size.getDueDate(1), "Check loan due date");
     }
 
     function test_Experiments_testFixedLoanMove1() public {
@@ -199,7 +199,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertEq(size.getFixedLoanStatus(0), FixedLoanStatus.OVERDUE, "FixedLoan should be overdue");
         assertEq(size.activeFixedLoans(), 1, "Expect one active loan");
 
-        assertGt(fol.debt, 0, "FixedLoan should not be repaid before moving to the variable pool");
+        assertGt(size.getDebt(0), 0, "FixedLoan should not be repaid before moving to the variable pool");
         uint256 aliceCollateralBefore = _state().alice.collateralAmount;
         assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
 
@@ -213,7 +213,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         uint256 aliceCollateralAfter = _state().alice.collateralAmount;
 
         // Assert post-move conditions
-        assertEq(fol.debt, 0, "FixedLoan should be repaid by moving into the variable pool");
+        assertEq(size.getDebt(0), 0, "FixedLoan should be repaid by moving into the variable pool");
         // assertEq(size.activeVariableFixedLoans(), 1, "Expect one active loan in variable pool");
         assertEq(aliceCollateralAfter, 0, "Alice should have locked ETH after moving to variable pool");
     }
@@ -244,14 +244,14 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         assertTrue(size.isLoanLiquidatable(0), "FixedLoan should be liquidatable");
 
         // Perform self liquidation
-        assertGt(size.getFixedLoan(0).debt, 0, "FixedLoan debt should be greater than 0");
+        assertGt(size.getDebt(0), 0, "FixedLoan should be greater than 0");
         assertEq(_state().bob.collateralAmount, 0, "Bob should have no free ETH initially");
 
         _selfLiquidateFixedLoan(bob, 0);
 
         // Assert post-liquidation conditions
         assertGt(_state().bob.collateralAmount, 0, "Bob should have free ETH after self liquidation");
-        assertEq(size.getFixedLoan(0).debt, 0, "FixedLoan debt should be 0 after self liquidation");
+        assertEq(size.getDebt(0), 0, "FixedLoan should be 0 after self liquidation");
     }
 
     function test_Experiments_testLendAsLimitOrder1() public {
@@ -334,15 +334,15 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
         FixedLoan memory fol = size.getFixedLoan(0);
         uint256 repayFee = size.maximumRepayFee(0);
-        assertEq(fol.borrower, alice, "Alice should be the borrower");
-        assertEq(_state().alice.debtAmount, fol.faceValue + repayFee, "Alice should have the debt");
+        assertEq(fol.generic.borrower, alice, "Alice should be the borrower");
+        assertEq(_state().alice.debtAmount, fol.faceValue() + repayFee, "Alice should have the debt");
 
         assertEq(_state().candy.debtAmount, 0, "Candy should have no debt");
         // Perform the liquidation with replacement
         _deposit(liquidator, usdc, 10_000e6);
         _liquidateFixedLoanWithReplacement(liquidator, 0, candy);
         assertEq(_state().alice.debtAmount, 0, "Alice should have no debt after");
-        assertEq(_state().candy.debtAmount, fol.faceValue, "Candy should have the debt after");
+        assertEq(_state().candy.debtAmount, fol.faceValue() + repayFee, "Candy should have the debt after");
     }
 
     function test_Experiments_testBasicCompensate1() public {
@@ -372,7 +372,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         FixedLoan memory fol = size.getFixedLoan(loanId);
 
         // Calculate amount to borrow
-        uint256 amountToBorrow = fol.faceValue / 10;
+        uint256 amountToBorrow = fol.faceValue() / 10;
 
         // Bob deposits in WETH
         _deposit(bob, weth, 50e18);
@@ -402,6 +402,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 repayFee = size.maximumRepayFee(loanId);
         // Borrower B1 submits a borror market order for
         // Loan1
         // - Lender=L
@@ -417,12 +418,126 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _deposit(bob, usdc, 10e6);
         _repay(bob, loanId);
 
-        uint256 repayFee = size.maximumRepayFee(loanId);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         // If the loan completes its lifecycle, we have
         // protocolFee = 100 * (0.005 * 1) --> 0.5
         assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral);
+    }
+
+    function test_Experiments_repayFeeAPR_complex() private {
+        // OK so let's make an example of the approach here
+        _setPrice(1e18);
+        _deposit(bob, weth, 200e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(candy, usdc, 100e6);
+        _deposit(james, usdc, 200e6);
+        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, curve);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, curve);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 loanId2 = _borrowAsMarketOrder(bob, james, 200e6, 365 days);
+        uint256 solId = _borrowAsMarketOrder(bob, candy, 120e6, 365 days, [loanId2]);
+        // FOL1
+        // FOL.Borrower = B1
+        // FOL.IV = 100
+        // FOL.FullLenderRate = 10%
+        // FOL.startTime = 1 Jan 2023
+        // FOL.dueDate = 31 Dec 2023 (months)
+        // FOL.lastRepaymentTime=0
+
+        // Computable
+        // FOL.FV() = FOL.IV * FOL.FullLenderRate
+        assertEq(size.getFixedLoan(loanId).faceValue(), 110e6);
+
+        assertEq(size.maximumRepayFee(loanId), 10e6);
+
+        // FOL.ProtocolFees(t) = FOL.IV * protocolFeeRate * (t - FOL.lastRepaymentTime)
+        assertEq(size.maximumRepayFee(loanId), 0);
+
+        FixedLoan memory loan = size.getFixedLoan(loanId);
+
+        // Also tracked
+        // fol.generic.credit = FOL.FV() --> 110
+        assertEq(loan.generic.credit, 110e6);
+
+        // At t=7 borrower compensates for an amount A=20
+        // Let's say this amount comes from a SOL SOL1 the borrower owns, so something like
+        // SOL1
+        // SOL.lender = B1
+        // SOL1.credit = 120
+        // SOL1.FOL().DueDate = 30 Dec 2023
+        assertEq(size.getCredit(solId), 120e6);
+        _compensate(bob, loanId, solId, 20e6);
+
+        // then the update is
+        // SOL1.credit -= 20 --> 100
+        assertEq(size.getCredit(solId), 100e6);
+
+        // Now Borrower has A=20 to compensate his debt on FOL1 which results in
+        // FOL1.protocolFees(t=7) = 100 * 0.005 * (7-0) / 12 --> 0.29
+
+        // At this point, we need to take 0.29 USDC in fees and we have 2 ways to do it
+
+        // 1) Taking it as USDC credit
+
+        // In this case we operate a debt reduction for NetA which is the initial amount of credit the borrower uses subtracting the fees
+        // NetA = A - FOL1.protocolFees(t=7) --> 20 - 0.29 --> 19.71
+
+        // then
+        // NetAScaled = NetA / (1 + FOL1.FullRate) --> 19.71 / (1.1) --> 17.918
+
+        // finally
+        // FOL1.IV -= NetAScaled --> 100 - 17.918 --> 82.018
+        // FOL1.lastRepaymentTime = 7
+
+        // To track the 0.29 protocolFees, a specific SOL has to be emitted
+        // SOL_For_Repayment.Lender = Protocol
+        // SOL_For_Repayment.FOL = SOL1.FOL
+        // SOL_For_Repayment.credit = FOL1.protocolFees(y=7) --> 0.29
+
+        // 2) Taking from collateral
+        // In this case, we do the same as the above with
+        // NetA = A
+
+        // and no SOL_For_Repayment is emitted
+        // and to take the fees instead, we do
+        // collateral[borrower] -= FOL1.protocolFees(t=7) / Oracle.CurrentPrice
+
+        // ---
+
+        // Then at t=10 compensation for A=30 then
+
+        // FOL.protocolFees(t=10) = 82.018 * 0.005 * (10 - 7) --> 1.23
+
+        // then
+
+        // 1) in case we charge in USDC credit
+        // NetA = 30 - 1.23 --> 28.768
+
+        // so
+        // NetAScaled = 28.768 / 1.1 --> 26.15
+
+        // finally
+        // FOL.IV -= NetAScaled = 82.018 - 26.15 --> 55.92
+        // FOL.lastRepaymentTime = 10
+
+        // 2) If instead we charge in collateral
+
+        // NetA = A --> 30
+        // NetAScaled = 30 / 1.1 --> 27.27
+        // FOL.IV -= NetAScaled --> 82.018 - 27.27 --> 54.74
+        // FOL.lastRepaymentTime = 10
+        // collateral[B1] -= 1.23 / Oracle.CurrentPrice
+
+        // Remarks
+
+        // 1) Min Repayment / Compensation is protocol fees.
+        // It is not possible to repay / compensate less than the FOL.protocolFees(t) since the FOL.lastRepaymentTime assumes the last time the fees have been repaid entirely
+
+        // 2) Denomination of the fees and risk related
+        // This is a cashless process so it is not possible to take the fees in USDC, we can go for either USDC Credit or Collateral and both have different implications and risk profiles
     }
 }

@@ -34,16 +34,17 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _borrowAsLimitOrder(candy, 0.03e18, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 delta = debt - amount;
+        uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 delta = faceValue - amount;
 
         _setPrice(0.2e18);
 
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
         Vars memory _before = _state();
 
-        assertEq(loanBefore.borrower, bob);
-        assertGt(loanBefore.debt, 0);
+        assertEq(loanBefore.generic.borrower, bob);
+        assertGt(size.getDebt(loanId), 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
 
         _liquidateFixedLoanWithReplacement(liquidator, loanId, candy);
@@ -52,12 +53,11 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
-        assertEq(_after.candy.debtAmount, _before.candy.debtAmount + debt);
+        assertEq(_after.candy.debtAmount, _before.candy.debtAmount + faceValue + repayFee);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + amount);
-        // assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount, 0);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
-        assertEq(loanAfter.borrower, candy);
-        assertGt(loanAfter.debt, 0);
+        assertEq(loanAfter.generic.borrower, candy);
+        assertGt(size.getDebt(loanId), 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
     }
 
@@ -76,17 +76,18 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         _borrowAsLimitOrder(candy, 0.01e18, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 newAmount = Math.mulDivDown(debt, PERCENT, (PERCENT + 0.01e18));
-        uint256 delta = debt - newAmount;
+        uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        uint256 newAmount = Math.mulDivDown(faceValue, PERCENT, (PERCENT + 0.01e18));
+        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 delta = faceValue - newAmount;
 
         _setPrice(0.2e18);
 
         FixedLoan memory loanBefore = size.getFixedLoan(loanId);
         Vars memory _before = _state();
 
-        assertEq(loanBefore.borrower, bob);
-        assertGt(loanBefore.debt, 0);
+        assertEq(loanBefore.generic.borrower, bob);
+        assertGt(size.getDebt(loanId), 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
 
         _liquidateFixedLoanWithReplacement(liquidator, loanId, candy);
@@ -95,13 +96,13 @@ contract LiquidateFixedLoanWithReplacementTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
-        assertEq(_after.candy.debtAmount, _before.candy.debtAmount + debt);
+        assertEq(_after.candy.debtAmount, _before.candy.debtAmount + faceValue + repayFee);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + newAmount);
         assertEq(_before.variablePool.borrowAmount, 0);
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
-        assertEq(loanAfter.borrower, candy);
-        assertGt(loanAfter.debt, 0);
+        assertEq(loanAfter.generic.borrower, candy);
+        assertGt(size.getDebt(loanId), 0);
         assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.ACTIVE);
     }
 

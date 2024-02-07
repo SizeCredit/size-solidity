@@ -28,9 +28,8 @@ library LiquidateFixedLoan {
     using VariableLibrary for State;
     using FixedLoanLibrary for FixedLoan;
     using FixedLoanLibrary for State;
-    using AccountingLibrary for State;
     using RiskLibrary for State;
-    using FeeLibrary for State;
+    using AccountingLibrary for State;
 
     function validateLiquidateFixedLoan(State storage state, LiquidateFixedLoanParams calldata params) external view {
         FixedLoan storage loan = state._fixed.loans[params.loanId];
@@ -40,28 +39,26 @@ library LiquidateFixedLoan {
         // validate loanId
         if (!state.isLoanLiquidatable(params.loanId)) {
             revert Errors.LOAN_NOT_LIQUIDATABLE(
-                params.loanId, state.collateralRatio(loan.borrower), state.getFixedLoanStatus(loan)
+                params.loanId, state.collateralRatio(loan.generic.borrower), state.getFixedLoanStatus(loan)
             );
         }
 
         // validate minimumCollateralRatio
-        if (state.collateralRatio(loan.borrower) < params.minimumCollateralRatio) {
+        if (state.collateralRatio(loan.generic.borrower) < params.minimumCollateralRatio) {
             revert Errors.COLLATERAL_RATIO_BELOW_MINIMUM_COLLATERAL_RATIO(
-                state.collateralRatio(loan.borrower), params.minimumCollateralRatio
+                state.collateralRatio(loan.generic.borrower), params.minimumCollateralRatio
             );
         }
     }
 
     function _executeLiquidateFixedLoanTakeCollateral(
         State storage state,
-        LiquidateFixedLoanParams calldata params,
+        FixedLoan memory folCopy,
         bool splitCollateralRemainder
     ) private returns (uint256 liquidatorProfitCollateralToken) {
-        FixedLoan storage loan = state._fixed.loans[params.loanId];
-
-        uint256 assignedCollateral = state.getFOLAssignedCollateral(loan);
+        uint256 assignedCollateral = state.getFOLAssignedCollateral(folCopy);
         uint256 debtBorrowTokenWad =
-            ConversionLibrary.amountToWad(loan.faceValue, state._general.borrowAsset.decimals());
+            ConversionLibrary.amountToWad(folCopy.faceValue(), state._general.borrowAsset.decimals());
         uint256 debtInCollateralToken = Math.mulDivDown(
             debtBorrowTokenWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
         );
@@ -81,7 +78,7 @@ library LiquidateFixedLoan {
 
                 liquidatorProfitCollateralToken += collateralRemainderToLiquidator;
                 state._fixed.collateralToken.transferFrom(
-                    loan.borrower, state._general.feeRecipient, collateralRemainderToProtocol
+                    folCopy.generic.borrower, state._general.feeRecipient, collateralRemainderToProtocol
                 );
             }
             // CR <= 100%
@@ -90,27 +87,26 @@ library LiquidateFixedLoan {
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 
-        state._fixed.collateralToken.transferFrom(loan.borrower, msg.sender, liquidatorProfitCollateralToken);
-        state.transferBorrowAToken(msg.sender, address(this), loan.faceValue);
+        state._fixed.collateralToken.transferFrom(folCopy.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
+        state.transferBorrowAToken(msg.sender, address(this), folCopy.faceValue());
     }
 
-    function _executeLiquidateFixedLoanOverdue(State storage state, LiquidateFixedLoanParams calldata params)
-        private
-        returns (uint256 liquidatorProfitCollateralToken)
-    {
-        FixedLoan storage loan = state._fixed.loans[params.loanId];
-
+    function _executeLiquidateFixedLoanOverdue(
+        State storage state,
+        LiquidateFixedLoanParams calldata params,
+        FixedLoan memory folCopy
+    ) private returns (uint256 liquidatorProfitCollateralToken) {
         // case 2a: the loan is overdue and can be moved to the variable pool
-        try state.moveFixedLoanToVariablePool(loan) returns (uint256 _liquidatorProfitCollateralToken) {
+        try state.moveFixedLoanToVariablePool(folCopy) returns (uint256 _liquidatorProfitCollateralToken) {
             emit Events.LiquidateFixedLoanOverdueMoveToVariablePool(params.loanId);
             liquidatorProfitCollateralToken = _liquidatorProfitCollateralToken;
             // case 2b: the loan is overdue and cannot be moved to the variable pool
         } catch {
             emit Events.LiquidateFixedLoanOverdueNoSplitRemainder(params.loanId);
-            liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, params, false)
+            liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, folCopy, false)
                 + state._variable.collateralOverdueTransferFee;
             state._fixed.collateralToken.transferFrom(
-                loan.borrower, msg.sender, state._variable.collateralOverdueTransferFee
+                folCopy.generic.borrower, msg.sender, state._variable.collateralOverdueTransferFee
             );
         }
     }
@@ -119,28 +115,29 @@ library LiquidateFixedLoan {
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
-        FixedLoan storage loan = state._fixed.loans[params.loanId];
-        FixedLoanStatus loanStatus = state.getFixedLoanStatus(loan);
-        uint256 collateralRatio = state.collateralRatio(loan.borrower);
+        FixedLoan storage fol = state._fixed.loans[params.loanId];
+        FixedLoan memory folCopy = fol;
+        FixedLoanStatus loanStatus = state.getFixedLoanStatus(fol);
+        uint256 collateralRatio = state.collateralRatio(fol.generic.borrower);
 
         emit Events.LiquidateFixedLoan(params.loanId, params.minimumCollateralRatio, collateralRatio, loanStatus);
 
-        state.chargeRepayFee(loan, loan.faceValue);
+        state.chargeRepayFee(fol, fol.faceValue());
 
         // case 1a: the user is liquidatable profitably
         if (PERCENT <= collateralRatio && collateralRatio < state._fixed.crLiquidation) {
             emit Events.LiquidateFixedLoanUserLiquidatableProfitably(params.loanId);
-            liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, params, true);
+            liquidatorProfitCollateralToken = _executeLiquidateFixedLoanTakeCollateral(state, folCopy, true);
             // case 1b: the user is liquidatable unprofitably
         } else if (collateralRatio < PERCENT) {
             emit Events.LiquidateFixedLoanUserLiquidatableUnprofitably(params.loanId);
             liquidatorProfitCollateralToken =
-                _executeLiquidateFixedLoanTakeCollateral(state, params, false /* this parameter should not matter */ );
+                _executeLiquidateFixedLoanTakeCollateral(state, folCopy, false /* this parameter should not matter */ );
             // case 2: the loan is overdue
         } else {
             // collateralRatio > state._fixed.crLiquidation
             if (loanStatus == FixedLoanStatus.OVERDUE) {
-                liquidatorProfitCollateralToken = _executeLiquidateFixedLoanOverdue(state, params);
+                liquidatorProfitCollateralToken = _executeLiquidateFixedLoanOverdue(state, params, folCopy);
                 // loan is ACTIVE
             } else {
                 // @audit unreachable code, check if the validation function is correct and not making this branch possible
@@ -148,6 +145,7 @@ library LiquidateFixedLoan {
             }
         }
 
-        state.reduceDebt(params.loanId, loan.faceValue);
+        state._fixed.debtToken.burn(fol.generic.borrower, folCopy.faceValue());
+        fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
     }
 }

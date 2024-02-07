@@ -9,7 +9,6 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {BorrowOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -25,11 +24,13 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _borrowAsLimitOrder(alice, 0.03e18, 12);
+        uint256 rate = 0.03e18;
+        _borrowAsLimitOrder(alice, rate, 12);
 
-        uint256 faceValue = 10e6;
+        uint256 issuanceValue = 10e6;
+        uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + rate, PERCENT);
         uint256 dueDate = 12;
-        uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + 0.03e18);
+        uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
 
         Vars memory _before = _state();
         uint256 loansBefore = size.activeFixedLoans();
@@ -45,8 +46,9 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(loan.faceValue, faceValue);
-        assertEq(loan.dueDate, dueDate);
+        assertEq(loan.faceValue(), faceValue);
+        assertEq(size.getDebt(loanId), faceValue + repayFee);
+        assertEq(loan.fol.dueDate, dueDate);
         assertTrue(loan.isFOL());
     }
 
@@ -75,8 +77,8 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(loan.faceValue, faceValue);
-        assertEq(loan.dueDate, dueDate);
+        assertEq(loan.faceValue(), faceValue);
+        assertEq(loan.fol.dueDate, dueDate);
         assertTrue(loan.isFOL());
     }
 
@@ -90,8 +92,8 @@ contract LendAsMarketOrderTest is BaseTest {
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.timeBuckets[0] + curve.timeBuckets[1]) / 2;
-        uint256 r = PERCENT + YieldCurveLibrary.getRate(curve, 0, dueDate);
-        uint256 faceValue = Math.mulDivDown(amountIn, r, PERCENT);
+        uint256 rate = YieldCurveLibrary.getRate(curve, 0, dueDate);
+        uint256 faceValue = Math.mulDivUp(amountIn, PERCENT + rate, PERCENT);
 
         Vars memory _before = _state();
         uint256 loansBefore = size.activeFixedLoans();
@@ -107,8 +109,8 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(loan.faceValue, faceValue);
-        assertEq(loan.dueDate, dueDate);
+        assertEq(loan.faceValue(), faceValue);
+        assertEq(loan.fol.dueDate, dueDate);
         assertTrue(loan.isFOL());
     }
 

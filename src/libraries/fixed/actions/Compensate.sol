@@ -3,15 +3,14 @@ pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 
-import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
+import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 struct CompensateParams {
     uint256 loanToRepayId;
@@ -23,18 +22,21 @@ library Compensate {
     using AccountingLibrary for State;
     using FixedLoanLibrary for State;
     using FixedLoanLibrary for FixedLoan;
-    using FeeLibrary for State;
+    using VariableLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
         FixedLoan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
         FixedLoan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
 
         // validate msg.sender
-        if (msg.sender != loanToRepay.borrower) {
-            revert Errors.COMPENSATOR_IS_NOT_BORROWER(msg.sender, loanToRepay.borrower);
+        if (msg.sender != loanToRepay.generic.borrower) {
+            revert Errors.COMPENSATOR_IS_NOT_BORROWER(msg.sender, loanToRepay.generic.borrower);
         }
 
         // validate loanToRepayId
+        if (!loanToRepay.isFOL()) {
+            revert Errors.ONLY_FOL_CAN_BE_COMPENSATED(params.loanToRepayId);
+        }
         if (state.getFixedLoanStatus(loanToRepay) == FixedLoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanToRepayId);
         }
@@ -45,12 +47,12 @@ library Compensate {
         }
         if (
             state.getFixedLoanStatus(loanToCompensate) != FixedLoanStatus.REPAID
-                && loanToRepay.dueDate < loanToCompensate.dueDate
+                && loanToRepay.fol.dueDate < state.getFOL(loanToCompensate).fol.dueDate
         ) {
             revert Errors.DUE_DATE_NOT_COMPATIBLE(params.loanToRepayId, params.loanToCompensateId);
         }
-        if (loanToCompensate.lender != loanToRepay.borrower) {
-            revert Errors.INVALID_LENDER(loanToCompensate.lender);
+        if (loanToCompensate.generic.lender != loanToRepay.generic.borrower) {
+            revert Errors.INVALID_LENDER(loanToCompensate.generic.lender);
         }
 
         // validate amount
@@ -64,19 +66,20 @@ library Compensate {
 
         FixedLoan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
         FixedLoan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
-        uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.credit, loanToRepay.credit);
+        uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.generic.credit, loanToRepay.faceValue());
 
-        state.chargeRepayFee(state.getFOL(loanToRepay), amountToCompensate);
-        state.reduceDebt(params.loanToRepayId, amountToCompensate);
-        state.reduceCredit(params.loanToRepayId, amountToCompensate);
+        state.chargeRepayFee(loanToRepay, amountToCompensate);
+        state._fixed.debtToken.burn(loanToRepay.generic.borrower, amountToCompensate);
+        if (state.getDebt(loanToRepay) == 0) {
+            loanToCompensate.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+        }
 
         // slither-disable-next-line unused-return
         state.createSOL({
             exiterId: params.loanToCompensateId,
-            lender: loanToRepay.lender,
+            lender: loanToRepay.generic.lender,
             borrower: msg.sender,
-            issuanceValue: amountToCompensate, // @audit review if this is the same as faceValue
-            faceValue: amountToCompensate
+            credit: amountToCompensate
         });
     }
 }
