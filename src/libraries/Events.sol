@@ -20,7 +20,7 @@ library Events {
     event Deposit(address indexed token, address indexed to, uint256 amount);
     event Withdraw(address indexed token, address indexed to, uint256 amount);
     event BorrowAsMarketOrder(
-        address indexed lender, uint256 amount, uint256 dueDate, bool exactAmountIn, uint256[] virtualCollateralLoanIds
+        address indexed lender, uint256 amount, uint256 dueDate, bool exactAmountIn, uint256[] receivableLoanIds
     );
     event BorrowAsLimitOrder(YieldCurve curveRelativeTime);
     event LendAsMarketOrder(address indexed borrower, uint256 dueDate, uint256 amount, bool exactAmountIn);

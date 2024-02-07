@@ -41,12 +41,8 @@ library Errors {
     error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
     error ONLY_FOL_CAN_BE_COMPENSATED(uint256 loanId);
     error ONLY_FOL_CAN_BE_EXITED(uint256 loanId);
-    error ONLY_FOL_CAN_BE_MOVED_TO_VP(uint256 loanId);
     error LOAN_ALREADY_REPAID(uint256 loanId);
     error LOAN_NOT_REPAID(uint256 loanId);
-    error LOAN_NOT_DUE(uint256 loanId);
-    error INVALID_PARTIAL_REPAY_AMOUNT(uint256 amount, uint256 fv);
-    error INVALID_REPAYMENT_FEE(uint256 repaymentFee, uint256 fv);
 
     error NOT_LIQUIDATABLE(address account);
     error LOAN_NOT_LIQUIDATABLE(uint256 loanId, uint256 cr, LoanStatus status);

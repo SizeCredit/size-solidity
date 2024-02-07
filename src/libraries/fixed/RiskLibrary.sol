@@ -71,12 +71,14 @@ library RiskLibrary {
     }
 
     function validateUserIsNotBelowRiskCR(State storage state, address account) external view {
-        uint256 riskCR = Math.max(
+        uint256 openingLimitBorrowCR = Math.max(
             state._fixed.crOpening,
-            state._fixed.users[account].borrowOffer.riskCR // 0 by default, or user-defined if BorrowAsLimitOrder has been placed
+            state._fixed.users[account].borrowOffer.openingLimitBorrowCR // 0 by default, or user-defined if BorrowAsLimitOrder has been placed
         );
-        if (collateralRatio(state, account) < riskCR) {
-            revert Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO(account, collateralRatio(state, account), riskCR);
+        if (collateralRatio(state, account) < openingLimitBorrowCR) {
+            revert Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO(
+                account, collateralRatio(state, account), openingLimitBorrowCR
+            );
         }
     }
 

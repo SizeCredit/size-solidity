@@ -25,7 +25,7 @@ struct BorrowAsMarketOrderParams {
     uint256 amount; // in decimals (e.g. 1_000e6)
     uint256 dueDate;
     bool exactAmountIn;
-    uint256[] virtualCollateralLoanIds; // TODO: rename this (loan receivables? notional?)
+    uint256[] receivableLoanIds;
 }
 
 library BorrowAsMarketOrder {
@@ -64,9 +64,9 @@ library BorrowAsMarketOrder {
         // validate params.exactAmountIn
         // N/A
 
-        // validate params.virtualCollateralLoanIds
-        for (uint256 i = 0; i < params.virtualCollateralLoanIds.length; ++i) {
-            uint256 loanId = params.virtualCollateralLoanIds[i];
+        // validate params.receivableLoanIds
+        for (uint256 i = 0; i < params.receivableLoanIds.length; ++i) {
+            uint256 loanId = params.receivableLoanIds[i];
             Loan storage loan = state._fixed.loans[loanId];
             Loan storage fol = state.getFOL(loan);
 
@@ -81,10 +81,10 @@ library BorrowAsMarketOrder {
 
     function executeBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external {
         emit Events.BorrowAsMarketOrder(
-            params.lender, params.amount, params.dueDate, params.exactAmountIn, params.virtualCollateralLoanIds
+            params.lender, params.amount, params.dueDate, params.exactAmountIn, params.receivableLoanIds
         );
 
-        params.amount = _borrowWithVirtualCollateral(state, params);
+        params.amount = _borrowWithReceivable(state, params);
         _borrowWithRealCollateral(state, params);
     }
 
@@ -92,7 +92,7 @@ library BorrowAsMarketOrder {
      * @notice Borrow with virtual collateral, an internal state-modifying function.
      * @dev The `amount` is initialized to `amountOutLeft`, which is decreased as more and more SOLs are created
      */
-    function _borrowWithVirtualCollateral(State storage state, BorrowAsMarketOrderParams memory params)
+    function _borrowWithReceivable(State storage state, BorrowAsMarketOrderParams memory params)
         internal
         returns (uint256 amountOutLeft)
     {
@@ -107,8 +107,8 @@ library BorrowAsMarketOrder {
 
         amountOutLeft = params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, PERCENT + rate) : params.amount;
 
-        for (uint256 i = 0; i < params.virtualCollateralLoanIds.length; ++i) {
-            uint256 loanId = params.virtualCollateralLoanIds[i];
+        for (uint256 i = 0; i < params.receivableLoanIds.length; ++i) {
+            uint256 loanId = params.receivableLoanIds[i];
             Loan memory loan = state._fixed.loans[loanId];
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, PERCENT + rate, PERCENT);

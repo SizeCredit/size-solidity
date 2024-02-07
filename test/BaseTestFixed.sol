@@ -96,8 +96,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         internal
         returns (uint256)
     {
-        uint256[] memory virtualCollateralLoanIds;
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralLoanIds);
+        uint256[] memory receivableLoanIds;
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, receivableLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -107,9 +107,9 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 dueDate,
         uint256[1] memory ids
     ) internal returns (uint256) {
-        uint256[] memory virtualCollateralLoanIds = new uint256[](1);
-        virtualCollateralLoanIds[0] = ids[0];
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralLoanIds);
+        uint256[] memory receivableLoanIds = new uint256[](1);
+        receivableLoanIds[0] = ids[0];
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, receivableLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -117,9 +117,9 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address lender,
         uint256 amount,
         uint256 dueDate,
-        uint256[] memory virtualCollateralLoanIds
+        uint256[] memory receivableLoanIds
     ) internal returns (uint256) {
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, virtualCollateralLoanIds);
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, receivableLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -130,9 +130,9 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         bool exactAmountIn,
         uint256[1] memory ids
     ) internal returns (uint256) {
-        uint256[] memory virtualCollateralLoanIds = new uint256[](1);
-        virtualCollateralLoanIds[0] = ids[0];
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, virtualCollateralLoanIds);
+        uint256[] memory receivableLoanIds = new uint256[](1);
+        receivableLoanIds[0] = ids[0];
+        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, receivableLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -141,7 +141,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 amount,
         uint256 dueDate,
         bool exactAmountIn,
-        uint256[] memory virtualCollateralLoanIds
+        uint256[] memory receivableLoanIds
     ) internal returns (uint256) {
         vm.prank(borrower);
         size.borrowAsMarketOrder(
@@ -150,7 +150,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
         return size.activeLoans() > 0 ? size.activeLoans() - 1 : type(uint256).max;
@@ -158,7 +158,9 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _borrowAsLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {
         vm.prank(borrower);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({riskCR: 0, curveRelativeTime: curveRelativeTime}));
+        size.borrowAsLimitOrder(
+            BorrowAsLimitOrderParams({openingLimitBorrowCR: 0, curveRelativeTime: curveRelativeTime})
+        );
     }
 
     function _borrowAsLimitOrder(address borrower, uint256 rate, uint256 timeBucketsLength) internal {
@@ -166,9 +168,13 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _borrowAsLimitOrder(borrower, 0, curveRelativeTime);
     }
 
-    function _borrowAsLimitOrder(address borrower, uint256 riskCR, YieldCurve memory curveRelativeTime) internal {
+    function _borrowAsLimitOrder(address borrower, uint256 openingLimitBorrowCR, YieldCurve memory curveRelativeTime)
+        internal
+    {
         vm.prank(borrower);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({riskCR: riskCR, curveRelativeTime: curveRelativeTime}));
+        size.borrowAsLimitOrder(
+            BorrowAsLimitOrderParams({openingLimitBorrowCR: openingLimitBorrowCR, curveRelativeTime: curveRelativeTime})
+        );
     }
 
     function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate)

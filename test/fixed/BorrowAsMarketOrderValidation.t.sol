@@ -28,7 +28,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         uint256 amount = 10e6;
         uint256 dueDate = 12;
         bool exactAmountIn = false;
-        uint256[] memory virtualCollateralLoanIds;
+        uint256[] memory receivableLoanIds;
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, address(0)));
@@ -38,7 +38,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
 
@@ -49,7 +49,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 0,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
 
@@ -60,7 +60,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 0,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
 
@@ -71,7 +71,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 13,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
 
@@ -88,12 +88,12 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 1e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
 
-        virtualCollateralLoanIds = new uint256[](1);
-        virtualCollateralLoanIds[0] = loanId;
+        receivableLoanIds = new uint256[](1);
+        receivableLoanIds[0] = loanId;
         vm.expectRevert(abi.encodeWithSelector(Errors.BORROWER_IS_NOT_LENDER.selector, bob, candy));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
@@ -101,7 +101,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
 
@@ -113,7 +113,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 4,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
 
@@ -125,7 +125,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 4,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
     }

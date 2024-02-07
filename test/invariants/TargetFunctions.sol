@@ -94,7 +94,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         uint256 dueDate,
         bool exactAmountIn,
         uint256 n,
-        uint256 seedVirtualCollateralLoanIds
+        uint256 seedReceivableLoanIds
     ) public getSender {
         __before();
 
@@ -102,10 +102,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         amount = between(amount, 0, MAX_AMOUNT_USDC / 100);
         dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
 
-        uint256[] memory virtualCollateralLoanIds;
+        uint256[] memory receivableLoanIds;
         if (_before.activeLoans > 0) {
             n = between(n, 1, _before.activeLoans);
-            virtualCollateralLoanIds = _getRandomVirtualCollateralLoanIds(n, seedVirtualCollateralLoanIds);
+            receivableLoanIds = _getRandomReceivableLoanIds(n, seedReceivableLoanIds);
         }
 
         hevm.prank(sender);
@@ -115,7 +115,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                virtualCollateralLoanIds: virtualCollateralLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
 
@@ -125,15 +125,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             if (lender == sender) {
                 eq(
                     _after.sender.borrowAmount,
-                    _before.sender.borrowAmount
-                        - size.fixedConfig().earlyLenderExitFee * virtualCollateralLoanIds.length,
+                    _before.sender.borrowAmount - size.fixedConfig().earlyLenderExitFee * receivableLoanIds.length,
                     BORROW_03
                 );
             } else {
                 gt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
             }
 
-            if (virtualCollateralLoanIds.length > 0) {
+            if (receivableLoanIds.length > 0) {
                 gte(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
             } else {
                 eq(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
@@ -148,7 +147,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
         hevm.prank(sender);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({riskCR: 0, curveRelativeTime: curveRelativeTime}));
+        size.borrowAsLimitOrder(
+            BorrowAsLimitOrderParams({openingLimitBorrowCR: 0, curveRelativeTime: curveRelativeTime})
+        );
 
         __after();
     }
