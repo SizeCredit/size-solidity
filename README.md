@@ -112,14 +112,13 @@ npm run deploy-sepolia
 ## TODO before audit
 
 - finish TODOs
-- finish updateconfig all params
+- document
+- same price feed
 - gas optimize the 80/20 rule
-- add tests for fixed borrows with dueDate now
-- review all input validation functions
-- add natspec
 
 ## TODO before mainnet
 
+- add tests for fixed borrows with dueDate now
 - Do the Aave fork, document and automate mitigations
 - Learn how to do liquidations in our Aave fork
 - add aave tests
@@ -127,20 +126,10 @@ npm run deploy-sepolia
 - monitoring
 - incident response plan
 
-## Gas optimizations
-
-- separate Loan struct
-- refactor tests following Sablier v2 naming conventions: `test_Foo`, `testFuzz_Foo`, `test_RevertWhen_Foo`, `testFuzz_RevertWhen_Foo`, `testFork_...`
-- use solady for tokens or other simple primitives
-
 ## Notes for auditors
 
 - // @audit Check rounding direction of `FixedPointMath.mulDiv*`
 - // @audit Check if borrower == lender == liquidator may cause any issues
-
-## Questions
-
-- Check how Aave does insurance
 
 ## Known limitations
 
