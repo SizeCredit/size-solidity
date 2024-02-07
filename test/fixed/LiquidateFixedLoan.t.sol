@@ -156,10 +156,14 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         _setPrice(0.1e18);
 
+        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
+        uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+
         assertTrue(size.isLoanLiquidatable(loanId));
         uint256 assignedCollateral = size.getFOLAssignedCollateral(loanId);
-        uint256 debtWad = ConversionLibrary.amountToWad(size.getDebt(loanId), usdc.decimals());
-        uint256 debtCollateral = Math.mulDivDown(debtWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 faceValueWad = ConversionLibrary.amountToWad(size.faceValue(loanId), usdc.decimals());
+        uint256 faceValueCollateral = Math.mulDivDown(faceValueWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         Vars memory _before = _state();
 
@@ -167,10 +171,10 @@ contract LiquidateFixedLoanTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertLt(liquidatorProfit, debtCollateral);
-        assertGe(liquidatorProfit, assignedCollateral);
-        assertEq(_before.feeRecipient.borrowAmount, _after.feeRecipient.borrowAmount, 0);
-        assertEq(_before.feeRecipient.collateralAmount, _after.feeRecipient.collateralAmount, 0);
+        assertLt(liquidatorProfit, faceValueCollateral);
+        assertLt(liquidatorProfit, assignedCollateral);
+        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount, 0);
+        assertEq(_after.feeRecipient.collateralAmount, _before.feeRecipient.collateralAmount + repayFeeCollateral);
         assertEq(size.getFOLAssignedCollateral(loanId), 0);
         assertEq(size.getUserView(bob).collateralAmount, 0);
     }
@@ -258,4 +262,8 @@ contract LiquidateFixedLoanTest is BaseTest {
     {}
 
     function test_LiquidateFixedLoan_liquidateFixedLoan_charge_repayFee() internal {}
+
+    function test_LiquidateFixedLoan_liquidateFixedLoan_with_CR_100_can_be_unprofitable_due_to_repayFee() internal {}
+
+    function testFuzz_LiquidateFixedLoan_liquidateFixedLoan_charge_repayFee() internal {}
 }

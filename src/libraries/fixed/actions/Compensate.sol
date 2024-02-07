@@ -66,14 +66,12 @@ library Compensate {
 
         FixedLoan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
         FixedLoan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
-        uint256 amountToCompensate =
-            Math.min(params.amount, loanToCompensate.generic.credit, state.getDebt(loanToRepay));
+        uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.generic.credit, loanToRepay.faceValue());
 
         state.chargeRepayFee(loanToRepay, amountToCompensate);
-        state._fixed.debtToken.burn(msg.sender, amountToCompensate);
-        loanToRepay.fol.issuanceValue -= Math.mulDivDown(amountToCompensate, PERCENT, PERCENT + loanToRepay.fol.rate);
+        state._fixed.debtToken.burn(loanToRepay.generic.borrower, amountToCompensate);
         if (state.getDebt(loanToRepay) == 0) {
-            loanToRepay.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+            loanToCompensate.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
 
         // slither-disable-next-line unused-return

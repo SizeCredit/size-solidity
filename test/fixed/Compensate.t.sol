@@ -24,6 +24,7 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(james, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
+        uint256 repayFee = size.maximumRepayFee(loanId);
 
         uint256 repaidFixedLoanDebtBefore = size.getDebt(loanId3);
         uint256 compensatedFixedLoanCreditBefore = size.getCredit(loanId);
@@ -33,10 +34,10 @@ contract CompensateTest is BaseTest {
         uint256 repaidFixedLoanDebtAfter = size.getDebt(loanId3);
         uint256 compensatedFixedLoanCreditAfter = size.getCredit(loanId);
 
-        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 2 * 20e6);
+        assertEq(repaidFixedLoanDebtAfter, repaidFixedLoanDebtBefore - 2 * 20e6 - repayFee);
         assertEq(compensatedFixedLoanCreditAfter, compensatedFixedLoanCreditBefore - 2 * 20e6);
         assertEq(
-            repaidFixedLoanDebtBefore - repaidFixedLoanDebtAfter,
+            repaidFixedLoanDebtBefore - repaidFixedLoanDebtAfter - repayFee,
             compensatedFixedLoanCreditBefore - compensatedFixedLoanCreditAfter
         );
     }

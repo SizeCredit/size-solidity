@@ -342,7 +342,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _deposit(liquidator, usdc, 10_000e6);
         _liquidateFixedLoanWithReplacement(liquidator, 0, candy);
         assertEq(_state().alice.debtAmount, 0, "Alice should have no debt after");
-        assertEq(_state().candy.debtAmount, fol.faceValue(), "Candy should have the debt after");
+        assertEq(_state().candy.debtAmount, fol.faceValue() + repayFee, "Candy should have the debt after");
     }
 
     function test_Experiments_testBasicCompensate1() public {
@@ -402,6 +402,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 repayFee = size.maximumRepayFee(loanId);
         // Borrower B1 submits a borror market order for
         // Loan1
         // - Lender=L
@@ -417,7 +418,6 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _deposit(bob, usdc, 10e6);
         _repay(bob, loanId);
 
-        uint256 repayFee = size.maximumRepayFee(loanId);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 

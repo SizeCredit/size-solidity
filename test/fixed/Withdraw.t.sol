@@ -163,15 +163,16 @@ contract WithdrawTest is BaseTest {
         _lendAsLimitOrder(alice, 12, rate, 12);
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
+        uint256 faceValue = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
 
         _setPrice(0.125e18);
 
         _liquidateFixedLoan(liquidator, loanId);
         _withdraw(liquidator, usdc, type(uint256).max);
 
-        assertEq(usdc.balanceOf(liquidator), liquidatorAmount - debt);
+        assertEq(usdc.balanceOf(liquidator), liquidatorAmount - faceValue);
         assertEq(_state().variablePool.borrowAmount, 0);
+        assertGt(_state().feeRecipient.collateralAmount, 0);
     }
 
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_self_borrow() public {

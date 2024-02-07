@@ -117,6 +117,7 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
+        uint256 repayFee = size.maximumRepayFee(loanId);
         _borrowAsMarketOrder(alice, candy, 5e6, 12, [loanId]);
         _borrowAsMarketOrder(alice, james, 80e6, 12);
         _borrowAsMarketOrder(bob, james, 40e6, 12);
@@ -124,13 +125,13 @@ contract SelfLiquidateFixedLoanTest is BaseTest {
         _setPrice(0.25e18);
 
         assertEq(size.getFixedLoan(loanId).faceValue(), 50e6);
-        assertEq(size.getDebt(loanId), 50e6);
+        assertEq(size.getDebt(loanId), 50e6 + repayFee);
         assertEq(size.getCredit(loanId), 50e6 - 5e6);
         assertEq(size.getCredit(loanId), 45e6);
 
         _selfLiquidateFixedLoan(alice, loanId);
 
-        assertEq(size.getDebt(loanId), 5e6);
+        assertEq(size.getDebt(loanId), 5e6 + repayFee);
         assertEq(size.getCredit(loanId), 0);
         assertEq(size.getCredit(loanId), 0);
     }

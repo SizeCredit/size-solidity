@@ -124,21 +124,23 @@ library VariableLibrary {
         return state._general.variablePool.getReserveNormalizedIncome(address(state._general.borrowAsset));
     }
 
-    function moveFixedLoanToVariablePool(State storage state, FixedLoan storage fol)
+    function moveFixedLoanToVariablePool(State storage state, FixedLoan memory folCopy)
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
-        liquidatorProfitCollateralToken = state._variable.collateralOverdueTransferFee;
-        // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
-        uint256 assignedCollateral = state.getFOLAssignedCollateral(fol);
+        uint256 assignedCollateral = state.getFOLAssignedCollateral(folCopy);
 
-        state._fixed.collateralToken.transferFrom(fol.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
+        liquidatorProfitCollateralToken = state._variable.collateralOverdueTransferFee;
+        state._fixed.collateralToken.transferFrom(folCopy.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
+
+        // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
+
         _borrowFromVariablePool(
             state,
-            fol.generic.borrower,
+            folCopy.generic.borrower,
             address(this),
             assignedCollateral - liquidatorProfitCollateralToken,
-            state.getDebt(fol)
+            folCopy.faceValue()
         );
     }
 }

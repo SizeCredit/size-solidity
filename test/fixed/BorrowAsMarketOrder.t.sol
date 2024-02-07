@@ -197,7 +197,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
-        assertEq(size.getDebt(loanId2), faceValue);
+        assertEq(size.getDebt(loanId2), faceValue + repayFee);
     }
 
     function testFuzz_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_and_real_collateral(
@@ -248,7 +248,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isFOL(loanId2));
-        assertEq(size.getDebt(loanId2), faceValue);
+        assertEq(size.getDebt(loanId2), faceValue + repayFee);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_properties() public {

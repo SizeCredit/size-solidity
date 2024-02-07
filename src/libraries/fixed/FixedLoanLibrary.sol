@@ -99,29 +99,30 @@ library FixedLoanLibrary {
         return s == status[0] || s == status[1];
     }
 
+    // assumes fees are already paid
     function getFOLAssignedCollateral(State storage state, FixedLoan memory fol) public view returns (uint256) {
         if (!isFOL(fol)) revert Errors.NOT_SUPPORTED();
 
-        uint256 folDebt = getDebt(state, fol);
         uint256 debt = state._fixed.debtToken.balanceOf(fol.generic.borrower);
         uint256 collateral = state._fixed.collateralToken.balanceOf(fol.generic.borrower);
 
         if (debt > 0) {
-            return Math.mulDivDown(collateral, folDebt, debt);
+            return Math.mulDivDown(collateral, faceValue(fol), debt);
         } else {
             return 0;
         }
     }
 
+    // assumes fees are already paid
     function getProRataAssignedCollateral(State storage state, uint256 loanId) public view returns (uint256) {
         FixedLoan storage loan = state._fixed.loans[loanId];
         FixedLoan storage fol = getFOL(state, loan);
         uint256 loanCredit = loan.generic.credit;
         uint256 folCollateral = getFOLAssignedCollateral(state, fol);
-        uint256 folDebt = getDebt(state, fol);
+        uint256 folFaceValue = faceValue(fol);
 
-        if (folDebt > 0) {
-            return Math.mulDivDown(folCollateral, loanCredit, folDebt);
+        if (folFaceValue > 0) {
+            return Math.mulDivDown(folCollateral, loanCredit, folFaceValue);
         } else {
             return 0;
         }

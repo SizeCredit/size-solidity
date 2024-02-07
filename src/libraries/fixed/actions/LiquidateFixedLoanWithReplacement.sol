@@ -60,16 +60,17 @@ library LiquidateFixedLoanWithReplacement {
         emit Events.LiquidateFixedLoanWithReplacement(params.loanId, params.borrower, params.minimumCollateralRatio);
 
         FixedLoan storage fol = state._fixed.loans[params.loanId];
-        FixedLoan memory copy = state._fixed.loans[params.loanId];
+        FixedLoan memory folCopy = fol;
         BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
 
         uint256 liquidatorProfitCollateralAsset = state.executeLiquidateFixedLoan(
             LiquidateFixedLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
         );
 
-        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), copy.fol.dueDate);
-        uint256 amountOut = Math.mulDivDown(copy.faceValue(), PERCENT, PERCENT + rate);
-        uint256 liquidatorProfitBorrowAsset = copy.faceValue() - amountOut;
+        uint256 rate =
+            borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), folCopy.fol.dueDate);
+        uint256 amountOut = Math.mulDivDown(folCopy.faceValue(), PERCENT, PERCENT + rate);
+        uint256 liquidatorProfitBorrowAsset = folCopy.faceValue() - amountOut;
 
         fol.generic.borrower = params.borrower;
         fol.fol.startDate = block.timestamp;
@@ -77,7 +78,7 @@ library LiquidateFixedLoanWithReplacement {
         fol.fol.issuanceValue = amountOut;
         fol.fol.rate = rate;
 
-        state._fixed.debtToken.mint(params.borrower, state.getDebt(copy));
+        state._fixed.debtToken.mint(params.borrower, state.getDebt(folCopy));
         state.transferBorrowAToken(address(this), params.borrower, amountOut);
         state.transferBorrowAToken(address(this), state._general.feeRecipient, liquidatorProfitBorrowAsset);
 

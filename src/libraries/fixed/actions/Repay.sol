@@ -29,8 +29,8 @@ library Repay {
         if (msg.sender != loan.generic.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.generic.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < state.getDebt(loan)) {
-            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), state.getDebt(loan));
+        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue()) {
+            revert Errors.NOT_ENOUGH_FREE_CASH(state.borrowATokenBalanceOf(msg.sender), loan.faceValue());
         }
 
         // validate loanId
@@ -44,13 +44,11 @@ library Repay {
 
     function executeRepay(State storage state, RepayParams calldata params) external {
         FixedLoan storage fol = state._fixed.loans[params.loanId];
-        uint256 debt = state.getDebt(fol);
+        uint256 faceValue = fol.faceValue();
 
-        state.transferBorrowAToken(msg.sender, address(this), debt);
-
-        state.chargeRepayFee(fol, debt);
-        state._fixed.debtToken.burn(fol.generic.borrower, debt);
-        fol.fol.issuanceValue = 0;
+        state.transferBorrowAToken(msg.sender, address(this), faceValue);
+        state.chargeRepayFee(fol, faceValue);
+        state._fixed.debtToken.burn(fol.generic.borrower, faceValue);
         fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 
         emit Events.Repay(params.loanId);

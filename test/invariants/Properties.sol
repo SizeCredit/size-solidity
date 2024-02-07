@@ -13,9 +13,9 @@ import {RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     using FixedLoanLibrary for FixedLoan;
 
-    string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender in wad";
+    string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender";
 
-    string internal constant WITHDRAW_01 = "WITHDRAW_01: Withdraw deducts from the sender in wad";
+    string internal constant WITHDRAW_01 = "WITHDRAW_01: Withdraw deducts from the sender";
 
     string internal constant BORROW_01 = "BORROW_01: Borrow increases the borrower cash";
     string internal constant BORROW_02 = "BORROW_02: Borrow increases the number of loans";

@@ -66,6 +66,9 @@ library AccountingLibrary {
         state._fixed.collateralToken.transferFrom(
             fol.generic.borrower, state._general.feeRecipient, cappedRepayFeeCollateral
         );
+
+        fol.fol.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + fol.fol.rate);
+        state._fixed.debtToken.burn(fol.generic.borrower, repayFee);
     }
 
     // solhint-disable-next-line var-name-mixedcase

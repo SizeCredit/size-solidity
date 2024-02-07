@@ -44,9 +44,10 @@ contract LendAsMarketOrderTest is BaseTest {
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee, "z");
+        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(loan.faceValue(), faceValue + repayFee, "w");
+        assertEq(loan.faceValue(), faceValue);
+        assertEq(size.getDebt(loanId), faceValue + repayFee);
         assertEq(loan.fol.dueDate, dueDate);
         assertTrue(loan.isFOL());
     }

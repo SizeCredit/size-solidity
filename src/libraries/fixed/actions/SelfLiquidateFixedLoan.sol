@@ -69,12 +69,7 @@ library SelfLiquidateFixedLoan {
         state._fixed.collateralToken.transferFrom(fol.generic.borrower, msg.sender, assignedCollateral);
 
         state.reduceLoanCredit(params.loanId, credit);
-
         state.chargeRepayFee(fol, credit);
-        fol.fol.issuanceValue -= Math.mulDivDown(credit, PERCENT, PERCENT + fol.fol.rate);
         state._fixed.debtToken.burn(fol.generic.borrower, credit);
-        if (state.getDebt(fol) == 0) {
-            fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
-        }
     }
 }
