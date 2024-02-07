@@ -11,21 +11,18 @@ contract LiquidateFixedLoanScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
 
-        uint256 amount = 1e6;
-
-        /// USDC has 6 decimals
+        uint256 amount = 1e6; // USDC has 6 decimals
 
         Size sizeContract = Size(sizeContractAddress);
 
         /// LiquidateFixedLoanParams struct
-        LiquidateFixedLoanParams memory params = LiquidateFixedLoanParams({loanId: 0, minimumCollateralRatio: amount});
+        LiquidateFixedLoanParams memory params = LiquidateFixedLoanParams({
+            loanId: 0,
+            minimumCollateralRatio: amount
+        });
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.liquidateFixedLoan(params);
         vm.stopBroadcast();
     }
 }
-/* struct LiquidateFixedLoanParams {
-    uint256 loanId;
-    uint256 minimumCollateralRatio;
-} */

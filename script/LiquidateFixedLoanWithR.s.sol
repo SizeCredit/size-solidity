@@ -26,8 +26,4 @@ contract LiquidateFixedLoanWithRScript is Script {
         vm.stopBroadcast();
     }
 }
-/* struct LiquidateFixedLoanWithReplacementParams {
-    uint256 loanId;
-    address borrower;
-    uint256 minimumCollateralRatio;
-} */
+

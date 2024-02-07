@@ -8,24 +8,31 @@ contract CompensateScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
-        address usdcAddress = vm.envAddress("TOKEN_ADDRESS");
 
+        address LenderTest = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
+        address BorrowerTest = 0x979Af411D048b453E3334C95F392012B3BbD6215;
         uint256 amount = 1e6;
 
-        /// USDC has 6 decimals
-
+        address currentAddress = vm.addr(deployerPrivateKey);
         Size sizeContract = Size(sizeContractAddress);
-
+        uint256 repaidFixedLoanDebtAfter = sizeContract.getFixedLoan(2).debt;
         /// CompensateParams struct
-        CompensateParams memory params = CompensateParams({loanToRepayId: 1, loanToCompensateId: 1, amount: amount});
+        CompensateParams memory params = CompensateParams({
+            loanToRepayId: 2,
+            loanToCompensateId: 2,
+            amount: repaidFixedLoanDebtAfter
+        });
 
+        console.log(currentAddress);
+
+        address compensatedFixedLoanCreditAfter = sizeContract
+            .getFixedLoan(2)
+            .lender;
+        console.log(sizeContract.getFixedLoan(2).borrower);
+        //console.log(compensatedFixedLoanCreditAfter);
+        console.log(repaidFixedLoanDebtAfter);
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.compensate(params);
         vm.stopBroadcast();
     }
 }
-/* struct CompensateParams {
-    uint256 loanToRepayId;
-    uint256 loanToCompensateId;
-    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC)
-} */
