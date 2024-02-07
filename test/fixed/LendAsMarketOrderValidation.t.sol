@@ -27,7 +27,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
             LendAsMarketOrderParams({borrower: address(0), dueDate: dueDate, amount: 100e6, exactAmountIn: false})
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 10e6, 100e6));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, 10e6, 100e6));
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: alice, dueDate: dueDate, amount: 100e6, exactAmountIn: false})
         );
