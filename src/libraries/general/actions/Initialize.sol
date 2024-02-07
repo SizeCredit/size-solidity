@@ -22,8 +22,8 @@ struct InitializeGeneralParams {
     address owner;
     address priceFeed;
     address marketBorrowRateFeed;
-    address collateralAsset;
-    address borrowAsset;
+    address underlyingCollateralToken;
+    address underlyingBorrowToken;
     address feeRecipient;
     address variablePool;
 }
@@ -64,19 +64,19 @@ library Initialize {
         }
 
         // validate collateral asset
-        if (g.collateralAsset == address(0)) {
+        if (g.underlyingCollateralToken == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
         // validate borrow asset
-        if (g.borrowAsset == address(0)) {
+        if (g.underlyingBorrowToken == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
-        // validate collateralAssetCap
+        // validate underlyingCollateralTokenCap
         // N/A
 
-        // validate borrowAssetCap
+        // validate underlyingBorrowTokenCap
         // N/A
 
         // validate debtCap
@@ -151,20 +151,24 @@ library Initialize {
     function _executeInitializeGeneral(State storage state, InitializeGeneralParams memory g) internal {
         state._general.priceFeed = IPriceFeed(g.priceFeed);
         state._general.marketBorrowRateFeed = IMarketBorrowRateFeed(g.marketBorrowRateFeed);
-        state._general.collateralAsset = IERC20Metadata(g.collateralAsset);
-        state._general.borrowAsset = IERC20Metadata(g.borrowAsset);
+        state._general.underlyingCollateralToken = IERC20Metadata(g.underlyingCollateralToken);
+        state._general.underlyingBorrowToken = IERC20Metadata(g.underlyingBorrowToken);
         state._general.feeRecipient = g.feeRecipient;
         state._general.variablePool = IPool(g.variablePool);
     }
 
     function _executeInitializeFixed(State storage state, InitializeFixedParams memory f) internal {
         state._fixed.collateralToken = new NonTransferrableToken(
-            address(this), "Size Fixed ETH", "szETH", IERC20Metadata(state._general.collateralAsset).decimals()
+            address(this),
+            "Size Fixed ETH",
+            "szETH",
+            IERC20Metadata(state._general.underlyingCollateralToken).decimals()
         );
-        state._fixed.borrowAToken =
-            IAToken(state._general.variablePool.getReserveData(address(state._general.borrowAsset)).aTokenAddress);
+        state._fixed.borrowAToken = IAToken(
+            state._general.variablePool.getReserveData(address(state._general.underlyingBorrowToken)).aTokenAddress
+        );
         state._fixed.debtToken = new NonTransferrableToken(
-            address(this), "Size Debt", "szDebt", IERC20Metadata(state._general.borrowAsset).decimals()
+            address(this), "Size Debt", "szDebt", IERC20Metadata(state._general.underlyingBorrowToken).decimals()
         );
 
         state._fixed.crOpening = f.crOpening;

@@ -57,7 +57,7 @@ library LiquidateFixedLoan {
     ) private returns (uint256 liquidatorProfitCollateralToken) {
         uint256 assignedCollateral = state.getFOLAssignedCollateral(folCopy);
         uint256 debtBorrowTokenWad =
-            ConversionLibrary.amountToWad(folCopy.faceValue(), state._general.borrowAsset.decimals());
+            ConversionLibrary.amountToWad(folCopy.faceValue(), state._general.underlyingBorrowToken.decimals());
         uint256 debtInCollateralToken = Math.mulDivDown(
             debtBorrowTokenWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
         );

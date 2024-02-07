@@ -17,10 +17,9 @@ import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 struct General {
     IPriceFeed priceFeed;
     IMarketBorrowRateFeed marketBorrowRateFeed;
-    IERC20Metadata collateralAsset; // e.g. WETH
-    IERC20Metadata borrowAsset; // e.g. USDC
+    IERC20Metadata underlyingCollateralToken; // e.g. WETH
+    IERC20Metadata underlyingBorrowToken; // e.g. USDC
     IPool variablePool;
-    address insurance;
     address feeRecipient;
 }
 

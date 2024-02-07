@@ -35,26 +35,27 @@ library VariableLibrary {
     }
 
     function depositBorrowTokenToVariablePool(State storage state, address from, address to, uint256 amount) external {
-        IERC20Metadata borrowAsset = IERC20Metadata(state._general.borrowAsset);
+        IERC20Metadata underlyingBorrowToken = IERC20Metadata(state._general.underlyingBorrowToken);
 
-        borrowAsset.safeTransferFrom(from, address(this), amount);
+        underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
 
         Vault vaultTo = getVault(state, to);
 
-        borrowAsset.forceApprove(address(state._general.variablePool), amount);
-        state._general.variablePool.supply(address(borrowAsset), amount, address(vaultTo), 0);
+        underlyingBorrowToken.forceApprove(address(state._general.variablePool), amount);
+        state._general.variablePool.supply(address(underlyingBorrowToken), amount, address(vaultTo), 0);
     }
 
     function withdrawBorrowTokenFromVariablePool(State storage state, address from, address to, uint256 amount)
         external
     {
-        IERC20Metadata borrowAsset = IERC20Metadata(state._general.borrowAsset);
+        IERC20Metadata underlyingBorrowToken = IERC20Metadata(state._general.underlyingBorrowToken);
 
         Vault vaultFrom = getVault(state, from);
 
         // slither-disable-next-line unused-return
         vaultFrom.proxy(
-            address(state._general.variablePool), abi.encodeCall(IPool.withdraw, (address(borrowAsset), amount, to))
+            address(state._general.variablePool),
+            abi.encodeCall(IPool.withdraw, (address(underlyingBorrowToken), amount, to))
         );
     }
 
@@ -75,40 +76,40 @@ library VariableLibrary {
         uint256 collateralAmount,
         uint256 borrowAmount
     ) internal {
-        IERC20Metadata collateralAsset = IERC20Metadata(state._general.collateralAsset);
-        IERC20Metadata borrowAsset = IERC20Metadata(state._general.borrowAsset);
+        IERC20Metadata underlyingCollateralToken = IERC20Metadata(state._general.underlyingCollateralToken);
+        IERC20Metadata underlyingBorrowToken = IERC20Metadata(state._general.underlyingBorrowToken);
 
         Vault vaultFrom = getVault(state, from);
         Vault vaultTo = getVault(state, to);
 
-        // unwrap collateralToken (e.g. szETH) to collateralAsset (e.g. WETH) from `from` to `address(this)`
+        // unwrap collateralToken (e.g. szETH) to underlyingCollateralToken (e.g. WETH) from `from` to `address(this)`
         state.withdrawCollateralToken(from, address(this), collateralAmount);
 
         // supply collateral asset
-        state._general.collateralAsset.forceApprove(address(state._general.variablePool), collateralAmount);
-        state._general.variablePool.supply(address(collateralAsset), collateralAmount, address(vaultFrom), 0);
+        state._general.underlyingCollateralToken.forceApprove(address(state._general.variablePool), collateralAmount);
+        state._general.variablePool.supply(address(underlyingCollateralToken), collateralAmount, address(vaultFrom), 0);
 
         address[] memory targets = new address[](3);
         bytes[] memory data = new bytes[](3);
 
-        // set collateralAsset as collateral
+        // set underlyingCollateralToken as collateral
         targets[0] = address(state._general.variablePool);
-        data[0] = abi.encodeCall(IPool.setUserUseReserveAsCollateral, (address(collateralAsset), true));
+        data[0] = abi.encodeCall(IPool.setUserUseReserveAsCollateral, (address(underlyingCollateralToken), true));
 
         // borrow
         targets[1] = address(state._general.variablePool);
-        data[1] = abi.encodeCall(IPool.borrow, (address(borrowAsset), borrowAmount, 2, 0, address(vaultFrom)));
+        data[1] = abi.encodeCall(IPool.borrow, (address(underlyingBorrowToken), borrowAmount, 2, 0, address(vaultFrom)));
 
         // transfer to `address(this)`
-        targets[2] = address(state._general.borrowAsset);
+        targets[2] = address(state._general.underlyingBorrowToken);
         data[2] = abi.encodeCall(IERC20.transfer, (address(this), borrowAmount));
 
         // slither-disable-next-line unused-return
         vaultFrom.proxy(targets, data);
 
         // supply to `to`
-        borrowAsset.forceApprove(address(state._general.variablePool), borrowAmount);
-        state._general.variablePool.supply(address(borrowAsset), borrowAmount, address(vaultTo), 0);
+        underlyingBorrowToken.forceApprove(address(state._general.variablePool), borrowAmount);
+        state._general.variablePool.supply(address(underlyingBorrowToken), borrowAmount, address(vaultTo), 0);
     }
 
     function borrowATokenBalanceOf(State storage state, address account) external view returns (uint256) {
@@ -121,7 +122,7 @@ library VariableLibrary {
     }
 
     function borrowATokenLiquidityIndex(State storage state) public view returns (uint256) {
-        return state._general.variablePool.getReserveNormalizedIncome(address(state._general.borrowAsset));
+        return state._general.variablePool.getReserveNormalizedIncome(address(state._general.underlyingBorrowToken));
     }
 
     function moveFixedLoanToVariablePool(State storage state, FixedLoan memory folCopy)

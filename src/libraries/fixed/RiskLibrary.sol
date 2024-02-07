@@ -29,7 +29,7 @@ library RiskLibrary {
     function collateralRatio(State storage state, address account) public view returns (uint256) {
         uint256 collateral = state._fixed.collateralToken.balanceOf(account);
         uint256 debt = state._fixed.debtToken.balanceOf(account);
-        uint256 debtWad = ConversionLibrary.amountToWad(debt, state._general.borrowAsset.decimals());
+        uint256 debtWad = ConversionLibrary.amountToWad(debt, state._general.underlyingBorrowToken.decimals());
         uint256 price = state._general.priceFeed.getPrice();
 
         if (debt > 0) {
@@ -86,7 +86,7 @@ library RiskLibrary {
     }
 
     function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
-        uint256 faceValueWad = ConversionLibrary.amountToWad(faceValue, state._general.borrowAsset.decimals());
+        uint256 faceValueWad = ConversionLibrary.amountToWad(faceValue, state._general.underlyingBorrowToken.decimals());
         return Math.mulDivUp(faceValueWad, state._fixed.crOpening, state._general.priceFeed.getPrice());
     }
 }

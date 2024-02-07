@@ -300,7 +300,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
         );
     }
 
-    function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_lender_cannot_transfer_borrowAsset() public {
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_lender_cannot_transfer_underlyingBorrowToken()
+        public
+    {
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1e18);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);

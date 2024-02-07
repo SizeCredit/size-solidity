@@ -80,8 +80,8 @@ abstract contract SizeView is SizeStorage {
             owner: address(0), // N/A
             priceFeed: address(state._general.priceFeed),
             marketBorrowRateFeed: address(state._general.marketBorrowRateFeed),
-            collateralAsset: address(state._general.collateralAsset),
-            borrowAsset: address(state._general.borrowAsset),
+            underlyingCollateralToken: address(state._general.underlyingCollateralToken),
+            underlyingBorrowToken: address(state._general.underlyingBorrowToken),
             feeRecipient: state._general.feeRecipient,
             variablePool: address(state._general.variablePool)
         });

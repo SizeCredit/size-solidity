@@ -26,15 +26,15 @@ contract InitializeValidationTest is Test, BaseTest {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
         g.priceFeed = address(priceFeed);
 
-        g.collateralAsset = address(0);
+        g.underlyingCollateralToken = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        g.collateralAsset = address(weth);
+        g.underlyingCollateralToken = address(weth);
 
-        g.borrowAsset = address(0);
+        g.underlyingBorrowToken = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        g.borrowAsset = address(usdc);
+        g.underlyingBorrowToken = address(usdc);
 
         g.feeRecipient = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));

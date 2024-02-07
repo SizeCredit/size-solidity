@@ -55,7 +55,7 @@ library AccountingLibrary {
     function chargeRepayFee(State storage state, FixedLoan storage fol, uint256 repayAmount) internal {
         uint256 repayFee = partialRepayFee(state, fol, repayAmount);
 
-        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.underlyingBorrowToken.decimals());
         uint256 repayFeeCollateral =
             Math.mulDivUp(repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
 

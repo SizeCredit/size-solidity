@@ -43,8 +43,8 @@ abstract contract Deploy {
             owner: owner,
             priceFeed: address(priceFeed),
             marketBorrowRateFeed: address(marketBorrowRateFeed),
-            collateralAsset: address(weth),
-            borrowAsset: address(usdc),
+            underlyingCollateralToken: address(weth),
+            underlyingBorrowToken: address(usdc),
             feeRecipient: feeRecipient, // our multisig
             variablePool: address(variablePool) // SizeAave
         });
@@ -80,8 +80,8 @@ abstract contract Deploy {
             owner: _owner,
             priceFeed: address(priceFeed),
             marketBorrowRateFeed: address(marketBorrowRateFeed),
-            collateralAsset: _weth,
-            borrowAsset: _usdc,
+            underlyingCollateralToken: _weth,
+            underlyingBorrowToken: _usdc,
             feeRecipient: _owner,
             variablePool: address(variablePool)
         });
@@ -112,8 +112,8 @@ abstract contract Deploy {
             owner: _owner,
             priceFeed: address(priceFeed),
             marketBorrowRateFeed: address(marketBorrowRateFeed),
-            collateralAsset: _weth,
-            borrowAsset: _usdc,
+            underlyingCollateralToken: _weth,
+            underlyingBorrowToken: _usdc,
             feeRecipient: _owner,
             variablePool: address(variablePool)
         });

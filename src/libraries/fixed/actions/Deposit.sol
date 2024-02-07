@@ -28,8 +28,8 @@ library Deposit {
 
         // validate token
         if (
-            params.token != address(state._general.collateralAsset)
-                && params.token != address(state._general.borrowAsset)
+            params.token != address(state._general.underlyingCollateralToken)
+                && params.token != address(state._general.underlyingBorrowToken)
         ) {
             revert Errors.INVALID_TOKEN(params.token);
         }
@@ -46,7 +46,7 @@ library Deposit {
     }
 
     function executeDeposit(State storage state, DepositParams calldata params) public {
-        if (params.token == address(state._general.collateralAsset)) {
+        if (params.token == address(state._general.underlyingCollateralToken)) {
             state.depositCollateralToken(msg.sender, params.to, params.amount);
         } else {
             state.depositBorrowTokenToVariablePool(msg.sender, params.to, params.amount);
