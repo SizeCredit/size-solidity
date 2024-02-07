@@ -21,7 +21,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         _;
     }
 
-    function test_BORROW_02() public {
+    function test_CryticToFoundry_BORROW_02() public {
         deposit(address(0xdeadbeef), 0);
         lendAsLimitOrder(0, 10667226, 451124);
         borrowAsMarketOrder(
@@ -34,7 +34,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         );
     }
 
-    function test_REPAY_01() public {
+    function test_CryticToFoundry_REPAY_01() public {
         deposit(address(0x0), 0);
         deposit(address(0xdeadbeef), 91460117);
         borrowAsLimitOrder(4907270871702042502, 5894179853816920);
@@ -42,7 +42,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         repay(115792089237316195423570985008687907853269984665640564039457584007913129639935);
     }
 
-    function test_REPAY_01_2() public {
+    function test_CryticToFoundry_REPAY_01_2() public {
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
         lendAsLimitOrder(0, 3471498, 0);
@@ -57,7 +57,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         repay(0);
     }
 
-    function test_LOAN_05() public {
+    function test_CryticToFoundry_LOAN_05() public {
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
         lendAsLimitOrder(0, 4640020, 0);
@@ -73,7 +73,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         assertTrue(invariant_LOAN());
     }
 
-    function test_TOKENS_02() public {
+    function test_CryticToFoundry_TOKENS_02() public {
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
         borrowAsLimitOrder(916546381152797237939, 0);
@@ -86,7 +86,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         withdraw(address(0xdeadbeef), 13329553271505273202379607076657725967833385000643676496066523999450361133825);
     }
 
-    function test_LOAN_05_2() public {
+    function test_CryticToFoundry_LOAN_05_2() public {
         deposit(address(0xdeadbeef), 0);
         lendAsLimitOrder(0, 3621625, 0);
         deposit(address(0x0), 0);
@@ -103,7 +103,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         assertTrue(invariant_LOAN());
     }
 
-    function test_DEPOSIT_1() public {
+    function test_CryticToFoundry_DEPOSIT_1() public {
         deposit(address(0x0000000000000000000000000000000000002029), 1997);
         assertTrue(invariant_TOKENS_01());
     }
