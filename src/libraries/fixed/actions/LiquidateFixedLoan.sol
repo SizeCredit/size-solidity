@@ -6,7 +6,6 @@ import {Math} from "@src/libraries/Math.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 

@@ -2,12 +2,11 @@
 pragma solidity 0.8.24;
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {FeeLibrary} from "@src/libraries/fixed/FeeLibrary.sol";
 import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";

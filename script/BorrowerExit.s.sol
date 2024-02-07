@@ -18,10 +18,7 @@ contract BorrowerExitScript is Script {
         Size sizeContract = Size(sizeContractAddress);
 
         /// BorrowerExit struct
-        BorrowerExitParams memory params = BorrowerExitParams({
-            loanId: 0,
-            borrowerToExitTo: LenderTest
-        });
+        BorrowerExitParams memory params = BorrowerExitParams({loanId: 0, borrowerToExitTo: LenderTest});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.borrowerExit(params);

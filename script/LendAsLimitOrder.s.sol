@@ -3,8 +3,9 @@ pragma solidity ^0.8.20;
 
 import "../src/Size.sol";
 import "../src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import "forge-std/Script.sol";
+
 import "./TimestampHelper.sol";
+import "forge-std/Script.sol";
 
 contract LendAsLimitOrderScript is Script {
     function run() external {
@@ -30,16 +31,11 @@ contract LendAsLimitOrderScript is Script {
         marketRateMultipliers[0] = 1e18;
         marketRateMultipliers[1] = 1e18;
 
-        YieldCurve memory curveRelativeTime = YieldCurve({
-            timeBuckets: timeBuckets,
-            rates: rates,
-            marketRateMultipliers: marketRateMultipliers
-        });
+        YieldCurve memory curveRelativeTime =
+            YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
 
-        LendAsLimitOrderParams memory params = LendAsLimitOrderParams({
-            maxDueDate: maxDueDate,
-            curveRelativeTime: curveRelativeTime
-        });
+        LendAsLimitOrderParams memory params =
+            LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.lendAsLimitOrder(params);

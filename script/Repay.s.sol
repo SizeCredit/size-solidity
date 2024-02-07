@@ -12,13 +12,8 @@ contract RepayScript is Script {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         Size sizeContract = Size(sizeContractAddress);
 
-        uint256 repaidFixedLoan = sizeContract.getFixedLoan(0).debt;
-
         /// RepayParams struct
-        RepayParams memory params = RepayParams({
-            loanId: 0,
-            amount: repaidFixedLoan
-        });
+        RepayParams memory params = RepayParams({loanId: 0});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.repay(params);

@@ -3,8 +3,9 @@ pragma solidity ^0.8.20;
 
 import "../src/Size.sol";
 import "../src/libraries/fixed/YieldCurveLibrary.sol";
-import "forge-std/Script.sol";
+
 import "./TimestampHelper.sol";
+import "forge-std/Script.sol";
 
 contract BorrowMarketOrder is Script {
     function run() external {
@@ -27,10 +28,7 @@ contract BorrowMarketOrder is Script {
             exactAmountIn: false,
             virtualCollateralFixedLoanIds: new uint256[](0)
         });
-        console.log(
-            "borrower USDC",
-            sizeContract.getUserView(BorrowerTest).borrowAmount
-        );
+        console.log("borrower USDC", sizeContract.getUserView(BorrowerTest).borrowAmount);
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.borrowAsMarketOrder(params);
         vm.stopBroadcast();
