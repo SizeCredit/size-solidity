@@ -109,13 +109,13 @@ contract RepayTest is BaseTest {
         _repay(bob, loanId);
     }
 
-    function test_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAsset() internal {}
+    function test_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAToken() internal {}
 
-    function testFuzz_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAsset(
+    function testFuzz_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAToken(
         uint256 borrowAmount,
         uint256 repayAmount
     ) public {
-        borrowAmount = bound(borrowAmount, size.fixedConfig().minimumCreditBorrowAsset, 100e6);
+        borrowAmount = bound(borrowAmount, size.config().minimumCreditBorrowAToken, 100e6);
         repayAmount = bound(repayAmount, 0, borrowAmount);
 
         _setPrice(1e18);
@@ -126,7 +126,7 @@ contract RepayTest is BaseTest {
 
         vm.prank(bob);
         try size.repay(RepayParams({loanId: loanId})) {} catch {}
-        assertGe(size.getCredit(loanId), size.fixedConfig().minimumCreditBorrowAsset);
+        assertGe(size.getCredit(loanId), size.config().minimumCreditBorrowAToken);
     }
 
     function test_Repay_repay_pays_repayFeeAPR() private {}

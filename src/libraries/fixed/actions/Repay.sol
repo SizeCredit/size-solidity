@@ -23,7 +23,7 @@ library Repay {
     using AccountingLibrary for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
-        Loan storage loan = state._fixed.loans[params.loanId];
+        Loan storage loan = state.data.loans[params.loanId];
 
         // validate msg.sender
         if (msg.sender != loan.generic.borrower) {
@@ -43,12 +43,12 @@ library Repay {
     }
 
     function executeRepay(State storage state, RepayParams calldata params) external {
-        Loan storage fol = state._fixed.loans[params.loanId];
+        Loan storage fol = state.data.loans[params.loanId];
         uint256 faceValue = fol.faceValue();
 
         state.transferBorrowAToken(msg.sender, address(this), faceValue);
         state.chargeRepayFee(fol, faceValue);
-        state._fixed.debtToken.burn(fol.generic.borrower, faceValue);
+        state.data.debtToken.burn(fol.generic.borrower, faceValue);
         fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 
         emit Events.Repay(params.loanId);

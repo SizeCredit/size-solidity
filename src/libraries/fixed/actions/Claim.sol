@@ -23,7 +23,7 @@ library Claim {
     using AccountingLibrary for State;
 
     function validateClaim(State storage state, ClaimParams calldata params) external view {
-        Loan storage loan = state._fixed.loans[params.loanId];
+        Loan storage loan = state.data.loans[params.loanId];
 
         // validate msg.sender
 
@@ -34,7 +34,7 @@ library Claim {
     }
 
     function executeClaim(State storage state, ClaimParams calldata params) external {
-        Loan storage loan = state._fixed.loans[params.loanId];
+        Loan storage loan = state.data.loans[params.loanId];
         Loan storage fol = state.getFOL(loan);
 
         uint256 claimAmount =

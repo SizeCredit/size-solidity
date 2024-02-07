@@ -20,16 +20,16 @@ library UpdateConfig {
 
     function executeUpdateConfig(State storage state, UpdateConfigParams memory params) external {
         // TODO validate params
-        if (params.key == "minimumCreditBorrowAsset") {
-            state._fixed.minimumCreditBorrowAsset = params.value;
+        if (params.key == "minimumCreditBorrowAToken") {
+            state.config.minimumCreditBorrowAToken = params.value;
         } else if (params.key == "collateralTokenCap") {
-            state._fixed.collateralTokenCap = params.value;
+            state.config.collateralTokenCap = params.value;
         } else if (params.key == "borrowATokenCap") {
-            state._fixed.borrowATokenCap = params.value;
+            state.config.borrowATokenCap = params.value;
         } else if (params.key == "debtTokenCap") {
-            state._fixed.debtTokenCap = params.value;
+            state.config.debtTokenCap = params.value;
         } else if (params.key == "repayFeeAPR") {
-            state._fixed.repayFeeAPR = params.value;
+            state.config.repayFeeAPR = params.value;
         } else {
             revert Errors.INVALID_KEY(params.key);
         }

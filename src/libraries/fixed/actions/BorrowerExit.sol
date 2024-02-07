@@ -31,11 +31,11 @@ library BorrowerExit {
     using AccountingLibrary for State;
 
     function validateBorrowerExit(State storage state, BorrowerExitParams calldata params) external view {
-        BorrowOffer memory borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
-        Loan memory fol = state._fixed.loans[params.loanId];
+        BorrowOffer memory borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
+        Loan memory fol = state.data.loans[params.loanId];
         uint256 dueDate = fol.fol.dueDate;
 
-        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
+        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
         uint256 amountIn = Math.mulDivUp(state.getDebt(fol), PERCENT, PERCENT + rate);
 
         // validate msg.sender
@@ -60,16 +60,16 @@ library BorrowerExit {
     function executeBorrowerExit(State storage state, BorrowerExitParams calldata params) external {
         emit Events.BorrowerExit(params.loanId, params.borrowerToExitTo);
 
-        BorrowOffer storage borrowOffer = state._fixed.users[params.borrowerToExitTo].borrowOffer;
-        Loan storage fol = state._fixed.loans[params.loanId];
+        BorrowOffer storage borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
+        Loan storage fol = state.data.loans[params.loanId];
 
-        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), fol.fol.dueDate);
+        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), fol.fol.dueDate);
         uint256 debt = state.getDebt(fol);
         uint256 amountIn = Math.mulDivUp(debt, PERCENT, PERCENT + rate);
 
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
-        state.transferBorrowAToken(msg.sender, state._general.feeRecipient, state._fixed.earlyBorrowerExitFee);
-        state._fixed.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, debt);
+        state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee);
+        state.data.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, debt);
         fol.generic.borrower = params.borrowerToExitTo;
         fol.fol.startDate = block.timestamp;
     }

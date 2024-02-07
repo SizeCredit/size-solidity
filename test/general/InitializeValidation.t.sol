@@ -16,68 +16,78 @@ contract InitializeValidationTest is Test, BaseTest {
     function test_Initialize_validation() public {
         Size implementation = new Size();
 
-        g.owner = address(0);
+        address owner = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        g.owner = address(this);
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        owner = address(this);
 
-        g.priceFeed = address(0);
+        c.feeRecipient = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        g.priceFeed = address(priceFeed);
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        c.feeRecipient = feeRecipient;
 
-        g.underlyingCollateralToken = address(0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        g.underlyingCollateralToken = address(weth);
-
-        g.underlyingBorrowToken = address(0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        g.underlyingBorrowToken = address(usdc);
-
-        g.feeRecipient = address(0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        g.feeRecipient = feeRecipient;
-
-        f.crOpening = 0.5e18;
+        c.crOpening = 0.5e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 0.5e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        f.crOpening = 1.5e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        c.crOpening = 1.5e18;
 
-        f.crLiquidation = 0.3e18;
+        c.crLiquidation = 0.3e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 0.3e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        f.crLiquidation = 1.3e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        c.crLiquidation = 1.3e18;
 
-        f.crLiquidation = 1.5e18;
-        f.crOpening = 1.3e18;
+        c.crLiquidation = 1.5e18;
+        c.crOpening = 1.3e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO.selector, 1.3e18, 1.5e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        f.crLiquidation = 1.3e18;
-        f.crOpening = 1.5e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        c.crLiquidation = 1.3e18;
+        c.crOpening = 1.5e18;
 
-        f.collateralSplitLiquidatorPercent = 1.1e18;
+        c.collateralSplitLiquidatorPercent = 1.1e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        f.collateralSplitLiquidatorPercent = 0.3e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        c.collateralSplitLiquidatorPercent = 0.3e18;
 
-        f.collateralSplitProtocolPercent = 1.2e18;
+        c.collateralSplitProtocolPercent = 1.2e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        f.collateralSplitProtocolPercent = 0.1e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        c.collateralSplitProtocolPercent = 0.1e18;
 
-        f.collateralSplitLiquidatorPercent = 0.6e18;
-        f.collateralSplitProtocolPercent = 0.6e18;
+        c.collateralSplitLiquidatorPercent = 0.6e18;
+        c.collateralSplitProtocolPercent = 0.6e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        f.collateralSplitLiquidatorPercent = 0.3e18;
-        f.collateralSplitProtocolPercent = 0.1e18;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        c.collateralSplitLiquidatorPercent = 0.3e18;
+        c.collateralSplitProtocolPercent = 0.1e18;
 
-        f.minimumCreditBorrowAsset = 0;
+        c.minimumCreditBorrowAToken = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (g, f, v)));
-        f.minimumCreditBorrowAsset = 5e6;
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        c.minimumCreditBorrowAToken = 5e6;
+
+        o.priceFeed = address(0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        o.priceFeed = address(priceFeed);
+
+        o.marketBorrowRateFeed = address(0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        o.marketBorrowRateFeed = address(marketBorrowRateFeed);
+
+        d.underlyingCollateralToken = address(0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        d.underlyingCollateralToken = address(weth);
+
+        d.underlyingBorrowToken = address(0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        d.underlyingBorrowToken = address(usdc);
+
+        d.variablePool = address(0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        d.variablePool = address(variablePool);
     }
 }

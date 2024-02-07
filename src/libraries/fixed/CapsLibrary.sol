@@ -6,24 +6,24 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 library CapsLibrary {
     function validateCollateralTokenCap(State storage state) external view {
-        if (state._fixed.collateralToken.totalSupply() > state._fixed.collateralTokenCap) {
+        if (state.data.collateralToken.totalSupply() > state.config.collateralTokenCap) {
             revert Errors.COLLATERAL_TOKEN_CAP_EXCEEDED(
-                state._fixed.collateralTokenCap, state._fixed.collateralToken.totalSupply()
+                state.config.collateralTokenCap, state.data.collateralToken.totalSupply()
             );
         }
     }
 
     function validateBorrowATokenCap(State storage state) external view {
-        if (state._fixed.borrowAToken.totalSupply() > state._fixed.borrowATokenCap) {
+        if (state.data.borrowAToken.totalSupply() > state.config.borrowATokenCap) {
             revert Errors.BORROW_ATOKEN_CAP_EXCEEDED(
-                state._fixed.borrowATokenCap, state._fixed.borrowAToken.totalSupply()
+                state.config.borrowATokenCap, state.data.borrowAToken.totalSupply()
             );
         }
     }
 
     function validateDebtTokenCap(State storage state) external view {
-        if (state._fixed.debtToken.totalSupply() > state._fixed.debtTokenCap) {
-            revert Errors.DEBT_TOKEN_CAP_EXCEEDED(state._fixed.debtTokenCap, state._fixed.debtToken.totalSupply());
+        if (state.data.debtToken.totalSupply() > state.config.debtTokenCap) {
+            revert Errors.DEBT_TOKEN_CAP_EXCEEDED(state.config.debtTokenCap, state.data.debtToken.totalSupply());
         }
     }
 }

@@ -28,14 +28,13 @@ library SelfLiquidateLoan {
     using RiskLibrary for State;
 
     function validateSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params) external view {
-        Loan storage loan = state._fixed.loans[params.loanId];
+        Loan storage loan = state.data.loans[params.loanId];
         Loan storage fol = state.getFOL(loan);
 
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
-        uint256 debtWad =
-            ConversionLibrary.amountToWad(state.getDebt(fol), state._general.underlyingBorrowToken.decimals());
+        uint256 debtWad = ConversionLibrary.amountToWad(state.getDebt(fol), state.data.underlyingBorrowToken.decimals());
         uint256 debtCollateral =
-            Math.mulDivDown(debtWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
+            Math.mulDivDown(debtWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice());
 
         // validate msg.sender
         if (msg.sender != loan.generic.lender) {
@@ -56,16 +55,16 @@ library SelfLiquidateLoan {
     function executeSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params) external {
         emit Events.SelfLiquidateLoan(params.loanId);
 
-        Loan storage loan = state._fixed.loans[params.loanId];
+        Loan storage loan = state.data.loans[params.loanId];
         Loan storage fol = state.getFOL(loan);
 
         uint256 credit = loan.generic.credit;
 
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
-        state._fixed.collateralToken.transferFrom(fol.generic.borrower, msg.sender, assignedCollateral);
+        state.data.collateralToken.transferFrom(fol.generic.borrower, msg.sender, assignedCollateral);
 
         state.reduceLoanCredit(params.loanId, credit);
         state.chargeRepayFee(fol, credit);
-        state._fixed.debtToken.burn(fol.generic.borrower, credit);
+        state.data.debtToken.burn(fol.generic.borrower, credit);
     }
 }

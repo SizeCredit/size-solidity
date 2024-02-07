@@ -30,7 +30,7 @@ contract LiquidateLoanTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtWad = ConversionLibrary.amountToWad(debt, usdc.decimals());
-        uint256 debtOpening = Math.mulDivUp(debtWad, size.fixedConfig().crOpening, PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debtWad, size.config().crOpening, PERCENT);
         uint256 lock = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         // nothing is locked anymore on v2
         lock = 0;
@@ -64,26 +64,23 @@ contract LiquidateLoanTest is BaseTest {
         assertEq(
             _after.feeRecipient.collateralAmount,
             _before.feeRecipient.collateralAmount
-                + Math.mulDivDown(collateralRemainder, size.fixedConfig().collateralSplitProtocolPercent, PERCENT)
+                + Math.mulDivDown(collateralRemainder, size.config().collateralSplitProtocolPercent, PERCENT)
         );
-        uint256 collateralPremiumToBorrower = PERCENT - size.fixedConfig().collateralSplitProtocolPercent
-            - size.fixedConfig().collateralSplitLiquidatorPercent;
+        uint256 collateralPremiumToBorrower =
+            PERCENT - size.config().collateralSplitProtocolPercent - size.config().collateralSplitLiquidatorPercent;
         assertEq(
             _after.bob.collateralAmount,
             _before.bob.collateralAmount - (debtWad * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
-                    (
-                        size.fixedConfig().collateralSplitProtocolPercent
-                            + size.fixedConfig().collateralSplitLiquidatorPercent
-                    ),
+                    (size.config().collateralSplitProtocolPercent + size.config().collateralSplitLiquidatorPercent),
                     PERCENT
                 ),
             _before.bob.collateralAmount - (debtWad * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
         uint256 liquidatorProfitAmount = (debtWad * 5)
-            + Math.mulDivDown(collateralRemainder, size.fixedConfig().collateralSplitLiquidatorPercent, PERCENT);
+            + Math.mulDivDown(collateralRemainder, size.config().collateralSplitLiquidatorPercent, PERCENT);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount + liquidatorProfitAmount);
         assertEq(liquidatorProfit, liquidatorProfitAmount);
     }
@@ -195,7 +192,7 @@ contract LiquidateLoanTest is BaseTest {
         uint256 loansBefore = size.activeLoans();
         Loan memory loanBefore = size.getLoan(loanId);
         assertGt(size.getDebt(loanId), 0);
-        uint256 variablePoolWETHBefore = weth.balanceOf(address(size.generalConfig().variablePool));
+        uint256 variablePoolWETHBefore = weth.balanceOf(address(size.data().variablePool));
 
         uint256 assignedCollateralAfterFee = Math.mulDivDown(
             _before.bob.collateralAmount,
@@ -211,16 +208,16 @@ contract LiquidateLoanTest is BaseTest {
 
         Vars memory _after = _state();
         uint256 loansAfter = size.activeLoans();
-        uint256 variablePoolWETHAfter = weth.balanceOf(address(size.generalConfig().variablePool));
+        uint256 variablePoolWETHAfter = weth.balanceOf(address(size.data().variablePool));
 
         assertEq(_after.alice, _before.alice);
         assertEq(loansBefore, loansAfter);
         assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - assignedCollateralAfterFee);
-        assertGt(size.variableConfig().collateralOverdueTransferFee, 0);
+        assertGt(size.config().collateralOverdueTransferFee, 0);
         assertEq(_after.feeRecipient.collateralAmount, _before.feeRecipient.collateralAmount + repayFeeCollateral);
         assertEq(
             variablePoolWETHAfter,
-            variablePoolWETHBefore + assignedCollateralAfterFee - size.variableConfig().collateralOverdueTransferFee
+            variablePoolWETHBefore + assignedCollateralAfterFee - size.config().collateralOverdueTransferFee
                 - repayFeeCollateral
         );
         assertEq(size.getDebt(loanId), 0);

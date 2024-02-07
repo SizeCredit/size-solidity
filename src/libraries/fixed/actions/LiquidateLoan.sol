@@ -31,7 +31,7 @@ library LiquidateLoan {
     using AccountingLibrary for State;
 
     function validateLiquidateLoan(State storage state, LiquidateLoanParams calldata params) external view {
-        Loan storage loan = state._fixed.loans[params.loanId];
+        Loan storage loan = state.data.loans[params.loanId];
 
         // validate msg.sender
 
@@ -57,9 +57,9 @@ library LiquidateLoan {
     ) private returns (uint256 liquidatorProfitCollateralToken) {
         uint256 assignedCollateral = state.getFOLAssignedCollateral(folCopy);
         uint256 debtBorrowTokenWad =
-            ConversionLibrary.amountToWad(folCopy.faceValue(), state._general.underlyingBorrowToken.decimals());
+            ConversionLibrary.amountToWad(folCopy.faceValue(), state.data.underlyingBorrowToken.decimals());
         uint256 debtInCollateralToken = Math.mulDivDown(
-            debtBorrowTokenWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice()
+            debtBorrowTokenWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice()
         );
 
         // CR > 100%
@@ -71,13 +71,13 @@ library LiquidateLoan {
                 uint256 collateralRemainder = assignedCollateral - debtInCollateralToken;
 
                 uint256 collateralRemainderToLiquidator =
-                    Math.mulDivDown(collateralRemainder, state._fixed.collateralSplitLiquidatorPercent, PERCENT);
+                    Math.mulDivDown(collateralRemainder, state.config.collateralSplitLiquidatorPercent, PERCENT);
                 uint256 collateralRemainderToProtocol =
-                    Math.mulDivDown(collateralRemainder, state._fixed.collateralSplitProtocolPercent, PERCENT);
+                    Math.mulDivDown(collateralRemainder, state.config.collateralSplitProtocolPercent, PERCENT);
 
                 liquidatorProfitCollateralToken += collateralRemainderToLiquidator;
-                state._fixed.collateralToken.transferFrom(
-                    folCopy.generic.borrower, state._general.feeRecipient, collateralRemainderToProtocol
+                state.data.collateralToken.transferFrom(
+                    folCopy.generic.borrower, state.config.feeRecipient, collateralRemainderToProtocol
                 );
             }
             // CR <= 100%
@@ -86,7 +86,7 @@ library LiquidateLoan {
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 
-        state._fixed.collateralToken.transferFrom(folCopy.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
+        state.data.collateralToken.transferFrom(folCopy.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
         state.transferBorrowAToken(msg.sender, address(this), folCopy.faceValue());
     }
 
@@ -101,10 +101,10 @@ library LiquidateLoan {
             // case 2b: the loan is overdue and cannot be moved to the variable pool
         } catch {
             emit Events.LiquidateLoanOverdueNoSplitRemainder(params.loanId);
-            liquidatorProfitCollateralToken = _executeLiquidateLoanTakeCollateral(state, folCopy, false)
-                + state._variable.collateralOverdueTransferFee;
-            state._fixed.collateralToken.transferFrom(
-                folCopy.generic.borrower, msg.sender, state._variable.collateralOverdueTransferFee
+            liquidatorProfitCollateralToken =
+                _executeLiquidateLoanTakeCollateral(state, folCopy, false) + state.config.collateralOverdueTransferFee;
+            state.data.collateralToken.transferFrom(
+                folCopy.generic.borrower, msg.sender, state.config.collateralOverdueTransferFee
             );
         }
     }
@@ -113,7 +113,7 @@ library LiquidateLoan {
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
-        Loan storage fol = state._fixed.loans[params.loanId];
+        Loan storage fol = state.data.loans[params.loanId];
         Loan memory folCopy = fol;
         LoanStatus loanStatus = state.getLoanStatus(fol);
         uint256 collateralRatio = state.collateralRatio(fol.generic.borrower);
@@ -123,7 +123,7 @@ library LiquidateLoan {
         state.chargeRepayFee(fol, fol.faceValue());
 
         // case 1a: the user is liquidatable profitably
-        if (PERCENT <= collateralRatio && collateralRatio < state._fixed.crLiquidation) {
+        if (PERCENT <= collateralRatio && collateralRatio < state.config.crLiquidation) {
             emit Events.LiquidateLoanUserLiquidatableProfitably(params.loanId);
             liquidatorProfitCollateralToken = _executeLiquidateLoanTakeCollateral(state, folCopy, true);
             // case 1b: the user is liquidatable unprofitably
@@ -133,7 +133,7 @@ library LiquidateLoan {
                 _executeLiquidateLoanTakeCollateral(state, folCopy, false /* this parameter should not matter */ );
             // case 2: the loan is overdue
         } else {
-            // collateralRatio > state._fixed.crLiquidation
+            // collateralRatio > state.config.crLiquidation
             if (loanStatus == LoanStatus.OVERDUE) {
                 liquidatorProfitCollateralToken = _executeLiquidateLoanOverdue(state, params, folCopy);
                 // loan is ACTIVE
@@ -143,7 +143,7 @@ library LiquidateLoan {
             }
         }
 
-        state._fixed.debtToken.burn(fol.generic.borrower, folCopy.faceValue());
+        state.data.debtToken.burn(fol.generic.borrower, folCopy.faceValue());
         fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
     }
 }

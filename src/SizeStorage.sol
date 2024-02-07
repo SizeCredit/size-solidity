@@ -8,49 +8,51 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
+import {Vault} from "@src/proxy/Vault.sol";
 
 import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 // NOTE changing any of these structs' order or variables may change the storage layout
-struct General {
-    IPriceFeed priceFeed;
-    IMarketBorrowRateFeed marketBorrowRateFeed;
-    IERC20Metadata underlyingCollateralToken; // e.g. WETH
-    IERC20Metadata underlyingBorrowToken; // e.g. USDC
-    IPool variablePool;
-    address feeRecipient;
-}
 
-struct Fixed {
-    mapping(address => User) users;
-    Loan[] loans;
+struct Config {
     uint256 crOpening;
     uint256 crLiquidation;
-    uint256 minimumCreditBorrowAsset;
+    uint256 minimumCreditBorrowAToken;
     uint256 collateralSplitLiquidatorPercent;
     uint256 collateralSplitProtocolPercent;
-    NonTransferrableToken collateralToken; // e.g. szWETH
-    IAToken borrowAToken; // e.g. aszUSDC
-    NonTransferrableToken debtToken; // e.g. szDebt
     uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
     uint256 repayFeeAPR;
     uint256 earlyLenderExitFee;
     uint256 earlyBorrowerExitFee;
+    uint256 collateralOverdueTransferFee;
+    address feeRecipient;
 }
 
-struct Variable {
-    address vaultImplementation;
-    uint256 collateralOverdueTransferFee;
+struct Oracle {
+    IPriceFeed priceFeed;
+    IMarketBorrowRateFeed marketBorrowRateFeed;
+}
+
+struct Data {
+    mapping(address => User) users;
+    Loan[] loans;
+    IERC20Metadata underlyingCollateralToken; // e.g. WETH
+    IERC20Metadata underlyingBorrowToken; // e.g. USDC
+    NonTransferrableToken collateralToken; // e.g. szWETH
+    IAToken borrowAToken; // e.g. aszUSDC
+    NonTransferrableToken debtToken; // e.g. szDebt
+    IPool variablePool;
+    Vault vaultImplementation;
 }
 
 struct State {
-    General _general;
-    Fixed _fixed;
-    Variable _variable;
+    Config config;
+    Oracle oracle;
+    Data data;
 }
 
 abstract contract SizeStorage {

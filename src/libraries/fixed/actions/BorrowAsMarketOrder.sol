@@ -38,7 +38,7 @@ library BorrowAsMarketOrder {
     using AccountingLibrary for State;
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
-        User memory lenderUser = state._fixed.users[params.lender];
+        User memory lenderUser = state.data.users[params.lender];
         LoanOffer memory loanOffer = lenderUser.loanOffer;
 
         // validate msg.sender
@@ -67,7 +67,7 @@ library BorrowAsMarketOrder {
         // validate params.receivableLoanIds
         for (uint256 i = 0; i < params.receivableLoanIds.length; ++i) {
             uint256 loanId = params.receivableLoanIds[i];
-            Loan storage loan = state._fixed.loans[loanId];
+            Loan storage loan = state.data.loans[loanId];
             Loan storage fol = state.getFOL(loan);
 
             if (msg.sender != loan.generic.lender) {
@@ -99,17 +99,17 @@ library BorrowAsMarketOrder {
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
-        User storage lenderUser = state._fixed.users[params.lender];
+        User storage lenderUser = state.data.users[params.lender];
 
         LoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        uint256 rate = loanOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
 
         amountOutLeft = params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, PERCENT + rate) : params.amount;
 
         for (uint256 i = 0; i < params.receivableLoanIds.length; ++i) {
             uint256 loanId = params.receivableLoanIds[i];
-            Loan memory loan = state._fixed.loans[loanId];
+            Loan memory loan = state.data.loans[loanId];
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, PERCENT + rate, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
@@ -119,7 +119,7 @@ library BorrowAsMarketOrder {
             }
 
             // the lender doesn't have enought credit to exit
-            if (deltaAmountIn < state._fixed.minimumCreditBorrowAsset) {
+            if (deltaAmountIn < state.config.minimumCreditBorrowAToken) {
                 continue;
             }
             // full amount borrowed
@@ -129,7 +129,7 @@ library BorrowAsMarketOrder {
 
             // slither-disable-next-line unused-return
             state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, credit: deltaAmountIn});
-            state.transferBorrowAToken(msg.sender, state._general.feeRecipient, state._fixed.earlyLenderExitFee);
+            state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyLenderExitFee);
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
             amountOutLeft -= deltaAmountOut;
         }
@@ -144,11 +144,11 @@ library BorrowAsMarketOrder {
             return;
         }
 
-        User storage lenderUser = state._fixed.users[params.lender];
+        User storage lenderUser = state.data.users[params.lender];
 
         LoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        uint256 rate = loanOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 issuanceValue = params.amount;
 
         Loan memory fol = state.createFOL({
@@ -158,7 +158,7 @@ library BorrowAsMarketOrder {
             rate: rate,
             dueDate: params.dueDate
         });
-        state._fixed.debtToken.mint(msg.sender, state.getDebt(fol));
+        state.data.debtToken.mint(msg.sender, state.getDebt(fol));
         state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
     }
 }

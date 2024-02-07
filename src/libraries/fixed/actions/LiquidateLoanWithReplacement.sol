@@ -34,8 +34,8 @@ library LiquidateLoanWithReplacement {
         State storage state,
         LiquidateLoanWithReplacementParams calldata params
     ) external view {
-        Loan storage loan = state._fixed.loans[params.loanId];
-        BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
+        Loan storage loan = state.data.loans[params.loanId];
+        BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
         // validate liquidateLoan
         state.validateLiquidateLoan(
@@ -59,16 +59,15 @@ library LiquidateLoanWithReplacement {
     ) external returns (uint256, uint256) {
         emit Events.LiquidateLoanWithReplacement(params.loanId, params.borrower, params.minimumCollateralRatio);
 
-        Loan storage fol = state._fixed.loans[params.loanId];
+        Loan storage fol = state.data.loans[params.loanId];
         Loan memory folCopy = fol;
-        BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
+        BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
         uint256 liquidatorProfitCollateralAsset = state.executeLiquidateLoan(
             LiquidateLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
         );
 
-        uint256 rate =
-            borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), folCopy.fol.dueDate);
+        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), folCopy.fol.dueDate);
         uint256 amountOut = Math.mulDivDown(folCopy.faceValue(), PERCENT, PERCENT + rate);
         uint256 liquidatorProfitBorrowAsset = folCopy.faceValue() - amountOut;
 
@@ -78,9 +77,9 @@ library LiquidateLoanWithReplacement {
         fol.fol.issuanceValue = amountOut;
         fol.fol.rate = rate;
 
-        state._fixed.debtToken.mint(params.borrower, state.getDebt(folCopy));
+        state.data.debtToken.mint(params.borrower, state.getDebt(folCopy));
         state.transferBorrowAToken(address(this), params.borrower, amountOut);
-        state.transferBorrowAToken(address(this), state._general.feeRecipient, liquidatorProfitBorrowAsset);
+        state.transferBorrowAToken(address(this), state.config.feeRecipient, liquidatorProfitBorrowAsset);
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

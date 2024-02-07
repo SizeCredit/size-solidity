@@ -66,11 +66,11 @@ library LoanLibrary {
     }
 
     function getFOL(State storage state, Loan storage loan) public view returns (Loan storage) {
-        return isFOL(loan) ? loan : state._fixed.loans[loan.sol.folId];
+        return isFOL(loan) ? loan : state.data.loans[loan.sol.folId];
     }
 
     function getFOLId(State storage state, uint256 loanId) public view returns (uint256) {
-        Loan storage loan = state._fixed.loans[loanId];
+        Loan storage loan = state.data.loans[loanId];
         return isFOL(loan) ? loanId : loan.sol.folId;
     }
 
@@ -99,8 +99,8 @@ library LoanLibrary {
     function getFOLAssignedCollateral(State storage state, Loan memory fol) public view returns (uint256) {
         if (!isFOL(fol)) revert Errors.NOT_SUPPORTED();
 
-        uint256 debt = state._fixed.debtToken.balanceOf(fol.generic.borrower);
-        uint256 collateral = state._fixed.collateralToken.balanceOf(fol.generic.borrower);
+        uint256 debt = state.data.debtToken.balanceOf(fol.generic.borrower);
+        uint256 collateral = state.data.collateralToken.balanceOf(fol.generic.borrower);
 
         if (debt > 0) {
             return Math.mulDivDown(collateral, faceValue(fol), debt);
@@ -111,7 +111,7 @@ library LoanLibrary {
 
     // assumes fees are already paid
     function getProRataAssignedCollateral(State storage state, uint256 loanId) public view returns (uint256) {
-        Loan storage loan = state._fixed.loans[loanId];
+        Loan storage loan = state.data.loans[loanId];
         Loan storage fol = getFOL(state, loan);
         uint256 loanCredit = loan.generic.credit;
         uint256 folCollateral = getFOLAssignedCollateral(state, fol);

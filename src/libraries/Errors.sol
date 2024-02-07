@@ -35,8 +35,8 @@ library Errors {
     error REPAYER_IS_NOT_BORROWER(address repayer, address borrower);
 
     error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(uint256 balance, uint256 required);
-    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAsset);
-    error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAsset);
+    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAToken);
+    error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAToken);
 
     error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
     error ONLY_FOL_CAN_BE_COMPENSATED(uint256 loanId);

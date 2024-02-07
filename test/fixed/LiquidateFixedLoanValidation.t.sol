@@ -11,7 +11,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract LiquidateLoanValidationTest is BaseTest {
     function test_LiquidateLoan_validation() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);

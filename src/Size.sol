@@ -10,9 +10,9 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 
 import {
     Initialize,
-    InitializeFixedParams,
-    InitializeGeneralParams,
-    InitializeVariableParams
+    InitializeConfigParams,
+    InitializeDataParams,
+    InitializeOracleParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
@@ -74,8 +74,8 @@ contract Size is
     using RiskLibrary for State;
     using CapsLibrary for State;
 
-    bytes32 public constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+    bytes32 public constant KEEPER_ROLE = "KEEPER_ROLE";
+    bytes32 public constant PAUSER_ROLE = "PAUSER_ROLE";
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -83,19 +83,22 @@ contract Size is
     }
 
     function initialize(
-        InitializeGeneralParams calldata g,
-        InitializeFixedParams calldata f,
-        InitializeVariableParams calldata v
+        address owner,
+        InitializeConfigParams calldata c,
+        InitializeOracleParams calldata o,
+        InitializeDataParams calldata d
     ) external initializer {
-        state.validateInitialize(g, f, v);
+        state.validateInitialize(owner, c, o, d);
 
         __AccessControl_init();
         __Pausable_init();
         __Multicall_init();
         __UUPSUpgradeable_init();
 
-        state.executeInitialize(g, f, v);
-        _grantRole(DEFAULT_ADMIN_ROLE, g.owner);
+        state.executeInitialize(c, o, d);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+        _grantRole(PAUSER_ROLE, owner);
+        _grantRole(KEEPER_ROLE, owner);
     }
 
     // solhint-disable-next-line no-empty-blocks

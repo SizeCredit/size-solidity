@@ -18,59 +18,72 @@ import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-struct InitializeGeneralParams {
-    address owner;
-    address priceFeed;
-    address marketBorrowRateFeed;
-    address underlyingCollateralToken;
-    address underlyingBorrowToken;
-    address feeRecipient;
-    address variablePool;
-}
-
-struct InitializeFixedParams {
+struct InitializeConfigParams {
     uint256 crOpening;
     uint256 crLiquidation;
+    uint256 minimumCreditBorrowAToken;
     uint256 collateralSplitLiquidatorPercent;
     uint256 collateralSplitProtocolPercent;
-    uint256 minimumCreditBorrowAsset;
     uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
     uint256 repayFeeAPR;
     uint256 earlyLenderExitFee;
     uint256 earlyBorrowerExitFee;
+    uint256 collateralOverdueTransferFee;
+    address feeRecipient;
 }
 
-struct InitializeVariableParams {
-    uint256 collateralOverdueTransferFee;
+struct InitializeOracleParams {
+    address priceFeed;
+    address marketBorrowRateFeed;
+}
+
+struct InitializeDataParams {
+    address underlyingCollateralToken;
+    address underlyingBorrowToken;
+    address variablePool;
 }
 
 library Initialize {
-    function _validateInitializeGeneralParams(InitializeGeneralParams memory g) internal pure {
-        // validate owner
-        if (g.owner == address(0)) {
+    function _validateOwner(address owner) internal pure {
+        if (owner == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+    }
 
-        // validate price feed
-        if (g.priceFeed == address(0)) {
-            revert Errors.NULL_ADDRESS();
+    function _validateInitializeConfigParams(InitializeConfigParams memory c) internal pure {
+        // validate crOpening
+        if (c.crOpening < PERCENT) {
+            revert Errors.INVALID_COLLATERAL_RATIO(c.crOpening);
         }
 
-        // validate marketBorrowRateFeed
-        if (g.marketBorrowRateFeed == address(0)) {
-            revert Errors.NULL_ADDRESS();
+        // validate crLiquidation
+        if (c.crLiquidation < PERCENT) {
+            revert Errors.INVALID_COLLATERAL_RATIO(c.crLiquidation);
+        }
+        if (c.crOpening <= c.crLiquidation) {
+            revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(c.crOpening, c.crLiquidation);
         }
 
-        // validate collateral asset
-        if (g.underlyingCollateralToken == address(0)) {
-            revert Errors.NULL_ADDRESS();
+        // validate minimumCreditBorrowAToken
+        if (c.minimumCreditBorrowAToken == 0) {
+            revert Errors.NULL_AMOUNT();
         }
 
-        // validate borrow asset
-        if (g.underlyingBorrowToken == address(0)) {
-            revert Errors.NULL_ADDRESS();
+        // validate collateralSplitLiquidatorPercent
+        if (c.collateralSplitLiquidatorPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(c.collateralSplitLiquidatorPercent);
+        }
+
+        // validate collateralSplitProtocolPercent
+        if (c.collateralSplitProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(c.collateralSplitProtocolPercent);
+        }
+        if (c.collateralSplitLiquidatorPercent + c.collateralSplitProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
+                c.collateralSplitLiquidatorPercent + c.collateralSplitProtocolPercent
+            );
         }
 
         // validate underlyingCollateralTokenCap
@@ -79,48 +92,8 @@ library Initialize {
         // validate underlyingBorrowTokenCap
         // N/A
 
-        // validate debtCap
+        // validate debtTokenCap
         // N/A
-
-        // validate feeRecipient
-        if (g.feeRecipient == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-    }
-
-    function _validateInitializeFixedParams(InitializeFixedParams memory f) internal pure {
-        // validate crOpening
-        if (f.crOpening < PERCENT) {
-            revert Errors.INVALID_COLLATERAL_RATIO(f.crOpening);
-        }
-
-        // validate crLiquidation
-        if (f.crLiquidation < PERCENT) {
-            revert Errors.INVALID_COLLATERAL_RATIO(f.crLiquidation);
-        }
-        if (f.crOpening <= f.crLiquidation) {
-            revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(f.crOpening, f.crLiquidation);
-        }
-
-        // validate collateralSplitLiquidatorPercent
-        if (f.collateralSplitLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralSplitLiquidatorPercent);
-        }
-
-        // validate collateralSplitProtocolPercent
-        if (f.collateralSplitProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralSplitProtocolPercent);
-        }
-        if (f.collateralSplitLiquidatorPercent + f.collateralSplitProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                f.collateralSplitLiquidatorPercent + f.collateralSplitProtocolPercent
-            );
-        }
-
-        // validate minimumCreditBorrowAsset
-        if (f.minimumCreditBorrowAsset == 0) {
-            revert Errors.NULL_AMOUNT();
-        }
 
         // validate repayFeeAPR
         // N/A
@@ -130,76 +103,112 @@ library Initialize {
 
         // validate earlyBorrowerExitFee
         // N/A
+
+        // validate feeRecipient
+        if (c.feeRecipient == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
     }
 
-    function _validateInitializeVariableParams(InitializeVariableParams memory) internal pure {
+    function _validateInitializeOracleParams(InitializeOracleParams memory o) internal pure {
+        // validate price feed
+        if (o.priceFeed == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate marketBorrowRateFeed
+        if (o.marketBorrowRateFeed == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
         // validate collateralOverdueTransferFee
         // N/A
     }
 
+    function _validateInitializeDataParams(InitializeDataParams memory d) internal pure {
+        // validate underlyingCollateralToken
+        if (d.underlyingCollateralToken == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate underlyingBorrowToken
+        if (d.underlyingBorrowToken == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate variablePool
+        if (d.variablePool == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+    }
+
     function validateInitialize(
         State storage,
-        InitializeGeneralParams memory g,
-        InitializeFixedParams memory f,
-        InitializeVariableParams memory v
+        address owner,
+        InitializeConfigParams memory c,
+        InitializeOracleParams memory o,
+        InitializeDataParams memory d
     ) external pure {
-        _validateInitializeGeneralParams(g);
-        _validateInitializeFixedParams(f);
-        _validateInitializeVariableParams(v);
+        _validateOwner(owner);
+        _validateInitializeConfigParams(c);
+        _validateInitializeOracleParams(o);
+        _validateInitializeDataParams(d);
     }
 
-    function _executeInitializeGeneral(State storage state, InitializeGeneralParams memory g) internal {
-        state._general.priceFeed = IPriceFeed(g.priceFeed);
-        state._general.marketBorrowRateFeed = IMarketBorrowRateFeed(g.marketBorrowRateFeed);
-        state._general.underlyingCollateralToken = IERC20Metadata(g.underlyingCollateralToken);
-        state._general.underlyingBorrowToken = IERC20Metadata(g.underlyingBorrowToken);
-        state._general.feeRecipient = g.feeRecipient;
-        state._general.variablePool = IPool(g.variablePool);
+    function _executeInitializeConfig(State storage state, InitializeConfigParams memory c) internal {
+        state.config.crOpening = c.crOpening;
+        state.config.crLiquidation = c.crLiquidation;
+
+        state.config.minimumCreditBorrowAToken = c.minimumCreditBorrowAToken;
+
+        state.config.collateralSplitLiquidatorPercent = c.collateralSplitLiquidatorPercent;
+        state.config.collateralSplitProtocolPercent = c.collateralSplitProtocolPercent;
+
+        state.config.collateralTokenCap = c.collateralTokenCap;
+        state.config.borrowATokenCap = c.borrowATokenCap;
+        state.config.debtTokenCap = c.debtTokenCap;
+
+        state.config.repayFeeAPR = c.repayFeeAPR;
+
+        state.config.earlyLenderExitFee = c.earlyLenderExitFee;
+        state.config.earlyBorrowerExitFee = c.earlyBorrowerExitFee;
+
+        state.config.collateralOverdueTransferFee = c.collateralOverdueTransferFee;
+
+        state.config.feeRecipient = c.feeRecipient;
     }
 
-    function _executeInitializeFixed(State storage state, InitializeFixedParams memory f) internal {
-        state._fixed.collateralToken = new NonTransferrableToken(
-            address(this),
-            "Size Fixed ETH",
-            "szETH",
-            IERC20Metadata(state._general.underlyingCollateralToken).decimals()
-        );
-        state._fixed.borrowAToken = IAToken(
-            state._general.variablePool.getReserveData(address(state._general.underlyingBorrowToken)).aTokenAddress
-        );
-        state._fixed.debtToken = new NonTransferrableToken(
-            address(this), "Size Debt", "szDebt", IERC20Metadata(state._general.underlyingBorrowToken).decimals()
-        );
-
-        state._fixed.crOpening = f.crOpening;
-        state._fixed.crLiquidation = f.crLiquidation;
-        state._fixed.collateralSplitLiquidatorPercent = f.collateralSplitLiquidatorPercent;
-        state._fixed.collateralSplitProtocolPercent = f.collateralSplitProtocolPercent;
-        state._fixed.minimumCreditBorrowAsset = f.minimumCreditBorrowAsset;
-
-        state._fixed.collateralTokenCap = f.collateralTokenCap;
-        state._fixed.borrowATokenCap = f.borrowATokenCap;
-        state._fixed.debtTokenCap = f.debtTokenCap;
-
-        state._fixed.repayFeeAPR = f.repayFeeAPR;
-        state._fixed.earlyLenderExitFee = f.earlyLenderExitFee;
-        state._fixed.earlyBorrowerExitFee = f.earlyBorrowerExitFee;
+    function _executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {
+        state.oracle.priceFeed = IPriceFeed(o.priceFeed);
+        state.oracle.marketBorrowRateFeed = IMarketBorrowRateFeed(o.marketBorrowRateFeed);
     }
 
-    function _executeInitializeVariable(State storage state, InitializeVariableParams memory v) internal {
-        state._variable.vaultImplementation = address(new Vault());
-        state._variable.collateralOverdueTransferFee = v.collateralOverdueTransferFee;
+    function _executeInitializeData(State storage state, InitializeDataParams memory d) internal {
+        state.data.underlyingCollateralToken = IERC20Metadata(d.underlyingCollateralToken);
+        state.data.underlyingBorrowToken = IERC20Metadata(d.underlyingBorrowToken);
+        state.data.variablePool = IPool(d.variablePool);
+
+        state.data.collateralToken = new NonTransferrableToken(
+            address(this), "Size Fixed ETH", "szETH", IERC20Metadata(state.data.underlyingCollateralToken).decimals()
+        );
+        state.data.borrowAToken =
+            IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
+        state.data.debtToken = new NonTransferrableToken(
+            address(this), "Size Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+        );
+
+        state.data.vaultImplementation = new Vault();
     }
 
     function executeInitialize(
         State storage state,
-        InitializeGeneralParams memory g,
-        InitializeFixedParams memory f,
-        InitializeVariableParams memory v
+        InitializeConfigParams memory c,
+        InitializeOracleParams memory o,
+        InitializeDataParams memory d
     ) external {
-        _executeInitializeGeneral(state, g);
-        _executeInitializeFixed(state, f);
-        _executeInitializeVariable(state, v);
-        emit Events.Initialize(g, f, v);
+        _executeInitializeConfig(state, c);
+        _executeInitializeOracle(state, o);
+        _executeInitializeData(state, d);
+        emit Events.Initialize(c, o, d);
     }
 }

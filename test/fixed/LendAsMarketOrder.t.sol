@@ -142,7 +142,7 @@ contract LendAsMarketOrderTest is BaseTest {
 
         vm.startPrank(bob);
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.fixedConfig().debtTokenCap, 10e6)
+            abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.config().debtTokenCap, 10e6)
         );
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 10e6, exactAmountIn: false})

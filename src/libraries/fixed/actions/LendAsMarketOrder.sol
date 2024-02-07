@@ -33,9 +33,9 @@ library LendAsMarketOrder {
     using AccountingLibrary for State;
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
-        BorrowOffer memory borrowOffer = state._fixed.users[params.borrower].borrowOffer;
+        BorrowOffer memory borrowOffer = state.data.users[params.borrower].borrowOffer;
 
-        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 amountIn;
         if (params.exactAmountIn) {
             amountIn = params.amount;
@@ -63,9 +63,9 @@ library LendAsMarketOrder {
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) external {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
-        BorrowOffer storage borrowOffer = state._fixed.users[params.borrower].borrowOffer;
+        BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
-        uint256 rate = borrowOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 issuanceValue;
         if (params.exactAmountIn) {
             issuanceValue = params.amount;
@@ -80,7 +80,7 @@ library LendAsMarketOrder {
             rate: rate,
             dueDate: params.dueDate
         });
-        state._fixed.debtToken.mint(params.borrower, state.getDebt(fol));
+        state.data.debtToken.mint(params.borrower, state.getDebt(fol));
         state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
     }
 }

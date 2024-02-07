@@ -4,7 +4,6 @@ pragma solidity 0.8.24;
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
-import {ExperimentsHelper} from "@test/helpers/ExperimentsHelper.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Math} from "@src/libraries/Math.sol";
@@ -16,7 +15,7 @@ import {console2 as console} from "forge-std/console2.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
-contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
+contract ExperimentsTest is Test, BaseTest {
     using LoanLibrary for Loan;
     using OfferLibrary for LoanOffer;
 
@@ -28,8 +27,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     }
 
     function test_Experiments_test1() public {
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
-        assertEq(_state().alice.borrowAmount, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
+        assertEq(_state().alice.borrowAmount, 100e6 + size.config().earlyLenderExitFee);
         _lendAsLimitOrder(alice, 10, 0.03e18, 12);
         _deposit(james, weth, 50e18);
         assertEq(_state().james.collateralAmount, 50e18);
@@ -71,7 +70,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _lendAsLimitOrder(bob, 10, 0.03e18, 12);
         _deposit(alice, weth, 2e18);
         _borrowAsMarketOrder(alice, bob, 100e6, 6);
-        assertGe(size.collateralRatio(alice), size.fixedConfig().crOpening);
+        assertGe(size.collateralRatio(alice), size.config().crOpening);
         assertTrue(!size.isUserLiquidatable(alice), "borrower should not be liquidatable");
         vm.warp(block.timestamp + 1);
         _setPrice(60e18);
@@ -87,8 +86,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
     function test_Experiments_testBasicExit1() public {
         uint256 amountToExitPercent = 1e18;
         // Deposit by bob in USDC
-        _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
-        assertEq(_state().bob.borrowAmount, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(bob, usdc, 100e6 + size.config().earlyLenderExitFee);
+        assertEq(_state().bob.borrowAmount, 100e6 + size.config().earlyLenderExitFee);
 
         // Bob lending as limit order
         _lendAsLimitOrder(bob, 10, 0.03e18, 12);
@@ -128,8 +127,8 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
 
     function test_Experiments_testBorrowWithExit1() public {
         // Bob deposits in USDC
-        _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
-        assertEq(_state().bob.borrowAmount, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(bob, usdc, 100e6 + size.config().earlyLenderExitFee);
+        assertEq(_state().bob.borrowAmount, 100e6 + size.config().earlyLenderExitFee);
 
         // Bob lends as limit order
         _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
@@ -150,7 +149,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         // Check conditions after Alice borrows from Bob
         assertEq(
             _state().bob.borrowAmount,
-            100e6 - 70e6 + size.fixedConfig().earlyLenderExitFee,
+            100e6 - 70e6 + size.config().earlyLenderExitFee,
             "Bob should have 30e6 left to borrow"
         );
         assertEq(size.activeLoans(), 1, "Expected one active loan");
@@ -233,7 +232,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(alice, bob, 100e6, 6);
 
         // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.fixedConfig().crOpening);
+        assertGe(size.collateralRatio(alice), size.config().crOpening);
         assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
 
         vm.warp(block.timestamp + 1);
@@ -316,7 +315,7 @@ contract ExperimentsTest is Test, BaseTest, ExperimentsHelper {
         _borrowAsMarketOrder(alice, bob, 100e6, 6);
 
         // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.fixedConfig().crOpening, "Alice should be above CR opening");
+        assertGe(size.collateralRatio(alice), size.config().crOpening, "Alice should be above CR opening");
         assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)

@@ -40,7 +40,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant LOAN_01 = "LOAN_01: loan.faceValue() <= FOL(loan).faceValue";
     string internal constant LOAN_02 =
         "LOAN_02: SUM(loan.generic.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
-    string internal constant LOAN_05 = "LOAN_05: loan.generic.credit >= minimumCreditBorrowAsset";
+    string internal constant LOAN_05 = "LOAN_05: loan.generic.credit >= minimumCreditBorrowAToken";
     string internal constant LOAN_06 = "LOAN_06: SUM(SOL(loanId).faceValue()) == FOL(loanId).faceValue";
     string internal constant LOAN_07 = "LOAN_07: FOL.credit = SUM(SOL.credit)";
 
@@ -50,7 +50,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
 
     function invariant_LOAN() public returns (bool) {
-        uint256 minimumCreditBorrowAsset = size.fixedConfig().minimumCreditBorrowAsset;
+        uint256 minimumCreditBorrowAToken = size.config().minimumCreditBorrowAToken;
         uint256 activeLoans = size.activeLoans();
         uint256[] memory folCreditsSumByFolId = new uint256[](activeLoans);
         uint256[] memory solCreditsSumByFolId = new uint256[](activeLoans);
@@ -79,7 +79,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 }
             }
 
-            if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCreditBorrowAsset) {
+            if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCreditBorrowAToken) {
                 t(false, LOAN_05);
                 return false;
             }
@@ -125,7 +125,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         users[2] = USER3;
         users[3] = address(size);
         users[4] = address(variablePool);
-        users[5] = address(size.generalConfig().feeRecipient);
+        users[5] = address(size.config().feeRecipient);
 
         uint256 borrowAmount;
         uint256 collateralAmount;

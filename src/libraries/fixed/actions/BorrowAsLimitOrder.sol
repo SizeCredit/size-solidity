@@ -24,7 +24,7 @@ library BorrowAsLimitOrder {
     }
 
     function executeBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams calldata params) external {
-        state._fixed.users[msg.sender].borrowOffer = BorrowOffer({
+        state.data.users[msg.sender].borrowOffer = BorrowOffer({
             openingLimitBorrowCR: params.openingLimitBorrowCR,
             curveRelativeTime: params.curveRelativeTime
         });

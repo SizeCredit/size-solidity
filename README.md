@@ -111,7 +111,8 @@ npm run deploy-sepolia
 
 ## TODO before audit
 
-- finish TODOs
+- validate params 
+- protocolFee: per loan + add tests
 - document
 - same price feed
 - gas optimize the 80/20 rule

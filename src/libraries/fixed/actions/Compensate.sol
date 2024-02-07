@@ -25,8 +25,8 @@ library Compensate {
     using VariableLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
-        Loan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
-        Loan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
+        Loan storage loanToRepay = state.data.loans[params.loanToRepayId];
+        Loan storage loanToCompensate = state.data.loans[params.loanToCompensateId];
 
         // validate msg.sender
         if (msg.sender != loanToRepay.generic.borrower) {
@@ -64,12 +64,12 @@ library Compensate {
     function executeCompensate(State storage state, CompensateParams calldata params) external {
         emit Events.Compensate(params.loanToRepayId, params.loanToCompensateId, params.amount);
 
-        Loan storage loanToRepay = state._fixed.loans[params.loanToRepayId];
-        Loan storage loanToCompensate = state._fixed.loans[params.loanToCompensateId];
+        Loan storage loanToRepay = state.data.loans[params.loanToRepayId];
+        Loan storage loanToCompensate = state.data.loans[params.loanToCompensateId];
         uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.generic.credit, loanToRepay.faceValue());
 
         state.chargeRepayFee(loanToRepay, amountToCompensate);
-        state._fixed.debtToken.burn(loanToRepay.generic.borrower, amountToCompensate);
+        state.data.debtToken.burn(loanToRepay.generic.borrower, amountToCompensate);
         if (state.getDebt(loanToRepay) == 0) {
             loanToCompensate.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
