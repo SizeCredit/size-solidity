@@ -67,8 +67,6 @@ library BorrowerExit {
         uint256 debt = state.getDebt(fol);
         uint256 amountIn = Math.mulDivUp(debt, PERCENT, PERCENT + rate);
 
-        uint256 repayFee = state.maximumRepayFee(fol);
-
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
         state.transferBorrowAToken(msg.sender, state._general.feeRecipient, state._fixed.earlyBorrowerExitFee);
         state._fixed.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, debt);

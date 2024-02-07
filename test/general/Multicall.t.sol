@@ -105,7 +105,7 @@ contract MulticallTest is BaseTest {
         uint256 afterLiquidatorUSDC = usdc.balanceOf(liquidator);
         uint256 afterLiquidatorWETH = weth.balanceOf(liquidator);
 
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt - repayFee, 0);
+        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt, 0);
         assertEq(_after.liquidator.borrowAmount, _before.liquidator.borrowAmount, 0);
         assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount, 0);
         assertGt(
