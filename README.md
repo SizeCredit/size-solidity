@@ -50,7 +50,7 @@ Additional safety features were employed, such as different levels of Access Con
 In order to address donation and reentrancy attacks, the following measures were adopted:
 
 - No usage of native ether, only wrapped ether (WETH)
-- Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into protocol tokens via `deposit`, which mints `sazUSDC` and `szWETH`, and can be received back via `withdraw`, which burns protocol tokens 1:1 in exchange of the underlying tokens.
+- Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into protocol tokens via `deposit`, which mints `aszUSDC` and `szWETH`, and received back via `withdraw`, which burns protocol tokens 1:1 in exchange of the underlying tokens.
 
 #### Maths
 
@@ -58,17 +58,19 @@ All mathematical operations are implemented with explicit rounding (`mulDivUp` o
 
 Decimal amounts are preserved until a conversion is necessary, and performed via the `ConversionLibrary`:
 
-- USDC/aszUSDC: 6
-- szDebt: 6 (same as borrow token)
-- WETH/szETH: 18
-- PriceFeed (ETH/USDC): 18
-- MarketBorrowRateFeed (USDC): 18
+- USDC/aszUSDC: 6 decimals
+- szDebt: 6 decimals (same as borrow token)
+- WETH/szETH: 18 decimals
+- PriceFeed (ETH/USDC): 18 decimals
+- MarketBorrowRateFeed (USDC): 18 decimals
 
 All percentages are expressed in 18 decimals. For example, a 150% liquidation collateral ratio is represented as 1500000000000000000.
 
 #### Variable Pool
 
-In order to interact with Size's Variable Pool (Aave v3 fork), a proxy pattern is employed, which creates user "Vault"s so that each address can have an individual health factor. The `Size` contract is the owner of `Vault`, and can perform arbitrary calls on behalf of the user, such as depositing `USDC` into the Variable pool in exchange of `aszUSDC`, an instance of `AToken`, an interest-bearing rebasing token that represents users' USDC available for variable-rate loans.
+In order to interact with Size's Variable Pool (Aave v3 fork), a proxy pattern is employed, which creates user Vault proxies using OpenZeppelin Clone's library to deploy copies on demand. This way, each address can have an individual health factor on Size's Variable Pool (Aave v3 fork). The `Vault` contract is owned by the `Size` contract, which can perform arbitrary calls on behalf of the user. For example, when a `deposit` is performed on `Size`, it creates a `Vault`, if needed, which then executes a `supply` on Size's Variable Pool (Aave v3 fork). This way, all deposited `USDC` can be lent out through variable rates until a fixed-rate loan is matched and created on the orderbook. 
+
+When an account executes `supply` into Size's Variable Pool (Aave v3 fork), the `aszUSDC` token is minted 1:1. This is an instance of `AToken`, an interest-bearing rebasing token that represents users' USDC available for variable-rate loans, which grows according to a variable interest rate equation.
 
 #### Oracles
 
@@ -80,7 +82,7 @@ Two Chainlink aggregators are used to fetch the ETH/USDC rate. A conversion from
 
 In order to approximate the current market average value of USDC variable borrow rates, we use Aave v3, and convert it to 18 decimals. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
 
-Note that this rate is extracted from Aave v3, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 will be a better proxy to the real market rate, and less prone to market manipulation attacks.
+Note that this rate is extracted from Aave v3 itself, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 is a better proxy for the real market rate, and less prone to market manipulation attacks.
 
 In the future, integrations with other protocols will be implemented in order to have a more realistic global average.
 

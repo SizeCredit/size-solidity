@@ -46,7 +46,7 @@ contract BorrowerExitTest is BaseTest {
         assertEq(loansAfter, loansBefore);
     }
 
-    // @audit exit to self should not change anything except for maxAmount
+    // @audit exit to self should not change anything except for fees
     function test_BorrowerExit_borrowerExit_to_self_is_possible_properties() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
