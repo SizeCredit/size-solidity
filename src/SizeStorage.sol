@@ -14,8 +14,6 @@ import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
-// NOTE changing any of these structs' order or variables may change the storage layout
-
 struct Config {
     uint256 crOpening;
     uint256 crLiquidation;
@@ -55,6 +53,9 @@ struct State {
     Data data;
 }
 
+/// @title SizeStorage
+/// @notice Storage for the Size protocol
+/// @dev WARNING: Changing the order of the variables or inner structs in this contract may break the storage layout
 abstract contract SizeStorage {
     State internal state;
 }
