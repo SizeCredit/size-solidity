@@ -17,6 +17,7 @@ struct GenericLoan {
 struct FOL {
     uint256 issuanceValue; // updated on repayment
     uint256 rate;
+    uint256 repayFeeAPR;
     uint256 startDate;
     uint256 dueDate;
     uint256 liquidityIndexAtRepayment;
@@ -55,8 +56,8 @@ library LoanLibrary {
         return self.sol.folId == RESERVED_ID;
     }
 
-    function getDebt(State storage state, Loan memory fol) internal view returns (uint256) {
-        return faceValue(fol) + state.maximumRepayFee(fol);
+    function getDebt(Loan memory fol) internal pure returns (uint256) {
+        return faceValue(fol) + maximumRepayFee(fol);
     }
 
     function faceValue(Loan memory self) internal pure returns (uint256) {
@@ -76,7 +77,7 @@ library LoanLibrary {
         Loan storage fol = getFOL(state, self);
         if (self.generic.credit == 0) {
             return LoanStatus.CLAIMED;
-        } else if (getDebt(state, fol) == 0) {
+        } else if (getDebt(fol) == 0) {
             return LoanStatus.REPAID;
         } else if (block.timestamp >= fol.fol.dueDate) {
             return LoanStatus.OVERDUE;
@@ -120,5 +121,25 @@ library LoanLibrary {
         } else {
             return 0;
         }
+    }
+
+    function maximumRepayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
+        internal
+        pure
+        returns (uint256)
+    {
+        uint256 interval = dueDate - startDate;
+        uint256 repayFeePercent = Math.mulDivUp(repayFeeAPR, interval, 365 days);
+        uint256 fee = Math.mulDivUp(issuanceValue, repayFeePercent, PERCENT);
+        return fee;
+    }
+
+    function maximumRepayFee(Loan memory fol) internal pure returns (uint256) {
+        return maximumRepayFee(fol.fol.issuanceValue, fol.fol.startDate, fol.fol.dueDate, fol.fol.repayFeeAPR);
+    }
+
+    function partialRepayFee(Loan memory fol, uint256 repayAmount) internal pure returns (uint256) {
+        // pending question about calculating parial repay fee
+        return Math.mulDivUp(repayAmount, maximumRepayFee(fol), faceValue(fol));
     }
 }
