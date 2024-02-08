@@ -101,13 +101,13 @@ forge test
 | File                                                         | % Lines           | % Statements       | % Branches       | % Funcs          |
 |--------------------------------------------------------------|-------------------|--------------------|------------------|------------------|
 | src/Size.sol                                                 | 100.00% (47/47)   | 100.00% (47/47)    | 100.00% (0/0)    | 100.00% (16/16)  |
-| src/SizeView.sol                                             | 92.86% (26/28)    | 93.48% (43/46)     | 100.00% (0/0)    | 90.91% (20/22)   |
+| src/SizeView.sol                                             | 93.75% (30/32)    | 94.23% (49/52)     | 100.00% (0/0)    | 90.91% (20/22)   |
 | src/libraries/ConversionLibrary.sol                          | 25.00% (1/4)      | 30.00% (3/10)      | 100.00% (0/0)    | 25.00% (1/4)     |
 | src/libraries/Math.sol                                       | 90.00% (18/20)    | 90.62% (29/32)     | 83.33% (5/6)     | 87.50% (7/8)     |
-| src/libraries/fixed/AccountingLibrary.sol                    | 51.61% (16/31)    | 46.34% (19/41)     | 100.00% (0/0)    | 42.86% (3/7)     |
+| src/libraries/fixed/AccountingLibrary.sol                    | 64.00% (16/25)    | 63.33% (19/30)     | 100.00% (0/0)    | 75.00% (3/4)     |
 | src/libraries/fixed/CapsLibrary.sol                          | 100.00% (6/6)     | 100.00% (9/9)      | 50.00% (3/6)     | 100.00% (3/3)    |
 | src/libraries/fixed/CollateralLibrary.sol                    | 100.00% (6/6)     | 100.00% (8/8)      | 100.00% (0/0)    | 100.00% (2/2)    |
-| src/libraries/fixed/LoanLibrary.sol                          | 100.00% (30/30)   | 98.18% (54/55)     | 91.67% (11/12)   | 100.00% (10/10)  |
+| src/libraries/fixed/LoanLibrary.sol                          | 100.00% (36/36)   | 98.48% (65/66)     | 91.67% (11/12)   | 100.00% (13/13)  |
 | src/libraries/fixed/OfferLibrary.sol                         | 0.00% (0/5)       | 0.00% (0/14)       | 100.00% (0/0)    | 0.00% (0/4)      |
 | src/libraries/fixed/RiskLibrary.sol                          | 84.00% (21/25)    | 85.71% (36/42)     | 80.00% (8/10)    | 88.89% (8/9)     |
 | src/libraries/fixed/YieldCurveLibrary.sol                    | 36.00% (9/25)     | 37.78% (17/45)     | 42.86% (6/14)    | 33.33% (1/3)     |
@@ -129,7 +129,7 @@ forge test
 | src/libraries/variable/VariableLibrary.sol                   | 100.00% (46/46)   | 100.00% (66/66)    | 100.00% (4/4)    | 87.50% (7/8)     |
 | src/oracle/MarketBorrowRateFeed.sol                          | 0.00% (0/1)       | 0.00% (0/2)        | 100.00% (0/0)    | 0.00% (0/1)      |
 | src/oracle/PriceFeed.sol                                     | 100.00% (12/12)   | 100.00% (21/21)    | 100.00% (8/8)    | 100.00% (3/3)    |
-| src/proxy/Vault.sol                                          | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 100.00% (4/4)    |
+| src/proxy/Vault.sol                                          | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 75.00% (3/4)     |
 | src/token/NonTransferrableToken.sol                          | 100.00% (9/9)     | 100.00% (10/10)    | 100.00% (0/0)    | 100.00% (7/7)    |
 
 ### Scenarios
@@ -146,7 +146,7 @@ forge test
 │      ConversionLibrary       │   6    │
 │       CryticToFoundry        │   7    │
 │           Deposit            │   3    │
-│         Experiments          │   11   │
+│         Experiments          │   12   │
 │          Initialize          │   4    │
 │       LendAsLimitOrder       │   2    │
 │      LendAsMarketOrder       │   6    │
