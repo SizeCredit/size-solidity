@@ -191,3 +191,8 @@ forge test
 - The protocol does not have any fallback oracles.
 - Price feeds must be redeployed and updated in case any Chainlink configuration changes (stale price timeouts, decimals)
 - In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues
+
+## Areas of concern
+
+- A rounding issue as a result of the FOL's `faceValue` calculation may result in the borrower debt being 1 more when the lender picks their borrow offer with `lendAsMarketOrder`, passing `exactAmountIn` equals `false`. In this case, to calculate the `issuanceValue`, a `mulDivUp` is performed, so that the borrower, being the passive party, receives _more_ aszUSDC tokens. The issue is that the `faceValue` calculation is also rounded up in `LoanLibrary`, as it represents a users' debt. In summary, the borrower receives rounding up in the present value, but pays rounding up in future cash flow. Exploits arising from this issue are welcome.
+- Exploits arising from notes marked with `// @audit` on the codebase are welcome
