@@ -2,7 +2,83 @@
 
 Size V2 Solidity
 
-## Setup
+![Size](./size.jpeg)
+
+Size is an order book based fixed rate lending protocol with an integrated variable pool.
+
+Initial pairs supported:
+
+- ETH: Collateral token
+- USDC: Borrow/Lend token
+
+Target networks:
+
+- Ethereum mainnet
+- Base
+
+## Documentation
+
+### Accounting and Protocol Design
+
+- [Hackmd](https://hackmd.io/DEUtX6xLQTuWzawpkrd_Sw?view)
+
+### Technical overview
+
+#### Architecture
+
+The architecture of Size v2 was inspired by [dYdX v2](https://github.com/dydxprotocol/solo), with the following design goals:
+
+- Upgradeability
+- Modularity
+- Overcome [EIP-170](https://eips.ethereum.org/EIPS/eip-170)'s contract code size limit of 24kb
+- Maintaining the protocol invariants after each user interaction (["FREI-PI" pattern](https://www.nascent.xyz/idea/youre-writing-require-statements-wrong))
+
+For that purpose, the contract is deployed behind an UUPS-Upgradeable proxy, and contains a single entrypoint, `Size.sol`. External libraries are used, and a single `State storage` variable is passed to them via `delegatecall`s. All user-facing functions have the same pattern:
+
+```solidity
+state.validateFunction(params);
+state.executeFunction(params);
+state.validateInvariant(params);
+```
+
+The `Multicall` pattern is also available to allow users to perform a sequence of multiple actions, such as depositing borrow tokens, liquidating an underwater borrower, and withdrawing all liquidated collateral.
+
+Additional safety features were employed, such as different levels of Access Control (ADMIN, PAUSER_ROLE, KEEPER_ROLE), and Pause.
+
+#### Tokens
+
+In order to address donation and reentrancy attacks, the following measures were adopted:
+
+- No usage of native ether, only wrapped ether (WETH)
+- Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into protocol tokens via `deposit`, which mints `sazUSDC` and `szWETH`, and can be received back via `withdraw`, which burns protocol tokens 1:1 in exchange of the underlying tokens.
+
+#### Maths
+
+All mathematical operations are implemented with explicit rounding (`mulDivUp` or `mulDivDown`) using Solady's [FixedPointMathLib](https://github.com/Vectorized/solady/blob/main/src/utils/FixedPointMathLib.sol).
+
+Decimal amounts are preserved until a conversion is necessary, and performed via the `ConversionLibrary`:
+
+- USDC/aszUSDC: 6
+- szDebt: 6 (same as borrow token)
+- WETH/szETH: 18
+- PriceFeed (ETH/USDC): 18
+- MarketBorrowRateFeed (USDC): 18
+
+All percentages are expressed in 18 decimals. For example, a 150% liquidation collateral ratio is represented as 1500000000000000000.
+
+#### Variable Pool
+
+In order to interact with Size's Variable Pool (Aave v3 fork), a proxy pattern is employed, which creates user "Vault"s so that each address can have an individual health factor. The `Size` contract is the owner of `Vault`, and can perform arbitrary calls on behalf of the user, such as depositing `USDC` into the Variable pool in exchange of `aszUSDC`, an instance of `AToken`, an interest-bearing rebasing token that represents users' USDC available for variable-rate loans.
+
+#### Oracles
+
+##### Price Feed
+
+Two Chainlink price feeds are used to fetch the ETH/USDC rate. A conversion from ETH/USD to USDC/USD is performed and the result is rounded down to 18 decimals. For example, a spot price of 2,426.59 ETH/USDC is represented as 2426590000000000000000.
+
+##### Market Borrow Rate Feed
+
+In order to approximate the current market average value of USDC variable borrow rates, we use Aave v3, and convert it to 18 decimals. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000. Note that this rate is extracted from Aave v3, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 will be a better proxy to the real market rate, and less prone to market manipulation attacks. In the future, integrations with other protocols will be implemented in order to have a more realistic global average.
 
 ## Test
 
@@ -88,25 +164,13 @@ forge test
 ```
 <!-- END_COVERAGE -->
 
-## Documentation
+## Protocol invariants
 
-- decimals:
-  - USDC/aszUSDC: 6
-  - WETH/szETH: 18
-  - szDebt: 6
-  - PriceFeed: 18
-
-## Deployment
-
-```bash
-npm run deploy-sepolia
-```
-
-## Invariants implemented
+### Invariants implemented
 
 - Check [`Properties.sol`](./test/invariants/Properties.sol)
 
-## Invariants to be implemented
+### Invariants pending implementation
 
 - Taking a loan with only receivables does not decrease the borrower CR
 - Taking a collateralized loan decreases the borrower CR
