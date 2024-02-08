@@ -427,10 +427,11 @@ contract ExperimentsTest is Test, BaseTest {
 
     function test_Experiments_repayFeeAPR_change_fee_after_borrow() public {
         _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0.05e18);
         _deposit(candy, weth, 180e18);
         _deposit(bob, weth, 180e18);
         _deposit(alice, usdc, 200e6);
-        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
+        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
 
@@ -444,20 +445,21 @@ contract ExperimentsTest is Test, BaseTest {
 
         vm.warp(block.timestamp + 365 days);
 
-        _deposit(bob, usdc, 10e6);
         _repay(bob, loanId);
 
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral);
 
-        _deposit(candy, usdc, 10e6);
         _repay(candy, loanId2);
 
         uint256 repayFeeWad2 = ConversionLibrary.amountToWad(repayFee2, usdc.decimals());
         uint256 repayFeeCollateral2 = Math.mulDivUp(repayFeeWad2, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral + repayFeeCollateral2);
+        assertGt(_state().bob.collateralAmount, _state().candy.collateralAmount);
+        assertEq(_state().bob.collateralAmount, 180e18 - repayFeeCollateral);
+        assertEq(_state().candy.collateralAmount, 180e18 - repayFeeCollateral2);
     }
 
     function test_Experiments_repayFeeAPR_complex() private {
