@@ -42,8 +42,8 @@ library BorrowerExit {
         if (msg.sender != fol.generic.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, fol.generic.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(state.borrowATokenBalanceOf(msg.sender), amountIn);
+        if (state.borrowATokenBalanceOf(msg.sender) < amountIn + state.config.earlyBorrowerExitFee) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(state.borrowATokenBalanceOf(msg.sender), amountIn + state.config.earlyBorrowerExitFee);
         }
 
         // validate loanId

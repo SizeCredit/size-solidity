@@ -15,7 +15,7 @@ import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 struct CompensateParams {
     uint256 loanToRepayId;
     uint256 loanToCompensateId;
-    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC)
+    uint256 amount;
 }
 
 library Compensate {
