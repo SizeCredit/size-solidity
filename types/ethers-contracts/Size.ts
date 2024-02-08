@@ -40,21 +40,24 @@ export type YieldCurveStructOutput = [BigNumber[], BigNumber[], BigNumber[]] & {
 };
 
 export type BorrowAsLimitOrderParamsStruct = {
-  riskCR: BigNumberish;
+  openingLimitBorrowCR: BigNumberish;
   curveRelativeTime: YieldCurveStruct;
 };
 
 export type BorrowAsLimitOrderParamsStructOutput = [
   BigNumber,
   YieldCurveStructOutput
-] & { riskCR: BigNumber; curveRelativeTime: YieldCurveStructOutput };
+] & {
+  openingLimitBorrowCR: BigNumber;
+  curveRelativeTime: YieldCurveStructOutput;
+};
 
 export type BorrowAsMarketOrderParamsStruct = {
   lender: string;
   amount: BigNumberish;
   dueDate: BigNumberish;
   exactAmountIn: boolean;
-  virtualCollateralFixedLoanIds: BigNumberish[];
+  receivableLoanIds: BigNumberish[];
 };
 
 export type BorrowAsMarketOrderParamsStructOutput = [
@@ -68,7 +71,7 @@ export type BorrowAsMarketOrderParamsStructOutput = [
   amount: BigNumber;
   dueDate: BigNumber;
   exactAmountIn: boolean;
-  virtualCollateralFixedLoanIds: BigNumber[];
+  receivableLoanIds: BigNumber[];
 };
 
 export type BorrowerExitParamsStruct = {
@@ -97,6 +100,64 @@ export type CompensateParamsStructOutput = [BigNumber, BigNumber, BigNumber] & {
   amount: BigNumber;
 };
 
+export type InitializeConfigParamsStruct = {
+  crOpening: BigNumberish;
+  crLiquidation: BigNumberish;
+  minimumCreditBorrowAToken: BigNumberish;
+  collateralSplitLiquidatorPercent: BigNumberish;
+  collateralSplitProtocolPercent: BigNumberish;
+  collateralTokenCap: BigNumberish;
+  borrowATokenCap: BigNumberish;
+  debtTokenCap: BigNumberish;
+  repayFeeAPR: BigNumberish;
+  earlyLenderExitFee: BigNumberish;
+  earlyBorrowerExitFee: BigNumberish;
+  collateralOverdueTransferFee: BigNumberish;
+  feeRecipient: string;
+};
+
+export type InitializeConfigParamsStructOutput = [
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  string
+] & {
+  crOpening: BigNumber;
+  crLiquidation: BigNumber;
+  minimumCreditBorrowAToken: BigNumber;
+  collateralSplitLiquidatorPercent: BigNumber;
+  collateralSplitProtocolPercent: BigNumber;
+  collateralTokenCap: BigNumber;
+  borrowATokenCap: BigNumber;
+  debtTokenCap: BigNumber;
+  repayFeeAPR: BigNumber;
+  earlyLenderExitFee: BigNumber;
+  earlyBorrowerExitFee: BigNumber;
+  collateralOverdueTransferFee: BigNumber;
+  feeRecipient: string;
+};
+
+export type InitializeDataParamsStruct = {
+  underlyingCollateralToken: string;
+  underlyingBorrowToken: string;
+  variablePool: string;
+};
+
+export type InitializeDataParamsStructOutput = [string, string, string] & {
+  underlyingCollateralToken: string;
+  underlyingBorrowToken: string;
+  variablePool: string;
+};
+
 export type DepositParamsStruct = {
   token: string;
   amount: BigNumberish;
@@ -109,134 +170,92 @@ export type DepositParamsStructOutput = [string, BigNumber, string] & {
   to: string;
 };
 
-export type InitializeFixedParamsStruct = {
-  crOpening: BigNumberish;
-  crLiquidation: BigNumberish;
-  collateralPremiumToLiquidator: BigNumberish;
-  collateralPremiumToProtocol: BigNumberish;
-  minimumCreditBorrowAsset: BigNumberish;
-  collateralTokenCap: BigNumberish;
-  borrowATokenCap: BigNumberish;
-  debtTokenCap: BigNumberish;
-  earlyLenderExitFee: BigNumberish;
-  earlyBorrowerExitFee: BigNumberish;
+export type GenericLoanStruct = {
+  lender: string;
+  borrower: string;
+  credit: BigNumberish;
 };
 
-export type InitializeFixedParamsStructOutput = [
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  BigNumber,
+export type GenericLoanStructOutput = [string, string, BigNumber] & {
+  lender: string;
+  borrower: string;
+  credit: BigNumber;
+};
+
+export type FOLStruct = {
+  issuanceValue: BigNumberish;
+  rate: BigNumberish;
+  startDate: BigNumberish;
+  dueDate: BigNumberish;
+  liquidityIndexAtRepayment: BigNumberish;
+};
+
+export type FOLStructOutput = [
   BigNumber,
   BigNumber,
   BigNumber,
   BigNumber,
   BigNumber
 ] & {
-  crOpening: BigNumber;
-  crLiquidation: BigNumber;
-  collateralPremiumToLiquidator: BigNumber;
-  collateralPremiumToProtocol: BigNumber;
-  minimumCreditBorrowAsset: BigNumber;
-  collateralTokenCap: BigNumber;
-  borrowATokenCap: BigNumber;
-  debtTokenCap: BigNumber;
-  earlyLenderExitFee: BigNumber;
-  earlyBorrowerExitFee: BigNumber;
-};
-
-export type InitializeGeneralParamsStruct = {
-  owner: string;
-  priceFeed: string;
-  marketBorrowRateFeed: string;
-  collateralAsset: string;
-  borrowAsset: string;
-  feeRecipient: string;
-  variablePool: string;
-};
-
-export type InitializeGeneralParamsStructOutput = [
-  string,
-  string,
-  string,
-  string,
-  string,
-  string,
-  string
-] & {
-  owner: string;
-  priceFeed: string;
-  marketBorrowRateFeed: string;
-  collateralAsset: string;
-  borrowAsset: string;
-  feeRecipient: string;
-  variablePool: string;
-};
-
-export type FixedLoanStruct = {
-  faceValue: BigNumberish;
-  faceValueExited: BigNumberish;
-  lender: string;
-  borrower: string;
-  dueDate: BigNumberish;
-  liquidityIndexAtRepayment: BigNumberish;
-  folId: BigNumberish;
-  repaid: boolean;
-};
-
-export type FixedLoanStructOutput = [
-  BigNumber,
-  BigNumber,
-  string,
-  string,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  boolean
-] & {
-  faceValue: BigNumber;
-  faceValueExited: BigNumber;
-  lender: string;
-  borrower: string;
+  issuanceValue: BigNumber;
+  rate: BigNumber;
+  startDate: BigNumber;
   dueDate: BigNumber;
   liquidityIndexAtRepayment: BigNumber;
-  folId: BigNumber;
-  repaid: boolean;
 };
 
-export type FixedLoanOfferStruct = {
+export type SOLStruct = { folId: BigNumberish };
+
+export type SOLStructOutput = [BigNumber] & { folId: BigNumber };
+
+export type LoanStruct = {
+  generic: GenericLoanStruct;
+  fol: FOLStruct;
+  sol: SOLStruct;
+};
+
+export type LoanStructOutput = [
+  GenericLoanStructOutput,
+  FOLStructOutput,
+  SOLStructOutput
+] & {
+  generic: GenericLoanStructOutput;
+  fol: FOLStructOutput;
+  sol: SOLStructOutput;
+};
+
+export type LoanOfferStruct = {
   maxDueDate: BigNumberish;
   curveRelativeTime: YieldCurveStruct;
 };
 
-export type FixedLoanOfferStructOutput = [BigNumber, YieldCurveStructOutput] & {
+export type LoanOfferStructOutput = [BigNumber, YieldCurveStructOutput] & {
   maxDueDate: BigNumber;
   curveRelativeTime: YieldCurveStructOutput;
 };
 
 export type BorrowOfferStruct = {
-  riskCR: BigNumberish;
+  openingLimitBorrowCR: BigNumberish;
   curveRelativeTime: YieldCurveStruct;
 };
 
 export type BorrowOfferStructOutput = [BigNumber, YieldCurveStructOutput] & {
-  riskCR: BigNumber;
+  openingLimitBorrowCR: BigNumber;
   curveRelativeTime: YieldCurveStructOutput;
 };
 
 export type UserStruct = {
-  loanOffer: FixedLoanOfferStruct;
+  loanOffer: LoanOfferStruct;
   borrowOffer: BorrowOfferStruct;
   vault: string;
 };
 
 export type UserStructOutput = [
-  FixedLoanOfferStructOutput,
+  LoanOfferStructOutput,
   BorrowOfferStructOutput,
   string
 ] & {
-  loanOffer: FixedLoanOfferStructOutput;
+  loanOffer: LoanOfferStructOutput;
   borrowOffer: BorrowOfferStructOutput;
   vault: string;
 };
@@ -263,12 +282,14 @@ export type UserViewStructOutput = [
   debtAmount: BigNumber;
 };
 
-export type InitializeVariableParamsStruct = {
-  collateralOverdueTransferFee: BigNumberish;
+export type InitializeOracleParamsStruct = {
+  priceFeed: string;
+  marketBorrowRateFeed: string;
 };
 
-export type InitializeVariableParamsStructOutput = [BigNumber] & {
-  collateralOverdueTransferFee: BigNumber;
+export type InitializeOracleParamsStructOutput = [string, string] & {
+  priceFeed: string;
+  marketBorrowRateFeed: string;
 };
 
 export type LendAsLimitOrderParamsStruct = {
@@ -300,38 +321,35 @@ export type LendAsMarketOrderParamsStructOutput = [
   exactAmountIn: boolean;
 };
 
-export type LiquidateFixedLoanParamsStruct = {
+export type LiquidateLoanParamsStruct = {
   loanId: BigNumberish;
   minimumCollateralRatio: BigNumberish;
 };
 
-export type LiquidateFixedLoanParamsStructOutput = [BigNumber, BigNumber] & {
+export type LiquidateLoanParamsStructOutput = [BigNumber, BigNumber] & {
   loanId: BigNumber;
   minimumCollateralRatio: BigNumber;
 };
 
-export type LiquidateFixedLoanWithReplacementParamsStruct = {
+export type LiquidateLoanWithReplacementParamsStruct = {
   loanId: BigNumberish;
   borrower: string;
   minimumCollateralRatio: BigNumberish;
 };
 
-export type LiquidateFixedLoanWithReplacementParamsStructOutput = [
+export type LiquidateLoanWithReplacementParamsStructOutput = [
   BigNumber,
   string,
   BigNumber
 ] & { loanId: BigNumber; borrower: string; minimumCollateralRatio: BigNumber };
 
-export type RepayParamsStruct = { loanId: BigNumberish; amount: BigNumberish };
+export type RepayParamsStruct = { loanId: BigNumberish };
 
-export type RepayParamsStructOutput = [BigNumber, BigNumber] & {
-  loanId: BigNumber;
-  amount: BigNumber;
-};
+export type RepayParamsStructOutput = [BigNumber] & { loanId: BigNumber };
 
-export type SelfLiquidateFixedLoanParamsStruct = { loanId: BigNumberish };
+export type SelfLiquidateLoanParamsStruct = { loanId: BigNumberish };
 
-export type SelfLiquidateFixedLoanParamsStructOutput = [BigNumber] & {
+export type SelfLiquidateLoanParamsStructOutput = [BigNumber] & {
   loanId: BigNumber;
 };
 
@@ -360,47 +378,52 @@ export interface SizeInterface extends utils.Interface {
     "KEEPER_ROLE()": FunctionFragment;
     "PAUSER_ROLE()": FunctionFragment;
     "UPGRADE_INTERFACE_VERSION()": FunctionFragment;
-    "activeFixedLoans()": FunctionFragment;
+    "activeLoans()": FunctionFragment;
     "borrowAsLimitOrder((uint256,(uint256[],uint256[],int256[])))": FunctionFragment;
     "borrowAsMarketOrder((address,uint256,uint256,bool,uint256[]))": FunctionFragment;
     "borrowerExit((uint256,address))": FunctionFragment;
     "claim((uint256))": FunctionFragment;
     "collateralRatio(address)": FunctionFragment;
     "compensate((uint256,uint256,uint256))": FunctionFragment;
+    "config()": FunctionFragment;
+    "data()": FunctionFragment;
     "deposit((address,uint256,address))": FunctionFragment;
-    "fixedConfig()": FunctionFragment;
-    "generalConfig()": FunctionFragment;
+    "faceValue(uint256)": FunctionFragment;
     "getCredit(uint256)": FunctionFragment;
     "getDebt(uint256)": FunctionFragment;
+    "getDueDate(uint256)": FunctionFragment;
     "getFOLAssignedCollateral(uint256)": FunctionFragment;
-    "getFixedLoan(uint256)": FunctionFragment;
-    "getFixedLoanStatus(uint256)": FunctionFragment;
-    "getFixedLoans()": FunctionFragment;
+    "getLoan(uint256)": FunctionFragment;
+    "getLoanStatus(uint256)": FunctionFragment;
+    "getLoans()": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getUserView(address)": FunctionFragment;
     "getVaultAddress(address)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
-    "initialize((address,address,address,address,address,address,address),(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256),(uint256))": FunctionFragment;
+    "initialize(address,(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,address),(address,address),(address,address,address))": FunctionFragment;
     "isFOL(uint256)": FunctionFragment;
     "isLoanLiquidatable(uint256)": FunctionFragment;
     "isUserLiquidatable(address)": FunctionFragment;
     "lendAsLimitOrder((uint256,(uint256[],uint256[],int256[])))": FunctionFragment;
     "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
-    "liquidateFixedLoan((uint256,uint256))": FunctionFragment;
-    "liquidateFixedLoanWithReplacement((uint256,address,uint256))": FunctionFragment;
+    "liquidateLoan((uint256,uint256))": FunctionFragment;
+    "liquidateLoanWithReplacement((uint256,address,uint256))": FunctionFragment;
+    "maximumRepayFee(uint256,uint256,uint256)": FunctionFragment;
+    "maximumRepayFee(uint256)": FunctionFragment;
     "multicall(bytes[])": FunctionFragment;
+    "oracle()": FunctionFragment;
+    "partialRepayFee(uint256,uint256)": FunctionFragment;
     "paused()": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
-    "repay((uint256,uint256))": FunctionFragment;
+    "repay((uint256))": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
-    "selfLiquidateFixedLoan((uint256))": FunctionFragment;
+    "selfLiquidateLoan((uint256))": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "tokens()": FunctionFragment;
     "updateConfig((bytes32,uint256))": FunctionFragment;
     "upgradeToAndCall(address,bytes)": FunctionFragment;
-    "variableConfig()": FunctionFragment;
     "withdraw((address,uint256,address))": FunctionFragment;
   };
 
@@ -410,22 +433,24 @@ export interface SizeInterface extends utils.Interface {
       | "KEEPER_ROLE"
       | "PAUSER_ROLE"
       | "UPGRADE_INTERFACE_VERSION"
-      | "activeFixedLoans"
+      | "activeLoans"
       | "borrowAsLimitOrder"
       | "borrowAsMarketOrder"
       | "borrowerExit"
       | "claim"
       | "collateralRatio"
       | "compensate"
+      | "config"
+      | "data"
       | "deposit"
-      | "fixedConfig"
-      | "generalConfig"
+      | "faceValue"
       | "getCredit"
       | "getDebt"
+      | "getDueDate"
       | "getFOLAssignedCollateral"
-      | "getFixedLoan"
-      | "getFixedLoanStatus"
-      | "getFixedLoans"
+      | "getLoan"
+      | "getLoanStatus"
+      | "getLoans"
       | "getRoleAdmin"
       | "getUserView"
       | "getVaultAddress"
@@ -437,20 +462,23 @@ export interface SizeInterface extends utils.Interface {
       | "isUserLiquidatable"
       | "lendAsLimitOrder"
       | "lendAsMarketOrder"
-      | "liquidateFixedLoan"
-      | "liquidateFixedLoanWithReplacement"
+      | "liquidateLoan"
+      | "liquidateLoanWithReplacement"
+      | "maximumRepayFee(uint256,uint256,uint256)"
+      | "maximumRepayFee(uint256)"
       | "multicall"
+      | "oracle"
+      | "partialRepayFee"
       | "paused"
       | "proxiableUUID"
       | "renounceRole"
       | "repay"
       | "revokeRole"
-      | "selfLiquidateFixedLoan"
+      | "selfLiquidateLoan"
       | "supportsInterface"
       | "tokens"
       | "updateConfig"
       | "upgradeToAndCall"
-      | "variableConfig"
       | "withdraw"
   ): FunctionFragment;
 
@@ -471,7 +499,7 @@ export interface SizeInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "activeFixedLoans",
+    functionFragment: "activeLoans",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -498,17 +526,15 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "compensate",
     values: [CompensateParamsStruct]
   ): string;
+  encodeFunctionData(functionFragment: "config", values?: undefined): string;
+  encodeFunctionData(functionFragment: "data", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "deposit",
     values: [DepositParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "fixedConfig",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "generalConfig",
-    values?: undefined
+    functionFragment: "faceValue",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getCredit",
@@ -519,21 +545,22 @@ export interface SizeInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getDueDate",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getFOLAssignedCollateral",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getFixedLoan",
+    functionFragment: "getLoan",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getFixedLoanStatus",
+    functionFragment: "getLoanStatus",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "getFixedLoans",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "getLoans", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
@@ -554,9 +581,10 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "initialize",
     values: [
-      InitializeGeneralParamsStruct,
-      InitializeFixedParamsStruct,
-      InitializeVariableParamsStruct
+      string,
+      InitializeConfigParamsStruct,
+      InitializeOracleParamsStruct,
+      InitializeDataParamsStruct
     ]
   ): string;
   encodeFunctionData(functionFragment: "isFOL", values: [BigNumberish]): string;
@@ -577,16 +605,29 @@ export interface SizeInterface extends utils.Interface {
     values: [LendAsMarketOrderParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "liquidateFixedLoan",
-    values: [LiquidateFixedLoanParamsStruct]
+    functionFragment: "liquidateLoan",
+    values: [LiquidateLoanParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "liquidateFixedLoanWithReplacement",
-    values: [LiquidateFixedLoanWithReplacementParamsStruct]
+    functionFragment: "liquidateLoanWithReplacement",
+    values: [LiquidateLoanWithReplacementParamsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maximumRepayFee(uint256,uint256,uint256)",
+    values: [BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "maximumRepayFee(uint256)",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "multicall",
     values: [BytesLike[]]
+  ): string;
+  encodeFunctionData(functionFragment: "oracle", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "partialRepayFee",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
@@ -606,8 +647,8 @@ export interface SizeInterface extends utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "selfLiquidateFixedLoan",
-    values: [SelfLiquidateFixedLoanParamsStruct]
+    functionFragment: "selfLiquidateLoan",
+    values: [SelfLiquidateLoanParamsStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
@@ -621,10 +662,6 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "upgradeToAndCall",
     values: [string, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "variableConfig",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "withdraw",
@@ -648,7 +685,7 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "activeFixedLoans",
+    functionFragment: "activeLoans",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -669,33 +706,23 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "compensate", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "config", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "data", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "fixedConfig",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "generalConfig",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "faceValue", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getCredit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDebt", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getDueDate", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getFOLAssignedCollateral",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getLoan", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getFixedLoan",
+    functionFragment: "getLoanStatus",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFixedLoanStatus",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getFixedLoans",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "getLoans", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
@@ -729,14 +756,27 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "liquidateFixedLoan",
+    functionFragment: "liquidateLoan",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "liquidateFixedLoanWithReplacement",
+    functionFragment: "liquidateLoanWithReplacement",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "maximumRepayFee(uint256,uint256,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "maximumRepayFee(uint256)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "multicall", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "oracle", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "partialRepayFee",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "proxiableUUID",
@@ -749,7 +789,7 @@ export interface SizeInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "repay", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "selfLiquidateFixedLoan",
+    functionFragment: "selfLiquidateLoan",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -763,10 +803,6 @@ export interface SizeInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "upgradeToAndCall",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "variableConfig",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
@@ -890,7 +926,7 @@ export interface Size extends BaseContract {
 
     UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<[string]>;
 
-    activeFixedLoans(overrides?: CallOverrides): Promise<[BigNumber]>;
+    activeLoans(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
@@ -922,18 +958,23 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
+    config(
+      overrides?: CallOverrides
+    ): Promise<[InitializeConfigParamsStructOutput]>;
+
+    data(
+      overrides?: CallOverrides
+    ): Promise<[InitializeDataParamsStructOutput]>;
+
     deposit(
       params: DepositParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    fixedConfig(
+    faceValue(
+      loanId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[InitializeFixedParamsStructOutput]>;
-
-    generalConfig(
-      overrides?: CallOverrides
-    ): Promise<[InitializeGeneralParamsStructOutput]>;
+    ): Promise<[BigNumber]>;
 
     getCredit(
       loanId: BigNumberish,
@@ -945,24 +986,27 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    getDueDate(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     getFOLAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    getFixedLoan(
+    getLoan(
       loanId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[FixedLoanStructOutput]>;
+    ): Promise<[LoanStructOutput]>;
 
-    getFixedLoanStatus(
+    getLoanStatus(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[number]>;
 
-    getFixedLoans(
-      overrides?: CallOverrides
-    ): Promise<[FixedLoanStructOutput[]]>;
+    getLoans(overrides?: CallOverrides): Promise<[LoanStructOutput[]]>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
@@ -986,9 +1030,10 @@ export interface Size extends BaseContract {
     ): Promise<[boolean]>;
 
     initialize(
-      g: InitializeGeneralParamsStruct,
-      f: InitializeFixedParamsStruct,
-      v: InitializeVariableParamsStruct,
+      owner: string,
+      c: InitializeConfigParamsStruct,
+      o: InitializeOracleParamsStruct,
+      d: InitializeDataParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -1014,20 +1059,42 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    liquidateFixedLoan(
-      params: LiquidateFixedLoanParamsStruct,
+    liquidateLoan(
+      params: LiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    liquidateFixedLoanWithReplacement(
-      params: LiquidateFixedLoanWithReplacementParamsStruct,
+    liquidateLoanWithReplacement(
+      params: LiquidateLoanWithReplacementParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
+
+    "maximumRepayFee(uint256,uint256,uint256)"(
+      issuanceValue: BigNumberish,
+      startDate: BigNumberish,
+      dueDate: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "maximumRepayFee(uint256)"(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     multicall(
       data: BytesLike[],
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
+
+    oracle(
+      overrides?: CallOverrides
+    ): Promise<[InitializeOracleParamsStructOutput]>;
+
+    partialRepayFee(
+      loanId: BigNumberish,
+      repayAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -1050,8 +1117,8 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    selfLiquidateFixedLoan(
-      params: SelfLiquidateFixedLoanParamsStruct,
+    selfLiquidateLoan(
+      params: SelfLiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -1073,10 +1140,6 @@ export interface Size extends BaseContract {
       overrides?: PayableOverrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    variableConfig(
-      overrides?: CallOverrides
-    ): Promise<[InitializeVariableParamsStructOutput]>;
-
     withdraw(
       params: WithdrawParamsStruct,
       overrides?: Overrides & { from?: string }
@@ -1091,7 +1154,7 @@ export interface Size extends BaseContract {
 
   UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<string>;
 
-  activeFixedLoans(overrides?: CallOverrides): Promise<BigNumber>;
+  activeLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
   borrowAsLimitOrder(
     params: BorrowAsLimitOrderParamsStruct,
@@ -1120,18 +1183,21 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
+  config(
+    overrides?: CallOverrides
+  ): Promise<InitializeConfigParamsStructOutput>;
+
+  data(overrides?: CallOverrides): Promise<InitializeDataParamsStructOutput>;
+
   deposit(
     params: DepositParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  fixedConfig(
+  faceValue(
+    loanId: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<InitializeFixedParamsStructOutput>;
-
-  generalConfig(
-    overrides?: CallOverrides
-  ): Promise<InitializeGeneralParamsStructOutput>;
+  ): Promise<BigNumber>;
 
   getCredit(
     loanId: BigNumberish,
@@ -1140,22 +1206,27 @@ export interface Size extends BaseContract {
 
   getDebt(loanId: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
+  getDueDate(
+    loanId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   getFOLAssignedCollateral(
     loanId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  getFixedLoan(
+  getLoan(
     loanId: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<FixedLoanStructOutput>;
+  ): Promise<LoanStructOutput>;
 
-  getFixedLoanStatus(
+  getLoanStatus(
     loanId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<number>;
 
-  getFixedLoans(overrides?: CallOverrides): Promise<FixedLoanStructOutput[]>;
+  getLoans(overrides?: CallOverrides): Promise<LoanStructOutput[]>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -1179,9 +1250,10 @@ export interface Size extends BaseContract {
   ): Promise<boolean>;
 
   initialize(
-    g: InitializeGeneralParamsStruct,
-    f: InitializeFixedParamsStruct,
-    v: InitializeVariableParamsStruct,
+    owner: string,
+    c: InitializeConfigParamsStruct,
+    o: InitializeOracleParamsStruct,
+    d: InitializeDataParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1204,20 +1276,42 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  liquidateFixedLoan(
-    params: LiquidateFixedLoanParamsStruct,
+  liquidateLoan(
+    params: LiquidateLoanParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  liquidateFixedLoanWithReplacement(
-    params: LiquidateFixedLoanWithReplacementParamsStruct,
+  liquidateLoanWithReplacement(
+    params: LiquidateLoanWithReplacementParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
+
+  "maximumRepayFee(uint256,uint256,uint256)"(
+    issuanceValue: BigNumberish,
+    startDate: BigNumberish,
+    dueDate: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "maximumRepayFee(uint256)"(
+    loanId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   multicall(
     data: BytesLike[],
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
+
+  oracle(
+    overrides?: CallOverrides
+  ): Promise<InitializeOracleParamsStructOutput>;
+
+  partialRepayFee(
+    loanId: BigNumberish,
+    repayAmount: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -1240,8 +1334,8 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  selfLiquidateFixedLoan(
-    params: SelfLiquidateFixedLoanParamsStruct,
+  selfLiquidateLoan(
+    params: SelfLiquidateLoanParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1263,10 +1357,6 @@ export interface Size extends BaseContract {
     overrides?: PayableOverrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  variableConfig(
-    overrides?: CallOverrides
-  ): Promise<InitializeVariableParamsStructOutput>;
-
   withdraw(
     params: WithdrawParamsStruct,
     overrides?: Overrides & { from?: string }
@@ -1281,7 +1371,7 @@ export interface Size extends BaseContract {
 
     UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<string>;
 
-    activeFixedLoans(overrides?: CallOverrides): Promise<BigNumber>;
+    activeLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
@@ -1310,18 +1400,21 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    config(
+      overrides?: CallOverrides
+    ): Promise<InitializeConfigParamsStructOutput>;
+
+    data(overrides?: CallOverrides): Promise<InitializeDataParamsStructOutput>;
+
     deposit(
       params: DepositParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    fixedConfig(
+    faceValue(
+      loanId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<InitializeFixedParamsStructOutput>;
-
-    generalConfig(
-      overrides?: CallOverrides
-    ): Promise<InitializeGeneralParamsStructOutput>;
+    ): Promise<BigNumber>;
 
     getCredit(
       loanId: BigNumberish,
@@ -1333,22 +1426,27 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getDueDate(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getFOLAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getFixedLoan(
+    getLoan(
       loanId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<FixedLoanStructOutput>;
+    ): Promise<LoanStructOutput>;
 
-    getFixedLoanStatus(
+    getLoanStatus(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<number>;
 
-    getFixedLoans(overrides?: CallOverrides): Promise<FixedLoanStructOutput[]>;
+    getLoans(overrides?: CallOverrides): Promise<LoanStructOutput[]>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -1372,9 +1470,10 @@ export interface Size extends BaseContract {
     ): Promise<boolean>;
 
     initialize(
-      g: InitializeGeneralParamsStruct,
-      f: InitializeFixedParamsStruct,
-      v: InitializeVariableParamsStruct,
+      owner: string,
+      c: InitializeConfigParamsStruct,
+      o: InitializeOracleParamsStruct,
+      d: InitializeDataParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1400,13 +1499,13 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    liquidateFixedLoan(
-      params: LiquidateFixedLoanParamsStruct,
+    liquidateLoan(
+      params: LiquidateLoanParamsStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    liquidateFixedLoanWithReplacement(
-      params: LiquidateFixedLoanWithReplacementParamsStruct,
+    liquidateLoanWithReplacement(
+      params: LiquidateLoanWithReplacementParamsStruct,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -1415,7 +1514,29 @@ export interface Size extends BaseContract {
       }
     >;
 
+    "maximumRepayFee(uint256,uint256,uint256)"(
+      issuanceValue: BigNumberish,
+      startDate: BigNumberish,
+      dueDate: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "maximumRepayFee(uint256)"(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     multicall(data: BytesLike[], overrides?: CallOverrides): Promise<string[]>;
+
+    oracle(
+      overrides?: CallOverrides
+    ): Promise<InitializeOracleParamsStructOutput>;
+
+    partialRepayFee(
+      loanId: BigNumberish,
+      repayAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -1435,8 +1556,8 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    selfLiquidateFixedLoan(
-      params: SelfLiquidateFixedLoanParamsStruct,
+    selfLiquidateLoan(
+      params: SelfLiquidateLoanParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1457,10 +1578,6 @@ export interface Size extends BaseContract {
       data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    variableConfig(
-      overrides?: CallOverrides
-    ): Promise<InitializeVariableParamsStructOutput>;
 
     withdraw(
       params: WithdrawParamsStruct,
@@ -1524,7 +1641,7 @@ export interface Size extends BaseContract {
 
     UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<BigNumber>;
 
-    activeFixedLoans(overrides?: CallOverrides): Promise<BigNumber>;
+    activeLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
@@ -1556,14 +1673,19 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
+    config(overrides?: CallOverrides): Promise<BigNumber>;
+
+    data(overrides?: CallOverrides): Promise<BigNumber>;
+
     deposit(
       params: DepositParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    fixedConfig(overrides?: CallOverrides): Promise<BigNumber>;
-
-    generalConfig(overrides?: CallOverrides): Promise<BigNumber>;
+    faceValue(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getCredit(
       loanId: BigNumberish,
@@ -1575,22 +1697,27 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getDueDate(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getFOLAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getFixedLoan(
+    getLoan(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getFixedLoanStatus(
+    getLoanStatus(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getFixedLoans(overrides?: CallOverrides): Promise<BigNumber>;
+    getLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRoleAdmin(
       role: BytesLike,
@@ -1617,9 +1744,10 @@ export interface Size extends BaseContract {
     ): Promise<BigNumber>;
 
     initialize(
-      g: InitializeGeneralParamsStruct,
-      f: InitializeFixedParamsStruct,
-      v: InitializeVariableParamsStruct,
+      owner: string,
+      c: InitializeConfigParamsStruct,
+      o: InitializeOracleParamsStruct,
+      d: InitializeDataParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -1645,19 +1773,39 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    liquidateFixedLoan(
-      params: LiquidateFixedLoanParamsStruct,
+    liquidateLoan(
+      params: LiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    liquidateFixedLoanWithReplacement(
-      params: LiquidateFixedLoanWithReplacementParamsStruct,
+    liquidateLoanWithReplacement(
+      params: LiquidateLoanWithReplacementParamsStruct,
       overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    "maximumRepayFee(uint256,uint256,uint256)"(
+      issuanceValue: BigNumberish,
+      startDate: BigNumberish,
+      dueDate: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "maximumRepayFee(uint256)"(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     multicall(
       data: BytesLike[],
       overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    oracle(overrides?: CallOverrides): Promise<BigNumber>;
+
+    partialRepayFee(
+      loanId: BigNumberish,
+      repayAmount: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1681,8 +1829,8 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    selfLiquidateFixedLoan(
-      params: SelfLiquidateFixedLoanParamsStruct,
+    selfLiquidateLoan(
+      params: SelfLiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -1704,8 +1852,6 @@ export interface Size extends BaseContract {
       overrides?: PayableOverrides & { from?: string }
     ): Promise<BigNumber>;
 
-    variableConfig(overrides?: CallOverrides): Promise<BigNumber>;
-
     withdraw(
       params: WithdrawParamsStruct,
       overrides?: Overrides & { from?: string }
@@ -1725,7 +1871,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    activeFixedLoans(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    activeLoans(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
@@ -1757,14 +1903,19 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
+    config(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    data(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     deposit(
       params: DepositParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    fixedConfig(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    generalConfig(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    faceValue(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     getCredit(
       loanId: BigNumberish,
@@ -1776,22 +1927,27 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getDueDate(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getFOLAssignedCollateral(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getFixedLoan(
+    getLoan(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getFixedLoanStatus(
+    getLoanStatus(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getFixedLoans(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getLoans(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
       role: BytesLike,
@@ -1821,9 +1977,10 @@ export interface Size extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     initialize(
-      g: InitializeGeneralParamsStruct,
-      f: InitializeFixedParamsStruct,
-      v: InitializeVariableParamsStruct,
+      owner: string,
+      c: InitializeConfigParamsStruct,
+      o: InitializeOracleParamsStruct,
+      d: InitializeDataParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
@@ -1852,19 +2009,39 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    liquidateFixedLoan(
-      params: LiquidateFixedLoanParamsStruct,
+    liquidateLoan(
+      params: LiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    liquidateFixedLoanWithReplacement(
-      params: LiquidateFixedLoanWithReplacementParamsStruct,
+    liquidateLoanWithReplacement(
+      params: LiquidateLoanWithReplacementParamsStruct,
       overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    "maximumRepayFee(uint256,uint256,uint256)"(
+      issuanceValue: BigNumberish,
+      startDate: BigNumberish,
+      dueDate: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "maximumRepayFee(uint256)"(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     multicall(
       data: BytesLike[],
       overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    oracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    partialRepayFee(
+      loanId: BigNumberish,
+      repayAmount: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1888,8 +2065,8 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    selfLiquidateFixedLoan(
-      params: SelfLiquidateFixedLoanParamsStruct,
+    selfLiquidateLoan(
+      params: SelfLiquidateLoanParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
@@ -1910,8 +2087,6 @@ export interface Size extends BaseContract {
       data: BytesLike,
       overrides?: PayableOverrides & { from?: string }
     ): Promise<PopulatedTransaction>;
-
-    variableConfig(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdraw(
       params: WithdrawParamsStruct,
