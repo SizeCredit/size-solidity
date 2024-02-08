@@ -30,6 +30,6 @@ contract InitializeTest is BaseTest {
         Size implementation = new Size();
 
         vm.expectRevert();
-            new ERC1967Proxy(address(implementation), abi.encodeWithSelector(Size.initialize.selector, c, o, d));
+        new ERC1967Proxy(address(implementation), abi.encodeWithSelector(Size.initialize.selector, c, o, d));
     }
 }

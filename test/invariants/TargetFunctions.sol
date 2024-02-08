@@ -295,6 +295,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after(loanId);
 
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
+        eq(_after.totalDebtAmount, _before.totalDebtAmount, LIQUIDATION_02);
     }
 
     function setPrice(uint256 price) public {

@@ -47,6 +47,7 @@ import {State} from "@src/SizeStorage.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
+// @audit Check if borrower == lender == liquidator may cause any issues
 contract Size is
     ISize,
     SizeView,

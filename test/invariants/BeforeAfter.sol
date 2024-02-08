@@ -4,6 +4,8 @@ pragma solidity 0.8.24;
 import {UserView} from "@src/SizeView.sol";
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
+
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {Deploy} from "@test/Deploy.sol";
 
 abstract contract BeforeAfter is Deploy {
@@ -17,6 +19,7 @@ abstract contract BeforeAfter is Deploy {
         uint256 senderBorrowAmount;
         uint256 activeLoans;
         uint256 variablePoolBorrowAmount;
+        uint256 totalDebtAmount;
     }
 
     address internal sender;
@@ -28,34 +31,29 @@ abstract contract BeforeAfter is Deploy {
         _;
     }
 
-    function __before(uint256 loanId) internal {
+    function __snapshot(Vars storage vars, uint256 loanId) internal {
         Loan memory l;
         UserView memory e;
         Loan memory loan = loanId == RESERVED_ID ? l : size.getLoan(loanId);
-        _before.sender = size.getUserView(sender);
-        _before.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.generic.borrower);
-        _before.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.generic.lender);
-        _before.isSenderLiquidatable = size.isUserLiquidatable(sender);
-        _before.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isUserLiquidatable(loan.generic.borrower);
-        _before.senderCollateralAmount = weth.balanceOf(sender);
-        _before.senderBorrowAmount = usdc.balanceOf(sender);
-        _before.activeLoans = size.activeLoans();
-        _before.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowAmount;
+        vars.sender = size.getUserView(sender);
+        vars.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.generic.borrower);
+        vars.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.generic.lender);
+        vars.isSenderLiquidatable = size.isUserLiquidatable(sender);
+        vars.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isUserLiquidatable(loan.generic.borrower);
+        vars.senderCollateralAmount = weth.balanceOf(sender);
+        vars.senderBorrowAmount = usdc.balanceOf(sender);
+        vars.activeLoans = size.activeLoans();
+        vars.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowAmount;
+        (,, NonTransferrableToken debtToken) = size.tokens();
+        vars.totalDebtAmount = debtToken.totalSupply();
+    }
+
+    function __before(uint256 loanId) internal {
+        __snapshot(_before, loanId);
     }
 
     function __after(uint256 loanId) internal {
-        Loan memory l;
-        UserView memory e;
-        Loan memory loan = loanId == RESERVED_ID ? l : size.getLoan(loanId);
-        _after.sender = size.getUserView(sender);
-        _after.borrower = loanId == RESERVED_ID ? e : size.getUserView(loan.generic.borrower);
-        _after.lender = loanId == RESERVED_ID ? e : size.getUserView(loan.generic.lender);
-        _after.isSenderLiquidatable = size.isUserLiquidatable(sender);
-        _after.isBorrowerLiquidatable = loanId == RESERVED_ID ? false : size.isUserLiquidatable(loan.generic.borrower);
-        _after.senderCollateralAmount = weth.balanceOf(sender);
-        _after.senderBorrowAmount = usdc.balanceOf(sender);
-        _after.activeLoans = size.activeLoans();
-        _after.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowAmount;
+        __snapshot(_after, loanId);
     }
 
     function __before() internal {

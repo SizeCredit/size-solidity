@@ -46,13 +46,13 @@ struct InitializeDataParams {
 }
 
 library Initialize {
-    function _validateOwner(address owner) internal pure {
+    function validateOwner(address owner) internal pure {
         if (owner == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
     }
 
-    function _validateInitializeConfigParams(InitializeConfigParams memory c) internal pure {
+    function validateInitializeConfigParams(InitializeConfigParams memory c) internal pure {
         // validate crOpening
         if (c.crOpening < PERCENT) {
             revert Errors.INVALID_COLLATERAL_RATIO(c.crOpening);
@@ -110,7 +110,7 @@ library Initialize {
         }
     }
 
-    function _validateInitializeOracleParams(InitializeOracleParams memory o) internal pure {
+    function validateInitializeOracleParams(InitializeOracleParams memory o) internal pure {
         // validate price feed
         if (o.priceFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -125,7 +125,7 @@ library Initialize {
         // N/A
     }
 
-    function _validateInitializeDataParams(InitializeDataParams memory d) internal pure {
+    function validateInitializeDataParams(InitializeDataParams memory d) internal pure {
         // validate underlyingCollateralToken
         if (d.underlyingCollateralToken == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -149,13 +149,13 @@ library Initialize {
         InitializeOracleParams memory o,
         InitializeDataParams memory d
     ) external pure {
-        _validateOwner(owner);
-        _validateInitializeConfigParams(c);
-        _validateInitializeOracleParams(o);
-        _validateInitializeDataParams(d);
+        validateOwner(owner);
+        validateInitializeConfigParams(c);
+        validateInitializeOracleParams(o);
+        validateInitializeDataParams(d);
     }
 
-    function _executeInitializeConfig(State storage state, InitializeConfigParams memory c) internal {
+    function executeInitializeConfig(State storage state, InitializeConfigParams memory c) internal {
         state.config.crOpening = c.crOpening;
         state.config.crLiquidation = c.crLiquidation;
 
@@ -178,12 +178,12 @@ library Initialize {
         state.config.feeRecipient = c.feeRecipient;
     }
 
-    function _executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {
+    function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {
         state.oracle.priceFeed = IPriceFeed(o.priceFeed);
         state.oracle.marketBorrowRateFeed = IMarketBorrowRateFeed(o.marketBorrowRateFeed);
     }
 
-    function _executeInitializeData(State storage state, InitializeDataParams memory d) internal {
+    function executeInitializeData(State storage state, InitializeDataParams memory d) internal {
         state.data.underlyingCollateralToken = IERC20Metadata(d.underlyingCollateralToken);
         state.data.underlyingBorrowToken = IERC20Metadata(d.underlyingBorrowToken);
         state.data.variablePool = IPool(d.variablePool);
@@ -206,9 +206,9 @@ library Initialize {
         InitializeOracleParams memory o,
         InitializeDataParams memory d
     ) external {
-        _executeInitializeConfig(state, c);
-        _executeInitializeOracle(state, o);
-        _executeInitializeData(state, d);
+        executeInitializeConfig(state, c);
+        executeInitializeOracle(state, o);
+        executeInitializeData(state, d);
         emit Events.Initialize(c, o, d);
     }
 }

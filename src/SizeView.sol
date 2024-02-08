@@ -4,6 +4,7 @@ pragma solidity 0.8.24;
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {UpdateConfig} from "@src/libraries/general/actions/UpdateConfig.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
@@ -36,6 +37,7 @@ abstract contract SizeView is SizeStorage {
     using RiskLibrary for State;
     using VariableLibrary for State;
     using AccountingLibrary for State;
+    using UpdateConfig for State;
 
     function collateralRatio(address user) external view returns (uint256) {
         return state.collateralRatio(user);
@@ -76,36 +78,15 @@ abstract contract SizeView is SizeStorage {
     }
 
     function config() external view returns (InitializeConfigParams memory) {
-        return InitializeConfigParams({
-            crOpening: state.config.crOpening,
-            crLiquidation: state.config.crLiquidation,
-            minimumCreditBorrowAToken: state.config.minimumCreditBorrowAToken,
-            collateralSplitLiquidatorPercent: state.config.collateralSplitLiquidatorPercent,
-            collateralSplitProtocolPercent: state.config.collateralSplitProtocolPercent,
-            collateralTokenCap: state.config.collateralTokenCap,
-            borrowATokenCap: state.config.borrowATokenCap,
-            debtTokenCap: state.config.debtTokenCap,
-            repayFeeAPR: state.config.repayFeeAPR,
-            earlyLenderExitFee: state.config.earlyLenderExitFee,
-            earlyBorrowerExitFee: state.config.earlyBorrowerExitFee,
-            collateralOverdueTransferFee: state.config.collateralOverdueTransferFee,
-            feeRecipient: state.config.feeRecipient
-        });
+        return state.configParams();
     }
 
     function oracle() external view returns (InitializeOracleParams memory) {
-        return InitializeOracleParams({
-            priceFeed: address(state.oracle.priceFeed),
-            marketBorrowRateFeed: address(state.oracle.marketBorrowRateFeed)
-        });
+        return state.oracleParams();
     }
 
     function data() external view returns (InitializeDataParams memory) {
-        return InitializeDataParams({
-            underlyingCollateralToken: address(state.data.underlyingCollateralToken),
-            underlyingBorrowToken: address(state.data.underlyingBorrowToken),
-            variablePool: address(state.data.variablePool)
-        });
+        return state.dataParams();
     }
 
     function getUserView(address user) external view returns (UserView memory) {

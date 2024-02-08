@@ -48,6 +48,8 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
 
     string internal constant LIQUIDATION_01 =
         "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
+    string internal constant LIQUIDATION_02 =
+        "LIQUIDATION_02: Liquidation with replacement does not change the total system debt";
 
     function invariant_LOAN() public returns (bool) {
         uint256 minimumCreditBorrowAToken = size.config().minimumCreditBorrowAToken;
