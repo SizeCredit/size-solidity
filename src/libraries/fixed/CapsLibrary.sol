@@ -4,6 +4,8 @@ pragma solidity 0.8.24;
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
+/// @title CapsLibrary
+/// @notice Contains functions for validating the cap of minted protocol-controlled tokens
 library CapsLibrary {
     function validateCollateralTokenCap(State storage state) external view {
         if (state.data.collateralToken.totalSupply() > state.config.collateralTokenCap) {

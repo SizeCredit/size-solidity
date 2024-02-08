@@ -16,12 +16,19 @@ import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Vault} from "@src/proxy/Vault.sol";
 
+/// @title VariableLibrary
+/// @dev Contains functions for interacting with the Size Variable Pool (Aave v3 fork)
 library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
     using CollateralLibrary for State;
     using LoanLibrary for State;
     using LoanLibrary for Loan;
 
+    /// @notice Get the vault for a user
+    /// @dev If the user does not have a vault, create one
+    /// @param state The state struct
+    /// @param user The user's address
+    /// @return vault The user's vault
     function getVault(State storage state, address user) public returns (Vault) {
         if (address(state.data.users[user].vault) != address(0)) {
             return state.data.users[user].vault;
@@ -33,7 +40,16 @@ library VariableLibrary {
         return vault;
     }
 
-    function depositBorrowTokenToVariablePool(State storage state, address from, address to, uint256 amount) external {
+    /// @notice Deposit underlying borrow tokens into the variable pool
+    /// @dev Assumes `from` has approvet to `address(this)` the `amount` of `underlyingBorrowToken`
+    ///      The deposit is made to the vault of `to`
+    /// @param state The state struct
+    /// @param from The address of the depositor
+    /// @param to The address of the recipient
+    /// @param amount The amount of tokens to deposit
+    function depositUnderlyingBorrowTokenToVariablePool(State storage state, address from, address to, uint256 amount)
+        external
+    {
         IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
 
         underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
@@ -44,9 +60,19 @@ library VariableLibrary {
         state.data.variablePool.supply(address(underlyingBorrowToken), amount, address(vaultTo), 0);
     }
 
-    function withdrawBorrowTokenFromVariablePool(State storage state, address from, address to, uint256 amount)
-        external
-    {
+    /// @notice Withdraw underlying borrow tokens from the variable pool
+    /// @dev Assumes `from` has enough aTokens to withdraw
+    ///      The withdraw is made from the vault of `from`
+    /// @param state The state struct
+    /// @param from The address of the withdrawer
+    /// @param to The address of the recipient
+    /// @param amount The amount of tokens to withdraw
+    function withdrawUnderlyingBorrowTokenFromVariablePool(
+        State storage state,
+        address from,
+        address to,
+        uint256 amount
+    ) external {
         IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
 
         Vault vaultFrom = getVault(state, from);
@@ -58,6 +84,13 @@ library VariableLibrary {
         );
     }
 
+    /// @notice Transfer aTokens from one user to another
+    /// @dev Assumes `from` has enough aTokens to transfer
+    ///      The transfer is made from the vault of `from` to the vault of `to`
+    /// @param state The state struct
+    /// @param from The address of the sender
+    /// @param to The address of the recipient
+    /// @param amount The amount of aTokens to transfer
     function transferBorrowAToken(State storage state, address from, address to, uint256 amount) public {
         IAToken borrowAToken = state.data.borrowAToken;
 
@@ -68,6 +101,14 @@ library VariableLibrary {
         vaultFrom.proxy(address(borrowAToken), abi.encodeCall(IERC20.transfer, (address(vaultTo), amount)));
     }
 
+    /// @notice Borrow underlying borrow tokens from the variable pool by first supplying collateral
+    /// @dev Assumes `from` has enough collateral to borrow `amount`
+    ///      The `supply` and `borrow` is made from the vault of `from` and on supplied to the vault of `to`
+    /// @param state The state struct
+    /// @param from The address of the borrower
+    /// @param to The address of the recipient of aTokens
+    /// @param collateralAmount The collateral amount to be supplied to the variable pool
+    /// @param borrowAmount The amount of tokens to borrow
     function _borrowFromVariablePool(
         State storage state,
         address from,
@@ -111,6 +152,10 @@ library VariableLibrary {
         state.data.variablePool.supply(address(underlyingBorrowToken), borrowAmount, address(vaultTo), 0);
     }
 
+    /// @notice Get the balance of aTokens for a user
+    /// @param state The state struct
+    /// @param account The user's address
+    /// @return The balance of aTokens
     function borrowATokenBalanceOf(State storage state, address account) external view returns (uint256) {
         Vault vault = state.data.users[account].vault;
         if (address(vault) == address(0)) {
@@ -120,10 +165,18 @@ library VariableLibrary {
         }
     }
 
+    /// @notice Get the liquidity index of Size Variable Pool (Aave v3 fork)
+    /// @param state The state struct
+    /// @return The liquidity index
     function borrowATokenLiquidityIndex(State storage state) public view returns (uint256) {
         return state.data.variablePool.getReserveNormalizedIncome(address(state.data.underlyingBorrowToken));
     }
 
+    /// @notice Move a fixed-rate loan to the variable pool by supplying the assigned collateral and paying the liquidator with the move fee
+    /// @dev We use a memory copy of the loan as it might have already changed in storage as a result of the liquidation process
+    /// @param state The state struct
+    /// @param folCopy The loan to move
+    /// @return liquidatorProfitCollateralToken The amount of collateral tokens paid to the liquidator
     function moveLoanToVariablePool(State storage state, Loan memory folCopy)
         external
         returns (uint256 liquidatorProfitCollateralToken)
@@ -132,8 +185,6 @@ library VariableLibrary {
 
         liquidatorProfitCollateralToken = state.config.collateralOverdueTransferFee;
         state.data.collateralToken.transferFrom(folCopy.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
-
-        // In moving the loan from the fixed term to the variable, we assign collateral once to the loan and it is fixed
 
         _borrowFromVariablePool(
             state,

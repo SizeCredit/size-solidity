@@ -49,7 +49,7 @@ library Deposit {
         if (params.token == address(state.data.underlyingCollateralToken)) {
             state.depositCollateralToken(msg.sender, params.to, params.amount);
         } else {
-            state.depositBorrowTokenToVariablePool(msg.sender, params.to, params.amount);
+            state.depositUnderlyingBorrowTokenToVariablePool(msg.sender, params.to, params.amount);
         }
 
         emit Events.Deposit(params.token, params.to, params.amount);

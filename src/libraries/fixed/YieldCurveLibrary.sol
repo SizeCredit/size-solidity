@@ -11,6 +11,8 @@ struct YieldCurve {
     int256[] marketRateMultipliers;
 }
 
+/// @title YieldCurveLibrary
+/// @notice A library for working with yield curves
 library YieldCurveLibrary {
     // @audit Check if we should have a protocol-defined minimum maturity
     function validateYieldCurve(YieldCurve memory self) internal pure {
@@ -39,22 +41,36 @@ library YieldCurveLibrary {
         // N/A
     }
 
+    /// @notice Get the rate from the yield curve adjusted by the market rate
+    /// @dev Reverts if the final result is negative
+    /// @param rate The rate from the yield curve
+    /// @param marketRate The market rate
+    /// @param marketRateMultiplier The market rate multiplier
+    /// @return Returns rate + (marketRate * marketRateMultiplier) / PERCENT
     function getRateAdjustedByMarketRate(uint256 rate, uint256 marketRate, int256 marketRateMultiplier)
         internal
         pure
         returns (uint256)
     {
+        // @audit Check if the result should be capped to 0 instead of reverting
         return SafeCast.toUint256(
             SafeCast.toInt256(rate)
                 + Math.mulDiv(SafeCast.toInt256(marketRate), marketRateMultiplier, SafeCast.toInt256(PERCENT))
         );
     }
 
+    /// @notice Get the rate from the yield curve by performing a linear interpolation between two time buckets
+    /// @dev Reverts if the due date is in the past or out of range
+    /// @param curveRelativeTime The yield curve
+    /// @param marketRate The market rate
+    /// @param dueDate The due date
+    /// @return The rate from the yield curve
     function getRate(YieldCurve memory curveRelativeTime, uint256 marketRate, uint256 dueDate)
         internal
         view
         returns (uint256)
     {
+        // @audit Check the correctness of this function
         if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
         uint256 interval = dueDate - block.timestamp;
         uint256 length = curveRelativeTime.timeBuckets.length;

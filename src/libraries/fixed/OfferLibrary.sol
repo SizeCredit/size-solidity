@@ -13,10 +13,8 @@ struct BorrowOffer {
     YieldCurve curveRelativeTime;
 }
 
+/// @title OfferLibrary
 library OfferLibrary {
-    error OfferLibrary__PastDueDate();
-    error OfferLibrary__DueDateOutOfRange(uint256 deltaT, uint256 minDueDate, uint256 maxDueDate);
-
     function isNull(LoanOffer memory self) internal pure returns (bool) {
         return self.maxDueDate == 0 && self.curveRelativeTime.timeBuckets.length == 0
             && self.curveRelativeTime.rates.length == 0;

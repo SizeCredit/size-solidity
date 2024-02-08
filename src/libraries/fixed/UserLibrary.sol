@@ -10,4 +10,5 @@ struct User {
     Vault vault;
 }
 
+/// @title UserLibrary
 library UserLibrary {}

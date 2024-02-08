@@ -6,6 +6,10 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 import {Errors} from "@src/libraries/Errors.sol";
 
+/// @title Vault
+/// @notice A contract that permits the owner to execute arbitrary calls
+/// @dev This contract is deployed behind minimal proxy contracts, also known as "clones", using OpenZeppelin's Clones library.
+///      Because of that, it is not possible to use the `constructor`, so the `initialize` function is used instead.
 contract Vault is Initializable, OwnableUpgradeable {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {

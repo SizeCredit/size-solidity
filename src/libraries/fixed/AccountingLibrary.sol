@@ -12,6 +12,7 @@ import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 import {FOL, GenericLoan, Loan, LoanLibrary, RESERVED_ID, SOL} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
+/// @title AccountingLibrary
 library AccountingLibrary {
     using RiskLibrary for State;
     using LoanLibrary for Loan;
