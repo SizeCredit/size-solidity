@@ -14,7 +14,7 @@ contract ClaimScript is Script {
         Size sizeContract = Size(sizeContractAddress);
 
         /// Claim struct
-        ClaimParams memory params = ClaimParams({loanId: 0});
+        ClaimParams memory params = ClaimParams({loanId: 1});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.claim(params);

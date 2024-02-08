@@ -15,14 +15,14 @@ contract DepositScript is Script {
         address LenderTest = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
         address BorrowerTest = 0x979Af411D048b453E3334C95F392012B3BbD6215;
 
-        uint256 amount = 1e16;
+        uint256 amount = 1e16; /// WETH has 18 decimals
 
-        /// WETH has 18 decimals
+        
 
         Size sizeContract = Size(sizeContractAddress);
 
         /// DepositParams struct
-        DepositParams memory params = DepositParams({token: wethAddress, amount: amount, to: BorrowerTest});
+        DepositParams memory params = DepositParams({token: wethAddress, amount: amount, to: LenderTest});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.deposit(params);

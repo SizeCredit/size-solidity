@@ -17,13 +17,13 @@ contract BorrowMarketOrder is Script {
 
         TimestampHelper helper = new TimestampHelper();
         uint256 currentTimestamp = helper.getCurrentTimestamp();
-        uint256 dueDate = currentTimestamp + 172800; //60 * 60 * 24 * 28; // 300 days from now
+        uint256 dueDate = currentTimestamp + 60 * 60 * 24 * 4; // 4 days from now
 
         Size sizeContract = Size(sizeContractAddress);
 
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
-            lender: LenderTest,
-            amount: 10e6,
+            lender: BorrowerTest,
+            amount: 5e6,
             dueDate: dueDate,
             exactAmountIn: false,
             virtualCollateralFixedLoanIds: new uint256[](0)
