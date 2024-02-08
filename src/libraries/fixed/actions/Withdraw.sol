@@ -25,8 +25,8 @@ library Withdraw {
 
         // validate token
         if (
-            params.token != address(state._general.collateralAsset)
-                && params.token != address(state._general.borrowAsset)
+            params.token != address(state.data.underlyingCollateralToken)
+                && params.token != address(state.data.underlyingBorrowToken)
         ) {
             revert Errors.INVALID_TOKEN(params.token);
         }
@@ -43,8 +43,8 @@ library Withdraw {
     }
 
     function executeWithdraw(State storage state, WithdrawParams calldata params) public {
-        if (params.token == address(state._general.collateralAsset)) {
-            uint256 amount = Math.min(params.amount, state._fixed.collateralToken.balanceOf(msg.sender));
+        if (params.token == address(state.data.underlyingCollateralToken)) {
+            uint256 amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));
             if (amount > 0) {
                 state.withdrawCollateralToken(msg.sender, params.to, amount);
             }

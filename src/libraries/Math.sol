@@ -10,6 +10,7 @@ enum Rounding {
     UP
 }
 
+// @audit Check rounding direction of all `FixedPointMath.mulDiv{Up,Down}`
 library Math {
     function min(uint256 a, uint256 b) internal pure returns (uint256) {
         return FixedPointMathLib.min(a, b);

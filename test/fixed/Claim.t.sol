@@ -8,7 +8,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
-import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
@@ -19,26 +19,26 @@ contract ClaimTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
+        uint256 amountLoanId1 = 10e6;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         _repay(bob, loanId);
 
-        uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, amountFixedLoanId1, PERCENT);
+        uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
 
         Vars memory _before = _state();
 
-        assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.REPAID);
+        assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
         _claim(alice, loanId);
 
         Vars memory _after = _state();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + faceValue);
-        assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.CLAIMED);
+        assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);
     }
 
     function test_Claim_claim_of_exited_loan_gets_credit_back() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
@@ -55,7 +55,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _before = _state();
 
-        assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.REPAID);
+        assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
         _claim(alice, loanId);
 
         Vars memory _after = _state();
@@ -63,12 +63,12 @@ contract ClaimTest is BaseTest {
         uint256 faceValue = Math.mulDivUp(100e6, r, PERCENT);
         uint256 credit = faceValue - faceValueExited;
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + credit);
-        assertEq(size.getFixedLoanStatus(loanId), FixedLoanStatus.CLAIMED);
+        assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);
     }
 
     function test_Claim_claim_of_SOL_where_FOL_is_repaid_works() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
@@ -151,7 +151,7 @@ contract ClaimTest is BaseTest {
 
         _setPrice(0.75e18);
 
-        _liquidateFixedLoan(liquidator, loanId);
+        _liquidateLoan(liquidator, loanId);
 
         Vars memory _before = _state();
 
@@ -166,7 +166,7 @@ contract ClaimTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, weth, 160e18);
-        _deposit(bob, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(bob, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(candy, usdc, 10e6);
         _deposit(liquidator, usdc, 1000e6);
         _lendAsLimitOrder(bob, 12, 0, 12);

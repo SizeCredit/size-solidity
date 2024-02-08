@@ -10,14 +10,14 @@ library CollateralLibrary {
     using SafeERC20 for IERC20Metadata;
 
     function depositCollateralToken(State storage state, address from, address to, uint256 amount) external {
-        IERC20Metadata collateralAsset = IERC20Metadata(state._general.collateralAsset);
-        collateralAsset.transferFrom(from, address(this), amount);
-        state._fixed.collateralToken.mint(to, amount);
+        IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
+        underlyingCollateralToken.transferFrom(from, address(this), amount);
+        state.data.collateralToken.mint(to, amount);
     }
 
     function withdrawCollateralToken(State storage state, address from, address to, uint256 amount) external {
-        IERC20Metadata collateralAsset = IERC20Metadata(state._general.collateralAsset);
-        state._fixed.collateralToken.burn(from, amount);
-        collateralAsset.safeTransfer(to, amount);
+        IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
+        state.data.collateralToken.burn(from, amount);
+        underlyingCollateralToken.safeTransfer(to, amount);
     }
 }

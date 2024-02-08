@@ -2,6 +2,97 @@
 
 Size V2 Solidity
 
+![Size](./size.jpeg)
+
+Size is an order book based fixed rate lending protocol with an integrated variable pool.
+
+Initial pairs supported:
+
+- ETH: Collateral token
+- USDC: Borrow/Lend token
+
+Target networks:
+
+- Ethereum mainnet
+- Base
+
+## Documentation
+
+### Accounting and Protocol Design
+
+- [Hackmd](https://hackmd.io/DEUtX6xLQTuWzawpkrd_Sw?view)
+
+### Technical overview
+
+#### Architecture
+
+The architecture of Size v2 was inspired by [dYdX v2](https://github.com/dydxprotocol/solo), with the following design goals:
+
+- Upgradeability
+- Modularity
+- Overcome [EIP-170](https://eips.ethereum.org/EIPS/eip-170)'s contract code size limit of 24kb
+- Maintaining the protocol invariants after each user interaction (["FREI-PI" pattern](https://www.nascent.xyz/idea/youre-writing-require-statements-wrong))
+
+For that purpose, the contract is deployed behind an UUPS-Upgradeable proxy, and contains a single entrypoint, `Size.sol`. External libraries are used, and a single `State storage` variable is passed to them via `delegatecall`s. All user-facing functions have the same pattern:
+
+```solidity
+state.validateFunction(params);
+state.executeFunction(params);
+state.validateInvariant(params);
+```
+
+The `Multicall` pattern is also available to allow users to perform a sequence of multiple actions, such as depositing borrow tokens, liquidating an underwater borrower, and withdrawing all liquidated collateral.
+
+Additional safety features were employed, such as different levels of Access Control (ADMIN, PAUSER_ROLE, KEEPER_ROLE), and Pause.
+
+#### Tokens
+
+In order to address donation and reentrancy attacks, the following measures were adopted:
+
+- No usage of native ether, only wrapped ether (WETH)
+- Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into protocol tokens via `deposit`, which mints `aszUSDC` and `szWETH`, and received back via `withdraw`, which burns protocol tokens 1:1 in exchange of the underlying tokens.
+
+#### Maths
+
+All mathematical operations are implemented with explicit rounding (`mulDivUp` or `mulDivDown`) using Solady's [FixedPointMathLib](https://github.com/Vectorized/solady/blob/main/src/utils/FixedPointMathLib.sol).
+
+Decimal amounts are preserved until a conversion is necessary, and performed via the `ConversionLibrary`:
+
+- USDC/aszUSDC: 6 decimals
+- szDebt: 6 decimals (same as borrow token)
+- WETH/szETH: 18 decimals
+- PriceFeed (ETH/USDC): 18 decimals
+- MarketBorrowRateFeed (USDC): 18 decimals
+
+All percentages are expressed in 18 decimals. For example, a 150% liquidation collateral ratio is represented as 1500000000000000000.
+
+#### Variable Pool
+
+In order to interact with Size's Variable Pool (Aave v3 fork), a proxy pattern is employed, which creates user Vault proxies using OpenZeppelin Clone's library to deploy copies on demand. This way, each address can have an individual health factor on Size's Variable Pool (Aave v3 fork). The `Vault` contract is owned by the `Size` contract, which can perform arbitrary calls on behalf of the user. For example, when a `deposit` is performed on `Size`, it creates a `Vault`, if needed, which then executes a `supply` on Size's Variable Pool (Aave v3 fork). This way, all deposited `USDC` can be lent out through variable rates until a fixed-rate loan is matched and created on the orderbook. 
+
+When an account executes `supply` into Size's Variable Pool (Aave v3 fork), the `aszUSDC` token is minted 1:1. This is an instance of `AToken`, an interest-bearing rebasing token that represents users' USDC available for variable-rate loans, which grows according to a variable interest rate equation.
+
+#### Oracles
+
+##### Price Feed
+
+Two Chainlink aggregators are used to fetch the ETH/USDC rate. A conversion from ETH/USD and USDC/USD is performed and the result is rounded down to 18 decimals. For example, a spot price of 2,426.59 ETH/USDC is represented as 2426590000000000000000.
+
+##### Market Borrow Rate Feed
+
+In order to approximate the current market average value of USDC variable borrow rates, we use Aave v3, and convert it to 18 decimals. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
+
+Note that this rate is extracted from Aave v3 itself, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 is a better proxy for the real market rate, and less prone to market manipulation attacks.
+
+In the future, integrations with other protocols will be implemented in order to have a more realistic global average.
+
+## Test
+
+```bash
+forge install
+forge test
+```
+
 ## Coverage
 
 <!-- BEGIN_COVERAGE -->
@@ -79,76 +170,28 @@ Size V2 Solidity
 ```
 <!-- END_COVERAGE -->
 
-## Documentation
+## Protocol invariants
 
-- decimals:
-  - USDC/aszUSDC: 6
-  - WETH/szETH: 18
-  - szDebt: 6
-  - PriceFeed: 18
+### Invariants implemented
 
-## Deployment
+- Check [`Properties.sol`](./test/invariants/Properties.sol)
 
-```bash
-npm run deploy-sepolia
-```
+### Invariants pending implementation
 
-## Invariants
-
-- creating a FOL/SOL decreases a offer maxAmount
-- you can exit a SOL
-- liquidation with replacement does not increase the total system debt
-- Taking loan with only virtual collateral does not decrease the borrower CR
-- Taking loan with real collateral decreases the borrower CR
+- Taking a loan with only receivables does not decrease the borrower CR
+- Taking a collateralized loan decreases the borrower CR
 - The user cannot withdraw more than their deposits
-- If isLiquidatable && liquidator has enough cash, the liquidation should always succeed (requires adding more checks to isLiquidatable)
-- When a user self liquidates a SOL, it will improve the collateralization ratio of other SOLs. This is because self liquidating decreases the FOL's face value, so it decreases all SOL's debt
-- No loan (FOL/SOL) can ever become a dust loan
-- the protocol vault is always solvent (how to check for that?)
-- $Credit(i) = FV(i) - \sum\limits_{j~where~Exiter(j)=i}{FV(j)}$ /// For example, when a loan i exits to another j, Exiter(j) = i. This isn't tracked anywhere on-chain, as it's not necessary under the correct accounting conditions, as the loan structure only tracks the folId, not the "originator". But the originator can also be a SOL, when a SOL exits to another SOL. But it can be emitted, which may be used for off-chain metrics, so I guess I'll add that to the event. Also, when doing fuzzing/formal verification, we can also add "ghost variables" to track the "originator", so no need to add it to the protocol, but this concept can be useful in assessing the correct behavior of the exit logic
-- The VP utilization ratio should never be greater than 1
-- the collateral ratio of a loan should always be >= than before, after a partial liquidation. We can apply the same invariant in the fixed rate OB for operations like self liquidations and credit debt compensation
-
-## TODO before audit
-
-- finish TODOs
-- finish updateconfig all params
-- gas optimize the 80/20 rule
-- add tests for fixed borrows with dueDate now
-- review all input validation functions
-- add natspec
-
-## TODO before mainnet
-
-- Do the Aave fork, document and automate mitigations
-- Learn how to do liquidations in our Aave fork
-- add aave tests
-- test events
-- monitoring
-- incident response plan
-
-## Gas optimizations
-
-- separate Loan struct
-- refactor tests following Sablier v2 naming conventions: `test_Foo`, `testFuzz_Foo`, `test_RevertWhen_Foo`, `testFuzz_RevertWhen_Foo`, `testFork_...`
-- use solady for tokens or other simple primitives
-
-## Notes for auditors
-
-- // @audit Check rounding direction of `FixedPointMath.mulDiv*`
-- // @audit Check if borrower == lender == liquidator may cause any issues
-
-## Questions
-
-- Check how Aave does insurance
+- If the loan is liquidatable, the liquidation should not revert
+- When a user self liquidates a SOL, it will improve the collateralization ratio of other SOLs. This is because self liquidating decreases the FOL's faceValue, so it decreases all SOL's debt
 
 ## Known limitations
 
-- Protocol does not support rebasing tokens
-- Protocol does not support fee-on-transfer tokens
-- Protocol does not support tokens with more than 18 decimals
-- Protocol only supports tokens compliant with the IERC20Metadata interface
-- Protocol only supports pre-vetted tokens
-- All features except deposits/withdrawals are paused in case Chainlink oracles are stale
-- In cas Chainlink reports a wrong price, the protocol state cannot be guaranteed (invalid liquidations, etc)
-- Price feeds must be redeployed and updated on the `Size` smart contract in case any chainlink configuration changes (stale price, decimals)
+- The protocol does not support rebasing tokens
+- The protocol does not support fee-on-transfer tokens
+- The protocol does not support tokens with more than 18 decimals
+- The protocol only supports tokens compliant with the IERC20Metadata interface
+- The protocol only supports pre-vetted tokens
+- The protocol owner, KEEPER_ROLE, and PAUSER_ROLE are trusted
+- The protocol does not have any fallback oracles.
+- Price feeds must be redeployed and updated in case any Chainlink configuration changes (stale price timeouts, decimals)
+- In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues

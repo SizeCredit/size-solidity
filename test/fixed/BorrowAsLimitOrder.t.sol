@@ -20,11 +20,11 @@ contract BorrowAsLimitOrderTest is BaseTest {
         rates[0] = 1.01e18;
         rates[1] = 1.02e18;
         int256[] memory marketRateMultipliers = new int256[](2);
-        uint256 riskCR = 1.5e18;
+        uint256 openingLimitBorrowCR = 1.5e18;
         assertTrue(_state().alice.user.borrowOffer.isNull());
         _borrowAsLimitOrder(
             alice,
-            riskCR,
+            openingLimitBorrowCR,
             YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers})
         );
 
@@ -32,7 +32,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
     }
 
     function test_BorrowAsLimitOrder_borrowAsLimitOrder_adds_borrowOffer_to_orderbook(
-        uint256 riskCR,
+        uint256 openingLimitBorrowCR,
         uint256 buckets,
         bytes32 seed
     ) public {
@@ -47,12 +47,12 @@ contract BorrowAsLimitOrderTest is BaseTest {
         }
         _borrowAsLimitOrder(
             alice,
-            riskCR,
+            openingLimitBorrowCR,
             YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers})
         );
     }
 
-    function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_riskCR() public {
+    function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_openingLimitBorrowCR() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
         _deposit(bob, usdc, 100e6);
@@ -64,10 +64,10 @@ contract BorrowAsLimitOrderTest is BaseTest {
         rates[0] = 0e18;
         rates[1] = 1e18;
         int256[] memory marketRateMultipliers = new int256[](2);
-        uint256 riskCR = 1.7e18;
+        uint256 openingLimitBorrowCR = 1.7e18;
         _borrowAsLimitOrder(
             alice,
-            riskCR,
+            openingLimitBorrowCR,
             YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers})
         );
 
@@ -77,7 +77,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
     }
 
-    function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_crOpening_even_if_riskCR_is_below(
+    function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_crOpening_even_if_openingLimitBorrowCR_is_below(
     ) public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
@@ -90,10 +90,10 @@ contract BorrowAsLimitOrderTest is BaseTest {
         rates[0] = 0e18;
         rates[1] = 1e18;
         int256[] memory marketRateMultipliers = new int256[](2);
-        uint256 riskCR = 1.3e18;
+        uint256 openingLimitBorrowCR = 1.3e18;
         _borrowAsLimitOrder(
             alice,
-            riskCR,
+            openingLimitBorrowCR,
             YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers})
         );
 

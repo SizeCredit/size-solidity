@@ -10,9 +10,9 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 
 import {
     Initialize,
-    InitializeFixedParams,
-    InitializeGeneralParams,
-    InitializeVariableParams
+    InitializeConfigParams,
+    InitializeDataParams,
+    InitializeOracleParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
@@ -25,18 +25,15 @@ import {Deposit, DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
-import {LiquidateFixedLoan, LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
+import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
 
 import {Compensate, CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {
-    LiquidateFixedLoanWithReplacement,
-    LiquidateFixedLoanWithReplacementParams
-} from "@src/libraries/fixed/actions/LiquidateFixedLoanWithReplacement.sol";
+    LiquidateLoanWithReplacement,
+    LiquidateLoanWithReplacementParams
+} from "@src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol";
 import {Repay, RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {
-    SelfLiquidateFixedLoan,
-    SelfLiquidateFixedLoanParams
-} from "@src/libraries/fixed/actions/SelfLiquidateFixedLoan.sol";
+import {SelfLiquidateLoan, SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateLoan.sol";
 import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
@@ -50,6 +47,7 @@ import {State} from "@src/SizeStorage.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
+// @audit Check if borrower == lender == liquidator may cause any issues
 contract Size is
     ISize,
     SizeView,
@@ -70,15 +68,15 @@ contract Size is
     using BorrowerExit for State;
     using Repay for State;
     using Claim for State;
-    using LiquidateFixedLoan for State;
-    using SelfLiquidateFixedLoan for State;
-    using LiquidateFixedLoanWithReplacement for State;
+    using LiquidateLoan for State;
+    using SelfLiquidateLoan for State;
+    using LiquidateLoanWithReplacement for State;
     using Compensate for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
 
-    bytes32 public constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+    bytes32 public constant KEEPER_ROLE = "KEEPER_ROLE";
+    bytes32 public constant PAUSER_ROLE = "PAUSER_ROLE";
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -86,19 +84,22 @@ contract Size is
     }
 
     function initialize(
-        InitializeGeneralParams calldata g,
-        InitializeFixedParams calldata f,
-        InitializeVariableParams calldata v
+        address owner,
+        InitializeConfigParams calldata c,
+        InitializeOracleParams calldata o,
+        InitializeDataParams calldata d
     ) external initializer {
-        state.validateInitialize(g, f, v);
+        state.validateInitialize(owner, c, o, d);
 
         __AccessControl_init();
         __Pausable_init();
         __Multicall_init();
         __UUPSUpgradeable_init();
 
-        state.executeInitialize(g, f, v);
-        _grantRole(DEFAULT_ADMIN_ROLE, g.owner);
+        state.executeInitialize(c, o, d);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+        _grantRole(PAUSER_ROLE, owner);
+        _grantRole(KEEPER_ROLE, owner);
     }
 
     // solhint-disable-next-line no-empty-blocks
@@ -173,37 +174,33 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function liquidateFixedLoan(LiquidateFixedLoanParams calldata params)
+    function liquidateLoan(LiquidateLoanParams calldata params)
         external
         override(ISize)
         whenNotPaused
         returns (uint256 liquidatorProfitCollateralAsset)
     {
-        state.validateLiquidateFixedLoan(params);
-        liquidatorProfitCollateralAsset = state.executeLiquidateFixedLoan(params);
+        state.validateLiquidateLoan(params);
+        liquidatorProfitCollateralAsset = state.executeLiquidateLoan(params);
     }
 
     /// @inheritdoc ISize
-    function selfLiquidateFixedLoan(SelfLiquidateFixedLoanParams calldata params)
-        external
-        override(ISize)
-        whenNotPaused
-    {
-        state.validateSelfLiquidateFixedLoan(params);
-        state.executeSelfLiquidateFixedLoan(params);
+    function selfLiquidateLoan(SelfLiquidateLoanParams calldata params) external override(ISize) whenNotPaused {
+        state.validateSelfLiquidateLoan(params);
+        state.executeSelfLiquidateLoan(params);
     }
 
     /// @inheritdoc ISize
-    function liquidateFixedLoanWithReplacement(LiquidateFixedLoanWithReplacementParams calldata params)
+    function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
         external
         override(ISize)
         whenNotPaused
         onlyRole(KEEPER_ROLE)
         returns (uint256 liquidatorProfitCollateralAsset, uint256 liquidatorProfitBorrowAsset)
     {
-        state.validateLiquidateFixedLoanWithReplacement(params);
+        state.validateLiquidateLoanWithReplacement(params);
         (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
-            state.executeLiquidateFixedLoanWithReplacement(params);
+            state.executeLiquidateLoanWithReplacement(params);
         state.validateUserIsNotBelowRiskCR(params.borrower);
     }
 

@@ -3,14 +3,14 @@ pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract LendAsLimitOrderValidationTest is BaseTest {
-    using OfferLibrary for FixedLoanOffer;
+    using OfferLibrary for LoanOffer;
 
     function test_LendAsLimitOrder_validation() public {
         _deposit(alice, address(usdc), 100e6);

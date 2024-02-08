@@ -12,6 +12,7 @@ struct YieldCurve {
 }
 
 library YieldCurveLibrary {
+    // @audit Check if we should have a protocol-defined minimum maturity
     function validateYieldCurve(YieldCurve memory self) internal pure {
         if (self.timeBuckets.length == 0 || self.rates.length == 0 || self.marketRateMultipliers.length == 0) {
             revert Errors.NULL_ARRAY();

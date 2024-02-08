@@ -9,16 +9,16 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
-import {FixedLoan, FixedLoanLibrary, RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {Loan, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
 contract BorrowAsMarketOrderTest is BaseTest {
-    using OfferLibrary for FixedLoanOffer;
-    using FixedLoanLibrary for FixedLoan;
+    using OfferLibrary for LoanOffer;
+    using LoanLibrary for Loan;
 
     uint256 private constant MAX_RATE = 2e18;
     uint256 private constant MAX_DUE_DATE = 12;
@@ -40,7 +40,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
 
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 debtOpening = Math.mulDivUp(debt, size.fixedConfig().crOpening, PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
         uint256 repayFee = size.maximumRepayFee(loanId);
         uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
         uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
@@ -77,7 +77,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
-        uint256 debtOpening = Math.mulDivUp(debt, size.fixedConfig().crOpening, PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
         uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
         uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         uint256 repayFee = size.maximumRepayFee(loanId);
@@ -92,7 +92,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
@@ -101,20 +101,18 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _lendAsLimitOrder(candy, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 60e6, 12);
-        uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
-        virtualCollateralFixedLoanIds[0] = loanId;
+        uint256[] memory receivableLoanIds = new uint256[](1);
+        receivableLoanIds[0] = loanId;
 
         Vars memory _before = _state();
 
-        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amount, 12, virtualCollateralFixedLoanIds);
+        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amount, 12, receivableLoanIds);
 
         Vars memory _after = _state();
 
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount - amount);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amount - size.fixedConfig().earlyLenderExitFee);
-        assertEq(
-            _after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.fixedConfig().earlyLenderExitFee
-        );
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amount - size.config().earlyLenderExitFee);
+        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.config().earlyLenderExitFee);
         assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
         assertEq(_after.bob, _before.bob);
@@ -131,7 +129,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         dueDate = bound(dueDate, block.timestamp, block.timestamp + MAX_DUE_DATE - 1);
 
         _deposit(alice, weth, MAX_AMOUNT_WETH);
-        _deposit(alice, usdc, MAX_AMOUNT_USDC + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, MAX_AMOUNT_USDC + size.config().earlyLenderExitFee);
         _deposit(bob, weth, MAX_AMOUNT_WETH);
         _deposit(bob, usdc, MAX_AMOUNT_USDC);
         _deposit(candy, weth, MAX_AMOUNT_WETH);
@@ -140,20 +138,18 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
         _lendAsLimitOrder(candy, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
-        uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
-        virtualCollateralFixedLoanIds[0] = loanId;
+        uint256[] memory receivableLoanIds = new uint256[](1);
+        receivableLoanIds[0] = loanId;
 
         Vars memory _before = _state();
 
-        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amount, dueDate, virtualCollateralFixedLoanIds);
+        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amount, dueDate, receivableLoanIds);
 
         Vars memory _after = _state();
 
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount - amount);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amount - size.fixedConfig().earlyLenderExitFee);
-        assertEq(
-            _after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.fixedConfig().earlyLenderExitFee
-        );
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amount - size.config().earlyLenderExitFee);
+        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.config().earlyLenderExitFee);
         assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
         assertEq(_after.bob, _before.bob);
@@ -169,25 +165,25 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.05e18, 12);
         _lendAsLimitOrder(candy, 12, 0.05e18, 12);
-        uint256 amountFixedLoanId1 = 10e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
-        FixedLoanOffer memory loanOffer = size.getUserView(candy).user.loanOffer;
-        uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
-        virtualCollateralFixedLoanIds[0] = loanId;
+        uint256 amountLoanId1 = 10e6;
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        LoanOffer memory loanOffer = size.getUserView(candy).user.loanOffer;
+        uint256[] memory receivableLoanIds = new uint256[](1);
+        receivableLoanIds[0] = loanId;
 
         Vars memory _before = _state();
 
         uint256 dueDate = 12;
-        uint256 amountFixedLoanId2 = 30e6;
-        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amountFixedLoanId2, dueDate, virtualCollateralFixedLoanIds);
+        uint256 amountLoanId2 = 30e6;
+        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amountLoanId2, dueDate, receivableLoanIds);
         uint256 repayFee = size.maximumRepayFee(loanId2);
 
         Vars memory _after = _state();
 
         uint256 r = PERCENT + loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
 
-        uint256 faceValue = Math.mulDivUp(r, (amountFixedLoanId2 - amountFixedLoanId1), PERCENT);
-        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.fixedConfig().crOpening, PERCENT);
+        uint256 faceValue = Math.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.config().crOpening, PERCENT);
         uint256 minimumCollateral = Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
@@ -201,49 +197,47 @@ contract BorrowAsMarketOrderTest is BaseTest {
     }
 
     function testFuzz_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_and_real_collateral(
-        uint256 amountFixedLoanId1,
-        uint256 amountFixedLoanId2
+        uint256 amountLoanId1,
+        uint256 amountLoanId2
     ) public {
-        amountFixedLoanId1 = bound(amountFixedLoanId1, MAX_AMOUNT_USDC / 10, 2 * MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
-        amountFixedLoanId2 = bound(amountFixedLoanId2, 3 * MAX_AMOUNT_USDC / 10, 3 * 2 * MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
+        amountLoanId1 = bound(amountLoanId1, MAX_AMOUNT_USDC / 10, 2 * MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
+        amountLoanId2 = bound(amountLoanId2, 3 * MAX_AMOUNT_USDC / 10, 3 * 2 * MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
 
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.05e18, 12);
         _lendAsLimitOrder(candy, 12, 0.05e18, 12);
-        uint256 loanId1 = _borrowAsMarketOrder(bob, alice, amountFixedLoanId1, 12);
-        uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
-        virtualCollateralFixedLoanIds[0] = loanId1;
+        uint256 loanId1 = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256[] memory receivableLoanIds = new uint256[](1);
+        receivableLoanIds[0] = loanId1;
 
         uint256 dueDate = 12;
         uint256 r = PERCENT
             + size.getUserView(candy).user.loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
-        uint256 deltaAmountOut = (Math.mulDivUp(r, amountFixedLoanId2, PERCENT) > size.getCredit(loanId1))
+        uint256 deltaAmountOut = (Math.mulDivUp(r, amountLoanId2, PERCENT) > size.getCredit(loanId1))
             ? Math.mulDivDown(size.getCredit(loanId1), PERCENT, r)
-            : amountFixedLoanId2;
-        uint256 faceValue = Math.mulDivUp(r, amountFixedLoanId2 - deltaAmountOut, PERCENT);
+            : amountLoanId2;
+        uint256 faceValue = Math.mulDivUp(r, amountLoanId2 - deltaAmountOut, PERCENT);
 
         Vars memory _before = _state();
 
-        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amountFixedLoanId2, dueDate, virtualCollateralFixedLoanIds);
+        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amountLoanId2, dueDate, receivableLoanIds);
         uint256 repayFee = size.maximumRepayFee(loanId2);
 
         Vars memory _after = _state();
 
-        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.fixedConfig().crOpening, PERCENT);
+        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.config().crOpening, PERCENT);
         uint256 minimumCollateralAmount =
             Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         assertGt(_before.bob.collateralAmount, minimumCollateralAmount);
         assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
         assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(
-            _after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.fixedConfig().earlyLenderExitFee
-        );
+        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.config().earlyLenderExitFee);
         assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(_after.bob, _before.bob);
@@ -261,12 +255,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _lendAsLimitOrder(candy, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 30e6, 12);
-        uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
-        virtualCollateralFixedLoanIds[0] = loanId;
+        uint256[] memory receivableLoanIds = new uint256[](1);
+        receivableLoanIds[0] = loanId;
 
         Vars memory _before = _state();
 
-        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 30e6, 12, virtualCollateralFixedLoanIds);
+        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 30e6, 12, receivableLoanIds);
 
         Vars memory _after = _state();
 
@@ -285,7 +279,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 amount = 100e6;
         uint256 dueDate = 12;
         vm.startPrank(bob);
-        uint256[] memory virtualCollateralFixedLoanIds;
+        uint256[] memory receivableLoanIds;
         vm.expectRevert(
             abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, bob, 0, 1.5e18)
         );
@@ -295,12 +289,14 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: false,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
     }
 
-    function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_lender_cannot_transfer_borrowAsset() public {
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_lender_cannot_transfer_underlyingBorrowToken()
+        public
+    {
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1e18);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
@@ -311,7 +307,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
 
         vm.startPrank(bob);
-        uint256[] memory virtualCollateralFixedLoanIds;
+        uint256[] memory receivableLoanIds;
         vm.expectRevert();
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
@@ -319,7 +315,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: false,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
     }
@@ -329,7 +325,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, weth, 200e18);
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 200e18);
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 100e6);
@@ -343,20 +339,18 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 folId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsMarketOrder(alice, candy, 100e6, 12, [folId]);
 
-        uint256 loansBefore = size.activeFixedLoans();
+        uint256 loansBefore = size.activeLoans();
         Vars memory _before = _state();
 
         uint256 loanId = _borrowAsMarketOrder(alice, james, 100e6, 12, [folId]);
         uint256 repayFee = size.maximumRepayFee(loanId);
 
-        uint256 loansAfter = size.activeFixedLoans();
+        uint256 loansAfter = size.activeLoans();
         Vars memory _after = _state();
 
         assertEq(loansAfter, loansBefore + 1);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 100e6);
-        assertEq(
-            _after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount, size.fixedConfig().earlyLenderExitFee
-        );
+        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount, size.config().earlyLenderExitFee);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + 103e6 + repayFee);
     }
 
@@ -364,11 +358,11 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 160e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
-        _deposit(candy, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(candy, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
         _lendAsLimitOrder(alice, 12, 0, 12);
@@ -379,16 +373,16 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 solId = _borrowAsMarketOrder(alice, candy, 49e6, 12, [loanId]);
         uint256 solId2 = _borrowAsMarketOrder(candy, bob, 42e6, 12, [solId]);
 
-        assertEq(size.getFixedLoan(loanId).sol.folId, RESERVED_ID);
-        assertEq(size.getFixedLoan(solId).sol.folId, loanId);
-        assertEq(size.getFixedLoan(solId2).sol.folId, loanId);
+        assertEq(size.getLoan(loanId).sol.folId, RESERVED_ID);
+        assertEq(size.getLoan(solId).sol.folId, loanId);
+        assertEq(size.getLoan(solId2).sol.folId, loanId);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_SOL_credit_is_decreased_after_exit() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 160e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
@@ -402,11 +396,11 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         uint256 solId = _borrowAsMarketOrder(alice, candy, 49e6, 12, [loanId]);
 
-        FixedLoan memory solBefore = size.getFixedLoan(solId);
+        Loan memory solBefore = size.getLoan(solId);
 
         _borrowAsMarketOrder(candy, bob, 40e6, 12, [solId]);
 
-        FixedLoan memory solAfter = size.getFixedLoan(solId);
+        Loan memory solAfter = size.getLoan(solId);
 
         assertEq(solAfter.generic.credit, solBefore.generic.credit - 40e6);
     }
@@ -414,7 +408,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_SOL_cannot_be_fully_exited_twice() public {
         _setPrice(1e18);
 
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 160e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
@@ -430,14 +424,14 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         console.log("User attempts to fully exit twice, but a FOL is attempted to be created, which reverts");
 
-        uint256[] memory virtualCollateralFixedLoanIds = new uint256[](1);
-        virtualCollateralFixedLoanIds[0] = loanId;
+        uint256[] memory receivableLoanIds = new uint256[](1);
+        receivableLoanIds[0] = loanId;
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             lender: james,
             amount: 100e6,
             dueDate: 12,
             exactAmountIn: false,
-            virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+            receivableLoanIds: receivableLoanIds
         });
         vm.startPrank(alice);
         vm.expectRevert(
@@ -466,7 +460,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.bob, _before.bob);
         assertEq(_after.bob.debtAmount, 0);
         assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
-        assertEq(size.activeFixedLoans(), 0);
+        assertEq(size.activeLoans(), 0);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_cannot_surpass_debtTokenCap() public {
@@ -481,11 +475,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(bob, 12, 0, 12);
 
         vm.startPrank(alice);
-        uint256[] memory virtualCollateralFixedLoanIds;
+        uint256[] memory receivableLoanIds;
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.fixedConfig().debtTokenCap, 10e6 + repayFee
-            )
+            abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.config().debtTokenCap, 10e6 + repayFee)
         );
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
@@ -493,7 +485,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: false,
-                virtualCollateralFixedLoanIds: virtualCollateralFixedLoanIds
+                receivableLoanIds: receivableLoanIds
             })
         );
     }

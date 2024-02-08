@@ -6,12 +6,12 @@ import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 
 import {UserView} from "@src/SizeView.sol";
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {RESERVED_ID} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
-    using FixedLoanLibrary for FixedLoan;
+    using LoanLibrary for Loan;
 
     string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender";
 
@@ -40,7 +40,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant LOAN_01 = "LOAN_01: loan.faceValue() <= FOL(loan).faceValue";
     string internal constant LOAN_02 =
         "LOAN_02: SUM(loan.generic.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
-    string internal constant LOAN_05 = "LOAN_05: loan.generic.credit >= minimumCreditBorrowAsset";
+    string internal constant LOAN_05 = "LOAN_05: loan.generic.credit >= minimumCreditBorrowAToken";
     string internal constant LOAN_06 = "LOAN_06: SUM(SOL(loanId).faceValue()) == FOL(loanId).faceValue";
     string internal constant LOAN_07 = "LOAN_07: FOL.credit = SUM(SOL.credit)";
 
@@ -48,19 +48,21 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
 
     string internal constant LIQUIDATION_01 =
         "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
+    string internal constant LIQUIDATION_02 =
+        "LIQUIDATION_02: Liquidation with replacement does not change the total system debt";
 
     function invariant_LOAN() public returns (bool) {
-        uint256 minimumCreditBorrowAsset = size.fixedConfig().minimumCreditBorrowAsset;
-        uint256 activeFixedLoans = size.activeFixedLoans();
-        uint256[] memory folCreditsSumByFolId = new uint256[](activeFixedLoans);
-        uint256[] memory solCreditsSumByFolId = new uint256[](activeFixedLoans);
-        uint256[] memory folFaceValueByFolId = new uint256[](activeFixedLoans);
-        uint256[] memory folCreditByFolId = new uint256[](activeFixedLoans);
-        uint256[] memory folFaceValuesSumByFolId = new uint256[](activeFixedLoans);
-        for (uint256 loanId; loanId < activeFixedLoans; loanId++) {
-            FixedLoan memory loan = size.getFixedLoan(loanId);
+        uint256 minimumCreditBorrowAToken = size.config().minimumCreditBorrowAToken;
+        uint256 activeLoans = size.activeLoans();
+        uint256[] memory folCreditsSumByFolId = new uint256[](activeLoans);
+        uint256[] memory solCreditsSumByFolId = new uint256[](activeLoans);
+        uint256[] memory folFaceValueByFolId = new uint256[](activeLoans);
+        uint256[] memory folCreditByFolId = new uint256[](activeLoans);
+        uint256[] memory folFaceValuesSumByFolId = new uint256[](activeLoans);
+        for (uint256 loanId; loanId < activeLoans; loanId++) {
+            Loan memory loan = size.getLoan(loanId);
             uint256 folId = loanId == RESERVED_ID ? loan.sol.folId : loanId;
-            FixedLoan memory fol = size.getFixedLoan(folId);
+            Loan memory fol = size.getLoan(folId);
 
             folCreditsSumByFolId[folId] += size.getCredit(folId);
             solCreditsSumByFolId[folId] =
@@ -79,13 +81,13 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
                 }
             }
 
-            if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCreditBorrowAsset) {
+            if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCreditBorrowAToken) {
                 t(false, LOAN_05);
                 return false;
             }
         }
 
-        for (uint256 loanId; loanId < activeFixedLoans; loanId++) {
+        for (uint256 loanId; loanId < activeLoans; loanId++) {
             if (size.isFOL(loanId)) {
                 if (
                     solCreditsSumByFolId[loanId] != type(uint256).max
@@ -125,7 +127,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         users[2] = USER3;
         users[3] = address(size);
         users[4] = address(variablePool);
-        users[5] = address(size.generalConfig().feeRecipient);
+        users[5] = address(size.config().feeRecipient);
 
         uint256 borrowAmount;
         uint256 collateralAmount;

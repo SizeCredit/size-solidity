@@ -3,15 +3,15 @@ pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-contract LiquidateFixedLoanValidationTest is BaseTest {
-    function test_LiquidateFixedLoan_validation() public {
+contract LiquidateLoanValidationTest is BaseTest {
+    function test_LiquidateLoan_validation() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.fixedConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
@@ -32,24 +32,18 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
 
         vm.startPrank(liquidator);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.LOAN_NOT_LIQUIDATABLE.selector, solId, type(uint256).max, FixedLoanStatus.ACTIVE
-            )
+            abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE.selector, solId, type(uint256).max, LoanStatus.ACTIVE)
         );
-        size.liquidateFixedLoan(
-            LiquidateFixedLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio})
-        );
+        size.liquidateLoan(LiquidateLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio}));
         vm.stopPrank();
 
         vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), FixedLoanStatus.ACTIVE
+                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.ACTIVE
             )
         );
-        size.liquidateFixedLoan(
-            LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
-        );
+        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
         vm.stopPrank();
 
         _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
@@ -59,12 +53,10 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
         vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), FixedLoanStatus.ACTIVE
+                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.ACTIVE
             )
         );
-        size.liquidateFixedLoan(
-            LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
-        );
+        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
         vm.stopPrank();
 
         _setPrice(0.01e18);
@@ -73,12 +65,10 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
         vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.LOAN_NOT_LIQUIDATABLE.selector, solId, size.collateralRatio(alice), FixedLoanStatus.ACTIVE
+                Errors.LOAN_NOT_LIQUIDATABLE.selector, solId, size.collateralRatio(alice), LoanStatus.ACTIVE
             )
         );
-        size.liquidateFixedLoan(
-            LiquidateFixedLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio})
-        );
+        size.liquidateLoan(LiquidateLoanParams({loanId: solId, minimumCollateralRatio: minimumCollateralRatio}));
         vm.stopPrank();
 
         _setPrice(100e18);
@@ -91,12 +81,10 @@ contract LiquidateFixedLoanValidationTest is BaseTest {
         vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), FixedLoanStatus.REPAID
+                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.REPAID
             )
         );
-        size.liquidateFixedLoan(
-            LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio})
-        );
+        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
         vm.stopPrank();
     }
 }
