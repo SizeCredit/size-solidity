@@ -74,11 +74,15 @@ In order to interact with Size's Variable Pool (Aave v3 fork), a proxy pattern i
 
 ##### Price Feed
 
-Two Chainlink price feeds are used to fetch the ETH/USDC rate. A conversion from ETH/USD to USDC/USD is performed and the result is rounded down to 18 decimals. For example, a spot price of 2,426.59 ETH/USDC is represented as 2426590000000000000000.
+Two Chainlink aggregators are used to fetch the ETH/USDC rate. A conversion from ETH/USD and USDC/USD is performed and the result is rounded down to 18 decimals. For example, a spot price of 2,426.59 ETH/USDC is represented as 2426590000000000000000.
 
 ##### Market Borrow Rate Feed
 
-In order to approximate the current market average value of USDC variable borrow rates, we use Aave v3, and convert it to 18 decimals. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000. Note that this rate is extracted from Aave v3, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 will be a better proxy to the real market rate, and less prone to market manipulation attacks. In the future, integrations with other protocols will be implemented in order to have a more realistic global average.
+In order to approximate the current market average value of USDC variable borrow rates, we use Aave v3, and convert it to 18 decimals. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
+
+Note that this rate is extracted from Aave v3, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 will be a better proxy to the real market rate, and less prone to market manipulation attacks.
+
+In the future, integrations with other protocols will be implemented in order to have a more realistic global average.
 
 ## Test
 

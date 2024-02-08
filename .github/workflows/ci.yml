@@ -84,6 +84,7 @@ jobs:
         run: npm run solhint
 
   invariants:
+    needs: [test, slither, solhint]
     strategy:
       matrix:
         mode: [assertion, property]

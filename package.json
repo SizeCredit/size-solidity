@@ -7,7 +7,7 @@
     "deploy-sepolia-mock-variable-pool": "MOCK_VARIABLE_POOL=true yarn deploy-sepolia --ffi",
     "deploy-sepolia": "forge script script/Deploy.s.sol --rpc-url sepolia --gas-limit 30000000 --sender $DEPLOYER --account size-testnet-2",
     "coverage": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*' 'script/*' && genhtml lcov.info -o report --branch-coverage && open report/index.html",
-    "typechain": "typechain --target ethers-v5 out/Size.sol/Size.json out/PriceFeed.sol/PriceFeed.json"
+    "typechain": "typechain --target ethers-v5 out/Size.sol/Size.json out/PriceFeed.sol/PriceFeed.json out/MarketBorrowRateFeed.sol/MarketBorrowRateFeed.json"
   },
   "devDependencies": {
     "@typechain/ethers-v5": "^11.1.2",
