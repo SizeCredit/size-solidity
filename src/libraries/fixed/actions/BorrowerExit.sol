@@ -36,7 +36,7 @@ library BorrowerExit {
         uint256 dueDate = fol.fol.dueDate;
 
         uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
-        uint256 amountIn = Math.mulDivUp(state.getDebt(fol), PERCENT, PERCENT + rate);
+        uint256 amountIn = Math.mulDivUp(fol.getDebt(), PERCENT, PERCENT + rate);
 
         // validate msg.sender
         if (msg.sender != fol.generic.borrower) {
@@ -64,7 +64,7 @@ library BorrowerExit {
         Loan storage fol = state.data.loans[params.loanId];
 
         uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), fol.fol.dueDate);
-        uint256 debt = state.getDebt(fol);
+        uint256 debt = fol.getDebt();
         uint256 amountIn = Math.mulDivUp(debt, PERCENT, PERCENT + rate);
 
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);

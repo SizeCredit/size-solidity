@@ -158,7 +158,7 @@ library BorrowAsMarketOrder {
             rate: rate,
             dueDate: params.dueDate
         });
-        state.data.debtToken.mint(msg.sender, state.getDebt(fol));
+        state.data.debtToken.mint(msg.sender, fol.getDebt());
         state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
     }
 }

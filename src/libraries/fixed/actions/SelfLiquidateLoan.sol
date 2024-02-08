@@ -32,7 +32,7 @@ library SelfLiquidateLoan {
         Loan storage fol = state.getFOL(loan);
 
         uint256 assignedCollateral = state.getProRataAssignedCollateral(params.loanId);
-        uint256 debtWad = ConversionLibrary.amountToWad(state.getDebt(fol), state.data.underlyingBorrowToken.decimals());
+        uint256 debtWad = ConversionLibrary.amountToWad(fol.getDebt(), state.data.underlyingBorrowToken.decimals());
         uint256 debtCollateral =
             Math.mulDivDown(debtWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice());
 

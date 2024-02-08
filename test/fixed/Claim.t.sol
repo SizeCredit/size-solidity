@@ -117,7 +117,7 @@ contract ClaimTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
-        uint256 repayFee = size.maximumRepayFee(100e6, block.timestamp, block.timestamp + 12);
+        uint256 repayFee = size.maximumRepayFee(100e6, block.timestamp, block.timestamp + 12, size.config().repayFeeAPR);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         _deposit(bob, usdc, 100e6);

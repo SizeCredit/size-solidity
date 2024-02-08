@@ -29,6 +29,7 @@ library LendAsMarketOrder {
     using OfferLibrary for BorrowOffer;
     using AccountingLibrary for State;
     using LoanLibrary for State;
+    using LoanLibrary for Loan;
     using VariableLibrary for State;
     using AccountingLibrary for State;
 
@@ -80,7 +81,7 @@ library LendAsMarketOrder {
             rate: rate,
             dueDate: params.dueDate
         });
-        state.data.debtToken.mint(params.borrower, state.getDebt(fol));
+        state.data.debtToken.mint(params.borrower, fol.getDebt());
         state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
     }
 }

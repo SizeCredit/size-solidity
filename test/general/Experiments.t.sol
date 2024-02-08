@@ -425,6 +425,41 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral);
     }
 
+    function test_Experiments_repayFeeAPR_change_fee_after_borrow() public {
+        _setPrice(1e18);
+        _deposit(candy, weth, 180e18);
+        _deposit(bob, weth, 180e18);
+        _deposit(alice, usdc, 200e6);
+        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+
+        // admin changes repayFeeAPR
+        _updateConfig("repayFeeAPR", 0.1e18);
+
+        uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 100e6, 365 days);
+
+        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee2 = size.maximumRepayFee(loanId2);
+
+        vm.warp(block.timestamp + 365 days);
+
+        _deposit(bob, usdc, 10e6);
+        _repay(bob, loanId);
+
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
+        uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral);
+
+        _deposit(candy, usdc, 10e6);
+        _repay(candy, loanId2);
+
+        uint256 repayFeeWad2 = ConversionLibrary.amountToWad(repayFee2, usdc.decimals());
+        uint256 repayFeeCollateral2 = Math.mulDivUp(repayFeeWad2, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+
+        assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral + repayFeeCollateral2);
+    }
+
     function test_Experiments_repayFeeAPR_complex() private {
         // OK so let's make an example of the approach here
         _setPrice(1e18);

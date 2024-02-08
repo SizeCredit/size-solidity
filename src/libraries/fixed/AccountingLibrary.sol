@@ -26,32 +26,8 @@ library AccountingLibrary {
         state.validateMinimumCredit(loan.generic.credit);
     }
 
-    function maximumRepayFee(State storage state, uint256 issuanceValue, uint256 startDate, uint256 dueDate)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 interval = dueDate - startDate;
-        uint256 repayFeePercent = Math.mulDivUp(state.config.repayFeeAPR, interval, 365 days);
-        uint256 fee = Math.mulDivUp(issuanceValue, repayFeePercent, PERCENT);
-        return fee;
-    }
-
-    function maximumRepayFee(State storage state, Loan memory fol) internal view returns (uint256) {
-        return maximumRepayFee(state, fol.fol.issuanceValue, fol.fol.startDate, fol.fol.dueDate);
-    }
-
-    function partialRepayFee(State storage state, Loan memory fol, uint256 repayAmount)
-        internal
-        view
-        returns (uint256)
-    {
-        // pending question about calculating parial repay fee
-        return Math.mulDivUp(repayAmount, maximumRepayFee(state, fol), fol.faceValue());
-    }
-
     function chargeRepayFee(State storage state, Loan storage fol, uint256 repayAmount) internal {
-        uint256 repayFee = partialRepayFee(state, fol, repayAmount);
+        uint256 repayFee = fol.partialRepayFee(repayAmount);
 
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state.data.underlyingBorrowToken.decimals());
         uint256 repayFeeCollateral =
@@ -83,6 +59,7 @@ library AccountingLibrary {
             fol: FOL({
                 issuanceValue: issuanceValue,
                 rate: rate,
+                repayFeeAPR: state.config.repayFeeAPR,
                 startDate: block.timestamp,
                 dueDate: dueDate,
                 liquidityIndexAtRepayment: 0
@@ -107,7 +84,7 @@ library AccountingLibrary {
 
         sol = Loan({
             generic: GenericLoan({lender: lender, borrower: borrower, credit: credit}),
-            fol: FOL({issuanceValue: 0, rate: 0, startDate: 0, dueDate: 0, liquidityIndexAtRepayment: 0}),
+            fol: FOL({issuanceValue: 0, rate: 0, repayFeeAPR: 0, startDate: 0, dueDate: 0, liquidityIndexAtRepayment: 0}),
             sol: SOL({folId: folId})
         });
 

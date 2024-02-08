@@ -468,7 +468,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 startDate = block.timestamp;
         uint256 amount = 10e6;
-        uint256 repayFee = size.maximumRepayFee(amount, startDate, dueDate);
+        uint256 repayFee = size.maximumRepayFee(amount, startDate, dueDate, size.config().repayFeeAPR);
         _updateConfig("debtTokenCap", 5e6);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
