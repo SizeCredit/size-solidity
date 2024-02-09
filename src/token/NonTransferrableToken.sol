@@ -6,6 +6,9 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
+/// @title NonTransferrableToken
+/// @notice An ERC-20 that is not transferrable from outside of the protocol
+/// @dev The contract owner (e.g. the Size contract) can still mint, burn, and transfer tokens
 contract NonTransferrableToken is Ownable, ERC20 {
     uint8 internal immutable _decimals;
 

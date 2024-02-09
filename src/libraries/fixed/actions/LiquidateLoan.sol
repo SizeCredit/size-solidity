@@ -109,6 +109,7 @@ library LiquidateLoan {
         }
     }
 
+    // @audit Check corner cases where liquidateLoan reverts even if the loan is liquidatable
     function executeLiquidateLoan(State storage state, LiquidateLoanParams calldata params)
         external
         returns (uint256 liquidatorProfitCollateralToken)

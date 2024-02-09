@@ -7,15 +7,15 @@ import {Math} from "@src/libraries/Math.sol";
 import {IPriceFeed} from "./IPriceFeed.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
-/**
- * _base: ETH/USD feed
- * _quote: USDC/USD feed
- * _decimals: 18
- * _baseStalePriceInterval: 3600 seconds (https://data.chain.link/ethereum/mainnet/crypto-usd/eth-usd)
- * _quoteStalePriceInterval: 86400 seconds (https://data.chain.link/ethereum/mainnet/stablecoins/usdc-usd)
- *
- * answer: ETH/USDC in 1e18
- */
+/// @title PriceFeed
+/// @notice A contract that provides the price of an asset in terms of another asset
+/// @dev The price is calculated as `base / quote`. Example configuration:
+///      _base: ETH/USD feed
+///      _quote: USDC/USD feed
+///      _decimals: 18
+///      _baseStalePriceInterval: 3600 seconds (https://data.chain.link/ethereum/mainnet/crypto-usd/eth-usd)
+///      _quoteStalePriceInterval: 86400 seconds (https://data.chain.link/ethereum/mainnet/stablecoins/usdc-usd)
+///      answer: ETH/USDC in 1e18
 contract PriceFeed is IPriceFeed {
     /* solhint-disable immutable-vars-naming */
     AggregatorV3Interface public immutable base;

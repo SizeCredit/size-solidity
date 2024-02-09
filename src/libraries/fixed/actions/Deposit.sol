@@ -14,7 +14,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct DepositParams {
     address token;
-    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC or 1_000e18 for 1000 WETH)
+    uint256 amount;
     address to;
 }
 
@@ -49,7 +49,7 @@ library Deposit {
         if (params.token == address(state.data.underlyingCollateralToken)) {
             state.depositCollateralToken(msg.sender, params.to, params.amount);
         } else {
-            state.depositBorrowTokenToVariablePool(msg.sender, params.to, params.amount);
+            state.depositUnderlyingBorrowTokenToVariablePool(msg.sender, params.to, params.amount);
         }
 
         emit Events.Deposit(params.token, params.to, params.amount);

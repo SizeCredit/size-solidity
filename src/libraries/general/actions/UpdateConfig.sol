@@ -20,6 +20,11 @@ struct UpdateConfigParams {
     uint256 value;
 }
 
+/// @title UpdateConfig
+/// @notice Contains the logic to update the configuration of the protocol
+/// @dev The input validation is performed using the Initialize library
+///      A `key` bytes32 string is used to identify the configuration parameter to update and a `value` uint256 is used to set the new value
+///      In case where an address is being updated, the `value` is converted to `uint160` and then to `address`
 library UpdateConfig {
     using Initialize for State;
 
@@ -56,11 +61,11 @@ library UpdateConfig {
         });
     }
 
-    function validateUpdateConfig(State storage, UpdateConfigParams memory) external pure {
+    function validateUpdateConfig(State storage, UpdateConfigParams calldata) external pure {
         // validation is done at execution
     }
 
-    function executeUpdateConfig(State storage state, UpdateConfigParams memory params) external {
+    function executeUpdateConfig(State storage state, UpdateConfigParams calldata params) external {
         if (params.key == "crOpening") {
             state.config.crOpening = params.value;
         } else if (params.key == "crLiquidation") {

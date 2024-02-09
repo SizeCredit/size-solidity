@@ -8,6 +8,9 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
+/// @title MarketBorrowRateFeed
+/// @notice A feed that returns the market borrow rate of an asset
+/// @dev Aave v3 is used to get the market borrow rate
 contract MarketBorrowRateFeed is IMarketBorrowRateFeed {
     IPool public immutable pool;
     IERC20Metadata public immutable asset;

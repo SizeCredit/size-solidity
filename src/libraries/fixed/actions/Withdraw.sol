@@ -51,7 +51,7 @@ library Withdraw {
         } else {
             uint256 amount = Math.min(params.amount, state.borrowATokenBalanceOf(msg.sender));
             if (amount > 0) {
-                state.withdrawBorrowTokenFromVariablePool(msg.sender, params.to, amount);
+                state.withdrawUnderlyingBorrowTokenFromVariablePool(msg.sender, params.to, amount);
             }
         }
 

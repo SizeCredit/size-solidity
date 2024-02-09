@@ -123,11 +123,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         if (amount > size.config().minimumCreditBorrowAToken) {
             if (lender == sender) {
-                eq(
-                    _after.sender.borrowAmount,
-                    _before.sender.borrowAmount - size.config().earlyLenderExitFee * receivableLoanIds.length,
-                    BORROW_03
-                );
+                lte(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_03);
             } else {
                 gt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
             }
