@@ -214,9 +214,10 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _liquidateLoan(user, loanId, 1e18);
     }
 
-    function _liquidateLoan(address user, uint256 loanId, uint256 minimumCollateralRatio) internal returns (uint256) {
+    function _liquidateLoan(address user, uint256 loanId, uint256 minimumCollateralProfit) internal returns (uint256) {
         vm.prank(user);
-        return size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: minimumCollateralRatio}));
+        return
+            size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
     }
 
     function _selfLiquidateLoan(address user, uint256 loanId) internal {
@@ -235,14 +236,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address user,
         uint256 loanId,
         address borrower,
-        uint256 minimumCollateralRatio
+        uint256 minimumCollateralProfit
     ) internal returns (uint256, uint256) {
         vm.prank(user);
         return size.liquidateLoanWithReplacement(
             LiquidateLoanWithReplacementParams({
                 loanId: loanId,
                 borrower: borrower,
-                minimumCollateralRatio: minimumCollateralRatio
+                minimumCollateralProfit: minimumCollateralProfit
             })
         );
     }

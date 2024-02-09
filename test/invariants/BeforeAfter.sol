@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import {UserView} from "@src/SizeView.sol";
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
+import {Loan, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {Deploy} from "@test/Deploy.sol";
@@ -15,6 +15,7 @@ abstract contract BeforeAfter is Deploy {
         UserView lender;
         bool isSenderLiquidatable;
         bool isBorrowerLiquidatable;
+        bool isLoanOverdue;
         uint256 senderCollateralAmount;
         uint256 senderBorrowAmount;
         uint256 activeLoans;
@@ -46,6 +47,7 @@ abstract contract BeforeAfter is Deploy {
         vars.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowAmount;
         (,, NonTransferrableToken debtToken) = size.tokens();
         vars.totalDebtAmount = debtToken.totalSupply();
+        vars.isLoanOverdue = loanId == RESERVED_ID ? false : size.getLoanStatus(loanId) == LoanStatus.OVERDUE;
     }
 
     function __before(uint256 loanId) internal {

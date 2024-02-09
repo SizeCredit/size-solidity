@@ -48,10 +48,10 @@ library Errors {
     error NOT_LIQUIDATABLE(address account);
     error LOAN_NOT_LIQUIDATABLE(uint256 loanId, uint256 cr, LoanStatus status);
     error LOAN_NOT_SELF_LIQUIDATABLE(uint256 loanId, uint256 cr, LoanStatus status);
-    error COLLATERAL_RATIO_BELOW_MINIMUM_COLLATERAL_RATIO(uint256 collateralRatio, uint256 minimumCollateralRatio);
-    error COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO(
-        address account, uint256 collateralRatio, uint256 riskCollateralRatio
+    error LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT(
+        uint256 liquidatorProfitCollateralToken, uint256 minimumCollateralProfit
     );
+    error CR_BELOW_OPENING_LIMIT_BORROW_CR(address account, uint256 collateralRatio, uint256 riskCollateralRatio);
     error LIQUIDATION_NOT_AT_LOSS(uint256 loanId, uint256 assignedCollateral, uint256 debtCollateral);
 
     error INVALID_DECIMALS(uint8 decimals);

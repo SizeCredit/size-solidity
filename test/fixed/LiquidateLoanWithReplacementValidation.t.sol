@@ -27,7 +27,7 @@ contract LiquidateLoanWithReplacementValidationTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _borrowAsLimitOrder(candy, 0.03e18, 4);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
-        uint256 minimumCollateralRatio = 1e18;
+        uint256 minimumCollateralProfit = 0;
 
         _setPrice(0.2e18);
 
@@ -38,7 +38,7 @@ contract LiquidateLoanWithReplacementValidationTest is BaseTest {
             LiquidateLoanWithReplacementParams({
                 loanId: loanId,
                 borrower: james,
-                minimumCollateralRatio: minimumCollateralRatio
+                minimumCollateralProfit: minimumCollateralProfit
             })
         );
 
@@ -51,7 +51,7 @@ contract LiquidateLoanWithReplacementValidationTest is BaseTest {
             LiquidateLoanWithReplacementParams({
                 loanId: loanId,
                 borrower: candy,
-                minimumCollateralRatio: minimumCollateralRatio
+                minimumCollateralProfit: minimumCollateralProfit
             })
         );
     }
