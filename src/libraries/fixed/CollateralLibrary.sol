@@ -6,6 +6,9 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {State} from "@src/SizeStorage.sol";
 
+/// @title CollateralLibrary
+/// @notice Contains functions for interacting with the underlying collateral token (e.g. WETH)
+/// @dev Mints and burns 1:1 the collateral token (e.g. szETH)
 library CollateralLibrary {
     using SafeERC20 for IERC20Metadata;
 

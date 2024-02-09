@@ -14,39 +14,37 @@ import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
-// NOTE changing any of these structs' order or variables may change the storage layout
-
 struct Config {
-    uint256 crOpening;
-    uint256 crLiquidation;
-    uint256 minimumCreditBorrowAToken;
-    uint256 collateralSplitLiquidatorPercent;
-    uint256 collateralSplitProtocolPercent;
-    uint256 collateralTokenCap;
-    uint256 borrowATokenCap;
-    uint256 debtTokenCap;
-    uint256 repayFeeAPR;
-    uint256 earlyLenderExitFee;
-    uint256 earlyBorrowerExitFee;
-    uint256 collateralOverdueTransferFee;
-    address feeRecipient;
+    uint256 crOpening; // minimum collateral ratio for opening a loan
+    uint256 crLiquidation; // minimum collateral ratio for liquidation
+    uint256 minimumCreditBorrowAToken; // minimum credit value of loans
+    uint256 collateralSplitLiquidatorPercent; // percent of collateral remainder to be split with liquidator on profitable liquidations
+    uint256 collateralSplitProtocolPercent; // percent of collateral to be split with protocol on profitable liquidations
+    uint256 collateralTokenCap; // maximum amount of deposited collateral tokens
+    uint256 borrowATokenCap; // maximum amount of deposited borrowed aTokens
+    uint256 debtTokenCap; // maximum amount of minted debt tokens
+    uint256 repayFeeAPR; // annual percentage rate of the protocol repay fee
+    uint256 earlyLenderExitFee; // fee for early lender exits
+    uint256 earlyBorrowerExitFee; // fee for early borrower exits
+    uint256 collateralOverdueTransferFee; // fee for converting overdue fixed-rate loans into the variable-rate loans
+    address feeRecipient; // address to receive protocol fees
 }
 
 struct Oracle {
-    IPriceFeed priceFeed;
-    IMarketBorrowRateFeed marketBorrowRateFeed;
+    IPriceFeed priceFeed; // price feed oracle
+    IMarketBorrowRateFeed marketBorrowRateFeed; // market borrow rate feed oracle
 }
 
 struct Data {
-    mapping(address => User) users;
-    Loan[] loans;
+    mapping(address => User) users; // mapping of User structs
+    Loan[] loans; // array of Loan structs
     IERC20Metadata underlyingCollateralToken; // e.g. WETH
     IERC20Metadata underlyingBorrowToken; // e.g. USDC
     NonTransferrableToken collateralToken; // e.g. szWETH
     IAToken borrowAToken; // e.g. aszUSDC
     NonTransferrableToken debtToken; // e.g. szDebt
-    IPool variablePool;
-    Vault vaultImplementation;
+    IPool variablePool; // Size Variable Pool (Aave v3 fork)
+    Vault vaultImplementation; // Vault implementation
 }
 
 struct State {
@@ -55,6 +53,9 @@ struct State {
     Data data;
 }
 
+/// @title SizeStorage
+/// @notice Storage for the Size protocol
+/// @dev WARNING: Changing the order of the variables or inner structs in this contract may break the storage layout
 abstract contract SizeStorage {
     State internal state;
 }

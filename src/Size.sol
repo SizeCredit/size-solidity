@@ -47,7 +47,8 @@ import {State} from "@src/SizeStorage.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
-// @audit Check if borrower == lender == liquidator may cause any issues
+/// @title Size
+/// @notice See the documentation in {ISize}.
 contract Size is
     ISize,
     SizeView,
@@ -57,6 +58,7 @@ contract Size is
     MulticallUpgradeable,
     UUPSUpgradeable
 {
+    // @audit Check if borrower == lender == liquidator may cause any issues
     using Initialize for State;
     using UpdateConfig for State;
     using Deposit for State;

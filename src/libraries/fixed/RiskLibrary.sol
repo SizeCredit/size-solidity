@@ -9,6 +9,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
+/// @title RiskLibrary
 library RiskLibrary {
     using LoanLibrary for State;
     using LoanLibrary for Loan;

@@ -21,7 +21,7 @@ import {Events} from "@src/libraries/Events.sol";
 struct LendAsMarketOrderParams {
     address borrower;
     uint256 dueDate;
-    uint256 amount; // in decimals (e.g. 1_000e6 for 1000 USDC)
+    uint256 amount;
     bool exactAmountIn;
 }
 

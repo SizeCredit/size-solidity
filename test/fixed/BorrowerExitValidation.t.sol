@@ -32,7 +32,11 @@ contract BorrowerExitValidationTest is BaseTest {
         size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, 100e6, 200e6));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, 100e6, 200e6 + size.config().earlyBorrowerExitFee
+            )
+        );
         size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
         vm.stopPrank();
 

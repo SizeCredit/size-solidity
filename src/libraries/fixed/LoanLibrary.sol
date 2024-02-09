@@ -11,16 +11,16 @@ uint256 constant RESERVED_ID = type(uint256).max;
 struct GenericLoan {
     address lender;
     address borrower;
-    uint256 credit;
+    uint256 credit; // decreases when credit is sold, e.g. on lender exit
 }
 
 struct FOL {
     uint256 issuanceValue; // updated on repayment
     uint256 rate;
     uint256 repayFeeAPR;
-    uint256 startDate;
+    uint256 startDate; // updated opon borrower replacement
     uint256 dueDate;
-    uint256 liquidityIndexAtRepayment;
+    uint256 liquidityIndexAtRepayment; // set on repayment
 }
 
 struct SOL {
@@ -48,6 +48,7 @@ enum LoanStatus {
 
 }
 
+/// @title LoanLibrary
 library LoanLibrary {
     using AccountingLibrary for Loan;
     using AccountingLibrary for State;
@@ -94,7 +95,12 @@ library LoanLibrary {
         return s == status[0] || s == status[1];
     }
 
-    // assumes fees are already paid
+    /// @notice Get the amount of collateral assigned to a FOL
+    /// @dev Takes into account the total debt of the user, which includes the repayment fee
+    ///      When used to calculate the amount of collateral on liquidations, the repayment fee must be excluded first from the user debt
+    /// @param state The state struct
+    /// @param fol The FOL
+    /// @return The amount of collateral assigned to the FOL
     function getFOLAssignedCollateral(State storage state, Loan memory fol) public view returns (uint256) {
         if (!isFOL(fol)) revert Errors.NOT_SUPPORTED();
 
@@ -108,7 +114,12 @@ library LoanLibrary {
         }
     }
 
-    // assumes fees are already paid
+    /// @notice Get the amount of collateral assigned to a Loan (FOL or SOL), pro-rata to the Loan's FOL faceValue
+    /// @dev Takes into account the total debt of the user, which includes the repayment fee
+    ///      When used to calculate the amount of collateral on liquidations, the repayment fee must be excluded first from the user debt
+    /// @param state The state struct
+    /// @param loanId The id of a Loan
+    /// @return The amount of collateral assigned to the Loan
     function getProRataAssignedCollateral(State storage state, uint256 loanId) public view returns (uint256) {
         Loan storage loan = state.data.loans[loanId];
         Loan storage fol = getFOL(state, loan);
@@ -139,7 +150,6 @@ library LoanLibrary {
     }
 
     function partialRepayFee(Loan memory fol, uint256 repayAmount) internal pure returns (uint256) {
-        // pending question about calculating parial repay fee
         return Math.mulDivUp(repayAmount, maximumRepayFee(fol), faceValue(fol));
     }
 }

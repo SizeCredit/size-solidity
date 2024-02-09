@@ -22,7 +22,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct BorrowAsMarketOrderParams {
     address lender;
-    uint256 amount; // in decimals (e.g. 1_000e6)
+    uint256 amount;
     uint256 dueDate;
     bool exactAmountIn;
     uint256[] receivableLoanIds;

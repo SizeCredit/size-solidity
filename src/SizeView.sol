@@ -29,6 +29,8 @@ struct UserView {
     uint256 debtAmount;
 }
 
+/// @title SizeView
+/// @notice View methods for the Size protocol
 abstract contract SizeView is SizeStorage {
     using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
