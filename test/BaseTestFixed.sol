@@ -211,7 +211,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _liquidateLoan(address user, uint256 loanId) internal returns (uint256) {
-        return _liquidateLoan(user, loanId, 1e18);
+        return _liquidateLoan(user, loanId, 0);
     }
 
     function _liquidateLoan(address user, uint256 loanId, uint256 minimumCollateralProfit) internal returns (uint256) {
