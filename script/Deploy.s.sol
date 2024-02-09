@@ -32,6 +32,7 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         deployments.push(Deployment({name: "implementation", addr: address(size)}));
         deployments.push(Deployment({name: "proxy", addr: address(proxy)}));
         deployments.push(Deployment({name: "priceFeed", addr: address(priceFeed)}));
+        deployments.push(Deployment({name: "marketBorrowRateFeed", addr: address(marketBorrowRateFeed)}));
         deployments.push(Deployment({name: "variablePool", addr: address(variablePool)}));
 
         console.log("[Size v2] deployed\n");
