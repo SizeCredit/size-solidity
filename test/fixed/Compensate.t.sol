@@ -24,7 +24,7 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(james, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
 
         uint256 repaidLoanDebtBefore = size.getDebt(loanId3);
         uint256 compensatedLoanCreditBefore = size.getCredit(loanId);

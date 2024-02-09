@@ -41,7 +41,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
         uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
@@ -80,7 +80,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
         uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
         uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         Vars memory _after = _state();
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
@@ -176,7 +176,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 amountLoanId2 = 30e6;
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amountLoanId2, dueDate, receivableLoanIds);
-        uint256 repayFee = size.maximumRepayFee(loanId2);
+        uint256 repayFee = size.repayFee(loanId2);
 
         Vars memory _after = _state();
 
@@ -226,7 +226,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         Vars memory _before = _state();
 
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, amountLoanId2, dueDate, receivableLoanIds);
-        uint256 repayFee = size.maximumRepayFee(loanId2);
+        uint256 repayFee = size.repayFee(loanId2);
 
         Vars memory _after = _state();
 
@@ -343,7 +343,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         Vars memory _before = _state();
 
         uint256 loanId = _borrowAsMarketOrder(alice, james, 100e6, 12, [folId]);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
 
         uint256 loansAfter = size.activeLoans();
         Vars memory _after = _state();
@@ -468,7 +468,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 startDate = block.timestamp;
         uint256 amount = 10e6;
-        uint256 repayFee = size.maximumRepayFee(amount, startDate, dueDate, size.config().repayFeeAPR);
+        uint256 repayFee = size.repayFee(amount, startDate, dueDate, size.config().repayFeeAPR);
         _updateConfig("debtTokenCap", 5e6);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);

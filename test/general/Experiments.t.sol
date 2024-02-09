@@ -332,7 +332,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertTrue(size.isLoanLiquidatable(0), "Loan should be liquidatable");
 
         Loan memory fol = size.getLoan(0);
-        uint256 repayFee = size.maximumRepayFee(0);
+        uint256 repayFee = size.repayFee(0);
         assertEq(fol.generic.borrower, alice, "Alice should be the borrower");
         assertEq(_state().alice.debtAmount, fol.faceValue() + repayFee, "Alice should have the debt");
 
@@ -401,7 +401,7 @@ contract ExperimentsTest is Test, BaseTest {
         YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         // Borrower B1 submits a borror market order for
         // Loan1
         // - Lender=L
@@ -440,8 +440,8 @@ contract ExperimentsTest is Test, BaseTest {
 
         uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 100e6, 365 days);
 
-        uint256 repayFee = size.maximumRepayFee(loanId);
-        uint256 repayFee2 = size.maximumRepayFee(loanId2);
+        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFee2 = size.repayFee(loanId2);
 
         vm.warp(block.timestamp + 365 days);
 
@@ -488,10 +488,7 @@ contract ExperimentsTest is Test, BaseTest {
         // FOL.FV() = FOL.IV * FOL.FullLenderRate
         assertEq(size.getLoan(loanId).faceValue(), 110e6);
 
-        assertEq(size.maximumRepayFee(loanId), 10e6);
-
-        // FOL.ProtocolFees(t) = FOL.IV * protocolFeeRate * (t - FOL.lastRepaymentTime)
-        assertEq(size.maximumRepayFee(loanId), 0);
+        assertEq(size.repayFee(loanId), 10e6);
 
         Loan memory loan = size.getLoan(loanId);
 

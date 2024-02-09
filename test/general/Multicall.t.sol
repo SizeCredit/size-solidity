@@ -67,7 +67,7 @@ contract MulticallTest is BaseTest {
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 faceValue = size.faceValue(loanId);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 debt = faceValue + repayFee;
 

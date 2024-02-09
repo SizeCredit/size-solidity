@@ -412,8 +412,8 @@ export interface SizeInterface extends utils.Interface {
     "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
     "liquidateLoan((uint256,uint256))": FunctionFragment;
     "liquidateLoanWithReplacement((uint256,address,uint256))": FunctionFragment;
-    "maximumRepayFee(uint256,uint256,uint256,uint256)": FunctionFragment;
-    "maximumRepayFee(uint256)": FunctionFragment;
+    "repayFee(uint256,uint256,uint256,uint256)": FunctionFragment;
+    "repayFee(uint256)": FunctionFragment;
     "multicall(bytes[])": FunctionFragment;
     "oracle()": FunctionFragment;
     "partialRepayFee(uint256,uint256)": FunctionFragment;
@@ -467,8 +467,8 @@ export interface SizeInterface extends utils.Interface {
       | "lendAsMarketOrder"
       | "liquidateLoan"
       | "liquidateLoanWithReplacement"
-      | "maximumRepayFee(uint256,uint256,uint256,uint256)"
-      | "maximumRepayFee(uint256)"
+      | "repayFee(uint256,uint256,uint256,uint256)"
+      | "repayFee(uint256)"
       | "multicall"
       | "oracle"
       | "partialRepayFee"
@@ -616,11 +616,11 @@ export interface SizeInterface extends utils.Interface {
     values: [LiquidateLoanWithReplacementParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "maximumRepayFee(uint256,uint256,uint256,uint256)",
+    functionFragment: "repayFee(uint256,uint256,uint256,uint256)",
     values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "maximumRepayFee(uint256)",
+    functionFragment: "repayFee(uint256)",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -767,11 +767,11 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "maximumRepayFee(uint256,uint256,uint256,uint256)",
+    functionFragment: "repayFee(uint256,uint256,uint256,uint256)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "maximumRepayFee(uint256)",
+    functionFragment: "repayFee(uint256)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "multicall", data: BytesLike): Result;
@@ -1072,7 +1072,7 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    "maximumRepayFee(uint256,uint256,uint256,uint256)"(
+    "repayFee(uint256,uint256,uint256,uint256)"(
       issuanceValue: BigNumberish,
       startDate: BigNumberish,
       dueDate: BigNumberish,
@@ -1080,7 +1080,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "maximumRepayFee(uint256)"(
+    "repayFee(uint256)"(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -1290,7 +1290,7 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  "maximumRepayFee(uint256,uint256,uint256,uint256)"(
+  "repayFee(uint256,uint256,uint256,uint256)"(
     issuanceValue: BigNumberish,
     startDate: BigNumberish,
     dueDate: BigNumberish,
@@ -1298,7 +1298,7 @@ export interface Size extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "maximumRepayFee(uint256)"(
+  "repayFee(uint256)"(
     loanId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -1519,7 +1519,7 @@ export interface Size extends BaseContract {
       }
     >;
 
-    "maximumRepayFee(uint256,uint256,uint256,uint256)"(
+    "repayFee(uint256,uint256,uint256,uint256)"(
       issuanceValue: BigNumberish,
       startDate: BigNumberish,
       dueDate: BigNumberish,
@@ -1527,7 +1527,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "maximumRepayFee(uint256)"(
+    "repayFee(uint256)"(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1789,7 +1789,7 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    "maximumRepayFee(uint256,uint256,uint256,uint256)"(
+    "repayFee(uint256,uint256,uint256,uint256)"(
       issuanceValue: BigNumberish,
       startDate: BigNumberish,
       dueDate: BigNumberish,
@@ -1797,7 +1797,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "maximumRepayFee(uint256)"(
+    "repayFee(uint256)"(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -2026,7 +2026,7 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    "maximumRepayFee(uint256,uint256,uint256,uint256)"(
+    "repayFee(uint256,uint256,uint256,uint256)"(
       issuanceValue: BigNumberish,
       startDate: BigNumberish,
       dueDate: BigNumberish,
@@ -2034,7 +2034,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "maximumRepayFee(uint256)"(
+    "repayFee(uint256)"(
       loanId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
