@@ -326,25 +326,25 @@ export type LendAsMarketOrderParamsStructOutput = [
 
 export type LiquidateLoanParamsStruct = {
   loanId: BigNumberish;
-  minimumCollateralRatio: BigNumberish;
+  minimumCollateralProfit: BigNumberish;
 };
 
 export type LiquidateLoanParamsStructOutput = [BigNumber, BigNumber] & {
   loanId: BigNumber;
-  minimumCollateralRatio: BigNumber;
+  minimumCollateralProfit: BigNumber;
 };
 
 export type LiquidateLoanWithReplacementParamsStruct = {
   loanId: BigNumberish;
   borrower: string;
-  minimumCollateralRatio: BigNumberish;
+  minimumCollateralProfit: BigNumberish;
 };
 
 export type LiquidateLoanWithReplacementParamsStructOutput = [
   BigNumber,
   string,
   BigNumber
-] & { loanId: BigNumber; borrower: string; minimumCollateralRatio: BigNumber };
+] & { loanId: BigNumber; borrower: string; minimumCollateralProfit: BigNumber };
 
 export type RepayParamsStruct = { loanId: BigNumberish };
 
