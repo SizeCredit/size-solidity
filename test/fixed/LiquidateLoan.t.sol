@@ -123,7 +123,7 @@ contract LiquidateLoanTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
 
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
 
         _setPrice(0.2e18);
 
@@ -153,7 +153,7 @@ contract LiquidateLoanTest is BaseTest {
 
         _setPrice(0.1e18);
 
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
@@ -195,9 +195,7 @@ contract LiquidateLoanTest is BaseTest {
         uint256 variablePoolWETHBefore = weth.balanceOf(address(size.data().variablePool));
 
         uint256 assignedCollateralAfterFee = Math.mulDivDown(
-            _before.bob.collateralAmount,
-            loanBefore.faceValue(),
-            (_before.bob.debtAmount - size.maximumRepayFee(loanId))
+            _before.bob.collateralAmount, loanBefore.faceValue(), (_before.bob.debtAmount - size.repayFee(loanId))
         );
 
         uint256 repayFee = size.partialRepayFee(loanId, loanBefore.faceValue());

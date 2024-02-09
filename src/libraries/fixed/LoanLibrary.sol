@@ -58,7 +58,7 @@ library LoanLibrary {
     }
 
     function getDebt(Loan memory fol) internal pure returns (uint256) {
-        return faceValue(fol) + maximumRepayFee(fol);
+        return faceValue(fol) + repayFee(fol);
     }
 
     function faceValue(Loan memory self) internal pure returns (uint256) {
@@ -134,7 +134,7 @@ library LoanLibrary {
         }
     }
 
-    function maximumRepayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
+    function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
         internal
         pure
         returns (uint256)
@@ -145,11 +145,11 @@ library LoanLibrary {
         return fee;
     }
 
-    function maximumRepayFee(Loan memory fol) internal pure returns (uint256) {
-        return maximumRepayFee(fol.fol.issuanceValue, fol.fol.startDate, fol.fol.dueDate, fol.fol.repayFeeAPR);
+    function repayFee(Loan memory fol) internal pure returns (uint256) {
+        return repayFee(fol.fol.issuanceValue, fol.fol.startDate, fol.fol.dueDate, fol.fol.repayFeeAPR);
     }
 
     function partialRepayFee(Loan memory fol, uint256 repayAmount) internal pure returns (uint256) {
-        return Math.mulDivUp(repayAmount, maximumRepayFee(fol), faceValue(fol));
+        return Math.mulDivUp(repayAmount, repayFee(fol), faceValue(fol));
     }
 }

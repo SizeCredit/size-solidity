@@ -103,7 +103,7 @@ forge test
 | src/Size.sol                                                 | 100.00% (47/47)   | 100.00% (47/47)    | 100.00% (0/0)    | 100.00% (16/16)  |
 | src/SizeView.sol                                             | 93.75% (30/32)    | 94.23% (49/52)     | 100.00% (0/0)    | 90.91% (20/22)   |
 | src/libraries/ConversionLibrary.sol                          | 25.00% (1/4)      | 30.00% (3/10)      | 100.00% (0/0)    | 25.00% (1/4)     |
-| src/libraries/Math.sol                                       | 90.00% (18/20)    | 90.62% (29/32)     | 83.33% (5/6)     | 87.50% (7/8)     |
+| src/libraries/Math.sol                                       | 89.47% (17/19)    | 90.00% (27/30)     | 83.33% (5/6)     | 87.50% (7/8)     |
 | src/libraries/fixed/AccountingLibrary.sol                    | 64.00% (16/25)    | 63.33% (19/30)     | 100.00% (0/0)    | 75.00% (3/4)     |
 | src/libraries/fixed/CapsLibrary.sol                          | 100.00% (6/6)     | 100.00% (9/9)      | 50.00% (3/6)     | 100.00% (3/3)    |
 | src/libraries/fixed/CollateralLibrary.sol                    | 100.00% (6/6)     | 100.00% (8/8)      | 100.00% (0/0)    | 100.00% (2/2)    |
@@ -113,7 +113,7 @@ forge test
 | src/libraries/fixed/YieldCurveLibrary.sol                    | 36.00% (9/25)     | 37.78% (17/45)     | 42.86% (6/14)    | 33.33% (1/3)     |
 | src/libraries/fixed/actions/BorrowAsLimitOrder.sol           | 100.00% (3/3)     | 100.00% (3/3)      | 100.00% (0/0)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/BorrowAsMarketOrder.sol          | 98.00% (49/50)    | 98.31% (58/59)     | 95.00% (19/20)   | 100.00% (4/4)    |
-| src/libraries/fixed/actions/BorrowerExit.sol                 | 91.67% (22/24)    | 93.33% (28/30)     | 62.50% (5/8)     | 100.00% (2/2)    |
+| src/libraries/fixed/actions/BorrowerExit.sol                 | 91.67% (22/24)    | 93.55% (29/31)     | 62.50% (5/8)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Claim.sol                        | 100.00% (10/10)   | 100.00% (12/12)    | 100.00% (2/2)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Compensate.sol                   | 100.00% (26/26)   | 100.00% (32/32)    | 93.75% (15/16)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Deposit.sol                      | 90.91% (10/11)    | 93.75% (15/16)     | 75.00% (6/8)     | 100.00% (2/2)    |
@@ -144,7 +144,7 @@ forge test
 │            Claim             │   8    │
 │          Compensate          │   4    │
 │      ConversionLibrary       │   6    │
-│       CryticToFoundry        │   7    │
+│       CryticToFoundry        │   8    │
 │           Deposit            │   3    │
 │         Experiments          │   12   │
 │          Initialize          │   4    │

@@ -24,7 +24,7 @@ contract RepayTest is BaseTest {
         uint256 amountLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
 
         Vars memory _before = _state();
 
@@ -53,7 +53,7 @@ contract RepayTest is BaseTest {
         uint256 amountLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
 
         Vars memory _before = _state();
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
