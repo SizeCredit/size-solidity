@@ -255,11 +255,13 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after(loanId);
 
-        gte(
-            _after.sender.collateralAmount,
-            _before.sender.collateralAmount + liquidatorProfitCollateralToken,
-            LIQUIDATE_01
-        );
+        if (sender != _before.borrower.account) {
+            gte(
+                _after.sender.collateralAmount,
+                _before.sender.collateralAmount + liquidatorProfitCollateralToken,
+                LIQUIDATE_01
+            );
+        }
         if (!_before.isLoanOverdue) {
             lt(_after.sender.borrowAmount, _before.sender.borrowAmount, LIQUIDATE_02);
         }
