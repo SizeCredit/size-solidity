@@ -1217,7 +1217,7 @@ const _abi = [
   },
   {
     type: "function",
-    name: "maximumRepayFee",
+    name: "repayFee",
     inputs: [
       {
         name: "issuanceValue",
@@ -1251,7 +1251,7 @@ const _abi = [
   },
   {
     type: "function",
-    name: "maximumRepayFee",
+    name: "repayFee",
     inputs: [
       {
         name: "loanId",

@@ -42,6 +42,7 @@ library AccountingLibrary {
             fol.generic.borrower, state.config.feeRecipient, cappedRepayFeeCollateral
         );
 
+        // rounding down the deduction means the updated issuanceValue will be rounded up, which means higher fees on the next repayment
         fol.fol.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + fol.fol.rate);
         state.data.debtToken.burn(fol.generic.borrower, repayFee);
     }

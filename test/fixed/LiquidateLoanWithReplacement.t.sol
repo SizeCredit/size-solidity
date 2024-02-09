@@ -35,7 +35,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         uint256 delta = faceValue - amount;
 
         _setPrice(0.2e18);
@@ -78,7 +78,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 newAmount = Math.mulDivDown(faceValue, PERCENT, (PERCENT + 0.01e18));
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         uint256 delta = faceValue - newAmount;
 
         _setPrice(0.2e18);
@@ -125,7 +125,9 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         vm.startPrank(liquidator);
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, candy, 0, 1.5e18)
+            abi.encodeWithSelector(
+                Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO.selector, candy, 0, 1.5e18
+            )
         );
         size.liquidateLoanWithReplacement(
             LiquidateLoanWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralRatio: 1e18})

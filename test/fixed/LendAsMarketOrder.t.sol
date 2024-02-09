@@ -36,7 +36,7 @@ contract LendAsMarketOrderTest is BaseTest {
         uint256 loansBefore = size.activeLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, faceValue, dueDate);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         Loan memory loan = size.getLoan(loanId);
 
         Vars memory _after = _state();
@@ -67,7 +67,7 @@ contract LendAsMarketOrderTest is BaseTest {
         uint256 loansBefore = size.activeLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         Loan memory loan = size.getLoan(loanId);
 
         Vars memory _after = _state();
@@ -99,7 +99,7 @@ contract LendAsMarketOrderTest is BaseTest {
         uint256 loansBefore = size.activeLoans();
 
         uint256 loanId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         Loan memory loan = size.getLoan(loanId);
 
         Vars memory _after = _state();
@@ -124,7 +124,7 @@ contract LendAsMarketOrderTest is BaseTest {
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, alice, 1.5e18 / 2, 1.5e18
+                Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO.selector, alice, 1.5e18 / 2, 1.5e18
             )
         );
         size.lendAsMarketOrder(

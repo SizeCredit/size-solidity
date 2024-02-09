@@ -131,18 +131,18 @@ abstract contract SizeView is SizeStorage {
         return fol.partialRepayFee(repayAmount);
     }
 
-    function maximumRepayFee(uint256 loanId) external view returns (uint256) {
+    function repayFee(uint256 loanId) external view returns (uint256) {
         Loan storage loan = state.data.loans[loanId];
         Loan storage fol = state.getFOL(loan);
-        return fol.maximumRepayFee();
+        return fol.repayFee();
     }
 
-    function maximumRepayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
+    function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
         external
         pure
         returns (uint256)
     {
-        return LoanLibrary.maximumRepayFee(issuanceValue, startDate, dueDate, repayFeeAPR);
+        return LoanLibrary.repayFee(issuanceValue, startDate, dueDate, repayFeeAPR);
     }
 
     function tokens() external view returns (NonTransferrableToken, IAToken, NonTransferrableToken) {

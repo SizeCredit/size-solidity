@@ -117,7 +117,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         _borrowAsMarketOrder(alice, candy, 5e6, 12, [loanId]);
         _borrowAsMarketOrder(alice, james, 80e6, 12);
         _borrowAsMarketOrder(bob, james, 40e6, 12);
