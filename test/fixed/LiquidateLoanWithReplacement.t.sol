@@ -124,13 +124,9 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
 
         vm.startPrank(liquidator);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO.selector, candy, 0, 1.5e18
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, candy, 0, 1.5e18));
         size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralRatio: 1e18})
+            LiquidateLoanWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralProfit: 0})
         );
     }
 
@@ -162,7 +158,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
             abi.encodeWithSelector(Errors.INVALID_LOAN_STATUS.selector, loanId, LoanStatus.OVERDUE, LoanStatus.ACTIVE)
         );
         size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralRatio: 1e18})
+            LiquidateLoanWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralProfit: 0})
         );
     }
 }

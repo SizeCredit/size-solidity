@@ -25,7 +25,8 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for FOLs";
 
     string internal constant LIQUIDATE_01 = "LIQUIDATE_01: Liquidate increases the sender collateral";
-    string internal constant LIQUIDATE_02 = "LIQUIDATE_02: Liquidate decreases the sender cash";
+    string internal constant LIQUIDATE_02 =
+        "LIQUIDATE_02: Liquidate decreases the sender cash if the loan is not overdue";
     string internal constant LIQUIDATE_03 = "LIQUIDATE_03: Liquidate only succeeds if the borrower is liquidatable";
     string internal constant LIQUIDATE_04 = "LIQUIDATE_04: Liquidate decreases the borrower debt";
 

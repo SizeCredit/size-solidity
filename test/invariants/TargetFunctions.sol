@@ -241,22 +241,32 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         t(size.isFOL(loanId), CLAIM_02);
     }
 
-    function liquidateLoan(uint256 loanId) public getSender {
+    function liquidateLoan(uint256 loanId, uint256 minimumCollateralProfit) public getSender {
         __before(loanId);
 
         precondition(_before.activeLoans > 0);
 
+        minimumCollateralProfit = between(minimumCollateralProfit, 0, MAX_AMOUNT_WETH);
         loanId = between(loanId, 0, _before.activeLoans - 1);
 
         hevm.prank(sender);
-        size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralRatio: 1e18}));
+        uint256 liquidatorProfitCollateralToken =
+            size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
 
         __after(loanId);
 
-        gt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
-        lt(_after.sender.borrowAmount, _before.sender.borrowAmount, LIQUIDATE_02);
+        if (sender != _before.borrower.account) {
+            gte(
+                _after.sender.collateralAmount,
+                _before.sender.collateralAmount + liquidatorProfitCollateralToken,
+                LIQUIDATE_01
+            );
+        }
+        if (!_before.isLoanOverdue) {
+            lt(_after.sender.borrowAmount, _before.sender.borrowAmount, LIQUIDATE_02);
+        }
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
-        t(_before.isSenderLiquidatable, LIQUIDATE_03);
+        t(_before.isSenderLiquidatable || _before.isLoanOverdue, LIQUIDATE_03);
     }
 
     function selfLiquidateLoan(uint256 loanId) internal getSender {
@@ -275,21 +285,34 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         lt(_after.sender.debtAmount, _before.sender.debtAmount, LIQUIDATE_02);
     }
 
-    function liquidateLoanWithReplacement(uint256 loanId, address borrower) internal getSender {
+    function liquidateLoanWithReplacement(uint256 loanId, uint256 minimumCollateralProfit, address borrower)
+        internal
+        getSender
+    {
         __before(loanId);
 
         precondition(_before.activeLoans > 0);
+        minimumCollateralProfit = between(minimumCollateralProfit, 0, MAX_AMOUNT_WETH);
 
         loanId = between(loanId, 0, _before.activeLoans - 1);
         borrower = _getRandomUser(borrower);
 
         hevm.prank(sender);
-        size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({loanId: loanId, borrower: borrower, minimumCollateralRatio: 1e18})
+        (uint256 liquidatorProfitCollateralToken,) = size.liquidateLoanWithReplacement(
+            LiquidateLoanWithReplacementParams({
+                loanId: loanId,
+                borrower: borrower,
+                minimumCollateralProfit: minimumCollateralProfit
+            })
         );
 
         __after(loanId);
 
+        gte(
+            _after.sender.collateralAmount,
+            _before.sender.collateralAmount + liquidatorProfitCollateralToken,
+            LIQUIDATE_01
+        );
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
         eq(_after.totalDebtAmount, _before.totalDebtAmount, LIQUIDATION_02);
     }

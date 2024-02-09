@@ -43,11 +43,11 @@ library Events {
     event Repay(uint256 indexed loanId);
     event Claim(uint256 indexed loanId);
     event LiquidateLoan(
-        uint256 indexed loanId, uint256 minimumCollateralRatio, uint256 collateralRatio, LoanStatus loanStatus
+        uint256 indexed loanId, uint256 minimumCollateralProfit, uint256 collateralRatio, LoanStatus loanStatus
     );
     event SelfLiquidateLoan(uint256 indexed loanId);
     event LiquidateLoanWithReplacement(
-        uint256 indexed loanId, address indexed borrower, uint256 minimumCollateralRatio
+        uint256 indexed loanId, address indexed borrower, uint256 minimumCollateralProfit
     );
     event LiquidateLoanUserLiquidatableProfitably(uint256 indexed loanId);
     event LiquidateLoanUserLiquidatableUnprofitably(uint256 indexed loanId);

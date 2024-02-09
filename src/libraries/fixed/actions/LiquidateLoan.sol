@@ -20,7 +20,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct LiquidateLoanParams {
     uint256 loanId;
-    uint256 minimumCollateralRatio;
+    uint256 minimumCollateralProfit;
 }
 
 library LiquidateLoan {
@@ -42,10 +42,17 @@ library LiquidateLoan {
             );
         }
 
-        // validate minimumCollateralRatio
-        if (state.collateralRatio(loan.generic.borrower) < params.minimumCollateralRatio) {
-            revert Errors.COLLATERAL_RATIO_BELOW_MINIMUM_COLLATERAL_RATIO(
-                state.collateralRatio(loan.generic.borrower), params.minimumCollateralRatio
+        // validate minimumCollateralProfit
+    }
+
+    function validateMinimumCollateralProfit(
+        State storage,
+        LiquidateLoanParams calldata params,
+        uint256 liquidatorProfitCollateralToken
+    ) external pure {
+        if (liquidatorProfitCollateralToken < params.minimumCollateralProfit) {
+            revert Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT(
+                liquidatorProfitCollateralToken, params.minimumCollateralProfit
             );
         }
     }
@@ -119,7 +126,7 @@ library LiquidateLoan {
         LoanStatus loanStatus = state.getLoanStatus(fol);
         uint256 collateralRatio = state.collateralRatio(fol.generic.borrower);
 
-        emit Events.LiquidateLoan(params.loanId, params.minimumCollateralRatio, collateralRatio, loanStatus);
+        emit Events.LiquidateLoan(params.loanId, params.minimumCollateralProfit, collateralRatio, loanStatus);
 
         state.chargeRepayFee(fol, fol.faceValue());
 

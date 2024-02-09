@@ -412,8 +412,6 @@ export interface SizeInterface extends utils.Interface {
     "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
     "liquidateLoan((uint256,uint256))": FunctionFragment;
     "liquidateLoanWithReplacement((uint256,address,uint256))": FunctionFragment;
-    "repayFee(uint256,uint256,uint256,uint256)": FunctionFragment;
-    "repayFee(uint256)": FunctionFragment;
     "multicall(bytes[])": FunctionFragment;
     "oracle()": FunctionFragment;
     "partialRepayFee(uint256,uint256)": FunctionFragment;
@@ -421,6 +419,8 @@ export interface SizeInterface extends utils.Interface {
     "proxiableUUID()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "repay((uint256))": FunctionFragment;
+    "repayFee(uint256,uint256,uint256,uint256)": FunctionFragment;
+    "repayFee(uint256)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "selfLiquidateLoan((uint256))": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
@@ -467,8 +467,6 @@ export interface SizeInterface extends utils.Interface {
       | "lendAsMarketOrder"
       | "liquidateLoan"
       | "liquidateLoanWithReplacement"
-      | "repayFee(uint256,uint256,uint256,uint256)"
-      | "repayFee(uint256)"
       | "multicall"
       | "oracle"
       | "partialRepayFee"
@@ -476,6 +474,8 @@ export interface SizeInterface extends utils.Interface {
       | "proxiableUUID"
       | "renounceRole"
       | "repay"
+      | "repayFee(uint256,uint256,uint256,uint256)"
+      | "repayFee(uint256)"
       | "revokeRole"
       | "selfLiquidateLoan"
       | "supportsInterface"
@@ -616,14 +616,6 @@ export interface SizeInterface extends utils.Interface {
     values: [LiquidateLoanWithReplacementParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "repayFee(uint256,uint256,uint256,uint256)",
-    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "repayFee(uint256)",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "multicall",
     values: [BytesLike[]]
   ): string;
@@ -644,6 +636,14 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "repay",
     values: [RepayParamsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "repayFee(uint256,uint256,uint256,uint256)",
+    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "repayFee(uint256)",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "revokeRole",
@@ -766,14 +766,6 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "liquidateLoanWithReplacement",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "repayFee(uint256,uint256,uint256,uint256)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "repayFee(uint256)",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "multicall", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "oracle", data: BytesLike): Result;
   decodeFunctionResult(
@@ -790,6 +782,14 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "repay", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "repayFee(uint256,uint256,uint256,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "repayFee(uint256)",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "selfLiquidateLoan",
@@ -1072,19 +1072,6 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    "repayFee(uint256,uint256,uint256,uint256)"(
-      issuanceValue: BigNumberish,
-      startDate: BigNumberish,
-      dueDate: BigNumberish,
-      repayFeeAPR: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "repayFee(uint256)"(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     multicall(
       data: BytesLike[],
       overrides?: Overrides & { from?: string }
@@ -1114,6 +1101,19 @@ export interface Size extends BaseContract {
       params: RepayParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
+
+    "repayFee(uint256,uint256,uint256,uint256)"(
+      issuanceValue: BigNumberish,
+      startDate: BigNumberish,
+      dueDate: BigNumberish,
+      repayFeeAPR: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "repayFee(uint256)"(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     revokeRole(
       role: BytesLike,
@@ -1290,19 +1290,6 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  "repayFee(uint256,uint256,uint256,uint256)"(
-    issuanceValue: BigNumberish,
-    startDate: BigNumberish,
-    dueDate: BigNumberish,
-    repayFeeAPR: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "repayFee(uint256)"(
-    loanId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   multicall(
     data: BytesLike[],
     overrides?: Overrides & { from?: string }
@@ -1332,6 +1319,19 @@ export interface Size extends BaseContract {
     params: RepayParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
+
+  "repayFee(uint256,uint256,uint256,uint256)"(
+    issuanceValue: BigNumberish,
+    startDate: BigNumberish,
+    dueDate: BigNumberish,
+    repayFeeAPR: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "repayFee(uint256)"(
+    loanId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   revokeRole(
     role: BytesLike,
@@ -1519,19 +1519,6 @@ export interface Size extends BaseContract {
       }
     >;
 
-    "repayFee(uint256,uint256,uint256,uint256)"(
-      issuanceValue: BigNumberish,
-      startDate: BigNumberish,
-      dueDate: BigNumberish,
-      repayFeeAPR: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "repayFee(uint256)"(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     multicall(data: BytesLike[], overrides?: CallOverrides): Promise<string[]>;
 
     oracle(
@@ -1555,6 +1542,19 @@ export interface Size extends BaseContract {
     ): Promise<void>;
 
     repay(params: RepayParamsStruct, overrides?: CallOverrides): Promise<void>;
+
+    "repayFee(uint256,uint256,uint256,uint256)"(
+      issuanceValue: BigNumberish,
+      startDate: BigNumberish,
+      dueDate: BigNumberish,
+      repayFeeAPR: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "repayFee(uint256)"(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     revokeRole(
       role: BytesLike,
@@ -1789,19 +1789,6 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    "repayFee(uint256,uint256,uint256,uint256)"(
-      issuanceValue: BigNumberish,
-      startDate: BigNumberish,
-      dueDate: BigNumberish,
-      repayFeeAPR: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "repayFee(uint256)"(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     multicall(
       data: BytesLike[],
       overrides?: Overrides & { from?: string }
@@ -1828,6 +1815,19 @@ export interface Size extends BaseContract {
     repay(
       params: RepayParamsStruct,
       overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    "repayFee(uint256,uint256,uint256,uint256)"(
+      issuanceValue: BigNumberish,
+      startDate: BigNumberish,
+      dueDate: BigNumberish,
+      repayFeeAPR: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "repayFee(uint256)"(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     revokeRole(
@@ -2026,19 +2026,6 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    "repayFee(uint256,uint256,uint256,uint256)"(
-      issuanceValue: BigNumberish,
-      startDate: BigNumberish,
-      dueDate: BigNumberish,
-      repayFeeAPR: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "repayFee(uint256)"(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     multicall(
       data: BytesLike[],
       overrides?: Overrides & { from?: string }
@@ -2065,6 +2052,19 @@ export interface Size extends BaseContract {
     repay(
       params: RepayParamsStruct,
       overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    "repayFee(uint256,uint256,uint256,uint256)"(
+      issuanceValue: BigNumberish,
+      startDate: BigNumberish,
+      dueDate: BigNumberish,
+      repayFeeAPR: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "repayFee(uint256)"(
+      loanId: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     revokeRole(
