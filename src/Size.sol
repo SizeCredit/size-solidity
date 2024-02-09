@@ -184,6 +184,7 @@ contract Size is
     {
         state.validateLiquidateLoan(params);
         liquidatorProfitCollateralAsset = state.executeLiquidateLoan(params);
+        state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralAsset);
     }
 
     /// @inheritdoc ISize
@@ -204,6 +205,7 @@ contract Size is
         (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
             state.executeLiquidateLoanWithReplacement(params);
         state.validateUserIsNotBelowRiskCR(params.borrower);
+        state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralAsset);
     }
 
     /// @inheritdoc ISize

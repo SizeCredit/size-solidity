@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -29,8 +31,12 @@ contract SelfLiquidateLoanTest is BaseTest {
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(bob), 0.75e18);
 
+        uint256 debtBorrowTokenWad = ConversionLibrary.amountToWad(size.faceValue(loanId), usdc.decimals());
+        uint256 debtInCollateralToken =
+            Math.mulDivDown(debtBorrowTokenWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+
         vm.expectRevert();
-        _liquidateLoan(liquidator, loanId);
+        _liquidateLoan(liquidator, loanId, debtInCollateralToken);
 
         Vars memory _before = _state();
 

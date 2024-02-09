@@ -71,11 +71,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
             YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers})
         );
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO.selector, alice, 1.5e18, 1.7e18
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.5e18, 1.7e18));
         _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
     }
 
@@ -99,11 +95,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
             YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers})
         );
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO.selector, alice, 1.4e18, 1.5e18
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.4e18, 1.5e18));
         _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
     }
 }

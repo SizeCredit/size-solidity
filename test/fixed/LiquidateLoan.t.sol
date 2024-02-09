@@ -2,6 +2,8 @@
 pragma solidity 0.8.24;
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
+
+import {LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
@@ -250,6 +252,40 @@ contract LiquidateLoanTest is BaseTest {
 
         assertEq(_interest.alice.borrowAmount, _before.alice.borrowAmount * 1.1e27 / 1e27);
         assertEq(_after.alice.borrowAmount, _interest.alice.borrowAmount + loan.faceValue() * 1.1e27 / 1e27);
+    }
+
+    function testFuzz_LiquidateLoan_liquidateLoan_minimumCollateralProfit(
+        uint256 newPrice,
+        uint256 interval,
+        uint256 minimumCollateralProfit
+    ) public {
+        _setPrice(1e18);
+        newPrice = bound(newPrice, 1, 2e18);
+        interval = bound(interval, 0, 2 * 365 days);
+        minimumCollateralProfit = bound(minimumCollateralProfit, 1, 200e18);
+
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 200e18);
+        _deposit(liquidator, usdc, 1_000e6);
+
+        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
+
+        _setPrice(newPrice);
+        vm.warp(block.timestamp + interval);
+
+        vm.assume(size.isLoanLiquidatable(loanId));
+
+        Vars memory _before = _state();
+
+        vm.prank(liquidator);
+        try size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralProfit: minimumCollateralProfit}))
+        returns (uint256 liquidatorProfitCollateralToken) {
+            Vars memory _after = _state();
+
+            assertGe(liquidatorProfitCollateralToken, minimumCollateralProfit);
+            assertGe(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount);
+        } catch {}
     }
 
     function test_LiquidateLoan_liquidateLoan_move_to_VP_fails_if_VP_does_not_have_enough_liquidity() internal {}

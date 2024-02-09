@@ -77,7 +77,7 @@ library RiskLibrary {
             state.data.users[account].borrowOffer.openingLimitBorrowCR // 0 by default, or user-defined if BorrowAsLimitOrder has been placed
         );
         if (collateralRatio(state, account) < openingLimitBorrowCR) {
-            revert Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO(
+            revert Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR(
                 account, collateralRatio(state, account), openingLimitBorrowCR
             );
         }

@@ -280,11 +280,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         vm.startPrank(bob);
         uint256[] memory receivableLoanIds;
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO.selector, bob, 0, 1.5e18
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
@@ -436,11 +432,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
             receivableLoanIds: receivableLoanIds
         });
         vm.startPrank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO.selector, alice, 0, 1.5e18
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 0, 1.5e18));
         size.borrowAsMarketOrder(params);
     }
 

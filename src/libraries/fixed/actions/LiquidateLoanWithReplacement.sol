@@ -20,7 +20,7 @@ import {Events} from "@src/libraries/Events.sol";
 struct LiquidateLoanWithReplacementParams {
     uint256 loanId;
     address borrower;
-    uint256 minimumCollateralRatio;
+    uint256 minimumCollateralProfit;
 }
 
 library LiquidateLoanWithReplacement {
@@ -39,7 +39,7 @@ library LiquidateLoanWithReplacement {
 
         // validate liquidateLoan
         state.validateLiquidateLoan(
-            LiquidateLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
+            LiquidateLoanParams({loanId: params.loanId, minimumCollateralProfit: params.minimumCollateralProfit})
         );
 
         // validate loanId
@@ -53,18 +53,30 @@ library LiquidateLoanWithReplacement {
         }
     }
 
+    function validateMinimumCollateralProfit(
+        State storage state,
+        LiquidateLoanWithReplacementParams calldata params,
+        uint256 liquidatorProfitCollateralToken
+    ) external pure {
+        LiquidateLoan.validateMinimumCollateralProfit(
+            state,
+            LiquidateLoanParams({loanId: params.loanId, minimumCollateralProfit: params.minimumCollateralProfit}),
+            liquidatorProfitCollateralToken
+        );
+    }
+
     function executeLiquidateLoanWithReplacement(
         State storage state,
         LiquidateLoanWithReplacementParams calldata params
     ) external returns (uint256, uint256) {
-        emit Events.LiquidateLoanWithReplacement(params.loanId, params.borrower, params.minimumCollateralRatio);
+        emit Events.LiquidateLoanWithReplacement(params.loanId, params.borrower, params.minimumCollateralProfit);
 
         Loan storage fol = state.data.loans[params.loanId];
         Loan memory folCopy = fol;
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
         uint256 liquidatorProfitCollateralAsset = state.executeLiquidateLoan(
-            LiquidateLoanParams({loanId: params.loanId, minimumCollateralRatio: params.minimumCollateralRatio})
+            LiquidateLoanParams({loanId: params.loanId, minimumCollateralProfit: params.minimumCollateralProfit})
         );
 
         uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), folCopy.fol.dueDate);

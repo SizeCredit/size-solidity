@@ -94,19 +94,11 @@ contract WithdrawTest is BaseTest {
         _borrowAsMarketOrder(bob, alice, 100e6, 12);
 
         vm.startPrank(bob);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO.selector, bob, 0, 1.5e18
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
         size.withdraw(WithdrawParams({token: address(weth), amount: 150e18, to: bob}));
 
         vm.startPrank(bob);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO.selector, bob, 0.01e18, 1.5e18
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0.01e18, 1.5e18));
         size.withdraw(WithdrawParams({token: address(weth), amount: 149e18, to: bob}));
     }
 
