@@ -18,9 +18,9 @@ Target networks:
 
 ## Documentation
 
-### Accounting and Protocol Design
+### Overview, Accounting and Protocol Design
 
-- [Hackmd](https://hackmd.io/DEUtX6xLQTuWzawpkrd_Sw?view)
+- [Whitepaper](https://size-lending.gitbook.io/size-v2/)
 
 ### Technical overview
 
@@ -77,6 +77,14 @@ When an account executes `supply` into Size's Variable Pool (Aave v3 fork), the 
 ##### Price Feed
 
 Two Chainlink aggregators are used to fetch the ETH/USDC rate. A conversion from ETH/USD and USDC/USD is performed and the result is rounded down to 18 decimals. For example, a spot price of 2,426.59 ETH/USDC is represented as 2426590000000000000000.
+
+##### Variable Pool Price Feed
+
+Since both `Size` contract (fixed-rate orderbook) ant the Size's Variable Pool (Aave v3 fork) depend on the ETH/USDC rate, it may be appropriate to use a single contract interfacing with Chainlink aggregators, as different error handling and LINK funding may cause issues once these two interconected systems are deployed.
+
+A solution is proposed to use Size's Variable Pool (Aave v3 fork) `AaveOracle` contract directly, and simply converting the returned price to 18 decimals as the `Size` contract expects. One drawback of using `AaveOracle` is that it does not perform stale price checks for the oracle response, as it simply executes [`latestAnswer()`](https://github.com/aave/aave-v3-core/blob/6070e82d962d9b12835c88e68210d0e63f08d035/contracts/misc/AaveOracle.sol#L109) instead of `latestRoundData()`.
+
+In production, only one of `PriceFeed` or `VariablePoolPriceFeed` oracles will be deployed, since they both conform with the `IPriceFeed` interface, expected by the `Size` contract. The specific implementation will be determined with the help and feedback from audits and security reviews.
 
 ##### Market Borrow Rate Feed
 
@@ -191,8 +199,10 @@ forge test
 - The protocol does not have any fallback oracles.
 - Price feeds must be redeployed and updated in case any Chainlink configuration changes (stale price timeouts, decimals)
 - In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues
+- The Variable Pool Price Feed depends on `AaveOracle`, which uses `latestAnswer`, and does not perform any kind of stale checks for oracle prices
 
 ## Areas of concern
 
 - A rounding issue as a result of the FOL's `faceValue` calculation may result in the borrower debt being 1 more when the lender picks their borrow offer with `lendAsMarketOrder`, passing `exactAmountIn` equals `false`. In this case, to calculate the `issuanceValue`, a `mulDivUp` is performed, so that the borrower, being the passive party, receives _more_ aszUSDC tokens. The issue is that the `faceValue` calculation is also rounded up in `LoanLibrary`, as it represents a users' debt. In summary, the borrower receives rounding up in the present value, but pays rounding up in future cash flow. Exploits arising from this issue are welcome.
 - Exploits arising from notes marked with `// @audit` on the codebase are welcome
+- Recommendations for the usage of `PriceFeed` or `VariablePoolPriceFeed` in production
