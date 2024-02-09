@@ -195,9 +195,7 @@ contract LiquidateLoanTest is BaseTest {
         uint256 variablePoolWETHBefore = weth.balanceOf(address(size.data().variablePool));
 
         uint256 assignedCollateralAfterFee = Math.mulDivDown(
-            _before.bob.collateralAmount,
-            loanBefore.faceValue(),
-            (_before.bob.debtAmount - size.repayFee(loanId))
+            _before.bob.collateralAmount, loanBefore.faceValue(), (_before.bob.debtAmount - size.repayFee(loanId))
         );
 
         uint256 repayFee = size.partialRepayFee(loanId, loanBefore.faceValue());

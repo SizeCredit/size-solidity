@@ -125,7 +125,9 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         vm.startPrank(liquidator);
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO.selector, candy, 0, 1.5e18)
+            abi.encodeWithSelector(
+                Errors.COLLATERAL_RATIO_BELOW_OPENING_LIMIT_BORROW_COLLATERAL_RATIO.selector, candy, 0, 1.5e18
+            )
         );
         size.liquidateLoanWithReplacement(
             LiquidateLoanWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralRatio: 1e18})
