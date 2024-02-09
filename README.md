@@ -108,7 +108,7 @@ forge test
 
 | File                                                         | % Lines           | % Statements       | % Branches       | % Funcs          |
 |--------------------------------------------------------------|-------------------|--------------------|------------------|------------------|
-| src/Size.sol                                                 | 100.00% (47/47)   | 100.00% (47/47)    | 100.00% (0/0)    | 100.00% (16/16)  |
+| src/Size.sol                                                 | 100.00% (49/49)   | 100.00% (49/49)    | 100.00% (0/0)    | 100.00% (16/16)  |
 | src/SizeView.sol                                             | 93.75% (30/32)    | 94.23% (49/52)     | 100.00% (0/0)    | 90.91% (20/22)   |
 | src/libraries/ConversionLibrary.sol                          | 25.00% (1/4)      | 30.00% (3/10)      | 100.00% (0/0)    | 25.00% (1/4)     |
 | src/libraries/Math.sol                                       | 89.47% (17/19)    | 90.00% (27/30)     | 83.33% (5/6)     | 87.50% (7/8)     |
@@ -127,8 +127,8 @@ forge test
 | src/libraries/fixed/actions/Deposit.sol                      | 90.91% (10/11)    | 93.75% (15/16)     | 75.00% (6/8)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/LendAsLimitOrder.sol             | 85.71% (6/7)      | 85.71% (6/7)       | 75.00% (3/4)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/LendAsMarketOrder.sol            | 95.00% (19/20)    | 95.45% (21/22)     | 75.00% (6/8)     | 100.00% (2/2)    |
-| src/libraries/fixed/actions/LiquidateLoan.sol                | 97.50% (39/40)    | 97.87% (46/47)     | 64.29% (9/14)    | 100.00% (4/4)    |
-| src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol | 100.00% (24/24)   | 100.00% (30/30)    | 75.00% (3/4)     | 100.00% (2/2)    |
+| src/libraries/fixed/actions/LiquidateLoan.sol                | 97.50% (39/40)    | 97.83% (45/46)     | 71.43% (10/14)   | 100.00% (5/5)    |
+| src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol | 100.00% (25/25)   | 100.00% (31/31)    | 75.00% (3/4)     | 100.00% (3/3)    |
 | src/libraries/fixed/actions/Repay.sol                        | 100.00% (16/16)   | 100.00% (19/19)    | 87.50% (7/8)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/SelfLiquidateLoan.sol            | 100.00% (21/21)   | 100.00% (26/26)    | 83.33% (5/6)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Withdraw.sol                     | 100.00% (15/15)   | 100.00% (22/22)    | 75.00% (9/12)    | 100.00% (2/2)    |
@@ -137,7 +137,8 @@ forge test
 | src/libraries/variable/VariableLibrary.sol                   | 100.00% (46/46)   | 100.00% (66/66)    | 100.00% (4/4)    | 87.50% (7/8)     |
 | src/oracle/MarketBorrowRateFeed.sol                          | 0.00% (0/1)       | 0.00% (0/2)        | 100.00% (0/0)    | 0.00% (0/1)      |
 | src/oracle/PriceFeed.sol                                     | 100.00% (12/12)   | 100.00% (21/21)    | 100.00% (8/8)    | 100.00% (3/3)    |
-| src/proxy/Vault.sol                                          | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 75.00% (3/4)     |
+| src/oracle/VariablePoolPriceFeed.sol                         | 100.00% (8/8)     | 100.00% (13/13)    | 100.00% (4/4)    | 100.00% (2/2)    |
+| src/proxy/Vault.sol                                          | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 100.00% (4/4)    |
 | src/token/NonTransferrableToken.sol                          | 100.00% (9/9)     | 100.00% (10/10)    | 100.00% (0/0)    | 100.00% (7/7)    |
 
 ### Scenarios
@@ -152,7 +153,7 @@ forge test
 │            Claim             │   8    │
 │          Compensate          │   4    │
 │      ConversionLibrary       │   6    │
-│       CryticToFoundry        │   8    │
+│       CryticToFoundry        │   9    │
 │           Deposit            │   3    │
 │         Experiments          │   13   │
 │          Initialize          │   4    │
@@ -168,6 +169,7 @@ forge test
 │      SelfLiquidateLoan       │   6    │
 │         UpdateConfig         │   3    │
 │           Upgrade            │   2    │
+│    VariablePoolPriceFeed     │   8    │
 │           Withdraw           │   8    │
 │          YieldCurve          │   13   │
 └──────────────────────────────┴────────┘
