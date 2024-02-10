@@ -1,11 +1,11 @@
 {
-  "commit": "c9af2ca",
+  "commit": "143790e",
   "deployments": {
-    "implementation": "0x2AB437D5AB5Db1cA61A962D5546d6B7EC42A8AB5",
-    "marketBorrowRateFeed": "0xc1Fc519545F4171450c3Fb053E26b470549c8D24",
-    "priceFeed": "0x2aEF9C64987931eE1964eD7a157F518C7dDb1d9A",
-    "proxy": "0xf9598767f684B472dd45E901d5b4f96D64C50A65",
-    "variablePool": "0x3e2020AEcaBE2aaecCe474edA94221fC3e6fBDb0"
+    "implementation": "0xFA6E85f31c69Cd1e22C54EE77D3239495403fdF8",
+    "marketBorrowRateFeed": "0x892EC8738C3788187371D2b8DeefAa04c0cb4102",
+    "priceFeed": "0xc56a813934093032d232Ed24fCE4B3c8621d10ed",
+    "proxy": "0x01491159B97698ecbCE6aA4339d4FBad7b54125a",
+    "variablePool": "0xAAfEA11b5aBb8a3774b2a0bc7c1ea3bA99F62B67"
   },
   "networkName": "Sepolia"
 }
