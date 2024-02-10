@@ -120,7 +120,7 @@ interface ISize {
     ///                     loan cannot be liquidated
     /// @param params LiquidateLoanParams struct containing the following fields:
     ///     - uint256 loanId: The id of the loan to liquidate
-    ///     - uint256 minimumCollateralRatio: The minimum collateral ratio that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% and take the risk of liquidating unprofitably)
+    ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
     function liquidateLoan(LiquidateLoanParams calldata params) external returns (uint256);
 
     /// @notice Self liquidate a loan that is undercollateralized
@@ -135,7 +135,7 @@ interface ISize {
     ///         As a result of the spread of these borrow rates, the protocol is able to profit from the liquidation. Since the choice of the borrower impacts on the protocol's profit, this method is permissioned
     /// @param params LiquidateLoanWithReplacementParams struct containing the following fields:
     ///     - uint256 loanId: The id of the loan to liquidate
-    ///     - uint256 minimumCollateralRatio: The minimum collateral ratio that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% and take the risk of liquidating unprofitably)
+    ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
     ///     - address borrower: The address of the replacement borrower
     function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
         external
