@@ -67,7 +67,7 @@ abstract contract Deploy {
         priceFeed.setPrice(1337e18);
     }
 
-    function setupChainMockVariablePool(address _owner, address _weth, address _usdc) internal {
+    function setupChainMocks(address _owner, address _weth, address _usdc) internal {
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(_usdc, WadRayMath.RAY);
         priceFeed = new PriceFeedMock(_owner);
@@ -77,16 +77,16 @@ abstract contract Deploy {
         c = InitializeConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            collateralSplitLiquidatorPercent: 0.3e18,
-            collateralSplitProtocolPercent: 0.1e18,
-            minimumCreditBorrowAToken: 5e6,
+            collateralSplitLiquidatorPercent: 0.2e18,
+            collateralSplitProtocolPercent: 0.2e18,
+            minimumCreditBorrowAToken: 50e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
             repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
             earlyBorrowerExitFee: 1e6,
-            collateralOverdueTransferFee: 0.1e18,
+            collateralOverdueTransferFee: 0.005e18,
             feeRecipient: _owner
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
@@ -97,36 +97,5 @@ abstract contract Deploy {
         });
         size = new Size();
         proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, c, o, d)));
-    }
-
-    function setupChain(address _owner, address _pool, address _weth, address _usdc) internal {
-        variablePool = IPool(_pool);
-        priceFeed = new PriceFeedMock(_owner);
-        marketBorrowRateFeed = new MarketBorrowRateFeedMock(_owner);
-        marketBorrowRateFeed.setMarketBorrowRate(0.0724e18);
-        c = InitializeConfigParams({
-            crOpening: 1.5e18,
-            crLiquidation: 1.3e18,
-            collateralSplitLiquidatorPercent: 0.3e18,
-            collateralSplitProtocolPercent: 0.1e18,
-            minimumCreditBorrowAToken: 5e6,
-            collateralTokenCap: 1000e18,
-            borrowATokenCap: 1_000_000e6,
-            debtTokenCap: 500_000e6,
-            repayFeeAPR: 0.005e18,
-            earlyLenderExitFee: 5e6,
-            earlyBorrowerExitFee: 1e6,
-            collateralOverdueTransferFee: 0.1e18,
-            feeRecipient: _owner
-        });
-        o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
-        d = InitializeDataParams({
-            underlyingCollateralToken: address(_weth),
-            underlyingBorrowToken: address(_usdc),
-            variablePool: address(_pool) // Aave v3 fork
-        });
-        size = new Size();
-        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, c, o, d)));
-        priceFeed.setPrice(2468e18);
     }
 }
