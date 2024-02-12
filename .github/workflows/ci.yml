@@ -61,7 +61,7 @@ jobs:
           version: nightly
 
       - name: Run Slither
-        uses: crytic/slither-action@v0.3.0
+        uses: crytic/slither-action@v0.3.1
         id: slither
         with:
           fail-on: low

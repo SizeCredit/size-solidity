@@ -112,6 +112,14 @@ contract Size is
         state.executeUpdateConfig(params);
     }
 
+    function pause() public onlyRole(PAUSER_ROLE) {
+        _pause();
+    }
+
+    function unpause() public onlyRole(PAUSER_ROLE) {
+        _unpause();
+    }
+
     /// @inheritdoc ISize
     function deposit(DepositParams calldata params) external override(ISize) whenNotPaused {
         state.validateDeposit(params);
