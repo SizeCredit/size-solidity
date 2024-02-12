@@ -154,6 +154,6 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
             1957402070557900179522374347023877010333460151991864703433334555071406191
         );
         vm.warp(block.timestamp + 28175);
-        liquidateLoan(0, 0);
+        liquidate(0, 0);
     }
 }

@@ -17,7 +17,8 @@ import {Math} from "@src/libraries/Math.sol";
 
 contract LendAsMarketOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
 
     function test_LendAsMarketOrder_lendAsMarketOrder_transfers_to_borrower() public {
         _deposit(alice, weth, 100e18);

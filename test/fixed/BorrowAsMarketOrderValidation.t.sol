@@ -11,7 +11,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 contract BorrowAsMarketOrderValidationTest is BaseTest {
     using OfferLibrary for LoanOffer;
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
 
     function test_BorrowAsMarketOrder_validation() public {
         _deposit(alice, weth, 100e18);

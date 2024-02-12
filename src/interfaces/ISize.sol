@@ -9,11 +9,11 @@ import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
-import {LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
+import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
-import {LiquidateLoanWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateLoan.sol";
+import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
@@ -118,26 +118,26 @@ interface ISize {
     ///                         liquidate loan, do not split the collateral remainder, charge move transfer fee in collateral from the borrower
     ///                 else:
     ///                     loan cannot be liquidated
-    /// @param params LiquidateLoanParams struct containing the following fields:
+    /// @param params LiquidateParams struct containing the following fields:
     ///     - uint256 loanId: The id of the loan to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
-    function liquidateLoan(LiquidateLoanParams calldata params) external returns (uint256);
+    function liquidate(LiquidateParams calldata params) external returns (uint256);
 
     /// @notice Self liquidate a loan that is undercollateralized
     ///         The lender cancels an amount of debt equivalent to their credit and a percentage of the protocol fees
-    /// @param params SelfLiquidateLoanParams struct containing the following fields:
+    /// @param params SelfLiquidateParams struct containing the following fields:
     ///     - uint256 loanId: The id of the loan to self-liquidate
-    function selfLiquidateLoan(SelfLiquidateLoanParams calldata params) external;
+    function selfLiquidate(SelfLiquidateParams calldata params) external;
 
     /// @notice Liquidate a loan with a replacement borrower
-    /// @dev This function works exactly like `liquidateLoan`, with an added logic of replacing the borrower on the storage
+    /// @dev This function works exactly like `liquidate`, with an added logic of replacing the borrower on the storage
     ///         When liquidating with replacement, nothing changes from the lender's perspective, but a spread is created between the previous borrower rate and the new borrower rate.
     ///         As a result of the spread of these borrow rates, the protocol is able to profit from the liquidation. Since the choice of the borrower impacts on the protocol's profit, this method is permissioned
-    /// @param params LiquidateLoanWithReplacementParams struct containing the following fields:
+    /// @param params LiquidateWithReplacementParams struct containing the following fields:
     ///     - uint256 loanId: The id of the loan to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
     ///     - address borrower: The address of the replacement borrower
-    function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
+    function liquidateWithReplacement(LiquidateWithReplacementParams calldata params)
         external
         returns (uint256, uint256);
 

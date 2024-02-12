@@ -5,13 +5,13 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
-import {SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateLoan.sol";
+import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
 
-contract SelfLiquidateLoanValidationTest is BaseTest {
-    function test_SelfLiquidateLoan_validation() public {
+contract SelfLiquidateValidationTest is BaseTest {
+    function test_SelfLiquidate_validation() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
 
@@ -25,14 +25,14 @@ contract SelfLiquidateLoanValidationTest is BaseTest {
 
         vm.startPrank(james);
         vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATOR_IS_NOT_LENDER.selector, james, alice));
-        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+        size.selfLiquidate(SelfLiquidateParams({loanId: loanId}));
         vm.stopPrank();
 
         vm.startPrank(alice);
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, loanId, 1.5e18, LoanStatus.ACTIVE)
         );
-        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+        size.selfLiquidate(SelfLiquidateParams({loanId: loanId}));
         vm.stopPrank();
 
         _setPrice(0.75e18);
@@ -45,7 +45,7 @@ contract SelfLiquidateLoanValidationTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, loanId, assignedCollateral, debtCollateral)
         );
-        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+        size.selfLiquidate(SelfLiquidateParams({loanId: loanId}));
         vm.stopPrank();
 
         _repay(bob, loanId);
@@ -57,7 +57,7 @@ contract SelfLiquidateLoanValidationTest is BaseTest {
                 Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.REPAID
             )
         );
-        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+        size.selfLiquidate(SelfLiquidateParams({loanId: loanId}));
         vm.stopPrank();
     }
 }

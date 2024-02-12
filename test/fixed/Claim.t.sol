@@ -151,7 +151,7 @@ contract ClaimTest is BaseTest {
 
         _setPrice(0.75e18);
 
-        _liquidateLoan(liquidator, loanId);
+        _liquidate(liquidator, loanId);
 
         Vars memory _before = _state();
 

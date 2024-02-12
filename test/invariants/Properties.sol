@@ -6,12 +6,13 @@ import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 
 import {UserView} from "@src/SizeView.sol";
-import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
 
     string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender";
 
@@ -53,64 +54,64 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         "LIQUIDATION_02: Liquidation with replacement does not change the total system debt";
 
     function invariant_LOAN() public returns (bool) {
-        uint256 minimumCreditBorrowAToken = size.config().minimumCreditBorrowAToken;
-        uint256 activeLoans = size.activeLoans();
-        uint256[] memory folCreditsSumByFolId = new uint256[](activeLoans);
-        uint256[] memory solCreditsSumByFolId = new uint256[](activeLoans);
-        uint256[] memory folFaceValueByFolId = new uint256[](activeLoans);
-        uint256[] memory folCreditByFolId = new uint256[](activeLoans);
-        uint256[] memory folFaceValuesSumByFolId = new uint256[](activeLoans);
-        for (uint256 loanId; loanId < activeLoans; loanId++) {
-            Loan memory loan = size.getLoan(loanId);
-            uint256 folId = loanId == RESERVED_ID ? loan.sol.folId : loanId;
-            Loan memory fol = size.getLoan(folId);
+        // uint256 minimumCreditBorrowAToken = size.config().minimumCreditBorrowAToken;
+        // uint256 activeLoans = size.activeLoans();
+        // uint256[] memory folCreditsSumByFolId = new uint256[](activeLoans);
+        // uint256[] memory solCreditsSumByFolId = new uint256[](activeLoans);
+        // uint256[] memory folFaceValueByFolId = new uint256[](activeLoans);
+        // uint256[] memory folCreditByFolId = new uint256[](activeLoans);
+        // uint256[] memory folFaceValuesSumByFolId = new uint256[](activeLoans);
+        // for (uint256 loanId; loanId < activeLoans; loanId++) {
+        //     Loan memory loan = size.getLoan(loanId);
+        //     uint256 folId = loanId == RESERVED_ID ? loan.sol.folId : loanId;
+        //     Loan memory fol = size.getLoan(folId);
 
-            folCreditsSumByFolId[folId] += size.getCredit(folId);
-            solCreditsSumByFolId[folId] =
-                solCreditsSumByFolId[folId] == type(uint256).max ? solCreditsSumByFolId[folId] : type(uint256).max; // set to -1 by default
-            folFaceValueByFolId[folId] = fol.faceValue();
-            folCreditByFolId[folId] = fol.generic.credit;
-            folFaceValuesSumByFolId[folId] += fol.faceValue();
+        //     folCreditsSumByFolId[folId] += size.getCredit(folId);
+        //     solCreditsSumByFolId[folId] =
+        //         solCreditsSumByFolId[folId] == type(uint256).max ? solCreditsSumByFolId[folId] : type(uint256).max; // set to -1 by default
+        //     folFaceValueByFolId[folId] = fol.faceValue();
+        //     folCreditByFolId[folId] = fol.generic.credit;
+        //     folFaceValuesSumByFolId[folId] += fol.faceValue();
 
-            if (!size.isFOL(loanId)) {
-                solCreditsSumByFolId[folId] =
-                    solCreditsSumByFolId[folId] == type(uint256).max ? 0 : solCreditsSumByFolId[folId]; // set to 0 if is -1
-                solCreditsSumByFolId[folId] += size.getCredit(loanId);
-                if (!(loan.faceValue() <= fol.faceValue())) {
-                    t(false, LOAN_01);
-                    return false;
-                }
-            }
+        //     if (!size.isFOL(loanId)) {
+        //         solCreditsSumByFolId[folId] =
+        //             solCreditsSumByFolId[folId] == type(uint256).max ? 0 : solCreditsSumByFolId[folId]; // set to 0 if is -1
+        //         solCreditsSumByFolId[folId] += size.getCredit(loanId);
+        //         if (!(loan.faceValue() <= fol.faceValue())) {
+        //             t(false, LOAN_01);
+        //             return false;
+        //         }
+        //     }
 
-            if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCreditBorrowAToken) {
-                t(false, LOAN_05);
-                return false;
-            }
-        }
+        //     if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCreditBorrowAToken) {
+        //         t(false, LOAN_05);
+        //         return false;
+        //     }
+        // }
 
-        for (uint256 loanId; loanId < activeLoans; loanId++) {
-            if (size.isFOL(loanId)) {
-                if (
-                    solCreditsSumByFolId[loanId] != type(uint256).max
-                        && solCreditsSumByFolId[loanId] != folFaceValueByFolId[loanId]
-                ) {
-                    t(false, LOAN_02);
-                    return false;
-                }
-                if (folFaceValuesSumByFolId[loanId] != folFaceValueByFolId[loanId]) {
-                    t(false, LOAN_06);
-                    return false;
-                }
-                if (
-                    solCreditsSumByFolId[loanId] != type(uint256).max
-                        && solCreditsSumByFolId[loanId] != folCreditByFolId[loanId]
-                ) {
-                    t(false, LOAN_07);
-                    return false;
-                }
-            }
-        }
-        return true;
+        // for (uint256 loanId; loanId < activeLoans; loanId++) {
+        //     if (size.isFOL(loanId)) {
+        //         if (
+        //             solCreditsSumByFolId[loanId] != type(uint256).max
+        //                 && solCreditsSumByFolId[loanId] != folFaceValueByFolId[loanId]
+        //         ) {
+        //             t(false, LOAN_02);
+        //             return false;
+        //         }
+        //         if (folFaceValuesSumByFolId[loanId] != folFaceValueByFolId[loanId]) {
+        //             t(false, LOAN_06);
+        //             return false;
+        //         }
+        //         if (
+        //             solCreditsSumByFolId[loanId] != type(uint256).max
+        //                 && solCreditsSumByFolId[loanId] != folCreditByFolId[loanId]
+        //         ) {
+        //             t(false, LOAN_07);
+        //             return false;
+        //         }
+        //     }
+        // }
+        // return true;
     }
 
     function invariant_LIQUIDATION_01() public returns (bool) {

@@ -18,12 +18,12 @@ import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
-import {LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
+import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
-import {LiquidateLoanWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateLoan.sol";
+import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {BaseTestGeneral} from "@test/BaseTestGeneral.sol";
@@ -141,8 +141,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 amount,
         uint256 dueDate,
         bool exactAmountIn,
-        uint256[] memory receivableLoanIds
-    ) internal returns (uint256) {
+        uint256[] memory receivableCreditPositionIds
+    ) internal returns (uint256 debtPositions) {
         vm.prank(borrower);
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
@@ -150,10 +150,10 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
-        return size.activeLoans() > 0 ? size.activeLoans() - 1 : type(uint256).max;
+        (debtPositions,) = size.getPositionsCount();
     }
 
     function _borrowAsLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {
@@ -186,62 +186,66 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate, bool exactAmountIn)
         internal
-        returns (uint256)
+        returns (uint256 debtPositions)
     {
         vm.prank(lender);
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: borrower, amount: amount, dueDate: dueDate, exactAmountIn: exactAmountIn})
         );
-        return size.activeLoans() > 0 ? size.activeLoans() - 1 : type(uint256).max;
+        (debtPositions,) = size.getPositionsCount();
     }
 
-    function _borrowerExit(address user, uint256 loanId, address borrowerToExitTo) internal {
+    function _borrowerExit(address user, uint256 debtPositionId, address borrowerToExitTo) internal {
         vm.prank(user);
-        size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
     }
 
-    function _repay(address user, uint256 loanId) internal {
+    function _repay(address user, uint256 debtPositionId) internal {
         vm.prank(user);
-        size.repay(RepayParams({loanId: loanId}));
+        size.repay(RepayParams({debtPositionId: debtPositionId}));
     }
 
-    function _claim(address user, uint256 loanId) internal {
+    function _claim(address user, uint256 creditPositionId) internal {
         vm.prank(user);
-        size.claim(ClaimParams({loanId: loanId}));
+        size.claim(ClaimParams({creditPositionId: creditPositionId}));
     }
 
-    function _liquidateLoan(address user, uint256 loanId) internal returns (uint256) {
-        return _liquidateLoan(user, loanId, 0);
+    function _liquidate(address user, uint256 debtPositionId) internal returns (uint256) {
+        return _liquidate(user, debtPositionId, 0);
     }
 
-    function _liquidateLoan(address user, uint256 loanId, uint256 minimumCollateralProfit) internal returns (uint256) {
+    function _liquidate(address user, uint256 debtPositionId, uint256 minimumCollateralProfit)
+        internal
+        returns (uint256)
+    {
         vm.prank(user);
-        return
-            size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
+        return size.liquidate(
+            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
+        );
     }
 
-    function _selfLiquidateLoan(address user, uint256 loanId) internal {
+    function _selfLiquidate(address user, uint256 creditPositionId) internal {
         vm.prank(user);
-        return size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+        return size.selfLiquidate(SelfLiquidateParams({creditPositionId: creditPositionId}));
     }
 
-    function _liquidateLoanWithReplacement(address user, uint256 loanId, address borrower)
+    function _liquidateWithReplacement(address user, uint256 loanId, address borrower)
         internal
         returns (uint256, uint256)
     {
-        return _liquidateLoanWithReplacement(user, loanId, borrower, 1e18);
+        return _liquidateWithReplacement(user, loanId, borrower, 1e18);
     }
 
-    function _liquidateLoanWithReplacement(
+    function _liquidateWithReplacement(
         address user,
-        uint256 loanId,
+        uint256 debtPositionId,
         address borrower,
         uint256 minimumCollateralProfit
     ) internal returns (uint256, uint256) {
         vm.prank(user);
-        return size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({
-                loanId: loanId,
+        return size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit
             })
@@ -252,10 +256,19 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _compensate(user, loanToRepayId, loanToCompensateId, type(uint256).max);
     }
 
-    function _compensate(address user, uint256 loanToRepayId, uint256 loanToCompensateId, uint256 amount) internal {
+    function _compensate(
+        address user,
+        uint256 debtPositionToRepayId,
+        uint256 creditPositionToCompensateId,
+        uint256 amount
+    ) internal {
         vm.prank(user);
         size.compensate(
-            CompensateParams({loanToRepayId: loanToRepayId, loanToCompensateId: loanToCompensateId, amount: amount})
+            CompensateParams({
+                debtPositionToRepayId: debtPositionToRepayId,
+                creditPositionToCompensateId: creditPositionToCompensateId,
+                amount: amount
+            })
         );
     }
 }

@@ -8,17 +8,17 @@ import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {Loan, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {LiquidateLoanWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-contract LiquidateLoanWithReplacementTest is BaseTest {
+contract LiquidateWithReplacementTest is BaseTest {
     function setUp() public override {
         super.setUp();
         _setKeeperRole(liquidator);
     }
 
-    function test_LiquidateLoanWithReplacement_liquidateLoanWithReplacement_updates_new_borrower_borrowOffer_same_rate()
+    function test_LiquidateWithReplacement_liquidateWithReplacement_updates_new_borrower_borrowOffer_same_rate()
         public
     {
         _setPrice(1e18);
@@ -47,7 +47,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         assertGt(size.getDebt(loanId), 0);
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
 
-        _liquidateLoanWithReplacement(liquidator, loanId, candy);
+        _liquidateWithReplacement(liquidator, loanId, candy);
 
         Loan memory loanAfter = size.getLoan(loanId);
         Vars memory _after = _state();
@@ -61,8 +61,9 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
     }
 
-    function test_LiquidateLoanWithReplacement_liquidateLoanWithReplacement_updates_new_borrower_borrowOffer_different_rate(
-    ) public {
+    function test_LiquidateWithReplacement_liquidateWithReplacement_updates_new_borrower_borrowOffer_different_rate()
+        public
+    {
         _setPrice(1e18);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -90,7 +91,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         assertGt(size.getDebt(loanId), 0);
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
 
-        _liquidateLoanWithReplacement(liquidator, loanId, candy);
+        _liquidateWithReplacement(liquidator, loanId, candy);
 
         Loan memory loanAfter = size.getLoan(loanId);
         Vars memory _after = _state();
@@ -106,9 +107,7 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
     }
 
-    function test_LiquidateLoanWithReplacement_liquidateLoanWithReplacement_cannot_leave_new_borrower_liquidatable()
-        public
-    {
+    function test_LiquidateWithReplacement_liquidateWithReplacement_cannot_leave_new_borrower_liquidatable() public {
         _setPrice(1e18);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -125,14 +124,12 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         vm.startPrank(liquidator);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, candy, 0, 1.5e18));
-        size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralProfit: 0})
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralProfit: 0})
         );
     }
 
-    function test_LiquidateLoanWithReplacement_liquidateLoanWithReplacement_cannot_be_executed_if_loan_is_overdue()
-        public
-    {
+    function test_LiquidateWithReplacement_liquidateWithReplacement_cannot_be_executed_if_loan_is_overdue() public {
         _setPrice(1e18);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -157,8 +154,8 @@ contract LiquidateLoanWithReplacementTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.INVALID_LOAN_STATUS.selector, loanId, LoanStatus.OVERDUE, LoanStatus.ACTIVE)
         );
-        size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralProfit: 0})
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralProfit: 0})
         );
     }
 }

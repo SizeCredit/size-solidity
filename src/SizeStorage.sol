@@ -5,7 +5,7 @@ import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {Vault} from "@src/proxy/Vault.sol";
@@ -37,7 +37,10 @@ struct Oracle {
 
 struct Data {
     mapping(address => User) users; // mapping of User structs
-    Loan[] loans; // array of Loan structs
+    mapping(uint256 => DebtPosition) debtPositions; // mapping of DebtPosition structs
+    mapping(uint256 => CreditPosition) creditPositions; // mapping of CreditPosition structs
+    uint256 nextDebtPositionId; // next debt position id
+    uint256 nextCreditPositionId; // next credit position id
     IERC20Metadata underlyingCollateralToken; // e.g. WETH
     IERC20Metadata underlyingBorrowToken; // e.g. USDC
     NonTransferrableToken collateralToken; // e.g. szWETH

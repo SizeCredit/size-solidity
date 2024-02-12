@@ -18,7 +18,8 @@ import {Math} from "@src/libraries/Math.sol";
 
 contract BorrowAsMarketOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
 
     uint256 private constant MAX_RATE = 2e18;
     uint256 private constant MAX_DUE_DATE = 12;

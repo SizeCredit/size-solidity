@@ -8,9 +8,10 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 contract SelfLiquidateLoanTest is BaseTest {
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
 
-    function test_SelfLiquidateLoan_selfliquidateLoan_rapays_with_collateral() public {
+    function test_SelfLiquidateLoan_selfliquidate_rapays_with_collateral() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
@@ -36,7 +37,7 @@ contract SelfLiquidateLoanTest is BaseTest {
             Math.mulDivDown(debtBorrowTokenWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         vm.expectRevert();
-        _liquidateLoan(liquidator, loanId, debtInCollateralToken);
+        _liquidate(liquidator, loanId, debtInCollateralToken);
 
         Vars memory _before = _state();
 
@@ -49,7 +50,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e6);
     }
 
-    function test_SelfLiquidateLoan_selfliquidateLoan_SOL_keeps_accounting_in_check() public {
+    function test_SelfLiquidateLoan_selfliquidate_SOL_keeps_accounting_in_check() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
 
@@ -79,7 +80,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(size.collateralRatio(bob), 0.75e18);
 
         vm.expectRevert();
-        _liquidateLoan(liquidator, folId);
+        _liquidate(liquidator, folId);
 
         Vars memory _before = _state();
 
@@ -93,7 +94,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e6);
     }
 
-    function test_SelfLiquidateLoan_selfliquidateLoan_FOL_should_not_leave_dust_loan_when_no_exits() public {
+    function test_SelfLiquidateLoan_selfliquidate_FOL_should_not_leave_dust_loan_when_no_exits() public {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 100e6);
@@ -106,7 +107,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         _selfLiquidateLoan(alice, loanId);
     }
 
-    function test_SelfLiquidateLoan_selfliquidateLoan_FOL_should_not_leave_dust_loan_when_exits() public {
+    function test_SelfLiquidateLoan_selfliquidate_FOL_should_not_leave_dust_loan_when_exits() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
@@ -142,7 +143,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(size.getCredit(loanId), 0);
     }
 
-    function test_SelfLiquidateLoan_selfliquidateLoan_SOL_should_not_leave_dust_loan() public {
+    function test_SelfLiquidateLoan_selfliquidate_SOL_should_not_leave_dust_loan() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);

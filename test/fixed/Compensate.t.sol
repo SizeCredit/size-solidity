@@ -7,7 +7,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract CompensateTest is BaseTest {
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
 
     function test_Compensate_compensate_reduces_repaid_loan_debt_and_compensated_loan_credit() public {
         _deposit(alice, weth, 100e18);

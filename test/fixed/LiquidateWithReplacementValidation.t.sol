@@ -4,19 +4,20 @@ pragma solidity 0.8.24;
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
-import {LiquidateLoanWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-contract LiquidateLoanWithReplacementValidationTest is BaseTest {
-    using LoanLibrary for Loan;
+contract LiquidateWithReplacementValidationTest is BaseTest {
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
 
     function setUp() public override {
         super.setUp();
         _setKeeperRole(liquidator);
     }
 
-    function test_LiquidateLoanWithReplacement_validation() public {
+    function test_LiquidateWithReplacement_validation() public {
         _setPrice(1e18);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -34,8 +35,8 @@ contract LiquidateLoanWithReplacementValidationTest is BaseTest {
         vm.startPrank(liquidator);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, james));
-        size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
                 loanId: loanId,
                 borrower: james,
                 minimumCollateralProfit: minimumCollateralProfit
@@ -47,8 +48,8 @@ contract LiquidateLoanWithReplacementValidationTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.INVALID_LOAN_STATUS.selector, loanId, LoanStatus.OVERDUE, LoanStatus.ACTIVE)
         );
-        size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
                 loanId: loanId,
                 borrower: candy,
                 minimumCollateralProfit: minimumCollateralProfit

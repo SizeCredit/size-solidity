@@ -3,7 +3,14 @@ pragma solidity 0.8.24;
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {
+    CREDIT_POSITION_ID_START,
+    CreditPosition,
+    DEBT_POSITION_ID_START,
+    DebtPosition,
+    LoanLibrary,
+    LoanStatus
+} from "@src/libraries/fixed/LoanLibrary.sol";
 import {UpdateConfig} from "@src/libraries/general/actions/UpdateConfig.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
@@ -34,7 +41,8 @@ struct UserView {
 abstract contract SizeView is SizeStorage {
     using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using RiskLibrary for State;
     using VariableLibrary for State;
@@ -53,30 +61,25 @@ abstract contract SizeView is SizeStorage {
         return state.isLoanLiquidatable(loanId);
     }
 
-    function getFOLAssignedCollateral(uint256 loanId) external view returns (uint256) {
-        Loan memory loan = state.data.loans[loanId];
-        return state.getFOLAssignedCollateral(loan);
+    function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
+        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
+        return state.getDebtPositionAssignedCollateral(debtPosition);
     }
 
-    function getDebt(uint256 loanId) external view returns (uint256) {
-        Loan storage loan = state.data.loans[loanId];
-        Loan storage fol = state.getFOL(loan);
-        return fol.getDebt();
+    function getDebt(uint256 positionId) external view returns (uint256) {
+        return state.getDebtPosition(positionId).getDebt();
     }
 
-    function faceValue(uint256 loanId) external view returns (uint256) {
-        Loan storage loan = state.data.loans[loanId];
-        Loan storage fol = state.getFOL(loan);
-        return fol.faceValue();
+    function faceValue(uint256 positionId) external view returns (uint256) {
+        return state.getDebtPosition(positionId).faceValue();
     }
 
-    function getCredit(uint256 loanId) external view returns (uint256) {
-        return state.data.loans[loanId].generic.credit;
+    function getDueDate(uint256 positionId) external view returns (uint256) {
+        return state.getDebtPosition(positionId).dueDate;
     }
 
-    function getDueDate(uint256 loanId) external view returns (uint256) {
-        Loan storage loan = state.data.loans[loanId];
-        return state.getFOL(loan).fol.dueDate;
+    function getCredit(uint256 creditPositionId) external view returns (uint256) {
+        return state.data.creditPositions[creditPositionId].credit;
     }
 
     function config() external view returns (InitializeConfigParams memory) {
@@ -105,36 +108,32 @@ abstract contract SizeView is SizeStorage {
         return address(state.data.users[user].vault);
     }
 
-    function activeLoans() external view returns (uint256) {
-        return state.data.loans.length;
+    function isDebtPositionId(uint256 debtPositionId) external view returns (bool) {
+        return state.isDebtPositionId(debtPositionId);
     }
 
-    function isFOL(uint256 loanId) external view returns (bool) {
-        return state.data.loans[loanId].isFOL();
+    function isCreditPositionId(uint256 creditPositionId) external view returns (bool) {
+        return state.isCreditPositionId(creditPositionId);
     }
 
-    function getLoan(uint256 loanId) external view returns (Loan memory) {
-        return state.data.loans[loanId];
+    function getDebtPosition(uint256 positionId) external view returns (DebtPosition memory) {
+        return state.getDebtPosition(positionId);
     }
 
-    function getLoans() external view returns (Loan[] memory) {
-        return state.data.loans;
+    function getCreditPosition(uint256 creditPositionId) external view returns (CreditPosition memory) {
+        return state.data.creditPositions[creditPositionId];
     }
 
-    function getLoanStatus(uint256 loanId) external view returns (LoanStatus) {
-        return state.getLoanStatus(state.data.loans[loanId]);
+    function getLoanStatus(uint256 positionId) external view returns (LoanStatus) {
+        return state.getLoanStatus(positionId);
     }
 
-    function partialRepayFee(uint256 loanId, uint256 repayAmount) public view returns (uint256) {
-        Loan storage loan = state.data.loans[loanId];
-        Loan storage fol = state.getFOL(loan);
-        return fol.partialRepayFee(repayAmount);
+    function partialRepayFee(uint256 positionId, uint256 repayAmount) public view returns (uint256) {
+        return state.getDebtPosition(positionId).partialRepayFee(repayAmount);
     }
 
-    function repayFee(uint256 loanId) external view returns (uint256) {
-        Loan storage loan = state.data.loans[loanId];
-        Loan storage fol = state.getFOL(loan);
-        return fol.repayFee();
+    function repayFee(uint256 positionId) external view returns (uint256) {
+        return state.getDebtPosition(positionId).repayFee();
     }
 
     function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
@@ -147,5 +146,12 @@ abstract contract SizeView is SizeStorage {
 
     function tokens() external view returns (NonTransferrableToken, IAToken, NonTransferrableToken) {
         return (state.data.collateralToken, state.data.borrowAToken, state.data.debtToken);
+    }
+
+    function getPositionsCount() external view returns (uint256, uint256) {
+        return (
+            state.data.nextDebtPositionId - DEBT_POSITION_ID_START,
+            state.data.nextCreditPositionId - CREDIT_POSITION_ID_START
+        );
     }
 }

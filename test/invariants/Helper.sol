@@ -28,10 +28,10 @@ abstract contract Helper is Deploy, PropertiesConstants {
         view
         returns (uint256[] memory receivableLoanIds)
     {
-        uint256 activeLoans = size.activeLoans();
+        (, uint256 creditPositions) = size.getPositionsCount();
         receivableLoanIds = new uint256[](n);
         for (uint256 i = 0; i < n; i++) {
-            uint256 index = uint256(keccak256(abi.encodePacked(seed, i))) % activeLoans;
+            uint256 index = uint256(keccak256(abi.encodePacked(seed, i))) % creditPositions;
             receivableLoanIds[i] = index;
         }
     }

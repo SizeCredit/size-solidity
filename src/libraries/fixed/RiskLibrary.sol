@@ -7,13 +7,13 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {Math} from "@src/libraries/Math.sol";
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 /// @title RiskLibrary
 library RiskLibrary {
     using LoanLibrary for State;
-    using LoanLibrary for Loan;
-    using LoanLibrary for LoanStatus;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
 
     function validateMinimumCredit(State storage state, uint256 credit) public view {
         if (0 < credit && credit < state.config.minimumCreditBorrowAToken) {
@@ -40,22 +40,22 @@ library RiskLibrary {
         }
     }
 
-    function isLoanSelfLiquidatable(State storage state, uint256 loanId) public view returns (bool) {
-        Loan storage loan = state.data.loans[loanId];
-        LoanStatus status = state.getLoanStatus(loan);
-        // both FOLs and SOLs can be self liquidated
-        return
-            (isUserLiquidatable(state, loan.generic.borrower) && status.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE]));
+    function isLoanSelfLiquidatable(State storage state, uint256 creditPositionId) public view returns (bool) {
+        CreditPosition storage creditPosition = state.data.creditPositions[creditPositionId];
+        LoanStatus status = state.getLoanStatus(creditPositionId);
+        // Only CreditPositions can be self liquidated
+        return state.isCreditPositionId(creditPositionId)
+            && (isUserLiquidatable(state, creditPosition.borrower) && status != LoanStatus.REPAID);
     }
 
-    function isLoanLiquidatable(State storage state, uint256 loanId) public view returns (bool) {
-        Loan storage loan = state.data.loans[loanId];
-        LoanStatus status = state.getLoanStatus(loan);
-        // only FOLs can be liquidated
-        return loan.isFOL()
-        // case 1: if the user is liquidatable, only active/overdue FOLs can be liquidated
+    function isLoanLiquidatable(State storage state, uint256 debtPositionId) public view returns (bool) {
+        DebtPosition storage debtPosition = state.data.debtPositions[debtPositionId];
+        LoanStatus status = state.getLoanStatus(debtPositionId);
+        // only DebtPositions can be liquidated
+        return state.isDebtPositionId(debtPositionId)
+        // case 1: if the user is liquidatable, only ACTIVE/OVERDUE DebtPositions can be liquidated
         && (
-            (isUserLiquidatable(state, loan.generic.borrower) && status.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE]))
+            (isUserLiquidatable(state, debtPosition.borrower) && status != LoanStatus.REPAID)
             // case 2: overdue loans can always be liquidated regardless of the user's CR
             || status == LoanStatus.OVERDUE
         );

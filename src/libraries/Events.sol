@@ -23,35 +23,33 @@ library Events {
     event BorrowAsLimitOrder(YieldCurve curveRelativeTime);
     event LendAsMarketOrder(address indexed borrower, uint256 dueDate, uint256 amount, bool exactAmountIn);
     event LendAsLimitOrder(uint256 maxDueDate, YieldCurve curveRelativeTime);
-    event CreateFOL(
-        uint256 indexed loanId,
+    event CreateDebtPosition(
+        uint256 indexed debtPositionId,
         address indexed lender,
         address indexed borrower,
         uint256 issuanceValue,
         uint256 rate,
         uint256 dueDate
     );
-    event CreateSOL(
-        uint256 indexed loanId,
+    event CreateCreditPosition(
+        uint256 indexed creditPositionId,
         address indexed lender,
         address indexed borrower,
-        uint256 exiterId,
-        uint256 folId,
+        uint256 exitPositionId,
+        uint256 debtPositionId,
         uint256 credit
     );
     event BorrowerExit(uint256 indexed loanId, address borrowerExitedTo);
     event Repay(uint256 indexed loanId);
     event Claim(uint256 indexed loanId);
-    event LiquidateLoan(
-        uint256 indexed loanId, uint256 minimumCollateralProfit, uint256 collateralRatio, LoanStatus loanStatus
+    event Liquidate(
+        uint256 indexed debtPositionId, uint256 minimumCollateralProfit, uint256 collateralRatio, LoanStatus loanStatus
     );
-    event SelfLiquidateLoan(uint256 indexed loanId);
-    event LiquidateLoanWithReplacement(
-        uint256 indexed loanId, address indexed borrower, uint256 minimumCollateralProfit
-    );
-    event LiquidateLoanUserLiquidatableProfitably(uint256 indexed loanId);
-    event LiquidateLoanUserLiquidatableUnprofitably(uint256 indexed loanId);
-    event LiquidateLoanOverdueMoveToVariablePool(uint256 indexed loanId);
-    event LiquidateLoanOverdueNoSplitRemainder(uint256 indexed loanId);
+    event SelfLiquidate(uint256 indexed loanId);
+    event LiquidateWithReplacement(uint256 indexed loanId, address indexed borrower, uint256 minimumCollateralProfit);
+    event LiquidateUserLiquidatableProfitably(uint256 indexed loanId);
+    event LiquidateUserLiquidatableUnprofitably(uint256 indexed loanId);
+    event LiquidateOverdueMoveToVariablePool(uint256 indexed loanId);
+    event LiquidateOverdueNoSplitRemainder(uint256 indexed loanId);
     event Compensate(uint256 indexed loanToRepayId, uint256 indexed loanToCompensateId, uint256 amount);
 }

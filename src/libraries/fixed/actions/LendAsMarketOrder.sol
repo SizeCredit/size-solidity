@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
-
 import {PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
-import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -29,7 +27,8 @@ library LendAsMarketOrder {
     using OfferLibrary for BorrowOffer;
     using AccountingLibrary for State;
     using LoanLibrary for State;
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
     using VariableLibrary for State;
     using AccountingLibrary for State;
 
@@ -74,14 +73,14 @@ library LendAsMarketOrder {
             issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + rate);
         }
 
-        Loan memory fol = state.createFOL({
+        (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,
             issuanceValue: issuanceValue,
             rate: rate,
             dueDate: params.dueDate
         });
-        state.data.debtToken.mint(params.borrower, fol.getDebt());
+        state.data.debtToken.mint(params.borrower, debtPosition.getDebt());
         state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
     }
 }

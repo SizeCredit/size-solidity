@@ -25,15 +25,15 @@ import {Deposit, DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
-import {LiquidateLoan, LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
+import {Liquidate, LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
 import {Compensate, CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {
-    LiquidateLoanWithReplacement,
-    LiquidateLoanWithReplacementParams
-} from "@src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol";
+    LiquidateWithReplacement,
+    LiquidateWithReplacementParams
+} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {Repay, RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {SelfLiquidateLoan, SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateLoan.sol";
+import {SelfLiquidate, SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
@@ -70,9 +70,9 @@ contract Size is
     using BorrowerExit for State;
     using Repay for State;
     using Claim for State;
-    using LiquidateLoan for State;
-    using SelfLiquidateLoan for State;
-    using LiquidateLoanWithReplacement for State;
+    using Liquidate for State;
+    using SelfLiquidate for State;
+    using LiquidateWithReplacement for State;
     using Compensate for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
@@ -184,34 +184,33 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function liquidateLoan(LiquidateLoanParams calldata params)
+    function liquidate(LiquidateParams calldata params)
         external
         override(ISize)
         whenNotPaused
         returns (uint256 liquidatorProfitCollateralAsset)
     {
-        state.validateLiquidateLoan(params);
-        liquidatorProfitCollateralAsset = state.executeLiquidateLoan(params);
+        state.validateLiquidate(params);
+        liquidatorProfitCollateralAsset = state.executeLiquidate(params);
         state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralAsset);
     }
 
     /// @inheritdoc ISize
-    function selfLiquidateLoan(SelfLiquidateLoanParams calldata params) external override(ISize) whenNotPaused {
-        state.validateSelfLiquidateLoan(params);
-        state.executeSelfLiquidateLoan(params);
+    function selfLiquidate(SelfLiquidateParams calldata params) external override(ISize) whenNotPaused {
+        state.validateSelfLiquidate(params);
+        state.executeSelfLiquidate(params);
     }
 
     /// @inheritdoc ISize
-    function liquidateLoanWithReplacement(LiquidateLoanWithReplacementParams calldata params)
+    function liquidateWithReplacement(LiquidateWithReplacementParams calldata params)
         external
         override(ISize)
         whenNotPaused
         onlyRole(KEEPER_ROLE)
         returns (uint256 liquidatorProfitCollateralAsset, uint256 liquidatorProfitBorrowAsset)
     {
-        state.validateLiquidateLoanWithReplacement(params);
-        (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
-            state.executeLiquidateLoanWithReplacement(params);
+        state.validateLiquidateWithReplacement(params);
+        (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) = state.executeLiquidateWithReplacement(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrower);
         state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralAsset);
     }

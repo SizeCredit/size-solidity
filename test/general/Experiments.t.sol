@@ -16,7 +16,8 @@ import {PERCENT} from "@src/libraries/Math.sol";
 import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract ExperimentsTest is Test, BaseTest {
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
     using OfferLibrary for LoanOffer;
 
     function setUp() public override {
@@ -80,7 +81,7 @@ contract ExperimentsTest is Test, BaseTest {
 
         _deposit(liquidator, usdc, 10_000e6);
         console.log("loan should be liquidated");
-        _liquidateLoan(liquidator, 0);
+        _liquidate(liquidator, 0);
     }
 
     function test_Experiments_testBasicExit1() public {
@@ -206,7 +207,7 @@ contract ExperimentsTest is Test, BaseTest {
         _depositVariable(liquidator, address(usdc), 1_000e6);
 
         // Move to variable pool
-        _liquidateLoan(liquidator, 0);
+        _liquidate(liquidator, 0);
 
         fol = size.getLoan(0);
         uint256 aliceCollateralAfter = _state().alice.collateralAmount;
@@ -339,7 +340,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().candy.debtAmount, 0, "Candy should have no debt");
         // Perform the liquidation with replacement
         _deposit(liquidator, usdc, 10_000e6);
-        _liquidateLoanWithReplacement(liquidator, 0, candy);
+        _liquidateWithReplacement(liquidator, 0, candy);
         assertEq(_state().alice.debtAmount, 0, "Alice should have no debt after");
         assertEq(_state().candy.debtAmount, fol.faceValue() + repayFee, "Candy should have the debt after");
     }

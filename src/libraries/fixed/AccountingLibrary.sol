@@ -7,28 +7,20 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
-
-import {FOL, GenericLoan, Loan, LoanLibrary, RESERVED_ID, SOL} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
+import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 /// @title AccountingLibrary
 library AccountingLibrary {
     using RiskLibrary for State;
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using VariableLibrary for State;
 
-    function reduceLoanCredit(State storage state, uint256 loanId, uint256 amount) public {
-        Loan storage loan = state.data.loans[loanId];
-
-        loan.generic.credit -= amount;
-
-        state.validateMinimumCredit(loan.generic.credit);
-    }
-
-    function chargeRepayFee(State storage state, Loan storage fol, uint256 repayAmount) internal {
-        uint256 repayFee = fol.partialRepayFee(repayAmount);
+    function chargeRepayFee(State storage state, DebtPosition storage debtPosition, uint256 repayAmount) internal {
+        uint256 repayFee = debtPosition.partialRepayFee(repayAmount);
 
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state.data.underlyingBorrowToken.decimals());
         uint256 repayFeeCollateral =
@@ -36,66 +28,79 @@ library AccountingLibrary {
 
         // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
         uint256 cappedRepayFeeCollateral =
-            Math.min(repayFeeCollateral, state.data.collateralToken.balanceOf(fol.generic.borrower));
+            Math.min(repayFeeCollateral, state.data.collateralToken.balanceOf(debtPosition.borrower));
 
         state.data.collateralToken.transferFrom(
-            fol.generic.borrower, state.config.feeRecipient, cappedRepayFeeCollateral
+            debtPosition.borrower, state.config.feeRecipient, cappedRepayFeeCollateral
         );
 
         // rounding down the deduction means the updated issuanceValue will be rounded up, which means higher fees on the next repayment
-        fol.fol.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + fol.fol.rate);
-        state.data.debtToken.burn(fol.generic.borrower, repayFee);
+        debtPosition.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + debtPosition.rate);
+        state.data.debtToken.burn(debtPosition.borrower, repayFee);
     }
 
-    // solhint-disable-next-line var-name-mixedcase
-    function createFOL(
+    function createDebtAndCreditPositions(
         State storage state,
         address lender,
         address borrower,
         uint256 issuanceValue,
         uint256 rate,
         uint256 dueDate
-    ) public returns (Loan memory fol) {
-        fol = Loan({
-            generic: GenericLoan({lender: lender, borrower: borrower, credit: 0}),
-            fol: FOL({
-                issuanceValue: issuanceValue,
-                rate: rate,
-                repayFeeAPR: state.config.repayFeeAPR,
-                startDate: block.timestamp,
-                dueDate: dueDate,
-                liquidityIndexAtRepayment: 0
-            }),
-            sol: SOL({folId: RESERVED_ID})
+    ) public returns (DebtPosition memory debtPosition, CreditPosition memory creditPosition) {
+        debtPosition = DebtPosition({
+            lender: lender,
+            borrower: borrower,
+            issuanceValue: issuanceValue,
+            rate: rate,
+            repayFeeAPR: state.config.repayFeeAPR,
+            startDate: block.timestamp,
+            dueDate: dueDate,
+            liquidityIndexAtRepayment: 0
         });
-        fol.generic.credit = fol.faceValue();
-        state.validateMinimumCreditOpening(fol.generic.credit);
 
-        state.data.loans.push(fol);
-        uint256 folId = state.data.loans.length - 1;
+        uint256 debtPositionId = state.data.nextDebtPositionId++;
+        state.data.debtPositions[debtPositionId] = debtPosition;
 
-        emit Events.CreateFOL(folId, lender, borrower, issuanceValue, rate, dueDate);
+        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, issuanceValue, rate, dueDate);
+
+        creditPosition = CreditPosition({
+            lender: lender,
+            borrower: borrower,
+            credit: debtPosition.faceValue(),
+            debtPositionId: debtPositionId
+        });
+
+        uint256 creditPositionId = state.data.nextCreditPositionId++;
+        state.data.creditPositions[creditPositionId] = creditPosition;
+        state.validateMinimumCreditOpening(creditPosition.credit);
+
+        emit Events.CreateCreditPosition(
+            creditPositionId, lender, borrower, RESERVED_ID, debtPositionId, creditPosition.credit
+        );
     }
 
-    // solhint-disable-next-line var-name-mixedcase
-    function createSOL(State storage state, uint256 exiterId, address lender, address borrower, uint256 credit)
-        public
-        returns (Loan memory sol)
-    {
-        uint256 folId = state.getFOLId(exiterId);
+    function createCreditPosition(
+        State storage state,
+        uint256 exitCreditPositionId,
+        address lender,
+        address borrower,
+        uint256 credit
+    ) public returns (CreditPosition memory creditPosition) {
+        uint256 debtPositionId = state.getDebtPositionId(exitCreditPositionId);
+        CreditPosition storage exitPosition = state.data.creditPositions[exitCreditPositionId];
 
-        sol = Loan({
-            generic: GenericLoan({lender: lender, borrower: borrower, credit: credit}),
-            fol: FOL({issuanceValue: 0, rate: 0, repayFeeAPR: 0, startDate: 0, dueDate: 0, liquidityIndexAtRepayment: 0}),
-            sol: SOL({folId: folId})
-        });
+        creditPosition =
+            CreditPosition({lender: lender, borrower: borrower, credit: credit, debtPositionId: debtPositionId});
 
-        state.data.loans.push(sol);
-        uint256 solId = state.data.loans.length - 1;
+        uint256 creditPositionId = state.data.nextCreditPositionId++;
+        state.data.creditPositions[creditPositionId] = creditPosition;
 
-        reduceLoanCredit(state, exiterId, credit);
-        state.validateMinimumCreditOpening(sol.generic.credit);
+        exitPosition.credit -= credit;
+        state.validateMinimumCredit(exitPosition.credit);
+        state.validateMinimumCreditOpening(creditPosition.credit);
 
-        emit Events.CreateSOL(solId, lender, borrower, exiterId, folId, credit);
+        emit Events.CreateCreditPosition(
+            creditPositionId, lender, borrower, exitCreditPositionId, debtPositionId, credit
+        );
     }
 }

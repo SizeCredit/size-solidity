@@ -10,6 +10,7 @@ import {Deploy} from "@test/Deploy.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
@@ -18,11 +19,11 @@ import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
-import {LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
+import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
-import {LiquidateLoanWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateLoan.sol";
+import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
@@ -115,7 +116,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableLoanIds
             })
         );
 
@@ -197,7 +198,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         borrowerToExitTo = _getRandomUser(borrowerToExitTo);
 
         hevm.prank(sender);
-        size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(BorrowerExitParams({debtPositionId: loanId, borrowerToExitTo: borrowerToExitTo}));
 
         __after(loanId);
 
@@ -216,7 +217,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         loanId = between(loanId, 0, _before.activeLoans - 1);
 
         hevm.prank(sender);
-        size.repay(RepayParams({loanId: loanId}));
+        size.repay(RepayParams({debtPositionId: loanId}));
 
         __after(loanId);
 
@@ -233,15 +234,15 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         loanId = between(loanId, 0, _before.activeLoans - 1);
 
         hevm.prank(sender);
-        size.claim(ClaimParams({loanId: loanId}));
+        size.claim(ClaimParams({creditPositionId: loanId}));
 
         __after(loanId);
 
         gte(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
-        t(size.isFOL(loanId), CLAIM_02);
+        t(size.isCreditPositionId(loanId), CLAIM_02);
     }
 
-    function liquidateLoan(uint256 loanId, uint256 minimumCollateralProfit) public getSender {
+    function liquidate(uint256 loanId, uint256 minimumCollateralProfit) public getSender {
         __before(loanId);
 
         precondition(_before.activeLoans > 0);
@@ -251,7 +252,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         hevm.prank(sender);
         uint256 liquidatorProfitCollateralToken =
-            size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
+            size.liquidate(LiquidateParams({debtPositionId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
 
         __after(loanId);
 
@@ -262,14 +263,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 LIQUIDATE_01
             );
         }
-        if (!_before.isLoanOverdue) {
+        if (_before.loanStatus != LoanStatus.OVERDUE) {
             lt(_after.sender.borrowAmount, _before.sender.borrowAmount, LIQUIDATE_02);
         }
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
-        t(_before.isSenderLiquidatable || _before.isLoanOverdue, LIQUIDATE_03);
+        t(_before.isSenderLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
     }
 
-    function selfLiquidateLoan(uint256 loanId) internal getSender {
+    function selfLiquidate(uint256 loanId) internal getSender {
         __before(loanId);
 
         precondition(_before.activeLoans > 0);
@@ -277,7 +278,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         loanId = between(loanId, 0, _before.activeLoans - 1);
 
         hevm.prank(sender);
-        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+        size.selfLiquidate(SelfLiquidateParams({creditPositionId: loanId}));
 
         __after(loanId);
 
@@ -285,7 +286,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         lt(_after.sender.debtAmount, _before.sender.debtAmount, LIQUIDATE_02);
     }
 
-    function liquidateLoanWithReplacement(uint256 loanId, uint256 minimumCollateralProfit, address borrower)
+    function liquidateWithReplacement(uint256 loanId, uint256 minimumCollateralProfit, address borrower)
         internal
         getSender
     {
@@ -298,9 +299,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         borrower = _getRandomUser(borrower);
 
         hevm.prank(sender);
-        (uint256 liquidatorProfitCollateralToken,) = size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({
-                loanId: loanId,
+        (uint256 liquidatorProfitCollateralToken,) = size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
+                debtPositionId: loanId,
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit
             })
