@@ -9,66 +9,42 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
-import {
-    FOL, FixedLoan, FixedLoanLibrary, GenericLoan, RESERVED_ID, SOL
-} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {FOL, GenericLoan, Loan, LoanLibrary, RESERVED_ID, SOL} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
+/// @title AccountingLibrary
 library AccountingLibrary {
     using RiskLibrary for State;
-    using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for State;
+    using LoanLibrary for Loan;
+    using LoanLibrary for State;
     using VariableLibrary for State;
 
     function reduceLoanCredit(State storage state, uint256 loanId, uint256 amount) public {
-        FixedLoan storage loan = state._fixed.loans[loanId];
+        Loan storage loan = state.data.loans[loanId];
 
         loan.generic.credit -= amount;
 
         state.validateMinimumCredit(loan.generic.credit);
     }
 
-    function maximumRepayFee(State storage state, uint256 issuanceValue, uint256 startDate, uint256 dueDate)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 interval = dueDate - startDate;
-        uint256 repayFeePercent = Math.mulDivUp(state._fixed.repayFeeAPR, interval, 365 days);
-        uint256 fee = Math.mulDivUp(issuanceValue, repayFeePercent, PERCENT);
-        return fee;
-    }
+    function chargeRepayFee(State storage state, Loan storage fol, uint256 repayAmount) internal {
+        uint256 repayFee = fol.partialRepayFee(repayAmount);
 
-    function maximumRepayFee(State storage state, FixedLoan memory fol) internal view returns (uint256) {
-        return maximumRepayFee(state, fol.fol.issuanceValue, fol.fol.startDate, fol.fol.dueDate);
-    }
-
-    function partialRepayFee(State storage state, FixedLoan memory fol, uint256 repayAmount)
-        internal
-        view
-        returns (uint256)
-    {
-        // pending question about calculating parial repay fee
-        return Math.mulDivUp(repayAmount, maximumRepayFee(state, fol), fol.faceValue());
-    }
-
-    function chargeRepayFee(State storage state, FixedLoan storage fol, uint256 repayAmount) internal {
-        uint256 repayFee = partialRepayFee(state, fol, repayAmount);
-
-        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state._general.borrowAsset.decimals());
+        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state.data.underlyingBorrowToken.decimals());
         uint256 repayFeeCollateral =
-            Math.mulDivUp(repayFeeWad, 10 ** state._general.priceFeed.decimals(), state._general.priceFeed.getPrice());
+            Math.mulDivUp(repayFeeWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice());
 
         // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
         uint256 cappedRepayFeeCollateral =
-            Math.min(repayFeeCollateral, state._fixed.collateralToken.balanceOf(fol.generic.borrower));
+            Math.min(repayFeeCollateral, state.data.collateralToken.balanceOf(fol.generic.borrower));
 
-        state._fixed.collateralToken.transferFrom(
-            fol.generic.borrower, state._general.feeRecipient, cappedRepayFeeCollateral
+        state.data.collateralToken.transferFrom(
+            fol.generic.borrower, state.config.feeRecipient, cappedRepayFeeCollateral
         );
 
+        // rounding down the deduction means the updated issuanceValue will be rounded up, which means higher fees on the next repayment
         fol.fol.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + fol.fol.rate);
-        state._fixed.debtToken.burn(fol.generic.borrower, repayFee);
+        state.data.debtToken.burn(fol.generic.borrower, repayFee);
     }
 
     // solhint-disable-next-line var-name-mixedcase
@@ -79,12 +55,13 @@ library AccountingLibrary {
         uint256 issuanceValue,
         uint256 rate,
         uint256 dueDate
-    ) public returns (FixedLoan memory fol) {
-        fol = FixedLoan({
+    ) public returns (Loan memory fol) {
+        fol = Loan({
             generic: GenericLoan({lender: lender, borrower: borrower, credit: 0}),
             fol: FOL({
                 issuanceValue: issuanceValue,
                 rate: rate,
+                repayFeeAPR: state.config.repayFeeAPR,
                 startDate: block.timestamp,
                 dueDate: dueDate,
                 liquidityIndexAtRepayment: 0
@@ -94,8 +71,8 @@ library AccountingLibrary {
         fol.generic.credit = fol.faceValue();
         state.validateMinimumCreditOpening(fol.generic.credit);
 
-        state._fixed.loans.push(fol);
-        uint256 folId = state._fixed.loans.length - 1;
+        state.data.loans.push(fol);
+        uint256 folId = state.data.loans.length - 1;
 
         emit Events.CreateFOL(folId, lender, borrower, issuanceValue, rate, dueDate);
     }
@@ -103,18 +80,18 @@ library AccountingLibrary {
     // solhint-disable-next-line var-name-mixedcase
     function createSOL(State storage state, uint256 exiterId, address lender, address borrower, uint256 credit)
         public
-        returns (FixedLoan memory sol)
+        returns (Loan memory sol)
     {
         uint256 folId = state.getFOLId(exiterId);
 
-        sol = FixedLoan({
+        sol = Loan({
             generic: GenericLoan({lender: lender, borrower: borrower, credit: credit}),
-            fol: FOL({issuanceValue: 0, rate: 0, startDate: 0, dueDate: 0, liquidityIndexAtRepayment: 0}),
+            fol: FOL({issuanceValue: 0, rate: 0, repayFeeAPR: 0, startDate: 0, dueDate: 0, liquidityIndexAtRepayment: 0}),
             sol: SOL({folId: folId})
         });
 
-        state._fixed.loans.push(sol);
-        uint256 solId = state._fixed.loans.length - 1;
+        state.data.loans.push(sol);
+        uint256 solId = state.data.loans.length - 1;
 
         reduceLoanCredit(state, exiterId, credit);
         state.validateMinimumCreditOpening(sol.generic.credit);

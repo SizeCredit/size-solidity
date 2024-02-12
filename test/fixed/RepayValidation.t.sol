@@ -35,7 +35,7 @@ contract RepayValidationTest is BaseTest {
 
         vm.startPrank(bob);
         size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_FREE_CASH.selector, 20e6, faceValue));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, 20e6, faceValue));
         size.repay(RepayParams({loanId: loanId}));
         vm.stopPrank();
 

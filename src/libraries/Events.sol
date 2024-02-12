@@ -1,30 +1,24 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {
-    InitializeFixedParams,
-    InitializeGeneralParams,
-    InitializeVariableParams
+    InitializeConfigParams,
+    InitializeDataParams,
+    InitializeOracleParams
 } from "@src/libraries/general/actions/Initialize.sol";
 
 // solhint-disable var-name-mixedcase
+/// @title Events
 library Events {
-    // General
-    event Initialize(InitializeGeneralParams g, InitializeFixedParams f, InitializeVariableParams v);
+    event Initialize(InitializeConfigParams c, InitializeOracleParams o, InitializeDataParams d);
     event UpdateConfig(bytes32 key, uint256 value);
     event CreateVault(address indexed user, address indexed vault);
-
-    // Fixed
     event Deposit(address indexed token, address indexed to, uint256 amount);
     event Withdraw(address indexed token, address indexed to, uint256 amount);
     event BorrowAsMarketOrder(
-        address indexed lender,
-        uint256 amount,
-        uint256 dueDate,
-        bool exactAmountIn,
-        uint256[] virtualCollateralFixedLoanIds
+        address indexed lender, uint256 amount, uint256 dueDate, bool exactAmountIn, uint256[] receivableLoanIds
     );
     event BorrowAsLimitOrder(YieldCurve curveRelativeTime);
     event LendAsMarketOrder(address indexed borrower, uint256 dueDate, uint256 amount, bool exactAmountIn);
@@ -48,16 +42,16 @@ library Events {
     event BorrowerExit(uint256 indexed loanId, address borrowerExitedTo);
     event Repay(uint256 indexed loanId);
     event Claim(uint256 indexed loanId);
-    event LiquidateFixedLoan(
-        uint256 indexed loanId, uint256 minimumCollateralRatio, uint256 collateralRatio, FixedLoanStatus loanStatus
+    event LiquidateLoan(
+        uint256 indexed loanId, uint256 minimumCollateralProfit, uint256 collateralRatio, LoanStatus loanStatus
     );
-    event SelfLiquidateFixedLoan(uint256 indexed loanId);
-    event LiquidateFixedLoanWithReplacement(
-        uint256 indexed loanId, address indexed borrower, uint256 minimumCollateralRatio
+    event SelfLiquidateLoan(uint256 indexed loanId);
+    event LiquidateLoanWithReplacement(
+        uint256 indexed loanId, address indexed borrower, uint256 minimumCollateralProfit
     );
-    event LiquidateFixedLoanUserLiquidatableProfitably(uint256 indexed loanId);
-    event LiquidateFixedLoanUserLiquidatableUnprofitably(uint256 indexed loanId);
-    event LiquidateFixedLoanOverdueMoveToVariablePool(uint256 indexed loanId);
-    event LiquidateFixedLoanOverdueNoSplitRemainder(uint256 indexed loanId);
+    event LiquidateLoanUserLiquidatableProfitably(uint256 indexed loanId);
+    event LiquidateLoanUserLiquidatableUnprofitably(uint256 indexed loanId);
+    event LiquidateLoanOverdueMoveToVariablePool(uint256 indexed loanId);
+    event LiquidateLoanOverdueNoSplitRemainder(uint256 indexed loanId);
     event Compensate(uint256 indexed loanToRepayId, uint256 indexed loanToCompensateId, uint256 amount);
 }

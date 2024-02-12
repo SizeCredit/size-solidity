@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "../src/Size.sol";
 import "forge-std/Script.sol";
 
-contract LiquidateFixedLoanWithRScript is Script {
+contract LiquidateLoanWithReplacementScript is Script {
     function run() external {
         console.log("Liquidating...");
 
@@ -17,13 +17,12 @@ contract LiquidateFixedLoanWithRScript is Script {
         address borrower = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8; //vm.envAddress("BORROWER");
         Size sizeContract = Size(sizeContractAddress);
 
-        /// LiquidateFixedLoanParams struct
-        LiquidateFixedLoanWithReplacementParams memory params =
-            LiquidateFixedLoanWithReplacementParams({loanId: 0, borrower: borrower, minimumCollateralRatio: amount});
+        /// LiquidateLoanParams struct
+        LiquidateLoanWithReplacementParams memory params =
+            LiquidateLoanWithReplacementParams({loanId: 0, borrower: borrower, minimumCollateralProfit: amount});
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.liquidateFixedLoanWithReplacement(params);
+        sizeContract.liquidateLoanWithReplacement(params);
         vm.stopBroadcast();
     }
 }
-

@@ -12,9 +12,10 @@ contract BorrowerExitScript is Script {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
 
         address LenderTest = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
-        address BorrowerTest= 0x979Af411D048b453E3334C95F392012B3BbD6215;
+        address BorrowerTest = 0x979Af411D048b453E3334C95F392012B3BbD6215;
 
-        address to = vm.addr(deployerPrivateKey);
+        console.log("LenderTest", LenderTest);
+        console.log("BorrowerTest", BorrowerTest);
 
         Size sizeContract = Size(sizeContractAddress);
 

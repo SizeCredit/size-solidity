@@ -21,7 +21,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         _;
     }
 
-    function test_BORROW_02() public {
+    function test_CryticToFoundry_BORROW_02() public {
         deposit(address(0xdeadbeef), 0);
         lendAsLimitOrder(0, 10667226, 451124);
         borrowAsMarketOrder(
@@ -34,7 +34,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         );
     }
 
-    function test_REPAY_01() public {
+    function test_CryticToFoundry_REPAY_01() public {
         deposit(address(0x0), 0);
         deposit(address(0xdeadbeef), 91460117);
         borrowAsLimitOrder(4907270871702042502, 5894179853816920);
@@ -42,7 +42,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         repay(115792089237316195423570985008687907853269984665640564039457584007913129639935);
     }
 
-    function test_REPAY_01_2() public {
+    function test_CryticToFoundry_REPAY_01_2() public {
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
         lendAsLimitOrder(0, 3471498, 0);
@@ -57,7 +57,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         repay(0);
     }
 
-    function test_LOAN_05() public {
+    function test_CryticToFoundry_LOAN_05() public {
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
         lendAsLimitOrder(0, 4640020, 0);
@@ -73,7 +73,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         assertTrue(invariant_LOAN());
     }
 
-    function test_TOKENS_02() public {
+    function test_CryticToFoundry_TOKENS_02() public {
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
         borrowAsLimitOrder(916546381152797237939, 0);
@@ -86,7 +86,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         withdraw(address(0xdeadbeef), 13329553271505273202379607076657725967833385000643676496066523999450361133825);
     }
 
-    function test_LOAN_05_2() public {
+    function test_CryticToFoundry_LOAN_05_2() public {
         deposit(address(0xdeadbeef), 0);
         lendAsLimitOrder(0, 3621625, 0);
         deposit(address(0x0), 0);
@@ -103,8 +103,57 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         assertTrue(invariant_LOAN());
     }
 
-    function test_DEPOSIT_1() public {
+    function test_CryticToFoundry_DEPOSIT_1() public {
         deposit(address(0x0000000000000000000000000000000000002029), 1997);
         assertTrue(invariant_TOKENS_01());
+    }
+
+    function test_CryticToFoundry_BORROW_03() public {
+        deposit(address(0x0), 0);
+        deposit(address(0xdeadbeef), 0);
+        borrowAsLimitOrder(2004386037, 363);
+        lendAsLimitOrder(
+            0, 26502904251787811711416074651739051054427785886365667, 125949353729041985699691678048709561855014540207
+        );
+        lendAsMarketOrder(
+            address(0x0),
+            2286540412815171990229640029721891343524023177926188207484,
+            109662075055781096288780867332833365505114692880181745273687,
+            false
+        );
+        borrowAsMarketOrder(
+            address(0x0),
+            55777869127292982812656558050585759908493,
+            231993781567013896541999504130211021635,
+            false,
+            0,
+            81526482954155422479886249980029850326612
+        );
+        borrowAsMarketOrder(
+            address(0x0),
+            15262015152809048481614158751494631613034600452087270770260970,
+            4504399096978764423542841524762119129410647219771181836202077,
+            false,
+            0,
+            755785237992285990676216683344571034451884562666489810937
+        );
+    }
+
+    function test_CryticToFoundry_LIQUIDATE_01() public {
+        deposit(address(0x0), 0);
+        deposit(address(0xdeadbeef), 43887);
+        lendAsLimitOrder(
+            686201148013504651880016784580766, 802572832370436071468338822538095, 187339053509293189773697775291060
+        );
+        borrowAsMarketOrder(
+            address(0x0),
+            1281417643594196276987623,
+            2251088478289305192565934357131631373634646648055304712808379805148657941,
+            false,
+            2210615795779483999067704471772641319130093544158118332944262229931266250,
+            1957402070557900179522374347023877010333460151991864703433334555071406191
+        );
+        vm.warp(block.timestamp + 28175);
+        liquidateLoan(0, 0);
     }
 }

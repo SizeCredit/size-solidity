@@ -7,30 +7,31 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {Math} from "@src/libraries/Math.sol";
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
+/// @title RiskLibrary
 library RiskLibrary {
-    using FixedLoanLibrary for State;
-    using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for FixedLoanStatus;
+    using LoanLibrary for State;
+    using LoanLibrary for Loan;
+    using LoanLibrary for LoanStatus;
 
     function validateMinimumCredit(State storage state, uint256 credit) public view {
-        if (0 < credit && credit < state._fixed.minimumCreditBorrowAsset) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state._fixed.minimumCreditBorrowAsset);
+        if (0 < credit && credit < state.config.minimumCreditBorrowAToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.config.minimumCreditBorrowAToken);
         }
     }
 
     function validateMinimumCreditOpening(State storage state, uint256 credit) public view {
-        if (credit < state._fixed.minimumCreditBorrowAsset) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(credit, state._fixed.minimumCreditBorrowAsset);
+        if (credit < state.config.minimumCreditBorrowAToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(credit, state.config.minimumCreditBorrowAToken);
         }
     }
 
     function collateralRatio(State storage state, address account) public view returns (uint256) {
-        uint256 collateral = state._fixed.collateralToken.balanceOf(account);
-        uint256 debt = state._fixed.debtToken.balanceOf(account);
-        uint256 debtWad = ConversionLibrary.amountToWad(debt, state._general.borrowAsset.decimals());
-        uint256 price = state._general.priceFeed.getPrice();
+        uint256 collateral = state.data.collateralToken.balanceOf(account);
+        uint256 debt = state.data.debtToken.balanceOf(account);
+        uint256 debtWad = ConversionLibrary.amountToWad(debt, state.data.underlyingBorrowToken.decimals());
+        uint256 price = state.oracle.priceFeed.getPrice();
 
         if (debt > 0) {
             return Math.mulDivDown(collateral, price, debtWad);
@@ -40,33 +41,28 @@ library RiskLibrary {
     }
 
     function isLoanSelfLiquidatable(State storage state, uint256 loanId) public view returns (bool) {
-        FixedLoan storage loan = state._fixed.loans[loanId];
-        FixedLoanStatus status = state.getFixedLoanStatus(loan);
+        Loan storage loan = state.data.loans[loanId];
+        LoanStatus status = state.getLoanStatus(loan);
         // both FOLs and SOLs can be self liquidated
-        return (
-            isUserLiquidatable(state, loan.generic.borrower)
-                && status.either([FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])
-        );
+        return
+            (isUserLiquidatable(state, loan.generic.borrower) && status.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE]));
     }
 
     function isLoanLiquidatable(State storage state, uint256 loanId) public view returns (bool) {
-        FixedLoan storage loan = state._fixed.loans[loanId];
-        FixedLoanStatus status = state.getFixedLoanStatus(loan);
+        Loan storage loan = state.data.loans[loanId];
+        LoanStatus status = state.getLoanStatus(loan);
         // only FOLs can be liquidated
         return loan.isFOL()
         // case 1: if the user is liquidatable, only active/overdue FOLs can be liquidated
         && (
-            (
-                isUserLiquidatable(state, loan.generic.borrower)
-                    && status.either([FixedLoanStatus.ACTIVE, FixedLoanStatus.OVERDUE])
-            )
+            (isUserLiquidatable(state, loan.generic.borrower) && status.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE]))
             // case 2: overdue loans can always be liquidated regardless of the user's CR
-            || status == FixedLoanStatus.OVERDUE
+            || status == LoanStatus.OVERDUE
         );
     }
 
     function isUserLiquidatable(State storage state, address account) public view returns (bool) {
-        return collateralRatio(state, account) < state._fixed.crLiquidation;
+        return collateralRatio(state, account) < state.config.crLiquidation;
     }
 
     function validateUserIsNotLiquidatable(State storage state, address account) external view {
@@ -75,18 +71,20 @@ library RiskLibrary {
         }
     }
 
-    function validateUserIsNotBelowRiskCR(State storage state, address account) external view {
-        uint256 riskCR = Math.max(
-            state._fixed.crOpening,
-            state._fixed.users[account].borrowOffer.riskCR // 0 by default, or user-defined if BorrowAsLimitOrder has been placed
+    function validateUserIsNotBelowopeningLimitBorrowCR(State storage state, address account) external view {
+        uint256 openingLimitBorrowCR = Math.max(
+            state.config.crOpening,
+            state.data.users[account].borrowOffer.openingLimitBorrowCR // 0 by default, or user-defined if BorrowAsLimitOrder has been placed
         );
-        if (collateralRatio(state, account) < riskCR) {
-            revert Errors.COLLATERAL_RATIO_BELOW_RISK_COLLATERAL_RATIO(account, collateralRatio(state, account), riskCR);
+        if (collateralRatio(state, account) < openingLimitBorrowCR) {
+            revert Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR(
+                account, collateralRatio(state, account), openingLimitBorrowCR
+            );
         }
     }
 
     function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
-        uint256 faceValueWad = ConversionLibrary.amountToWad(faceValue, state._general.borrowAsset.decimals());
-        return Math.mulDivUp(faceValueWad, state._fixed.crOpening, state._general.priceFeed.getPrice());
+        uint256 faceValueWad = ConversionLibrary.amountToWad(faceValue, state.data.underlyingBorrowToken.decimals());
+        return Math.mulDivUp(faceValueWad, state.config.crOpening, state.oracle.priceFeed.getPrice());
     }
 }

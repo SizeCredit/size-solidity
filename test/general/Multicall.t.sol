@@ -11,7 +11,7 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LiquidateFixedLoanParams} from "@src/libraries/fixed/actions/LiquidateFixedLoan.sol";
+import {LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -67,7 +67,7 @@ contract MulticallTest is BaseTest {
         uint256 amount = 15e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 faceValue = size.faceValue(loanId);
-        uint256 repayFee = size.maximumRepayFee(loanId);
+        uint256 repayFee = size.repayFee(loanId);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 debt = faceValue + repayFee;
 
@@ -87,10 +87,8 @@ contract MulticallTest is BaseTest {
         bytes[] memory data = new bytes[](4);
         // deposit only the necessary to cover for the loan's faceValue
         data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: faceValue, to: liquidator}));
-        // liquidate profitably
-        data[1] = abi.encodeCall(
-            size.liquidateFixedLoan, LiquidateFixedLoanParams({loanId: loanId, minimumCollateralRatio: 1e18})
-        );
+        // liquidate profitably (but does not enforce CR)
+        data[1] = abi.encodeCall(size.liquidateLoan, LiquidateLoanParams({loanId: loanId, minimumCollateralProfit: 0}));
         // withdraw everything
         data[2] = abi.encodeCall(
             size.withdraw, WithdrawParams({token: address(weth), amount: type(uint256).max, to: liquidator})

@@ -2,20 +2,21 @@
 pragma solidity 0.8.24;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Math} from "@src/libraries/Math.sol";
 
 import {IPriceFeed} from "./IPriceFeed.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
-/**
- * _base: ETH/USD feed
- * _quote: USDC/USD feed
- * _decimals: 18
- * _baseStalePriceInterval: 3600 seconds (https://data.chain.link/ethereum/mainnet/crypto-usd/eth-usd)
- * _quoteStalePriceInterval: 86400 seconds (https://data.chain.link/ethereum/mainnet/stablecoins/usdc-usd)
- *
- * answer: ETH/USDC in 1e18
- */
+/// @title PriceFeed
+/// @notice A contract that provides the price of an asset in terms of another asset
+/// @dev The price is calculated as `base / quote`. Example configuration:
+///      _base: ETH/USD feed
+///      _quote: USDC/USD feed
+///      _decimals: 18
+///      _baseStalePriceInterval: 3600 seconds (https://data.chain.link/ethereum/mainnet/crypto-usd/eth-usd)
+///      _quoteStalePriceInterval: 86400 seconds (https://data.chain.link/ethereum/mainnet/stablecoins/usdc-usd)
+///      answer: ETH/USDC in 1e18
 contract PriceFeed is IPriceFeed {
     /* solhint-disable immutable-vars-naming */
     AggregatorV3Interface public immutable base;
@@ -25,7 +26,6 @@ contract PriceFeed is IPriceFeed {
     uint8 public immutable quoteDecimals;
     uint256 public immutable baseStalePriceInterval;
     uint256 public immutable quoteStalePriceInterval;
-
     /* solhint-enable immutable-vars-naming */
 
     constructor(
@@ -74,14 +74,14 @@ contract PriceFeed is IPriceFeed {
 
         price = _scalePrice(price, aggregator.decimals(), decimals);
 
-        return uint256(price);
+        return SafeCast.toUint256(price);
     }
 
     function _scalePrice(int256 _price, uint8 _priceDecimals, uint8 _decimals) internal pure returns (int256) {
         if (_priceDecimals < _decimals) {
-            return _price * int256(10 ** uint256(_decimals - _priceDecimals));
+            return _price * SafeCast.toInt256(10 ** uint256(_decimals - _priceDecimals));
         } else if (_priceDecimals > _decimals) {
-            return _price / int256(10 ** uint256(_priceDecimals - _decimals));
+            return _price / SafeCast.toInt256(10 ** uint256(_priceDecimals - _decimals));
         } else {
             return _price;
         }

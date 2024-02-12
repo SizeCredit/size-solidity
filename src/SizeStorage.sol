@@ -5,55 +5,57 @@ import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
+import {Vault} from "@src/proxy/Vault.sol";
 
 import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
-// NOTE changing any of these structs' order or variables may change the storage layout
-struct General {
-    IPriceFeed priceFeed;
-    IMarketBorrowRateFeed marketBorrowRateFeed;
-    IERC20Metadata collateralAsset; // e.g. WETH
-    IERC20Metadata borrowAsset; // e.g. USDC
-    IPool variablePool;
-    address insurance;
-    address feeRecipient;
+struct Config {
+    uint256 crOpening; // minimum collateral ratio for opening a loan
+    uint256 crLiquidation; // minimum collateral ratio for liquidation
+    uint256 minimumCreditBorrowAToken; // minimum credit value of loans
+    uint256 collateralSplitLiquidatorPercent; // percent of collateral remainder to be split with liquidator on profitable liquidations
+    uint256 collateralSplitProtocolPercent; // percent of collateral to be split with protocol on profitable liquidations
+    uint256 collateralTokenCap; // maximum amount of deposited collateral tokens
+    uint256 borrowATokenCap; // maximum amount of deposited borrowed aTokens
+    uint256 debtTokenCap; // maximum amount of minted debt tokens
+    uint256 repayFeeAPR; // annual percentage rate of the protocol repay fee
+    uint256 earlyLenderExitFee; // fee for early lender exits
+    uint256 earlyBorrowerExitFee; // fee for early borrower exits
+    uint256 collateralOverdueTransferFee; // fee for converting overdue fixed-rate loans into the variable-rate loans
+    address feeRecipient; // address to receive protocol fees
 }
 
-struct Fixed {
-    mapping(address => User) users;
-    FixedLoan[] loans;
-    uint256 crOpening;
-    uint256 crLiquidation;
-    uint256 minimumCreditBorrowAsset;
-    uint256 collateralSplitLiquidatorPercent;
-    uint256 collateralSplitProtocolPercent;
+struct Oracle {
+    IPriceFeed priceFeed; // price feed oracle
+    IMarketBorrowRateFeed marketBorrowRateFeed; // market borrow rate feed oracle
+}
+
+struct Data {
+    mapping(address => User) users; // mapping of User structs
+    Loan[] loans; // array of Loan structs
+    IERC20Metadata underlyingCollateralToken; // e.g. WETH
+    IERC20Metadata underlyingBorrowToken; // e.g. USDC
     NonTransferrableToken collateralToken; // e.g. szWETH
     IAToken borrowAToken; // e.g. aszUSDC
     NonTransferrableToken debtToken; // e.g. szDebt
-    uint256 collateralTokenCap;
-    uint256 borrowATokenCap;
-    uint256 debtTokenCap;
-    uint256 repayFeeAPR;
-    uint256 earlyLenderExitFee;
-    uint256 earlyBorrowerExitFee;
-}
-
-struct Variable {
-    address vaultImplementation;
-    uint256 collateralOverdueTransferFee;
+    IPool variablePool; // Size Variable Pool (Aave v3 fork)
+    Vault vaultImplementation; // Vault implementation
 }
 
 struct State {
-    General _general;
-    Fixed _fixed;
-    Variable _variable;
+    Config config;
+    Oracle oracle;
+    Data data;
 }
 
+/// @title SizeStorage
+/// @notice Storage for the Size protocol
+/// @dev WARNING: Changing the order of the variables or inner structs in this contract may break the storage layout
 abstract contract SizeStorage {
     State internal state;
 }

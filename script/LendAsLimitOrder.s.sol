@@ -31,16 +31,11 @@ contract LendAsLimitOrderScript is Script {
         marketRateMultipliers[0] = 1e18;
         marketRateMultipliers[1] = 1e18;
 
-        YieldCurve memory curveRelativeTime = YieldCurve({
-            timeBuckets: timeBuckets,
-            rates: rates,
-            marketRateMultipliers: marketRateMultipliers
-        });
+        YieldCurve memory curveRelativeTime =
+            YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
 
-        LendAsLimitOrderParams memory params = LendAsLimitOrderParams({
-            maxDueDate: maxDueDate,
-            curveRelativeTime: curveRelativeTime
-        });
+        LendAsLimitOrderParams memory params =
+            LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.lendAsLimitOrder(params);

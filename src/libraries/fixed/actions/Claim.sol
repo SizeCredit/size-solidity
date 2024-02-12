@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import {Math} from "@src/libraries/Math.sol";
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -18,24 +18,24 @@ struct ClaimParams {
 
 library Claim {
     using VariableLibrary for State;
-    using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for State;
+    using LoanLibrary for Loan;
+    using LoanLibrary for State;
     using AccountingLibrary for State;
 
     function validateClaim(State storage state, ClaimParams calldata params) external view {
-        FixedLoan storage loan = state._fixed.loans[params.loanId];
+        Loan storage loan = state.data.loans[params.loanId];
 
         // validate msg.sender
 
         // validate loanId
-        if (state.getFixedLoanStatus(loan) != FixedLoanStatus.REPAID) {
+        if (state.getLoanStatus(loan) != LoanStatus.REPAID) {
             revert Errors.LOAN_NOT_REPAID(params.loanId);
         }
     }
 
     function executeClaim(State storage state, ClaimParams calldata params) external {
-        FixedLoan storage loan = state._fixed.loans[params.loanId];
-        FixedLoan storage fol = state.getFOL(loan);
+        Loan storage loan = state.data.loans[params.loanId];
+        Loan storage fol = state.getFOL(loan);
 
         uint256 claimAmount =
             Math.mulDivDown(loan.generic.credit, state.borrowATokenLiquidityIndex(), fol.fol.liquidityIndexAtRepayment);

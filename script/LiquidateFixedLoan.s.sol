@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "../src/Size.sol";
 import "forge-std/Script.sol";
 
-contract LiquidateFixedLoanScript is Script {
+contract LiquidateLoanScript is Script {
     function run() external {
         console.log("Liquidating...");
 
@@ -15,14 +15,11 @@ contract LiquidateFixedLoanScript is Script {
 
         Size sizeContract = Size(sizeContractAddress);
 
-        /// LiquidateFixedLoanParams struct
-        LiquidateFixedLoanParams memory params = LiquidateFixedLoanParams({
-            loanId: 0,
-            minimumCollateralRatio: amount
-        });
+        /// LiquidateLoanParams struct
+        LiquidateLoanParams memory params = LiquidateLoanParams({loanId: 0, minimumCollateralProfit: amount});
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.liquidateFixedLoan(params);
+        sizeContract.liquidateLoan(params);
         vm.stopBroadcast();
     }
 }

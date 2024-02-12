@@ -3,7 +3,8 @@ pragma solidity 0.8.24;
 
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
-import {FixedLoan, FixedLoanLibrary, FixedLoanStatus} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {UpdateConfig} from "@src/libraries/general/actions/UpdateConfig.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
@@ -11,12 +12,12 @@ import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
-import {BorrowOffer, FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {
-    InitializeFixedParams,
-    InitializeGeneralParams,
-    InitializeVariableParams
+    InitializeConfigParams,
+    InitializeDataParams,
+    InitializeOracleParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -28,14 +29,17 @@ struct UserView {
     uint256 debtAmount;
 }
 
+/// @title SizeView
+/// @notice View methods for the Size protocol
 abstract contract SizeView is SizeStorage {
-    using OfferLibrary for FixedLoanOffer;
+    using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
-    using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for State;
+    using LoanLibrary for Loan;
+    using LoanLibrary for State;
     using RiskLibrary for State;
     using VariableLibrary for State;
     using AccountingLibrary for State;
+    using UpdateConfig for State;
 
     function collateralRatio(address user) external view returns (uint256) {
         return state.collateralRatio(user);
@@ -50,114 +54,98 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getFOLAssignedCollateral(uint256 loanId) external view returns (uint256) {
-        FixedLoan memory loan = state._fixed.loans[loanId];
+        Loan memory loan = state.data.loans[loanId];
         return state.getFOLAssignedCollateral(loan);
     }
 
     function getDebt(uint256 loanId) external view returns (uint256) {
-        FixedLoan storage loan = state._fixed.loans[loanId];
-        FixedLoan storage fol = state.getFOL(loan);
-        return state.getDebt(fol);
+        Loan storage loan = state.data.loans[loanId];
+        Loan storage fol = state.getFOL(loan);
+        return fol.getDebt();
     }
 
     function faceValue(uint256 loanId) external view returns (uint256) {
-        FixedLoan storage loan = state._fixed.loans[loanId];
-        FixedLoan storage fol = state.getFOL(loan);
+        Loan storage loan = state.data.loans[loanId];
+        Loan storage fol = state.getFOL(loan);
         return fol.faceValue();
     }
 
     function getCredit(uint256 loanId) external view returns (uint256) {
-        return state._fixed.loans[loanId].generic.credit;
+        return state.data.loans[loanId].generic.credit;
     }
 
     function getDueDate(uint256 loanId) external view returns (uint256) {
-        FixedLoan storage loan = state._fixed.loans[loanId];
+        Loan storage loan = state.data.loans[loanId];
         return state.getFOL(loan).fol.dueDate;
     }
 
-    function generalConfig() external view returns (InitializeGeneralParams memory) {
-        return InitializeGeneralParams({
-            owner: address(0), // N/A
-            priceFeed: address(state._general.priceFeed),
-            marketBorrowRateFeed: address(state._general.marketBorrowRateFeed),
-            collateralAsset: address(state._general.collateralAsset),
-            borrowAsset: address(state._general.borrowAsset),
-            feeRecipient: state._general.feeRecipient,
-            variablePool: address(state._general.variablePool)
-        });
+    function config() external view returns (InitializeConfigParams memory) {
+        return state.configParams();
     }
 
-    function fixedConfig() external view returns (InitializeFixedParams memory) {
-        return InitializeFixedParams({
-            crOpening: state._fixed.crOpening,
-            crLiquidation: state._fixed.crLiquidation,
-            collateralSplitLiquidatorPercent: state._fixed.collateralSplitLiquidatorPercent,
-            collateralSplitProtocolPercent: state._fixed.collateralSplitProtocolPercent,
-            minimumCreditBorrowAsset: state._fixed.minimumCreditBorrowAsset,
-            collateralTokenCap: state._fixed.collateralTokenCap,
-            borrowATokenCap: state._fixed.borrowATokenCap,
-            debtTokenCap: state._fixed.debtTokenCap,
-            repayFeeAPR: state._fixed.repayFeeAPR,
-            earlyLenderExitFee: state._fixed.earlyLenderExitFee,
-            earlyBorrowerExitFee: state._fixed.earlyBorrowerExitFee
-        });
+    function oracle() external view returns (InitializeOracleParams memory) {
+        return state.oracleParams();
     }
 
-    function variableConfig() external view returns (InitializeVariableParams memory) {
-        return InitializeVariableParams({collateralOverdueTransferFee: state._variable.collateralOverdueTransferFee});
+    function data() external view returns (InitializeDataParams memory) {
+        return state.dataParams();
     }
 
     function getUserView(address user) external view returns (UserView memory) {
         return UserView({
-            user: state._fixed.users[user],
+            user: state.data.users[user],
             account: user,
-            collateralAmount: state._fixed.collateralToken.balanceOf(user),
+            collateralAmount: state.data.collateralToken.balanceOf(user),
             borrowAmount: state.borrowATokenBalanceOf(user),
-            debtAmount: state._fixed.debtToken.balanceOf(user)
+            debtAmount: state.data.debtToken.balanceOf(user)
         });
     }
 
     function getVaultAddress(address user) external view returns (address) {
-        return address(state._fixed.users[user].vault);
+        return address(state.data.users[user].vault);
     }
 
-    function activeFixedLoans() external view returns (uint256) {
-        return state._fixed.loans.length;
+    function activeLoans() external view returns (uint256) {
+        return state.data.loans.length;
     }
 
     function isFOL(uint256 loanId) external view returns (bool) {
-        return state._fixed.loans[loanId].isFOL();
+        return state.data.loans[loanId].isFOL();
     }
 
-    function getFixedLoan(uint256 loanId) external view returns (FixedLoan memory) {
-        return state._fixed.loans[loanId];
+    function getLoan(uint256 loanId) external view returns (Loan memory) {
+        return state.data.loans[loanId];
     }
 
-    function getFixedLoans() external view returns (FixedLoan[] memory) {
-        return state._fixed.loans;
+    function getLoans() external view returns (Loan[] memory) {
+        return state.data.loans;
     }
 
-    function getFixedLoanStatus(uint256 loanId) external view returns (FixedLoanStatus) {
-        return state.getFixedLoanStatus(state._fixed.loans[loanId]);
+    function getLoanStatus(uint256 loanId) external view returns (LoanStatus) {
+        return state.getLoanStatus(state.data.loans[loanId]);
     }
 
     function partialRepayFee(uint256 loanId, uint256 repayAmount) public view returns (uint256) {
-        return state.partialRepayFee(state._fixed.loans[loanId], repayAmount);
+        Loan storage loan = state.data.loans[loanId];
+        Loan storage fol = state.getFOL(loan);
+        return fol.partialRepayFee(repayAmount);
     }
 
-    function maximumRepayFee(uint256 loanId) external view returns (uint256) {
-        return state.maximumRepayFee(state._fixed.loans[loanId]);
+    function repayFee(uint256 loanId) external view returns (uint256) {
+        Loan storage loan = state.data.loans[loanId];
+        Loan storage fol = state.getFOL(loan);
+        return fol.repayFee();
     }
 
-    function maximumRepayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate)
+    function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
         external
-        view
+        pure
         returns (uint256)
     {
-        return state.maximumRepayFee(issuanceValue, startDate, dueDate);
+        return LoanLibrary.repayFee(issuanceValue, startDate, dueDate, repayFeeAPR);
     }
 
     function tokens() external view returns (NonTransferrableToken, IAToken, NonTransferrableToken) {
-        return (state._fixed.collateralToken, state._fixed.borrowAToken, state._fixed.debtToken);
+        return (state.data.collateralToken, state.data.borrowAToken, state.data.debtToken);
     }
 }

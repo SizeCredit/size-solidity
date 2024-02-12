@@ -15,6 +15,9 @@ contract BorrowMarketOrder is Script {
         address LenderTest = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
         address BorrowerTest = 0x979Af411D048b453E3334C95F392012B3BbD6215;
 
+        console.log("LenderTest", LenderTest);
+        console.log("BorrowerTest", BorrowerTest);
+
         TimestampHelper helper = new TimestampHelper();
         uint256 currentTimestamp = helper.getCurrentTimestamp();
         uint256 dueDate = currentTimestamp + 60 * 60 * 24 * 4; // 4 days from now
@@ -26,7 +29,7 @@ contract BorrowMarketOrder is Script {
             amount: 5e6,
             dueDate: dueDate,
             exactAmountIn: false,
-            virtualCollateralFixedLoanIds: new uint256[](0)
+            receivableLoanIds: new uint256[](0)
         });
         console.log("borrower USDC", sizeContract.getUserView(BorrowerTest).borrowAmount);
         vm.startBroadcast(deployerPrivateKey);

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {FixedLoan} from "@src/libraries/fixed/FixedLoanLibrary.sol";
+import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {FixedLoan, FixedLoanLibrary} from "@src/libraries/fixed/FixedLoanLibrary.sol";
-import {FixedLoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
@@ -22,24 +22,24 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct BorrowAsMarketOrderParams {
     address lender;
-    uint256 amount; // in decimals (e.g. 1_000e6)
+    uint256 amount;
     uint256 dueDate;
     bool exactAmountIn;
-    uint256[] virtualCollateralFixedLoanIds; // TODO: rename this (loan receivables? notional?)
+    uint256[] receivableLoanIds;
 }
 
 library BorrowAsMarketOrder {
-    using OfferLibrary for FixedLoanOffer;
-    using FixedLoanLibrary for FixedLoan;
-    using FixedLoanLibrary for State;
+    using OfferLibrary for LoanOffer;
+    using LoanLibrary for Loan;
+    using LoanLibrary for State;
     using RiskLibrary for State;
     using AccountingLibrary for State;
     using VariableLibrary for State;
     using AccountingLibrary for State;
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
-        User memory lenderUser = state._fixed.users[params.lender];
-        FixedLoanOffer memory loanOffer = lenderUser.loanOffer;
+        User memory lenderUser = state.data.users[params.lender];
+        LoanOffer memory loanOffer = lenderUser.loanOffer;
 
         // validate msg.sender
 
@@ -64,11 +64,11 @@ library BorrowAsMarketOrder {
         // validate params.exactAmountIn
         // N/A
 
-        // validate params.virtualCollateralFixedLoanIds
-        for (uint256 i = 0; i < params.virtualCollateralFixedLoanIds.length; ++i) {
-            uint256 loanId = params.virtualCollateralFixedLoanIds[i];
-            FixedLoan storage loan = state._fixed.loans[loanId];
-            FixedLoan storage fol = state.getFOL(loan);
+        // validate params.receivableLoanIds
+        for (uint256 i = 0; i < params.receivableLoanIds.length; ++i) {
+            uint256 loanId = params.receivableLoanIds[i];
+            Loan storage loan = state.data.loans[loanId];
+            Loan storage fol = state.getFOL(loan);
 
             if (msg.sender != loan.generic.lender) {
                 revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, loan.generic.lender);
@@ -81,10 +81,10 @@ library BorrowAsMarketOrder {
 
     function executeBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external {
         emit Events.BorrowAsMarketOrder(
-            params.lender, params.amount, params.dueDate, params.exactAmountIn, params.virtualCollateralFixedLoanIds
+            params.lender, params.amount, params.dueDate, params.exactAmountIn, params.receivableLoanIds
         );
 
-        params.amount = _borrowWithVirtualCollateral(state, params);
+        params.amount = _borrowWithReceivable(state, params);
         _borrowWithRealCollateral(state, params);
     }
 
@@ -92,24 +92,24 @@ library BorrowAsMarketOrder {
      * @notice Borrow with virtual collateral, an internal state-modifying function.
      * @dev The `amount` is initialized to `amountOutLeft`, which is decreased as more and more SOLs are created
      */
-    function _borrowWithVirtualCollateral(State storage state, BorrowAsMarketOrderParams memory params)
+    function _borrowWithReceivable(State storage state, BorrowAsMarketOrderParams memory params)
         internal
         returns (uint256 amountOutLeft)
     {
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
-        User storage lenderUser = state._fixed.users[params.lender];
+        User storage lenderUser = state.data.users[params.lender];
 
-        FixedLoanOffer storage loanOffer = lenderUser.loanOffer;
+        LoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        uint256 rate = loanOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
 
         amountOutLeft = params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, PERCENT + rate) : params.amount;
 
-        for (uint256 i = 0; i < params.virtualCollateralFixedLoanIds.length; ++i) {
-            uint256 loanId = params.virtualCollateralFixedLoanIds[i];
-            FixedLoan memory loan = state._fixed.loans[loanId];
+        for (uint256 i = 0; i < params.receivableLoanIds.length; ++i) {
+            uint256 loanId = params.receivableLoanIds[i];
+            Loan memory loan = state.data.loans[loanId];
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, PERCENT + rate, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
@@ -119,7 +119,7 @@ library BorrowAsMarketOrder {
             }
 
             // the lender doesn't have enought credit to exit
-            if (deltaAmountIn < state._fixed.minimumCreditBorrowAsset) {
+            if (deltaAmountIn < state.config.minimumCreditBorrowAToken) {
                 continue;
             }
             // full amount borrowed
@@ -129,7 +129,7 @@ library BorrowAsMarketOrder {
 
             // slither-disable-next-line unused-return
             state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, credit: deltaAmountIn});
-            state.transferBorrowAToken(msg.sender, state._general.feeRecipient, state._fixed.earlyLenderExitFee);
+            state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyLenderExitFee);
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
             amountOutLeft -= deltaAmountOut;
         }
@@ -144,21 +144,21 @@ library BorrowAsMarketOrder {
             return;
         }
 
-        User storage lenderUser = state._fixed.users[params.lender];
+        User storage lenderUser = state.data.users[params.lender];
 
-        FixedLoanOffer storage loanOffer = lenderUser.loanOffer;
+        LoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        uint256 rate = loanOffer.getRate(state._general.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 issuanceValue = params.amount;
 
-        FixedLoan memory fol = state.createFOL({
+        Loan memory fol = state.createFOL({
             lender: params.lender,
             borrower: msg.sender,
             issuanceValue: issuanceValue,
             rate: rate,
             dueDate: params.dueDate
         });
-        state._fixed.debtToken.mint(msg.sender, state.getDebt(fol));
+        state.data.debtToken.mint(msg.sender, fol.getDebt());
         state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
     }
 }

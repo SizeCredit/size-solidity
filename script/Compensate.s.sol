@@ -2,8 +2,9 @@
 pragma solidity ^0.8.20;
 
 import "../src/Size.sol";
-import "forge-std/Script.sol";
+
 import "../src/SizeView.sol";
+import "forge-std/Script.sol";
 
 contract CompensateScript is Script {
     function run() external {
@@ -12,22 +13,22 @@ contract CompensateScript is Script {
 
         address LenderTest = 0xD20baecCd9F77fAA9E2C2B185F33483D7911f9C8;
         address BorrowerTest = 0x979Af411D048b453E3334C95F392012B3BbD6215;
-      
+
+        console.log("LenderTest", LenderTest);
+        console.log("BorrowerTest", BorrowerTest);
+
         address currentAddress = vm.addr(deployerPrivateKey);
         Size sizeContract = Size(sizeContractAddress);
         SizeView sizeViewContract = SizeView(sizeContractAddress);
 
         console.log(currentAddress);
 
-        uint256 getcredit = sizeViewContract.getCredit(2);
-        uint256 balance = sizeViewContract
-            .getUserView(currentAddress)
-            .collateralAmount;
+        uint256 balance = sizeViewContract.getUserView(currentAddress).collateralAmount;
         uint256 debt = sizeViewContract.getUserView(currentAddress).debtAmount;
 
-        FixedLoan[] memory loans = sizeViewContract.getFixedLoans();
+        Loan[] memory loans = sizeViewContract.getLoans();
 
-        for (uint i = 0; i < loans.length; i++) {
+        for (uint256 i = 0; i < loans.length; i++) {
             console.log("Loan Index:", i);
             console.log("Lender Address:", loans[i].generic.lender);
             console.log("Borrower Address:", loans[i].generic.borrower);
@@ -42,11 +43,7 @@ contract CompensateScript is Script {
         console.log("debt", debt);
 
         /// CompensateParams struct
-        CompensateParams memory params = CompensateParams({
-            loanToRepayId: 2,
-            loanToCompensateId: 2,
-            amount: debt
-        });
+        CompensateParams memory params = CompensateParams({loanToRepayId: 2, loanToCompensateId: 2, amount: debt});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.compensate(params);
