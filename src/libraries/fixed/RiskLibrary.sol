@@ -71,7 +71,7 @@ library RiskLibrary {
         }
     }
 
-    function validateUserIsNotBelowRiskCR(State storage state, address account) external view {
+    function validateUserIsNotBelowopeningLimitBorrowCR(State storage state, address account) external view {
         uint256 openingLimitBorrowCR = Math.max(
             state.config.crOpening,
             state.data.users[account].borrowOffer.openingLimitBorrowCR // 0 by default, or user-defined if BorrowAsLimitOrder has been placed

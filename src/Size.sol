@@ -124,7 +124,7 @@ contract Size is
     function withdraw(WithdrawParams calldata params) external override(ISize) whenNotPaused {
         state.validateWithdraw(params);
         state.executeWithdraw(params);
-        state.validateUserIsNotBelowRiskCR(msg.sender);
+        state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
     }
 
     /// @inheritdoc ISize
@@ -143,7 +143,7 @@ contract Size is
     function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external override(ISize) whenNotPaused {
         state.validateLendAsMarketOrder(params);
         state.executeLendAsMarketOrder(params);
-        state.validateUserIsNotBelowRiskCR(params.borrower);
+        state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrower);
         state.validateDebtTokenCap();
     }
 
@@ -151,7 +151,7 @@ contract Size is
     function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external override(ISize) whenNotPaused {
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
-        state.validateUserIsNotBelowRiskCR(msg.sender);
+        state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
         state.validateDebtTokenCap();
     }
 
@@ -159,7 +159,7 @@ contract Size is
     function borrowerExit(BorrowerExitParams calldata params) external override(ISize) whenNotPaused {
         state.validateBorrowerExit(params);
         state.executeBorrowerExit(params);
-        state.validateUserIsNotBelowRiskCR(params.borrowerToExitTo);
+        state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrowerToExitTo);
     }
 
     /// @inheritdoc ISize
@@ -204,7 +204,7 @@ contract Size is
         state.validateLiquidateLoanWithReplacement(params);
         (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
             state.executeLiquidateLoanWithReplacement(params);
-        state.validateUserIsNotBelowRiskCR(params.borrower);
+        state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrower);
         state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralAsset);
     }
 
