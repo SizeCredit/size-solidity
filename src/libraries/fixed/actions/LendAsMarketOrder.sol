@@ -73,6 +73,7 @@ library LendAsMarketOrder {
             issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + rate);
         }
 
+        // slither-disable-next-line unused-return
         (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,

@@ -156,6 +156,7 @@ library BorrowAsMarketOrder {
         uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 issuanceValue = params.amount;
 
+        // slither-disable-next-line unused-return
         (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({
             lender: params.lender,
             borrower: msg.sender,

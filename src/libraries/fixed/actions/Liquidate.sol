@@ -3,7 +3,6 @@ pragma solidity 0.8.24;
 
 import {Math} from "@src/libraries/Math.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 
 import {DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -68,7 +67,6 @@ library Liquidate {
     ) private returns (uint256 liquidatorProfitCollateralToken) {
         uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPositionCopy);
         uint256 debtInCollateralToken = state.faceValueInCollateralToken(debtPositionCopy);
-        ConversionLibrary.amountToWad(debtPositionCopy.faceValue(), state.data.underlyingBorrowToken.decimals());
 
         // CR > 100%
         if (assignedCollateral > debtInCollateralToken) {
