@@ -112,13 +112,18 @@ library LoanLibrary {
         return state.data.debtPositions[getDebtPositionIdByCreditPositionId(state, creditPositionId)];
     }
 
+    /// @notice Get the status of a loan
+    /// @param state The state struct
+    /// @param positionId The positionId (can be either a DebtPosition or a CreditPosition)
+    /// @return The status of the loan
     function getLoanStatus(State storage state, uint256 positionId) public view returns (LoanStatus) {
-        DebtPosition memory debtPosition;
-        if (isDebtPositionId(state, positionId)) {
-            debtPosition = state.data.debtPositions[positionId];
-        } else if (isCreditPositionId(state, positionId)) {
+        // assumes `positionId` is a debt position id
+        DebtPosition memory debtPosition = state.data.debtPositions[positionId];
+        if (isCreditPositionId(state, positionId)) {
+            // if `positionId` is in reality a credit position id, updates the memory variable
             debtPosition = getDebtPositionByCreditPositionId(state, positionId);
-        } else {
+        } else if (!isDebtPositionId(state, positionId)) {
+            // if `positionId` is neither a debt position id nor a credit position id, reverts
             revert Errors.INVALID_POSITION_ID(positionId);
         }
 
