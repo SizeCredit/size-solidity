@@ -22,13 +22,13 @@ contract RepayTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFee = size.repayFee(debtPositionId);
 
         Vars memory _before = _state();
 
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
 
         Vars memory _after = _state();
 
@@ -37,7 +37,7 @@ contract RepayTest is BaseTest {
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount);
         assertEq(_after.size.borrowAmount, _before.size.borrowAmount + faceValue);
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
-        assertEq(size.getDebt(loanId), 0);
+        assertEq(size.getDebt(debtPositionId), 0);
     }
 
     function test_Repay_repay_partial_DebtPosition() internal {}
@@ -51,12 +51,12 @@ contract RepayTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFee = size.repayFee(debtPositionId);
 
         Vars memory _before = _state();
-        assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
+        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
 
         vm.warp(365 days);
 
@@ -65,10 +65,10 @@ contract RepayTest is BaseTest {
         assertEq(_overdue.bob.debtAmount, _before.bob.debtAmount);
         assertEq(_overdue.bob.borrowAmount, _before.bob.borrowAmount);
         assertEq(_overdue.variablePool.borrowAmount, _before.variablePool.borrowAmount);
-        assertGt(size.getDebt(loanId), 0);
-        assertEq(size.getLoanStatus(loanId), LoanStatus.OVERDUE);
+        assertGt(size.getDebt(debtPositionId), 0);
+        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.OVERDUE);
 
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
 
         Vars memory _after = _state();
 
@@ -77,8 +77,8 @@ contract RepayTest is BaseTest {
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount);
         assertEq(_after.size.borrowAmount, _before.size.borrowAmount + faceValue);
-        assertEq(size.getDebt(loanId), 0);
-        assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
+        assertEq(size.getDebt(debtPositionId), 0);
+        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
     }
 
     function test_Repay_repay_claimed_should_revert() public {
@@ -90,13 +90,13 @@ contract RepayTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _borrowAsMarketOrder(bob, candy, 100e6, 12);
 
         Vars memory _before = _state();
 
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
         _claim(bob, creditId);
 
         Vars memory _after = _state();
@@ -106,8 +106,8 @@ contract RepayTest is BaseTest {
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
         assertEq(_after.size.borrowAmount, _before.size.borrowAmount, 0);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId));
-        _repay(bob, loanId);
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, debtPositionId));
+        _repay(bob, debtPositionId);
     }
 
     function test_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAToken() internal {}
@@ -123,11 +123,11 @@ contract RepayTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
         _lendAsLimitOrder(alice, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, borrowAmount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, borrowAmount, 12);
 
         vm.prank(bob);
-        try size.repay(RepayParams({debtPositionId: loanId})) {} catch {}
-        assertGe(size.getCredit(loanId), size.config().minimumCreditBorrowAToken);
+        try size.repay(RepayParams({debtPositionId: debtPositionId})) {} catch {}
+        assertGe(size.getCredit(debtPositionId), size.config().minimumCreditBorrowAToken);
     }
 
     function test_Repay_repay_pays_repayFeeAPR() private {}

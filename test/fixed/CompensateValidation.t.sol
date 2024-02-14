@@ -21,8 +21,8 @@ contract CompensateValidationTest is BaseTest {
         _lendAsLimitOrder(bob, 12, 0.05e18, 12);
         _lendAsLimitOrder(candy, 12, 0.05e18, 12);
         _lendAsLimitOrder(james, 12, 0.05e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, 12);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
@@ -59,7 +59,7 @@ contract CompensateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditPositionId));

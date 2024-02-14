@@ -33,20 +33,20 @@ contract LiquidateWithReplacementTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _borrowAsLimitOrder(candy, 0.03e18, 12);
         uint256 amount = 15e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFee = size.repayFee(debtPositionId);
         uint256 delta = faceValue - amount;
 
         _setPrice(0.2e18);
 
         Vars memory _before = _state();
 
-        assertEq(size.getDebtPosition(loanId).borrower, bob);
-        assertGt(size.getDebt(loanId), 0);
-        assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
+        assertEq(size.getDebtPosition(debtPositionId).borrower, bob);
+        assertGt(size.getDebt(debtPositionId), 0);
+        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
 
-        _liquidateWithReplacement(liquidator, loanId, candy);
+        _liquidateWithReplacement(liquidator, debtPositionId, candy);
 
         Vars memory _after = _state();
 
@@ -54,9 +54,9 @@ contract LiquidateWithReplacementTest is BaseTest {
         assertEq(_after.candy.debtAmount, _before.candy.debtAmount + faceValue + repayFee);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + amount);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
-        assertEq(size.getDebtPosition(loanId).borrower, candy);
-        assertGt(size.getDebt(loanId), 0);
-        assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
+        assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
+        assertGt(size.getDebt(debtPositionId), 0);
+        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
     }
 
     function test_LiquidateWithReplacement_liquidateWithReplacement_updates_new_borrower_borrowOffer_different_rate()
@@ -74,21 +74,21 @@ contract LiquidateWithReplacementTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _borrowAsLimitOrder(candy, 0.01e18, 12);
         uint256 amount = 15e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 newAmount = Math.mulDivDown(faceValue, PERCENT, (PERCENT + 0.01e18));
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFee = size.repayFee(debtPositionId);
         uint256 delta = faceValue - newAmount;
 
         _setPrice(0.2e18);
 
         Vars memory _before = _state();
 
-        assertEq(size.getDebtPosition(loanId).borrower, bob);
-        assertGt(size.getDebt(loanId), 0);
-        assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
+        assertEq(size.getDebtPosition(debtPositionId).borrower, bob);
+        assertGt(size.getDebt(debtPositionId), 0);
+        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
 
-        _liquidateWithReplacement(liquidator, loanId, candy);
+        _liquidateWithReplacement(liquidator, debtPositionId, candy);
 
         Vars memory _after = _state();
 
@@ -98,9 +98,9 @@ contract LiquidateWithReplacementTest is BaseTest {
         assertEq(_before.variablePool.borrowAmount, 0);
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
-        assertEq(size.getDebtPosition(loanId).borrower, candy);
-        assertGt(size.getDebt(loanId), 0);
-        assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
+        assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
+        assertGt(size.getDebt(debtPositionId), 0);
+        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
     }
 
     function test_LiquidateWithReplacement_liquidateWithReplacement_cannot_leave_new_borrower_liquidatable() public {
@@ -113,7 +113,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _borrowAsLimitOrder(candy, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
 
         _setPrice(0.2e18);
 
@@ -121,7 +121,7 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, candy, 0, 1.5e18));
         size.liquidateWithReplacement(
-            LiquidateWithReplacementParams({debtPositionId: loanId, borrower: candy, minimumCollateralProfit: 0})
+            LiquidateWithReplacementParams({debtPositionId: debtPositionId, borrower: candy, minimumCollateralProfit: 0})
         );
     }
 
@@ -137,19 +137,19 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _borrowAsLimitOrder(candy, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
 
         _setPrice(0.2e18);
 
-        assertTrue(size.isLoanLiquidatable(loanId));
+        assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
         vm.startPrank(liquidator);
 
         vm.warp(block.timestamp + 12);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, loanId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, debtPositionId));
         size.liquidateWithReplacement(
-            LiquidateWithReplacementParams({debtPositionId: loanId, borrower: candy, minimumCollateralProfit: 0})
+            LiquidateWithReplacementParams({debtPositionId: debtPositionId, borrower: candy, minimumCollateralProfit: 0})
         );
     }
 }

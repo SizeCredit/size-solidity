@@ -40,15 +40,15 @@ interface ISize {
     function withdraw(WithdrawParams calldata params) external;
 
     /// @notice Picks a lender offer and borrow tokens from the orderbook
-    ///         When using receivable loans as credit, the early exit lender fee is applied to the borrower
+    ///         When using receivable credit positions as credit, the early exit lender fee is applied to the borrower
     /// @dev The `amount` parameter is altered by the function, which is why the `params` argument is marked as `memory`
     ///      Order "takers" are the ones who pay the rounding, since "makers" are the ones passively waiting for an order to be matched
     /// @param params BorrowAsMarketOrderParams struct containing the following fields:
     ///     - address lender: The address of the lender
     ///     - uint256 amount: The amount of tokens to borrow (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
     ///     - uint256 dueDate: The due date of the loan
-    ///     - bool exactAmountIn: When passing an array of receivable loans, this flag indicates if the amount is value to be returned at due date
-    ///     - uint256[] receivableCreditPositionIds: The ids of receivable loans that can be used as credit to borrow without assigining new collateral
+    ///     - bool exactAmountIn: When passing an array of receivable credit position ids, this flag indicates if the amount is value to be returned at due date
+    ///     - uint256[] receivableCreditPositionIds: The ids of receivable credit positions that can be used as credit to borrow without assigining new collateral
     function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external;
 
     /// @notice Places a new borrow offer in the orderbook
@@ -77,30 +77,30 @@ interface ISize {
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
     function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external;
 
-    /// @notice Exits a loan to a new borrower by picking the new borrower offer from the orderbook
-    ///         When exiting a loan to a new borrower, the early exit borrower fee is applied to the current borrower
+    /// @notice Exits a debt position to a new borrower by picking the new borrower offer from the orderbook
+    ///         When exiting a debt position to a new borrower, the early exit borrower fee is applied to the current borrower
     /// @dev The current borrower debt is transferred to the new borrower, together with the borrow tokens according to the new borrower yield curve
     /// @param params BorrowerExitParams struct containing the following fields:
-    ///     - uint256 loanId: The id of the loan to exit
+    ///     - uint256 debtPositionId: The id of the debt position to exit
     ///     - address borrowerToExitTo: The address of the borrower to exit to
     function borrowerExit(BorrowerExitParams calldata params) external;
 
-    /// @notice Repay a loan by transferring the amount due of borrow tokens to the protocol, which are deposited to the Variable Pool for the lenders to claim
+    /// @notice Repay a debt position by transferring the amount due of borrow tokens to the protocol, which are deposited to the Variable Pool for the lenders to claim
     ///         Partial repayment are currently unsupported
     ///         The protocol repay fee is applied upon repayment
     /// @dev The Variable Pool liquidity index is snapshotted at the time of the repayment in order to calculate the accrued interest for lenders to claim
     /// @param params RepayParams struct containing the following fields:
-    ///     - uint256 loanId: The id of the loan to repay
+    ///     - uint256 debtPositionId: The id of the debt position to repay
     function repay(RepayParams calldata params) external;
 
     /// @notice Claim the repayment of a loan with accrued interest from the Variable Pool
     /// @dev Both ACTIVE and OVERDUE loans can't be claimed because the money is not in the protocol yet.
     ///      CLAIMED loans can't be claimed either because its credit has already been consumed entirely either by a previous claim or by exiting before
     /// @param params ClaimParams struct containing the following fields:
-    ///     - uint256 loanId: The id of the loan to claim
+    ///     - uint256 creditPositionId: The id of the credit position to claim
     function claim(ClaimParams calldata params) external;
 
-    /// @notice Liquidate a loan
+    /// @notice Liquidate a debt position
     ///         In case of protifable liquiadtion, part of the collateral remainder is split between the protocol and the liquidator
     ///         The protocol repayment fee is charged from the borrower
     ///         If the loan is overdue, a move transfer fee is charged from the borrower
@@ -119,22 +119,22 @@ interface ISize {
     ///                 else:
     ///                     loan cannot be liquidated
     /// @param params LiquidateParams struct containing the following fields:
-    ///     - uint256 loanId: The id of the loan to liquidate
+    ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
     function liquidate(LiquidateParams calldata params) external returns (uint256);
 
-    /// @notice Self liquidate a loan that is undercollateralized
+    /// @notice Self liquidate a credit position that is undercollateralized
     ///         The lender cancels an amount of debt equivalent to their credit and a percentage of the protocol fees
     /// @param params SelfLiquidateParams struct containing the following fields:
-    ///     - uint256 loanId: The id of the loan to self-liquidate
+    ///     - uint256 creditPositionId: The id of the credit position to self-liquidate
     function selfLiquidate(SelfLiquidateParams calldata params) external;
 
-    /// @notice Liquidate a loan with a replacement borrower
+    /// @notice Liquidate a debt position with a replacement borrower
     /// @dev This function works exactly like `liquidate`, with an added logic of replacing the borrower on the storage
     ///         When liquidating with replacement, nothing changes from the lender's perspective, but a spread is created between the previous borrower rate and the new borrower rate.
     ///         As a result of the spread of these borrow rates, the protocol is able to profit from the liquidation. Since the choice of the borrower impacts on the protocol's profit, this method is permissioned
     /// @param params LiquidateWithReplacementParams struct containing the following fields:
-    ///     - uint256 loanId: The id of the loan to liquidate
+    ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
     ///     - address borrower: The address of the replacement borrower
     function liquidateWithReplacement(LiquidateWithReplacementParams calldata params)
@@ -144,8 +144,8 @@ interface ISize {
     /// @notice Compensate a borrower's debt with his credit in another loan
     ///         The compensation can not exceed both 1) the credit the lender of `debtPositionToRepayId` to the borrower and 2) the credit the lender of `creditPositionToCompensateId`
     /// @param params CompensateParams struct containing the following fields:
-    ///     - uint256 debtPositionToRepayId: The id of the loan to repay
-    ///     - uint256 creditPositionToCompensateId: The id of the loan to compensate
+    ///     - uint256 debtPositionToRepayId: The id of the debt position to repay
+    ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
     function compensate(CompensateParams calldata params) external;
 }

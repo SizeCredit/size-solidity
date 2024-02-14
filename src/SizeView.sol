@@ -70,8 +70,8 @@ abstract contract SizeView is SizeStorage {
         return state.isUserLiquidatable(user);
     }
 
-    function isLoanLiquidatable(uint256 loanId) external view returns (bool) {
-        return state.isLoanLiquidatable(loanId);
+    function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool) {
+        return state.isDebtPositionLiquidatable(debtPositionId);
     }
 
     function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {

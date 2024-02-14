@@ -20,8 +20,8 @@ contract SelfLiquidateValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0, 12);
         _lendAsLimitOrder(candy, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _borrowAsMarketOrder(bob, candy, 100e6, 12);
 
         vm.startPrank(alice);
@@ -35,8 +35,8 @@ contract SelfLiquidateValidationTest is BaseTest {
 
         _setPrice(0.75e18);
 
-        uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(loanId);
-        uint256 debtWad = ConversionLibrary.amountToWad(size.getDebt(loanId), usdc.decimals());
+        uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(debtPositionId);
+        uint256 debtWad = ConversionLibrary.amountToWad(size.getDebt(debtPositionId), usdc.decimals());
         uint256 debtCollateral = Math.mulDivDown(debtWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         vm.startPrank(alice);
@@ -57,7 +57,7 @@ contract SelfLiquidateValidationTest is BaseTest {
 
         _setPrice(0.75e18);
 
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
         _setPrice(0.25e18);
 
         vm.startPrank(alice);

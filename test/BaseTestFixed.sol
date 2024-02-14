@@ -243,11 +243,11 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return size.selfLiquidate(SelfLiquidateParams({creditPositionId: creditPositionId}));
     }
 
-    function _liquidateWithReplacement(address user, uint256 loanId, address borrower)
+    function _liquidateWithReplacement(address user, uint256 debtPositionId, address borrower)
         internal
         returns (uint256, uint256)
     {
-        return _liquidateWithReplacement(user, loanId, borrower, 1e18);
+        return _liquidateWithReplacement(user, debtPositionId, borrower, 1e18);
     }
 
     function _liquidateWithReplacement(

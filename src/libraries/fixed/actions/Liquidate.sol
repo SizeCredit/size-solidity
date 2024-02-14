@@ -37,7 +37,7 @@ library Liquidate {
         if (!state.isDebtPositionId(params.debtPositionId)) {
             revert Errors.ONLY_DEBT_POSITION_CAN_BE_LIQUIDATED(params.debtPositionId);
         }
-        if (!state.isLoanLiquidatable(params.debtPositionId)) {
+        if (!state.isDebtPositionLiquidatable(params.debtPositionId)) {
             revert Errors.LOAN_NOT_LIQUIDATABLE(
                 params.debtPositionId,
                 state.collateralRatio(debtPosition.borrower),

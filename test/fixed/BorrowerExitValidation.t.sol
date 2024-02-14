@@ -21,7 +21,7 @@ contract BorrowerExitValidationTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 12, 1e18, 12);
         _lendAsLimitOrder(james, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsLimitOrder(candy, 0, 12);
         uint256 loanId2 = _borrowAsMarketOrder(candy, james, 50e6, 12);
         uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
@@ -30,7 +30,7 @@ contract BorrowerExitValidationTest is BaseTest {
         address borrowerToExitTo = candy;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.EXITER_IS_NOT_BORROWER.selector, address(this), bob));
-        size.borrowerExit(BorrowerExitParams({debtPositionId: loanId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
 
         vm.startPrank(bob);
         vm.expectRevert(
@@ -38,7 +38,7 @@ contract BorrowerExitValidationTest is BaseTest {
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, 100e6, 200e6 + size.config().earlyBorrowerExitFee
             )
         );
-        size.borrowerExit(BorrowerExitParams({debtPositionId: loanId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
         vm.stopPrank();
 
         vm.startPrank(james);
@@ -47,7 +47,7 @@ contract BorrowerExitValidationTest is BaseTest {
 
         vm.startPrank(bob);
         vm.expectRevert();
-        size.borrowerExit(BorrowerExitParams({debtPositionId: loanId, borrowerToExitTo: address(0)}));
+        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: address(0)}));
         vm.stopPrank();
 
         _deposit(bob, usdc, 100e6);
@@ -57,6 +57,6 @@ contract BorrowerExitValidationTest is BaseTest {
 
         vm.warp(block.timestamp + 12);
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 12));
-        size.borrowerExit(BorrowerExitParams({debtPositionId: loanId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
     }
 }

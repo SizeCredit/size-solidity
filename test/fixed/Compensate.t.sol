@@ -19,10 +19,10 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(bob, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 12, 1e18, 12);
         _lendAsLimitOrder(james, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFee = size.repayFee(debtPositionId);
 
         uint256 repaidLoanDebtBefore = size.getDebt(loanId3);
         uint256 compensatedLoanCreditBefore = size.getCredit(creditPositionId);
@@ -55,17 +55,17 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
         _borrowAsMarketOrder(bob, alice, 40e6, 12);
-        uint256 loanId = _borrowAsMarketOrder(alice, bob, 20e6, 12);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 20e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _borrowAsMarketOrder(bob, alice, 10e6, 12, [creditPositionId]);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId)[1];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
-        uint256 repaidLoanDebtBefore = size.getDebt(loanId);
+        uint256 repaidLoanDebtBefore = size.getDebt(debtPositionId);
         uint256 compensatedLoanCreditBefore = size.getCredit(creditPositionId2);
 
-        _compensate(alice, loanId, creditPositionId2);
+        _compensate(alice, debtPositionId, creditPositionId2);
 
-        uint256 repaidLoanDebtAfter = size.getDebt(loanId);
+        uint256 repaidLoanDebtAfter = size.getDebt(debtPositionId);
         uint256 compensatedLoanCreditAfter = size.getCredit(creditPositionId2);
 
         assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 10e6);
@@ -86,8 +86,8 @@ contract CompensateTest is BaseTest {
         _lendAsLimitOrder(bob, 12, 0, 12);
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 20e6, 12);
 
         _repay(alice, loanId2);

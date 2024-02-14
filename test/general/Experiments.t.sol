@@ -79,7 +79,7 @@ contract ExperimentsTest is Test, BaseTest {
         _setPrice(60e18);
 
         assertTrue(size.isUserLiquidatable(alice), "borrower should be liquidatable");
-        assertTrue(size.isLoanLiquidatable(0), "loan should be liquidatable");
+        assertTrue(size.isDebtPositionLiquidatable(0), "loan should be liquidatable");
 
         _deposit(liquidator, usdc, 10_000e6);
         console.log("loan should be liquidated");
@@ -254,7 +254,7 @@ contract ExperimentsTest is Test, BaseTest {
 
         // Assert conditions for liquidation
         assertTrue(size.isUserLiquidatable(alice), "Borrower should be liquidatable");
-        assertTrue(size.isLoanLiquidatable(0), "Loan should be liquidatable");
+        assertTrue(size.isDebtPositionLiquidatable(0), "Loan should be liquidatable");
 
         // Perform self liquidation
         assertGt(size.getDebt(0), 0, "Loan should be greater than 0");
@@ -346,7 +346,7 @@ contract ExperimentsTest is Test, BaseTest {
 
         // Assert conditions for liquidation
         assertTrue(size.isUserLiquidatable(alice), "Borrower should be liquidatable");
-        assertTrue(size.isLoanLiquidatable(0), "Loan should be liquidatable");
+        assertTrue(size.isDebtPositionLiquidatable(0), "Loan should be liquidatable");
 
         DebtPosition memory fol = size.getDebtPosition(0);
         uint256 repayFee = size.repayFee(0);
@@ -381,13 +381,13 @@ contract ExperimentsTest is Test, BaseTest {
         uint256 dueDate = 6;
 
         // Alice borrows as market order from Bob
-        uint256 loanId = _borrowAsMarketOrder(alice, bob, 50e6, dueDate);
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 50e6, dueDate);
         (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
         assertEq(debtPositionsCount, 1, "There should be one active loan");
         assertEq(creditPositionsCount, 1, "There should be one active loan");
-        assertTrue(size.isDebtPositionId(loanId), "The first loan should be DebtPosition");
+        assertTrue(size.isDebtPositionId(debtPositionId), "The first loan should be DebtPosition");
 
-        DebtPosition memory fol = size.getDebtPosition(loanId);
+        DebtPosition memory fol = size.getDebtPosition(debtPositionId);
 
         // Calculate amount to borrow
         uint256 amountToBorrow = fol.faceValue() / 10;
@@ -403,7 +403,7 @@ contract ExperimentsTest is Test, BaseTest {
 
         // Bob compensates
         uint256 debtPositionToRepayId = loanId2;
-        uint256 creditPositionToCompensateId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 creditPositionToCompensateId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _compensate(bob, debtPositionToRepayId, creditPositionToCompensateId, type(uint256).max);
 
         assertEq(
@@ -419,8 +419,8 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(alice, usdc, 100e6);
         YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 repayFee = size.repayFee(debtPositionId);
         // Borrower B1 submits a borror market order for
         // Loan1
         // - Lender=L
@@ -434,7 +434,7 @@ contract ExperimentsTest is Test, BaseTest {
         vm.warp(block.timestamp + 365 days);
 
         _deposit(bob, usdc, 10e6);
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
 
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
@@ -452,19 +452,19 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(alice, usdc, 200e6);
         YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
 
         // admin changes repayFeeAPR
         _updateConfig("repayFeeAPR", 0.1e18);
 
         uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 100e6, 365 days);
 
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFee = size.repayFee(debtPositionId);
         uint256 repayFee2 = size.repayFee(loanId2);
 
         vm.warp(block.timestamp + 365 days);
 
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
 
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
@@ -500,7 +500,7 @@ contract ExperimentsTest is Test, BaseTest {
         _lendAsLimitOrder(bob, block.timestamp + 365 days, curve2);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, curve2);
         _lendAsLimitOrder(james, block.timestamp + 365 days, curve2);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
         uint256 loanId2 = _borrowAsMarketOrder(candy, james, 200e6, 365 days);
         uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
         _borrowAsMarketOrder(james, bob, 120e6, 365 days, [creditId2]);
@@ -517,10 +517,10 @@ contract ExperimentsTest is Test, BaseTest {
         // DebtPosition.FV() = DebtPosition.IV * DebtPosition.FullLenderRate
         // Also tracked
         // fol.credit = DebtPosition.FV() --> 110
-        assertEq(size.getDebtPosition(loanId).faceValue(), 110e6);
-        assertEq(size.getDebtPosition(loanId).issuanceValue, 100e6);
-        assertEq(size.getCreditPositionsByDebtPositionId(loanId)[0].credit, 110e6);
-        assertEq(size.repayFee(loanId), 0.5e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue(), 110e6);
+        assertEq(size.getDebtPosition(debtPositionId).issuanceValue, 100e6);
+        assertEq(size.getCreditPositionsByDebtPositionId(debtPositionId)[0].credit, 110e6);
+        assertEq(size.repayFee(debtPositionId), 0.5e6);
 
         // At t=7 borrower compensates for an amount A=20
         // Let's say this amount comes from a CreditPosition CreditPosition1 the borrower owns, so something like
@@ -530,7 +530,7 @@ contract ExperimentsTest is Test, BaseTest {
         // CreditPosition1.DebtPosition().DueDate = 30 Dec 2023
         assertEq(size.getCredit(creditPositionId), 120e6);
 
-        _compensate(bob, loanId, creditPositionId, 20e6);
+        _compensate(bob, debtPositionId, creditPositionId, 20e6);
 
         // then the update is
         // CreditPosition1.credit -= 20 --> 100
@@ -538,8 +538,10 @@ contract ExperimentsTest is Test, BaseTest {
 
         // Now Borrower has A=20 to compensate his debt on DebtPosition1 which results in
         // DebtPosition1.protocolFees(t=7) = 100 * 0.005  --> 0.29
-        assertEq(size.getDebtPosition(loanId).issuanceValue, 100e6 - uint256(20e6 * 1e18) / 1.1e18, 81.818182e6);
-        assertEq(size.repayFee(loanId), ((100e6 - uint256(20e6 * 1e18) / 1.1e18) * 0.005e18 / 1e18) + 1, 0.409091e6);
+        assertEq(size.getDebtPosition(debtPositionId).issuanceValue, 100e6 - uint256(20e6 * 1e18) / 1.1e18, 81.818182e6);
+        assertEq(
+            size.repayFee(debtPositionId), ((100e6 - uint256(20e6 * 1e18) / 1.1e18) * 0.005e18 / 1e18) + 1, 0.409091e6
+        );
 
         // At this point, we need to take 0.29 USDC in fees and we have 2 ways to do it
 

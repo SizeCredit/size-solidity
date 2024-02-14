@@ -32,12 +32,9 @@ library SelfLiquidate {
         DebtPosition storage debtPosition = state.getDebtPosition(params.creditPositionId);
 
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
-        uint256 debtWad =
-            ConversionLibrary.amountToWad(debtPosition.getDebt(), state.data.underlyingBorrowToken.decimals());
-        uint256 debtCollateral =
-            Math.mulDivDown(debtWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice());
+        uint256 debtInCollateralToken = state.faceValueInCollateralToken(debtPosition);
 
-        // validate loanId
+        // validate creditPositionId
         if (!state.isCreditPositionId(params.creditPositionId)) {
             revert Errors.ONLY_CREDIT_POSITION_CAN_BE_SELF_LIQUIDATED(params.creditPositionId);
         }
@@ -48,8 +45,8 @@ library SelfLiquidate {
                 state.getLoanStatus(params.creditPositionId)
             );
         }
-        if (!(assignedCollateral < debtCollateral)) {
-            revert Errors.LIQUIDATION_NOT_AT_LOSS(params.creditPositionId, assignedCollateral, debtCollateral);
+        if (!(assignedCollateral < debtInCollateralToken)) {
+            revert Errors.LIQUIDATION_NOT_AT_LOSS(params.creditPositionId, assignedCollateral, debtInCollateralToken);
         }
 
         // validate msg.sender

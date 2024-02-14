@@ -18,7 +18,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _lendAsLimitOrder(bob, 5, 0.03e18, 5);
         _lendAsLimitOrder(candy, 10, 0.03e18, 10);
-        uint256 loanId = _borrowAsMarketOrder(alice, candy, 5e6, 10);
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, candy, 5e6, 10);
 
         uint256 amount = 10e6;
         uint256 dueDate = 12;
@@ -87,7 +87,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
             })
         );
 
-        receivableCreditPositionIds = size.getCreditPositionIdsByDebtPositionId(loanId);
+        receivableCreditPositionIds = size.getCreditPositionIdsByDebtPositionId(debtPositionId);
         vm.expectRevert(abi.encodeWithSelector(Errors.BORROWER_IS_NOT_LENDER.selector, bob, candy));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({

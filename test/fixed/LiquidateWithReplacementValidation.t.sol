@@ -24,7 +24,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _borrowAsLimitOrder(candy, 0.03e18, 4);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
         uint256 minimumCollateralProfit = 0;
 
         _setPrice(0.2e18);
@@ -34,7 +34,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, james));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
-                debtPositionId: loanId,
+                debtPositionId: debtPositionId,
                 borrower: james,
                 minimumCollateralProfit: minimumCollateralProfit
             })
@@ -42,10 +42,10 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
 
         vm.warp(block.timestamp + 12);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, loanId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, debtPositionId));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
-                debtPositionId: loanId,
+                debtPositionId: debtPositionId,
                 borrower: candy,
                 minimumCollateralProfit: minimumCollateralProfit
             })

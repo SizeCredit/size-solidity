@@ -48,7 +48,7 @@ library RiskLibrary {
             && (isUserLiquidatable(state, creditPosition.borrower) && status != LoanStatus.REPAID);
     }
 
-    function isLoanLiquidatable(State storage state, uint256 debtPositionId) public view returns (bool) {
+    function isDebtPositionLiquidatable(State storage state, uint256 debtPositionId) public view returns (bool) {
         DebtPosition storage debtPosition = state.data.debtPositions[debtPositionId];
         LoanStatus status = state.getLoanStatus(debtPositionId);
         // only DebtPositions can be liquidated

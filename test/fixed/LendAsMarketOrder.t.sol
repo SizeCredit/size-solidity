@@ -33,8 +33,8 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
 
-        uint256 loanId = _lendAsMarketOrder(bob, alice, faceValue, dueDate);
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 debtPositionId = _lendAsMarketOrder(bob, alice, faceValue, dueDate);
+        uint256 repayFee = size.repayFee(debtPositionId);
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -43,9 +43,9 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(size.faceValue(loanId), faceValue);
-        assertEq(size.getDebt(loanId), faceValue + repayFee);
-        assertEq(size.getDebtPosition(loanId).dueDate, dueDate);
+        assertEq(size.faceValue(debtPositionId), faceValue);
+        assertEq(size.getDebt(debtPositionId), faceValue + repayFee);
+        assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
     function test_LendAsMarketOrder_lendAsMarketOrder_exactAmountIn() public {
@@ -62,8 +62,8 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
 
-        uint256 loanId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 debtPositionId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
+        uint256 repayFee = size.repayFee(debtPositionId);
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -72,8 +72,8 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(size.faceValue(loanId), faceValue);
-        assertEq(size.getDebtPosition(loanId).dueDate, dueDate);
+        assertEq(size.faceValue(debtPositionId), faceValue);
+        assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
     function testFuzz_LendAsMarketOrder_lendAsMarketOrder_exactAmountIn(uint256 amountIn, uint256 seed) public {
@@ -92,8 +92,8 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
 
-        uint256 loanId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 debtPositionId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
+        uint256 repayFee = size.repayFee(debtPositionId);
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -102,8 +102,8 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
         assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(size.faceValue(loanId), faceValue);
-        assertEq(size.getDebtPosition(loanId).dueDate, dueDate);
+        assertEq(size.faceValue(debtPositionId), faceValue);
+        assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
     function test_LendAsMarketOrder_lendAsMarketOrder_cannot_leave_borrower_liquidatable() public {

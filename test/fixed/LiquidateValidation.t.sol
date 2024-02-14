@@ -24,10 +24,10 @@ contract LiquidateValidationTest is BaseTest {
         _lendAsLimitOrder(james, 12, 0.03e18, 12);
         _borrowAsMarketOrder(bob, candy, 90e6, 12);
 
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _borrowAsMarketOrder(alice, james, 5e6, 12, [creditId]);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 minimumCollateralProfit = 0;
 
         _deposit(liquidator, usdc, 10_000e6);
@@ -42,10 +42,12 @@ contract LiquidateValidationTest is BaseTest {
         vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.ACTIVE
+                Errors.LOAN_NOT_LIQUIDATABLE.selector, debtPositionId, size.collateralRatio(bob), LoanStatus.ACTIVE
             )
         );
-        size.liquidate(LiquidateParams({debtPositionId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
+        size.liquidate(
+            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
+        );
         vm.stopPrank();
 
         _borrowAsMarketOrder(alice, candy, 10e6, 12, [creditId]);
@@ -55,10 +57,12 @@ contract LiquidateValidationTest is BaseTest {
         vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.ACTIVE
+                Errors.LOAN_NOT_LIQUIDATABLE.selector, debtPositionId, size.collateralRatio(bob), LoanStatus.ACTIVE
             )
         );
-        size.liquidate(LiquidateParams({debtPositionId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
+        size.liquidate(
+            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
+        );
         vm.stopPrank();
 
         _setPrice(0.01e18);
@@ -72,7 +76,7 @@ contract LiquidateValidationTest is BaseTest {
         vm.stopPrank();
 
         _setPrice(100e18);
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
         _withdraw(bob, weth, 98e18);
 
         _setPrice(0.2e18);
@@ -81,10 +85,12 @@ contract LiquidateValidationTest is BaseTest {
         vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.REPAID
+                Errors.LOAN_NOT_LIQUIDATABLE.selector, debtPositionId, size.collateralRatio(bob), LoanStatus.REPAID
             )
         );
-        size.liquidate(LiquidateParams({debtPositionId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
+        size.liquidate(
+            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
+        );
         vm.stopPrank();
     }
 }

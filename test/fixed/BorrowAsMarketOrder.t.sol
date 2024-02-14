@@ -36,11 +36,11 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 amount = 10e6;
         uint256 dueDate = 12;
 
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
 
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFee = size.repayFee(debtPositionId);
         uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
         uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
@@ -74,12 +74,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _before = _state();
 
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
         uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
         uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
         uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 repayFee = size.repayFee(debtPositionId);
         Vars memory _after = _state();
 
         assertGt(_before.bob.collateralAmount, minimumCollateral);
@@ -99,12 +99,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 amount = 30e6;
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _lendAsLimitOrder(candy, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 60e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 60e6, 12);
 
         Vars memory _before = _state();
 
         uint256 loanId2 =
-            _borrowAsMarketOrder(alice, candy, amount, 12, size.getCreditPositionIdsByDebtPositionId(loanId));
+            _borrowAsMarketOrder(alice, candy, amount, 12, size.getCreditPositionIdsByDebtPositionId(debtPositionId));
 
         Vars memory _after = _state();
 
@@ -135,12 +135,13 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         _lendAsLimitOrder(alice, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
         _lendAsLimitOrder(candy, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
 
         Vars memory _before = _state();
 
-        uint256 loanId2 =
-            _borrowAsMarketOrder(alice, candy, amount, dueDate, size.getCreditPositionIdsByDebtPositionId(loanId));
+        uint256 loanId2 = _borrowAsMarketOrder(
+            alice, candy, amount, dueDate, size.getCreditPositionIdsByDebtPositionId(debtPositionId)
+        );
 
         Vars memory _after = _state();
 
@@ -163,7 +164,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 0.05e18, 12);
         _lendAsLimitOrder(candy, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
         LoanOffer memory loanOffer = size.getUserView(candy).user.loanOffer;
 
         Vars memory _before = _state();
@@ -171,7 +172,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 amountLoanId2 = 30e6;
         uint256 loanId2 = _borrowAsMarketOrder(
-            alice, candy, amountLoanId2, dueDate, size.getCreditPositionIdsByDebtPositionId(loanId)
+            alice, candy, amountLoanId2, dueDate, size.getCreditPositionIdsByDebtPositionId(debtPositionId)
         );
         uint256 repayFee = size.repayFee(loanId2);
 
@@ -252,12 +253,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         _lendAsLimitOrder(candy, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 30e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 30e6, 12);
 
         Vars memory _before = _state();
 
         uint256 loanId2 =
-            _borrowAsMarketOrder(alice, candy, 30e6, 12, size.getCreditPositionIdsByDebtPositionId(loanId));
+            _borrowAsMarketOrder(alice, candy, 30e6, 12, size.getCreditPositionIdsByDebtPositionId(debtPositionId));
 
         Vars memory _after = _state();
 
@@ -338,8 +339,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         (uint256 loansBefore,) = size.getPositionsCount();
         Vars memory _before = _state();
 
-        uint256 loanId = _borrowAsMarketOrder(alice, james, 100e6, 12, [creditPositionId]);
-        uint256 repayFee = size.repayFee(loanId);
+        _borrowAsMarketOrder(alice, james, 100e6, 12, [creditPositionId]);
+        uint256 repayFee = size.repayFee(debtPositionId);
 
         (uint256 loansAfter,) = size.getPositionsCount();
         Vars memory _after = _state();
@@ -366,15 +367,15 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(bob, 12, 0, 12);
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 49e6, 12, [creditPositionId]);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId)[1];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 loanId3 = _borrowAsMarketOrder(candy, bob, 42e6, 12, [creditPositionId2]);
 
         assertEq(loanId2, loanId3, type(uint256).max);
-        assertEq(size.getCreditPosition(creditPositionId).debtPositionId, loanId);
-        assertEq(size.getCreditPosition(creditPositionId2).debtPositionId, loanId);
+        assertEq(size.getCreditPosition(creditPositionId).debtPositionId, debtPositionId);
+        assertEq(size.getCreditPosition(creditPositionId2).debtPositionId, debtPositionId);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_CreditPosition_credit_is_decreased_after_exit() public {
@@ -391,10 +392,10 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(bob, 12, 0, 12);
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _borrowAsMarketOrder(alice, candy, 49e6, 12, [creditPositionId]);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId)[1];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         CreditPosition memory creditBefore1 = size.getCreditPosition(creditPositionId);
         CreditPosition memory creditBefore2 = size.getCreditPosition(creditPositionId2);
@@ -422,8 +423,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _lendAsLimitOrder(bob, 12, 0, 12);
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256[] memory receivableCreditPositionIds = size.getCreditPositionIdsByDebtPositionId(loanId);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256[] memory receivableCreditPositionIds = size.getCreditPositionIdsByDebtPositionId(debtPositionId);
         _borrowAsMarketOrder(alice, candy, 100e6, 12, receivableCreditPositionIds);
 
         console.log("User attempts to fully exit twice, but a DebtPosition is attempted to be created, which reverts");

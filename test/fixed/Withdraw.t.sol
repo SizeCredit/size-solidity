@@ -158,12 +158,12 @@ contract WithdrawTest is BaseTest {
         uint256 rate = 1;
         _lendAsLimitOrder(alice, 12, rate, 12);
         uint256 amount = 15e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
 
         _setPrice(0.125e18);
 
-        _liquidate(liquidator, loanId);
+        _liquidate(liquidator, debtPositionId);
         _withdraw(liquidator, usdc, type(uint256).max);
 
         assertEq(usdc.balanceOf(liquidator), liquidatorAmount - faceValue);

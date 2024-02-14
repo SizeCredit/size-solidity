@@ -23,7 +23,7 @@ abstract contract Helper is Deploy, PropertiesConstants {
         return YieldCurveHelper.getRandomYieldCurve(seed);
     }
 
-    function _getRandomReceivableLoanIds(uint256 n, uint256 seed)
+    function _getRandomReceivableCreditPositionIds(uint256 n, uint256 seed)
         internal
         view
         returns (uint256[] memory receivableCreditPositionIds)

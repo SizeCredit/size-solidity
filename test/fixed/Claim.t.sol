@@ -20,15 +20,15 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
-        _repay(bob, loanId);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        _repay(bob, debtPositionId);
 
         uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
 
         Vars memory _before = _state();
 
-        assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
+        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
         _claim(alice, creditId);
 
         Vars memory _after = _state();
@@ -45,19 +45,19 @@ contract ClaimTest is BaseTest {
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _lendAsLimitOrder(candy, 12, 0.03e18, 12);
         uint256 r = PERCENT + 0.03e18;
 
         uint256 faceValueExited = 10e6;
         uint256 amount = Math.mulDivDown(faceValueExited, PERCENT, r);
         _borrowAsMarketOrder(alice, candy, amount, 12, [creditId]);
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
 
         Vars memory _before = _state();
 
-        assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
+        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
         _claim(alice, creditId);
 
         Vars memory _after = _state();
@@ -77,14 +77,14 @@ contract ClaimTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _borrowAsMarketOrder(alice, candy, 10e6, 12, [creditId]);
-        uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId)[1];
+        uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         Vars memory _before = _state();
 
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
         _claim(alice, creditId2);
 
         Vars memory _after = _state();
@@ -101,12 +101,12 @@ contract ClaimTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         Vars memory _before = _state();
 
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
         _claim(bob, creditId);
 
         Vars memory _after = _state();
@@ -130,12 +130,12 @@ contract ClaimTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         Vars memory _before = _state();
 
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
         _claim(alice, creditId);
 
         Vars memory _after = _state();
@@ -153,12 +153,12 @@ contract ClaimTest is BaseTest {
         _deposit(bob, weth, 320e18);
         _deposit(liquidator, usdc, 10000e6);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         _setPrice(0.75e18);
 
-        _liquidate(liquidator, loanId);
+        _liquidate(liquidator, debtPositionId);
 
         Vars memory _before = _state();
 
@@ -178,10 +178,10 @@ contract ClaimTest is BaseTest {
         _deposit(liquidator, usdc, 1000e6);
         _lendAsLimitOrder(bob, 12, 0, 12);
         _lendAsLimitOrder(candy, 12, 0, 12);
-        uint256 loanId = _borrowAsMarketOrder(alice, bob, 100e6, 12);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _borrowAsMarketOrder(bob, candy, 10e6, 12, [creditId]);
-        uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId)[1];
+        uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         IAToken borrowAToken = size.data().borrowAToken;
 
         Vars memory _s1 = _state();
@@ -190,7 +190,7 @@ contract ClaimTest is BaseTest {
         assertEq(_s1.size.borrowAmount, 0, "Size has 0");
 
         _setLiquidityIndex(2e27);
-        _repay(alice, loanId);
+        _repay(alice, debtPositionId);
 
         Vars memory _s2 = _state();
 

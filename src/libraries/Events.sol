@@ -43,18 +43,20 @@ library Events {
         uint256 debtPositionId,
         uint256 credit
     );
-    event BorrowerExit(uint256 indexed loanId, address borrowerExitedTo);
-    event Repay(uint256 indexed loanId);
-    event Claim(uint256 indexed loanId);
+    event BorrowerExit(uint256 indexed debtPositionId, address borrowerExitedTo);
+    event Repay(uint256 indexed debtPositionId);
+    event Claim(uint256 indexed creditPositionId);
     event Liquidate(
         uint256 indexed debtPositionId, uint256 minimumCollateralProfit, uint256 collateralRatio, LoanStatus loanStatus
     );
-    event SelfLiquidate(uint256 indexed loanId);
-    event LiquidateWithReplacement(uint256 indexed loanId, address indexed borrower, uint256 minimumCollateralProfit);
-    event LiquidateUserLiquidatableProfitably(uint256 indexed loanId);
-    event LiquidateUserLiquidatableUnprofitably(uint256 indexed loanId);
-    event LiquidateOverdueMoveToVariablePool(uint256 indexed loanId);
-    event LiquidateOverdueNoSplitRemainder(uint256 indexed loanId);
+    event SelfLiquidate(uint256 indexed creditPositionId);
+    event LiquidateWithReplacement(
+        uint256 indexed debtPositionId, address indexed borrower, uint256 minimumCollateralProfit
+    );
+    event LiquidateUserLiquidatableProfitably(uint256 indexed debtPositionId);
+    event LiquidateUserLiquidatableUnprofitably(uint256 indexed debtPositionId);
+    event LiquidateOverdueMoveToVariablePool(uint256 indexed debtPositionId);
+    event LiquidateOverdueNoSplitRemainder(uint256 indexed debtPositionId);
     event Compensate(
         uint256 indexed debtPositionToRepayId, uint256 indexed creditPositionToCompensateId, uint256 amount
     );

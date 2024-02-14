@@ -5,7 +5,6 @@ import {UserView} from "@src/SizeView.sol";
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {Deploy} from "@test/Deploy.sol";
 
 abstract contract BeforeAfter is Deploy {
@@ -18,7 +17,8 @@ abstract contract BeforeAfter is Deploy {
         bool isBorrowerLiquidatable;
         uint256 senderCollateralAmount;
         uint256 senderBorrowAmount;
-        uint256 activeLoans;
+        uint256 debtPositionsCount;
+        uint256 creditPositionsCount;
         uint256 variablePoolBorrowAmount;
         uint256 totalDebtAmount;
     }
@@ -56,17 +56,17 @@ abstract contract BeforeAfter is Deploy {
         vars.isSenderLiquidatable = size.isUserLiquidatable(sender);
         vars.senderCollateralAmount = weth.balanceOf(sender);
         vars.senderBorrowAmount = usdc.balanceOf(sender);
-        (vars.activeLoans,) = size.getPositionsCount();
+        (vars.debtPositionsCount, vars.creditPositionsCount) = size.getPositionsCount();
         vars.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowAmount;
         vars.totalDebtAmount = size.data().debtToken.totalSupply();
     }
 
-    function __before(uint256 loanId) internal {
-        __snapshot(_before, loanId);
+    function __before(uint256 positionId) internal {
+        __snapshot(_before, positionId);
     }
 
-    function __after(uint256 loanId) internal {
-        __snapshot(_after, loanId);
+    function __after(uint256 positionId) internal {
+        __snapshot(_after, positionId);
     }
 
     function __before() internal {
