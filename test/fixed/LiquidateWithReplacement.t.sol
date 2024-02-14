@@ -6,7 +6,7 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {Loan, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 
@@ -40,23 +40,21 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        Loan memory loanBefore = size.getLoan(loanId);
         Vars memory _before = _state();
 
-        assertEq(loanBefore.generic.borrower, bob);
+        assertEq(size.getDebtPosition(loanId).borrower, bob);
         assertGt(size.getDebt(loanId), 0);
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
 
         _liquidateWithReplacement(liquidator, loanId, candy);
 
-        Loan memory loanAfter = size.getLoan(loanId);
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
         assertEq(_after.candy.debtAmount, _before.candy.debtAmount + faceValue + repayFee);
         assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + amount);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
-        assertEq(loanAfter.generic.borrower, candy);
+        assertEq(size.getDebtPosition(loanId).borrower, candy);
         assertGt(size.getDebt(loanId), 0);
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
     }
@@ -84,16 +82,14 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        Loan memory loanBefore = size.getLoan(loanId);
         Vars memory _before = _state();
 
-        assertEq(loanBefore.generic.borrower, bob);
+        assertEq(size.getDebtPosition(loanId).borrower, bob);
         assertGt(size.getDebt(loanId), 0);
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
 
         _liquidateWithReplacement(liquidator, loanId, candy);
 
-        Loan memory loanAfter = size.getLoan(loanId);
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
@@ -102,7 +98,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         assertEq(_before.variablePool.borrowAmount, 0);
         assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
-        assertEq(loanAfter.generic.borrower, candy);
+        assertEq(size.getDebtPosition(loanId).borrower, candy);
         assertGt(size.getDebt(loanId), 0);
         assertEq(size.getLoanStatus(loanId), LoanStatus.ACTIVE);
     }
@@ -125,7 +121,7 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, candy, 0, 1.5e18));
         size.liquidateWithReplacement(
-            LiquidateWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralProfit: 0})
+            LiquidateWithReplacementParams({debtPositionId: loanId, borrower: candy, minimumCollateralProfit: 0})
         );
     }
 
@@ -151,11 +147,9 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         vm.warp(block.timestamp + 12);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.INVALID_LOAN_STATUS.selector, loanId, LoanStatus.OVERDUE, LoanStatus.ACTIVE)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, loanId));
         size.liquidateWithReplacement(
-            LiquidateWithReplacementParams({loanId: loanId, borrower: candy, minimumCollateralProfit: 0})
+            LiquidateWithReplacementParams({debtPositionId: loanId, borrower: candy, minimumCollateralProfit: 0})
         );
     }
 }

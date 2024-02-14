@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SizeStorage, State} from "@src/SizeStorage.sol";
 
 import {
@@ -14,6 +15,7 @@ import {
 import {UpdateConfig} from "@src/libraries/general/actions/UpdateConfig.sol";
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
+import {IPool} from "@aave/interfaces/IPool.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
@@ -34,6 +36,17 @@ struct UserView {
     uint256 collateralAmount;
     uint256 borrowAmount;
     uint256 debtAmount;
+}
+
+struct DataView {
+    uint256 nextDebtPositionId;
+    uint256 nextCreditPositionId;
+    IERC20Metadata underlyingCollateralToken;
+    IERC20Metadata underlyingBorrowToken;
+    IPool variablePool;
+    NonTransferrableToken collateralToken;
+    IAToken borrowAToken;
+    NonTransferrableToken debtToken;
 }
 
 /// @title SizeView
@@ -74,12 +87,16 @@ abstract contract SizeView is SizeStorage {
         return state.getDebtPosition(positionId).faceValue();
     }
 
+    function faceValueInCollateralToken(uint256 positionId) external view returns (uint256) {
+        return state.faceValueInCollateralToken(state.getDebtPosition(positionId));
+    }
+
     function getDueDate(uint256 positionId) external view returns (uint256) {
         return state.getDebtPosition(positionId).dueDate;
     }
 
     function getCredit(uint256 creditPositionId) external view returns (uint256) {
-        return state.data.creditPositions[creditPositionId].credit;
+        return state.getCreditPosition(creditPositionId).credit;
     }
 
     function config() external view returns (InitializeConfigParams memory) {
@@ -90,8 +107,17 @@ abstract contract SizeView is SizeStorage {
         return state.oracleParams();
     }
 
-    function data() external view returns (InitializeDataParams memory) {
-        return state.dataParams();
+    function data() external view returns (DataView memory) {
+        return DataView({
+            nextDebtPositionId: state.data.nextDebtPositionId,
+            nextCreditPositionId: state.data.nextCreditPositionId,
+            underlyingCollateralToken: state.data.underlyingCollateralToken,
+            underlyingBorrowToken: state.data.underlyingBorrowToken,
+            variablePool: state.data.variablePool,
+            collateralToken: state.data.collateralToken,
+            borrowAToken: state.data.borrowAToken,
+            debtToken: state.data.debtToken
+        });
     }
 
     function getUserView(address user) external view returns (UserView memory) {
@@ -120,8 +146,78 @@ abstract contract SizeView is SizeStorage {
         return state.getDebtPosition(positionId);
     }
 
+    function getDebtPositions() external view returns (DebtPosition[] memory debtPositions) {
+        uint256 length = state.data.nextDebtPositionId - DEBT_POSITION_ID_START;
+        debtPositions = new DebtPosition[](length);
+        for (uint256 i = 0; i < length; ++i) {
+            uint256 debtPositionId = DEBT_POSITION_ID_START + i;
+            debtPositions[i] = state.getDebtPosition(debtPositionId);
+        }
+    }
+
+    function getDebtPositions(uint256[] memory debtPositionIds)
+        external
+        view
+        returns (DebtPosition[] memory debtPositions)
+    {
+        uint256 length = debtPositionIds.length;
+        debtPositions = new DebtPosition[](length);
+        for (uint256 i = 0; i < length; ++i) {
+            debtPositions[i] = state.getDebtPosition(debtPositionIds[i]);
+        }
+    }
+
     function getCreditPosition(uint256 creditPositionId) external view returns (CreditPosition memory) {
-        return state.data.creditPositions[creditPositionId];
+        return state.getCreditPosition(creditPositionId);
+    }
+
+    function getCreditPositions() external view returns (CreditPosition[] memory creditPositions) {
+        uint256 length = state.data.nextCreditPositionId - CREDIT_POSITION_ID_START;
+        creditPositions = new CreditPosition[](length);
+        for (uint256 i = 0; i < length; ++i) {
+            uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
+            creditPositions[i] = state.getCreditPosition(creditPositionId);
+        }
+    }
+
+    function getCreditPositions(uint256[] memory creditPositionIds)
+        public
+        view
+        returns (CreditPosition[] memory creditPositions)
+    {
+        uint256 length = creditPositionIds.length;
+        creditPositions = new CreditPosition[](length);
+        for (uint256 i = 0; i < length; ++i) {
+            creditPositions[i] = state.getCreditPosition(creditPositionIds[i]);
+        }
+    }
+
+    function getCreditPositionIdsByDebtPositionId(uint256 debtPositionId)
+        public
+        view
+        returns (uint256[] memory creditPositionIds)
+    {
+        uint256 length = state.data.nextCreditPositionId - CREDIT_POSITION_ID_START;
+        creditPositionIds = new uint256[](length);
+        uint256 numberOfCreditPositions = 0;
+        for (uint256 i = 0; i < length; ++i) {
+            uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
+            if (state.getCreditPosition(creditPositionId).debtPositionId == debtPositionId) {
+                creditPositionIds[numberOfCreditPositions++] = creditPositionId;
+            }
+        }
+        // downsize array length
+        assembly {
+            mstore(creditPositionIds, numberOfCreditPositions)
+        }
+    }
+
+    function getCreditPositionsByDebtPositionId(uint256 debtPositionId)
+        external
+        view
+        returns (CreditPosition[] memory creditPositions)
+    {
+        return getCreditPositions(getCreditPositionIdsByDebtPositionId(debtPositionId));
     }
 
     function getLoanStatus(uint256 positionId) external view returns (LoanStatus) {
@@ -142,10 +238,6 @@ abstract contract SizeView is SizeStorage {
         returns (uint256)
     {
         return LoanLibrary.repayFee(issuanceValue, startDate, dueDate, repayFeeAPR);
-    }
-
-    function tokens() external view returns (NonTransferrableToken, IAToken, NonTransferrableToken) {
-        return (state.data.collateralToken, state.data.borrowAToken, state.data.debtToken);
     }
 
     function getPositionsCount() external view returns (uint256, uint256) {

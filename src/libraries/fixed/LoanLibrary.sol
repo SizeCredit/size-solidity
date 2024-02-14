@@ -2,6 +2,8 @@
 pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
+
+import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
@@ -46,7 +48,7 @@ library LoanLibrary {
     using AccountingLibrary for State;
 
     function isDebtPositionId(State storage state, uint256 positionId) internal view returns (bool) {
-        return positionId < state.data.nextDebtPositionId;
+        return positionId >= DEBT_POSITION_ID_START && positionId < state.data.nextDebtPositionId;
     }
 
     function isCreditPositionId(State storage state, uint256 positionId) internal view returns (bool) {
@@ -61,6 +63,19 @@ library LoanLibrary {
         return Math.mulDivUp(self.issuanceValue, PERCENT + self.rate, PERCENT);
     }
 
+    function faceValueInCollateralToken(State storage state, DebtPosition memory self)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 debtBorrowTokenWad =
+            ConversionLibrary.amountToWad(faceValue(self), state.data.underlyingBorrowToken.decimals());
+        uint256 debtInCollateralToken = Math.mulDivDown(
+            debtBorrowTokenWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice()
+        );
+        return debtInCollateralToken;
+    }
+
     function getDebtPositionId(State storage state, uint256 positionId) public view returns (uint256) {
         if (isDebtPositionId(state, positionId)) {
             return positionId;
@@ -71,6 +86,19 @@ library LoanLibrary {
         }
     }
 
+    function getCreditPosition(State storage state, uint256 creditPositionId)
+        public
+        view
+        returns (CreditPosition memory)
+    {
+        if (isCreditPositionId(state, creditPositionId)) {
+            return state.data.creditPositions[creditPositionId];
+        } else {
+            revert Errors.INVALID_POSITION_ID(creditPositionId);
+        }
+    }
+
+    // TODO: this is ambiguous on whether it works only for debtPosition or for a generic position
     function getDebtPosition(State storage state, uint256 positionId) public view returns (DebtPosition storage) {
         return state.data.debtPositions[getDebtPositionId(state, positionId)];
     }

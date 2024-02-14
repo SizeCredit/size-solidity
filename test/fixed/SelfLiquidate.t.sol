@@ -3,15 +3,11 @@ pragma solidity 0.8.24;
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
-import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
-contract SelfLiquidateLoanTest is BaseTest {
-    using LoanLibrary for DebtPosition;
-    using LoanLibrary for CreditPosition;
-
-    function test_SelfLiquidateLoan_selfliquidate_rapays_with_collateral() public {
+contract SelfLiquidateTest is BaseTest {
+    function test_SelfLiquidate_selfliquidate_rapays_with_collateral() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
@@ -22,8 +18,9 @@ contract SelfLiquidateLoanTest is BaseTest {
 
         _lendAsLimitOrder(alice, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
 
-        assertEq(size.getFOLAssignedCollateral(loanId), 150e18);
+        assertEq(size.getDebtPositionAssignedCollateral(loanId), 150e18);
         assertEq(size.getDebt(loanId), 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isUserLiquidatable(bob));
@@ -41,7 +38,7 @@ contract SelfLiquidateLoanTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _selfLiquidateLoan(alice, loanId);
+        _selfLiquidate(alice, creditPositionId);
 
         Vars memory _after = _state();
 
@@ -50,7 +47,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e6);
     }
 
-    function test_SelfLiquidateLoan_selfliquidate_SOL_keeps_accounting_in_check() public {
+    function test_SelfLiquidate_selfliquidate_CreditPosition_keeps_accounting_in_check() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
 
@@ -66,25 +63,29 @@ contract SelfLiquidateLoanTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 0, 12);
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 folId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 100e6, 12, [folId]);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        _borrowAsMarketOrder(alice, candy, 100e6, 12, [creditPositionId]);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _borrowAsMarketOrder(alice, james, 100e6, 12);
 
-        assertEq(size.getFOLAssignedCollateral(folId), 150e18);
-        assertEq(size.getDebt(folId), 100e6);
+        assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
+        assertEq(size.getDebt(debtPositionId), 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isUserLiquidatable(bob));
-        assertTrue(!size.isLoanLiquidatable(folId));
+        assertTrue(!size.isLoanLiquidatable(debtPositionId));
 
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(bob), 0.75e18);
 
+        uint256 faceValueInCollateralToken = size.faceValueInCollateralToken(debtPositionId);
+
         vm.expectRevert();
-        _liquidate(liquidator, folId);
+        _liquidate(liquidator, debtPositionId, faceValueInCollateralToken);
 
         Vars memory _before = _state();
 
-        _selfLiquidateLoan(candy, solId);
+        _selfLiquidate(candy, creditPositionId2);
 
         Vars memory _after = _state();
 
@@ -94,7 +95,7 @@ contract SelfLiquidateLoanTest is BaseTest {
         assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e6);
     }
 
-    function test_SelfLiquidateLoan_selfliquidate_FOL_should_not_leave_dust_loan_when_no_exits() public {
+    function test_SelfLiquidate_selfliquidate_DebtPosition_should_not_leave_dust_loan_when_no_exits() public {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 100e6);
@@ -102,12 +103,13 @@ contract SelfLiquidateLoanTest is BaseTest {
         _deposit(liquidator, usdc, 10_000e6);
         _lendAsLimitOrder(alice, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
 
         _setPrice(0.0001e18);
-        _selfLiquidateLoan(alice, loanId);
+        _selfLiquidate(alice, creditPositionId);
     }
 
-    function test_SelfLiquidateLoan_selfliquidate_FOL_should_not_leave_dust_loan_when_exits() public {
+    function test_SelfLiquidate_selfliquidate_DebtPosition_should_not_leave_dust_loan_when_exits() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
@@ -124,26 +126,27 @@ contract SelfLiquidateLoanTest is BaseTest {
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
         uint256 repayFee = size.repayFee(loanId);
-        _borrowAsMarketOrder(alice, candy, 5e6, 12, [loanId]);
+        _borrowAsMarketOrder(alice, candy, 5e6, 12, [creditPositionId]);
         _borrowAsMarketOrder(alice, james, 80e6, 12);
         _borrowAsMarketOrder(bob, james, 40e6, 12);
 
         _setPrice(0.25e18);
 
-        assertEq(size.getLoan(loanId).faceValue(), 50e6);
+        assertEq(size.faceValue(loanId), 50e6);
         assertEq(size.getDebt(loanId), 50e6 + repayFee);
-        assertEq(size.getCredit(loanId), 50e6 - 5e6);
-        assertEq(size.getCredit(loanId), 45e6);
+        assertEq(size.getCredit(creditPositionId), 50e6 - 5e6);
+        assertEq(size.getCredit(creditPositionId), 45e6);
 
-        _selfLiquidateLoan(alice, loanId);
+        _selfLiquidate(alice, creditPositionId);
 
         assertEq(size.getDebt(loanId), 5e6 + repayFee);
-        assertEq(size.getCredit(loanId), 0);
-        assertEq(size.getCredit(loanId), 0);
+        assertEq(size.getCredit(creditPositionId), 0);
+        assertEq(size.getCredit(creditPositionId), 0);
     }
 
-    function test_SelfLiquidateLoan_selfliquidate_SOL_should_not_leave_dust_loan() public {
+    function test_SelfLiquidate_selfliquidate_CreditPosition_should_not_leave_dust_loan() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
@@ -159,19 +162,22 @@ contract SelfLiquidateLoanTest is BaseTest {
         _lendAsLimitOrder(candy, 12, 0, 12);
         _lendAsLimitOrder(james, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 49e6, 12, [loanId]);
-        uint256 solId2 = _borrowAsMarketOrder(candy, bob, 44e6, 12, [solId]);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        _borrowAsMarketOrder(alice, candy, 49e6, 12, [creditPositionId]);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId)[1];
+        _borrowAsMarketOrder(candy, bob, 44e6, 12, [creditPositionId2]);
+        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId)[2];
         _borrowAsMarketOrder(alice, james, 60e6, 12);
         _borrowAsMarketOrder(candy, james, 80e6, 12);
 
         _setPrice(0.25e18);
 
-        _selfLiquidateLoan(candy, solId);
+        _selfLiquidate(candy, creditPositionId2);
 
-        assertEq(size.getCredit(solId), 0);
+        assertEq(size.getCredit(creditPositionId2), 0);
 
-        _selfLiquidateLoan(bob, solId2);
+        _selfLiquidate(bob, creditPositionId3);
 
-        assertEq(size.getCredit(solId2), 0);
+        assertEq(size.getCredit(creditPositionId3), 0);
     }
 }

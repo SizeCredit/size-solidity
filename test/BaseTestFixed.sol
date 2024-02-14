@@ -13,6 +13,8 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+
 import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
@@ -142,7 +144,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 dueDate,
         bool exactAmountIn,
         uint256[] memory receivableCreditPositionIds
-    ) internal returns (uint256 debtPositions) {
+    ) internal returns (uint256) {
+        uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
         vm.prank(borrower);
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
@@ -153,7 +156,12 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
-        (debtPositions,) = size.getPositionsCount();
+        uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
+        if (debtPositionIdAfter == debtPositionIdBefore) {
+            return RESERVED_ID;
+        } else {
+            return debtPositionIdAfter - 1;
+        }
     }
 
     function _borrowAsLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {
@@ -188,11 +196,17 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         internal
         returns (uint256 debtPositions)
     {
+        uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
         vm.prank(lender);
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({borrower: borrower, amount: amount, dueDate: dueDate, exactAmountIn: exactAmountIn})
         );
-        (debtPositions,) = size.getPositionsCount();
+        uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
+        if (debtPositionIdAfter == debtPositionIdBefore) {
+            return RESERVED_ID;
+        } else {
+            return debtPositionIdAfter - 1;
+        }
     }
 
     function _borrowerExit(address user, uint256 debtPositionId, address borrowerToExitTo) internal {
@@ -252,8 +266,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         );
     }
 
-    function _compensate(address user, uint256 loanToRepayId, uint256 loanToCompensateId) internal {
-        return _compensate(user, loanToRepayId, loanToCompensateId, type(uint256).max);
+    function _compensate(address user, uint256 debtPositionToRepayId, uint256 creditPositionToCompensateId) internal {
+        return _compensate(user, debtPositionToRepayId, creditPositionToCompensateId, type(uint256).max);
     }
 
     function _compensate(

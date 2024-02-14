@@ -37,11 +37,6 @@ library SelfLiquidate {
         uint256 debtCollateral =
             Math.mulDivDown(debtWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice());
 
-        // validate msg.sender
-        if (msg.sender != creditPosition.lender) {
-            revert Errors.LIQUIDATOR_IS_NOT_LENDER(msg.sender, creditPosition.lender);
-        }
-
         // validate loanId
         if (!state.isCreditPositionId(params.creditPositionId)) {
             revert Errors.ONLY_CREDIT_POSITION_CAN_BE_SELF_LIQUIDATED(params.creditPositionId);
@@ -55,6 +50,11 @@ library SelfLiquidate {
         }
         if (!(assignedCollateral < debtCollateral)) {
             revert Errors.LIQUIDATION_NOT_AT_LOSS(params.creditPositionId, assignedCollateral, debtCollateral);
+        }
+
+        // validate msg.sender
+        if (msg.sender != creditPosition.lender) {
+            revert Errors.LIQUIDATOR_IS_NOT_LENDER(msg.sender, creditPosition.lender);
         }
     }
 

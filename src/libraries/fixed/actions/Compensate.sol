@@ -30,11 +30,6 @@ library Compensate {
         CreditPosition storage creditPositionToCompensate =
             state.data.creditPositions[params.creditPositionToCompensateId];
 
-        // validate msg.sender
-        if (msg.sender != debtPositionToRepay.borrower) {
-            revert Errors.COMPENSATOR_IS_NOT_BORROWER(msg.sender, debtPositionToRepay.borrower);
-        }
-
         // validate debtPositionToRepayId
         if (!state.isDebtPositionId(params.debtPositionToRepayId)) {
             revert Errors.ONLY_DEBT_POSITION_CAN_BE_REPAID(params.debtPositionToRepayId);
@@ -44,7 +39,7 @@ library Compensate {
         }
 
         // validate creditPositionToCompensateId
-        if (state.isCreditPositionId(params.creditPositionToCompensateId)) {
+        if (!state.isCreditPositionId(params.creditPositionToCompensateId)) {
             revert Errors.ONLY_CREDIT_POSITION_CAN_BE_COMPENSATED(params.creditPositionToCompensateId);
         }
         if (state.getLoanStatus(params.creditPositionToCompensateId) == LoanStatus.REPAID) {
@@ -55,6 +50,11 @@ library Compensate {
         }
         if (creditPositionToCompensate.lender != debtPositionToRepay.borrower) {
             revert Errors.INVALID_LENDER(creditPositionToCompensate.lender);
+        }
+
+        // validate msg.sender
+        if (msg.sender != debtPositionToRepay.borrower) {
+            revert Errors.COMPENSATOR_IS_NOT_BORROWER(msg.sender, debtPositionToRepay.borrower);
         }
 
         // validate amount

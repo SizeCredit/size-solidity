@@ -18,7 +18,11 @@ library Events {
     event Deposit(address indexed token, address indexed to, uint256 amount);
     event Withdraw(address indexed token, address indexed to, uint256 amount);
     event BorrowAsMarketOrder(
-        address indexed lender, uint256 amount, uint256 dueDate, bool exactAmountIn, uint256[] receivableLoanIds
+        address indexed lender,
+        uint256 amount,
+        uint256 dueDate,
+        bool exactAmountIn,
+        uint256[] receivableCreditPositionIds
     );
     event BorrowAsLimitOrder(YieldCurve curveRelativeTime);
     event LendAsMarketOrder(address indexed borrower, uint256 dueDate, uint256 amount, bool exactAmountIn);
@@ -51,5 +55,7 @@ library Events {
     event LiquidateUserLiquidatableUnprofitably(uint256 indexed loanId);
     event LiquidateOverdueMoveToVariablePool(uint256 indexed loanId);
     event LiquidateOverdueNoSplitRemainder(uint256 indexed loanId);
-    event Compensate(uint256 indexed loanToRepayId, uint256 indexed loanToCompensateId, uint256 amount);
+    event Compensate(
+        uint256 indexed debtPositionToRepayId, uint256 indexed creditPositionToCompensateId, uint256 amount
+    );
 }

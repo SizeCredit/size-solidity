@@ -21,6 +21,7 @@ contract ClaimTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 0.05e18, 12);
         uint256 amountLoanId1 = 10e6;
         uint256 loanId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
         _repay(bob, loanId);
 
         uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
@@ -28,12 +29,12 @@ contract ClaimTest is BaseTest {
         Vars memory _before = _state();
 
         assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
-        _claim(alice, loanId);
+        _claim(alice, creditId);
 
         Vars memory _after = _state();
 
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + faceValue);
-        assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);
+        assertEq(size.getCreditPosition(creditId).credit, 0);
     }
 
     function test_Claim_claim_of_exited_loan_gets_credit_back() public {
@@ -45,28 +46,29 @@ contract ClaimTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
         _lendAsLimitOrder(candy, 12, 0.03e18, 12);
         uint256 r = PERCENT + 0.03e18;
 
         uint256 faceValueExited = 10e6;
         uint256 amount = Math.mulDivDown(faceValueExited, PERCENT, r);
-        _borrowAsMarketOrder(alice, candy, amount, 12, [loanId]);
+        _borrowAsMarketOrder(alice, candy, amount, 12, [creditId]);
         _repay(bob, loanId);
 
         Vars memory _before = _state();
 
         assertEq(size.getLoanStatus(loanId), LoanStatus.REPAID);
-        _claim(alice, loanId);
+        _claim(alice, creditId);
 
         Vars memory _after = _state();
 
         uint256 faceValue = Math.mulDivUp(100e6, r, PERCENT);
         uint256 credit = faceValue - faceValueExited;
         assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + credit);
-        assertEq(size.getLoanStatus(loanId), LoanStatus.CLAIMED);
+        assertEq(size.getCreditPosition(creditId).credit, 0);
     }
 
-    function test_Claim_claim_of_SOL_where_FOL_is_repaid_works() public {
+    function test_Claim_claim_of_CreditPosition_where_DebtPosition_is_repaid_works() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(bob, weth, 100e18);
@@ -76,12 +78,14 @@ contract ClaimTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        _borrowAsMarketOrder(alice, candy, 10e6, 12, [creditId]);
+        uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId)[1];
 
         Vars memory _before = _state();
 
         _repay(bob, loanId);
-        _claim(alice, solId);
+        _claim(alice, creditId2);
 
         Vars memory _after = _state();
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 2 * 100e6);
@@ -98,11 +102,12 @@ contract ClaimTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
 
         Vars memory _before = _state();
 
         _repay(bob, loanId);
-        _claim(bob, loanId);
+        _claim(bob, creditId);
 
         Vars memory _after = _state();
 
@@ -110,7 +115,7 @@ contract ClaimTest is BaseTest {
         assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e6);
 
         vm.expectRevert();
-        _claim(alice, loanId);
+        _claim(alice, creditId);
     }
 
     function test_Claim_claim_is_permissionless() public {
@@ -126,11 +131,12 @@ contract ClaimTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
 
         Vars memory _before = _state();
 
         _repay(bob, loanId);
-        _claim(alice, loanId);
+        _claim(alice, creditId);
 
         Vars memory _after = _state();
 
@@ -148,6 +154,7 @@ contract ClaimTest is BaseTest {
         _deposit(liquidator, usdc, 10000e6);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
 
         _setPrice(0.75e18);
 
@@ -155,7 +162,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _claim(alice, loanId);
+        _claim(alice, creditId);
 
         Vars memory _after = _state();
 
@@ -172,8 +179,10 @@ contract ClaimTest is BaseTest {
         _lendAsLimitOrder(bob, 12, 0, 12);
         _lendAsLimitOrder(candy, 12, 0, 12);
         uint256 loanId = _borrowAsMarketOrder(alice, bob, 100e6, 12);
-        uint256 solId = _borrowAsMarketOrder(bob, candy, 10e6, 12, [loanId]);
-        (, IAToken borrowAToken,) = size.tokens();
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        _borrowAsMarketOrder(bob, candy, 10e6, 12, [creditId]);
+        uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId)[1];
+        IAToken borrowAToken = size.data().borrowAToken;
 
         Vars memory _s1 = _state();
 
@@ -186,7 +195,11 @@ contract ClaimTest is BaseTest {
         Vars memory _s2 = _state();
 
         assertEq(_s2.alice.borrowAmount, 100e6, "Alice borrowed 100e6 and it 2x, but she repaid 100e6");
-        assertEq(_s2.size.borrowAmount, 100e6, "Alice repaid amount is now on Size for claiming for FOL/SOL");
+        assertEq(
+            _s2.size.borrowAmount,
+            100e6,
+            "Alice repaid amount is now on Size for claiming for DebtPosition/CreditPosition"
+        );
         assertEq(
             borrowAToken.scaledBalanceOf(size.getVaultAddress(address(alice))), 50e6, "Alice has 50e6 Scaled aTokens"
         );
@@ -197,7 +210,7 @@ contract ClaimTest is BaseTest {
         );
 
         _setLiquidityIndex(8e27);
-        _claim(candy, solId);
+        _claim(candy, creditId2);
 
         Vars memory _s3 = _state();
 
@@ -217,7 +230,7 @@ contract ClaimTest is BaseTest {
         );
 
         _setLiquidityIndex(16e27);
-        _claim(bob, loanId);
+        _claim(bob, creditId);
 
         Vars memory _s4 = _state();
 

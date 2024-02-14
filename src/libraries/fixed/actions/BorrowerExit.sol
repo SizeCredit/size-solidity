@@ -33,7 +33,15 @@ library BorrowerExit {
         BorrowOffer memory borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
         DebtPosition memory debtPosition = state.data.debtPositions[params.debtPositionId];
 
+        // validate debtPositionId
+        if (!state.isDebtPositionId(params.debtPositionId)) {
+            revert Errors.ONLY_DEBT_POSITION_CAN_BE_EXITED(params.debtPositionId);
+        }
         uint256 dueDate = debtPosition.dueDate;
+        if (dueDate <= block.timestamp) {
+            revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
+        }
+
         uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
         uint256 amountIn = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + rate);
 
@@ -45,14 +53,6 @@ library BorrowerExit {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
                 state.borrowATokenBalanceOf(msg.sender), amountIn + state.config.earlyBorrowerExitFee
             );
-        }
-
-        // validate debtPositionId
-        if (!state.isDebtPositionId(params.debtPositionId)) {
-            revert Errors.ONLY_DEBT_POSITION_CAN_BE_EXITED(params.debtPositionId);
-        }
-        if (dueDate <= block.timestamp) {
-            revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
         }
 
         // validate borrowerToExitTo

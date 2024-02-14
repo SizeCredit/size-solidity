@@ -3,17 +3,11 @@ pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract BorrowAsMarketOrderValidationTest is BaseTest {
-    using OfferLibrary for LoanOffer;
-    using LoanLibrary for DebtPosition;
-    using LoanLibrary for CreditPosition;
-
     function test_BorrowAsMarketOrder_validation() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -29,7 +23,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         uint256 amount = 10e6;
         uint256 dueDate = 12;
         bool exactAmountIn = false;
-        uint256[] memory receivableLoanIds;
+        uint256[] memory receivableCreditPositionIds;
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, address(0)));
@@ -39,7 +33,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
 
@@ -50,7 +44,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 0,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
 
@@ -61,7 +55,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 0,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
 
@@ -72,7 +66,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 13,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
 
@@ -89,12 +83,11 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 1e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
 
-        receivableLoanIds = new uint256[](1);
-        receivableLoanIds[0] = loanId;
+        receivableCreditPositionIds = size.getCreditPositionIdsByDebtPositionId(loanId);
         vm.expectRevert(abi.encodeWithSelector(Errors.BORROWER_IS_NOT_LENDER.selector, bob, candy));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
@@ -102,31 +95,31 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
 
         vm.startPrank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE.selector, 4, 10));
+        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector, 4, 10));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: bob,
                 amount: 100e6,
                 dueDate: 4,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
 
         vm.startPrank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE.selector, 4, 10));
+        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector, 4, 10));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: bob,
                 amount: 100e6,
                 dueDate: 4,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
     }

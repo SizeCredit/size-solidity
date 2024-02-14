@@ -9,12 +9,9 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract LiquidateTest is BaseTest {
-    using LoanLibrary for DebtPosition;
-    using LoanLibrary for CreditPosition;
-
     function test_Liquidate_liquidate_seizes_borrower_collateral() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
@@ -39,7 +36,7 @@ contract LiquidateTest is BaseTest {
         lock = 0;
         uint256 assigned = 100e18 - lock;
 
-        assertEq(size.getFOLAssignedCollateral(loanId), assigned);
+        assertEq(size.getDebtPositionAssignedCollateral(loanId), assigned);
         assertEq(size.getDebt(loanId), debt);
         assertEq(size.collateralRatio(bob), Math.mulDivDown(assigned, PERCENT, (debtWad * 1)));
         assertTrue(!size.isUserLiquidatable(bob));
@@ -47,7 +44,7 @@ contract LiquidateTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        assertEq(size.getFOLAssignedCollateral(loanId), assigned);
+        assertEq(size.getDebtPositionAssignedCollateral(loanId), assigned);
         assertEq(size.getDebt(loanId), debt);
         assertEq(size.collateralRatio(bob), Math.mulDivDown(assigned, PERCENT, (debtWad * 5)));
         assertTrue(size.isUserLiquidatable(bob));
@@ -161,7 +158,7 @@ contract LiquidateTest is BaseTest {
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         assertTrue(size.isLoanLiquidatable(loanId));
-        uint256 assignedCollateral = size.getFOLAssignedCollateral(loanId);
+        uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(loanId);
         uint256 faceValueWad = ConversionLibrary.amountToWad(size.faceValue(loanId), usdc.decimals());
         uint256 faceValueCollateral = Math.mulDivDown(faceValueWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
@@ -175,7 +172,7 @@ contract LiquidateTest is BaseTest {
         assertLt(liquidatorProfit, assignedCollateral);
         assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount, 0);
         assertEq(_after.feeRecipient.collateralAmount, _before.feeRecipient.collateralAmount + repayFeeCollateral);
-        assertEq(size.getFOLAssignedCollateral(loanId), 0);
+        assertEq(size.getDebtPositionAssignedCollateral(loanId), 0);
         assertEq(size.getUserView(bob).collateralAmount, 0);
     }
 
@@ -192,23 +189,22 @@ contract LiquidateTest is BaseTest {
         vm.warp(block.timestamp + 12);
 
         Vars memory _before = _state();
-        uint256 loansBefore = size.activeLoans();
-        Loan memory loanBefore = size.getLoan(loanId);
+        (uint256 loansBefore,) = size.getPositionsCount();
         assertGt(size.getDebt(loanId), 0);
         uint256 variablePoolWETHBefore = weth.balanceOf(address(size.data().variablePool));
 
         uint256 assignedCollateralAfterFee = Math.mulDivDown(
-            _before.bob.collateralAmount, loanBefore.faceValue(), (_before.bob.debtAmount - size.repayFee(loanId))
+            _before.bob.collateralAmount, size.faceValue(loanId), (_before.bob.debtAmount - size.repayFee(loanId))
         );
 
-        uint256 repayFee = size.partialRepayFee(loanId, loanBefore.faceValue());
+        uint256 repayFee = size.partialRepayFee(loanId, size.faceValue(loanId));
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         _liquidate(liquidator, loanId);
 
         Vars memory _after = _state();
-        uint256 loansAfter = size.activeLoans();
+        (uint256 loansAfter,) = size.getPositionsCount();
         uint256 variablePoolWETHAfter = weth.balanceOf(address(size.data().variablePool));
 
         assertEq(_after.alice, _before.alice);
@@ -232,10 +228,10 @@ contract LiquidateTest is BaseTest {
         _deposit(bob, address(weth), 160e18);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
+        uint256 faceValue = size.faceValue(loanId);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
 
         vm.warp(block.timestamp + 12);
-
-        Loan memory loan = size.getLoan(loanId);
 
         _liquidate(liquidator, loanId);
 
@@ -247,12 +243,12 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _interest = _state();
 
-        _claim(alice, loanId);
+        _claim(alice, creditId);
 
         Vars memory _after = _state();
 
         assertEq(_interest.alice.borrowAmount, _before.alice.borrowAmount * 1.1e27 / 1e27);
-        assertEq(_after.alice.borrowAmount, _interest.alice.borrowAmount + loan.faceValue() * 1.1e27 / 1e27);
+        assertEq(_after.alice.borrowAmount, _interest.alice.borrowAmount + faceValue * 1.1e27 / 1e27);
     }
 
     function testFuzz_Liquidate_liquidate_minimumCollateralProfit(
@@ -280,7 +276,7 @@ contract LiquidateTest is BaseTest {
         Vars memory _before = _state();
 
         vm.prank(liquidator);
-        try size.liquidate(LiquidateParams({loanId: loanId, minimumCollateralProfit: minimumCollateralProfit}))
+        try size.liquidate(LiquidateParams({debtPositionId: loanId, minimumCollateralProfit: minimumCollateralProfit}))
         returns (uint256 liquidatorProfitCollateralToken) {
             Vars memory _after = _state();
 

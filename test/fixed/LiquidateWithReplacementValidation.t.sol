@@ -3,15 +3,12 @@ pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract LiquidateWithReplacementValidationTest is BaseTest {
-    using LoanLibrary for DebtPosition;
-    using LoanLibrary for CreditPosition;
-
     function setUp() public override {
         super.setUp();
         _setKeeperRole(liquidator);
@@ -37,7 +34,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, james));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
-                loanId: loanId,
+                debtPositionId: loanId,
                 borrower: james,
                 minimumCollateralProfit: minimumCollateralProfit
             })
@@ -45,12 +42,10 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
 
         vm.warp(block.timestamp + 12);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.INVALID_LOAN_STATUS.selector, loanId, LoanStatus.OVERDUE, LoanStatus.ACTIVE)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, loanId));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
-                loanId: loanId,
+                debtPositionId: loanId,
                 borrower: candy,
                 minimumCollateralProfit: minimumCollateralProfit
             })

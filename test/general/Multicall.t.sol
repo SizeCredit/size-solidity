@@ -8,7 +8,7 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 
-import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
@@ -88,7 +88,7 @@ contract MulticallTest is BaseTest {
         // deposit only the necessary to cover for the loan's faceValue
         data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: faceValue, to: liquidator}));
         // liquidate profitably (but does not enforce CR)
-        data[1] = abi.encodeCall(size.liquidate, LiquidateParams({loanId: loanId, minimumCollateralProfit: 0}));
+        data[1] = abi.encodeCall(size.liquidate, LiquidateParams({debtPositionId: loanId, minimumCollateralProfit: 0}));
         // withdraw everything
         data[2] = abi.encodeCall(
             size.withdraw, WithdrawParams({token: address(weth), amount: type(uint256).max, to: liquidator})

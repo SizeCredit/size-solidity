@@ -25,16 +25,18 @@ contract LiquidateValidationTest is BaseTest {
         _borrowAsMarketOrder(bob, candy, 90e6, 12);
 
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        uint256 solId = _borrowAsMarketOrder(alice, james, 5e6, 12, [loanId]);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
+        _borrowAsMarketOrder(alice, james, 5e6, 12, [creditId]);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId)[1];
         uint256 minimumCollateralProfit = 0;
 
         _deposit(liquidator, usdc, 10_000e6);
 
         vm.startPrank(liquidator);
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.LOAN_NOT_LIQUIDATABLE.selector, solId, type(uint256).max, LoanStatus.ACTIVE)
+        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_DEBT_POSITION_CAN_BE_LIQUIDATED.selector, creditPositionId));
+        size.liquidate(
+            LiquidateParams({debtPositionId: creditPositionId, minimumCollateralProfit: minimumCollateralProfit})
         );
-        size.liquidate(LiquidateParams({loanId: solId, minimumCollateralProfit: minimumCollateralProfit}));
         vm.stopPrank();
 
         vm.startPrank(liquidator);
@@ -43,32 +45,30 @@ contract LiquidateValidationTest is BaseTest {
                 Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.ACTIVE
             )
         );
-        size.liquidate(LiquidateParams({loanId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
+        size.liquidate(LiquidateParams({debtPositionId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
         vm.stopPrank();
 
-        _borrowAsMarketOrder(alice, candy, 10e6, 12, [loanId]);
+        _borrowAsMarketOrder(alice, candy, 10e6, 12, [creditId]);
         _borrowAsMarketOrder(alice, james, 50e6, 12);
 
-        // FOL with high CR cannot be liquidated
+        // DebtPosition with high CR cannot be liquidated
         vm.startPrank(liquidator);
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.ACTIVE
             )
         );
-        size.liquidate(LiquidateParams({loanId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
+        size.liquidate(LiquidateParams({debtPositionId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
         vm.stopPrank();
 
         _setPrice(0.01e18);
 
-        // SOL cannot be liquidated
+        // CreditPosition cannot be liquidated
         vm.startPrank(liquidator);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.LOAN_NOT_LIQUIDATABLE.selector, solId, size.collateralRatio(alice), LoanStatus.ACTIVE
-            )
+        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_DEBT_POSITION_CAN_BE_LIQUIDATED.selector, creditPositionId));
+        size.liquidate(
+            LiquidateParams({debtPositionId: creditPositionId, minimumCollateralProfit: minimumCollateralProfit})
         );
-        size.liquidate(LiquidateParams({loanId: solId, minimumCollateralProfit: minimumCollateralProfit}));
         vm.stopPrank();
 
         _setPrice(100e18);
@@ -84,7 +84,7 @@ contract LiquidateValidationTest is BaseTest {
                 Errors.LOAN_NOT_LIQUIDATABLE.selector, loanId, size.collateralRatio(bob), LoanStatus.REPAID
             )
         );
-        size.liquidate(LiquidateParams({loanId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
+        size.liquidate(LiquidateParams({debtPositionId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
         vm.stopPrank();
     }
 }

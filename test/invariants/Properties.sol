@@ -8,9 +8,12 @@ import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesC
 import {UserView} from "@src/SizeView.sol";
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-
 abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
+    event L1(uint256 a);
+    event L2(uint256 a, uint256 b);
+    event L3(uint256 a, uint256 b, uint256 c);
+    event L4(uint256 a, uint256 b, uint256 c, uint256 d);
+
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
 
@@ -23,7 +26,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant BORROW_03 = "BORROW_03: Borrow from self does not change the borrower cash except for fees";
 
     string internal constant CLAIM_01 = "CLAIM_01: Claim does not decrease the sender cash";
-    string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for FOLs";
+    string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for DebtPositions";
 
     string internal constant LIQUIDATE_01 = "LIQUIDATE_01: Liquidate increases the sender collateral";
     string internal constant LIQUIDATE_02 =
@@ -39,12 +42,8 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant REPAY_01 = "REPAY_01: Repay transfers cash from the sender to the protocol";
     string internal constant REPAY_02 = "REPAY_02: Repay decreases the sender debt";
 
-    string internal constant LOAN_01 = "LOAN_01: loan.faceValue() <= FOL(loan).faceValue";
-    string internal constant LOAN_02 =
-        "LOAN_02: SUM(loan.generic.credit) foreach loan in FOL.loans == FOL(loan).faceValue";
-    string internal constant LOAN_05 = "LOAN_05: loan.generic.credit >= minimumCreditBorrowAToken";
-    string internal constant LOAN_06 = "LOAN_06: SUM(SOL(loanId).faceValue()) == FOL(loanId).faceValue";
-    string internal constant LOAN_07 = "LOAN_07: FOL.credit = SUM(SOL.credit)";
+    string internal constant LOAN_05 = "LOAN_05: loan.credit >= minimumCreditBorrowAToken";
+    string internal constant LOAN_07 = "LOAN_07: SUM(CreditPosition.credit) <= DebtPosition.faceValue";
 
     string internal constant TOKENS_01 = "TOKENS_01: The sum of all tokens is constant";
 
@@ -54,64 +53,29 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         "LIQUIDATION_02: Liquidation with replacement does not change the total system debt";
 
     function invariant_LOAN() public returns (bool) {
-        // uint256 minimumCreditBorrowAToken = size.config().minimumCreditBorrowAToken;
-        // uint256 activeLoans = size.activeLoans();
-        // uint256[] memory folCreditsSumByFolId = new uint256[](activeLoans);
-        // uint256[] memory solCreditsSumByFolId = new uint256[](activeLoans);
-        // uint256[] memory folFaceValueByFolId = new uint256[](activeLoans);
-        // uint256[] memory folCreditByFolId = new uint256[](activeLoans);
-        // uint256[] memory folFaceValuesSumByFolId = new uint256[](activeLoans);
-        // for (uint256 loanId; loanId < activeLoans; loanId++) {
-        //     Loan memory loan = size.getLoan(loanId);
-        //     uint256 folId = loanId == RESERVED_ID ? loan.sol.folId : loanId;
-        //     Loan memory fol = size.getLoan(folId);
+        uint256 minimumCreditBorrowAToken = size.config().minimumCreditBorrowAToken;
+        CreditPosition[] memory creditPositions = size.getCreditPositions();
+        DebtPosition[] memory debtPositions = size.getDebtPositions();
 
-        //     folCreditsSumByFolId[folId] += size.getCredit(folId);
-        //     solCreditsSumByFolId[folId] =
-        //         solCreditsSumByFolId[folId] == type(uint256).max ? solCreditsSumByFolId[folId] : type(uint256).max; // set to -1 by default
-        //     folFaceValueByFolId[folId] = fol.faceValue();
-        //     folCreditByFolId[folId] = fol.generic.credit;
-        //     folFaceValuesSumByFolId[folId] += fol.faceValue();
+        for (uint256 i = 0; i < debtPositions.length; i++) {
+            CreditPosition[] memory creditPositionsByDebtPosition = size.getCreditPositionsByDebtPositionId(i);
+            uint256 creditPositionsCreditSum = 0;
+            for (uint256 j = 0; j < creditPositionsByDebtPosition.length; j++) {
+                creditPositionsCreditSum += creditPositionsByDebtPosition[j].credit;
+            }
+            if (creditPositionsCreditSum <= debtPositions[i].faceValue()) {
+                t(false, LOAN_07);
+                return false;
+            }
+        }
 
-        //     if (!size.isFOL(loanId)) {
-        //         solCreditsSumByFolId[folId] =
-        //             solCreditsSumByFolId[folId] == type(uint256).max ? 0 : solCreditsSumByFolId[folId]; // set to 0 if is -1
-        //         solCreditsSumByFolId[folId] += size.getCredit(loanId);
-        //         if (!(loan.faceValue() <= fol.faceValue())) {
-        //             t(false, LOAN_01);
-        //             return false;
-        //         }
-        //     }
-
-        //     if (0 < size.getCredit(loanId) && size.getCredit(loanId) < minimumCreditBorrowAToken) {
-        //         t(false, LOAN_05);
-        //         return false;
-        //     }
-        // }
-
-        // for (uint256 loanId; loanId < activeLoans; loanId++) {
-        //     if (size.isFOL(loanId)) {
-        //         if (
-        //             solCreditsSumByFolId[loanId] != type(uint256).max
-        //                 && solCreditsSumByFolId[loanId] != folFaceValueByFolId[loanId]
-        //         ) {
-        //             t(false, LOAN_02);
-        //             return false;
-        //         }
-        //         if (folFaceValuesSumByFolId[loanId] != folFaceValueByFolId[loanId]) {
-        //             t(false, LOAN_06);
-        //             return false;
-        //         }
-        //         if (
-        //             solCreditsSumByFolId[loanId] != type(uint256).max
-        //                 && solCreditsSumByFolId[loanId] != folCreditByFolId[loanId]
-        //         ) {
-        //             t(false, LOAN_07);
-        //             return false;
-        //         }
-        //     }
-        // }
-        // return true;
+        for (uint256 i = 0; i < creditPositions.length; i++) {
+            if (0 < creditPositions[i].credit && creditPositions[i].credit < minimumCreditBorrowAToken) {
+                t(false, LOAN_05);
+                return false;
+            }
+        }
+        return true;
     }
 
     function invariant_LIQUIDATION_01() public returns (bool) {

@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
-import "../src/Size.sol";
-import "forge-std/Script.sol";
+import {Size} from "@src/Size.sol";
+import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
+import {Script} from "forge-std/Script.sol";
+import {console2 as console} from "forge-std/console2.sol";
 
 contract ClaimScript is Script {
     function run() external {
@@ -13,8 +15,7 @@ contract ClaimScript is Script {
 
         Size sizeContract = Size(sizeContractAddress);
 
-        /// Claim struct
-        ClaimParams memory params = ClaimParams({loanId: 1});
+        ClaimParams memory params = ClaimParams({creditPositionId: 1});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.claim(params);

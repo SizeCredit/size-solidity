@@ -25,6 +25,14 @@ library Repay {
     function validateRepay(State storage state, RepayParams calldata params) external view {
         DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
 
+        // validate debtPositionId
+        if (!state.isDebtPositionId(params.debtPositionId)) {
+            revert Errors.ONLY_DEBT_POSITION_CAN_BE_REPAID(params.debtPositionId);
+        }
+        if (state.getLoanStatus(params.debtPositionId) == LoanStatus.REPAID) {
+            revert Errors.LOAN_ALREADY_REPAID(params.debtPositionId);
+        }
+
         // validate msg.sender
         if (msg.sender != debtPosition.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
@@ -33,14 +41,6 @@ library Repay {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
                 state.borrowATokenBalanceOf(msg.sender), debtPosition.faceValue()
             );
-        }
-
-        // validate debtPositionId
-        if (!state.isDebtPositionId(params.debtPositionId)) {
-            revert Errors.ONLY_DEBT_POSITION_CAN_BE_REPAID(params.debtPositionId);
-        }
-        if (state.getLoanStatus(params.debtPositionId) == LoanStatus.REPAID) {
-            revert Errors.LOAN_ALREADY_REPAID(params.debtPositionId);
         }
     }
 

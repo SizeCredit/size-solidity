@@ -58,8 +58,7 @@ abstract contract BeforeAfter is Deploy {
         vars.senderBorrowAmount = usdc.balanceOf(sender);
         (vars.activeLoans,) = size.getPositionsCount();
         vars.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowAmount;
-        (,, NonTransferrableToken debtToken) = size.tokens();
-        vars.totalDebtAmount = debtToken.totalSupply();
+        vars.totalDebtAmount = size.data().debtToken.totalSupply();
     }
 
     function __before(uint256 loanId) internal {

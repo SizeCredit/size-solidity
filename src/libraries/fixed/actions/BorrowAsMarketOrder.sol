@@ -66,6 +66,11 @@ library BorrowAsMarketOrder {
         // validate params.receivableCreditPositionIds
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
             uint256 creditPositionId = params.receivableCreditPositionIds[i];
+
+            if (!state.isCreditPositionId(creditPositionId)) {
+                revert Errors.INVALID_POSITION_ID(creditPositionId);
+            }
+
             CreditPosition memory creditPosition = state.data.creditPositions[creditPositionId];
             DebtPosition memory debtPosition = state.getDebtPosition(creditPositionId);
 
@@ -83,15 +88,13 @@ library BorrowAsMarketOrder {
             params.lender, params.amount, params.dueDate, params.exactAmountIn, params.receivableCreditPositionIds
         );
 
-        params.amount = _borrowWithReceivable(state, params);
-        _borrowWithRealCollateral(state, params);
+        params.amount = _borrowFromCredit(state, params);
+        _borrowGeneratingDebt(state, params);
     }
 
-    /**
-     * @notice Borrow with virtual collateral, an internal state-modifying function.
-     * @dev The `amount` is initialized to `amountOutLeft`, which is decreased as more and more SOLs are created
-     */
-    function _borrowWithReceivable(State storage state, BorrowAsMarketOrderParams memory params)
+    /// @notice Borrow with receivable credit positions, an internal state-modifying function.
+    /// @dev The `amount` is initialized to `amountOutLeft`, which is decreased as more and more CreditPositions are created
+    function _borrowFromCredit(State storage state, BorrowAsMarketOrderParams memory params)
         internal
         returns (uint256 amountOutLeft)
     {
@@ -139,11 +142,9 @@ library BorrowAsMarketOrder {
         }
     }
 
-    /**
-     * @notice Borrow with real collateral, an internal state-modifying function.
-     * @dev Cover the remaining amount with real collateral
-     */
-    function _borrowWithRealCollateral(State storage state, BorrowAsMarketOrderParams memory params) internal {
+    /// @notice Borrow with generating debt
+    /// @dev Cover the remaining amount by generating debt, which is subject to liquidation
+    function _borrowGeneratingDebt(State storage state, BorrowAsMarketOrderParams memory params) internal {
         if (params.amount == 0) {
             return;
         }

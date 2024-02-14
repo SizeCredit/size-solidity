@@ -67,11 +67,8 @@ library Liquidate {
         bool splitCollateralRemainder
     ) private returns (uint256 liquidatorProfitCollateralToken) {
         uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPositionCopy);
-        uint256 debtBorrowTokenWad =
-            ConversionLibrary.amountToWad(debtPositionCopy.faceValue(), state.data.underlyingBorrowToken.decimals());
-        uint256 debtInCollateralToken = Math.mulDivDown(
-            debtBorrowTokenWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice()
-        );
+        uint256 debtInCollateralToken = state.faceValueInCollateralToken(debtPositionCopy);
+        ConversionLibrary.amountToWad(debtPositionCopy.faceValue(), state.data.underlyingBorrowToken.decimals());
 
         // CR > 100%
         if (assignedCollateral > debtInCollateralToken) {

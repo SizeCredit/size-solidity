@@ -13,7 +13,7 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {Math} from "@src/libraries/Math.sol";
 
 contract RepayTest is BaseTest {
-    function test_Repay_repay_full_FOL() public {
+    function test_Repay_repay_full_DebtPosition() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -40,7 +40,7 @@ contract RepayTest is BaseTest {
         assertEq(size.getDebt(loanId), 0);
     }
 
-    function test_Repay_repay_partial_FOL() internal {}
+    function test_Repay_repay_partial_DebtPosition() internal {}
 
     function test_Repay_overdue_does_not_increase_debt() public {
         _deposit(alice, weth, 100e18);
@@ -91,12 +91,13 @@ contract RepayTest is BaseTest {
         _lendAsLimitOrder(alice, 12, 1e18, 12);
         _lendAsLimitOrder(candy, 12, 1e18, 12);
         uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(loanId)[0];
         _borrowAsMarketOrder(bob, candy, 100e6, 12);
 
         Vars memory _before = _state();
 
         _repay(bob, loanId);
-        _claim(bob, loanId);
+        _claim(bob, creditId);
 
         Vars memory _after = _state();
 
@@ -114,7 +115,7 @@ contract RepayTest is BaseTest {
     function testFuzz_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAToken(
         uint256 borrowAmount,
         uint256 repayAmount
-    ) public {
+    ) internal {
         borrowAmount = bound(borrowAmount, size.config().minimumCreditBorrowAToken, 100e6);
         repayAmount = bound(repayAmount, 0, borrowAmount);
 
@@ -125,7 +126,7 @@ contract RepayTest is BaseTest {
         uint256 loanId = _borrowAsMarketOrder(bob, alice, borrowAmount, 12);
 
         vm.prank(bob);
-        try size.repay(RepayParams({loanId: loanId})) {} catch {}
+        try size.repay(RepayParams({debtPositionId: loanId})) {} catch {}
         assertGe(size.getCredit(loanId), size.config().minimumCreditBorrowAToken);
     }
 

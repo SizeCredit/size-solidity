@@ -46,6 +46,8 @@ library Errors {
     error ONLY_CREDIT_POSITION_CAN_BE_COMPENSATED(uint256 positionId);
     error ONLY_CREDIT_POSITION_CAN_BE_SELF_LIQUIDATED(uint256 positionId);
 
+    error CREDIT_POSITION_ALREADY_CLAIMED(uint256 positionId);
+
     error LOAN_ALREADY_REPAID(uint256 positionId);
     error LOAN_NOT_REPAID(uint256 positionId);
     error LOAN_NOT_ACTIVE(uint256 positionId);

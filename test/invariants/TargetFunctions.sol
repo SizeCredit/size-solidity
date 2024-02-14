@@ -27,9 +27,6 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
-    event L1(uint256 a);
-    event L4(uint256 a, uint256 b, uint256 c, uint256 d);
-
     function setup() internal override {
         setup(address(this), address(this));
         address[] memory users = new address[](3);
@@ -103,10 +100,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         amount = between(amount, 0, MAX_AMOUNT_USDC / 100);
         dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
 
-        uint256[] memory receivableLoanIds;
+        uint256[] memory receivableCreditPositionIds;
         if (_before.activeLoans > 0) {
             n = between(n, 1, _before.activeLoans);
-            receivableLoanIds = _getRandomReceivableLoanIds(n, seedReceivableLoanIds);
+            receivableCreditPositionIds = _getRandomReceivableLoanIds(n, seedReceivableLoanIds);
         }
 
         hevm.prank(sender);
@@ -116,7 +113,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                receivableCreditPositionIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
 
@@ -129,7 +126,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 gt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
             }
 
-            if (receivableLoanIds.length > 0) {
+            if (receivableCreditPositionIds.length > 0) {
                 gte(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
             } else {
                 eq(_after.activeLoans, _before.activeLoans + 1, BORROW_02);

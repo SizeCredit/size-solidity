@@ -48,7 +48,7 @@ interface ISize {
     ///     - uint256 amount: The amount of tokens to borrow (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
     ///     - uint256 dueDate: The due date of the loan
     ///     - bool exactAmountIn: When passing an array of receivable loans, this flag indicates if the amount is value to be returned at due date
-    ///     - uint256[] receivableLoanIds: The ids of receivable loans that can be used as credit to borrow without assigining new collateral
+    ///     - uint256[] receivableCreditPositionIds: The ids of receivable loans that can be used as credit to borrow without assigining new collateral
     function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external;
 
     /// @notice Places a new borrow offer in the orderbook
@@ -142,10 +142,10 @@ interface ISize {
         returns (uint256, uint256);
 
     /// @notice Compensate a borrower's debt with his credit in another loan
-    ///         The compensation can not exceed both 1) the credit the lender of `loanToRepayId` to the borrower and 2) the credit the lender of `loanToCompensateId`
+    ///         The compensation can not exceed both 1) the credit the lender of `debtPositionToRepayId` to the borrower and 2) the credit the lender of `creditPositionToCompensateId`
     /// @param params CompensateParams struct containing the following fields:
-    ///     - uint256 loanToRepayId: The id of the loan to repay
-    ///     - uint256 loanToCompensateId: The id of the loan to compensate
+    ///     - uint256 debtPositionToRepayId: The id of the loan to repay
+    ///     - uint256 creditPositionToCompensateId: The id of the loan to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
     function compensate(CompensateParams calldata params) external;
 }

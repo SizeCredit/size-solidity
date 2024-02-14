@@ -178,8 +178,7 @@ contract WithdrawTest is BaseTest {
         _borrowAsLimitOrder(alice, 1e18, 12);
         _lendAsMarketOrder(alice, alice, 100e6, 12);
         _withdraw(alice, usdc, 10e6);
-        (, IAToken borrowAToken, NonTransferrableToken debtToken) = size.tokens();
-        assertLt(borrowAToken.totalSupply(), debtToken.totalSupply());
+        assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
     }
 
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_borrow_followed_by_withdraw(
@@ -190,7 +189,6 @@ contract WithdrawTest is BaseTest {
         _borrowAsLimitOrder(bob, 1e18, 12);
         _lendAsMarketOrder(alice, bob, 100e6, 12);
         _withdraw(bob, usdc, 10e6);
-        (, IAToken borrowAToken, NonTransferrableToken debtToken) = size.tokens();
-        assertLt(borrowAToken.totalSupply(), debtToken.totalSupply());
+        assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
     }
 }

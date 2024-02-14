@@ -197,7 +197,10 @@ library Initialize {
         state.data.variablePool = IPool(d.variablePool);
 
         state.data.collateralToken = new NonTransferrableToken(
-            address(this), "Size Fixed ETH", "szETH", IERC20Metadata(state.data.underlyingCollateralToken).decimals()
+            address(this),
+            string.concat("Size ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
+            string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
+            IERC20Metadata(state.data.underlyingCollateralToken).decimals()
         );
         state.data.borrowAToken =
             IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);

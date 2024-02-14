@@ -32,6 +32,9 @@ library Claim {
         if (state.getLoanStatus(params.creditPositionId) != LoanStatus.REPAID) {
             revert Errors.LOAN_NOT_REPAID(params.creditPositionId);
         }
+        if (state.data.creditPositions[params.creditPositionId].credit == 0) {
+            revert Errors.CREDIT_POSITION_ALREADY_CLAIMED(params.creditPositionId);
+        }
     }
 
     function executeClaim(State storage state, ClaimParams calldata params) external {

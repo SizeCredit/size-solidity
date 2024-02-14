@@ -26,13 +26,13 @@ abstract contract Helper is Deploy, PropertiesConstants {
     function _getRandomReceivableLoanIds(uint256 n, uint256 seed)
         internal
         view
-        returns (uint256[] memory receivableLoanIds)
+        returns (uint256[] memory receivableCreditPositionIds)
     {
         (, uint256 creditPositions) = size.getPositionsCount();
-        receivableLoanIds = new uint256[](n);
+        receivableCreditPositionIds = new uint256[](n);
         for (uint256 i = 0; i < n; i++) {
             uint256 index = uint256(keccak256(abi.encodePacked(seed, i))) % creditPositions;
-            receivableLoanIds[i] = index;
+            receivableCreditPositionIds[i] = index;
         }
     }
 }
