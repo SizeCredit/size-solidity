@@ -45,7 +45,10 @@ library Compensate {
         if (state.getLoanStatus(params.creditPositionToCompensateId) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.creditPositionToCompensateId);
         }
-        if (debtPositionToRepay.dueDate < state.getDebtPosition(params.creditPositionToCompensateId).dueDate) {
+        if (
+            debtPositionToRepay.dueDate
+                < state.getDebtPositionByCreditPositionId(params.creditPositionToCompensateId).dueDate
+        ) {
             revert Errors.DUE_DATE_NOT_COMPATIBLE(params.debtPositionToRepayId, params.creditPositionToCompensateId);
         }
         if (creditPositionToCompensate.lender != debtPositionToRepay.borrower) {

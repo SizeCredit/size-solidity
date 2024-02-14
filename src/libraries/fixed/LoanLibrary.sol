@@ -76,13 +76,19 @@ library LoanLibrary {
         return debtInCollateralToken;
     }
 
-    function getDebtPositionId(State storage state, uint256 positionId) public view returns (uint256) {
-        if (isDebtPositionId(state, positionId)) {
-            return positionId;
-        } else if (isCreditPositionId(state, positionId)) {
-            return state.data.creditPositions[positionId].debtPositionId;
+    function getDebtPositionIdByCreditPositionId(State storage state, uint256 creditPositionId)
+        public
+        view
+        returns (uint256)
+    {
+        return getCreditPosition(state, creditPositionId).debtPositionId;
+    }
+
+    function getDebtPosition(State storage state, uint256 debtPositionId) public view returns (DebtPosition memory) {
+        if (isDebtPositionId(state, debtPositionId)) {
+            return state.data.debtPositions[debtPositionId];
         } else {
-            revert Errors.INVALID_POSITION_ID(positionId);
+            revert Errors.INVALID_POSITION_ID(debtPositionId);
         }
     }
 
@@ -98,13 +104,24 @@ library LoanLibrary {
         }
     }
 
-    // TODO: this is ambiguous on whether it works only for debtPosition or for a generic position
-    function getDebtPosition(State storage state, uint256 positionId) public view returns (DebtPosition storage) {
-        return state.data.debtPositions[getDebtPositionId(state, positionId)];
+    function getDebtPositionByCreditPositionId(State storage state, uint256 creditPositionId)
+        public
+        view
+        returns (DebtPosition storage)
+    {
+        return state.data.debtPositions[getDebtPositionIdByCreditPositionId(state, creditPositionId)];
     }
 
     function getLoanStatus(State storage state, uint256 positionId) public view returns (LoanStatus) {
-        DebtPosition storage debtPosition = getDebtPosition(state, positionId);
+        DebtPosition memory debtPosition;
+        if (isDebtPositionId(state, positionId)) {
+            debtPosition = state.data.debtPositions[positionId];
+        } else if (isCreditPositionId(state, positionId)) {
+            debtPosition = getDebtPositionByCreditPositionId(state, positionId);
+        } else {
+            revert Errors.INVALID_POSITION_ID(positionId);
+        }
+
         if (getDebt(debtPosition) == 0) {
             return LoanStatus.REPAID;
         } else if (block.timestamp >= debtPosition.dueDate) {

@@ -39,7 +39,7 @@ library Claim {
 
     function executeClaim(State storage state, ClaimParams calldata params) external {
         CreditPosition storage creditPosition = state.data.creditPositions[params.creditPositionId];
-        DebtPosition storage debtPosition = state.getDebtPosition(params.creditPositionId);
+        DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 claimAmount = Math.mulDivDown(
             creditPosition.credit, state.borrowATokenLiquidityIndex(), debtPosition.liquidityIndexAtRepayment

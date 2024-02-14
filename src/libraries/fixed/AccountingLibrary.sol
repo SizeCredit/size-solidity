@@ -86,7 +86,7 @@ library AccountingLibrary {
         address borrower,
         uint256 credit
     ) public returns (CreditPosition memory creditPosition) {
-        uint256 debtPositionId = state.getDebtPositionId(exitCreditPositionId);
+        uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
         CreditPosition storage exitPosition = state.data.creditPositions[exitCreditPositionId];
 
         creditPosition =

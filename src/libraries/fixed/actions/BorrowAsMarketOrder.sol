@@ -72,7 +72,7 @@ library BorrowAsMarketOrder {
             }
 
             CreditPosition memory creditPosition = state.data.creditPositions[creditPositionId];
-            DebtPosition memory debtPosition = state.getDebtPosition(creditPositionId);
+            DebtPosition memory debtPosition = state.getDebtPositionByCreditPositionId(creditPositionId);
 
             if (msg.sender != creditPosition.lender) {
                 revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, creditPosition.lender);

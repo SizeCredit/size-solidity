@@ -29,7 +29,7 @@ library SelfLiquidate {
 
     function validateSelfLiquidate(State storage state, SelfLiquidateParams calldata params) external view {
         CreditPosition storage creditPosition = state.data.creditPositions[params.creditPositionId];
-        DebtPosition storage debtPosition = state.getDebtPosition(params.creditPositionId);
+        DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
         uint256 debtInCollateralToken = state.faceValueInCollateralToken(debtPosition);
@@ -59,7 +59,7 @@ library SelfLiquidate {
         emit Events.SelfLiquidate(params.creditPositionId);
 
         CreditPosition storage creditPosition = state.data.creditPositions[params.creditPositionId];
-        DebtPosition storage debtPosition = state.getDebtPosition(params.creditPositionId);
+        DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 credit = creditPosition.credit;
 
