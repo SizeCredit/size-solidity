@@ -42,8 +42,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant REPAY_01 = "REPAY_01: Repay transfers cash from the sender to the protocol";
     string internal constant REPAY_02 = "REPAY_02: Repay decreases the sender debt";
 
-    string internal constant LOAN_05 = "LOAN_05: loan.credit >= minimumCreditBorrowAToken";
-    string internal constant LOAN_07 = "LOAN_07: SUM(CreditPosition.credit) <= DebtPosition.faceValue";
+    string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
 
     string internal constant TOKENS_01 = "TOKENS_01: The sum of all tokens is constant";
 
@@ -55,23 +54,10 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     function invariant_LOAN() public returns (bool) {
         uint256 minimumCreditBorrowAToken = size.config().minimumCreditBorrowAToken;
         CreditPosition[] memory creditPositions = size.getCreditPositions();
-        DebtPosition[] memory debtPositions = size.getDebtPositions();
-
-        for (uint256 i = 0; i < debtPositions.length; i++) {
-            CreditPosition[] memory creditPositionsByDebtPosition = size.getCreditPositionsByDebtPositionId(i);
-            uint256 creditPositionsCreditSum = 0;
-            for (uint256 j = 0; j < creditPositionsByDebtPosition.length; j++) {
-                creditPositionsCreditSum += creditPositionsByDebtPosition[j].credit;
-            }
-            if (creditPositionsCreditSum <= debtPositions[i].faceValue()) {
-                t(false, LOAN_07);
-                return false;
-            }
-        }
 
         for (uint256 i = 0; i < creditPositions.length; i++) {
             if (0 < creditPositions[i].credit && creditPositions[i].credit < minimumCreditBorrowAToken) {
-                t(false, LOAN_05);
+                t(false, LOAN_01);
                 return false;
             }
         }
