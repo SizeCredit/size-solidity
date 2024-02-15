@@ -56,7 +56,7 @@ contract RepayValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_DEBT_POSITION_CAN_BE_REPAID.selector, creditId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DEBT_POSITION_ID.selector, creditId));
         size.repay(RepayParams({debtPositionId: creditId}));
         vm.stopPrank();
     }

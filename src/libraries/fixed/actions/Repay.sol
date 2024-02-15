@@ -23,12 +23,9 @@ library Repay {
     using AccountingLibrary for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
-        DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
+        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
         // validate debtPositionId
-        if (!state.isDebtPositionId(params.debtPositionId)) {
-            revert Errors.ONLY_DEBT_POSITION_CAN_BE_REPAID(params.debtPositionId);
-        }
         if (state.getLoanStatus(params.debtPositionId) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.debtPositionId);
         }
@@ -45,7 +42,7 @@ library Repay {
     }
 
     function executeRepay(State storage state, RepayParams calldata params) external {
-        DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
+        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         uint256 faceValue = debtPosition.faceValue();
 
         state.transferBorrowAToken(msg.sender, address(this), faceValue);

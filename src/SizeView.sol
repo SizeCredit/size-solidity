@@ -3,7 +3,6 @@ pragma solidity 0.8.24;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SizeStorage, State} from "@src/SizeStorage.sol";
-import {Errors} from "@src/libraries/Errors.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -226,11 +225,11 @@ abstract contract SizeView is SizeStorage {
     }
 
     function partialRepayFee(uint256 debtPositionId, uint256 repayAmount) public view returns (uint256) {
-        return state.data.debtPositions[debtPositionId].partialRepayFee(repayAmount);
+        return state.getDebtPosition(debtPositionId).partialRepayFee(repayAmount);
     }
 
     function repayFee(uint256 debtPositionId) external view returns (uint256) {
-        return state.data.debtPositions[debtPositionId].repayFee();
+        return state.getDebtPosition(debtPositionId).repayFee();
     }
 
     function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)

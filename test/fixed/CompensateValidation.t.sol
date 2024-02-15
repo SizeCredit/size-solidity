@@ -100,11 +100,22 @@ contract CompensateValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_DEBT_POSITION_CAN_BE_REPAID.selector, creditPositionId2_1));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DEBT_POSITION_ID.selector, creditPositionId2_1));
         size.compensate(
             CompensateParams({
                 debtPositionToRepayId: creditPositionId2_1,
                 creditPositionToCompensateId: creditPositionId3,
+                amount: type(uint256).max
+            })
+        );
+        vm.stopPrank();
+
+        vm.startPrank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_CREDIT_POSITION_ID.selector, debtPositionId));
+        size.compensate(
+            CompensateParams({
+                debtPositionToRepayId: debtPositionId,
+                creditPositionToCompensateId: debtPositionId,
                 amount: type(uint256).max
             })
         );

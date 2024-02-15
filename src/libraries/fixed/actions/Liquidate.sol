@@ -29,14 +29,11 @@ library Liquidate {
     using AccountingLibrary for State;
 
     function validateLiquidate(State storage state, LiquidateParams calldata params) external view {
-        DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
+        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
         // validate msg.sender
 
         // validate debtPositionId
-        if (!state.isDebtPositionId(params.debtPositionId)) {
-            revert Errors.ONLY_DEBT_POSITION_CAN_BE_LIQUIDATED(params.debtPositionId);
-        }
         if (!state.isDebtPositionLiquidatable(params.debtPositionId)) {
             revert Errors.LOAN_NOT_LIQUIDATABLE(
                 params.debtPositionId,
@@ -121,7 +118,7 @@ library Liquidate {
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
-        DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
+        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         DebtPosition memory debtPositionCopy = debtPosition;
         LoanStatus loanStatus = state.getLoanStatus(params.debtPositionId);
         uint256 collateralRatio = state.collateralRatio(debtPosition.borrower);

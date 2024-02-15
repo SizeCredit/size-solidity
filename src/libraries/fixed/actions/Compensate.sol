@@ -26,22 +26,15 @@ library Compensate {
     using VariableLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
-        DebtPosition storage debtPositionToRepay = state.data.debtPositions[params.debtPositionToRepayId];
-        CreditPosition storage creditPositionToCompensate =
-            state.data.creditPositions[params.creditPositionToCompensateId];
+        DebtPosition storage debtPositionToRepay = state.getDebtPosition(params.debtPositionToRepayId);
+        CreditPosition storage creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
 
         // validate debtPositionToRepayId
-        if (!state.isDebtPositionId(params.debtPositionToRepayId)) {
-            revert Errors.ONLY_DEBT_POSITION_CAN_BE_REPAID(params.debtPositionToRepayId);
-        }
         if (state.getLoanStatus(params.debtPositionToRepayId) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.debtPositionToRepayId);
         }
 
         // validate creditPositionToCompensateId
-        if (!state.isCreditPositionId(params.creditPositionToCompensateId)) {
-            revert Errors.ONLY_CREDIT_POSITION_CAN_BE_COMPENSATED(params.creditPositionToCompensateId);
-        }
         if (state.getLoanStatus(params.creditPositionToCompensateId) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.creditPositionToCompensateId);
         }
@@ -69,9 +62,9 @@ library Compensate {
     function executeCompensate(State storage state, CompensateParams calldata params) external {
         emit Events.Compensate(params.debtPositionToRepayId, params.creditPositionToCompensateId, params.amount);
 
-        DebtPosition storage debtPositionToRepay = state.data.debtPositions[params.debtPositionToRepayId];
-        CreditPosition storage creditPositionToCompensate =
-            state.data.creditPositions[params.creditPositionToCompensateId];
+        DebtPosition storage debtPositionToRepay = state.getDebtPosition(params.debtPositionToRepayId);
+        CreditPosition storage creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
+
         uint256 amountToCompensate =
             Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue());
 

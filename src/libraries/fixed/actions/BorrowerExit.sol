@@ -31,12 +31,9 @@ library BorrowerExit {
 
     function validateBorrowerExit(State storage state, BorrowerExitParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
-        DebtPosition memory debtPosition = state.data.debtPositions[params.debtPositionId];
+        DebtPosition memory debtPosition = state.getDebtPosition(params.debtPositionId);
 
         // validate debtPositionId
-        if (!state.isDebtPositionId(params.debtPositionId)) {
-            revert Errors.ONLY_DEBT_POSITION_CAN_BE_EXITED(params.debtPositionId);
-        }
         uint256 dueDate = debtPosition.dueDate;
         if (dueDate <= block.timestamp) {
             revert Errors.PAST_DUE_DATE(debtPosition.dueDate);

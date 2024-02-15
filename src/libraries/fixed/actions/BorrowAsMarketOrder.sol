@@ -67,11 +67,7 @@ library BorrowAsMarketOrder {
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
             uint256 creditPositionId = params.receivableCreditPositionIds[i];
 
-            if (!state.isCreditPositionId(creditPositionId)) {
-                revert Errors.INVALID_POSITION_ID(creditPositionId);
-            }
-
-            CreditPosition memory creditPosition = state.data.creditPositions[creditPositionId];
+            CreditPosition memory creditPosition = state.getCreditPosition(creditPositionId);
             DebtPosition memory debtPosition = state.getDebtPositionByCreditPositionId(creditPositionId);
 
             if (msg.sender != creditPosition.lender) {

@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-import {Math} from "@src/libraries/Math.sol";
-
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -28,16 +25,13 @@ library SelfLiquidate {
     using RiskLibrary for State;
 
     function validateSelfLiquidate(State storage state, SelfLiquidateParams calldata params) external view {
-        CreditPosition storage creditPosition = state.data.creditPositions[params.creditPositionId];
+        CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
         uint256 debtInCollateralToken = state.faceValueInCollateralToken(debtPosition);
 
         // validate creditPositionId
-        if (!state.isCreditPositionId(params.creditPositionId)) {
-            revert Errors.ONLY_CREDIT_POSITION_CAN_BE_SELF_LIQUIDATED(params.creditPositionId);
-        }
         if (!state.isLoanSelfLiquidatable(params.creditPositionId)) {
             revert Errors.LOAN_NOT_SELF_LIQUIDATABLE(
                 params.creditPositionId,

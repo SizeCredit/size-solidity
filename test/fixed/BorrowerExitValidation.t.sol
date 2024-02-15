@@ -42,7 +42,7 @@ contract BorrowerExitValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(james);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_DEBT_POSITION_CAN_BE_EXITED.selector, creditId2));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DEBT_POSITION_ID.selector, creditId2));
         size.borrowerExit(BorrowerExitParams({debtPositionId: creditId2, borrowerToExitTo: borrowerToExitTo}));
 
         vm.startPrank(bob);

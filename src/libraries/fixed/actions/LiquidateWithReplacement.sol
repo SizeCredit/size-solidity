@@ -76,7 +76,7 @@ library LiquidateWithReplacement {
     {
         emit Events.LiquidateWithReplacement(params.debtPositionId, params.borrower, params.minimumCollateralProfit);
 
-        DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
+        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         DebtPosition memory debtPositionCopy = debtPosition;
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 

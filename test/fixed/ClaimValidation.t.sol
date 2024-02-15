@@ -31,7 +31,7 @@ contract ClaimValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector, creditPositionId));
         size.claim(ClaimParams({creditPositionId: creditPositionId}));
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_CREDIT_POSITION_CAN_BE_CLAIMED.selector, debtPositionId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_CREDIT_POSITION_ID.selector, debtPositionId));
         size.claim(ClaimParams({creditPositionId: debtPositionId}));
     }
 }

@@ -33,7 +33,7 @@ contract LiquidateValidationTest is BaseTest {
         _deposit(liquidator, usdc, 10_000e6);
 
         vm.startPrank(liquidator);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_DEBT_POSITION_CAN_BE_LIQUIDATED.selector, creditPositionId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DEBT_POSITION_ID.selector, creditPositionId));
         size.liquidate(
             LiquidateParams({debtPositionId: creditPositionId, minimumCollateralProfit: minimumCollateralProfit})
         );
@@ -69,7 +69,7 @@ contract LiquidateValidationTest is BaseTest {
 
         // CreditPosition cannot be liquidated
         vm.startPrank(liquidator);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_DEBT_POSITION_CAN_BE_LIQUIDATED.selector, creditPositionId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DEBT_POSITION_ID.selector, creditPositionId));
         size.liquidate(
             LiquidateParams({debtPositionId: creditPositionId, minimumCollateralProfit: minimumCollateralProfit})
         );

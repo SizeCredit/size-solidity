@@ -23,22 +23,20 @@ library Claim {
     using AccountingLibrary for State;
 
     function validateClaim(State storage state, ClaimParams calldata params) external view {
+        CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         // validate msg.sender
 
         // validate creditPositionId
-        if (!state.isCreditPositionId(params.creditPositionId)) {
-            revert Errors.ONLY_CREDIT_POSITION_CAN_BE_CLAIMED(params.creditPositionId);
-        }
         if (state.getLoanStatus(params.creditPositionId) != LoanStatus.REPAID) {
             revert Errors.LOAN_NOT_REPAID(params.creditPositionId);
         }
-        if (state.data.creditPositions[params.creditPositionId].credit == 0) {
+        if (creditPosition.credit == 0) {
             revert Errors.CREDIT_POSITION_ALREADY_CLAIMED(params.creditPositionId);
         }
     }
 
     function executeClaim(State storage state, ClaimParams calldata params) external {
-        CreditPosition storage creditPosition = state.data.creditPositions[params.creditPositionId];
+        CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 claimAmount = Math.mulDivDown(

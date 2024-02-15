@@ -84,23 +84,23 @@ library LoanLibrary {
         return getCreditPosition(state, creditPositionId).debtPositionId;
     }
 
-    function getDebtPosition(State storage state, uint256 debtPositionId) public view returns (DebtPosition memory) {
+    function getDebtPosition(State storage state, uint256 debtPositionId) public view returns (DebtPosition storage) {
         if (isDebtPositionId(state, debtPositionId)) {
             return state.data.debtPositions[debtPositionId];
         } else {
-            revert Errors.INVALID_POSITION_ID(debtPositionId);
+            revert Errors.INVALID_DEBT_POSITION_ID(debtPositionId);
         }
     }
 
     function getCreditPosition(State storage state, uint256 creditPositionId)
         public
         view
-        returns (CreditPosition memory)
+        returns (CreditPosition storage)
     {
         if (isCreditPositionId(state, creditPositionId)) {
             return state.data.creditPositions[creditPositionId];
         } else {
-            revert Errors.INVALID_POSITION_ID(creditPositionId);
+            revert Errors.INVALID_CREDIT_POSITION_ID(creditPositionId);
         }
     }
 
@@ -109,7 +109,8 @@ library LoanLibrary {
         view
         returns (DebtPosition storage)
     {
-        return state.data.debtPositions[getDebtPositionIdByCreditPositionId(state, creditPositionId)];
+        CreditPosition memory creditPosition = getCreditPosition(state, creditPositionId);
+        return getDebtPosition(state, creditPosition.debtPositionId);
     }
 
     /// @notice Get the status of a loan
@@ -168,7 +169,7 @@ library LoanLibrary {
         view
         returns (uint256)
     {
-        DebtPosition storage debtPosition = state.data.debtPositions[creditPosition.debtPositionId];
+        DebtPosition storage debtPosition = getDebtPosition(state, creditPosition.debtPositionId);
 
         uint256 creditPositionCredit = creditPosition.credit;
         uint256 debtPositionCollateral = getDebtPositionAssignedCollateral(state, debtPosition);

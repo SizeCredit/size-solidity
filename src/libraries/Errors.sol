@@ -25,6 +25,8 @@ library Errors {
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error DUE_DATE_OUT_OF_RANGE(uint256 dueDate, uint256 minDueDate, uint256 maxDueDate);
     error INVALID_POSITION_ID(uint256 positionId);
+    error INVALID_DEBT_POSITION_ID(uint256 debtPositionId);
+    error INVALID_CREDIT_POSITION_ID(uint256 creditPositionId);
     error INVALID_LENDER(address account);
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);
