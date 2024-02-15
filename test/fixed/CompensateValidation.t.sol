@@ -21,36 +21,54 @@ contract CompensateValidationTest is BaseTest {
         _lendAsLimitOrder(bob, 12, 0.05e18, 12);
         _lendAsLimitOrder(candy, 12, 0.05e18, 12);
         _lendAsLimitOrder(james, 12, 0.05e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, 12);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
-        uint256 solId = _borrowAsMarketOrder(bob, alice, 10e6, 12, [loanId2]);
+        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[0];
+        _borrowAsMarketOrder(bob, alice, 10e6, 12, size.getCreditPositionIdsByDebtPositionId(loanId2));
+        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.COMPENSATOR_IS_NOT_BORROWER.selector, bob, alice));
         size.compensate(
-            CompensateParams({loanToRepayId: loanId3, loanToCompensateId: loanId, amount: type(uint256).max})
+            CompensateParams({
+                debtPositionToRepayId: loanId3,
+                creditPositionToCompensateId: creditPositionId,
+                amount: type(uint256).max
+            })
         );
         vm.stopPrank();
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LENDER.selector, bob));
         size.compensate(
-            CompensateParams({loanToRepayId: loanId3, loanToCompensateId: loanId2, amount: type(uint256).max})
+            CompensateParams({
+                debtPositionToRepayId: loanId3,
+                creditPositionToCompensateId: creditPositionId2,
+                amount: type(uint256).max
+            })
         );
         vm.stopPrank();
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        size.compensate(CompensateParams({loanToRepayId: loanId3, loanToCompensateId: loanId, amount: 0}));
+        size.compensate(
+            CompensateParams({debtPositionToRepayId: loanId3, creditPositionToCompensateId: creditPositionId, amount: 0})
+        );
         vm.stopPrank();
 
-        _repay(bob, loanId);
+        _repay(bob, debtPositionId);
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditPositionId));
         size.compensate(
-            CompensateParams({loanToRepayId: loanId3, loanToCompensateId: loanId, amount: type(uint256).max})
+            CompensateParams({
+                debtPositionToRepayId: loanId3,
+                creditPositionToCompensateId: creditPositionId,
+                amount: type(uint256).max
+            })
         );
         vm.stopPrank();
 
@@ -59,21 +77,36 @@ contract CompensateValidationTest is BaseTest {
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId3));
         size.compensate(
-            CompensateParams({loanToRepayId: loanId3, loanToCompensateId: loanId, amount: type(uint256).max})
+            CompensateParams({
+                debtPositionToRepayId: loanId3,
+                creditPositionToCompensateId: creditPositionId2_1,
+                amount: type(uint256).max
+            })
         );
         vm.stopPrank();
 
         uint256 l1 = _borrowAsMarketOrder(bob, alice, 20e6, 12);
         uint256 l2 = _borrowAsMarketOrder(alice, james, 20e6, 6);
+        uint256 creditPositionIdL1 = size.getCreditPositionIdsByDebtPositionId(l1)[0];
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_NOT_COMPATIBLE.selector, l2, l1));
-        size.compensate(CompensateParams({loanToRepayId: l2, loanToCompensateId: l1, amount: type(uint256).max}));
+        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_NOT_COMPATIBLE.selector, l2, creditPositionIdL1));
+        size.compensate(
+            CompensateParams({
+                debtPositionToRepayId: l2,
+                creditPositionToCompensateId: creditPositionIdL1,
+                amount: type(uint256).max
+            })
+        );
         vm.stopPrank();
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_FOL_CAN_BE_COMPENSATED.selector, solId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.ONLY_DEBT_POSITION_CAN_BE_REPAID.selector, creditPositionId2_1));
         size.compensate(
-            CompensateParams({loanToRepayId: solId, loanToCompensateId: loanId3, amount: type(uint256).max})
+            CompensateParams({
+                debtPositionToRepayId: creditPositionId2_1,
+                creditPositionToCompensateId: creditPositionId3,
+                amount: type(uint256).max
+            })
         );
         vm.stopPrank();
     }

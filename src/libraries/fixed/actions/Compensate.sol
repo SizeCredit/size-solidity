@@ -9,50 +9,55 @@ import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 struct CompensateParams {
-    uint256 loanToRepayId;
-    uint256 loanToCompensateId;
+    uint256 debtPositionToRepayId;
+    uint256 creditPositionToCompensateId;
     uint256 amount;
 }
 
 library Compensate {
     using AccountingLibrary for State;
     using LoanLibrary for State;
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
     using VariableLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
-        Loan storage loanToRepay = state.data.loans[params.loanToRepayId];
-        Loan storage loanToCompensate = state.data.loans[params.loanToCompensateId];
+        DebtPosition storage debtPositionToRepay = state.data.debtPositions[params.debtPositionToRepayId];
+        CreditPosition storage creditPositionToCompensate =
+            state.data.creditPositions[params.creditPositionToCompensateId];
 
-        // validate msg.sender
-        if (msg.sender != loanToRepay.generic.borrower) {
-            revert Errors.COMPENSATOR_IS_NOT_BORROWER(msg.sender, loanToRepay.generic.borrower);
+        // validate debtPositionToRepayId
+        if (!state.isDebtPositionId(params.debtPositionToRepayId)) {
+            revert Errors.ONLY_DEBT_POSITION_CAN_BE_REPAID(params.debtPositionToRepayId);
+        }
+        if (state.getLoanStatus(params.debtPositionToRepayId) == LoanStatus.REPAID) {
+            revert Errors.LOAN_ALREADY_REPAID(params.debtPositionToRepayId);
         }
 
-        // validate loanToRepayId
-        if (!loanToRepay.isFOL()) {
-            revert Errors.ONLY_FOL_CAN_BE_COMPENSATED(params.loanToRepayId);
+        // validate creditPositionToCompensateId
+        if (!state.isCreditPositionId(params.creditPositionToCompensateId)) {
+            revert Errors.ONLY_CREDIT_POSITION_CAN_BE_COMPENSATED(params.creditPositionToCompensateId);
         }
-        if (state.getLoanStatus(loanToRepay) == LoanStatus.REPAID) {
-            revert Errors.LOAN_ALREADY_REPAID(params.loanToRepayId);
-        }
-
-        // validate loanToCompensateId
-        if (state.getLoanStatus(loanToCompensate) == LoanStatus.REPAID) {
-            revert Errors.LOAN_ALREADY_REPAID(params.loanToCompensateId);
+        if (state.getLoanStatus(params.creditPositionToCompensateId) == LoanStatus.REPAID) {
+            revert Errors.LOAN_ALREADY_REPAID(params.creditPositionToCompensateId);
         }
         if (
-            state.getLoanStatus(loanToCompensate) != LoanStatus.REPAID
-                && loanToRepay.fol.dueDate < state.getFOL(loanToCompensate).fol.dueDate
+            debtPositionToRepay.dueDate
+                < state.getDebtPositionByCreditPositionId(params.creditPositionToCompensateId).dueDate
         ) {
-            revert Errors.DUE_DATE_NOT_COMPATIBLE(params.loanToRepayId, params.loanToCompensateId);
+            revert Errors.DUE_DATE_NOT_COMPATIBLE(params.debtPositionToRepayId, params.creditPositionToCompensateId);
         }
-        if (loanToCompensate.generic.lender != loanToRepay.generic.borrower) {
-            revert Errors.INVALID_LENDER(loanToCompensate.generic.lender);
+        if (creditPositionToCompensate.lender != debtPositionToRepay.borrower) {
+            revert Errors.INVALID_LENDER(creditPositionToCompensate.lender);
+        }
+
+        // validate msg.sender
+        if (msg.sender != debtPositionToRepay.borrower) {
+            revert Errors.COMPENSATOR_IS_NOT_BORROWER(msg.sender, debtPositionToRepay.borrower);
         }
 
         // validate amount
@@ -62,22 +67,24 @@ library Compensate {
     }
 
     function executeCompensate(State storage state, CompensateParams calldata params) external {
-        emit Events.Compensate(params.loanToRepayId, params.loanToCompensateId, params.amount);
+        emit Events.Compensate(params.debtPositionToRepayId, params.creditPositionToCompensateId, params.amount);
 
-        Loan storage loanToRepay = state.data.loans[params.loanToRepayId];
-        Loan storage loanToCompensate = state.data.loans[params.loanToCompensateId];
-        uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.generic.credit, loanToRepay.faceValue());
+        DebtPosition storage debtPositionToRepay = state.data.debtPositions[params.debtPositionToRepayId];
+        CreditPosition storage creditPositionToCompensate =
+            state.data.creditPositions[params.creditPositionToCompensateId];
+        uint256 amountToCompensate =
+            Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue());
 
-        state.chargeRepayFee(loanToRepay, amountToCompensate);
-        state.data.debtToken.burn(loanToRepay.generic.borrower, amountToCompensate);
-        if (loanToRepay.getDebt() == 0) {
-            loanToCompensate.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+        state.chargeRepayFee(debtPositionToRepay, amountToCompensate);
+        state.data.debtToken.burn(debtPositionToRepay.borrower, amountToCompensate);
+        if (debtPositionToRepay.getDebt() == 0) {
+            debtPositionToRepay.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
 
         // slither-disable-next-line unused-return
-        state.createSOL({
-            exiterId: params.loanToCompensateId,
-            lender: loanToRepay.generic.lender,
+        state.createCreditPosition({
+            exitCreditPositionId: params.creditPositionToCompensateId,
+            lender: debtPositionToRepay.lender,
             borrower: msg.sender,
             credit: amountToCompensate
         });

@@ -3,6 +3,8 @@ pragma solidity 0.8.24;
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+
+import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
@@ -72,7 +74,15 @@ contract BorrowAsLimitOrderTest is BaseTest {
         );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.5e18, 1.7e18));
-        _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
+        vm.prank(bob);
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({
+                borrower: alice,
+                amount: 100e6,
+                dueDate: block.timestamp + 1 days,
+                exactAmountIn: true
+            })
+        );
     }
 
     function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_crOpening_even_if_openingLimitBorrowCR_is_below(
@@ -96,6 +106,14 @@ contract BorrowAsLimitOrderTest is BaseTest {
         );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.4e18, 1.5e18));
-        _lendAsMarketOrder(bob, alice, 100e6, block.timestamp + 1 days, true);
+        vm.prank(bob);
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({
+                borrower: alice,
+                amount: 100e6,
+                dueDate: block.timestamp + 1 days,
+                exactAmountIn: true
+            })
+        );
     }
 }

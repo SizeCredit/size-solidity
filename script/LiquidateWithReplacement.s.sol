@@ -3,17 +3,16 @@ pragma solidity 0.8.24;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-contract LendAsMarketOrderScript is Script, Logger {
+contract LiquidateWithReplacementScript is Script, Logger {
     function run() external {
+        console.log("Liquidating...");
+
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
-        Size sizeContract = Size(sizeContractAddress);
-
-        uint256 dueDate = block.timestamp + 30 days; // 30 days from now
 
         address lender = vm.envAddress("LENDER");
         address borrower = vm.envAddress("BORROWER");
@@ -21,13 +20,14 @@ contract LendAsMarketOrderScript is Script, Logger {
         console.log("lender", lender);
         console.log("borrower", borrower);
 
-        uint256 amount = 6e6;
+        Size sizeContract = Size(sizeContractAddress);
 
-        LendAsMarketOrderParams memory params =
-            LendAsMarketOrderParams({borrower: borrower, dueDate: dueDate, amount: amount, exactAmountIn: false});
-        console.log("lender USDC", sizeContract.getUserView(lender).borrowAmount);
+        /// LiquidateLoanParams struct
+        LiquidateWithReplacementParams memory params =
+            LiquidateWithReplacementParams({debtPositionId: 0, borrower: borrower, minimumCollateralProfit: 0});
+
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.lendAsMarketOrder(params);
+        sizeContract.liquidateWithReplacement(params);
         vm.stopBroadcast();
 
         logPositions(address(sizeContract));

@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
-
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 
@@ -25,12 +23,13 @@ struct BorrowAsMarketOrderParams {
     uint256 amount;
     uint256 dueDate;
     bool exactAmountIn;
-    uint256[] receivableLoanIds;
+    uint256[] receivableCreditPositionIds;
 }
 
 library BorrowAsMarketOrder {
     using OfferLibrary for LoanOffer;
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using RiskLibrary for State;
     using AccountingLibrary for State;
@@ -64,35 +63,38 @@ library BorrowAsMarketOrder {
         // validate params.exactAmountIn
         // N/A
 
-        // validate params.receivableLoanIds
-        for (uint256 i = 0; i < params.receivableLoanIds.length; ++i) {
-            uint256 loanId = params.receivableLoanIds[i];
-            Loan storage loan = state.data.loans[loanId];
-            Loan storage fol = state.getFOL(loan);
+        // validate params.receivableCreditPositionIds
+        for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
+            uint256 creditPositionId = params.receivableCreditPositionIds[i];
 
-            if (msg.sender != loan.generic.lender) {
-                revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, loan.generic.lender);
+            if (!state.isCreditPositionId(creditPositionId)) {
+                revert Errors.INVALID_POSITION_ID(creditPositionId);
             }
-            if (params.dueDate < fol.fol.dueDate) {
-                revert Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, fol.fol.dueDate);
+
+            CreditPosition memory creditPosition = state.data.creditPositions[creditPositionId];
+            DebtPosition memory debtPosition = state.getDebtPositionByCreditPositionId(creditPositionId);
+
+            if (msg.sender != creditPosition.lender) {
+                revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, creditPosition.lender);
+            }
+            if (params.dueDate < debtPosition.dueDate) {
+                revert Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(params.dueDate, debtPosition.dueDate);
             }
         }
     }
 
     function executeBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external {
         emit Events.BorrowAsMarketOrder(
-            params.lender, params.amount, params.dueDate, params.exactAmountIn, params.receivableLoanIds
+            params.lender, params.amount, params.dueDate, params.exactAmountIn, params.receivableCreditPositionIds
         );
 
-        params.amount = _borrowWithReceivable(state, params);
-        _borrowWithRealCollateral(state, params);
+        params.amount = _borrowFromCredit(state, params);
+        _borrowGeneratingDebt(state, params);
     }
 
-    /**
-     * @notice Borrow with virtual collateral, an internal state-modifying function.
-     * @dev The `amount` is initialized to `amountOutLeft`, which is decreased as more and more SOLs are created
-     */
-    function _borrowWithReceivable(State storage state, BorrowAsMarketOrderParams memory params)
+    /// @notice Borrow with receivable credit positions, an internal state-modifying function.
+    /// @dev The `amount` is initialized to `amountOutLeft`, which is decreased as more and more CreditPositions are created
+    function _borrowFromCredit(State storage state, BorrowAsMarketOrderParams memory params)
         internal
         returns (uint256 amountOutLeft)
     {
@@ -107,15 +109,15 @@ library BorrowAsMarketOrder {
 
         amountOutLeft = params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, PERCENT + rate) : params.amount;
 
-        for (uint256 i = 0; i < params.receivableLoanIds.length; ++i) {
-            uint256 loanId = params.receivableLoanIds[i];
-            Loan memory loan = state.data.loans[loanId];
+        for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
+            uint256 creditPositionId = params.receivableCreditPositionIds[i];
+            CreditPosition memory creditPosition = state.data.creditPositions[creditPositionId];
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, PERCENT + rate, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
-            if (deltaAmountIn > loan.generic.credit) {
-                deltaAmountIn = loan.generic.credit;
-                deltaAmountOut = Math.mulDivDown(loan.generic.credit, PERCENT, PERCENT + rate);
+            if (deltaAmountIn > creditPosition.credit) {
+                deltaAmountIn = creditPosition.credit;
+                deltaAmountOut = Math.mulDivDown(creditPosition.credit, PERCENT, PERCENT + rate);
             }
 
             // the lender doesn't have enought credit to exit
@@ -128,18 +130,21 @@ library BorrowAsMarketOrder {
             }
 
             // slither-disable-next-line unused-return
-            state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, credit: deltaAmountIn});
+            state.createCreditPosition({
+                exitCreditPositionId: creditPositionId,
+                lender: params.lender,
+                borrower: msg.sender,
+                credit: deltaAmountIn
+            });
             state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyLenderExitFee);
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
             amountOutLeft -= deltaAmountOut;
         }
     }
 
-    /**
-     * @notice Borrow with real collateral, an internal state-modifying function.
-     * @dev Cover the remaining amount with real collateral
-     */
-    function _borrowWithRealCollateral(State storage state, BorrowAsMarketOrderParams memory params) internal {
+    /// @notice Borrow with generating debt
+    /// @dev Cover the remaining amount by generating debt, which is subject to liquidation
+    function _borrowGeneratingDebt(State storage state, BorrowAsMarketOrderParams memory params) internal {
         if (params.amount == 0) {
             return;
         }
@@ -151,14 +156,16 @@ library BorrowAsMarketOrder {
         uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 issuanceValue = params.amount;
 
-        Loan memory fol = state.createFOL({
+        // slither-disable-next-line unused-return
+        (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({
             lender: params.lender,
             borrower: msg.sender,
             issuanceValue: issuanceValue,
             rate: rate,
             dueDate: params.dueDate
         });
-        state.data.debtToken.mint(msg.sender, fol.getDebt());
+
+        state.data.debtToken.mint(msg.sender, debtPosition.getDebt());
         state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
     }
 }

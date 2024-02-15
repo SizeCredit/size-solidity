@@ -5,7 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 
 contract BorrowerExitTest is BaseTest {
@@ -17,18 +17,21 @@ contract BorrowerExitTest is BaseTest {
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsLimitOrder(candy, 0.03e18, 12);
 
         Vars memory _before = _state();
 
-        Loan memory loanBefore = size.getLoan(loanId);
-        uint256 loansBefore = size.activeLoans();
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        DebtPosition memory debtPositionBefore = size.getDebtPosition(debtPositionId);
+        CreditPosition memory creditPositionBefore = size.getCreditPosition(creditPositionId);
+        (uint256 loansBefore,) = size.getPositionsCount();
 
-        _borrowerExit(bob, loanId, candy);
+        _borrowerExit(bob, debtPositionId, candy);
 
-        Loan memory loanAfter = size.getLoan(loanId);
-        uint256 loansAfter = size.activeLoans();
+        DebtPosition memory debtPositionAfter = size.getDebtPosition(debtPositionId);
+        CreditPosition memory creditPositionAfter = size.getCreditPosition(creditPositionId);
+        (uint256 loansAfter,) = size.getPositionsCount();
 
         Vars memory _after = _state();
 
@@ -36,12 +39,12 @@ contract BorrowerExitTest is BaseTest {
         assertLt(_after.bob.borrowAmount, _before.bob.borrowAmount);
         assertGt(_after.candy.debtAmount, _before.candy.debtAmount);
         assertLt(_after.bob.debtAmount, _before.bob.debtAmount);
-        assertEq(loanAfter.generic.credit, loanBefore.generic.credit);
+        assertEq(creditPositionAfter.credit, creditPositionBefore.credit);
         assertEq(
             _after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.config().earlyBorrowerExitFee
         );
-        assertEq(loanBefore.generic.borrower, bob);
-        assertEq(loanAfter.generic.borrower, candy);
+        assertEq(debtPositionBefore.borrower, bob);
+        assertEq(debtPositionAfter.borrower, candy);
         assertEq(_before.alice, _after.alice);
         assertEq(loansAfter, loansBefore);
     }
@@ -53,24 +56,25 @@ contract BorrowerExitTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6 + size.config().earlyBorrowerExitFee);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsLimitOrder(bob, 0.03e18, 12);
 
         Vars memory _before = _state();
 
         address borrowerToExitTo = bob;
 
-        Loan memory loanBefore = size.getLoan(loanId);
-        uint256 loansBefore = size.activeLoans();
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        CreditPosition memory creditPositionBefore = size.getCreditPosition(creditPositionId);
+        (uint256 loansBefore,) = size.getPositionsCount();
 
-        _borrowerExit(bob, loanId, borrowerToExitTo);
+        _borrowerExit(bob, debtPositionId, borrowerToExitTo);
 
-        Loan memory loanAfter = size.getLoan(loanId);
-        uint256 loansAfter = size.activeLoans();
+        CreditPosition memory creditPositionAfter = size.getCreditPosition(creditPositionId);
+        (uint256 loansAfter,) = size.getPositionsCount();
 
         Vars memory _after = _state();
 
-        assertEq(loanAfter.generic.credit, loanBefore.generic.credit);
+        assertEq(creditPositionAfter.credit, creditPositionBefore.credit);
         assertEq(_before.alice, _after.alice);
         assertEq(
             _after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.config().earlyBorrowerExitFee
@@ -89,13 +93,13 @@ contract BorrowerExitTest is BaseTest {
         _deposit(bob, usdc, 100e6 + size.config().earlyBorrowerExitFee);
         _deposit(candy, weth, 150e18);
         _lendAsLimitOrder(alice, 12, 1e18, 12);
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
         _borrowAsLimitOrder(candy, 0, 12);
 
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, candy, 1.5e18 / 2, 1.5e18)
         );
-        size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: candy}));
+        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: candy}));
     }
 }

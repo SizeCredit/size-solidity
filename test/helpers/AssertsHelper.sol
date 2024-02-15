@@ -45,9 +45,7 @@ abstract contract AssertsHelper is Test {
     }
 
     function str(LoanStatus a) internal pure returns (string memory) {
-        if (a == LoanStatus.CLAIMED) {
-            return "CLAIMED";
-        } else if (a == LoanStatus.REPAID) {
+        if (a == LoanStatus.REPAID) {
             return "REPAID";
         } else if (a == LoanStatus.OVERDUE) {
             return "OVERDUE";

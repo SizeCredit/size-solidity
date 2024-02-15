@@ -3,6 +3,7 @@
 @chainlink=lib/chainlink
 @src=src
 @test=test
+@script=script
 @solady=lib/solady/src
 @chimera=lib/chimera/src
 @crytic/properties=lib/properties

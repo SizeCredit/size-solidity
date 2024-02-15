@@ -5,52 +5,54 @@ import {State} from "@src/SizeStorage.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct RepayParams {
-    uint256 loanId;
+    uint256 debtPositionId;
 }
 
 library Repay {
     using VariableLibrary for State;
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
     using AccountingLibrary for State;
     using AccountingLibrary for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
-        Loan storage loan = state.data.loans[params.loanId];
+        DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
+
+        // validate debtPositionId
+        if (!state.isDebtPositionId(params.debtPositionId)) {
+            revert Errors.ONLY_DEBT_POSITION_CAN_BE_REPAID(params.debtPositionId);
+        }
+        if (state.getLoanStatus(params.debtPositionId) == LoanStatus.REPAID) {
+            revert Errors.LOAN_ALREADY_REPAID(params.debtPositionId);
+        }
 
         // validate msg.sender
-        if (msg.sender != loan.generic.borrower) {
-            revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.generic.borrower);
+        if (msg.sender != debtPosition.borrower) {
+            revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue()) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(state.borrowATokenBalanceOf(msg.sender), loan.faceValue());
-        }
-
-        // validate loanId
-        if (!loan.isFOL()) {
-            revert Errors.ONLY_FOL_CAN_BE_REPAID(params.loanId);
-        }
-        if (state.either(loan, [LoanStatus.REPAID, LoanStatus.CLAIMED])) {
-            revert Errors.LOAN_ALREADY_REPAID(params.loanId);
+        if (state.borrowATokenBalanceOf(msg.sender) < debtPosition.faceValue()) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
+                state.borrowATokenBalanceOf(msg.sender), debtPosition.faceValue()
+            );
         }
     }
 
     function executeRepay(State storage state, RepayParams calldata params) external {
-        Loan storage fol = state.data.loans[params.loanId];
-        uint256 faceValue = fol.faceValue();
+        DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
+        uint256 faceValue = debtPosition.faceValue();
 
         state.transferBorrowAToken(msg.sender, address(this), faceValue);
-        state.chargeRepayFee(fol, faceValue);
-        state.data.debtToken.burn(fol.generic.borrower, faceValue);
-        fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+        state.chargeRepayFee(debtPosition, faceValue);
+        state.data.debtToken.burn(debtPosition.borrower, faceValue);
+        debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 
-        emit Events.Repay(params.loanId);
+        emit Events.Repay(params.debtPositionId);
     }
 }

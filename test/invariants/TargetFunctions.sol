@@ -10,6 +10,7 @@ import {Deploy} from "@test/Deploy.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
@@ -18,17 +19,16 @@ import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
-import {LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
+import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
-import {LiquidateLoanWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateLoanWithReplacement.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateLoan.sol";
+import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
-abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
-    event L1(uint256 a);
-    event L4(uint256 a, uint256 b, uint256 c, uint256 d);
+import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
+abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
     function setup() internal override {
         setup(address(this), address(this));
         address[] memory users = new address[](3);
@@ -94,7 +94,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         uint256 dueDate,
         bool exactAmountIn,
         uint256 n,
-        uint256 seedReceivableLoanIds
+        uint256 seedReceivableCreditPositionIds
     ) public getSender {
         __before();
 
@@ -102,10 +102,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         amount = between(amount, 0, MAX_AMOUNT_USDC / 100);
         dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
 
-        uint256[] memory receivableLoanIds;
-        if (_before.activeLoans > 0) {
-            n = between(n, 1, _before.activeLoans);
-            receivableLoanIds = _getRandomReceivableLoanIds(n, seedReceivableLoanIds);
+        uint256[] memory receivableCreditPositionIds;
+        if (_before.creditPositionsCount > 0) {
+            n = between(n, 0, _before.creditPositionsCount);
+            receivableCreditPositionIds = _getRandomReceivableCreditPositionIds(n, seedReceivableCreditPositionIds);
         }
 
         hevm.prank(sender);
@@ -115,7 +115,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
-                receivableLoanIds: receivableLoanIds
+                receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
 
@@ -128,10 +128,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 gt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
             }
 
-            if (receivableLoanIds.length > 0) {
-                gte(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
+            if (receivableCreditPositionIds.length > 0) {
+                gte(_after.creditPositionsCount, _before.creditPositionsCount + 1, BORROW_02);
             } else {
-                eq(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
+                eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
             }
         }
     }
@@ -172,7 +172,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         } else {
             lt(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
         }
-        eq(_after.activeLoans, _before.activeLoans + 1, BORROW_02);
+        eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
     }
 
     function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, uint256 yieldCurveSeed) public getSender {
@@ -188,18 +188,18 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
     }
 
-    function borrowerExit(uint256 loanId, address borrowerToExitTo) public getSender {
-        __before(loanId);
+    function borrowerExit(uint256 debtPositionId, address borrowerToExitTo) public getSender {
+        __before(debtPositionId);
 
-        precondition(_before.activeLoans > 0);
+        precondition(_before.debtPositionsCount > 0);
+        debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
 
-        loanId = between(loanId, 0, _before.activeLoans - 1);
         borrowerToExitTo = _getRandomUser(borrowerToExitTo);
 
         hevm.prank(sender);
-        size.borrowerExit(BorrowerExitParams({loanId: loanId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
 
-        __after(loanId);
+        __after(debtPositionId);
 
         if (borrowerToExitTo == sender) {
             eq(_after.sender.debtAmount, _before.sender.debtAmount, BORROWER_EXIT_01);
@@ -208,52 +208,51 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function repay(uint256 loanId) public getSender {
-        __before(loanId);
+    function repay(uint256 debtPositionId) public getSender {
+        __before(debtPositionId);
 
-        precondition(_before.activeLoans > 0);
-
-        loanId = between(loanId, 0, _before.activeLoans - 1);
+        precondition(_before.debtPositionsCount > 0);
+        debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
 
         hevm.prank(sender);
-        size.repay(RepayParams({loanId: loanId}));
+        size.repay(RepayParams({debtPositionId: debtPositionId}));
 
-        __after(loanId);
+        __after(debtPositionId);
 
         lte(_after.sender.borrowAmount, _before.sender.borrowAmount, REPAY_01);
         gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
         lt(_after.sender.debtAmount, _before.sender.debtAmount, REPAY_02);
     }
 
-    function claim(uint256 loanId) public getSender {
-        __before(loanId);
+    function claim(uint256 creditPositionId) public getSender {
+        __before(creditPositionId);
 
-        precondition(_before.activeLoans > 0);
-
-        loanId = between(loanId, 0, _before.activeLoans - 1);
+        precondition(_before.creditPositionsCount > 0);
+        creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
 
         hevm.prank(sender);
-        size.claim(ClaimParams({loanId: loanId}));
+        size.claim(ClaimParams({creditPositionId: creditPositionId}));
 
-        __after(loanId);
+        __after(creditPositionId);
 
         gte(_after.sender.borrowAmount, _before.sender.borrowAmount, BORROW_01);
-        t(size.isFOL(loanId), CLAIM_02);
+        t(size.isCreditPositionId(creditPositionId), CLAIM_02);
     }
 
-    function liquidateLoan(uint256 loanId, uint256 minimumCollateralProfit) public getSender {
-        __before(loanId);
+    function liquidate(uint256 debtPositionId, uint256 minimumCollateralProfit) public getSender {
+        __before(debtPositionId);
 
-        precondition(_before.activeLoans > 0);
+        precondition(_before.debtPositionsCount > 0);
+        debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
 
         minimumCollateralProfit = between(minimumCollateralProfit, 0, MAX_AMOUNT_WETH);
-        loanId = between(loanId, 0, _before.activeLoans - 1);
 
         hevm.prank(sender);
-        uint256 liquidatorProfitCollateralToken =
-            size.liquidateLoan(LiquidateLoanParams({loanId: loanId, minimumCollateralProfit: minimumCollateralProfit}));
+        uint256 liquidatorProfitCollateralToken = size.liquidate(
+            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
+        );
 
-        __after(loanId);
+        __after(debtPositionId);
 
         if (sender != _before.borrower.account) {
             gte(
@@ -262,51 +261,51 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 LIQUIDATE_01
             );
         }
-        if (!_before.isLoanOverdue) {
+        if (_before.loanStatus != LoanStatus.OVERDUE) {
             lt(_after.sender.borrowAmount, _before.sender.borrowAmount, LIQUIDATE_02);
         }
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
-        t(_before.isSenderLiquidatable || _before.isLoanOverdue, LIQUIDATE_03);
+        t(_before.isSenderLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
     }
 
-    function selfLiquidateLoan(uint256 loanId) internal getSender {
-        __before(loanId);
+    function selfLiquidate(uint256 creditPositionId) internal getSender {
+        __before(creditPositionId);
 
-        precondition(_before.activeLoans > 0);
-
-        loanId = between(loanId, 0, _before.activeLoans - 1);
+        precondition(_before.creditPositionsCount > 0);
+        creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
 
         hevm.prank(sender);
-        size.selfLiquidateLoan(SelfLiquidateLoanParams({loanId: loanId}));
+        size.selfLiquidate(SelfLiquidateParams({creditPositionId: creditPositionId}));
 
-        __after(loanId);
+        __after(creditPositionId);
 
         lt(_after.sender.collateralAmount, _before.sender.collateralAmount, LIQUIDATE_01);
         lt(_after.sender.debtAmount, _before.sender.debtAmount, LIQUIDATE_02);
     }
 
-    function liquidateLoanWithReplacement(uint256 loanId, uint256 minimumCollateralProfit, address borrower)
+    function liquidateWithReplacement(uint256 debtPositionId, uint256 minimumCollateralProfit, address borrower)
         internal
         getSender
     {
-        __before(loanId);
+        __before(debtPositionId);
 
-        precondition(_before.activeLoans > 0);
+        precondition(_before.debtPositionsCount > 0);
+        debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
+
         minimumCollateralProfit = between(minimumCollateralProfit, 0, MAX_AMOUNT_WETH);
 
-        loanId = between(loanId, 0, _before.activeLoans - 1);
         borrower = _getRandomUser(borrower);
 
         hevm.prank(sender);
-        (uint256 liquidatorProfitCollateralToken,) = size.liquidateLoanWithReplacement(
-            LiquidateLoanWithReplacementParams({
-                loanId: loanId,
+        (uint256 liquidatorProfitCollateralToken,) = size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit
             })
         );
 
-        __after(loanId);
+        __after(debtPositionId);
 
         gte(
             _after.sender.collateralAmount,

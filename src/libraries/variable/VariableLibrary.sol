@@ -12,7 +12,7 @@ import {State} from "@src/SizeStorage.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 
-import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Vault} from "@src/proxy/Vault.sol";
 
@@ -22,7 +22,8 @@ library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
     using CollateralLibrary for State;
     using LoanLibrary for State;
-    using LoanLibrary for Loan;
+    using LoanLibrary for DebtPosition;
+    using LoanLibrary for CreditPosition;
 
     /// @notice Get the vault for a user
     /// @dev If the user does not have a vault, create one
@@ -172,26 +173,26 @@ library VariableLibrary {
         return state.data.variablePool.getReserveNormalizedIncome(address(state.data.underlyingBorrowToken));
     }
 
-    /// @notice Move a fixed-rate loan to the variable pool by supplying the assigned collateral and paying the liquidator with the move fee
-    /// @dev We use a memory copy of the loan as it might have already changed in storage as a result of the liquidation process
+    /// @notice Move a fixed-rate DebtPosition to the variable pool by supplying the assigned collateral and paying the liquidator with the move fee
+    /// @dev We use a memory copy of the DebtPosition as it might have already changed in storage as a result of the liquidation process
     /// @param state The state struct
-    /// @param folCopy The loan to move
+    /// @param debtPositionCopy The DebtPosition to move
     /// @return liquidatorProfitCollateralToken The amount of collateral tokens paid to the liquidator
-    function moveLoanToVariablePool(State storage state, Loan memory folCopy)
+    function moveDebtPositionToVariablePool(State storage state, DebtPosition memory debtPositionCopy)
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
-        uint256 assignedCollateral = state.getFOLAssignedCollateral(folCopy);
+        uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPositionCopy);
 
         liquidatorProfitCollateralToken = state.config.collateralOverdueTransferFee;
-        state.data.collateralToken.transferFrom(folCopy.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
+        state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
 
         _borrowFromVariablePool(
             state,
-            folCopy.generic.borrower,
+            debtPositionCopy.borrower,
             address(this),
             assignedCollateral - liquidatorProfitCollateralToken,
-            folCopy.faceValue()
+            debtPositionCopy.faceValue()
         );
     }
 }

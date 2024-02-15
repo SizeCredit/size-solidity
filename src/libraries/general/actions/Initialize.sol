@@ -6,6 +6,7 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
+import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
@@ -188,12 +189,18 @@ library Initialize {
     }
 
     function executeInitializeData(State storage state, InitializeDataParams memory d) internal {
+        state.data.nextDebtPositionId = DEBT_POSITION_ID_START;
+        state.data.nextCreditPositionId = CREDIT_POSITION_ID_START;
+
         state.data.underlyingCollateralToken = IERC20Metadata(d.underlyingCollateralToken);
         state.data.underlyingBorrowToken = IERC20Metadata(d.underlyingBorrowToken);
         state.data.variablePool = IPool(d.variablePool);
 
         state.data.collateralToken = new NonTransferrableToken(
-            address(this), "Size Fixed ETH", "szETH", IERC20Metadata(state.data.underlyingCollateralToken).decimals()
+            address(this),
+            string.concat("Size ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
+            string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
+            IERC20Metadata(state.data.underlyingCollateralToken).decimals()
         );
         state.data.borrowAToken =
             IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);

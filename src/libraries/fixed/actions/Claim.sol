@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import {Math} from "@src/libraries/Math.sol";
-import {Loan, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -13,35 +13,40 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct ClaimParams {
-    uint256 loanId;
+    uint256 creditPositionId;
 }
 
 library Claim {
     using VariableLibrary for State;
-    using LoanLibrary for Loan;
+    using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using AccountingLibrary for State;
 
     function validateClaim(State storage state, ClaimParams calldata params) external view {
-        Loan storage loan = state.data.loans[params.loanId];
-
         // validate msg.sender
 
-        // validate loanId
-        if (state.getLoanStatus(loan) != LoanStatus.REPAID) {
-            revert Errors.LOAN_NOT_REPAID(params.loanId);
+        // validate creditPositionId
+        if (!state.isCreditPositionId(params.creditPositionId)) {
+            revert Errors.ONLY_CREDIT_POSITION_CAN_BE_CLAIMED(params.creditPositionId);
+        }
+        if (state.getLoanStatus(params.creditPositionId) != LoanStatus.REPAID) {
+            revert Errors.LOAN_NOT_REPAID(params.creditPositionId);
+        }
+        if (state.data.creditPositions[params.creditPositionId].credit == 0) {
+            revert Errors.CREDIT_POSITION_ALREADY_CLAIMED(params.creditPositionId);
         }
     }
 
     function executeClaim(State storage state, ClaimParams calldata params) external {
-        Loan storage loan = state.data.loans[params.loanId];
-        Loan storage fol = state.getFOL(loan);
+        CreditPosition storage creditPosition = state.data.creditPositions[params.creditPositionId];
+        DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
-        uint256 claimAmount =
-            Math.mulDivDown(loan.generic.credit, state.borrowATokenLiquidityIndex(), fol.fol.liquidityIndexAtRepayment);
-        state.transferBorrowAToken(address(this), loan.generic.lender, claimAmount);
-        state.reduceLoanCredit(params.loanId, loan.generic.credit);
+        uint256 claimAmount = Math.mulDivDown(
+            creditPosition.credit, state.borrowATokenLiquidityIndex(), debtPosition.liquidityIndexAtRepayment
+        );
+        state.transferBorrowAToken(address(this), creditPosition.lender, claimAmount);
+        creditPosition.credit = 0;
 
-        emit Events.Claim(params.loanId);
+        emit Events.Claim(params.creditPositionId);
     }
 }

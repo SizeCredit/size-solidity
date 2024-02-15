@@ -20,14 +20,14 @@ library Errors {
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error PAST_DUE_DATE(uint256 dueDate);
     error PAST_MAX_DUE_DATE(uint256 maxDueDate);
-    error DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(uint256 dueDate, uint256 loanDueDate);
-    error DUE_DATE_NOT_COMPATIBLE(uint256 loanToRepayId, uint256 loanToCompensateId);
+    error DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(uint256 dueDate, uint256 debtPositionDueDate);
+    error DUE_DATE_NOT_COMPATIBLE(uint256 debtPositionIdToRepay, uint256 creditPositionIdToCompensate);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error DUE_DATE_OUT_OF_RANGE(uint256 dueDate, uint256 minDueDate, uint256 maxDueDate);
+    error INVALID_POSITION_ID(uint256 positionId);
     error INVALID_LENDER(address account);
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);
-    error INVALID_LOAN_STATUS(uint256 loanId, LoanStatus actual, LoanStatus expected);
 
     error BORROWER_IS_NOT_LENDER(address borrower, address lender);
     error COMPENSATOR_IS_NOT_BORROWER(address compensator, address borrower);
@@ -39,20 +39,27 @@ library Errors {
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAToken);
 
-    error ONLY_FOL_CAN_BE_REPAID(uint256 loanId);
-    error ONLY_FOL_CAN_BE_COMPENSATED(uint256 loanId);
-    error ONLY_FOL_CAN_BE_EXITED(uint256 loanId);
-    error LOAN_ALREADY_REPAID(uint256 loanId);
-    error LOAN_NOT_REPAID(uint256 loanId);
+    error ONLY_DEBT_POSITION_CAN_BE_REPAID(uint256 positionId);
+    error ONLY_DEBT_POSITION_CAN_BE_EXITED(uint256 positionId);
+    error ONLY_DEBT_POSITION_CAN_BE_LIQUIDATED(uint256 positionId);
+    error ONLY_CREDIT_POSITION_CAN_BE_CLAIMED(uint256 positionId);
+    error ONLY_CREDIT_POSITION_CAN_BE_COMPENSATED(uint256 positionId);
+    error ONLY_CREDIT_POSITION_CAN_BE_SELF_LIQUIDATED(uint256 positionId);
+
+    error CREDIT_POSITION_ALREADY_CLAIMED(uint256 positionId);
+
+    error LOAN_ALREADY_REPAID(uint256 positionId);
+    error LOAN_NOT_REPAID(uint256 positionId);
+    error LOAN_NOT_ACTIVE(uint256 positionId);
 
     error NOT_LIQUIDATABLE(address account);
-    error LOAN_NOT_LIQUIDATABLE(uint256 loanId, uint256 cr, LoanStatus status);
-    error LOAN_NOT_SELF_LIQUIDATABLE(uint256 loanId, uint256 cr, LoanStatus status);
+    error LOAN_NOT_LIQUIDATABLE(uint256 debtPositionId, uint256 cr, LoanStatus status);
+    error LOAN_NOT_SELF_LIQUIDATABLE(uint256 creditPositionId, uint256 cr, LoanStatus status);
     error LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT(
         uint256 liquidatorProfitCollateralToken, uint256 minimumCollateralProfit
     );
     error CR_BELOW_OPENING_LIMIT_BORROW_CR(address account, uint256 collateralRatio, uint256 riskCollateralRatio);
-    error LIQUIDATION_NOT_AT_LOSS(uint256 loanId, uint256 assignedCollateral, uint256 debtCollateral);
+    error LIQUIDATION_NOT_AT_LOSS(uint256 positionId, uint256 assignedCollateral, uint256 debtCollateral);
 
     error INVALID_DECIMALS(uint8 decimals);
     error INVALID_PRICE(address aggregator, int256 price);

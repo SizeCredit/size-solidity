@@ -8,10 +8,10 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 
-import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LiquidateLoanParams} from "@src/libraries/fixed/actions/LiquidateLoan.sol";
+import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -65,9 +65,9 @@ contract MulticallTest is BaseTest {
 
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
         uint256 amount = 15e6;
-        uint256 loanId = _borrowAsMarketOrder(bob, alice, amount, 12);
-        uint256 faceValue = size.faceValue(loanId);
-        uint256 repayFee = size.repayFee(loanId);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 faceValue = size.faceValue(debtPositionId);
+        uint256 repayFee = size.repayFee(debtPositionId);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 debt = faceValue + repayFee;
 
@@ -75,7 +75,7 @@ contract MulticallTest is BaseTest {
 
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
-        assertTrue(size.isLoanLiquidatable(loanId));
+        assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
         _mint(address(usdc), liquidator, faceValue);
         _approve(liquidator, address(usdc), address(size), faceValue);
@@ -88,7 +88,9 @@ contract MulticallTest is BaseTest {
         // deposit only the necessary to cover for the loan's faceValue
         data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: faceValue, to: liquidator}));
         // liquidate profitably (but does not enforce CR)
-        data[1] = abi.encodeCall(size.liquidateLoan, LiquidateLoanParams({loanId: loanId, minimumCollateralProfit: 0}));
+        data[1] = abi.encodeCall(
+            size.liquidate, LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: 0})
+        );
         // withdraw everything
         data[2] = abi.encodeCall(
             size.withdraw, WithdrawParams({token: address(weth), amount: type(uint256).max, to: liquidator})
