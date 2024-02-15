@@ -57,7 +57,7 @@ export type BorrowAsMarketOrderParamsStruct = {
   amount: BigNumberish;
   dueDate: BigNumberish;
   exactAmountIn: boolean;
-  receivableLoanIds: BigNumberish[];
+  receivableCreditPositionIds: BigNumberish[];
 };
 
 export type BorrowAsMarketOrderParamsStructOutput = [
@@ -71,32 +71,34 @@ export type BorrowAsMarketOrderParamsStructOutput = [
   amount: BigNumber;
   dueDate: BigNumber;
   exactAmountIn: boolean;
-  receivableLoanIds: BigNumber[];
+  receivableCreditPositionIds: BigNumber[];
 };
 
 export type BorrowerExitParamsStruct = {
-  loanId: BigNumberish;
+  debtPositionId: BigNumberish;
   borrowerToExitTo: string;
 };
 
 export type BorrowerExitParamsStructOutput = [BigNumber, string] & {
-  loanId: BigNumber;
+  debtPositionId: BigNumber;
   borrowerToExitTo: string;
 };
 
-export type ClaimParamsStruct = { loanId: BigNumberish };
+export type ClaimParamsStruct = { creditPositionId: BigNumberish };
 
-export type ClaimParamsStructOutput = [BigNumber] & { loanId: BigNumber };
+export type ClaimParamsStructOutput = [BigNumber] & {
+  creditPositionId: BigNumber;
+};
 
 export type CompensateParamsStruct = {
-  loanToRepayId: BigNumberish;
-  loanToCompensateId: BigNumberish;
+  debtPositionToRepayId: BigNumberish;
+  creditPositionToCompensateId: BigNumberish;
   amount: BigNumberish;
 };
 
 export type CompensateParamsStructOutput = [BigNumber, BigNumber, BigNumber] & {
-  loanToRepayId: BigNumber;
-  loanToCompensateId: BigNumber;
+  debtPositionToRepayId: BigNumber;
+  creditPositionToCompensateId: BigNumber;
   amount: BigNumber;
 };
 
@@ -146,16 +148,35 @@ export type InitializeConfigParamsStructOutput = [
   feeRecipient: string;
 };
 
-export type InitializeDataParamsStruct = {
+export type DataViewStruct = {
+  nextDebtPositionId: BigNumberish;
+  nextCreditPositionId: BigNumberish;
   underlyingCollateralToken: string;
   underlyingBorrowToken: string;
   variablePool: string;
+  collateralToken: string;
+  borrowAToken: string;
+  debtToken: string;
 };
 
-export type InitializeDataParamsStructOutput = [string, string, string] & {
+export type DataViewStructOutput = [
+  BigNumber,
+  BigNumber,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string
+] & {
+  nextDebtPositionId: BigNumber;
+  nextCreditPositionId: BigNumber;
   underlyingCollateralToken: string;
   underlyingBorrowToken: string;
   variablePool: string;
+  collateralToken: string;
+  borrowAToken: string;
+  debtToken: string;
 };
 
 export type DepositParamsStruct = {
@@ -170,19 +191,28 @@ export type DepositParamsStructOutput = [string, BigNumber, string] & {
   to: string;
 };
 
-export type GenericLoanStruct = {
+export type CreditPositionStruct = {
   lender: string;
   borrower: string;
   credit: BigNumberish;
+  debtPositionId: BigNumberish;
 };
 
-export type GenericLoanStructOutput = [string, string, BigNumber] & {
+export type CreditPositionStructOutput = [
+  string,
+  string,
+  BigNumber,
+  BigNumber
+] & {
   lender: string;
   borrower: string;
   credit: BigNumber;
+  debtPositionId: BigNumber;
 };
 
-export type FOLStruct = {
+export type DebtPositionStruct = {
+  lender: string;
+  borrower: string;
   issuanceValue: BigNumberish;
   rate: BigNumberish;
   repayFeeAPR: BigNumberish;
@@ -191,7 +221,9 @@ export type FOLStruct = {
   liquidityIndexAtRepayment: BigNumberish;
 };
 
-export type FOLStructOutput = [
+export type DebtPositionStructOutput = [
+  string,
+  string,
   BigNumber,
   BigNumber,
   BigNumber,
@@ -199,32 +231,14 @@ export type FOLStructOutput = [
   BigNumber,
   BigNumber
 ] & {
+  lender: string;
+  borrower: string;
   issuanceValue: BigNumber;
   rate: BigNumber;
   repayFeeAPR: BigNumber;
   startDate: BigNumber;
   dueDate: BigNumber;
   liquidityIndexAtRepayment: BigNumber;
-};
-
-export type SOLStruct = { folId: BigNumberish };
-
-export type SOLStructOutput = [BigNumber] & { folId: BigNumber };
-
-export type LoanStruct = {
-  generic: GenericLoanStruct;
-  fol: FOLStruct;
-  sol: SOLStruct;
-};
-
-export type LoanStructOutput = [
-  GenericLoanStructOutput,
-  FOLStructOutput,
-  SOLStructOutput
-] & {
-  generic: GenericLoanStructOutput;
-  fol: FOLStructOutput;
-  sol: SOLStructOutput;
 };
 
 export type LoanOfferStruct = {
@@ -295,6 +309,18 @@ export type InitializeOracleParamsStructOutput = [string, string] & {
   marketBorrowRateFeed: string;
 };
 
+export type InitializeDataParamsStruct = {
+  underlyingCollateralToken: string;
+  underlyingBorrowToken: string;
+  variablePool: string;
+};
+
+export type InitializeDataParamsStructOutput = [string, string, string] & {
+  underlyingCollateralToken: string;
+  underlyingBorrowToken: string;
+  variablePool: string;
+};
+
 export type LendAsLimitOrderParamsStruct = {
   maxDueDate: BigNumberish;
   curveRelativeTime: YieldCurveStruct;
@@ -324,36 +350,42 @@ export type LendAsMarketOrderParamsStructOutput = [
   exactAmountIn: boolean;
 };
 
-export type LiquidateLoanParamsStruct = {
-  loanId: BigNumberish;
+export type LiquidateParamsStruct = {
+  debtPositionId: BigNumberish;
   minimumCollateralProfit: BigNumberish;
 };
 
-export type LiquidateLoanParamsStructOutput = [BigNumber, BigNumber] & {
-  loanId: BigNumber;
+export type LiquidateParamsStructOutput = [BigNumber, BigNumber] & {
+  debtPositionId: BigNumber;
   minimumCollateralProfit: BigNumber;
 };
 
-export type LiquidateLoanWithReplacementParamsStruct = {
-  loanId: BigNumberish;
+export type LiquidateWithReplacementParamsStruct = {
+  debtPositionId: BigNumberish;
   borrower: string;
   minimumCollateralProfit: BigNumberish;
 };
 
-export type LiquidateLoanWithReplacementParamsStructOutput = [
+export type LiquidateWithReplacementParamsStructOutput = [
   BigNumber,
   string,
   BigNumber
-] & { loanId: BigNumber; borrower: string; minimumCollateralProfit: BigNumber };
+] & {
+  debtPositionId: BigNumber;
+  borrower: string;
+  minimumCollateralProfit: BigNumber;
+};
 
-export type RepayParamsStruct = { loanId: BigNumberish };
+export type RepayParamsStruct = { debtPositionId: BigNumberish };
 
-export type RepayParamsStructOutput = [BigNumber] & { loanId: BigNumber };
+export type RepayParamsStructOutput = [BigNumber] & {
+  debtPositionId: BigNumber;
+};
 
-export type SelfLiquidateLoanParamsStruct = { loanId: BigNumberish };
+export type SelfLiquidateParamsStruct = { creditPositionId: BigNumberish };
 
-export type SelfLiquidateLoanParamsStructOutput = [BigNumber] & {
-  loanId: BigNumber;
+export type SelfLiquidateParamsStructOutput = [BigNumber] & {
+  creditPositionId: BigNumber;
 };
 
 export type UpdateConfigParamsStruct = { key: BytesLike; value: BigNumberish };
@@ -381,7 +413,6 @@ export interface SizeInterface extends utils.Interface {
     "KEEPER_ROLE()": FunctionFragment;
     "PAUSER_ROLE()": FunctionFragment;
     "UPGRADE_INTERFACE_VERSION()": FunctionFragment;
-    "activeLoans()": FunctionFragment;
     "borrowAsLimitOrder((uint256,(uint256[],uint256[],int256[])))": FunctionFragment;
     "borrowAsMarketOrder((address,uint256,uint256,bool,uint256[]))": FunctionFragment;
     "borrowerExit((uint256,address))": FunctionFragment;
@@ -392,29 +423,39 @@ export interface SizeInterface extends utils.Interface {
     "data()": FunctionFragment;
     "deposit((address,uint256,address))": FunctionFragment;
     "faceValue(uint256)": FunctionFragment;
+    "faceValueInCollateralToken(uint256)": FunctionFragment;
     "getCredit(uint256)": FunctionFragment;
+    "getCreditPosition(uint256)": FunctionFragment;
+    "getCreditPositionIdsByDebtPositionId(uint256)": FunctionFragment;
+    "getCreditPositions()": FunctionFragment;
+    "getCreditPositions(uint256[])": FunctionFragment;
+    "getCreditPositionsByDebtPositionId(uint256)": FunctionFragment;
     "getDebt(uint256)": FunctionFragment;
+    "getDebtPosition(uint256)": FunctionFragment;
+    "getDebtPositionAssignedCollateral(uint256)": FunctionFragment;
+    "getDebtPositions()": FunctionFragment;
+    "getDebtPositions(uint256[])": FunctionFragment;
     "getDueDate(uint256)": FunctionFragment;
-    "getFOLAssignedCollateral(uint256)": FunctionFragment;
-    "getLoan(uint256)": FunctionFragment;
     "getLoanStatus(uint256)": FunctionFragment;
-    "getLoans()": FunctionFragment;
+    "getPositionsCount()": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getUserView(address)": FunctionFragment;
     "getVaultAddress(address)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
     "initialize(address,(uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,address),(address,address),(address,address,address))": FunctionFragment;
-    "isFOL(uint256)": FunctionFragment;
-    "isLoanLiquidatable(uint256)": FunctionFragment;
+    "isCreditPositionId(uint256)": FunctionFragment;
+    "isDebtPositionId(uint256)": FunctionFragment;
+    "isDebtPositionLiquidatable(uint256)": FunctionFragment;
     "isUserLiquidatable(address)": FunctionFragment;
     "lendAsLimitOrder((uint256,(uint256[],uint256[],int256[])))": FunctionFragment;
     "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
-    "liquidateLoan((uint256,uint256))": FunctionFragment;
-    "liquidateLoanWithReplacement((uint256,address,uint256))": FunctionFragment;
+    "liquidate((uint256,uint256))": FunctionFragment;
+    "liquidateWithReplacement((uint256,address,uint256))": FunctionFragment;
     "multicall(bytes[])": FunctionFragment;
     "oracle()": FunctionFragment;
     "partialRepayFee(uint256,uint256)": FunctionFragment;
+    "pause()": FunctionFragment;
     "paused()": FunctionFragment;
     "proxiableUUID()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
@@ -422,9 +463,9 @@ export interface SizeInterface extends utils.Interface {
     "repayFee(uint256,uint256,uint256,uint256)": FunctionFragment;
     "repayFee(uint256)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
-    "selfLiquidateLoan((uint256))": FunctionFragment;
+    "selfLiquidate((uint256))": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
-    "tokens()": FunctionFragment;
+    "unpause()": FunctionFragment;
     "updateConfig((bytes32,uint256))": FunctionFragment;
     "upgradeToAndCall(address,bytes)": FunctionFragment;
     "withdraw((address,uint256,address))": FunctionFragment;
@@ -436,7 +477,6 @@ export interface SizeInterface extends utils.Interface {
       | "KEEPER_ROLE"
       | "PAUSER_ROLE"
       | "UPGRADE_INTERFACE_VERSION"
-      | "activeLoans"
       | "borrowAsLimitOrder"
       | "borrowAsMarketOrder"
       | "borrowerExit"
@@ -447,29 +487,39 @@ export interface SizeInterface extends utils.Interface {
       | "data"
       | "deposit"
       | "faceValue"
+      | "faceValueInCollateralToken"
       | "getCredit"
+      | "getCreditPosition"
+      | "getCreditPositionIdsByDebtPositionId"
+      | "getCreditPositions()"
+      | "getCreditPositions(uint256[])"
+      | "getCreditPositionsByDebtPositionId"
       | "getDebt"
+      | "getDebtPosition"
+      | "getDebtPositionAssignedCollateral"
+      | "getDebtPositions()"
+      | "getDebtPositions(uint256[])"
       | "getDueDate"
-      | "getFOLAssignedCollateral"
-      | "getLoan"
       | "getLoanStatus"
-      | "getLoans"
+      | "getPositionsCount"
       | "getRoleAdmin"
       | "getUserView"
       | "getVaultAddress"
       | "grantRole"
       | "hasRole"
       | "initialize"
-      | "isFOL"
-      | "isLoanLiquidatable"
+      | "isCreditPositionId"
+      | "isDebtPositionId"
+      | "isDebtPositionLiquidatable"
       | "isUserLiquidatable"
       | "lendAsLimitOrder"
       | "lendAsMarketOrder"
-      | "liquidateLoan"
-      | "liquidateLoanWithReplacement"
+      | "liquidate"
+      | "liquidateWithReplacement"
       | "multicall"
       | "oracle"
       | "partialRepayFee"
+      | "pause"
       | "paused"
       | "proxiableUUID"
       | "renounceRole"
@@ -477,9 +527,9 @@ export interface SizeInterface extends utils.Interface {
       | "repayFee(uint256,uint256,uint256,uint256)"
       | "repayFee(uint256)"
       | "revokeRole"
-      | "selfLiquidateLoan"
+      | "selfLiquidate"
       | "supportsInterface"
-      | "tokens"
+      | "unpause"
       | "updateConfig"
       | "upgradeToAndCall"
       | "withdraw"
@@ -499,10 +549,6 @@ export interface SizeInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "UPGRADE_INTERFACE_VERSION",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "activeLoans",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -540,7 +586,31 @@ export interface SizeInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "faceValueInCollateralToken",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getCredit",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCreditPosition",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCreditPositionIdsByDebtPositionId",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCreditPositions()",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCreditPositions(uint256[])",
+    values: [BigNumberish[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCreditPositionsByDebtPositionId",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -548,22 +618,33 @@ export interface SizeInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "getDebtPosition",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDebtPositionAssignedCollateral",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDebtPositions()",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDebtPositions(uint256[])",
+    values: [BigNumberish[]]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getDueDate",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getFOLAssignedCollateral",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLoan",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getLoanStatus",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "getLoans", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getPositionsCount",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
@@ -590,9 +671,16 @@ export interface SizeInterface extends utils.Interface {
       InitializeDataParamsStruct
     ]
   ): string;
-  encodeFunctionData(functionFragment: "isFOL", values: [BigNumberish]): string;
   encodeFunctionData(
-    functionFragment: "isLoanLiquidatable",
+    functionFragment: "isCreditPositionId",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isDebtPositionId",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isDebtPositionLiquidatable",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -608,12 +696,12 @@ export interface SizeInterface extends utils.Interface {
     values: [LendAsMarketOrderParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "liquidateLoan",
-    values: [LiquidateLoanParamsStruct]
+    functionFragment: "liquidate",
+    values: [LiquidateParamsStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "liquidateLoanWithReplacement",
-    values: [LiquidateLoanWithReplacementParamsStruct]
+    functionFragment: "liquidateWithReplacement",
+    values: [LiquidateWithReplacementParamsStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "multicall",
@@ -624,6 +712,7 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "partialRepayFee",
     values: [BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "proxiableUUID",
@@ -650,14 +739,14 @@ export interface SizeInterface extends utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "selfLiquidateLoan",
-    values: [SelfLiquidateLoanParamsStruct]
+    functionFragment: "selfLiquidate",
+    values: [SelfLiquidateParamsStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "tokens", values?: undefined): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "updateConfig",
     values: [UpdateConfigParamsStruct]
@@ -688,10 +777,6 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "activeLoans",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "borrowAsLimitOrder",
     data: BytesLike
   ): Result;
@@ -713,19 +798,57 @@ export interface SizeInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "data", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "faceValue", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getCredit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getDebt", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "getDueDate", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getFOLAssignedCollateral",
+    functionFragment: "faceValueInCollateralToken",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getLoan", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getCredit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getCreditPosition",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCreditPositionIdsByDebtPositionId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCreditPositions()",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCreditPositions(uint256[])",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCreditPositionsByDebtPositionId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getDebt", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getDebtPosition",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getDebtPositionAssignedCollateral",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getDebtPositions()",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getDebtPositions(uint256[])",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getDueDate", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getLoanStatus",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getLoans", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getPositionsCount",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
@@ -741,9 +864,16 @@ export interface SizeInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "isFOL", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "isLoanLiquidatable",
+    functionFragment: "isCreditPositionId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isDebtPositionId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isDebtPositionLiquidatable",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -758,12 +888,9 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "lendAsMarketOrder",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "liquidate", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "liquidateLoan",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "liquidateLoanWithReplacement",
+    functionFragment: "liquidateWithReplacement",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "multicall", data: BytesLike): Result;
@@ -772,6 +899,7 @@ export interface SizeInterface extends utils.Interface {
     functionFragment: "partialRepayFee",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "proxiableUUID",
@@ -792,14 +920,14 @@ export interface SizeInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "selfLiquidateLoan",
+    functionFragment: "selfLiquidate",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "tokens", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "updateConfig",
     data: BytesLike
@@ -929,8 +1057,6 @@ export interface Size extends BaseContract {
 
     UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<[string]>;
 
-    activeLoans(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
       overrides?: Overrides & { from?: string }
@@ -965,9 +1091,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[InitializeConfigParamsStructOutput]>;
 
-    data(
-      overrides?: CallOverrides
-    ): Promise<[InitializeDataParamsStructOutput]>;
+    data(overrides?: CallOverrides): Promise<[DataViewStructOutput]>;
 
     deposit(
       params: DepositParamsStruct,
@@ -975,41 +1099,101 @@ export interface Size extends BaseContract {
     ): Promise<ContractTransaction>;
 
     faceValue(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    faceValueInCollateralToken(
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
     getCredit(
-      loanId: BigNumberish,
+      creditPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    getCreditPosition(
+      creditPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[CreditPositionStructOutput]>;
+
+    getCreditPositionIdsByDebtPositionId(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { creditPositionIds: BigNumber[] }>;
+
+    "getCreditPositions()"(
+      overrides?: CallOverrides
+    ): Promise<
+      [CreditPositionStructOutput[]] & {
+        creditPositions: CreditPositionStructOutput[];
+      }
+    >;
+
+    "getCreditPositions(uint256[])"(
+      creditPositionIds: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<
+      [CreditPositionStructOutput[]] & {
+        creditPositions: CreditPositionStructOutput[];
+      }
+    >;
+
+    getCreditPositionsByDebtPositionId(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [CreditPositionStructOutput[]] & {
+        creditPositions: CreditPositionStructOutput[];
+      }
+    >;
 
     getDebt(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    getDebtPosition(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[DebtPositionStructOutput]>;
+
+    getDebtPositionAssignedCollateral(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "getDebtPositions()"(
+      overrides?: CallOverrides
+    ): Promise<
+      [DebtPositionStructOutput[]] & {
+        debtPositions: DebtPositionStructOutput[];
+      }
+    >;
+
+    "getDebtPositions(uint256[])"(
+      debtPositionIds: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<
+      [DebtPositionStructOutput[]] & {
+        debtPositions: DebtPositionStructOutput[];
+      }
+    >;
 
     getDueDate(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    getFOLAssignedCollateral(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    getLoan(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[LoanStructOutput]>;
 
     getLoanStatus(
-      loanId: BigNumberish,
+      positionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[number]>;
 
-    getLoans(overrides?: CallOverrides): Promise<[LoanStructOutput[]]>;
+    getPositionsCount(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber]>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
@@ -1040,10 +1224,18 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    isFOL(loanId: BigNumberish, overrides?: CallOverrides): Promise<[boolean]>;
+    isCreditPositionId(
+      creditPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-    isLoanLiquidatable(
-      loanId: BigNumberish,
+    isDebtPositionId(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    isDebtPositionLiquidatable(
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -1062,13 +1254,13 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    liquidateLoan(
-      params: LiquidateLoanParamsStruct,
+    liquidate(
+      params: LiquidateParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    liquidateLoanWithReplacement(
-      params: LiquidateLoanWithReplacementParamsStruct,
+    liquidateWithReplacement(
+      params: LiquidateWithReplacementParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -1082,10 +1274,14 @@ export interface Size extends BaseContract {
     ): Promise<[InitializeOracleParamsStructOutput]>;
 
     partialRepayFee(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       repayAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    pause(
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -1111,7 +1307,7 @@ export interface Size extends BaseContract {
     ): Promise<[BigNumber]>;
 
     "repayFee(uint256)"(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -1121,8 +1317,8 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
-    selfLiquidateLoan(
-      params: SelfLiquidateLoanParamsStruct,
+    selfLiquidate(
+      params: SelfLiquidateParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
@@ -1131,7 +1327,9 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
+    unpause(
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
 
     updateConfig(
       params: UpdateConfigParamsStruct,
@@ -1157,8 +1355,6 @@ export interface Size extends BaseContract {
   PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
   UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<string>;
-
-  activeLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
   borrowAsLimitOrder(
     params: BorrowAsLimitOrderParamsStruct,
@@ -1191,7 +1387,7 @@ export interface Size extends BaseContract {
     overrides?: CallOverrides
   ): Promise<InitializeConfigParamsStructOutput>;
 
-  data(overrides?: CallOverrides): Promise<InitializeDataParamsStructOutput>;
+  data(overrides?: CallOverrides): Promise<DataViewStructOutput>;
 
   deposit(
     params: DepositParamsStruct,
@@ -1199,38 +1395,79 @@ export interface Size extends BaseContract {
   ): Promise<ContractTransaction>;
 
   faceValue(
-    loanId: BigNumberish,
+    debtPositionId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  faceValueInCollateralToken(
+    debtPositionId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
   getCredit(
-    loanId: BigNumberish,
+    creditPositionId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  getDebt(loanId: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+  getCreditPosition(
+    creditPositionId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<CreditPositionStructOutput>;
+
+  getCreditPositionIdsByDebtPositionId(
+    debtPositionId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  "getCreditPositions()"(
+    overrides?: CallOverrides
+  ): Promise<CreditPositionStructOutput[]>;
+
+  "getCreditPositions(uint256[])"(
+    creditPositionIds: BigNumberish[],
+    overrides?: CallOverrides
+  ): Promise<CreditPositionStructOutput[]>;
+
+  getCreditPositionsByDebtPositionId(
+    debtPositionId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<CreditPositionStructOutput[]>;
+
+  getDebt(
+    debtPositionId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getDebtPosition(
+    debtPositionId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<DebtPositionStructOutput>;
+
+  getDebtPositionAssignedCollateral(
+    debtPositionId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "getDebtPositions()"(
+    overrides?: CallOverrides
+  ): Promise<DebtPositionStructOutput[]>;
+
+  "getDebtPositions(uint256[])"(
+    debtPositionIds: BigNumberish[],
+    overrides?: CallOverrides
+  ): Promise<DebtPositionStructOutput[]>;
 
   getDueDate(
-    loanId: BigNumberish,
+    debtPositionId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  getFOLAssignedCollateral(
-    loanId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getLoan(
-    loanId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<LoanStructOutput>;
 
   getLoanStatus(
-    loanId: BigNumberish,
+    positionId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<number>;
 
-  getLoans(overrides?: CallOverrides): Promise<LoanStructOutput[]>;
+  getPositionsCount(overrides?: CallOverrides): Promise<[BigNumber, BigNumber]>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -1261,10 +1498,18 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  isFOL(loanId: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
+  isCreditPositionId(
+    creditPositionId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
-  isLoanLiquidatable(
-    loanId: BigNumberish,
+  isDebtPositionId(
+    debtPositionId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  isDebtPositionLiquidatable(
+    debtPositionId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -1280,13 +1525,13 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  liquidateLoan(
-    params: LiquidateLoanParamsStruct,
+  liquidate(
+    params: LiquidateParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  liquidateLoanWithReplacement(
-    params: LiquidateLoanWithReplacementParamsStruct,
+  liquidateWithReplacement(
+    params: LiquidateWithReplacementParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1300,10 +1545,14 @@ export interface Size extends BaseContract {
   ): Promise<InitializeOracleParamsStructOutput>;
 
   partialRepayFee(
-    loanId: BigNumberish,
+    debtPositionId: BigNumberish,
     repayAmount: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  pause(
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -1329,7 +1578,7 @@ export interface Size extends BaseContract {
   ): Promise<BigNumber>;
 
   "repayFee(uint256)"(
-    loanId: BigNumberish,
+    debtPositionId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -1339,8 +1588,8 @@ export interface Size extends BaseContract {
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
-  selfLiquidateLoan(
-    params: SelfLiquidateLoanParamsStruct,
+  selfLiquidate(
+    params: SelfLiquidateParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
@@ -1349,7 +1598,9 @@ export interface Size extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
+  unpause(
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
 
   updateConfig(
     params: UpdateConfigParamsStruct,
@@ -1375,8 +1626,6 @@ export interface Size extends BaseContract {
     PAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
     UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<string>;
-
-    activeLoans(overrides?: CallOverrides): Promise<BigNumber>;
 
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
@@ -1409,7 +1658,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<InitializeConfigParamsStructOutput>;
 
-    data(overrides?: CallOverrides): Promise<InitializeDataParamsStructOutput>;
+    data(overrides?: CallOverrides): Promise<DataViewStructOutput>;
 
     deposit(
       params: DepositParamsStruct,
@@ -1417,41 +1666,81 @@ export interface Size extends BaseContract {
     ): Promise<void>;
 
     faceValue(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    faceValueInCollateralToken(
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getCredit(
-      loanId: BigNumberish,
+      creditPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getCreditPosition(
+      creditPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<CreditPositionStructOutput>;
+
+    getCreditPositionIdsByDebtPositionId(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    "getCreditPositions()"(
+      overrides?: CallOverrides
+    ): Promise<CreditPositionStructOutput[]>;
+
+    "getCreditPositions(uint256[])"(
+      creditPositionIds: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<CreditPositionStructOutput[]>;
+
+    getCreditPositionsByDebtPositionId(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<CreditPositionStructOutput[]>;
 
     getDebt(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getDebtPosition(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<DebtPositionStructOutput>;
+
+    getDebtPositionAssignedCollateral(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getDebtPositions()"(
+      overrides?: CallOverrides
+    ): Promise<DebtPositionStructOutput[]>;
+
+    "getDebtPositions(uint256[])"(
+      debtPositionIds: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<DebtPositionStructOutput[]>;
 
     getDueDate(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    getFOLAssignedCollateral(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getLoan(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<LoanStructOutput>;
 
     getLoanStatus(
-      loanId: BigNumberish,
+      positionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<number>;
 
-    getLoans(overrides?: CallOverrides): Promise<LoanStructOutput[]>;
+    getPositionsCount(
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber]>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -1482,10 +1771,18 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    isFOL(loanId: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
+    isCreditPositionId(
+      creditPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
-    isLoanLiquidatable(
-      loanId: BigNumberish,
+    isDebtPositionId(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    isDebtPositionLiquidatable(
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -1504,13 +1801,13 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    liquidateLoan(
-      params: LiquidateLoanParamsStruct,
+    liquidate(
+      params: LiquidateParamsStruct,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    liquidateLoanWithReplacement(
-      params: LiquidateLoanWithReplacementParamsStruct,
+    liquidateWithReplacement(
+      params: LiquidateWithReplacementParamsStruct,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber] & {
@@ -1526,10 +1823,12 @@ export interface Size extends BaseContract {
     ): Promise<InitializeOracleParamsStructOutput>;
 
     partialRepayFee(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       repayAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    pause(overrides?: CallOverrides): Promise<void>;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -1552,7 +1851,7 @@ export interface Size extends BaseContract {
     ): Promise<BigNumber>;
 
     "repayFee(uint256)"(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1562,8 +1861,8 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    selfLiquidateLoan(
-      params: SelfLiquidateLoanParamsStruct,
+    selfLiquidate(
+      params: SelfLiquidateParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1572,7 +1871,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    tokens(overrides?: CallOverrides): Promise<[string, string, string]>;
+    unpause(overrides?: CallOverrides): Promise<void>;
 
     updateConfig(
       params: UpdateConfigParamsStruct,
@@ -1647,8 +1946,6 @@ export interface Size extends BaseContract {
 
     UPGRADE_INTERFACE_VERSION(overrides?: CallOverrides): Promise<BigNumber>;
 
-    activeLoans(overrides?: CallOverrides): Promise<BigNumber>;
-
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
       overrides?: Overrides & { from?: string }
@@ -1689,41 +1986,75 @@ export interface Size extends BaseContract {
     ): Promise<BigNumber>;
 
     faceValue(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    faceValueInCollateralToken(
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getCredit(
-      loanId: BigNumberish,
+      creditPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getCreditPosition(
+      creditPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getCreditPositionIdsByDebtPositionId(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getCreditPositions()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getCreditPositions(uint256[])"(
+      creditPositionIds: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getCreditPositionsByDebtPositionId(
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getDebt(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDebtPosition(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getDebtPositionAssignedCollateral(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getDebtPositions()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getDebtPositions(uint256[])"(
+      debtPositionIds: BigNumberish[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getDueDate(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getFOLAssignedCollateral(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getLoan(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getLoanStatus(
-      loanId: BigNumberish,
+      positionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getLoans(overrides?: CallOverrides): Promise<BigNumber>;
+    getPositionsCount(overrides?: CallOverrides): Promise<BigNumber>;
 
     getRoleAdmin(
       role: BytesLike,
@@ -1757,10 +2088,18 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    isFOL(loanId: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    isCreditPositionId(
+      creditPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    isLoanLiquidatable(
-      loanId: BigNumberish,
+    isDebtPositionId(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isDebtPositionLiquidatable(
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1779,13 +2118,13 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    liquidateLoan(
-      params: LiquidateLoanParamsStruct,
+    liquidate(
+      params: LiquidateParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    liquidateLoanWithReplacement(
-      params: LiquidateLoanWithReplacementParamsStruct,
+    liquidateWithReplacement(
+      params: LiquidateWithReplacementParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -1797,10 +2136,12 @@ export interface Size extends BaseContract {
     oracle(overrides?: CallOverrides): Promise<BigNumber>;
 
     partialRepayFee(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       repayAmount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    pause(overrides?: Overrides & { from?: string }): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1826,7 +2167,7 @@ export interface Size extends BaseContract {
     ): Promise<BigNumber>;
 
     "repayFee(uint256)"(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1836,8 +2177,8 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
-    selfLiquidateLoan(
-      params: SelfLiquidateLoanParamsStruct,
+    selfLiquidate(
+      params: SelfLiquidateParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
@@ -1846,7 +2187,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    tokens(overrides?: CallOverrides): Promise<BigNumber>;
+    unpause(overrides?: Overrides & { from?: string }): Promise<BigNumber>;
 
     updateConfig(
       params: UpdateConfigParamsStruct,
@@ -1877,8 +2218,6 @@ export interface Size extends BaseContract {
     UPGRADE_INTERFACE_VERSION(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    activeLoans(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     borrowAsLimitOrder(
       params: BorrowAsLimitOrderParamsStruct,
@@ -1920,41 +2259,79 @@ export interface Size extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     faceValue(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    faceValueInCollateralToken(
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getCredit(
-      loanId: BigNumberish,
+      creditPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getCreditPosition(
+      creditPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getCreditPositionIdsByDebtPositionId(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getCreditPositions()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getCreditPositions(uint256[])"(
+      creditPositionIds: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getCreditPositionsByDebtPositionId(
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getDebt(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getDebtPosition(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getDebtPositionAssignedCollateral(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getDebtPositions()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getDebtPositions(uint256[])"(
+      debtPositionIds: BigNumberish[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getDueDate(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getFOLAssignedCollateral(
-      loanId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getLoan(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getLoanStatus(
-      loanId: BigNumberish,
+      positionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getLoans(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    getPositionsCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getRoleAdmin(
       role: BytesLike,
@@ -1991,13 +2368,18 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    isFOL(
-      loanId: BigNumberish,
+    isCreditPositionId(
+      creditPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    isLoanLiquidatable(
-      loanId: BigNumberish,
+    isDebtPositionId(
+      debtPositionId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isDebtPositionLiquidatable(
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2016,13 +2398,13 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    liquidateLoan(
-      params: LiquidateLoanParamsStruct,
+    liquidate(
+      params: LiquidateParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    liquidateLoanWithReplacement(
-      params: LiquidateLoanWithReplacementParamsStruct,
+    liquidateWithReplacement(
+      params: LiquidateWithReplacementParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
@@ -2034,9 +2416,13 @@ export interface Size extends BaseContract {
     oracle(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     partialRepayFee(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       repayAmount: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    pause(
+      overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -2063,7 +2449,7 @@ export interface Size extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     "repayFee(uint256)"(
-      loanId: BigNumberish,
+      debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2073,8 +2459,8 @@ export interface Size extends BaseContract {
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
-    selfLiquidateLoan(
-      params: SelfLiquidateLoanParamsStruct,
+    selfLiquidate(
+      params: SelfLiquidateParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
@@ -2083,7 +2469,9 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    tokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    unpause(
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
 
     updateConfig(
       params: UpdateConfigParamsStruct,
