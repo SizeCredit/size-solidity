@@ -119,7 +119,16 @@ contract ExperimentsTest is Test, BaseTest {
         uint256 amountToExit = Math.mulDivDown(fol.faceValue(), amountToExitPercent, PERCENT);
 
         // Lender exiting using borrow as market order
-        _borrowAsMarketOrder(bob, candy, amountToExit, dueDate, true, size.getCreditPositionIdsByDebtPositionId(0));
+        _borrowAsMarketOrder(
+            bob,
+            candy,
+            amountToExit,
+            dueDate,
+            block.timestamp,
+            type(uint256).max,
+            true,
+            size.getCreditPositionIdsByDebtPositionId(0)
+        );
 
         (, uint256 creditPositionsCount) = size.getPositionsCount();
 

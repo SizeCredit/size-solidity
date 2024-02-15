@@ -246,4 +246,14 @@ abstract contract SizeView is SizeStorage {
             state.data.nextCreditPositionId - CREDIT_POSITION_ID_START
         );
     }
+
+    function getBorrowOfferRate(address borrower, uint256 dueDate) external view returns (uint256) {
+        BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
+        return offer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
+    }
+
+    function getLoanOfferRate(address lender, uint256 dueDate) external view returns (uint256) {
+        LoanOffer memory offer = state.data.users[lender].loanOffer;
+        return offer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
+    }
 }

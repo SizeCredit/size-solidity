@@ -22,6 +22,8 @@ struct BorrowAsMarketOrderParams {
     address lender;
     uint256 amount;
     uint256 dueDate;
+    uint256 deadline;
+    uint256 maxRate;
     bool exactAmountIn;
     uint256[] receivableCreditPositionIds;
 }
@@ -59,6 +61,14 @@ library BorrowAsMarketOrder {
         if (params.dueDate > loanOffer.maxDueDate) {
             revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
         }
+
+        // validate params.deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
+
+        // validate params.maxRate
+        // validate during execution
 
         // validate params.exactAmountIn
         // N/A
@@ -151,6 +161,10 @@ library BorrowAsMarketOrder {
 
         uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 issuanceValue = params.amount;
+
+        if (rate > params.maxRate) {
+            revert Errors.RATE_GREATER_THAN_MAX_RATE(rate, params.maxRate);
+        }
 
         // slither-disable-next-line unused-return
         (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({

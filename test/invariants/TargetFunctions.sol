@@ -114,6 +114,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 lender: lender,
                 amount: amount,
                 dueDate: dueDate,
+                deadline: block.timestamp,
+                maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -162,7 +164,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         hevm.prank(sender);
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: borrower, dueDate: dueDate, amount: amount, exactAmountIn: exactAmountIn})
+            LendAsMarketOrderParams({
+                borrower: borrower,
+                dueDate: dueDate,
+                amount: amount,
+                deadline: block.timestamp,
+                minRate: 0,
+                exactAmountIn: exactAmountIn
+            })
         );
 
         __after();

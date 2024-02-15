@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
+import {SizeView} from "@src/SizeView.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
@@ -20,11 +21,14 @@ contract BorrowAsMarketOrder is Script, Logger {
         uint256 dueDate = block.timestamp + 4 days;
 
         Size sizeContract = Size(sizeContractAddress);
+        uint256 rate = SizeView(address(sizeContract)).getLoanOfferRate(lender, dueDate);
 
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             lender: lender,
             amount: 5e6,
             dueDate: dueDate,
+            deadline: block.timestamp,
+            maxRate: rate,
             exactAmountIn: false,
             receivableCreditPositionIds: new uint256[](0)
         });

@@ -20,6 +20,8 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         _lendAsLimitOrder(candy, 10, 0.03e18, 10);
         uint256 debtPositionId = _borrowAsMarketOrder(alice, candy, 5e6, 10);
 
+        uint256 deadline = block.timestamp;
+
         uint256 amount = 10e6;
         uint256 dueDate = 12;
         bool exactAmountIn = false;
@@ -32,6 +34,8 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 lender: address(0),
                 amount: amount,
                 dueDate: dueDate,
+                deadline: deadline,
+                maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -43,6 +47,8 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 lender: alice,
                 amount: 0,
                 dueDate: dueDate,
+                deadline: deadline,
+                maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -54,6 +60,8 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 lender: alice,
                 amount: 100e6,
                 dueDate: 0,
+                deadline: deadline,
+                maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -65,6 +73,8 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 lender: alice,
                 amount: 100e6,
                 dueDate: 13,
+                deadline: deadline,
+                maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -82,6 +92,8 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 lender: alice,
                 amount: 1e6,
                 dueDate: dueDate,
+                deadline: deadline,
+                maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -94,6 +106,8 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 lender: alice,
                 amount: 100e6,
                 dueDate: dueDate,
+                deadline: deadline,
+                maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -106,6 +120,8 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 lender: bob,
                 amount: 100e6,
                 dueDate: 4,
+                deadline: deadline,
+                maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -118,9 +134,42 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 lender: bob,
                 amount: 100e6,
                 dueDate: 4,
+                deadline: deadline,
+                maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
+        vm.stopPrank();
+
+        vm.startPrank(candy);
+        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_GREATER_THAN_MAX_RATE.selector, 0.03e18, 0.01e18));
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: alice,
+                amount: 100e6,
+                dueDate: dueDate,
+                deadline: deadline,
+                maxRate: 0.01e18,
+                exactAmountIn: exactAmountIn,
+                receivableCreditPositionIds: receivableCreditPositionIds
+            })
+        );
+        vm.stopPrank();
+
+        vm.startPrank(candy);
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DEADLINE.selector, deadline - 1));
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: alice,
+                amount: 100e6,
+                dueDate: block.timestamp,
+                deadline: deadline - 1,
+                maxRate: type(uint256).max,
+                exactAmountIn: exactAmountIn,
+                receivableCreditPositionIds: receivableCreditPositionIds
+            })
+        );
+        vm.stopPrank();
     }
 }
