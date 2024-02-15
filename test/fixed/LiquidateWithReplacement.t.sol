@@ -121,7 +121,13 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, candy, 0, 1.5e18));
         size.liquidateWithReplacement(
-            LiquidateWithReplacementParams({debtPositionId: debtPositionId, borrower: candy, minimumCollateralProfit: 0})
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
+                borrower: candy,
+                deadline: block.timestamp,
+                minRate: 0,
+                minimumCollateralProfit: 0
+            })
         );
     }
 
@@ -136,7 +142,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
         _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, 0.03e18, 30);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
 
         _setPrice(0.2e18);
@@ -147,9 +153,15 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         vm.warp(block.timestamp + 12);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, debtPositionId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 12));
         size.liquidateWithReplacement(
-            LiquidateWithReplacementParams({debtPositionId: debtPositionId, borrower: candy, minimumCollateralProfit: 0})
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
+                borrower: candy,
+                deadline: block.timestamp,
+                minRate: 0,
+                minimumCollateralProfit: 0
+            })
         );
     }
 }

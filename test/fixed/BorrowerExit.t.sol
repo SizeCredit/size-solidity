@@ -100,6 +100,13 @@ contract BorrowerExitTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, candy, 1.5e18 / 2, 1.5e18)
         );
-        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: candy}));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                borrowerToExitTo: candy,
+                deadline: block.timestamp,
+                minRate: 0
+            })
+        );
     }
 }

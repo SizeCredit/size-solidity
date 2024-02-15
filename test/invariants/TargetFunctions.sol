@@ -206,7 +206,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         borrowerToExitTo = _getRandomUser(borrowerToExitTo);
 
         hevm.prank(sender);
-        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                minRate: 0,
+                deadline: block.timestamp,
+                borrowerToExitTo: borrowerToExitTo
+            })
+        );
 
         __after(debtPositionId);
 
@@ -309,6 +316,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         (uint256 liquidatorProfitCollateralToken,) = size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
+                minRate: 0,
+                deadline: block.timestamp,
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit
             })

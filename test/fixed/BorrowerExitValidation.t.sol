@@ -30,7 +30,14 @@ contract BorrowerExitValidationTest is BaseTest {
         address borrowerToExitTo = candy;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.EXITER_IS_NOT_BORROWER.selector, address(this), bob));
-        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                deadline: block.timestamp,
+                minRate: 0,
+                borrowerToExitTo: borrowerToExitTo
+            })
+        );
 
         vm.startPrank(bob);
         vm.expectRevert(
@@ -38,25 +45,74 @@ contract BorrowerExitValidationTest is BaseTest {
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, 100e6, 200e6 + size.config().earlyBorrowerExitFee
             )
         );
-        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                deadline: block.timestamp,
+                minRate: 0,
+                borrowerToExitTo: borrowerToExitTo
+            })
+        );
         vm.stopPrank();
 
         vm.startPrank(james);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DEBT_POSITION_ID.selector, creditId2));
-        size.borrowerExit(BorrowerExitParams({debtPositionId: creditId2, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: creditId2,
+                deadline: block.timestamp,
+                minRate: 0,
+                borrowerToExitTo: borrowerToExitTo
+            })
+        );
 
         vm.startPrank(bob);
         vm.expectRevert();
-        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: address(0)}));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                deadline: block.timestamp,
+                minRate: 0,
+                borrowerToExitTo: address(0)
+            })
+        );
         vm.stopPrank();
 
-        _deposit(bob, usdc, 100e6);
-        _borrowAsLimitOrder(candy, 0, 12);
+        _deposit(bob, usdc, 200e6);
+        _borrowAsLimitOrder(bob, 2, 12);
+        _borrowAsLimitOrder(candy, 2, 12);
 
         vm.startPrank(bob);
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_LOWER_THAN_MIN_RATE.selector, 2, 3));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                deadline: block.timestamp,
+                minRate: 3,
+                borrowerToExitTo: bob
+            })
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DEADLINE.selector, block.timestamp - 1));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                deadline: block.timestamp - 1,
+                minRate: 0,
+                borrowerToExitTo: bob
+            })
+        );
+
         vm.warp(block.timestamp + 12);
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 12));
-        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                deadline: block.timestamp,
+                minRate: 0,
+                borrowerToExitTo: borrowerToExitTo
+            })
+        );
     }
 }

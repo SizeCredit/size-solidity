@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
+import {SizeView} from "@src/SizeView.sol";
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
@@ -21,10 +22,19 @@ contract LiquidateWithReplacementScript is Script, Logger {
         console.log("borrower", borrower);
 
         Size sizeContract = Size(sizeContractAddress);
+        uint256 debtPositionId = 0;
 
-        /// LiquidateLoanParams struct
-        LiquidateWithReplacementParams memory params =
-            LiquidateWithReplacementParams({debtPositionId: 0, borrower: borrower, minimumCollateralProfit: 0});
+        uint256 dueDate = SizeView(address(sizeContract)).getDebtPosition(debtPositionId).dueDate;
+        uint256 rate = SizeView(address(sizeContract)).getBorrowOfferRate(borrower, dueDate);
+        uint256 minimumCollateralProfit = SizeView(address(sizeContract)).faceValueInCollateralToken(debtPositionId);
+
+        LiquidateWithReplacementParams memory params = LiquidateWithReplacementParams({
+            debtPositionId: debtPositionId,
+            minRate: rate,
+            deadline: block.timestamp,
+            borrower: borrower,
+            minimumCollateralProfit: minimumCollateralProfit
+        });
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.liquidateWithReplacement(params);

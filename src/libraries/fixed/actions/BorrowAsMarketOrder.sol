@@ -41,13 +41,11 @@ library BorrowAsMarketOrder {
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
         User memory lenderUser = state.data.users[params.lender];
         LoanOffer memory loanOffer = lenderUser.loanOffer;
+        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
 
         // validate msg.sender
 
         // validate params.lender
-        if (loanOffer.isNull()) {
-            revert Errors.INVALID_LOAN_OFFER(params.lender);
-        }
 
         // validate params.amount
         if (params.amount == 0) {
@@ -68,7 +66,9 @@ library BorrowAsMarketOrder {
         }
 
         // validate params.maxRate
-        // validate during execution
+        if (rate > params.maxRate) {
+            revert Errors.RATE_GREATER_THAN_MAX_RATE(rate, params.maxRate);
+        }
 
         // validate params.exactAmountIn
         // N/A
@@ -161,10 +161,6 @@ library BorrowAsMarketOrder {
 
         uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 issuanceValue = params.amount;
-
-        if (rate > params.maxRate) {
-            revert Errors.RATE_GREATER_THAN_MAX_RATE(rate, params.maxRate);
-        }
 
         // slither-disable-next-line unused-return
         (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({

@@ -243,7 +243,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _borrowerExit(address user, uint256 debtPositionId, address borrowerToExitTo) internal {
         vm.prank(user);
-        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                borrowerToExitTo: borrowerToExitTo,
+                deadline: block.timestamp,
+                minRate: 0
+            })
+        );
     }
 
     function _repay(address user, uint256 debtPositionId) internal {
@@ -293,7 +300,9 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: borrower,
-                minimumCollateralProfit: minimumCollateralProfit
+                minimumCollateralProfit: minimumCollateralProfit,
+                deadline: block.timestamp,
+                minRate: 0
             })
         );
     }
