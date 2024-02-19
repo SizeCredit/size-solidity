@@ -35,6 +35,17 @@ abstract contract Logger {
 
     function log(UserView memory userView) internal pure {
         console.log("account", userView.account);
+        console.log("user.loanOffer.maxDueDate", userView.user.loanOffer.maxDueDate);
+        for (uint256 i = 0; i < userView.user.loanOffer.curveRelativeTime.rates.length; i++) {
+            console.log(
+                "user.loanOffer.curveRelativeTime.maturities[]", userView.user.loanOffer.curveRelativeTime.maturities[i]
+            );
+            console.log("user.loanOffer.curveRelativeTime.rates[]", userView.user.loanOffer.curveRelativeTime.rates[i]);
+            console.log(
+                "user.loanOffer.curveRelativeTime.marketRateMultipliers[]",
+                userView.user.loanOffer.curveRelativeTime.marketRateMultipliers[i]
+            );
+        }
         console.log("collateralAmount", userView.collateralAmount);
         console.log("borrowAmount", userView.borrowAmount);
         console.log("debtAmount", userView.debtAmount);
