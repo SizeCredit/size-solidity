@@ -119,7 +119,16 @@ contract ExperimentsTest is Test, BaseTest {
         uint256 amountToExit = Math.mulDivDown(fol.faceValue(), amountToExitPercent, PERCENT);
 
         // Lender exiting using borrow as market order
-        _borrowAsMarketOrder(bob, candy, amountToExit, dueDate, true, size.getCreditPositionIdsByDebtPositionId(0));
+        _borrowAsMarketOrder(
+            bob,
+            candy,
+            amountToExit,
+            dueDate,
+            block.timestamp,
+            type(uint256).max,
+            true,
+            size.getCreditPositionIdsByDebtPositionId(0)
+        );
 
         (, uint256 creditPositionsCount) = size.getPositionsCount();
 
@@ -170,7 +179,7 @@ contract ExperimentsTest is Test, BaseTest {
         LoanOffer memory loanOffer = size.getUserView(bob).user.loanOffer;
         uint256 rate = loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), 5);
         assertEq(loan_Bob_Alice.faceValue(), Math.mulDivUp(70e6, (PERCENT + rate), PERCENT), "Check loan faceValue");
-        assertEq(size.getDueDate(0), 5, "Check loan due date");
+        assertEq(size.getDebtPosition(0).dueDate, 5, "Check loan due date");
 
         // Bob borrows using the loan as virtual collateral
         _borrowAsMarketOrder(bob, james, 35e6, 10, size.getCreditPositionIdsByDebtPositionId(0));
@@ -184,7 +193,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(loan_James_Bob.lender, james, "James should be the lender");
         assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
         LoanOffer memory loanOffer2 = size.getUserView(james).user.loanOffer;
-        uint256 rate2 = loanOffer2.getRate(marketBorrowRateFeed.getMarketBorrowRate(), size.getDueDate(0));
+        uint256 rate2 = loanOffer2.getRate(marketBorrowRateFeed.getMarketBorrowRate(), size.getDebtPosition(0).dueDate);
         assertEq(loan_James_Bob.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check loan faceValue");
     }
 
@@ -528,13 +537,13 @@ contract ExperimentsTest is Test, BaseTest {
         // CreditPosition.lender = B1
         // CreditPosition1.credit = 120
         // CreditPosition1.DebtPosition().DueDate = 30 Dec 2023
-        assertEq(size.getCredit(creditPositionId), 120e6);
+        assertEq(size.getCreditPosition(creditPositionId).credit, 120e6);
 
         _compensate(bob, debtPositionId, creditPositionId, 20e6);
 
         // then the update is
         // CreditPosition1.credit -= 20 --> 100
-        assertEq(size.getCredit(creditPositionId), 100e6);
+        assertEq(size.getCreditPosition(creditPositionId).credit, 100e6);
 
         // Now Borrower has A=20 to compensate his debt on DebtPosition1 which results in
         // DebtPosition1.protocolFees(t=7) = 100 * 0.005  --> 0.29

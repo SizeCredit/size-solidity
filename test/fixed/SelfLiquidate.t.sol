@@ -136,14 +136,14 @@ contract SelfLiquidateTest is BaseTest {
 
         assertEq(size.faceValue(debtPositionId), 50e6);
         assertEq(size.getDebt(debtPositionId), 50e6 + repayFee);
-        assertEq(size.getCredit(creditPositionId), 50e6 - 5e6);
-        assertEq(size.getCredit(creditPositionId), 45e6);
+        assertEq(size.getCreditPosition(creditPositionId).credit, 50e6 - 5e6);
+        assertEq(size.getCreditPosition(creditPositionId).credit, 45e6);
 
         _selfLiquidate(alice, creditPositionId);
 
         assertEq(size.getDebt(debtPositionId), 5e6 + repayFee);
-        assertEq(size.getCredit(creditPositionId), 0);
-        assertEq(size.getCredit(creditPositionId), 0);
+        assertEq(size.getCreditPosition(creditPositionId).credit, 0);
+        assertEq(size.getCreditPosition(creditPositionId).credit, 0);
     }
 
     function test_SelfLiquidate_selfliquidate_CreditPosition_should_not_leave_dust_loan() public {
@@ -174,10 +174,10 @@ contract SelfLiquidateTest is BaseTest {
 
         _selfLiquidate(candy, creditPositionId2);
 
-        assertEq(size.getCredit(creditPositionId2), 0);
+        assertEq(size.getCreditPosition(creditPositionId2).credit, 0);
 
         _selfLiquidate(bob, creditPositionId3);
 
-        assertEq(size.getCredit(creditPositionId3), 0);
+        assertEq(size.getCreditPosition(creditPositionId3).credit, 0);
     }
 }

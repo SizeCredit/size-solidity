@@ -19,7 +19,10 @@ library Errors {
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(uint256 sum);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error PAST_DUE_DATE(uint256 dueDate);
+    error PAST_DEADLINE(uint256 deadline);
     error PAST_MAX_DUE_DATE(uint256 maxDueDate);
+    error RATE_LOWER_THAN_MIN_RATE(uint256 rate, uint256 minRate);
+    error RATE_GREATER_THAN_MAX_RATE(uint256 rate, uint256 maxRate);
     error DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(uint256 dueDate, uint256 debtPositionDueDate);
     error DUE_DATE_NOT_COMPATIBLE(uint256 debtPositionIdToRepay, uint256 creditPositionIdToCompensate);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);

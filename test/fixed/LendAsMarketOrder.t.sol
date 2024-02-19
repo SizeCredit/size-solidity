@@ -118,7 +118,14 @@ contract LendAsMarketOrderTest is BaseTest {
             abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.5e18 / 2, 1.5e18)
         );
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 200e6, exactAmountIn: false})
+            LendAsMarketOrderParams({
+                borrower: alice,
+                dueDate: 12,
+                amount: 200e6,
+                deadline: block.timestamp,
+                minRate: 0,
+                exactAmountIn: false
+            })
         );
     }
 
@@ -135,7 +142,14 @@ contract LendAsMarketOrderTest is BaseTest {
             abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.config().debtTokenCap, 10e6)
         );
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 10e6, exactAmountIn: false})
+            LendAsMarketOrderParams({
+                borrower: alice,
+                dueDate: 12,
+                amount: 10e6,
+                deadline: block.timestamp,
+                minRate: 0,
+                exactAmountIn: false
+            })
         );
     }
 
@@ -153,6 +167,8 @@ contract LendAsMarketOrderTest is BaseTest {
                 borrower: alice,
                 dueDate: block.timestamp + 6 days,
                 amount: 10e6,
+                deadline: block.timestamp,
+                minRate: 0,
                 exactAmountIn: false
             })
         );
@@ -163,6 +179,8 @@ contract LendAsMarketOrderTest is BaseTest {
                 borrower: alice,
                 dueDate: block.timestamp + 151 days,
                 amount: 10e6,
+                deadline: block.timestamp,
+                minRate: 0,
                 exactAmountIn: false
             })
         );
@@ -172,6 +190,8 @@ contract LendAsMarketOrderTest is BaseTest {
                 borrower: alice,
                 dueDate: block.timestamp + 150 days,
                 amount: 10e6,
+                deadline: block.timestamp,
+                minRate: 0,
                 exactAmountIn: false
             })
         );

@@ -20,6 +20,8 @@ import {Events} from "@src/libraries/Events.sol";
 struct BorrowerExitParams {
     uint256 debtPositionId;
     address borrowerToExitTo;
+    uint256 deadline;
+    uint256 minRate;
 }
 
 library BorrowerExit {
@@ -50,6 +52,16 @@ library BorrowerExit {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
                 state.borrowATokenBalanceOf(msg.sender), amountIn + state.config.earlyBorrowerExitFee
             );
+        }
+
+        // validate deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
+
+        // validate rate
+        if (rate < params.minRate) {
+            revert Errors.RATE_LOWER_THAN_MIN_RATE(rate, params.minRate);
         }
 
         // validate borrowerToExitTo

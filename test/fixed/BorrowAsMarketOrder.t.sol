@@ -215,8 +215,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 r = PERCENT
             + size.getUserView(candy).user.loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
-        uint256 deltaAmountOut = (Math.mulDivUp(r, amountLoanId2, PERCENT) > size.getCredit(creditId1))
-            ? Math.mulDivDown(size.getCredit(creditId1), PERCENT, r)
+        uint256 deltaAmountOut = (Math.mulDivUp(r, amountLoanId2, PERCENT) > size.getCreditPosition(creditId1).credit)
+            ? Math.mulDivDown(size.getCreditPosition(creditId1).credit, PERCENT, r)
             : amountLoanId2;
         uint256 faceValue = Math.mulDivUp(r, amountLoanId2 - deltaAmountOut, PERCENT);
 
@@ -284,6 +284,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 lender: alice,
                 amount: amount,
                 dueDate: dueDate,
+                deadline: block.timestamp,
+                maxRate: type(uint256).max,
                 exactAmountIn: false,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -310,6 +312,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 lender: alice,
                 amount: amount,
                 dueDate: dueDate,
+                deadline: block.timestamp,
+                maxRate: type(uint256).max,
                 exactAmountIn: false,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -433,6 +437,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
             lender: james,
             amount: 100e6,
             dueDate: 12,
+            deadline: block.timestamp,
+            maxRate: type(uint256).max,
             exactAmountIn: false,
             receivableCreditPositionIds: receivableCreditPositionIds
         });
@@ -487,6 +493,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 exactAmountIn: false,
+                deadline: block.timestamp,
+                maxRate: type(uint256).max,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
         );

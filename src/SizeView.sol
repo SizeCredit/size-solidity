@@ -91,14 +91,6 @@ abstract contract SizeView is SizeStorage {
         return state.faceValueInCollateralToken(state.getDebtPosition(debtPositionId));
     }
 
-    function getDueDate(uint256 debtPositionId) external view returns (uint256) {
-        return state.getDebtPosition(debtPositionId).dueDate;
-    }
-
-    function getCredit(uint256 creditPositionId) external view returns (uint256) {
-        return state.getCreditPosition(creditPositionId).credit;
-    }
-
     function config() external view returns (InitializeConfigParams memory) {
         return state.configParams();
     }
@@ -245,5 +237,15 @@ abstract contract SizeView is SizeStorage {
             state.data.nextDebtPositionId - DEBT_POSITION_ID_START,
             state.data.nextCreditPositionId - CREDIT_POSITION_ID_START
         );
+    }
+
+    function getBorrowOfferRate(address borrower, uint256 dueDate) external view returns (uint256) {
+        BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
+        return offer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
+    }
+
+    function getLoanOfferRate(address lender, uint256 dueDate) external view returns (uint256) {
+        LoanOffer memory offer = state.data.users[lender].loanOffer;
+        return offer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
     }
 }

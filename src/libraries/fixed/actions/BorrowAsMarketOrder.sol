@@ -22,6 +22,8 @@ struct BorrowAsMarketOrderParams {
     address lender;
     uint256 amount;
     uint256 dueDate;
+    uint256 deadline;
+    uint256 maxRate;
     bool exactAmountIn;
     uint256[] receivableCreditPositionIds;
 }
@@ -39,14 +41,12 @@ library BorrowAsMarketOrder {
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
         User memory lenderUser = state.data.users[params.lender];
         LoanOffer memory loanOffer = lenderUser.loanOffer;
+        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
 
         // validate msg.sender
         // N/A
 
         // validate params.lender
-        if (loanOffer.isNull()) {
-            revert Errors.INVALID_LOAN_OFFER(params.lender);
-        }
 
         // validate params.amount
         if (params.amount == 0) {
@@ -59,6 +59,16 @@ library BorrowAsMarketOrder {
         }
         if (params.dueDate > loanOffer.maxDueDate) {
             revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
+        }
+
+        // validate params.deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
+
+        // validate params.maxRate
+        if (rate > params.maxRate) {
+            revert Errors.RATE_GREATER_THAN_MAX_RATE(rate, params.maxRate);
         }
 
         // validate params.exactAmountIn
