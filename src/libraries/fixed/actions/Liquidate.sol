@@ -32,6 +32,7 @@ library Liquidate {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
         // validate msg.sender
+        // N/A
 
         // validate debtPositionId
         if (!state.isDebtPositionLiquidatable(params.debtPositionId)) {
@@ -43,6 +44,7 @@ library Liquidate {
         }
 
         // validate minimumCollateralProfit
+        // N/A
     }
 
     function validateMinimumCollateralProfit(

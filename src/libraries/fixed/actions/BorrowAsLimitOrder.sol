@@ -15,6 +15,7 @@ struct BorrowAsLimitOrderParams {
 library BorrowAsLimitOrder {
     function validateBorrowAsLimitOrder(State storage, BorrowAsLimitOrderParams calldata params) external pure {
         // validate msg.sender
+        // N/A
 
         // validate openingLimitBorrowCR
         // N/A

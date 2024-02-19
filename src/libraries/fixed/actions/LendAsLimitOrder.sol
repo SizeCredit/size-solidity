@@ -20,6 +20,7 @@ library LendAsLimitOrder {
 
     function validateLendAsLimitOrder(State storage, LendAsLimitOrderParams calldata params) external view {
         // validate msg.sender
+        // N/A
 
         // validate maxDueDate
         if (params.maxDueDate == 0) {

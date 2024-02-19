@@ -44,8 +44,10 @@ library LendAsMarketOrder {
         }
 
         // validate msg.sender
+        // N/A
 
         // validate borrower
+        // N/A
 
         // validate dueDate
         if (params.dueDate < block.timestamp) {
@@ -58,6 +60,7 @@ library LendAsMarketOrder {
         }
 
         // validate exactAmountIn
+        // N/A
     }
 
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) external {
