@@ -4,7 +4,12 @@ pragma solidity 0.8.24;
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+
+import {Errors} from "@src/libraries/Errors.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 
 contract LendAsLimitOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
@@ -15,5 +20,60 @@ contract LendAsLimitOrderTest is BaseTest {
         assertTrue(_state().alice.user.loanOffer.isNull());
         _lendAsLimitOrder(alice, 12, 1.01e18, 12);
         assertTrue(!_state().alice.user.loanOffer.isNull());
+    }
+
+    function test_LendAsLimitOrder_lendAsLimitOrder_clear_limit_order() public {
+        _setPrice(1e18);
+        _deposit(alice, usdc, 1_000e6);
+        _deposit(bob, weth, 300e18);
+        _deposit(candy, weth, 300e18);
+
+        uint256 maxDueDate = block.timestamp + 365 days;
+        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory maturities = new uint256[](2);
+        maturities[0] = 30 days;
+        maturities[1] = 60 days;
+        int256[] memory rates = new int256[](2);
+        rates[0] = 0.15e18;
+        rates[0] = 0.12e18;
+
+        vm.prank(alice);
+        size.lendAsLimitOrder(
+            LendAsLimitOrderParams({
+                maxDueDate: maxDueDate,
+                curveRelativeTime: YieldCurve({
+                    maturities: maturities,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates
+                })
+            })
+        );
+
+        vm.prank(bob);
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: alice,
+                amount: 100e6,
+                dueDate: 45 days,
+                exactAmountIn: false,
+                receivableCreditPositionIds: new uint256[](0)
+            })
+        );
+        LendAsLimitOrderParams memory empty;
+
+        vm.prank(alice);
+        size.lendAsLimitOrder(empty);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, alice));
+        vm.prank(candy);
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: alice,
+                amount: 100e6,
+                dueDate: 45 days,
+                exactAmountIn: false,
+                receivableCreditPositionIds: new uint256[](0)
+            })
+        );
     }
 }

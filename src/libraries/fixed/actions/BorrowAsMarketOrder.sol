@@ -41,6 +41,7 @@ library BorrowAsMarketOrder {
         LoanOffer memory loanOffer = lenderUser.loanOffer;
 
         // validate msg.sender
+        // N/A
 
         // validate params.lender
         if (loanOffer.isNull()) {
