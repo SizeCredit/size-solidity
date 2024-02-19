@@ -119,13 +119,13 @@ forge test
 | src/libraries/fixed/OfferLibrary.sol                     | 0.00% (0/5)       | 0.00% (0/14)       | 100.00% (0/0)    | 0.00% (0/4)      |
 | src/libraries/fixed/RiskLibrary.sol                      | 84.00% (21/25)    | 86.36% (38/44)     | 80.00% (8/10)    | 88.89% (8/9)     |
 | src/libraries/fixed/YieldCurveLibrary.sol                | 36.00% (9/25)     | 37.78% (17/45)     | 42.86% (6/14)    | 33.33% (1/3)     |
-| src/libraries/fixed/actions/BorrowAsLimitOrder.sol       | 100.00% (3/3)     | 100.00% (3/3)      | 100.00% (0/0)    | 100.00% (2/2)    |
+| src/libraries/fixed/actions/BorrowAsLimitOrder.sol       | 100.00% (5/5)     | 100.00% (6/6)      | 100.00% (2/2)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/BorrowAsMarketOrder.sol      | 98.00% (49/50)    | 98.33% (59/60)     | 95.00% (19/20)   | 100.00% (4/4)    |
 | src/libraries/fixed/actions/BorrowerExit.sol             | 100.00% (23/23)   | 100.00% (30/30)    | 83.33% (5/6)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Claim.sol                    | 100.00% (11/11)   | 100.00% (16/16)    | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Compensate.sol               | 100.00% (24/24)   | 100.00% (31/31)    | 92.86% (13/14)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Deposit.sol                  | 90.91% (10/11)    | 93.75% (15/16)     | 75.00% (6/8)     | 100.00% (2/2)    |
-| src/libraries/fixed/actions/LendAsLimitOrder.sol         | 85.71% (6/7)      | 85.71% (6/7)       | 75.00% (3/4)     | 100.00% (2/2)    |
+| src/libraries/fixed/actions/LendAsLimitOrder.sol         | 90.00% (9/10)     | 90.00% (9/10)      | 83.33% (5/6)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/LendAsMarketOrder.sol        | 95.00% (19/20)    | 95.45% (21/22)     | 75.00% (6/8)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Liquidate.sol                | 97.37% (37/38)    | 97.83% (45/46)     | 71.43% (10/14)   | 100.00% (5/5)    |
 | src/libraries/fixed/actions/LiquidateWithReplacement.sol | 100.00% (25/25)   | 100.00% (31/31)    | 100.00% (4/4)    | 100.00% (3/3)    |
@@ -138,7 +138,7 @@ forge test
 | src/oracle/MarketBorrowRateFeed.sol                      | 0.00% (0/1)       | 0.00% (0/2)        | 100.00% (0/0)    | 0.00% (0/1)      |
 | src/oracle/PriceFeed.sol                                 | 100.00% (12/12)   | 100.00% (21/21)    | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/oracle/VariablePoolPriceFeed.sol                     | 100.00% (8/8)     | 100.00% (13/13)    | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/proxy/Vault.sol                                      | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 100.00% (4/4)    |
+| src/proxy/Vault.sol                                      | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 75.00% (3/4)     |
 | src/token/NonTransferrableToken.sol                      | 100.00% (9/9)     | 100.00% (10/10)    | 100.00% (0/0)    | 100.00% (7/7)    |
 
 ### Scenarios
@@ -157,7 +157,7 @@ forge test
 │         Deposit          │   3    │
 │       Experiments        │   13   │
 │        Initialize        │   4    │
-│     LendAsLimitOrder     │   2    │
+│     LendAsLimitOrder     │   3    │
 │    LendAsMarketOrder     │   6    │
 │ LiquidateWithReplacement │   5    │
 │        Liquidate         │   7    │
