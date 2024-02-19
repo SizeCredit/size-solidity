@@ -215,8 +215,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = 12;
         uint256 r = PERCENT
             + size.getUserView(candy).user.loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
-        uint256 deltaAmountOut = (Math.mulDivUp(r, amountLoanId2, PERCENT) > size.getCredit(creditId1))
-            ? Math.mulDivDown(size.getCredit(creditId1), PERCENT, r)
+        uint256 deltaAmountOut = (Math.mulDivUp(r, amountLoanId2, PERCENT) > size.getCreditPosition(creditId1).credit)
+            ? Math.mulDivDown(size.getCreditPosition(creditId1).credit, PERCENT, r)
             : amountLoanId2;
         uint256 faceValue = Math.mulDivUp(r, amountLoanId2 - deltaAmountOut, PERCENT);
 

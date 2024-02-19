@@ -124,10 +124,11 @@ contract RepayTest is BaseTest {
         _deposit(bob, weth, 160e18);
         _lendAsLimitOrder(alice, 12, 0, 12);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, borrowAmount, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         vm.prank(bob);
         try size.repay(RepayParams({debtPositionId: debtPositionId})) {} catch {}
-        assertGe(size.getCredit(debtPositionId), size.config().minimumCreditBorrowAToken);
+        assertGe(size.getCreditPosition(creditPositionId).credit, size.config().minimumCreditBorrowAToken);
     }
 
     function test_Repay_repay_pays_repayFeeAPR() private {}
