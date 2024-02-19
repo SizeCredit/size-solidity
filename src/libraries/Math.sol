@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 uint256 constant PERCENT = 1e18;
 
@@ -59,5 +60,23 @@ library Math {
             }
         }
         return (high, low);
+    }
+
+    /// @notice Calculate the time-weighted average value of an array of values
+    function twa(uint256[] memory timestamps, uint256[] memory values) internal pure returns (uint256) {
+        if (timestamps.length == 0 || values.length == 0) {
+            revert Errors.NULL_ARRAY();
+        }
+        if (timestamps.length != values.length) {
+            revert Errors.ARRAY_LENGTHS_MISMATCH();
+        }
+
+        uint256 numerator = 0;
+        uint256 denominator = 0;
+        for (uint256 i = 0; i < timestamps.length; ++i) {
+            numerator += values[i] * timestamps[i];
+            denominator += timestamps[i];
+        }
+        return mulDivDown(numerator, PERCENT, denominator);
     }
 }

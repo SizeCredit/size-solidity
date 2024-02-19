@@ -17,6 +17,10 @@ contract MarketBorrowRateFeedMock is IMarketBorrowRateFeed, Ownable {
         emit MarketBorrowRateUpdated(oldMarketBorrowRate, newMarketBorrowRate);
     }
 
+    function update() external view override returns (uint256 rate) {
+        rate = marketBorrowRate;
+    }
+
     function getMarketBorrowRate() public view returns (uint256) {
         return marketBorrowRate;
     }

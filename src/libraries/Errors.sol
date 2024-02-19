@@ -66,7 +66,9 @@ library Errors {
     error INVALID_DECIMALS(uint8 decimals);
     error INVALID_PRICE(address aggregator, int256 price);
     error STALE_PRICE(address aggregator, uint256 updatedAt);
+    error STALE_MARKET_BORROW_RATE(uint256 updatedAt);
     error NULL_STALE_PRICE();
+    error NULL_NUMBER_OF_OBSERVATIONS_WEIGHTED_AVERAGE();
 
     error PROXY_CALL_FAILED(address target, bytes data);
 
