@@ -21,6 +21,7 @@ echo $COMPILE_LIBRARIES
 echo $DEPLOY_CONTRACTS
 
 sed -i "s/cryticArgs.*/cryticArgs: [\"--compile-libraries=$COMPILE_LIBRARIES\",\"--foundry-compile-all\"]/" echidna.yaml
+sed -i "s/\"args\".*/\"args\": [\"--compile-libraries=$COMPILE_LIBRARIES\",\"--foundry-compile-all\"]/" medusa.json
 sed -i "s/deployContracts.*/deployContracts: [$DEPLOY_CONTRACTS]/g" echidna.yaml
 
 rm -r COMPILE_LIBRARIES.txt

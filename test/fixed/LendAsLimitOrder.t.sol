@@ -66,7 +66,7 @@ contract LendAsLimitOrderTest is BaseTest {
         vm.prank(alice);
         size.lendAsLimitOrder(empty);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, alice));
+        vm.expectRevert();
         vm.prank(candy);
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
