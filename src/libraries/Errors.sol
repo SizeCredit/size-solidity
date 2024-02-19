@@ -70,6 +70,8 @@ library Errors {
     error INVALID_PRICE(address aggregator, int256 price);
     error STALE_PRICE(address aggregator, uint256 updatedAt);
     error NULL_STALE_PRICE();
+    error NULL_STALE_RATE();
+    error STALE_RATE(uint128 updatedAt);
 
     error PROXY_CALL_FAILED(address target, bytes data);
 

@@ -40,6 +40,6 @@ contract LiquidateWithReplacementScript is Script, Logger {
         sizeContract.liquidateWithReplacement(params);
         vm.stopBroadcast();
 
-        logPositions(address(sizeContract));
+        log(address(sizeContract));
     }
 }

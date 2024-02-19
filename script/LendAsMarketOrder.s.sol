@@ -39,6 +39,6 @@ contract LendAsMarketOrderScript is Script, Logger {
         sizeContract.lendAsMarketOrder(params);
         vm.stopBroadcast();
 
-        logPositions(address(sizeContract));
+        log(address(sizeContract));
     }
 }

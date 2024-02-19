@@ -36,6 +36,6 @@ contract BorrowAsMarketOrder is Script, Logger {
         sizeContract.borrowAsMarketOrder(params);
         vm.stopBroadcast();
 
-        logPositions(address(sizeContract));
+        log(address(sizeContract));
     }
 }
