@@ -28,13 +28,13 @@ import type {
 } from "./common";
 
 export type YieldCurveStruct = {
-  timeBuckets: BigNumberish[];
+  maturities: BigNumberish[];
   rates: BigNumberish[];
   marketRateMultipliers: BigNumberish[];
 };
 
 export type YieldCurveStructOutput = [BigNumber[], BigNumber[], BigNumber[]] & {
-  timeBuckets: BigNumber[];
+  maturities: BigNumber[];
   rates: BigNumber[];
   marketRateMultipliers: BigNumber[];
 };
@@ -413,7 +413,7 @@ export interface SizeInterface extends utils.Interface {
     "KEEPER_ROLE()": FunctionFragment;
     "PAUSER_ROLE()": FunctionFragment;
     "UPGRADE_INTERFACE_VERSION()": FunctionFragment;
-    "borrowAsLimitOrder((uint256,(uint256[],uint256[],int256[])))": FunctionFragment;
+    "borrowAsLimitOrder((uint256,(uint256[],int256[],int256[])))": FunctionFragment;
     "borrowAsMarketOrder((address,uint256,uint256,bool,uint256[]))": FunctionFragment;
     "borrowerExit((uint256,address))": FunctionFragment;
     "claim((uint256))": FunctionFragment;
@@ -448,7 +448,7 @@ export interface SizeInterface extends utils.Interface {
     "isDebtPositionId(uint256)": FunctionFragment;
     "isDebtPositionLiquidatable(uint256)": FunctionFragment;
     "isUserLiquidatable(address)": FunctionFragment;
-    "lendAsLimitOrder((uint256,(uint256[],uint256[],int256[])))": FunctionFragment;
+    "lendAsLimitOrder((uint256,(uint256[],int256[],int256[])))": FunctionFragment;
     "lendAsMarketOrder((address,uint256,uint256,bool))": FunctionFragment;
     "liquidate((uint256,uint256))": FunctionFragment;
     "liquidateWithReplacement((uint256,address,uint256))": FunctionFragment;
