@@ -23,7 +23,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         uint256 rate = 0.03e18;
-        _borrowAsLimitOrder(alice, rate, 12);
+        _borrowAsLimitOrder(alice, int256(rate), 12);
 
         uint256 issuanceValue = 10e6;
         uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + rate, PERCENT);
@@ -85,7 +85,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _borrowAsLimitOrder(alice, curve);
 
         amountIn = bound(amountIn, 5e6, 100e6);
-        uint256 dueDate = block.timestamp + (curve.timeBuckets[0] + curve.timeBuckets[1]) / 2;
+        uint256 dueDate = block.timestamp + (curve.maturities[0] + curve.maturities[1]) / 2;
         uint256 rate = YieldCurveLibrary.getRate(curve, 0, dueDate);
         uint256 faceValue = Math.mulDivUp(amountIn, PERCENT + rate, PERCENT);
 
