@@ -149,7 +149,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().bob.borrowAmount, 100e6 + size.config().earlyLenderExitFee);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(bob, 10, [int256(0.03e18), int256(0.03e18)], [uint256(3), uint256(8)]);
 
         // James deposits in USDC
         _deposit(james, usdc, 100e6);
@@ -203,7 +203,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(bob, 10, [int256(0.03e18), int256(0.03e18)], [uint256(3), uint256(8)]);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 50e18);
@@ -306,7 +306,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, [uint256(0.03e18), uint256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(bob, 10, [int256(0.03e18), int256(0.03e18)], [uint256(3), uint256(8)]);
 
         // Candy deposits in WETH
         _deposit(candy, weth, 2e18);

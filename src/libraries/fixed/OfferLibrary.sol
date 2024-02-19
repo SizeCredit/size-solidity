@@ -16,12 +16,12 @@ struct BorrowOffer {
 /// @title OfferLibrary
 library OfferLibrary {
     function isNull(LoanOffer memory self) internal pure returns (bool) {
-        return self.maxDueDate == 0 && self.curveRelativeTime.timeBuckets.length == 0
+        return self.maxDueDate == 0 && self.curveRelativeTime.maturities.length == 0
             && self.curveRelativeTime.rates.length == 0;
     }
 
     function isNull(BorrowOffer memory self) internal pure returns (bool) {
-        return self.curveRelativeTime.timeBuckets.length == 0 && self.curveRelativeTime.rates.length == 0;
+        return self.curveRelativeTime.maturities.length == 0 && self.curveRelativeTime.rates.length == 0;
     }
 
     function getRate(LoanOffer memory self, uint256 marketRate, uint256 dueDate) internal view returns (uint256) {

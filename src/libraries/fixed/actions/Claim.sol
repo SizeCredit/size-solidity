@@ -25,6 +25,7 @@ library Claim {
     function validateClaim(State storage state, ClaimParams calldata params) external view {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         // validate msg.sender
+        // N/A
 
         // validate creditPositionId
         if (state.getLoanStatus(params.creditPositionId) != LoanStatus.REPAID) {

@@ -70,7 +70,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(bob, weth, MAX_AMOUNT_WETH);
         _deposit(bob, usdc, MAX_AMOUNT_USDC);
 
-        _lendAsLimitOrder(alice, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
+        _lendAsLimitOrder(alice, block.timestamp + MAX_DUE_DATE, int256(rate), MAX_DUE_DATE);
 
         Vars memory _before = _state();
 
@@ -133,8 +133,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, weth, MAX_AMOUNT_WETH);
         _deposit(candy, usdc, MAX_AMOUNT_USDC);
 
-        _lendAsLimitOrder(alice, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
-        _lendAsLimitOrder(candy, block.timestamp + MAX_DUE_DATE, rate, MAX_DUE_DATE);
+        _lendAsLimitOrder(alice, block.timestamp + MAX_DUE_DATE, int256(rate), MAX_DUE_DATE);
+        _lendAsLimitOrder(candy, block.timestamp + MAX_DUE_DATE, int256(rate), MAX_DUE_DATE);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
 
         Vars memory _before = _state();

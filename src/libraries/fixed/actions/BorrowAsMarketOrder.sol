@@ -44,6 +44,7 @@ library BorrowAsMarketOrder {
         uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
 
         // validate msg.sender
+        // N/A
 
         // validate params.lender
 

@@ -138,7 +138,7 @@ forge test
 | src/oracle/MarketBorrowRateFeed.sol                      | 0.00% (0/1)       | 0.00% (0/2)        | 100.00% (0/0)    | 0.00% (0/1)      |
 | src/oracle/PriceFeed.sol                                 | 100.00% (12/12)   | 100.00% (21/21)    | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/oracle/VariablePoolPriceFeed.sol                     | 100.00% (8/8)     | 100.00% (13/13)    | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/proxy/Vault.sol                                      | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 75.00% (3/4)     |
+| src/proxy/Vault.sol                                      | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 100.00% (4/4)    |
 | src/token/NonTransferrableToken.sol                      | 100.00% (9/9)     | 100.00% (10/10)    | 100.00% (0/0)    | 100.00% (7/7)    |
 
 ### Scenarios
@@ -172,7 +172,7 @@ forge test
 │         Upgrade          │   2    │
 │  VariablePoolPriceFeed   │   8    │
 │         Withdraw         │   8    │
-│        YieldCurve        │   13   │
+│        YieldCurve        │   14   │
 └──────────────────────────┴────────┘
 ```
 <!-- END_COVERAGE -->
