@@ -109,7 +109,7 @@ forge test
 | File                                                     | % Lines           | % Statements       | % Branches       | % Funcs          |
 |----------------------------------------------------------|-------------------|--------------------|------------------|------------------|
 | src/Size.sol                                             | 98.04% (50/51)    | 98.04% (50/51)     | 100.00% (0/0)    | 94.44% (17/18)   |
-| src/SizeView.sol                                         | 80.00% (40/50)    | 80.68% (71/88)     | 50.00% (1/2)     | 89.66% (26/29)   |
+| src/SizeView.sol                                         | 73.08% (38/52)    | 75.00% (69/92)     | 50.00% (1/2)     | 82.76% (24/29)   |
 | src/libraries/ConversionLibrary.sol                      | 25.00% (1/4)      | 30.00% (3/10)      | 100.00% (0/0)    | 25.00% (1/4)     |
 | src/libraries/Math.sol                                   | 89.47% (17/19)    | 90.00% (27/30)     | 83.33% (5/6)     | 87.50% (7/8)     |
 | src/libraries/fixed/AccountingLibrary.sol                | 66.67% (18/27)    | 66.67% (22/33)     | 100.00% (0/0)    | 66.67% (2/3)     |
@@ -120,15 +120,15 @@ forge test
 | src/libraries/fixed/RiskLibrary.sol                      | 84.00% (21/25)    | 86.36% (38/44)     | 80.00% (8/10)    | 88.89% (8/9)     |
 | src/libraries/fixed/YieldCurveLibrary.sol                | 36.00% (9/25)     | 37.78% (17/45)     | 42.86% (6/14)    | 33.33% (1/3)     |
 | src/libraries/fixed/actions/BorrowAsLimitOrder.sol       | 100.00% (5/5)     | 100.00% (6/6)      | 100.00% (2/2)    | 100.00% (2/2)    |
-| src/libraries/fixed/actions/BorrowAsMarketOrder.sol      | 98.00% (49/50)    | 98.33% (59/60)     | 95.00% (19/20)   | 100.00% (4/4)    |
-| src/libraries/fixed/actions/BorrowerExit.sol             | 100.00% (23/23)   | 100.00% (30/30)    | 83.33% (5/6)     | 100.00% (2/2)    |
+| src/libraries/fixed/actions/BorrowAsMarketOrder.sol      | 96.23% (51/53)    | 96.88% (62/64)     | 90.91% (20/22)   | 100.00% (4/4)    |
+| src/libraries/fixed/actions/BorrowerExit.sol             | 100.00% (27/27)   | 100.00% (34/34)    | 90.00% (9/10)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Claim.sol                    | 100.00% (11/11)   | 100.00% (16/16)    | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Compensate.sol               | 100.00% (24/24)   | 100.00% (31/31)    | 92.86% (13/14)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Deposit.sol                  | 90.91% (10/11)    | 93.75% (15/16)     | 75.00% (6/8)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/LendAsLimitOrder.sol         | 90.00% (9/10)     | 90.00% (9/10)      | 83.33% (5/6)     | 100.00% (2/2)    |
-| src/libraries/fixed/actions/LendAsMarketOrder.sol        | 95.00% (19/20)    | 95.45% (21/22)     | 75.00% (6/8)     | 100.00% (2/2)    |
+| src/libraries/fixed/actions/LendAsMarketOrder.sol        | 95.83% (23/24)    | 96.15% (25/26)     | 83.33% (10/12)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Liquidate.sol                | 97.37% (37/38)    | 97.83% (45/46)     | 71.43% (10/14)   | 100.00% (5/5)    |
-| src/libraries/fixed/actions/LiquidateWithReplacement.sol | 100.00% (25/25)   | 100.00% (31/31)    | 100.00% (4/4)    | 100.00% (3/3)    |
+| src/libraries/fixed/actions/LiquidateWithReplacement.sol | 93.75% (30/32)    | 94.87% (37/39)     | 75.00% (6/8)     | 100.00% (3/3)    |
 | src/libraries/fixed/actions/Repay.sol                    | 100.00% (14/14)   | 100.00% (20/20)    | 83.33% (5/6)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/SelfLiquidate.sol            | 100.00% (20/20)   | 100.00% (26/26)    | 83.33% (5/6)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Withdraw.sol                 | 100.00% (15/15)   | 100.00% (22/22)    | 75.00% (9/12)    | 100.00% (2/2)    |
@@ -138,7 +138,7 @@ forge test
 | src/oracle/MarketBorrowRateFeed.sol                      | 0.00% (0/1)       | 0.00% (0/2)        | 100.00% (0/0)    | 0.00% (0/1)      |
 | src/oracle/PriceFeed.sol                                 | 100.00% (12/12)   | 100.00% (21/21)    | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/oracle/VariablePoolPriceFeed.sol                     | 100.00% (8/8)     | 100.00% (13/13)    | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/proxy/Vault.sol                                      | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 75.00% (3/4)     |
+| src/proxy/Vault.sol                                      | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 100.00% (4/4)    |
 | src/token/NonTransferrableToken.sol                      | 100.00% (9/9)     | 100.00% (10/10)    | 100.00% (0/0)    | 100.00% (7/7)    |
 
 ### Scenarios
