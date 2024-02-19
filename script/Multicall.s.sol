@@ -7,15 +7,11 @@ import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 contract DepositScript is Script {
     function run() external {
-        console.log("deposit...");
-
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         address wethAddress = vm.envAddress("WETH_ADDRESS");
         address lenderTest = vm.envAddress("LENDER");
         address borrower = vm.envAddress("BORROWER");
-
-        console.log("LenderTest", lenderTest);
 
         Size sizeContract = Size(sizeContractAddress);
 
