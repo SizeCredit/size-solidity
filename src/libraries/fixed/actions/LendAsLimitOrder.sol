@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {LoanOffer} from "@src/libraries/fixed/OfferLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -17,21 +17,28 @@ struct LendAsLimitOrderParams {
 
 library LendAsLimitOrder {
     using VariableLibrary for State;
+    using OfferLibrary for LoanOffer;
 
     function validateLendAsLimitOrder(State storage, LendAsLimitOrderParams calldata params) external view {
-        // validate msg.sender
-        // N/A
+        LoanOffer memory loanOffer =
+            LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
-        // validate maxDueDate
-        if (params.maxDueDate == 0) {
-            revert Errors.NULL_MAX_DUE_DATE();
-        }
-        if (params.maxDueDate < block.timestamp) {
-            revert Errors.PAST_MAX_DUE_DATE(params.maxDueDate);
-        }
+        // a null offer mean clearning their limit orders
+        if (!loanOffer.isNull()) {
+            // validate msg.sender
+            // N/A
 
-        // validate params.curveRelativeTime
-        YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime);
+            // validate maxDueDate
+            if (params.maxDueDate == 0) {
+                revert Errors.NULL_MAX_DUE_DATE();
+            }
+            if (params.maxDueDate < block.timestamp) {
+                revert Errors.PAST_MAX_DUE_DATE(params.maxDueDate);
+            }
+
+            // validate params.curveRelativeTime
+            YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime);
+        }
     }
 
     function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external {
