@@ -17,11 +17,11 @@ contract BorrowAsLimitOrder is Script, Logger {
 
         Size sizeContract = Size(sizeContractAddress);
 
-        uint256[] memory timeBuckets = new uint256[](2);
-        timeBuckets[0] = 1 days;
-        timeBuckets[1] = 3 days;
+        uint256[] memory maturities = new uint256[](2);
+        maturities[0] = 1 days;
+        maturities[1] = 3 days;
 
-        uint256[] memory rates = new uint256[](2);
+        int256[] memory rates = new int256[](2);
         rates[0] = 0.1e18;
         rates[1] = 0.2e18;
 
@@ -30,7 +30,7 @@ contract BorrowAsLimitOrder is Script, Logger {
         marketRateMultipliers[1] = int256(0);
 
         YieldCurve memory curveRelativeTime =
-            YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
+            YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
 
         BorrowAsLimitOrderParams memory params =
             BorrowAsLimitOrderParams({openingLimitBorrowCR: 0, curveRelativeTime: curveRelativeTime});

@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
-
-import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {UserView} from "@src/SizeView.sol";
 import {Errors} from "@src/libraries/Errors.sol";
@@ -156,7 +153,7 @@ contract WithdrawTest is BaseTest {
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
         uint256 rate = 1;
-        _lendAsLimitOrder(alice, 12, rate, 12);
+        _lendAsLimitOrder(alice, 12, int256(rate), 12);
         uint256 amount = 15e6;
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);

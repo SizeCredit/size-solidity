@@ -62,23 +62,23 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     function _lendAsLimitOrder(
         address lender,
         uint256 maxDueDate,
-        uint256[2] memory ratesArray,
-        uint256[2] memory timeBucketsArray
+        int256[2] memory ratesArray,
+        uint256[2] memory maturitiesArray
     ) internal {
-        uint256[] memory rates = new uint256[](2);
-        uint256[] memory timeBuckets = new uint256[](2);
+        int256[] memory rates = new int256[](2);
+        uint256[] memory maturities = new uint256[](2);
         int256[] memory marketRateMultipliers = new int256[](2);
         rates[0] = ratesArray[0];
         rates[1] = ratesArray[1];
-        timeBuckets[0] = timeBucketsArray[0];
-        timeBuckets[1] = timeBucketsArray[1];
+        maturities[0] = maturitiesArray[0];
+        maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
-            YieldCurve({timeBuckets: timeBuckets, marketRateMultipliers: marketRateMultipliers, rates: rates});
+            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, rates: rates});
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
-    function _lendAsLimitOrder(address lender, uint256 maxDueDate, uint256 rate, uint256 timeBucketsLength) internal {
-        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(timeBucketsLength, rate);
+    function _lendAsLimitOrder(address lender, uint256 maxDueDate, int256 rate, uint256 numberOfMaturities) internal {
+        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(numberOfMaturities, rate);
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
@@ -171,8 +171,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         );
     }
 
-    function _borrowAsLimitOrder(address borrower, uint256 rate, uint256 timeBucketsLength) internal {
-        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(timeBucketsLength, rate);
+    function _borrowAsLimitOrder(address borrower, int256 rate, uint256 numberOfMaturities) internal {
+        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(numberOfMaturities, rate);
         return _borrowAsLimitOrder(borrower, 0, curveRelativeTime);
     }
 

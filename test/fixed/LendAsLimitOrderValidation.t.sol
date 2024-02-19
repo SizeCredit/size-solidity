@@ -16,10 +16,10 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         _deposit(alice, address(usdc), 100e6);
         uint256 maxDueDate = 12;
         int256[] memory marketRateMultipliers = new int256[](2);
-        uint256[] memory timeBuckets = new uint256[](2);
-        timeBuckets[0] = 1 days;
-        timeBuckets[1] = 2 days;
-        uint256[] memory rates1 = new uint256[](1);
+        uint256[] memory maturities = new uint256[](2);
+        maturities[0] = 1 days;
+        maturities[1] = 2 days;
+        int256[] memory rates1 = new int256[](1);
         rates1[0] = 1.01e18;
 
         vm.startPrank(alice);
@@ -28,47 +28,47 @@ contract LendAsLimitOrderValidationTest is BaseTest {
             LendAsLimitOrderParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
-                    timeBuckets: timeBuckets,
+                    maturities: maturities,
                     marketRateMultipliers: marketRateMultipliers,
                     rates: rates1
                 })
             })
         );
 
-        uint256[] memory empty;
+        int256[] memory empty;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
-                    timeBuckets: timeBuckets,
+                    maturities: maturities,
                     marketRateMultipliers: marketRateMultipliers,
                     rates: empty
                 })
             })
         );
 
-        uint256[] memory rates = new uint256[](2);
+        int256[] memory rates = new int256[](2);
         rates[0] = 1.01e18;
         rates[1] = 1.02e18;
 
-        timeBuckets[0] = 2 days;
-        timeBuckets[1] = 1 days;
-        vm.expectRevert(abi.encodeWithSelector(Errors.TIME_BUCKETS_NOT_STRICTLY_INCREASING.selector));
+        maturities[0] = 2 days;
+        maturities[1] = 1 days;
+        vm.expectRevert(abi.encodeWithSelector(Errors.MATURITIES_NOT_STRICTLY_INCREASING.selector));
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
-                    timeBuckets: timeBuckets,
+                    maturities: maturities,
                     marketRateMultipliers: marketRateMultipliers,
                     rates: rates
                 })
             })
         );
 
-        timeBuckets[0] = 1 days;
-        timeBuckets[1] = 2 days;
+        maturities[0] = 1 days;
+        maturities[1] = 2 days;
 
         vm.warp(3);
 
@@ -77,7 +77,7 @@ contract LendAsLimitOrderValidationTest is BaseTest {
             LendAsLimitOrderParams({
                 maxDueDate: 2,
                 curveRelativeTime: YieldCurve({
-                    timeBuckets: timeBuckets,
+                    maturities: maturities,
                     marketRateMultipliers: marketRateMultipliers,
                     rates: rates
                 })
