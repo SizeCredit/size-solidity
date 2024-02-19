@@ -63,15 +63,15 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address lender,
         uint256 maxDueDate,
         int256[2] memory ratesArray,
-        uint256[2] memory timeBucketsArray
+        uint256[2] memory maturitiesArray
     ) internal {
         int256[] memory rates = new int256[](2);
         uint256[] memory maturities = new uint256[](2);
         int256[] memory marketRateMultipliers = new int256[](2);
         rates[0] = ratesArray[0];
         rates[1] = ratesArray[1];
-        maturities[0] = timeBucketsArray[0];
-        maturities[1] = timeBucketsArray[1];
+        maturities[0] = maturitiesArray[0];
+        maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, rates: rates});
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
