@@ -4,13 +4,20 @@
 import type {
   BaseContract,
   BigNumber,
+  BigNumberish,
   BytesLike,
   CallOverrides,
+  ContractTransaction,
+  Overrides,
   PopulatedTransaction,
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -21,31 +28,124 @@ import type {
 
 export interface MarketBorrowRateFeedInterface extends utils.Interface {
   functions: {
-    "asset()": FunctionFragment;
+    "acceptOwnership()": FunctionFragment;
     "getMarketBorrowRate()": FunctionFragment;
-    "pool()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "pendingOwner()": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
+    "setMarketBorrowRate(uint256)": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "asset" | "getMarketBorrowRate" | "pool"
+    nameOrSignatureOrTopic:
+      | "acceptOwnership"
+      | "getMarketBorrowRate"
+      | "owner"
+      | "pendingOwner"
+      | "renounceOwnership"
+      | "setMarketBorrowRate"
+      | "transferOwnership"
   ): FunctionFragment;
 
-  encodeFunctionData(functionFragment: "asset", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "acceptOwnership",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "getMarketBorrowRate",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "pool", values?: undefined): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "pendingOwner",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMarketBorrowRate",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [string]
+  ): string;
 
-  decodeFunctionResult(functionFragment: "asset", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "acceptOwnership",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getMarketBorrowRate",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "pool", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "pendingOwner",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMarketBorrowRate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
 
-  events: {};
+  events: {
+    "MarketBorrowRateUpdated(uint256,uint256)": EventFragment;
+    "OwnershipTransferStarted(address,address)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "MarketBorrowRateUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferStarted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
+
+export interface MarketBorrowRateUpdatedEventObject {
+  oldMarketBorrowRate: BigNumber;
+  newMarketBorrowRate: BigNumber;
+}
+export type MarketBorrowRateUpdatedEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  MarketBorrowRateUpdatedEventObject
+>;
+
+export type MarketBorrowRateUpdatedEventFilter =
+  TypedEventFilter<MarketBorrowRateUpdatedEvent>;
+
+export interface OwnershipTransferStartedEventObject {
+  previousOwner: string;
+  newOwner: string;
+}
+export type OwnershipTransferStartedEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferStartedEventObject
+>;
+
+export type OwnershipTransferStartedEventFilter =
+  TypedEventFilter<OwnershipTransferStartedEvent>;
+
+export interface OwnershipTransferredEventObject {
+  previousOwner: string;
+  newOwner: string;
+}
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
+
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface MarketBorrowRateFeed extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -74,44 +174,157 @@ export interface MarketBorrowRateFeed extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    asset(overrides?: CallOverrides): Promise<[string]>;
+    acceptOwnership(
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
 
     getMarketBorrowRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    pool(overrides?: CallOverrides): Promise<[string]>;
+    owner(overrides?: CallOverrides): Promise<[string]>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<[string]>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
+    setMarketBorrowRate(
+      _marketBorrowRate: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string }
+    ): Promise<ContractTransaction>;
   };
 
-  asset(overrides?: CallOverrides): Promise<string>;
+  acceptOwnership(
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
 
   getMarketBorrowRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-  pool(overrides?: CallOverrides): Promise<string>;
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+  renounceOwnership(
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
+  setMarketBorrowRate(
+    _marketBorrowRate: BigNumberish,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
+
+  transferOwnership(
+    newOwner: string,
+    overrides?: Overrides & { from?: string }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
-    asset(overrides?: CallOverrides): Promise<string>;
+    acceptOwnership(overrides?: CallOverrides): Promise<void>;
 
     getMarketBorrowRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-    pool(overrides?: CallOverrides): Promise<string>;
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<string>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    setMarketBorrowRate(
+      _marketBorrowRate: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
-  filters: {};
+  filters: {
+    "MarketBorrowRateUpdated(uint256,uint256)"(
+      oldMarketBorrowRate?: null,
+      newMarketBorrowRate?: null
+    ): MarketBorrowRateUpdatedEventFilter;
+    MarketBorrowRateUpdated(
+      oldMarketBorrowRate?: null,
+      newMarketBorrowRate?: null
+    ): MarketBorrowRateUpdatedEventFilter;
+
+    "OwnershipTransferStarted(address,address)"(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): OwnershipTransferStartedEventFilter;
+    OwnershipTransferStarted(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): OwnershipTransferStartedEventFilter;
+
+    "OwnershipTransferred(address,address)"(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      previousOwner?: string | null,
+      newOwner?: string | null
+    ): OwnershipTransferredEventFilter;
+  };
 
   estimateGas: {
-    asset(overrides?: CallOverrides): Promise<BigNumber>;
+    acceptOwnership(
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
 
     getMarketBorrowRate(overrides?: CallOverrides): Promise<BigNumber>;
 
-    pool(overrides?: CallOverrides): Promise<BigNumber>;
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    setMarketBorrowRate(
+      _marketBorrowRate: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    asset(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    acceptOwnership(
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
 
     getMarketBorrowRate(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    pool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    pendingOwner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    renounceOwnership(
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    setMarketBorrowRate(
+      _marketBorrowRate: BigNumberish,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: string,
+      overrides?: Overrides & { from?: string }
+    ): Promise<PopulatedTransaction>;
   };
 }
