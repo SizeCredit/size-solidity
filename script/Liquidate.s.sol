@@ -22,6 +22,6 @@ contract LiquidateScript is Script, Logger {
         sizeContract.liquidate(params);
         vm.stopBroadcast();
 
-        logPositions(address(sizeContract));
+        log(address(sizeContract));
     }
 }

@@ -39,6 +39,6 @@ contract BorrowAsLimitOrder is Script, Logger {
         sizeContract.borrowAsLimitOrder(params);
         vm.stopBroadcast();
 
-        logPositions(address(sizeContract));
+        log(address(sizeContract));
     }
 }

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {SizeView} from "@src/SizeView.sol";
+import {SizeView, UserView} from "@src/SizeView.sol";
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
 abstract contract Logger {
     using LoanLibrary for DebtPosition;
 
-    function logPositions(address size) internal view {
+    function log(address size) internal view {
         DebtPosition[] memory debtPositions = SizeView(size).getDebtPositions();
 
         for (uint256 i = 0; i < debtPositions.length; i++) {
@@ -31,5 +31,23 @@ abstract contract Logger {
                 console.log("\tCredit:", creditPosition.credit);
             }
         }
+    }
+
+    function log(UserView memory userView) internal pure {
+        console.log("account", userView.account);
+        console.log("user.loanOffer.maxDueDate", userView.user.loanOffer.maxDueDate);
+        for (uint256 i = 0; i < userView.user.loanOffer.curveRelativeTime.rates.length; i++) {
+            console.log(
+                "user.loanOffer.curveRelativeTime.maturities[]", userView.user.loanOffer.curveRelativeTime.maturities[i]
+            );
+            console.log("user.loanOffer.curveRelativeTime.rates[]", userView.user.loanOffer.curveRelativeTime.rates[i]);
+            console.log(
+                "user.loanOffer.curveRelativeTime.marketRateMultipliers[]",
+                userView.user.loanOffer.curveRelativeTime.marketRateMultipliers[i]
+            );
+        }
+        console.log("collateralAmount", userView.collateralAmount);
+        console.log("borrowAmount", userView.borrowAmount);
+        console.log("debtAmount", userView.debtAmount);
     }
 }
