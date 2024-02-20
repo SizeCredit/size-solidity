@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
+import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
@@ -93,5 +94,31 @@ contract CompensateTest is BaseTest {
         _repay(alice, loanId2);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId2));
         _compensate(alice, loanId2, creditPositionId);
+    }
+
+    function test_Compensate_compensate_full_claim() public {
+        _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
+        _deposit(candy, weth, 150e18);
+        _deposit(liquidator, usdc, 100e6);
+        _lendAsLimitOrder(alice, 12, 0, 12);
+        _lendAsLimitOrder(bob, 12, 0, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 debtPositionId2 = _borrowAsMarketOrder(candy, bob, 100e6, 12);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
+
+        _compensate(bob, debtPositionId, creditPositionId2);
+        _setLiquidityIndex(2e27);
+
+        Vars memory _before = _state();
+
+        _claim(alice, creditPositionId);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e6, 200e6);
     }
 }
