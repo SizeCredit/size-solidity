@@ -110,8 +110,8 @@ forge test
 |----------------------------------------------------------|-------------------|--------------------|------------------|------------------|
 | src/Size.sol                                             | 98.04% (50/51)    | 98.04% (50/51)     | 100.00% (0/0)    | 94.44% (17/18)   |
 | src/SizeView.sol                                         | 73.08% (38/52)    | 75.00% (69/92)     | 50.00% (1/2)     | 82.76% (24/29)   |
-| src/libraries/ConversionLibrary.sol                      | 25.00% (1/4)      | 30.00% (3/10)      | 100.00% (0/0)    | 25.00% (1/4)     |
-| src/libraries/Math.sol                                   | 89.47% (17/19)    | 90.00% (27/30)     | 83.33% (5/6)     | 87.50% (7/8)     |
+| src/libraries/ConversionLibrary.sol                      | 33.33% (1/3)      | 37.50% (3/8)       | 100.00% (0/0)    | 33.33% (1/3)     |
+| src/libraries/Math.sol                                   | 94.44% (17/18)    | 96.43% (27/28)     | 83.33% (5/6)     | 100.00% (7/7)    |
 | src/libraries/fixed/AccountingLibrary.sol                | 66.67% (18/27)    | 66.67% (22/33)     | 100.00% (0/0)    | 66.67% (2/3)     |
 | src/libraries/fixed/CapsLibrary.sol                      | 100.00% (6/6)     | 100.00% (9/9)      | 50.00% (3/6)     | 100.00% (3/3)    |
 | src/libraries/fixed/CollateralLibrary.sol                | 100.00% (6/6)     | 100.00% (8/8)      | 100.00% (0/0)    | 100.00% (2/2)    |
@@ -135,10 +135,10 @@ forge test
 | src/libraries/general/actions/Initialize.sol             | 100.00% (60/60)   | 100.00% (68/68)    | 100.00% (28/28)  | 100.00% (9/9)    |
 | src/libraries/general/actions/UpdateConfig.sol           | 70.27% (26/37)    | 70.00% (28/40)     | 66.67% (20/30)   | 60.00% (3/5)     |
 | src/libraries/variable/VariableLibrary.sol               | 100.00% (46/46)   | 100.00% (66/66)    | 100.00% (4/4)    | 87.50% (7/8)     |
-| src/oracle/MarketBorrowRateFeed.sol                      | 0.00% (0/7)       | 0.00% (0/8)        | 0.00% (0/2)      | 0.00% (0/2)      |
+| src/oracle/MarketBorrowRateFeed.sol                      | 100.00% (7/7)     | 100.00% (8/8)      | 100.00% (2/2)    | 100.00% (2/2)    |
 | src/oracle/PriceFeed.sol                                 | 100.00% (12/12)   | 100.00% (21/21)    | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/oracle/VariablePoolPriceFeed.sol                     | 100.00% (8/8)     | 100.00% (13/13)    | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/proxy/Vault.sol                                      | 57.14% (12/21)    | 60.00% (15/25)     | 33.33% (4/12)    | 75.00% (3/4)     |
+| src/proxy/Vault.sol                                      | 100.00% (23/23)   | 100.00% (28/28)    | 92.86% (13/14)   | 100.00% (4/4)    |
 | src/token/NonTransferrableToken.sol                      | 100.00% (9/9)     | 100.00% (10/10)    | 100.00% (0/0)    | 100.00% (7/7)    |
 
 ### Scenarios
@@ -152,7 +152,7 @@ forge test
 │       BorrowerExit       │   4    │
 │          Claim           │   8    │
 │        Compensate        │   4    │
-│    ConversionLibrary     │   6    │
+│    ConversionLibrary     │   7    │
 │     CryticToFoundry      │   7    │
 │         Deposit          │   3    │
 │       Experiments        │   13   │
@@ -161,16 +161,18 @@ forge test
 │    LendAsMarketOrder     │   6    │
 │ LiquidateWithReplacement │   5    │
 │        Liquidate         │   7    │
+│   MarketBorrowRateFeed   │   2    │
 │           Math           │   6    │
 │        Multicall         │   3    │
 │  NonTransferrableToken   │   7    │
 │          Pause           │   2    │
-│        PriceFeed         │   8    │
+│        PriceFeed         │   9    │
 │          Repay           │   4    │
 │      SelfLiquidate       │   6    │
 │       UpdateConfig       │   3    │
 │         Upgrade          │   2    │
 │  VariablePoolPriceFeed   │   8    │
+│          Vault           │   4    │
 │         Withdraw         │   8    │
 │        YieldCurve        │   14   │
 └──────────────────────────┴────────┘
