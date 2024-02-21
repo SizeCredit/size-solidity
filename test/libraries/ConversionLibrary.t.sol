@@ -95,4 +95,12 @@ contract ConversionLibraryTest is Test {
         vm.expectRevert();
         ConversionLibrary.wadToAmountDown(amount, decimals);
     }
+
+    function test_ConversionLibrary_rayToWadDown() public {
+        assertEq(ConversionLibrary.rayToWadDown(1e27), 1e18);
+        assertEq(ConversionLibrary.rayToWadDown(1e27 + 1), 1e18);
+        assertEq(ConversionLibrary.rayToWadDown(2e27), 2e18);
+        assertEq(ConversionLibrary.rayToWadDown(1.5e27), 1.5e18);
+        assertEq(ConversionLibrary.rayToWadDown(3.141592653589793115997963469e27), 3.141592653589793115e18);
+    }
 }

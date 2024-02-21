@@ -7,16 +7,16 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 /// @title MarketBorrowRateFeed
-/// @notice A feed that returns the market borrow rate of an asset
+/// @notice A feed that returns the market borrow rate of an asset with 18 decimals
 /// @dev Aave v3 is used to get the market borrow rate
 contract MarketBorrowRateFeed is IMarketBorrowRateFeed, Ownable2Step {
-    uint256 internal marketBorrowRate;
-    uint128 internal updatedAt;
-    uint128 internal staleRateInterval;
+    uint128 internal marketBorrowRate;
+    uint64 internal updatedAt;
+    uint64 internal staleRateInterval;
 
-    event MarketBorrowRateUpdated(uint256 oldMarketBorrowRate, uint256 newMarketBorrowRate);
+    event MarketBorrowRateUpdated(uint128 oldMarketBorrowRate, uint128 newMarketBorrowRate);
 
-    constructor(address _owner, uint128 _staleRateInterval) Ownable(_owner) {
+    constructor(address _owner, uint64 _staleRateInterval) Ownable(_owner) {
         if (_staleRateInterval == 0) {
             revert Errors.NULL_STALE_RATE();
         }
@@ -24,14 +24,14 @@ contract MarketBorrowRateFeed is IMarketBorrowRateFeed, Ownable2Step {
         staleRateInterval = _staleRateInterval;
     }
 
-    function setMarketBorrowRate(uint256 _marketBorrowRate) external onlyOwner {
-        uint256 oldMarketBorrowRate = marketBorrowRate;
+    function setMarketBorrowRate(uint128 _marketBorrowRate) external onlyOwner {
+        uint128 oldMarketBorrowRate = marketBorrowRate;
         marketBorrowRate = _marketBorrowRate;
-        updatedAt = uint128(block.timestamp);
+        updatedAt = uint64(block.timestamp);
         emit MarketBorrowRateUpdated(oldMarketBorrowRate, _marketBorrowRate);
     }
 
-    function getMarketBorrowRate() external view override returns (uint256) {
+    function getMarketBorrowRate() external view override returns (uint128) {
         if (block.timestamp - updatedAt > staleRateInterval) {
             revert Errors.STALE_RATE(updatedAt);
         }

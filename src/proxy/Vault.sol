@@ -54,6 +54,9 @@ contract Vault is Initializable, OwnableUpgradeable {
         results = new bytes[](datas.length);
         bool success;
         for (uint256 i = 0; i < targets.length; i++) {
+            if (targets[i] == address(0)) {
+                revert Errors.NULL_ADDRESS();
+            }
             // slither-disable-next-line calls-loop
             (success, results[i]) = address(targets[i]).call(datas[i]);
             if (!success) {
