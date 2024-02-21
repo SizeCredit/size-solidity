@@ -410,13 +410,13 @@ contract ExperimentsTest is Test, BaseTest {
         // Bob borrows as market order from Candy
         uint256 bobDebtBefore = _state().bob.debtAmount;
         uint256 loanId2 = _borrowAsMarketOrder(bob, candy, amountToBorrow, dueDate);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
         uint256 bobDebtAfter = _state().bob.debtAmount;
         assertGt(bobDebtAfter, bobDebtBefore, "Bob's debt should increase");
 
         // Bob compensates
-        uint256 debtPositionToRepayId = loanId2;
         uint256 creditPositionToCompensateId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _compensate(bob, debtPositionToRepayId, creditPositionToCompensateId, type(uint256).max);
+        _compensate(bob, creditPositionId2, creditPositionToCompensateId, type(uint256).max);
 
         assertEq(
             _state().bob.debtAmount,
@@ -513,6 +513,7 @@ contract ExperimentsTest is Test, BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 365 days, curve2);
         _lendAsLimitOrder(james, block.timestamp + 365 days, curve2);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 creditPosition1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId2 = _borrowAsMarketOrder(candy, james, 200e6, 365 days);
         uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
         _borrowAsMarketOrder(james, bob, 120e6, 365 days, [creditId2]);
@@ -542,7 +543,7 @@ contract ExperimentsTest is Test, BaseTest {
         // CreditPosition1.DebtPosition().DueDate = 30 Dec 2023
         assertEq(size.getCreditPosition(creditPositionId).credit, 120e6);
 
-        _compensate(bob, debtPositionId, creditPositionId, 20e6);
+        _compensate(bob, creditPosition1, creditPositionId, 20e6);
 
         // then the update is
         // CreditPosition1.credit -= 20 --> 100

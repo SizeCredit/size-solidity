@@ -23,12 +23,13 @@ contract CompensateTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
+        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[0];
         uint256 repayFee = size.repayFee(debtPositionId);
 
         uint256 repaidLoanDebtBefore = size.getDebt(loanId3);
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionId).credit;
 
-        _compensate(alice, loanId3, creditPositionId);
+        _compensate(alice, creditPositionId3, creditPositionId);
 
         uint256 repaidLoanDebtAfter = size.getDebt(loanId3);
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionId).credit;
@@ -41,7 +42,7 @@ contract CompensateTest is BaseTest {
         );
     }
 
-    function test_Compensate_compensate_DebtPosition_with_CreditPosition_reduces_DebtPosition_debt_and_CreditPosition_credit(
+    function test_Compensate_compensate_CreditPosition_with_CreditPosition_reduces_DebtPosition_debt_and_CreditPosition_credit(
     ) public {
         _deposit(alice, weth, 200e18);
         _deposit(alice, usdc, 200e6);
@@ -64,7 +65,7 @@ contract CompensateTest is BaseTest {
         uint256 repaidLoanDebtBefore = size.getDebt(debtPositionId);
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionId2).credit;
 
-        _compensate(alice, debtPositionId, creditPositionId2);
+        _compensate(alice, creditPositionId, creditPositionId2);
 
         uint256 repaidLoanDebtAfter = size.getDebt(debtPositionId);
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionId2).credit;
@@ -90,10 +91,11 @@ contract CompensateTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 20e6, 12);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
 
         _repay(alice, loanId2);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId2));
-        _compensate(alice, loanId2, creditPositionId);
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditPositionId2));
+        _compensate(alice, creditPositionId2, creditPositionId);
     }
 
     function test_Compensate_compensate_full_claim() public {
@@ -110,12 +112,20 @@ contract CompensateTest is BaseTest {
         uint256 debtPositionId2 = _borrowAsMarketOrder(candy, bob, 100e6, 12);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
 
-        _compensate(bob, debtPositionId, creditPositionId2);
-        _setLiquidityIndex(2e27);
+        _compensate(bob, creditPositionId, creditPositionId2);
+        uint256 creditPosition2_2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
 
         Vars memory _before = _state();
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector, creditPositionId));
         _claim(alice, creditPositionId);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_REPAID.selector, creditPosition2_2));
+        _claim(alice, creditPosition2_2);
+
+        _repay(candy, debtPositionId2);
+        _setLiquidityIndex(2e27);
+        _claim(alice, creditPosition2_2);
 
         Vars memory _after = _state();
 
