@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {Math} from "@src/libraries/Math.sol";
-
 // @audit-info The protocol does not support tokens with more than 18 decimals
 
 /// @title ConversionLibrary
@@ -12,11 +10,8 @@ library ConversionLibrary {
     }
 
     function wadToAmountDown(uint256 wad, uint8 decimals) internal pure returns (uint256) {
+        // @audit-info Covered in test_ConversionLibrary_wadToAmountDown*
         return wad / 10 ** (18 - decimals);
-    }
-
-    function wadToAmountUp(uint256 wad, uint8 decimals) internal pure returns (uint256) {
-        return Math.mulDivUp(wad, 10 ** decimals, 10 ** 18);
     }
 
     function rayToWadDown(uint256 ray) internal pure returns (uint256) {
