@@ -33,7 +33,7 @@ export interface MarketBorrowRateFeedInterface extends utils.Interface {
     "owner()": FunctionFragment;
     "pendingOwner()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "setMarketBorrowRate(uint256)": FunctionFragment;
+    "setMarketBorrowRate(uint128)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -101,7 +101,7 @@ export interface MarketBorrowRateFeedInterface extends utils.Interface {
   ): Result;
 
   events: {
-    "MarketBorrowRateUpdated(uint256,uint256)": EventFragment;
+    "MarketBorrowRateUpdated(uint128,uint128)": EventFragment;
     "OwnershipTransferStarted(address,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
@@ -246,7 +246,7 @@ export interface MarketBorrowRateFeed extends BaseContract {
   };
 
   filters: {
-    "MarketBorrowRateUpdated(uint256,uint256)"(
+    "MarketBorrowRateUpdated(uint128,uint128)"(
       oldMarketBorrowRate?: null,
       newMarketBorrowRate?: null
     ): MarketBorrowRateUpdatedEventFilter;
