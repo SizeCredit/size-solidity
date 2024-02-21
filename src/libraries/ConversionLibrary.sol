@@ -15,6 +15,7 @@ library ConversionLibrary {
     }
 
     function rayToWadDown(uint256 ray) internal pure returns (uint256) {
+        // @audit-info Covered in test_ConversionLibrary_rayToWadDown
         return ray / 1e9;
     }
 }
