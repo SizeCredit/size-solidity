@@ -79,6 +79,7 @@ interface ISize {
 
     /// @notice Exits a debt position to a new borrower by picking the new borrower offer from the orderbook
     ///         When exiting a debt position to a new borrower, the early exit borrower fee is applied to the current borrower
+    ///         Protocol repayment fees are paid pro rata
     /// @dev The current borrower debt is transferred to the new borrower, together with the borrow tokens according to the new borrower yield curve
     /// @param params BorrowerExitParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to exit

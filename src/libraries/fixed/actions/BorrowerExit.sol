@@ -75,12 +75,18 @@ library BorrowerExit {
 
         uint256 rate =
             borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), debtPosition.dueDate);
-        uint256 debt = debtPosition.getDebt();
-        uint256 amountIn = Math.mulDivUp(debt, PERCENT, PERCENT + rate);
+
+        uint256 faceValue = debtPosition.faceValue();
+        uint256 earlyRepayFee = debtPosition.repayFee(block.timestamp);
+        uint256 remainderRepayFee = debtPosition.repayFee() - earlyRepayFee;
+        uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
 
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
-        state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee);
-        state.data.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, debt);
+        state.transferBorrowAToken(
+            msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee + earlyRepayFee
+        );
+        state.data.debtToken.burn(msg.sender, earlyRepayFee);
+        state.data.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue + remainderRepayFee);
         debtPosition.borrower = params.borrowerToExitTo;
         debtPosition.startDate = block.timestamp;
     }
