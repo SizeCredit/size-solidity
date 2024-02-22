@@ -68,7 +68,7 @@ library Compensate {
         uint256 amountToCompensate =
             Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue());
 
-        state.chargeRepayFee(debtPositionToRepay, amountToCompensate);
+        state.chargeRepayFeeInCollateral(debtPositionToRepay, amountToCompensate);
         state.data.debtToken.burn(debtPositionToRepay.borrower, amountToCompensate);
         if (debtPositionToRepay.getDebt() == 0) {
             debtPositionToRepay.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();

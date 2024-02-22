@@ -37,7 +37,7 @@ contract SelfLiquidateValidationTest is BaseTest {
 
         uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(debtPositionId);
         uint256 debtWad = ConversionLibrary.amountToWad(size.getDebt(debtPositionId), usdc.decimals());
-        uint256 debtCollateral = Math.mulDivDown(debtWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 debtCollateral = Math.mulDivUp(debtWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         vm.startPrank(alice);
         vm.expectRevert(

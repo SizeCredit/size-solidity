@@ -63,19 +63,6 @@ library LoanLibrary {
         return Math.mulDivUp(self.issuanceValue, PERCENT + self.rate, PERCENT);
     }
 
-    function faceValueInCollateralToken(State storage state, DebtPosition memory self)
-        internal
-        view
-        returns (uint256)
-    {
-        uint256 debtBorrowTokenWad =
-            ConversionLibrary.amountToWad(faceValue(self), state.data.underlyingBorrowToken.decimals());
-        uint256 debtInCollateralToken = Math.mulDivDown(
-            debtBorrowTokenWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice()
-        );
-        return debtInCollateralToken;
-    }
-
     function getDebtPositionIdByCreditPositionId(State storage state, uint256 creditPositionId)
         public
         view
@@ -191,6 +178,10 @@ library LoanLibrary {
         uint256 repayFeePercent = Math.mulDivUp(repayFeeAPR, interval, 365 days);
         uint256 fee = Math.mulDivUp(issuanceValue, repayFeePercent, PERCENT);
         return fee;
+    }
+
+    function repayFee(DebtPosition memory self, uint256 repayTime) internal pure returns (uint256) {
+        return repayFee(self.issuanceValue, self.startDate, repayTime, self.repayFeeAPR);
     }
 
     function repayFee(DebtPosition memory self) internal pure returns (uint256) {

@@ -42,15 +42,15 @@ library BorrowerExit {
         }
 
         uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
-        uint256 amountIn = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + rate);
+        uint256 issuanceValue = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + rate);
 
         // validate msg.sender
         if (msg.sender != debtPosition.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < amountIn + state.config.earlyBorrowerExitFee) {
+        if (state.borrowATokenBalanceOf(msg.sender) < issuanceValue + state.config.earlyBorrowerExitFee) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                msg.sender, state.borrowATokenBalanceOf(msg.sender), amountIn + state.config.earlyBorrowerExitFee
+                msg.sender, state.borrowATokenBalanceOf(msg.sender), issuanceValue + state.config.earlyBorrowerExitFee
             );
         }
 
@@ -77,17 +77,27 @@ library BorrowerExit {
             borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), debtPosition.dueDate);
 
         uint256 faceValue = debtPosition.faceValue();
-        uint256 earlyRepayFee = debtPosition.repayFee(block.timestamp);
-        uint256 remainderRepayFee = debtPosition.repayFee() - earlyRepayFee;
-        uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
+        uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
 
-        state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
-        state.transferBorrowAToken(
-            msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee + earlyRepayFee
-        );
-        state.data.debtToken.burn(msg.sender, earlyRepayFee);
-        state.data.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue + remainderRepayFee);
+        // 1. previous borrower pays an "early protocol fee" pro rata to the block.timestamp, and their debt is reduced by that amount
+        state.chargeEarlyRepayFeeInCollateral(debtPosition);
+
+        // 2. previous borrower also pays to the protocol the early borrower exit fee
+        state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee);
+        // 3. previous borrower transfers to the new borrower FV/(1+r), which is the present value of faceValue adjusted by the rate the new borrower has specified
+        state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, issuanceValue);
+
+        // 4. previous borrower debt referring to faceValue is transferred to the new borrower
+        state.data.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
+
+        // 5. issuanceValue is updated, which in turn updates the protocol repay fees for that loan
         debtPosition.borrower = params.borrowerToExitTo;
         debtPosition.startDate = block.timestamp;
+        debtPosition.issuanceValue = issuanceValue;
+        debtPosition.rate = rate;
+
+        // 6. new borrower debt increases by the updated protocol repay fees
+        uint256 newRepayFee = debtPosition.repayFee();
+        state.data.debtToken.mint(params.borrowerToExitTo, newRepayFee);
     }
 }

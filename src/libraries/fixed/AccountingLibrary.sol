@@ -19,12 +19,42 @@ library AccountingLibrary {
     using LoanLibrary for State;
     using VariableLibrary for State;
 
-    function chargeRepayFee(State storage state, DebtPosition storage debtPosition, uint256 repayAmount) internal {
-        uint256 repayFee = debtPosition.partialRepayFee(repayAmount);
+    function debtTokenAmountToCollateralTokenAmount(State storage state, uint256 debtTokenAmount)
+        internal
+        view
+        returns (uint256 collateralTokenAmount)
+    {
+        uint256 debtTokenAmountWad =
+            ConversionLibrary.amountToWad(debtTokenAmount, state.data.underlyingBorrowToken.decimals());
+        // rounds debt up
+        collateralTokenAmount = Math.mulDivUp(
+            debtTokenAmountWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice()
+        );
+    }
 
-        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state.data.underlyingBorrowToken.decimals());
-        uint256 repayFeeCollateral =
-            Math.mulDivUp(repayFeeWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice());
+    function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition) internal {
+        uint256 repayFee = debtPosition.repayFee();
+        uint256 earlyRepayFee = debtPosition.repayFee(block.timestamp);
+
+        uint256 repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
+
+        // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
+        uint256 cappedRepayFeeCollateral =
+            Math.min(repayFeeCollateral, state.data.collateralToken.balanceOf(debtPosition.borrower));
+
+        state.data.collateralToken.transferFrom(
+            debtPosition.borrower, state.config.feeRecipient, cappedRepayFeeCollateral
+        );
+
+        // clears the whole fee, as it has been provisioned in full during the debt position creation
+        state.data.debtToken.burn(debtPosition.borrower, repayFee);
+    }
+
+    function chargeRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition, uint256 repayAmount)
+        internal
+    {
+        uint256 repayFee = debtPosition.partialRepayFee(repayAmount);
+        uint256 repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
 
         // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
         uint256 cappedRepayFeeCollateral =

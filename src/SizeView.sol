@@ -87,8 +87,8 @@ abstract contract SizeView is SizeStorage {
         return state.getDebtPosition(debtPositionId).faceValue();
     }
 
-    function faceValueInCollateralToken(uint256 debtPositionId) external view returns (uint256) {
-        return state.faceValueInCollateralToken(state.getDebtPosition(debtPositionId));
+    function debtTokenAmountToCollateralTokenAmount(uint256 borrowATokenAmount) external view returns (uint256) {
+        return state.debtTokenAmountToCollateralTokenAmount(borrowATokenAmount);
     }
 
     function config() external view returns (InitializeConfigParams memory) {
