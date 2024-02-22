@@ -50,7 +50,7 @@ library BorrowerExit {
         }
         if (state.borrowATokenBalanceOf(msg.sender) < amountIn + state.config.earlyBorrowerExitFee) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                state.borrowATokenBalanceOf(msg.sender), amountIn + state.config.earlyBorrowerExitFee
+                msg.sender, state.borrowATokenBalanceOf(msg.sender), amountIn + state.config.earlyBorrowerExitFee
             );
         }
 
