@@ -64,15 +64,18 @@ contract CompensateTest is BaseTest {
 
         uint256 repaidLoanDebtBefore = size.getDebt(debtPositionId);
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionId2).credit;
+        uint256 creditFromRepaidPositionBefore = size.getCreditPosition(creditPositionId).credit;
 
         _compensate(alice, creditPositionId, creditPositionId2);
 
         uint256 repaidLoanDebtAfter = size.getDebt(debtPositionId);
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionId2).credit;
+        uint256 creditFromRepaidPositionAfter = size.getCreditPosition(creditPositionId).credit;
 
         assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 10e6);
         assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 10e6);
         assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
+        assertEq(creditFromRepaidPositionAfter, creditFromRepaidPositionBefore - 10e6);
     }
 
     function test_Compensate_compensate_DebtPosition_repaid_reverts() public {
