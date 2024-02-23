@@ -58,6 +58,6 @@ library Events {
     event LiquidateOverdueMoveToVariablePool(uint256 indexed debtPositionId);
     event LiquidateOverdueNoSplitRemainder(uint256 indexed debtPositionId);
     event Compensate(
-        uint256 indexed debtPositionToRepayId, uint256 indexed creditPositionToCompensateId, uint256 amount
+        uint256 indexed creditPositionWithDebtToRepayId, uint256 indexed creditPositionToCompensateId, uint256 amount
     );
 }

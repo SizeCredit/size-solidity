@@ -33,7 +33,7 @@ contract CompensateScript is Script, Logger {
         console.log("debt", debt);
 
         CompensateParams memory params =
-            CompensateParams({debtPositionToRepayId: 2, creditPositionToCompensateId: 123, amount: debt});
+            CompensateParams({creditPositionWithDebtToRepayId: 111, creditPositionToCompensateId: 123, amount: debt});
 
         vm.startBroadcast(deployerPrivateKey);
         size.compensate(params);

@@ -313,14 +313,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _compensate(
         address user,
-        uint256 debtPositionToRepayId,
+        uint256 creditPositionWithDebtToRepayId,
         uint256 creditPositionToCompensateId,
         uint256 amount
     ) internal {
         vm.prank(user);
         size.compensate(
             CompensateParams({
-                debtPositionToRepayId: debtPositionToRepayId,
+                creditPositionWithDebtToRepayId: creditPositionWithDebtToRepayId,
                 creditPositionToCompensateId: creditPositionToCompensateId,
                 amount: amount
             })

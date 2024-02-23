@@ -10,10 +10,12 @@ import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 struct CompensateParams {
-    uint256 debtPositionToRepayId;
+    uint256 creditPositionWithDebtToRepayId;
     uint256 creditPositionToCompensateId;
     uint256 amount;
 }
@@ -24,14 +26,26 @@ library Compensate {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using VariableLibrary for State;
+    using RiskLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
-        DebtPosition storage debtPositionToRepay = state.getDebtPosition(params.debtPositionToRepayId);
+        CreditPosition storage creditPositionWithDebtToRepay =
+            state.getCreditPosition(params.creditPositionWithDebtToRepayId);
+        DebtPosition storage debtPositionToRepay =
+            state.getDebtPositionByCreditPositionId(params.creditPositionWithDebtToRepayId);
         CreditPosition storage creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
 
-        // validate debtPositionToRepayId
-        if (state.getLoanStatus(params.debtPositionToRepayId) == LoanStatus.REPAID) {
-            revert Errors.LOAN_ALREADY_REPAID(params.debtPositionToRepayId);
+        uint256 amountToCompensate =
+            Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue());
+
+        // validate creditPositionWithDebtToRepayId
+        if (state.getLoanStatus(params.creditPositionWithDebtToRepayId) == LoanStatus.REPAID) {
+            revert Errors.LOAN_ALREADY_REPAID(params.creditPositionWithDebtToRepayId);
+        }
+        if (creditPositionWithDebtToRepay.credit < amountToCompensate) {
+            revert Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE(
+                creditPositionWithDebtToRepay.credit, amountToCompensate
+            );
         }
 
         // validate creditPositionToCompensateId
@@ -42,7 +56,9 @@ library Compensate {
             debtPositionToRepay.dueDate
                 < state.getDebtPositionByCreditPositionId(params.creditPositionToCompensateId).dueDate
         ) {
-            revert Errors.DUE_DATE_NOT_COMPATIBLE(params.debtPositionToRepayId, params.creditPositionToCompensateId);
+            revert Errors.DUE_DATE_NOT_COMPATIBLE(
+                params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId
+            );
         }
         if (creditPositionToCompensate.lender != debtPositionToRepay.borrower) {
             revert Errors.INVALID_LENDER(creditPositionToCompensate.lender);
@@ -60,20 +76,29 @@ library Compensate {
     }
 
     function executeCompensate(State storage state, CompensateParams calldata params) external {
-        emit Events.Compensate(params.debtPositionToRepayId, params.creditPositionToCompensateId, params.amount);
+        emit Events.Compensate(
+            params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId, params.amount
+        );
 
-        DebtPosition storage debtPositionToRepay = state.getDebtPosition(params.debtPositionToRepayId);
+        CreditPosition storage creditPositionWithDebtToRepay =
+            state.getCreditPosition(params.creditPositionWithDebtToRepayId);
+        DebtPosition storage debtPositionToRepay =
+            state.getDebtPositionByCreditPositionId(params.creditPositionWithDebtToRepayId);
         CreditPosition storage creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
 
         uint256 amountToCompensate =
             Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue());
 
+        // debt reduction
         state.chargeRepayFeeInCollateral(debtPositionToRepay, amountToCompensate);
         state.data.debtToken.burn(debtPositionToRepay.borrower, amountToCompensate);
         if (debtPositionToRepay.getDebt() == 0) {
             debtPositionToRepay.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
+        creditPositionWithDebtToRepay.credit -= amountToCompensate;
+        state.validateMinimumCredit(creditPositionWithDebtToRepay.credit);
 
+        // credit emission
         // slither-disable-next-line unused-return
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionToCompensateId,
