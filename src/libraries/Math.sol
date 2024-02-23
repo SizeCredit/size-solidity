@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 
 uint256 constant PERCENT = 1e18;
@@ -31,6 +32,10 @@ library Math {
 
     function mulDiv(int256 x, int256 y, int256 z) internal pure returns (int256) {
         return x * y / z;
+    }
+
+    function powWadWad(uint256 wad1, uint256 wad2) internal pure returns (uint256) {
+        return SafeCast.toUint256(FixedPointMathLib.powWad(SafeCast.toInt256(wad1), SafeCast.toInt256(wad2)));
     }
 
     function binarySearch(uint256[] memory array, uint256 value) internal pure returns (uint256 low, uint256 high) {

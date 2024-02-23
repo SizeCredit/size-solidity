@@ -45,26 +45,35 @@ library YieldCurveLibrary {
         // N/A
     }
 
+    function compoundRateToLinearRate(uint256 rate, uint256 maturity) internal pure returns (uint256) {
+        return Math.powWadWad(PERCENT + rate, Math.mulDivDown(PERCENT, maturity, 365 days)) - PERCENT;
+    }
+
     /// @notice Get the rate from the yield curve adjusted by the market rate
     /// @dev Reverts if the final result is negative
-    ///      Only query the market borro rate feed oracle if the market rate multiplier is not 0
+    ///      Only query the market borrow rate feed oracle if the market rate multiplier is not 0
+    ///      Converts the market borrow rate from compound to linear interest
+    /// @param maturity The maturity
     /// @param rate The constant rate from the yield curve
     /// @param marketBorrowRateFeed The market borrow rate feed
     /// @param marketRateMultiplier The market rate multiplier
     /// @return Returns rate + (marketRate * marketRateMultiplier) / PERCENT
-    function getRateAdjustedByMarketRate(
+    function getRate(
+        uint256 maturity,
         int256 rate,
-        IMarketBorrowRateFeed marketBorrowRateFeed,
-        int256 marketRateMultiplier
+        int256 marketRateMultiplier,
+        IMarketBorrowRateFeed marketBorrowRateFeed
     ) internal view returns (uint256) {
         // @audit Check if the result should be capped to 0 instead of reverting
 
         if (marketRateMultiplier == 0) {
             return SafeCast.toUint256(rate);
         } else {
-            uint128 marketRate = marketBorrowRateFeed.getMarketBorrowRate();
+            uint128 marketRateCompound = marketBorrowRateFeed.getMarketBorrowRate();
+            uint256 marketRateLinear = compoundRateToLinearRate(marketRateCompound, maturity);
             return SafeCast.toUint256(
-                rate + Math.mulDiv(SafeCast.toInt256(marketRate), marketRateMultiplier, SafeCast.toInt256(PERCENT))
+                rate
+                    + Math.mulDiv(SafeCast.toInt256(marketRateLinear), marketRateMultiplier, SafeCast.toInt256(PERCENT))
             );
         }
     }
@@ -91,12 +100,18 @@ library YieldCurveLibrary {
         } else {
             (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.maturities, interval);
             uint256 x0 = curveRelativeTime.maturities[low];
-            uint256 y0 = getRateAdjustedByMarketRate(
-                curveRelativeTime.rates[low], marketBorrowRateFeed, curveRelativeTime.marketRateMultipliers[low]
+            uint256 y0 = getRate(
+                curveRelativeTime.maturities[low],
+                curveRelativeTime.rates[low],
+                curveRelativeTime.marketRateMultipliers[low],
+                marketBorrowRateFeed
             );
             uint256 x1 = curveRelativeTime.maturities[high];
-            uint256 y1 = getRateAdjustedByMarketRate(
-                curveRelativeTime.rates[high], marketBorrowRateFeed, curveRelativeTime.marketRateMultipliers[high]
+            uint256 y1 = getRate(
+                curveRelativeTime.maturities[high],
+                curveRelativeTime.rates[high],
+                curveRelativeTime.marketRateMultipliers[high],
+                marketBorrowRateFeed
             );
 
             // @audit Check the rounding direction, as this may lead to debt rounding down
