@@ -448,9 +448,9 @@ export interface SizeInterface extends utils.Interface {
     "compensate((uint256,uint256,uint256))": FunctionFragment;
     "config()": FunctionFragment;
     "data()": FunctionFragment;
+    "debtTokenAmountToCollateralTokenAmount(uint256)": FunctionFragment;
     "deposit((address,uint256,address))": FunctionFragment;
     "faceValue(uint256)": FunctionFragment;
-    "faceValueInCollateralToken(uint256)": FunctionFragment;
     "getBorrowOfferRate(address,uint256)": FunctionFragment;
     "getCreditPosition(uint256)": FunctionFragment;
     "getCreditPositionIdsByDebtPositionId(uint256)": FunctionFragment;
@@ -512,9 +512,9 @@ export interface SizeInterface extends utils.Interface {
       | "compensate"
       | "config"
       | "data"
+      | "debtTokenAmountToCollateralTokenAmount"
       | "deposit"
       | "faceValue"
-      | "faceValueInCollateralToken"
       | "getBorrowOfferRate"
       | "getCreditPosition"
       | "getCreditPositionIdsByDebtPositionId"
@@ -605,15 +605,15 @@ export interface SizeInterface extends utils.Interface {
   encodeFunctionData(functionFragment: "config", values?: undefined): string;
   encodeFunctionData(functionFragment: "data", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "debtTokenAmountToCollateralTokenAmount",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "deposit",
     values: [DepositParamsStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "faceValue",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "faceValueInCollateralToken",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -823,12 +823,12 @@ export interface SizeInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "compensate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "config", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "data", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "faceValue", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "faceValueInCollateralToken",
+    functionFragment: "debtTokenAmountToCollateralTokenAmount",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "faceValue", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getBorrowOfferRate",
     data: BytesLike
@@ -1126,17 +1126,17 @@ export interface Size extends BaseContract {
 
     data(overrides?: CallOverrides): Promise<[DataViewStructOutput]>;
 
+    debtTokenAmountToCollateralTokenAmount(
+      borrowATokenAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     deposit(
       params: DepositParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<ContractTransaction>;
 
     faceValue(
-      debtPositionId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    faceValueInCollateralToken(
       debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -1424,17 +1424,17 @@ export interface Size extends BaseContract {
 
   data(overrides?: CallOverrides): Promise<DataViewStructOutput>;
 
+  debtTokenAmountToCollateralTokenAmount(
+    borrowATokenAmount: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   deposit(
     params: DepositParamsStruct,
     overrides?: Overrides & { from?: string }
   ): Promise<ContractTransaction>;
 
   faceValue(
-    debtPositionId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  faceValueInCollateralToken(
     debtPositionId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -1697,17 +1697,17 @@ export interface Size extends BaseContract {
 
     data(overrides?: CallOverrides): Promise<DataViewStructOutput>;
 
+    debtTokenAmountToCollateralTokenAmount(
+      borrowATokenAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     deposit(
       params: DepositParamsStruct,
       overrides?: CallOverrides
     ): Promise<void>;
 
     faceValue(
-      debtPositionId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    faceValueInCollateralToken(
       debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -2019,17 +2019,17 @@ export interface Size extends BaseContract {
 
     data(overrides?: CallOverrides): Promise<BigNumber>;
 
+    debtTokenAmountToCollateralTokenAmount(
+      borrowATokenAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     deposit(
       params: DepositParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<BigNumber>;
 
     faceValue(
-      debtPositionId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    faceValueInCollateralToken(
       debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -2294,17 +2294,17 @@ export interface Size extends BaseContract {
 
     data(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    debtTokenAmountToCollateralTokenAmount(
+      borrowATokenAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     deposit(
       params: DepositParamsStruct,
       overrides?: Overrides & { from?: string }
     ): Promise<PopulatedTransaction>;
 
     faceValue(
-      debtPositionId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    faceValueInCollateralToken(
       debtPositionId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
