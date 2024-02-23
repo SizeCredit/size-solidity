@@ -215,6 +215,20 @@ contract YieldCurveTest is Test, AssertsHelper {
         );
     }
 
+    function test_YieldCurve_getRate_with_negative_rate_double_multiplier() public {
+        marketBorrowRateFeed.setMarketBorrowRate(0.07e18);
+        uint256 linearRate = Math.compoundRateToLinearRate(0.07e18, 30 days);
+        YieldCurve memory curve = YieldCurveHelper.customCurve(20 days, -0.001e18, 40 days, -0.002e18);
+        curve.marketRateMultipliers[0] = 2e18;
+        curve.marketRateMultipliers[1] = 2e18;
+
+        assertEqApprox(
+            YieldCurveLibrary.getRate(curve, marketBorrowRateFeed, block.timestamp + 30 days),
+            uint256(2 * linearRate - 0.0015e18),
+            1e13
+        );
+    }
+
     function test_YieldCurve_getRate_null_multiplier_does_not_fetch_oracle() public {
         YieldCurve memory curve = YieldCurveHelper.customCurve(30 days, 0.01e18, 60 days, 0.02e18);
         assertEq(
