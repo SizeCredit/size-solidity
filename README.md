@@ -123,7 +123,7 @@ forge test
 | src/libraries/fixed/actions/BorrowAsMarketOrder.sol      | 96.23% (51/53)    | 96.88% (62/64)     | 90.91% (20/22)   | 100.00% (4/4)    |
 | src/libraries/fixed/actions/BorrowerExit.sol             | 100.00% (27/27)   | 100.00% (34/34)    | 90.00% (9/10)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Claim.sol                    | 100.00% (11/11)   | 100.00% (16/16)    | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/libraries/fixed/actions/Compensate.sol               | 100.00% (24/24)   | 100.00% (31/31)    | 92.86% (13/14)   | 100.00% (2/2)    |
+| src/libraries/fixed/actions/Compensate.sol               | 97.22% (35/36)    | 97.56% (40/41)     | 87.50% (14/16)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Deposit.sol                  | 90.91% (10/11)    | 93.75% (15/16)     | 75.00% (6/8)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/LendAsLimitOrder.sol         | 90.00% (9/10)     | 90.00% (9/10)      | 83.33% (5/6)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/LendAsMarketOrder.sol        | 95.83% (23/24)    | 96.15% (25/26)     | 83.33% (10/12)   | 100.00% (2/2)    |
@@ -134,7 +134,7 @@ forge test
 | src/libraries/fixed/actions/Withdraw.sol                 | 100.00% (15/15)   | 100.00% (22/22)    | 75.00% (9/12)    | 100.00% (2/2)    |
 | src/libraries/general/actions/Initialize.sol             | 100.00% (60/60)   | 100.00% (68/68)    | 100.00% (28/28)  | 100.00% (9/9)    |
 | src/libraries/general/actions/UpdateConfig.sol           | 70.27% (26/37)    | 70.00% (28/40)     | 66.67% (20/30)   | 60.00% (3/5)     |
-| src/libraries/variable/VariableLibrary.sol               | 100.00% (46/46)   | 100.00% (66/66)    | 100.00% (4/4)    | 87.50% (7/8)     |
+| src/libraries/variable/VariableLibrary.sol               | 98.00% (49/50)    | 98.61% (71/72)     | 87.50% (7/8)     | 87.50% (7/8)     |
 | src/oracle/MarketBorrowRateFeed.sol                      | 100.00% (7/7)     | 100.00% (8/8)      | 100.00% (2/2)    | 100.00% (2/2)    |
 | src/oracle/PriceFeed.sol                                 | 100.00% (12/12)   | 100.00% (21/21)    | 100.00% (8/8)    | 100.00% (3/3)    |
 | src/oracle/VariablePoolPriceFeed.sol                     | 100.00% (8/8)     | 100.00% (13/13)    | 100.00% (4/4)    | 100.00% (2/2)    |
@@ -151,7 +151,7 @@ forge test
 │   BorrowAsMarketOrder    │   13   │
 │       BorrowerExit       │   4    │
 │          Claim           │   8    │
-│        Compensate        │   4    │
+│        Compensate        │   5    │
 │    ConversionLibrary     │   7    │
 │     CryticToFoundry      │   7    │
 │         Deposit          │   3    │
