@@ -20,6 +20,8 @@ struct LendAsMarketOrderParams {
     address borrower;
     uint256 dueDate;
     uint256 amount;
+    uint256 deadline;
+    uint256 minRate;
     bool exactAmountIn;
 }
 
@@ -44,8 +46,10 @@ library LendAsMarketOrder {
         }
 
         // validate msg.sender
+        // N/A
 
         // validate borrower
+        // N/A
 
         // validate dueDate
         if (params.dueDate < block.timestamp) {
@@ -57,7 +61,18 @@ library LendAsMarketOrder {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(state.borrowATokenBalanceOf(msg.sender), amountIn);
         }
 
+        // validate deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
+
+        // validate minRate
+        if (rate < params.minRate) {
+            revert Errors.RATE_LOWER_THAN_MIN_RATE(rate, params.minRate);
+        }
+
         // validate exactAmountIn
+        // N/A
     }
 
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) external {

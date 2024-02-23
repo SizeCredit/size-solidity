@@ -51,6 +51,8 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant LIQUIDATION_02 =
         "LIQUIDATION_02: Liquidation with replacement does not change the total system debt";
 
+    string internal constant COMPENSATE_01 = "COMPENSATE_01: Compensate reduces the borrower debt";
+
     function invariant_LOAN() public returns (bool) {
         uint256 minimumCreditBorrowAToken = size.config().minimumCreditBorrowAToken;
         CreditPosition[] memory creditPositions = size.getCreditPositions();

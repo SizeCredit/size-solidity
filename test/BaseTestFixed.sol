@@ -62,23 +62,23 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     function _lendAsLimitOrder(
         address lender,
         uint256 maxDueDate,
-        uint256[2] memory ratesArray,
-        uint256[2] memory timeBucketsArray
+        int256[2] memory ratesArray,
+        uint256[2] memory maturitiesArray
     ) internal {
-        uint256[] memory rates = new uint256[](2);
-        uint256[] memory timeBuckets = new uint256[](2);
+        int256[] memory rates = new int256[](2);
+        uint256[] memory maturities = new uint256[](2);
         int256[] memory marketRateMultipliers = new int256[](2);
         rates[0] = ratesArray[0];
         rates[1] = ratesArray[1];
-        timeBuckets[0] = timeBucketsArray[0];
-        timeBuckets[1] = timeBucketsArray[1];
+        maturities[0] = maturitiesArray[0];
+        maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
-            YieldCurve({timeBuckets: timeBuckets, marketRateMultipliers: marketRateMultipliers, rates: rates});
+            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, rates: rates});
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
-    function _lendAsLimitOrder(address lender, uint256 maxDueDate, uint256 rate, uint256 timeBucketsLength) internal {
-        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(timeBucketsLength, rate);
+    function _lendAsLimitOrder(address lender, uint256 maxDueDate, int256 rate, uint256 numberOfMaturities) internal {
+        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(numberOfMaturities, rate);
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
@@ -94,24 +94,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false);
     }
 
-    function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate, bool exactAmountIn)
+    function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate, bool exactAmontIn)
         internal
         returns (uint256)
     {
         uint256[] memory receivableLoanIds;
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, receivableLoanIds);
-    }
-
-    function _borrowAsMarketOrder(
-        address borrower,
-        address lender,
-        uint256 amount,
-        uint256 dueDate,
-        uint256[1] memory ids
-    ) internal returns (uint256) {
-        uint256[] memory receivableLoanIds = new uint256[](1);
-        receivableLoanIds[0] = ids[0];
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, receivableLoanIds);
+        return _borrowAsMarketOrder(
+            borrower, lender, amount, dueDate, block.timestamp, type(uint256).max, exactAmontIn, receivableLoanIds
+        );
     }
 
     function _borrowAsMarketOrder(
@@ -121,7 +111,9 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 dueDate,
         uint256[] memory receivableLoanIds
     ) internal returns (uint256) {
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false, receivableLoanIds);
+        return _borrowAsMarketOrder(
+            borrower, lender, amount, dueDate, block.timestamp, type(uint256).max, false, receivableLoanIds
+        );
     }
 
     function _borrowAsMarketOrder(
@@ -129,12 +121,29 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address lender,
         uint256 amount,
         uint256 dueDate,
+        uint256[1] memory ids
+    ) internal returns (uint256) {
+        uint256[] memory receivableLoanIds = new uint256[](1);
+        receivableLoanIds[0] = ids[0];
+        return _borrowAsMarketOrder(
+            borrower, lender, amount, dueDate, block.timestamp, type(uint256).max, false, receivableLoanIds
+        );
+    }
+
+    function _borrowAsMarketOrder(
+        address borrower,
+        address lender,
+        uint256 amount,
+        uint256 dueDate,
+        uint256 deadline,
+        uint256 maxRate,
         bool exactAmountIn,
         uint256[1] memory ids
     ) internal returns (uint256) {
         uint256[] memory receivableLoanIds = new uint256[](1);
         receivableLoanIds[0] = ids[0];
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, exactAmountIn, receivableLoanIds);
+        return
+            _borrowAsMarketOrder(borrower, lender, amount, dueDate, deadline, maxRate, exactAmountIn, receivableLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -142,6 +151,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address lender,
         uint256 amount,
         uint256 dueDate,
+        uint256 deadline,
+        uint256 maxRate,
         bool exactAmountIn,
         uint256[] memory receivableCreditPositionIds
     ) internal returns (uint256) {
@@ -152,6 +163,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 lender: lender,
                 amount: amount,
                 dueDate: dueDate,
+                deadline: deadline,
+                maxRate: maxRate,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -171,8 +184,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         );
     }
 
-    function _borrowAsLimitOrder(address borrower, uint256 rate, uint256 timeBucketsLength) internal {
-        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(timeBucketsLength, rate);
+    function _borrowAsLimitOrder(address borrower, int256 rate, uint256 numberOfMaturities) internal {
+        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(numberOfMaturities, rate);
         return _borrowAsLimitOrder(borrower, 0, curveRelativeTime);
     }
 
@@ -194,12 +207,31 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate, bool exactAmountIn)
         internal
-        returns (uint256 debtPositions)
+        returns (uint256)
     {
+        return _lendAsMarketOrder(lender, borrower, amount, dueDate, block.timestamp, 0, exactAmountIn);
+    }
+
+    function _lendAsMarketOrder(
+        address lender,
+        address borrower,
+        uint256 amount,
+        uint256 dueDate,
+        uint256 deadline,
+        uint256 minRate,
+        bool exactAmountIn
+    ) internal returns (uint256 debtPositions) {
         uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
         vm.prank(lender);
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: borrower, amount: amount, dueDate: dueDate, exactAmountIn: exactAmountIn})
+            LendAsMarketOrderParams({
+                borrower: borrower,
+                amount: amount,
+                dueDate: dueDate,
+                exactAmountIn: exactAmountIn,
+                deadline: deadline,
+                minRate: minRate
+            })
         );
         uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
         if (debtPositionIdAfter == debtPositionIdBefore) {
@@ -211,7 +243,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _borrowerExit(address user, uint256 debtPositionId, address borrowerToExitTo) internal {
         vm.prank(user);
-        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                borrowerToExitTo: borrowerToExitTo,
+                deadline: block.timestamp,
+                minRate: 0
+            })
+        );
     }
 
     function _repay(address user, uint256 debtPositionId) internal {
@@ -261,7 +300,9 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: borrower,
-                minimumCollateralProfit: minimumCollateralProfit
+                minimumCollateralProfit: minimumCollateralProfit,
+                deadline: block.timestamp,
+                minRate: 0
             })
         );
     }
@@ -272,14 +313,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _compensate(
         address user,
-        uint256 debtPositionToRepayId,
+        uint256 creditPositionWithDebtToRepayId,
         uint256 creditPositionToCompensateId,
         uint256 amount
     ) internal {
         vm.prank(user);
         size.compensate(
             CompensateParams({
-                debtPositionToRepayId: debtPositionToRepayId,
+                creditPositionWithDebtToRepayId: creditPositionWithDebtToRepayId,
                 creditPositionToCompensateId: creditPositionToCompensateId,
                 amount: amount
             })

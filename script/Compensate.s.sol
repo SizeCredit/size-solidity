@@ -27,13 +27,13 @@ contract CompensateScript is Script, Logger {
         uint256 balance = sizeView.getUserView(currentAddress).collateralAmount;
         uint256 debt = sizeView.getUserView(currentAddress).debtAmount;
 
-        logPositions(address(sizeView));
+        log(address(sizeView));
 
         console.log("balance", balance);
         console.log("debt", debt);
 
         CompensateParams memory params =
-            CompensateParams({debtPositionToRepayId: 2, creditPositionToCompensateId: 123, amount: debt});
+            CompensateParams({creditPositionWithDebtToRepayId: 111, creditPositionToCompensateId: 123, amount: debt});
 
         vm.startBroadcast(deployerPrivateKey);
         size.compensate(params);

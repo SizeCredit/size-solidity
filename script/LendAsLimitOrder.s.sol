@@ -18,11 +18,11 @@ contract LendAsLimitOrderScript is Script {
 
         uint256 maxDueDate = block.timestamp + 30 days; // timestamp + duedate in seconds
 
-        uint256[] memory timeBuckets = new uint256[](2);
-        timeBuckets[0] = 1 days;
-        timeBuckets[1] = 3 days;
+        uint256[] memory maturities = new uint256[](2);
+        maturities[0] = 1 days;
+        maturities[1] = 3 days;
 
-        uint256[] memory rates = new uint256[](2);
+        int256[] memory rates = new int256[](2);
         rates[0] = 0.1e18;
         rates[1] = 0.2e18;
 
@@ -31,7 +31,7 @@ contract LendAsLimitOrderScript is Script {
         marketRateMultipliers[1] = 1e18;
 
         YieldCurve memory curveRelativeTime =
-            YieldCurve({timeBuckets: timeBuckets, rates: rates, marketRateMultipliers: marketRateMultipliers});
+            YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
 
         LendAsLimitOrderParams memory params =
             LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});

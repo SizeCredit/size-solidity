@@ -20,6 +20,8 @@ struct LiquidateWithReplacementParams {
     uint256 debtPositionId;
     address borrower;
     uint256 minimumCollateralProfit;
+    uint256 deadline;
+    uint256 minRate;
 }
 
 library LiquidateWithReplacement {
@@ -34,7 +36,10 @@ library LiquidateWithReplacement {
         external
         view
     {
+        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
+        uint256 rate =
+            borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), debtPosition.dueDate);
 
         // validate liquidate
         state.validateLiquidate(
@@ -52,6 +57,16 @@ library LiquidateWithReplacement {
         // validate borrower
         if (borrowOffer.isNull()) {
             revert Errors.INVALID_BORROW_OFFER(params.borrower);
+        }
+
+        // validate deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
+
+        // validate rate
+        if (rate < params.minRate) {
+            revert Errors.RATE_LOWER_THAN_MIN_RATE(rate, params.minRate);
         }
     }
 

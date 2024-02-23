@@ -23,7 +23,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         uint256 rate = 0.03e18;
-        _borrowAsLimitOrder(alice, rate, 12);
+        _borrowAsLimitOrder(alice, int256(rate), 12);
 
         uint256 issuanceValue = 10e6;
         uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + rate, PERCENT);
@@ -85,7 +85,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _borrowAsLimitOrder(alice, curve);
 
         amountIn = bound(amountIn, 5e6, 100e6);
-        uint256 dueDate = block.timestamp + (curve.timeBuckets[0] + curve.timeBuckets[1]) / 2;
+        uint256 dueDate = block.timestamp + (curve.maturities[0] + curve.maturities[1]) / 2;
         uint256 rate = YieldCurveLibrary.getRate(curve, 0, dueDate);
         uint256 faceValue = Math.mulDivUp(amountIn, PERCENT + rate, PERCENT);
 
@@ -118,7 +118,14 @@ contract LendAsMarketOrderTest is BaseTest {
             abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.5e18 / 2, 1.5e18)
         );
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 200e6, exactAmountIn: false})
+            LendAsMarketOrderParams({
+                borrower: alice,
+                dueDate: 12,
+                amount: 200e6,
+                deadline: block.timestamp,
+                minRate: 0,
+                exactAmountIn: false
+            })
         );
     }
 
@@ -135,7 +142,14 @@ contract LendAsMarketOrderTest is BaseTest {
             abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.config().debtTokenCap, 10e6)
         );
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: alice, dueDate: 12, amount: 10e6, exactAmountIn: false})
+            LendAsMarketOrderParams({
+                borrower: alice,
+                dueDate: 12,
+                amount: 10e6,
+                deadline: block.timestamp,
+                minRate: 0,
+                exactAmountIn: false
+            })
         );
     }
 
@@ -153,6 +167,8 @@ contract LendAsMarketOrderTest is BaseTest {
                 borrower: alice,
                 dueDate: block.timestamp + 6 days,
                 amount: 10e6,
+                deadline: block.timestamp,
+                minRate: 0,
                 exactAmountIn: false
             })
         );
@@ -163,6 +179,8 @@ contract LendAsMarketOrderTest is BaseTest {
                 borrower: alice,
                 dueDate: block.timestamp + 151 days,
                 amount: 10e6,
+                deadline: block.timestamp,
+                minRate: 0,
                 exactAmountIn: false
             })
         );
@@ -172,6 +190,8 @@ contract LendAsMarketOrderTest is BaseTest {
                 borrower: alice,
                 dueDate: block.timestamp + 150 days,
                 amount: 10e6,
+                deadline: block.timestamp,
+                minRate: 0,
                 exactAmountIn: false
             })
         );

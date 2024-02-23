@@ -16,6 +16,8 @@ import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMa
 
 import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
+
+import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
@@ -114,6 +116,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 lender: lender,
                 amount: amount,
                 dueDate: dueDate,
+                deadline: block.timestamp,
+                maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -162,7 +166,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         hevm.prank(sender);
         size.lendAsMarketOrder(
-            LendAsMarketOrderParams({borrower: borrower, dueDate: dueDate, amount: amount, exactAmountIn: exactAmountIn})
+            LendAsMarketOrderParams({
+                borrower: borrower,
+                dueDate: dueDate,
+                amount: amount,
+                deadline: block.timestamp,
+                minRate: 0,
+                exactAmountIn: exactAmountIn
+            })
         );
 
         __after();
@@ -197,7 +208,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         borrowerToExitTo = _getRandomUser(borrowerToExitTo);
 
         hevm.prank(sender);
-        size.borrowerExit(BorrowerExitParams({debtPositionId: debtPositionId, borrowerToExitTo: borrowerToExitTo}));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                minRate: 0,
+                deadline: block.timestamp,
+                borrowerToExitTo: borrowerToExitTo
+            })
+        );
 
         __after(debtPositionId);
 
@@ -300,6 +318,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         (uint256 liquidatorProfitCollateralToken,) = size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
+                minRate: 0,
+                deadline: block.timestamp,
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit
             })
@@ -314,6 +334,32 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         );
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
         eq(_after.totalDebtAmount, _before.totalDebtAmount, LIQUIDATION_02);
+    }
+
+    function compensate(uint256 creditPositionWithDebtToRepayId, uint256 creditPositionToCompensateId, uint256 amount)
+        public
+        getSender
+    {
+        __before(creditPositionWithDebtToRepayId);
+
+        precondition(_before.debtPositionsCount > 0);
+        creditPositionWithDebtToRepayId =
+            between(creditPositionWithDebtToRepayId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+        creditPositionToCompensateId =
+            between(creditPositionToCompensateId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+
+        hevm.prank(sender);
+        size.compensate(
+            CompensateParams({
+                creditPositionWithDebtToRepayId: creditPositionWithDebtToRepayId,
+                creditPositionToCompensateId: creditPositionToCompensateId,
+                amount: amount
+            })
+        );
+
+        __after(creditPositionWithDebtToRepayId);
+
+        lt(_after.sender.debtAmount, _before.sender.debtAmount, COMPENSATE_01);
     }
 
     function setPrice(uint256 price) public {

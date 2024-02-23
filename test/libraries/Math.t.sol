@@ -24,6 +24,18 @@ contract MathTest is Test {
         assertEq(Math.mulDivDown(4, 5, 4), 5);
     }
 
+    function test_Math_binarySearch_two() public {
+        uint256[] memory array = new uint256[](2);
+        array[0] = 86400;
+        array[1] = 259200;
+        uint256 needle = 172800;
+        uint256 low;
+        uint256 high;
+        (low, high) = Math.binarySearch(array, needle);
+        assertEq(low, 0);
+        assertEq(high, 1);
+    }
+
     function test_Math_binarySearch_found() public {
         uint256[] memory array = new uint256[](5);
         array[0] = 10;

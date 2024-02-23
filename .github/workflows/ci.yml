@@ -111,15 +111,14 @@ jobs:
 
       - name: Install Echidna
         run: |
-          wget https://github.com/crytic/echidna/releases/download/v2.2.1/echidna-2.2.1-Linux.zip -O echidna.zip
-          unzip echidna.zip
+          wget https://github.com/crytic/echidna/releases/download/v2.2.2/echidna-2.2.2-x86_64-linux.tar.gz -O echidna.tar.gz
           tar -xvkf echidna.tar.gz
-          rm echidna.zip echidna.tar.gz
+          rm echidna.tar.gz
           ./echidna --version
 
       - name: Echidna ${{ matrix.mode }}
         run: |
-          ./script/prepare_echidna.sh
+          ./script/prepare_crytic.sh
           ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
 
   typechain-coverage:

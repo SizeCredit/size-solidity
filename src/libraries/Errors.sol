@@ -10,7 +10,7 @@ library Errors {
     error NULL_AMOUNT();
     error NULL_MAX_DUE_DATE();
     error NULL_ARRAY();
-    error TIME_BUCKETS_NOT_STRICTLY_INCREASING();
+    error MATURITIES_NOT_STRICTLY_INCREASING();
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
     error INVALID_KEY(bytes32 key);
@@ -19,7 +19,10 @@ library Errors {
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(uint256 sum);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error PAST_DUE_DATE(uint256 dueDate);
+    error PAST_DEADLINE(uint256 deadline);
     error PAST_MAX_DUE_DATE(uint256 maxDueDate);
+    error RATE_LOWER_THAN_MIN_RATE(uint256 rate, uint256 minRate);
+    error RATE_GREATER_THAN_MAX_RATE(uint256 rate, uint256 maxRate);
     error DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(uint256 dueDate, uint256 debtPositionDueDate);
     error DUE_DATE_NOT_COMPATIBLE(uint256 debtPositionIdToRepay, uint256 creditPositionIdToCompensate);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
@@ -40,6 +43,7 @@ library Errors {
     error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(uint256 balance, uint256 required);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAToken);
+    error CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE(uint256 credit, uint256 amountToCompensate);
 
     error ONLY_DEBT_POSITION_CAN_BE_REPAID(uint256 positionId);
     error ONLY_DEBT_POSITION_CAN_BE_EXITED(uint256 positionId);
@@ -67,6 +71,8 @@ library Errors {
     error INVALID_PRICE(address aggregator, int256 price);
     error STALE_PRICE(address aggregator, uint256 updatedAt);
     error NULL_STALE_PRICE();
+    error NULL_STALE_RATE();
+    error STALE_RATE(uint128 updatedAt);
 
     error PROXY_CALL_FAILED(address target, bytes data);
 

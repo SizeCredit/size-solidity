@@ -5,19 +5,19 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@src/oracle/IMarketBorrowRateFeed.sol";
 
 contract MarketBorrowRateFeedMock is IMarketBorrowRateFeed, Ownable {
-    uint256 public marketBorrowRate;
+    uint128 public marketBorrowRate;
 
-    event MarketBorrowRateUpdated(uint256 oldMarketBorrowRate, uint256 newMarketBorrowRate);
+    event MarketBorrowRateUpdated(uint128 oldMarketBorrowRate, uint128 newMarketBorrowRate);
 
     constructor(address owner_) Ownable(owner_) {}
 
-    function setMarketBorrowRate(uint256 newMarketBorrowRate) public onlyOwner {
-        uint256 oldMarketBorrowRate = marketBorrowRate;
+    function setMarketBorrowRate(uint128 newMarketBorrowRate) public onlyOwner {
+        uint128 oldMarketBorrowRate = marketBorrowRate;
         marketBorrowRate = newMarketBorrowRate;
         emit MarketBorrowRateUpdated(oldMarketBorrowRate, newMarketBorrowRate);
     }
 
-    function getMarketBorrowRate() public view returns (uint256) {
+    function getMarketBorrowRate() public view returns (uint128) {
         return marketBorrowRate;
     }
 }

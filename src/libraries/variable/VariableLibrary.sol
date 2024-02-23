@@ -9,6 +9,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {State} from "@src/SizeStorage.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 
@@ -74,6 +75,10 @@ library VariableLibrary {
         address to,
         uint256 amount
     ) external {
+        if (borrowATokenBalanceOf(state, from) < amount) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(borrowATokenBalanceOf(state, from), amount);
+        }
+
         IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
 
         Vault vaultFrom = getVault(state, from);
@@ -93,6 +98,10 @@ library VariableLibrary {
     /// @param to The address of the recipient
     /// @param amount The amount of aTokens to transfer
     function transferBorrowAToken(State storage state, address from, address to, uint256 amount) public {
+        if (borrowATokenBalanceOf(state, from) < amount) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(borrowATokenBalanceOf(state, from), amount);
+        }
+
         IAToken borrowAToken = state.data.borrowAToken;
 
         Vault vaultFrom = getVault(state, from);
@@ -102,15 +111,16 @@ library VariableLibrary {
         vaultFrom.proxy(address(borrowAToken), abi.encodeCall(IERC20.transfer, (address(vaultTo), amount)));
     }
 
-    /// @notice Borrow underlying borrow tokens from the variable pool by first supplying collateral
+    /// @notice Try borrowing underlying borrow tokens from the variable pool by first supplying collateral
     /// @dev Assumes `from` has enough collateral to borrow `amount`
     ///      The `supply` and `borrow` is made from the vault of `from` and on supplied to the vault of `to`
+    ///      This function may revert due to the Variable Pool health check or liquidity conditions
     /// @param state The state struct
     /// @param from The address of the borrower
     /// @param to The address of the recipient of aTokens
     /// @param collateralAmount The collateral amount to be supplied to the variable pool
     /// @param borrowAmount The amount of tokens to borrow
-    function _borrowFromVariablePool(
+    function _tryBorrowFromVariablePool(
         State storage state,
         address from,
         address to,
@@ -157,7 +167,7 @@ library VariableLibrary {
     /// @param state The state struct
     /// @param account The user's address
     /// @return The balance of aTokens
-    function borrowATokenBalanceOf(State storage state, address account) external view returns (uint256) {
+    function borrowATokenBalanceOf(State storage state, address account) public view returns (uint256) {
         Vault vault = state.data.users[account].vault;
         if (address(vault) == address(0)) {
             return 0;
@@ -175,10 +185,11 @@ library VariableLibrary {
 
     /// @notice Move a fixed-rate DebtPosition to the variable pool by supplying the assigned collateral and paying the liquidator with the move fee
     /// @dev We use a memory copy of the DebtPosition as it might have already changed in storage as a result of the liquidation process
+    /// @dev This function may revert due to the Variable Pool health check or liquidity conditions
     /// @param state The state struct
     /// @param debtPositionCopy The DebtPosition to move
     /// @return liquidatorProfitCollateralToken The amount of collateral tokens paid to the liquidator
-    function moveDebtPositionToVariablePool(State storage state, DebtPosition memory debtPositionCopy)
+    function tryMoveDebtPositionToVariablePool(State storage state, DebtPosition memory debtPositionCopy)
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
@@ -187,7 +198,7 @@ library VariableLibrary {
         liquidatorProfitCollateralToken = state.config.collateralOverdueTransferFee;
         state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
 
-        _borrowFromVariablePool(
+        _tryBorrowFromVariablePool(
             state,
             debtPositionCopy.borrower,
             address(this),
