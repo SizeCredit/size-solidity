@@ -81,7 +81,7 @@ library YieldCurveLibrary {
     /// @param dueDate The due date
     /// @return The rate from the yield curve
     function getRate(YieldCurve memory curveRelativeTime, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
-        internal
+        external
         view
         returns (uint256)
     {
