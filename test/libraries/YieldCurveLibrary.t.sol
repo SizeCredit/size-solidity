@@ -3,14 +3,18 @@ pragma solidity 0.8.24;
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+
+import {Math} from "@src/libraries/Math.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
+
+import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {MarketBorrowRateFeedMock} from "@test/mocks/MarketBorrowRateFeedMock.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract YieldCurveTest is Test {
+contract YieldCurveTest is Test, AssertsHelper {
     MarketBorrowRateFeedMock marketBorrowRateFeed;
 
     function setUp() public {
@@ -180,30 +184,34 @@ contract YieldCurveTest is Test {
     function test_YieldCurve_getRate_with_non_null_marketBorrowRate() public {
         YieldCurve memory curve = YieldCurveHelper.marketCurve();
         marketBorrowRateFeed.setMarketBorrowRate(0.31415e18);
+        uint256 linearRate = Math.compoundRateToLinearRate(0.31415e18, 60 days);
 
         assertEq(
-            YieldCurveLibrary.getRate(curve, marketBorrowRateFeed, block.timestamp + 60 days), 0.31415e18 + 0.02e18
+            YieldCurveLibrary.getRate(curve, marketBorrowRateFeed, block.timestamp + 60 days), linearRate + 0.02e18
         );
     }
 
     function test_YieldCurve_getRate_with_non_null_marketBorrowRate_negative_multiplier() public {
         YieldCurve memory curve = YieldCurveHelper.negativeMarketCurve();
         marketBorrowRateFeed.setMarketBorrowRate(0.01337e18);
+        uint256 linearRate = Math.compoundRateToLinearRate(0.01337e18, 60 days);
 
         assertEq(
-            YieldCurveLibrary.getRate(curve, marketBorrowRateFeed, block.timestamp + 60 days), 0.04e18 - 0.01337e18
+            YieldCurveLibrary.getRate(curve, marketBorrowRateFeed, block.timestamp + 60 days), 0.04e18 - linearRate
         );
     }
 
     function test_YieldCurve_getRate_with_negative_rate() public {
-        marketBorrowRateFeed.setMarketBorrowRate(0.1337e18);
-        YieldCurve memory curve = YieldCurveHelper.customCurve(30 days, -0.01e18, 60 days, -0.02e18);
+        marketBorrowRateFeed.setMarketBorrowRate(0.07e18);
+        uint256 linearRate = Math.compoundRateToLinearRate(0.07e18, 30 days);
+        YieldCurve memory curve = YieldCurveHelper.customCurve(20 days, -0.001e18, 40 days, -0.002e18);
         curve.marketRateMultipliers[0] = 1e18;
         curve.marketRateMultipliers[1] = 1e18;
 
-        assertEq(
-            YieldCurveLibrary.getRate(curve, marketBorrowRateFeed, block.timestamp + 45 days),
-            uint256(0.1337e18 - 0.015e18)
+        assertEqApprox(
+            YieldCurveLibrary.getRate(curve, marketBorrowRateFeed, block.timestamp + 30 days),
+            uint256(linearRate - 0.0015e18),
+            1e13
         );
     }
 

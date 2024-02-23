@@ -38,6 +38,10 @@ library Math {
         return SafeCast.toUint256(FixedPointMathLib.powWad(SafeCast.toInt256(wad1), SafeCast.toInt256(wad2)));
     }
 
+    function compoundRateToLinearRate(uint256 rate, uint256 maturity) internal pure returns (uint256) {
+        return powWadWad(PERCENT + rate, mulDivDown(PERCENT, maturity, 365 days)) - PERCENT;
+    }
+
     function binarySearch(uint256[] memory array, uint256 value) internal pure returns (uint256 low, uint256 high) {
         low = 0;
         high = array.length - 1;

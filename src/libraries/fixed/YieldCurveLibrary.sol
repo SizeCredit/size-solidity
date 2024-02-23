@@ -45,10 +45,6 @@ library YieldCurveLibrary {
         // N/A
     }
 
-    function compoundRateToLinearRate(uint256 rate, uint256 maturity) internal pure returns (uint256) {
-        return Math.powWadWad(PERCENT + rate, Math.mulDivDown(PERCENT, maturity, 365 days)) - PERCENT;
-    }
-
     /// @notice Get the rate from the yield curve adjusted by the market rate
     /// @dev Reverts if the final result is negative
     ///      Only query the market borrow rate feed oracle if the market rate multiplier is not 0
@@ -70,7 +66,7 @@ library YieldCurveLibrary {
             return SafeCast.toUint256(rate);
         } else {
             uint128 marketRateCompound = marketBorrowRateFeed.getMarketBorrowRate();
-            uint256 marketRateLinear = compoundRateToLinearRate(marketRateCompound, maturity);
+            uint256 marketRateLinear = Math.compoundRateToLinearRate(marketRateCompound, maturity);
             return SafeCast.toUint256(
                 rate
                     + Math.mulDiv(SafeCast.toInt256(marketRateLinear), marketRateMultiplier, SafeCast.toInt256(PERCENT))
