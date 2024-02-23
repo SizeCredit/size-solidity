@@ -2,31 +2,43 @@
 pragma solidity 0.8.24;
 
 import "../src/Size.sol";
-import "forge-std/Script.sol";
-import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
-contract DepositScript is Script {
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import "forge-std/Script.sol";
+
+contract MulticallScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         address wethAddress = vm.envAddress("WETH_ADDRESS");
-        address lenderTest = vm.envAddress("LENDER");
+        address lender = vm.envAddress("LENDER");
         address borrower = vm.envAddress("BORROWER");
 
         Size sizeContract = Size(sizeContractAddress);
 
-        bytes memory depositCall = prepareDepositCall(
-            wethAddress,
-            0.04e18,
-            lenderTest
+        uint256 dueDate = block.timestamp + 2 days;
+        uint256 rate = SizeView(address(sizeContract)).getLoanOfferRate(lender, dueDate);
+
+        bytes memory depositCall =
+            abi.encodeCall(Size.deposit, DepositParams({token: wethAddress, amount: 0.04e18, to: borrower}));
+
+        bytes memory borrowCall = abi.encodeCall(
+            Size.borrowAsMarketOrder,
+            BorrowAsMarketOrderParams({
+                lender: lender,
+                amount: 51e6,
+                dueDate: dueDate,
+                deadline: block.timestamp,
+                maxRate: rate,
+                exactAmountIn: false,
+                receivableCreditPositionIds: new uint256[](0)
+            })
         );
-        bytes memory borrowCall = prepareBorrowAsMarketOrderCall(
-            borrower,
-            51e6,
-            block.timestamp + 2 days
-        );
-        bytes memory lendLimitOrderCall = prepareLendAsLimitOrderCall(
-            block.timestamp + 30 days
+
+        YieldCurve memory curve = createYieldCurve();
+        bytes memory lendLimitOrderCall = abi.encodeCall(
+            Size.lendAsLimitOrder,
+            LendAsLimitOrderParams({maxDueDate: block.timestamp + 30 days, curveRelativeTime: curve})
         );
 
         bytes[] memory calls = new bytes[](3);
@@ -39,57 +51,12 @@ contract DepositScript is Script {
         vm.stopBroadcast();
     }
 
-    function prepareDepositCall(
-        address token,
-        uint256 amount,
-        address to
-    ) internal pure returns (bytes memory) {
-        DepositParams memory params = DepositParams({
-            token: token,
-            amount: amount,
-            to: to
-        });
-        return
-            abi.encodeWithSelector(
-                Size.deposit.selector,
-                params.token,
-                params.amount,
-                params.to
-            );
-    }
-
-    function prepareBorrowAsMarketOrderCall(
-        address lender,
-        uint256 amount,
-        uint256 dueDate
-    ) internal pure returns (bytes memory) {
-        BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
-            lender: lender,
-            amount: amount,
-            dueDate: dueDate,
-            exactAmountIn: false,
-            receivableCreditPositionIds: new uint256[](0)
-        });
-        return abi.encodeCall(Size.borrowAsMarketOrder, (params));
-    }
-
-    function prepareLendAsLimitOrderCall(
-        uint256 maxDueDate
-    ) internal view returns (bytes memory) {
-        YieldCurve memory curve = createYieldCurve();
-        LendAsLimitOrderParams memory params = LendAsLimitOrderParams({
-            maxDueDate: maxDueDate,
-            curveRelativeTime: curve
-        });
-        return abi.encodeCall(Size.lendAsLimitOrder, (params));
-    }
-
     function createYieldCurve() internal pure returns (YieldCurve memory) {
-        uint256[] memory timeBuckets = new uint256[](2);
-        timeBuckets[0] = 1 days;
-        timeBuckets[1] = 3 days;
+        uint256[] memory maturities = new uint256[](2);
+        maturities[0] = 1 days;
+        maturities[1] = 3 days;
 
-        uint256[] memory rates = new uint256[](2);
+        int256[] memory rates = new int256[](2);
         rates[0] = 0.1e18; // 10%
         rates[1] = 0.2e18; // 20%
 
@@ -97,11 +64,6 @@ contract DepositScript is Script {
         marketRateMultipliers[0] = 1e18; // 1x
         marketRateMultipliers[1] = 1e18; // 1x
 
-        return
-            YieldCurve({
-                timeBuckets: timeBuckets,
-                rates: rates,
-                marketRateMultipliers: marketRateMultipliers
-            });
+        return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
     }
 }
