@@ -4,18 +4,6 @@ pragma solidity 0.8.24;
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 library YieldCurveHelper {
-    function getFlatRate(uint256 numberOfMaturities, int256 rate) public pure returns (YieldCurve memory curve) {
-        curve.maturities = new uint256[](numberOfMaturities);
-        curve.rates = new int256[](numberOfMaturities);
-        curve.marketRateMultipliers = new int256[](numberOfMaturities);
-
-        for (uint256 i = 0; i < numberOfMaturities; ++i) {
-            curve.rates[i] = rate;
-            curve.maturities[i] = i;
-            curve.marketRateMultipliers[i] = 0;
-        }
-    }
-
     // -----------  CURVES -------------
 
     // Normal Yield Curve: This is the most common shape, where
@@ -56,11 +44,11 @@ library YieldCurveHelper {
         rates[3] = 0.04e18;
         rates[4] = 0.04e18;
 
-        maturities[0] = 0 days;
-        maturities[1] = 30 days;
-        maturities[2] = 60 days;
-        maturities[3] = 90 days;
-        maturities[4] = 120 days;
+        maturities[0] = 30 days;
+        maturities[1] = 60 days;
+        maturities[2] = 90 days;
+        maturities[3] = 120 days;
+        maturities[4] = 150 days;
 
         return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
     }
@@ -155,7 +143,7 @@ library YieldCurveHelper {
         rates[3] = 0.02e18;
         rates[4] = 0.01e18;
 
-        maturities[0] = 0 days;
+        maturities[0] = 30 days;
         maturities[1] = 60 days;
         maturities[2] = 180 days;
         maturities[3] = 360 days;

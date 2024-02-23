@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Math} from "@src/libraries/Math.sol";
 
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
@@ -105,9 +106,17 @@ contract MathTest is Test, AssertsHelper {
         assertEqApprox(Math.powWadWad(3e18, 2e18), 9e18, toleranceWAD);
     }
 
-    function test_Math_compoundRateToLinearRate() public {
+    function test_Math_linearAPRToRatePerMaturity() public {
+        uint256 toleranceWAD = 1;
+        // 1% APY (linear interest) is 0.082% over the period of 30 days
+        assertEqApprox(
+            SafeCast.toUint256(Math.linearAPRToRatePerMaturity(0.01e18, 30 days)), 0.000821917808219178e18, toleranceWAD
+        );
+    }
+
+    function test_Math_compoundAPRToRatePerMaturity() public {
         uint256 toleranceWAD = 1_000;
         // 7% APY (compound interest) is 0.5576% (linear interest) over the period of 30 days
-        assertEqApprox(Math.compoundRateToLinearRate(0.07e18, 30 days), 0.0055764757837924e18, toleranceWAD);
+        assertEqApprox(Math.compoundAPRToRatePerMaturity(0.07e18, 30 days), 0.0055764757837924e18, toleranceWAD);
     }
 }

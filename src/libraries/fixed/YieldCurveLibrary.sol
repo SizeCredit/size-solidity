@@ -40,6 +40,9 @@ library YieldCurveLibrary {
             }
             lastMaturity = self.maturities[i - 1];
         }
+        if (self.maturities[0] == 0) {
+            revert Errors.NULL_MATURITY();
+        }
 
         // validate curveRelativeTime.marketRateMultipliers
         // N/A
@@ -50,11 +53,11 @@ library YieldCurveLibrary {
     ///      Only query the market borrow rate feed oracle if the market rate multiplier is not 0
     ///      Converts the market borrow rate from compound to linear interest
     /// @param maturity The maturity
-    /// @param rate The constant rate from the yield curve
+    /// @param rate The annual percentage rate from the yield curve (linear interest)
     /// @param marketBorrowRateFeed The market borrow rate feed
     /// @param marketRateMultiplier The market rate multiplier
-    /// @return Returns rate + (marketRate * marketRateMultiplier) / PERCENT
-    function getRate(
+    /// @return Returns rate + (marketRate * marketRateMultiplier) / PERCENT for the given maturity
+    function getRatePerMaturity(
         uint256 maturity,
         int256 rate,
         int256 marketRateMultiplier,
@@ -62,13 +65,15 @@ library YieldCurveLibrary {
     ) internal view returns (uint256) {
         // @audit Check if the result should be capped to 0 instead of reverting
 
+        int256 ratePerMaturity = Math.linearAPRToRatePerMaturity(rate, maturity);
+
         if (marketRateMultiplier == 0) {
-            return SafeCast.toUint256(rate);
+            return SafeCast.toUint256(ratePerMaturity);
         } else {
             uint128 marketRateCompound = marketBorrowRateFeed.getMarketBorrowRate();
-            uint256 marketRateLinear = Math.compoundRateToLinearRate(marketRateCompound, maturity);
+            uint256 marketRateLinear = Math.compoundAPRToRatePerMaturity(marketRateCompound, maturity);
             return SafeCast.toUint256(
-                rate
+                ratePerMaturity
                     + Math.mulDiv(SafeCast.toInt256(marketRateLinear), marketRateMultiplier, SafeCast.toInt256(PERCENT))
             );
         }
@@ -79,12 +84,12 @@ library YieldCurveLibrary {
     /// @param curveRelativeTime The yield curve
     /// @param marketBorrowRateFeed The market borrow rate feed
     /// @param dueDate The due date
-    /// @return The rate from the yield curve
-    function getRate(YieldCurve memory curveRelativeTime, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
-        external
-        view
-        returns (uint256)
-    {
+    /// @return The rate from the yield curve per given maturity
+    function getRatePerMaturity(
+        YieldCurve memory curveRelativeTime,
+        IMarketBorrowRateFeed marketBorrowRateFeed,
+        uint256 dueDate
+    ) external view returns (uint256) {
         // @audit Check the correctness of this function
         if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
         uint256 interval = dueDate - block.timestamp;
@@ -96,14 +101,14 @@ library YieldCurveLibrary {
         } else {
             (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.maturities, interval);
             uint256 x0 = curveRelativeTime.maturities[low];
-            uint256 y0 = getRate(
+            uint256 y0 = getRatePerMaturity(
                 curveRelativeTime.maturities[low],
                 curveRelativeTime.rates[low],
                 curveRelativeTime.marketRateMultipliers[low],
                 marketBorrowRateFeed
             );
             uint256 x1 = curveRelativeTime.maturities[high];
-            uint256 y1 = getRate(
+            uint256 y1 = getRatePerMaturity(
                 curveRelativeTime.maturities[high],
                 curveRelativeTime.rates[high],
                 curveRelativeTime.marketRateMultipliers[high],

@@ -67,6 +67,20 @@ contract LendAsLimitOrderValidationTest is BaseTest {
             })
         );
 
+        maturities[0] = 0 days;
+        maturities[1] = 1 days;
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_MATURITY.selector));
+        size.lendAsLimitOrder(
+            LendAsLimitOrderParams({
+                maxDueDate: maxDueDate,
+                curveRelativeTime: YieldCurve({
+                    maturities: maturities,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates
+                })
+            })
+        );
+
         maturities[0] = 1 days;
         maturities[1] = 2 days;
 

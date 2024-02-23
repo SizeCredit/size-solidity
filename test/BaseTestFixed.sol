@@ -78,7 +78,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _lendAsLimitOrder(address lender, uint256 maxDueDate, int256 rate, uint256 numberOfMaturities) internal {
-        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(numberOfMaturities, rate);
+        YieldCurve memory curveRelativeTime =
+            YieldCurveHelper.customCurve(1 days, rate, numberOfMaturities * 1 days, rate);
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
@@ -185,7 +186,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _borrowAsLimitOrder(address borrower, int256 rate, uint256 numberOfMaturities) internal {
-        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(numberOfMaturities, rate);
+        YieldCurve memory curveRelativeTime =
+            YieldCurveHelper.customCurve(1 days, rate, numberOfMaturities * 1 days, rate);
         return _borrowAsLimitOrder(borrower, 0, curveRelativeTime);
     }
 

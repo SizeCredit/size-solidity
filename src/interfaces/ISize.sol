@@ -56,7 +56,7 @@ interface ISize {
     ///     - uint256 openingLimitBorrowCR: The opening limit borrow collateral ratio, which indicates the maximum CR the borrower is willing to accept after their offer is picked by a lender
     ///     - YieldCurve curveRelativeTime: The yield curve for the borrow offer, a struct containing the following fields:
     ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
-    ///         - uint256[] rates: The rates of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5%, 7%, and 8% respectively)
+    ///         - uint256[] rates: The rates of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
     function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) external;
 
@@ -73,7 +73,7 @@ interface ISize {
     ///     - uint256 maxDueDate: The maximum timestamp the limit order can be picked by a borrower (e.g., 1712188800 for April 4th, 2024)
     ///     - YieldCurve curveRelativeTime: The yield curve for the lend offer, a struct containing the following fields:
     ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
-    ///         - uint256[] rates: The rates of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5%, 7%, and 8% respectively)
+    ///         - uint256[] rates: The rates of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
     function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external;
 

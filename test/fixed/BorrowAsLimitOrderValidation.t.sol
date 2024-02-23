@@ -65,5 +65,19 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
                 })
             })
         );
+
+        maturities[0] = 0 days;
+        maturities[1] = 1 days;
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_MATURITY.selector));
+        size.borrowAsLimitOrder(
+            BorrowAsLimitOrderParams({
+                openingLimitBorrowCR: 0,
+                curveRelativeTime: YieldCurve({
+                    maturities: maturities,
+                    marketRateMultipliers: marketRateMultipliers,
+                    rates: rates
+                })
+            })
+        );
     }
 }

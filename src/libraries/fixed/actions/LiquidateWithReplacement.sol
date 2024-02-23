@@ -38,7 +38,7 @@ library LiquidateWithReplacement {
     {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
-        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
+        uint256 rate = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
 
         // validate liquidate
         state.validateLiquidate(
@@ -101,7 +101,7 @@ library LiquidateWithReplacement {
             })
         );
 
-        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed, debtPositionCopy.dueDate);
+        uint256 rate = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPositionCopy.dueDate);
         uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.faceValue(), PERCENT, PERCENT + rate);
         uint256 liquidatorProfitBorrowAsset = debtPositionCopy.faceValue() - issuanceValue;
 
