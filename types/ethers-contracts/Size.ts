@@ -106,13 +106,13 @@ export type ClaimParamsStructOutput = [BigNumber] & {
 };
 
 export type CompensateParamsStruct = {
-  debtPositionToRepayId: BigNumberish;
+  creditPositionWithDebtToRepayId: BigNumberish;
   creditPositionToCompensateId: BigNumberish;
   amount: BigNumberish;
 };
 
 export type CompensateParamsStructOutput = [BigNumber, BigNumber, BigNumber] & {
-  debtPositionToRepayId: BigNumber;
+  creditPositionWithDebtToRepayId: BigNumber;
   creditPositionToCompensateId: BigNumber;
   amount: BigNumber;
 };
