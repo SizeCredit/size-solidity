@@ -40,7 +40,7 @@ library Errors {
     error EXITER_IS_NOT_BORROWER(address exiter, address borrower);
     error REPAYER_IS_NOT_BORROWER(address repayer, address borrower);
 
-    error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(uint256 balance, uint256 required);
+    error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(address account, uint256 balance, uint256 required);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE(uint256 credit, uint256 amountToCompensate);

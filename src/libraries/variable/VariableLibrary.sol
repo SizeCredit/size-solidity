@@ -76,7 +76,7 @@ library VariableLibrary {
         uint256 amount
     ) external {
         if (borrowATokenBalanceOf(state, from) < amount) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(borrowATokenBalanceOf(state, from), amount);
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
         }
 
         IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
@@ -99,7 +99,7 @@ library VariableLibrary {
     /// @param amount The amount of aTokens to transfer
     function transferBorrowAToken(State storage state, address from, address to, uint256 amount) public {
         if (borrowATokenBalanceOf(state, from) < amount) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(borrowATokenBalanceOf(state, from), amount);
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
         }
 
         IAToken borrowAToken = state.data.borrowAToken;

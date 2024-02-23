@@ -65,7 +65,7 @@ library Liquidate {
         bool splitCollateralRemainder
     ) private returns (uint256 liquidatorProfitCollateralToken) {
         uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPositionCopy);
-        uint256 debtInCollateralToken = state.faceValueInCollateralToken(debtPositionCopy);
+        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPositionCopy.faceValue());
 
         // CR > 100%
         if (assignedCollateral > debtInCollateralToken) {
@@ -128,7 +128,7 @@ library Liquidate {
 
         emit Events.Liquidate(params.debtPositionId, params.minimumCollateralProfit, collateralRatio, loanStatus);
 
-        state.chargeRepayFee(debtPosition, debtPosition.faceValue());
+        state.chargeRepayFeeInCollateral(debtPosition, debtPosition.faceValue());
 
         // case 1a: the user is liquidatable profitably
         if (PERCENT <= collateralRatio && collateralRatio < state.config.crLiquidation) {

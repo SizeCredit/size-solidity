@@ -42,15 +42,15 @@ library BorrowerExit {
         }
 
         uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
-        uint256 amountIn = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + rate);
+        uint256 issuanceValue = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + rate);
 
         // validate msg.sender
         if (msg.sender != debtPosition.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < amountIn + state.config.earlyBorrowerExitFee) {
+        if (state.borrowATokenBalanceOf(msg.sender) < issuanceValue + state.config.earlyBorrowerExitFee) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                state.borrowATokenBalanceOf(msg.sender), amountIn + state.config.earlyBorrowerExitFee
+                msg.sender, state.borrowATokenBalanceOf(msg.sender), issuanceValue + state.config.earlyBorrowerExitFee
             );
         }
 
@@ -75,13 +75,21 @@ library BorrowerExit {
 
         uint256 rate =
             borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), debtPosition.dueDate);
-        uint256 debt = debtPosition.getDebt();
-        uint256 amountIn = Math.mulDivUp(debt, PERCENT, PERCENT + rate);
 
-        state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
+        uint256 faceValue = debtPosition.faceValue();
+        uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
+
+        state.chargeEarlyRepayFeeInCollateral(debtPosition);
         state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee);
-        state.data.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, debt);
+        state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, issuanceValue);
+        state.data.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
+
         debtPosition.borrower = params.borrowerToExitTo;
         debtPosition.startDate = block.timestamp;
+        debtPosition.issuanceValue = issuanceValue;
+        debtPosition.rate = rate;
+
+        uint256 newRepayFee = debtPosition.repayFee();
+        state.data.debtToken.mint(params.borrowerToExitTo, newRepayFee);
     }
 }

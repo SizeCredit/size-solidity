@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
+import {Math} from "@src/libraries/Math.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -107,6 +109,62 @@ contract BorrowerExitTest is BaseTest {
                 deadline: block.timestamp,
                 minRate: 0
             })
+        );
+    }
+
+    function test_BorrowerExit_borrowerExit_before_maturity() public {
+        _setPrice(1e18);
+        vm.warp(block.timestamp + 12345 days);
+        _updateConfig("collateralTokenCap", type(uint256).max);
+        _updateConfig("borrowATokenCap", type(uint256).max);
+        _deposit(alice, weth, 2000e18);
+        _deposit(bob, usdc, 1000e6);
+        _deposit(candy, weth, 2000e18);
+        _lendAsLimitOrder(
+            bob, block.timestamp + 365 days, [int256(0.1e18), int256(0.1e18)], [uint256(30 days), uint256(365 days)]
+        );
+        _borrowAsLimitOrder(candy, 0, YieldCurveHelper.customCurve(30 days, 0.25e18, 365 days, 0.25e18));
+        uint256 startDate = block.timestamp;
+        uint256 dueDate = startDate + 73 days;
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 1000e6, dueDate);
+
+        assertEq(size.repayFee(debtPositionId), 1e6);
+        assertEq(size.getDebtPosition(debtPositionId).rate, 0.1e18);
+        assertEq(size.getDebtPosition(debtPositionId).startDate, startDate);
+        assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
+        assertEq(_state().alice.debtAmount, 1101e6);
+
+        uint256 aliceCollateralBefore = _state().alice.collateralAmount;
+
+        vm.warp(block.timestamp + 30 days);
+
+        uint256 earlyRepayFee = Math.mulDivUp(1e6, 30 days, 73 days);
+        _deposit(alice, usdc, size.config().earlyBorrowerExitFee);
+        _borrowerExit(alice, debtPositionId, candy);
+
+        uint256 aliceCollateralAfter = _state().alice.collateralAmount;
+
+        uint256 newIssuanceValue = Math.mulDivUp(1100e6, 1e18, 1e18 + 0.25e18);
+        uint256 newRepayFee = Math.mulDivUp(0.005e18 * newIssuanceValue, 43 days, 365 days * 1e18);
+        assertEq(size.repayFee(debtPositionId), newRepayFee);
+        assertEq(size.getDebtPosition(debtPositionId).rate, 0.25e18);
+        assertEq(size.getDebtPosition(debtPositionId).startDate, startDate + 30 days);
+        assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
+        assertEq(size.faceValue(debtPositionId), 1100e6);
+        assertEq(_state().alice.debtAmount, 0);
+        assertEq(_state().candy.debtAmount, 1100e6 + newRepayFee);
+        assertEq(
+            aliceCollateralAfter, aliceCollateralBefore - size.debtTokenAmountToCollateralTokenAmount(earlyRepayFee)
+        );
+
+        _deposit(candy, usdc, 1100e6 - 880e6);
+        _repay(candy, debtPositionId);
+        assertEq(_state().alice.debtAmount, 0);
+        assertEq(_state().candy.debtAmount, 0);
+        assertEq(_state().feeRecipient.borrowAmount, size.config().earlyBorrowerExitFee);
+        assertEq(
+            _state().feeRecipient.collateralAmount,
+            size.debtTokenAmountToCollateralTokenAmount(earlyRepayFee + newRepayFee)
         );
     }
 }

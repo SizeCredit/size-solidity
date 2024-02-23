@@ -22,11 +22,12 @@ contract LiquidateWithReplacementScript is Script, Logger {
         console.log("borrower", borrower);
 
         Size sizeContract = Size(sizeContractAddress);
+        SizeView size = SizeView(sizeContractAddress);
         uint256 debtPositionId = 0;
 
-        uint256 dueDate = SizeView(address(sizeContract)).getDebtPosition(debtPositionId).dueDate;
-        uint256 rate = SizeView(address(sizeContract)).getBorrowOfferRate(borrower, dueDate);
-        uint256 minimumCollateralProfit = SizeView(address(sizeContract)).faceValueInCollateralToken(debtPositionId);
+        uint256 dueDate = size.getDebtPosition(debtPositionId).dueDate;
+        uint256 rate = size.getBorrowOfferRate(borrower, dueDate);
+        uint256 minimumCollateralProfit = size.debtTokenAmountToCollateralTokenAmount(size.faceValue(debtPositionId));
 
         LiquidateWithReplacementParams memory params = LiquidateWithReplacementParams({
             debtPositionId: debtPositionId,

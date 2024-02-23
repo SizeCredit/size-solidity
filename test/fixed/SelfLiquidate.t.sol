@@ -78,7 +78,7 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(bob), 0.75e18);
 
-        uint256 faceValueInCollateralToken = size.faceValueInCollateralToken(debtPositionId);
+        uint256 faceValueInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(size.faceValue(debtPositionId));
 
         vm.expectRevert();
         _liquidate(liquidator, debtPositionId, faceValueInCollateralToken);
