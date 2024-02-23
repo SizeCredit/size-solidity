@@ -41,7 +41,7 @@ library BorrowAsMarketOrder {
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
         User memory lenderUser = state.data.users[params.lender];
         LoanOffer memory loanOffer = lenderUser.loanOffer;
-        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed, params.dueDate);
 
         // validate msg.sender
         // N/A
@@ -112,7 +112,7 @@ library BorrowAsMarketOrder {
 
         LoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed, params.dueDate);
 
         amountOutLeft = params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, PERCENT + rate) : params.amount;
 
@@ -160,7 +160,7 @@ library BorrowAsMarketOrder {
 
         LoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed, params.dueDate);
         uint256 issuanceValue = params.amount;
 
         // slither-disable-next-line unused-return

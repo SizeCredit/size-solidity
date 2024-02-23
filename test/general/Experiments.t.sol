@@ -180,7 +180,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertTrue(loan_Bob_Alice.lender == bob, "Bob should be the lender");
         assertTrue(loan_Bob_Alice.borrower == alice, "Alice should be the borrower");
         LoanOffer memory loanOffer = size.getUserView(bob).user.loanOffer;
-        uint256 rate = loanOffer.getRate(marketBorrowRateFeed.getMarketBorrowRate(), 5);
+        uint256 rate = loanOffer.getRate(marketBorrowRateFeed, 5);
         assertEq(loan_Bob_Alice.faceValue(), Math.mulDivUp(70e6, (PERCENT + rate), PERCENT), "Check loan faceValue");
         assertEq(size.getDebtPosition(0).dueDate, 5, "Check loan due date");
 
@@ -196,7 +196,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(loan_James_Bob.lender, james, "James should be the lender");
         assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
         LoanOffer memory loanOffer2 = size.getUserView(james).user.loanOffer;
-        uint256 rate2 = loanOffer2.getRate(marketBorrowRateFeed.getMarketBorrowRate(), size.getDebtPosition(0).dueDate);
+        uint256 rate2 = loanOffer2.getRate(marketBorrowRateFeed, size.getDebtPosition(0).dueDate);
         assertEq(loan_James_Bob.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check loan faceValue");
     }
 
