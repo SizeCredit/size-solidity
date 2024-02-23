@@ -16,6 +16,8 @@ import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMa
 
 import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
+
+import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
@@ -332,6 +334,32 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         );
         lt(_after.borrower.debtAmount, _before.borrower.debtAmount, LIQUIDATE_02);
         eq(_after.totalDebtAmount, _before.totalDebtAmount, LIQUIDATION_02);
+    }
+
+    function compensate(uint256 creditPositionWithDebtToRepayId, uint256 creditPositionToCompensateId, uint256 amount)
+        public
+        getSender
+    {
+        __before(creditPositionWithDebtToRepayId);
+
+        precondition(_before.debtPositionsCount > 0);
+        creditPositionWithDebtToRepayId =
+            between(creditPositionWithDebtToRepayId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+        creditPositionToCompensateId =
+            between(creditPositionToCompensateId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+
+        hevm.prank(sender);
+        size.compensate(
+            CompensateParams({
+                creditPositionWithDebtToRepayId: creditPositionWithDebtToRepayId,
+                creditPositionToCompensateId: creditPositionToCompensateId,
+                amount: amount
+            })
+        );
+
+        __after(creditPositionWithDebtToRepayId);
+
+        lt(_after.sender.debtAmount, _before.sender.debtAmount, COMPENSATE_01);
     }
 
     function setPrice(uint256 price) public {

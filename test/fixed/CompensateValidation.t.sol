@@ -34,7 +34,7 @@ contract CompensateValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.COMPENSATOR_IS_NOT_BORROWER.selector, bob, alice));
         size.compensate(
             CompensateParams({
-                debtPositionToRepayId: loanId3,
+                creditPositionWithDebtToRepayId: creditPositionId3,
                 creditPositionToCompensateId: creditPositionId,
                 amount: type(uint256).max
             })
@@ -45,7 +45,7 @@ contract CompensateValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LENDER.selector, bob));
         size.compensate(
             CompensateParams({
-                debtPositionToRepayId: loanId3,
+                creditPositionWithDebtToRepayId: creditPositionId3,
                 creditPositionToCompensateId: creditPositionId2,
                 amount: type(uint256).max
             })
@@ -55,7 +55,11 @@ contract CompensateValidationTest is BaseTest {
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         size.compensate(
-            CompensateParams({debtPositionToRepayId: loanId3, creditPositionToCompensateId: creditPositionId, amount: 0})
+            CompensateParams({
+                creditPositionWithDebtToRepayId: creditPositionId3,
+                creditPositionToCompensateId: creditPositionId,
+                amount: 0
+            })
         );
         vm.stopPrank();
 
@@ -65,7 +69,7 @@ contract CompensateValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditPositionId));
         size.compensate(
             CompensateParams({
-                debtPositionToRepayId: loanId3,
+                creditPositionWithDebtToRepayId: creditPositionId3,
                 creditPositionToCompensateId: creditPositionId,
                 amount: type(uint256).max
             })
@@ -75,10 +79,10 @@ contract CompensateValidationTest is BaseTest {
         _repay(alice, loanId3);
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, loanId3));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditPositionId3));
         size.compensate(
             CompensateParams({
-                debtPositionToRepayId: loanId3,
+                creditPositionWithDebtToRepayId: creditPositionId3,
                 creditPositionToCompensateId: creditPositionId2_1,
                 amount: type(uint256).max
             })
@@ -87,12 +91,15 @@ contract CompensateValidationTest is BaseTest {
 
         uint256 l1 = _borrowAsMarketOrder(bob, alice, 20e6, 12);
         uint256 l2 = _borrowAsMarketOrder(alice, james, 20e6, 6);
+        uint256 creditPositionIdL2 = size.getCreditPositionIdsByDebtPositionId(l2)[0];
         uint256 creditPositionIdL1 = size.getCreditPositionIdsByDebtPositionId(l1)[0];
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_NOT_COMPATIBLE.selector, l2, creditPositionIdL1));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.DUE_DATE_NOT_COMPATIBLE.selector, creditPositionIdL2, creditPositionIdL1)
+        );
         size.compensate(
             CompensateParams({
-                debtPositionToRepayId: l2,
+                creditPositionWithDebtToRepayId: creditPositionIdL2,
                 creditPositionToCompensateId: creditPositionIdL1,
                 amount: type(uint256).max
             })
@@ -100,10 +107,10 @@ contract CompensateValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DEBT_POSITION_ID.selector, creditPositionId2_1));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_CREDIT_POSITION_ID.selector, loanId2));
         size.compensate(
             CompensateParams({
-                debtPositionToRepayId: creditPositionId2_1,
+                creditPositionWithDebtToRepayId: loanId2,
                 creditPositionToCompensateId: creditPositionId3,
                 amount: type(uint256).max
             })
@@ -114,7 +121,7 @@ contract CompensateValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_CREDIT_POSITION_ID.selector, debtPositionId));
         size.compensate(
             CompensateParams({
-                debtPositionToRepayId: debtPositionId,
+                creditPositionWithDebtToRepayId: creditPositionIdL2,
                 creditPositionToCompensateId: debtPositionId,
                 amount: type(uint256).max
             })
