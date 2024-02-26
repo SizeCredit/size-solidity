@@ -24,7 +24,7 @@ contract LendAsMarketOrderScript is Script, Logger {
 
         uint256 amount = 6e6;
 
-        uint256 rate = SizeView(address(sizeContract)).getBorrowOfferRate(borrower, dueDate);
+        uint256 rate = SizeView(address(sizeContract)).getBorrowOfferRatePerMaturity(borrower, dueDate);
 
         LendAsMarketOrderParams memory params = LendAsMarketOrderParams({
             borrower: borrower,

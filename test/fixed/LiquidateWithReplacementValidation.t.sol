@@ -22,16 +22,22 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
-        _borrowAsLimitOrder(candy, 0.03e18, 40);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, block.timestamp + 12 days);
+        _lendAsLimitOrder(
+            alice,
+            block.timestamp + 365 days * 2,
+            [int256(0.03e18), int256(0.03e18)],
+            [uint256(365 days), uint256(365 days * 2)]
+        );
+        _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
+        uint256 dueDate = block.timestamp + 365 days * 2;
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, dueDate);
         uint256 minimumCollateralProfit = 0;
 
         _setPrice(0.2e18);
 
         vm.startPrank(liquidator);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_LOWER_THAN_MIN_RATE.selector, 0.03e18, 1e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_LOWER_THAN_MIN_RATE.selector, 0.03e18 * 2, 1e18));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
@@ -43,7 +49,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         );
 
         uint256 deadline = block.timestamp;
-        vm.warp(block.timestamp + 1 days);
+        vm.warp(block.timestamp + 365 days);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DEADLINE.selector, deadline));
         size.liquidateWithReplacement(
@@ -56,9 +62,9 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
             })
         );
 
-        vm.warp(block.timestamp + 11 days);
+        vm.warp(block.timestamp + 365 days * 2);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp + 12 days));
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, dueDate));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,

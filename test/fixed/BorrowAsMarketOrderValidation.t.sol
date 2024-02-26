@@ -15,15 +15,22 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
-        _lendAsLimitOrder(bob, block.timestamp + 5 days, 0.03e18);
+        _deposit(james, weth, 100e18);
+        _deposit(james, usdc, 100e6);
+        _lendAsLimitOrder(
+            alice, block.timestamp + 10 days, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]
+        );
+        _lendAsLimitOrder(
+            bob, block.timestamp + 5 days, [int256(0.03e18), int256(0.03e18)], [uint256(1 days), uint256(12 days)]
+        );
         _lendAsLimitOrder(candy, block.timestamp + 10 days, 0.03e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(alice, candy, 5e6, 10 days);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, 0.03e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, candy, 5e6, block.timestamp + 10 days);
 
         uint256 deadline = block.timestamp;
 
-        uint256 amount = 10e6;
-        uint256 dueDate = 12 days;
+        uint256 amount = 50e6;
+        uint256 dueDate = block.timestamp + 10 days;
         bool exactAmountIn = false;
         uint256[] memory receivableCreditPositionIds;
 
@@ -68,13 +75,15 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         );
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector, 13, block.timestamp + 12 days)
+            abi.encodeWithSelector(
+                Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector, block.timestamp + 11 days, block.timestamp + 10 days
+            )
         );
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
                 amount: 100e6,
-                dueDate: 13,
+                dueDate: block.timestamp + 11 days,
                 deadline: deadline,
                 maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
@@ -91,9 +100,9 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         );
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
-                lender: alice,
+                lender: james,
                 amount: 1e6,
-                dueDate: dueDate,
+                dueDate: block.timestamp + 365 days,
                 deadline: deadline,
                 maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
@@ -116,26 +125,18 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         );
 
         vm.startPrank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector, 4, 10));
-        size.borrowAsMarketOrder(
-            BorrowAsMarketOrderParams({
-                lender: bob,
-                amount: 100e6,
-                dueDate: 4,
-                deadline: deadline,
-                maxRate: type(uint256).max,
-                exactAmountIn: exactAmountIn,
-                receivableCreditPositionIds: receivableCreditPositionIds
-            })
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector,
+                block.timestamp + 4 days,
+                block.timestamp + 10 days
+            )
         );
-
-        vm.startPrank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector, 4, 10));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: bob,
                 amount: 100e6,
-                dueDate: 4,
+                dueDate: block.timestamp + 4 days,
                 deadline: deadline,
                 maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,
@@ -148,9 +149,9 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.RATE_GREATER_THAN_MAX_RATE.selector, 0.03e18, 0.01e18));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
-                lender: alice,
+                lender: james,
                 amount: 100e6,
-                dueDate: dueDate,
+                dueDate: block.timestamp + 365 days,
                 deadline: deadline,
                 maxRate: 0.01e18,
                 exactAmountIn: exactAmountIn,
@@ -163,9 +164,9 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DEADLINE.selector, deadline - 1));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
-                lender: alice,
+                lender: james,
                 amount: 100e6,
-                dueDate: block.timestamp,
+                dueDate: block.timestamp + 365 days,
                 deadline: deadline - 1,
                 maxRate: type(uint256).max,
                 exactAmountIn: exactAmountIn,

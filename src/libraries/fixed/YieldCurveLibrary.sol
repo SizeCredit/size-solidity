@@ -92,14 +92,14 @@ library YieldCurveLibrary {
     ) external view returns (uint256) {
         // @audit Check the correctness of this function
         if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
-        uint256 interval = dueDate - block.timestamp;
+        uint256 maturity = dueDate - block.timestamp;
         uint256 length = curveRelativeTime.maturities.length;
-        if (interval < curveRelativeTime.maturities[0] || interval > curveRelativeTime.maturities[length - 1]) {
-            revert Errors.DUE_DATE_OUT_OF_RANGE(
-                interval, curveRelativeTime.maturities[0], curveRelativeTime.maturities[length - 1]
+        if (maturity < curveRelativeTime.maturities[0] || maturity > curveRelativeTime.maturities[length - 1]) {
+            revert Errors.MATURITY_OUT_OF_RANGE(
+                maturity, curveRelativeTime.maturities[0], curveRelativeTime.maturities[length - 1]
             );
         } else {
-            (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.maturities, interval);
+            (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.maturities, maturity);
             uint256 x0 = curveRelativeTime.maturities[low];
             uint256 y0 = getRatePerMaturity(
                 curveRelativeTime.maturities[low],
@@ -118,9 +118,9 @@ library YieldCurveLibrary {
             // @audit Check the rounding direction, as this may lead to debt rounding down
             if (x1 != x0) {
                 if (y1 >= y0) {
-                    return y0 + Math.mulDivDown(y1 - y0, interval - x0, x1 - x0);
+                    return y0 + Math.mulDivDown(y1 - y0, maturity - x0, x1 - x0);
                 } else {
-                    return y0 - Math.mulDivDown(y0 - y1, interval - x0, x1 - x0);
+                    return y0 - Math.mulDivDown(y0 - y1, maturity - x0, x1 - x0);
                 }
             } else {
                 return y0;

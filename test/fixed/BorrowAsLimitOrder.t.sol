@@ -33,7 +33,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         assertTrue(!_state().alice.user.borrowOffer.isNull());
     }
 
-    function test_BorrowAsLimitOrder_borrowAsLimitOrder_adds_borrowOffer_to_orderbook(
+    function testFuzz_BorrowAsLimitOrder_borrowAsLimitOrder_adds_borrowOffer_to_orderbook(
         uint256 openingLimitBorrowCR,
         uint256 buckets,
         bytes32 seed
@@ -44,7 +44,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         int256[] memory marketRateMultipliers = new int256[](buckets);
 
         for (uint256 i = 0; i < buckets; i++) {
-            maturities[i] = i * 1 days;
+            maturities[i] = (i + 1) * 1 days;
             rates[i] = int256(bound(uint256(keccak256(abi.encode(seed, i))), 0, 10e18));
         }
         _borrowAsLimitOrder(

@@ -23,11 +23,11 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         uint256 rate = 0.03e18;
-        _borrowAsLimitOrder(alice, int256(rate), block.timestamp + 12 days);
+        _borrowAsLimitOrder(alice, int256(rate), block.timestamp + 365 days);
 
         uint256 issuanceValue = 10e6;
         uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + rate, PERCENT);
-        uint256 dueDate = 12;
+        uint256 dueDate = block.timestamp + 365 days;
         uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
 
         Vars memory _before = _state();
@@ -53,10 +53,10 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _borrowAsLimitOrder(alice, 0.03e18, block.timestamp + 12 days);
+        _borrowAsLimitOrder(alice, 0.03e18, block.timestamp + 365 days);
 
         uint256 amountIn = 10e6;
-        uint256 dueDate = 12;
+        uint256 dueDate = block.timestamp + 365 days;
         uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + 0.03e18, PERCENT);
 
         Vars memory _before = _state();
@@ -112,7 +112,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _updateConfig("repayFeeAPR", 0);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
-        _borrowAsLimitOrder(alice, 0, block.timestamp + 12 days);
+        _borrowAsLimitOrder(alice, 0, block.timestamp + 365 days);
 
         vm.startPrank(bob);
         vm.expectRevert(
@@ -121,7 +121,7 @@ contract LendAsMarketOrderTest is BaseTest {
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({
                 borrower: alice,
-                dueDate: 12 days,
+                dueDate: block.timestamp + 365 days,
                 amount: 200e6,
                 deadline: block.timestamp,
                 minRate: 0,
@@ -136,7 +136,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _updateConfig("repayFeeAPR", 0);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
-        _borrowAsLimitOrder(alice, 0, block.timestamp + 12 days);
+        _borrowAsLimitOrder(alice, 0, block.timestamp + 365 days);
 
         vm.startPrank(bob);
         vm.expectRevert(
@@ -145,7 +145,7 @@ contract LendAsMarketOrderTest is BaseTest {
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({
                 borrower: alice,
-                dueDate: 12 days,
+                dueDate: block.timestamp + 365 days,
                 amount: 10e6,
                 deadline: block.timestamp,
                 minRate: 0,
@@ -162,7 +162,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _borrowAsLimitOrder(alice, curve);
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));
+        vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({
                 borrower: alice,
@@ -174,7 +174,7 @@ contract LendAsMarketOrderTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_OUT_OF_RANGE.selector, 151 days, 30 days, 150 days));
+        vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_OUT_OF_RANGE.selector, 151 days, 30 days, 150 days));
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({
                 borrower: alice,

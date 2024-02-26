@@ -94,9 +94,9 @@ contract BorrowerExitTest is BaseTest {
         _deposit(bob, weth, 2 * 150e18);
         _deposit(bob, usdc, 100e6 + size.config().earlyBorrowerExitFee);
         _deposit(candy, weth, 150e18);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
-        _borrowAsLimitOrder(candy, 0, block.timestamp + 12 days);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        _borrowAsLimitOrder(candy, 0, block.timestamp + 365 days);
 
         vm.startPrank(bob);
         vm.expectRevert(

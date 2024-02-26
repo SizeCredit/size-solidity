@@ -27,7 +27,7 @@ library Errors {
     error DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(uint256 dueDate, uint256 debtPositionDueDate);
     error DUE_DATE_NOT_COMPATIBLE(uint256 debtPositionIdToRepay, uint256 creditPositionIdToCompensate);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
-    error DUE_DATE_OUT_OF_RANGE(uint256 dueDate, uint256 minDueDate, uint256 maxDueDate);
+    error MATURITY_OUT_OF_RANGE(uint256 maturity, uint256 minMaturity, uint256 maxMaturity);
     error INVALID_POSITION_ID(uint256 positionId);
     error INVALID_DEBT_POSITION_ID(uint256 debtPositionId);
     error INVALID_CREDIT_POSITION_ID(uint256 creditPositionId);

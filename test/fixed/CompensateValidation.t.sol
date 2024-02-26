@@ -17,10 +17,18 @@ contract CompensateValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
-        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0.05e18);
-        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.05e18);
-        _lendAsLimitOrder(james, block.timestamp + 12 days, 0.05e18);
+        _lendAsLimitOrder(
+            alice, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
+        );
+        _lendAsLimitOrder(
+            bob, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
+        );
+        _lendAsLimitOrder(
+            candy, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
+        );
+        _lendAsLimitOrder(
+            james, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
+        );
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, block.timestamp + 12 days);

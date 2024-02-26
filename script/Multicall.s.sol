@@ -17,7 +17,7 @@ contract MulticallScript is Script {
         Size sizeContract = Size(sizeContractAddress);
 
         uint256 dueDate = block.timestamp + 2 days;
-        uint256 rate = SizeView(address(sizeContract)).getLoanOfferRate(lender, dueDate);
+        uint256 rate = SizeView(address(sizeContract)).getLoanOfferRatePerMaturity(lender, dueDate);
 
         bytes memory depositCall =
             abi.encodeCall(Size.deposit, DepositParams({token: wethAddress, amount: 0.04e18, to: borrower}));

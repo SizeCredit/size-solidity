@@ -3,14 +3,10 @@ pragma solidity 0.8.24;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {PERCENT} from "@src/libraries/Math.sol";
-
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-
-import {Math} from "@src/libraries/Math.sol";
 
 contract RepayValidationTest is BaseTest {
     function test_Repay_validation() public {
@@ -23,7 +19,7 @@ contract RepayValidationTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
         uint256 amount = 20e6;
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 12 days);
-        uint256 faceValue = Math.mulDivUp(amount, PERCENT + 0.05e18, PERCENT);
+        uint256 faceValue = size.faceValue(debtPositionId);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
 
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];

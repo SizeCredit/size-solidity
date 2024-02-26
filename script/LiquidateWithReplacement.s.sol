@@ -26,7 +26,7 @@ contract LiquidateWithReplacementScript is Script, Logger {
         uint256 debtPositionId = 0;
 
         uint256 dueDate = size.getDebtPosition(debtPositionId).dueDate;
-        uint256 rate = size.getBorrowOfferRate(borrower, dueDate);
+        uint256 rate = size.getBorrowOfferRatePerMaturity(borrower, dueDate);
         uint256 minimumCollateralProfit = size.debtTokenAmountToCollateralTokenAmount(size.faceValue(debtPositionId));
 
         LiquidateWithReplacementParams memory params = LiquidateWithReplacementParams({

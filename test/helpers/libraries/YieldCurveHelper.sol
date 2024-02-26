@@ -173,6 +173,18 @@ library YieldCurveHelper {
         return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
     }
 
+    function pointCurve(uint256 m1, int256 r1) public pure returns (YieldCurve memory) {
+        uint256[] memory maturities = new uint256[](1);
+        int256[] memory rates = new int256[](1);
+        int256[] memory marketRateMultipliers = new int256[](1);
+
+        rates[0] = r1;
+
+        maturities[0] = m1;
+
+        return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
+    }
+
     function marketCurve() public pure returns (YieldCurve memory curve) {
         curve = normalCurve();
 

@@ -80,7 +80,7 @@ interface ISize {
     /// @notice Exits a debt position to a new borrower by picking the new borrower offer from the orderbook
     ///         When exiting a debt position to a new borrower, the early exit borrower fee is applied to the current borrower
     ///         Protocol repayment fees are paid pro rata
-    ///         1. Previous borrower pays an "early protocol fee" pro rata to the block.timestamp, and their debt is reduced by that amount
+    ///         1. Previous borrower pays an "early" protocol repay fee pro rata to the block.timestamp, and their debt is reduced by the full protocol repay fee amount
     ///         2. previous borrower also pays to the protocol the early borrower exit fee
     ///         3. previous borrower transfers to the new borrower FV/(1+r), which is the present value of faceValue adjusted by the rate the new borrower has specified
     ///         4. previous borrower debt referring to faceValue is transferred to the new borrower

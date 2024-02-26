@@ -199,9 +199,23 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         );
     }
 
-    function _borrowAsLimitOrder(address borrower, int256 rate, uint256 numberOfMaturities) internal {
+    function _borrowAsLimitOrder(address borrower, int256[2] memory ratesArray, uint256[2] memory maturitiesArray)
+        internal
+    {
+        int256[] memory rates = new int256[](2);
+        uint256[] memory maturities = new uint256[](2);
+        int256[] memory marketRateMultipliers = new int256[](2);
+        rates[0] = ratesArray[0];
+        rates[1] = ratesArray[1];
+        maturities[0] = maturitiesArray[0];
+        maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
-            YieldCurveHelper.customCurve(1 days, rate, numberOfMaturities * 1 days, rate);
+            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, rates: rates});
+        return _borrowAsLimitOrder(borrower, curveRelativeTime);
+    }
+
+    function _borrowAsLimitOrder(address borrower, int256 rate, uint256 dueDate) internal {
+        YieldCurve memory curveRelativeTime = YieldCurveHelper.pointCurve(dueDate - block.timestamp, rate);
         return _borrowAsLimitOrder(borrower, 0, curveRelativeTime);
     }
 

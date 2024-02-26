@@ -34,7 +34,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 interval = curve.maturities[0] - 1;
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.DUE_DATE_OUT_OF_RANGE.selector,
+                Errors.MATURITY_OUT_OF_RANGE.selector,
                 interval,
                 curve.maturities[0],
                 curve.maturities[curve.maturities.length - 1]
@@ -48,7 +48,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 interval = curve.maturities[curve.maturities.length - 1] + 1;
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.DUE_DATE_OUT_OF_RANGE.selector,
+                Errors.MATURITY_OUT_OF_RANGE.selector,
                 interval,
                 curve.maturities[0],
                 curve.maturities[curve.maturities.length - 1]

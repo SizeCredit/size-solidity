@@ -18,14 +18,14 @@ contract BorrowerExitValidationTest is BaseTest {
         _deposit(candy, weth, 150e18);
         _deposit(james, usdc, 100e6);
         _deposit(james, weth, 150e18);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 1e18);
-        _lendAsLimitOrder(candy, block.timestamp + 12 days, 1e18);
-        _lendAsLimitOrder(james, block.timestamp + 12 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
-        _borrowAsLimitOrder(candy, 0, block.timestamp + 12 days);
-        uint256 loanId2 = _borrowAsMarketOrder(candy, james, 50e6, block.timestamp + 12 days);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        _borrowAsLimitOrder(candy, 0, block.timestamp + 365 days);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, james, 50e6, block.timestamp + 365 days);
         uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
-        _borrowAsMarketOrder(james, candy, 10e6, block.timestamp + 12 days, [creditId2]);
+        _borrowAsMarketOrder(james, candy, 10e6, block.timestamp + 365 days, [creditId2]);
 
         address borrowerToExitTo = candy;
 
@@ -79,8 +79,8 @@ contract BorrowerExitValidationTest is BaseTest {
         vm.stopPrank();
 
         _deposit(bob, usdc, 200e6);
-        _borrowAsLimitOrder(bob, 2, block.timestamp + 12 days);
-        _borrowAsLimitOrder(candy, 2, block.timestamp + 12 days);
+        _borrowAsLimitOrder(bob, 2, block.timestamp + 365 days);
+        _borrowAsLimitOrder(candy, 2, block.timestamp + 365 days);
 
         vm.startPrank(bob);
 
@@ -104,8 +104,8 @@ contract BorrowerExitValidationTest is BaseTest {
             })
         );
 
-        vm.warp(block.timestamp + 12 days);
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp + 12 days));
+        vm.warp(block.timestamp + 365 days);
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp));
         size.borrowerExit(
             BorrowerExitParams({
                 debtPositionId: debtPositionId,

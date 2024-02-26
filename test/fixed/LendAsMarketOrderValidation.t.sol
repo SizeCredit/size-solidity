@@ -17,7 +17,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
         _deposit(bob, usdc, 10e6);
         _borrowAsLimitOrder(alice, 1e18, block.timestamp + 12 days);
 
-        uint256 dueDate = block.timestamp;
+        uint256 dueDate = block.timestamp + 12 days;
 
         vm.startPrank(bob);
 

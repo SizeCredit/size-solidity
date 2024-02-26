@@ -4,8 +4,6 @@ pragma solidity 0.8.24;
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
-import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -32,11 +30,11 @@ contract ExperimentsTest is Test, BaseTest {
     function test_Experiments_test1() public {
         _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
         assertEq(_state().alice.borrowAmount, 100e6 + size.config().earlyLenderExitFee);
-        _lendAsLimitOrder(alice, block.timestamp + 10 days, 0.03e18);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _deposit(james, weth, 50e18);
         assertEq(_state().james.collateralAmount, 50e18);
 
-        uint256 debtPositionId = _borrowAsMarketOrder(james, alice, 100e6, block.timestamp + 6 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(james, alice, 100e6, block.timestamp + 365 days);
         (uint256 debtPositions,) = size.getPositionsCount();
         assertEq(debtPositionId, 0, "debt positions start at 0");
         assertGt(debtPositions, 0);
@@ -47,11 +45,11 @@ contract ExperimentsTest is Test, BaseTest {
 
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e6);
-        _lendAsLimitOrder(bob, block.timestamp + 10 days, 0.02e18);
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0.02e18);
         console.log("alice borrows form bob using virtual collateral");
         console.log("(do not use full CreditPosition credit)");
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(0)[0];
-        _borrowAsMarketOrder(alice, bob, 50e6, block.timestamp + 6 days, [creditPositionId]);
+        _borrowAsMarketOrder(alice, bob, 50e6, block.timestamp + 365 days, [creditPositionId]);
 
         console.log("should not be able to claim");
         vm.expectRevert();
@@ -73,7 +71,7 @@ contract ExperimentsTest is Test, BaseTest {
     function test_Experiments_test3() public {
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowAmount, 100e6);
-        _lendAsLimitOrder(bob, block.timestamp + 10 days, 0.03e18);
+        _lendAsLimitOrder(bob, block.timestamp + 6 days, 0.03e18);
         _deposit(alice, weth, 2e18);
         _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 6 days);
         assertGe(size.collateralRatio(alice), size.config().crOpening);
@@ -96,20 +94,20 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().bob.borrowAmount, 100e6 + size.config().earlyLenderExitFee);
 
         // Bob lending as limit order
-        _lendAsLimitOrder(bob, block.timestamp + 10, 0.03e18);
+        _lendAsLimitOrder(bob, block.timestamp + 10 days, 0.03e18);
 
         // Deposit by candy in USDC
         _deposit(candy, usdc, 100e6);
         assertEq(_state().candy.borrowAmount, 100e6);
 
         // Candy lending as limit order
-        _lendAsLimitOrder(candy, block.timestamp + 10, 0.05e18);
+        _lendAsLimitOrder(candy, block.timestamp + 10 days, 0.05e18);
 
         // Deposit by alice in WETH
         _deposit(alice, weth, 50e18);
 
         // Alice borrowing as market order
-        uint256 dueDate = 6;
+        uint256 dueDate = block.timestamp + 10 days;
         _borrowAsMarketOrder(alice, bob, 50e6, dueDate);
 
         // Assertions and operations for loans
@@ -152,14 +150,18 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().bob.borrowAmount, 100e6 + size.config().earlyLenderExitFee);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, [int256(0.03e18), int256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(
+            bob, block.timestamp + 10 days, [int256(0.03e18), int256(0.03e18)], [uint256(3 days), uint256(8 days)]
+        );
 
         // James deposits in USDC
         _deposit(james, usdc, 100e6);
         assertEq(_state().james.borrowAmount, 100e6);
 
         // James lends as limit order
-        _lendAsLimitOrder(james, block.timestamp + 12 days, 0.05e18);
+        _lendAsLimitOrder(
+            james, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(5 days), uint256(10 days)]
+        );
 
         // Alice deposits in ETH and USDC
         _deposit(alice, weth, 50e18);
@@ -180,24 +182,24 @@ contract ExperimentsTest is Test, BaseTest {
         assertTrue(loan_Bob_Alice.lender == bob, "Bob should be the lender");
         assertTrue(loan_Bob_Alice.borrower == alice, "Alice should be the borrower");
         LoanOffer memory loanOffer = size.getUserView(bob).user.loanOffer;
-        uint256 rate = loanOffer.getRatePerMaturity(marketBorrowRateFeed, 5);
-        assertEq(loan_Bob_Alice.faceValue(), Math.mulDivUp(70e6, (PERCENT + rate), PERCENT), "Check loan faceValue");
-        assertEq(size.getDebtPosition(0).dueDate, 5, "Check loan due date");
+        uint256 rate = loanOffer.getRatePerMaturity(marketBorrowRateFeed, 5 days);
+        assertEq(loan_Bob_Alice.faceValue(), Math.mulDivUp(70e6, (PERCENT + rate), PERCENT), "Check bob loan faceValue");
+        assertEq(size.getDebtPosition(0).dueDate, 5 days, "Check loan due date");
 
         // Bob borrows using the loan as virtual collateral
-        _borrowAsMarketOrder(bob, james, 35e6, 10, size.getCreditPositionIdsByDebtPositionId(0));
+        _borrowAsMarketOrder(bob, james, 35e6, block.timestamp + 10 days, size.getCreditPositionIdsByDebtPositionId(0));
 
         // Check conditions after Bob borrows
         (uint256 debtPositionsCountAfter, uint256 creditPositionsCountAfter) = size.getPositionsCount();
         assertEq(_state().bob.borrowAmount, 100e6 - 70e6 + 35e6, "Bob should have borrowed 35e6");
         assertEq(debtPositionsCountAfter, 1, "Expected 1 debt position");
-        assertEq(creditPositionsCountAfter, 2, "Expected two active loans");
+        assertEq(creditPositionsCountAfter, 2, "Expected 2 active loans");
         CreditPosition memory loan_James_Bob = size.getCreditPositions(size.getCreditPositionIdsByDebtPositionId(0))[1];
         assertEq(loan_James_Bob.lender, james, "James should be the lender");
         assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
         LoanOffer memory loanOffer2 = size.getUserView(james).user.loanOffer;
         uint256 rate2 = loanOffer2.getRatePerMaturity(marketBorrowRateFeed, size.getDebtPosition(0).dueDate);
-        assertEq(loan_James_Bob.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check loan faceValue");
+        assertEq(loan_James_Bob.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check james loan faceValue");
     }
 
     function test_Experiments_testLoanMove1() public {
@@ -206,7 +208,9 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, [int256(0.03e18), int256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(
+            bob, block.timestamp + 5 days, [int256(0.03e18), int256(0.03e18)], [uint256(3 days), uint256(8 days)]
+        );
 
         // Alice deposits in WETH
         _deposit(alice, weth, 50e18);
@@ -249,7 +253,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, block.timestamp + 10 days, 0.03e18);
+        _lendAsLimitOrder(bob, block.timestamp + 6 days, 0.03e18);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 2e18);
@@ -295,7 +299,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(debtPositionsCount, 0, "There should be no active loans initially");
 
         // Bob lends to Alice's offer in the market order
-        _lendAsMarketOrder(bob, alice, 70e6, 5);
+        _lendAsMarketOrder(bob, alice, 70e6, block.timestamp + 5 days);
 
         // Assert a loan is active after lending
         (debtPositionsCount, creditPositionsCount) = size.getPositionsCount();
@@ -309,7 +313,9 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, [int256(0.03e18), int256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(
+            bob, block.timestamp + 10 days, [int256(0.03e18), int256(0.03e18)], [uint256(3 days), uint256(8 days)]
+        );
 
         // Candy deposits in WETH
         _deposit(candy, weth, 2e18);
@@ -335,13 +341,13 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, block.timestamp + 10 days, 0.03e18);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0.03e18);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 2e18);
 
         // Alice borrows as market order from Bob
-        _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 6 days);
+        _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 12 days);
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.config().crOpening, "Alice should be above CR opening");
@@ -390,7 +396,7 @@ contract ExperimentsTest is Test, BaseTest {
 
         // Alice deposits in WETH
         _deposit(alice, weth, 50e18);
-        uint256 dueDate = 6;
+        uint256 dueDate = block.timestamp + 10 days;
 
         // Alice borrows as market order from Bob
         uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 50e6, dueDate);
@@ -429,9 +435,9 @@ contract ExperimentsTest is Test, BaseTest {
         _setPrice(1e18);
         _deposit(bob, weth, 180e18);
         _deposit(alice, usdc, 100e6);
-        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
+        YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 repayFee = size.repayFee(debtPositionId);
         // Borrower B1 submits a borror market order for
         // Loan1
@@ -462,14 +468,14 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(candy, weth, 180e18);
         _deposit(bob, weth, 180e18);
         _deposit(alice, usdc, 200e6);
-        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0);
+        YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
 
         // admin changes repayFeeAPR
         _updateConfig("repayFeeAPR", 0.1e18);
 
-        uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 100e6, 365 days);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 100e6, block.timestamp + 365 days);
 
         uint256 repayFee = size.repayFee(debtPositionId);
         uint256 repayFee2 = size.repayFee(loanId2);
@@ -506,17 +512,17 @@ contract ExperimentsTest is Test, BaseTest {
             _deposit(users[i], weth, 500e18);
             _deposit(users[i], usdc, 500e6);
         }
-        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
-        YieldCurve memory curve2 = YieldCurveHelper.customCurve(0, 0, 365 days, 0);
+        YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
+        YieldCurve memory curve2 = YieldCurveHelper.pointCurve(365 days, 0);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
         _lendAsLimitOrder(bob, block.timestamp + 365 days, curve2);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, curve2);
         _lendAsLimitOrder(james, block.timestamp + 365 days, curve2);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditPosition1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 loanId2 = _borrowAsMarketOrder(candy, james, 200e6, 365 days);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, james, 200e6, block.timestamp + 365 days);
         uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
-        _borrowAsMarketOrder(james, bob, 120e6, 365 days, [creditId2]);
+        _borrowAsMarketOrder(james, bob, 120e6, block.timestamp + 365 days, [creditId2]);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
         // DebtPosition1
         // DebtPosition.Borrower = B1

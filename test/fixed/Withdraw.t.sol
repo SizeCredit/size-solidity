@@ -153,9 +153,9 @@ contract WithdrawTest is BaseTest {
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
         uint256 rate = 1;
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, int256(rate));
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, int256(rate));
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 12 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
 
         _setPrice(0.125e18);
