@@ -57,9 +57,9 @@ contract BorrowerExitTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6 + size.config().earlyBorrowerExitFee);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
-        _borrowAsLimitOrder(bob, 0.03e18, block.timestamp + 12 days);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        _borrowAsLimitOrder(bob, 0.03e18, block.timestamp + 365 days);
 
         Vars memory _before = _state();
 
@@ -121,15 +121,27 @@ contract BorrowerExitTest is BaseTest {
         _deposit(bob, usdc, 1000e6);
         _deposit(candy, weth, 2000e18);
         _lendAsLimitOrder(
-            bob, block.timestamp + 365 days, [int256(0.1e18), int256(0.1e18)], [uint256(30 days), uint256(365 days)]
+            bob,
+            block.timestamp + 365 days,
+            [Math.ratePerMaturityToLinearAPR(0.1e18, 30 days), Math.ratePerMaturityToLinearAPR(0.1e18, 365 days)],
+            [uint256(30 days), uint256(365 days)]
         );
-        _borrowAsLimitOrder(candy, 0, YieldCurveHelper.customCurve(30 days, 0.25e18, 365 days, 0.25e18));
+        _borrowAsLimitOrder(
+            candy,
+            0,
+            YieldCurveHelper.customCurve(
+                30 days,
+                Math.ratePerMaturityToLinearAPR(0.25e18, 30 days),
+                365 days,
+                Math.ratePerMaturityToLinearAPR(0.25e18, 365 days)
+            )
+        );
         uint256 startDate = block.timestamp;
         uint256 dueDate = startDate + 73 days;
         uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 1000e6, dueDate);
 
         assertEq(size.repayFee(debtPositionId), 1e6);
-        assertEq(size.getDebtPosition(debtPositionId).rate, 0.1e18);
+        assertEqApprox(size.getDebtPosition(debtPositionId).rate, 0.1e18, 1);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
         assertEq(_state().alice.debtAmount, 1101e6);
@@ -147,17 +159,17 @@ contract BorrowerExitTest is BaseTest {
         uint256 newIssuanceValue = Math.mulDivUp(1100e6, 1e18, 1e18 + 0.25e18);
         uint256 newRepayFee = Math.mulDivUp(0.005e18 * newIssuanceValue, 43 days, 365 days * 1e18);
         assertEq(size.repayFee(debtPositionId), newRepayFee);
-        assertEq(size.getDebtPosition(debtPositionId).rate, 0.25e18);
+        assertEqApprox(size.getDebtPosition(debtPositionId).rate, 0.25e18, 1);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate + 30 days);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
-        assertEq(size.faceValue(debtPositionId), 1100e6);
+        assertEqApprox(size.faceValue(debtPositionId), 1100e6, 2);
         assertEq(_state().alice.debtAmount, 0);
-        assertEq(_state().candy.debtAmount, 1100e6 + newRepayFee);
+        assertEqApprox(_state().candy.debtAmount, 1100e6 + newRepayFee, 2);
         assertEq(
             aliceCollateralAfter, aliceCollateralBefore - size.debtTokenAmountToCollateralTokenAmount(earlyRepayFee)
         );
 
-        _deposit(candy, usdc, 1100e6 - 880e6);
+        _deposit(candy, usdc, 1100e6 - 880e6 + 1 /* rounding */ );
         _repay(candy, debtPositionId);
         assertEq(_state().alice.debtAmount, 0);
         assertEq(_state().candy.debtAmount, 0);

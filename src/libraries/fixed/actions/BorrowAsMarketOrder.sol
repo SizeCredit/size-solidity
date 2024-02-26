@@ -41,12 +41,14 @@ library BorrowAsMarketOrder {
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
         User memory lenderUser = state.data.users[params.lender];
         LoanOffer memory loanOffer = lenderUser.loanOffer;
-        uint256 rate = loanOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
 
         // validate msg.sender
         // N/A
 
         // validate params.lender
+        if (loanOffer.isNull()) {
+            revert Errors.INVALID_LOAN_OFFER(params.lender);
+        }
 
         // validate params.amount
         if (params.amount == 0) {
@@ -67,6 +69,7 @@ library BorrowAsMarketOrder {
         }
 
         // validate params.maxRatePerMaturity
+        uint256 rate = loanOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
         if (rate > params.maxRatePerMaturity) {
             revert Errors.RATE_PER_MATURITY_GREATER_THAN_MAX_RATE(rate, params.maxRatePerMaturity);
         }

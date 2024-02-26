@@ -37,19 +37,13 @@ library LendAsMarketOrder {
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.data.users[params.borrower].borrowOffer;
 
-        uint256 rate = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
-        uint256 amountIn;
-        if (params.exactAmountIn) {
-            amountIn = params.amount;
-        } else {
-            amountIn = Math.mulDivUp(params.amount, PERCENT, PERCENT + rate);
-        }
-
         // validate msg.sender
         // N/A
 
         // validate borrower
-        // N/A
+        if (borrowOffer.isNull()) {
+            revert Errors.INVALID_BORROW_OFFER(params.borrower);
+        }
 
         // validate dueDate
         if (params.dueDate < block.timestamp) {
@@ -57,6 +51,13 @@ library LendAsMarketOrder {
         }
 
         // validate amount
+        uint256 rate = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
+        uint256 amountIn;
+        if (params.exactAmountIn) {
+            amountIn = params.amount;
+        } else {
+            amountIn = Math.mulDivUp(params.amount, PERCENT, PERCENT + rate);
+        }
         if (state.borrowATokenBalanceOf(msg.sender) < amountIn) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
                 msg.sender, state.borrowATokenBalanceOf(msg.sender), amountIn

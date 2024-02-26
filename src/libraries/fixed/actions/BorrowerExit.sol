@@ -65,6 +65,7 @@ library BorrowerExit {
         }
 
         // validate borrowerToExitTo
+        // N/A
     }
 
     function executeBorrowerExit(State storage state, BorrowerExitParams calldata params) external {
@@ -81,14 +82,13 @@ library BorrowerExit {
         state.chargeEarlyRepayFeeInCollateral(debtPosition);
         state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee);
         state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, issuanceValue);
-        state.data.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, faceValue);
+        state.data.debtToken.burn(msg.sender, faceValue);
 
         debtPosition.borrower = params.borrowerToExitTo;
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
         debtPosition.rate = rate;
 
-        uint256 newRepayFee = debtPosition.repayFee();
-        state.data.debtToken.mint(params.borrowerToExitTo, newRepayFee);
+        state.data.debtToken.mint(params.borrowerToExitTo, debtPosition.getDebt());
     }
 }

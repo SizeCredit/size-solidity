@@ -198,8 +198,8 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(loan_James_Bob.lender, james, "James should be the lender");
         assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
         LoanOffer memory loanOffer2 = size.getUserView(james).user.loanOffer;
-        uint256 rate2 = loanOffer2.getRatePerMaturity(marketBorrowRateFeed, size.getDebtPosition(0).dueDate);
-        assertEq(loan_James_Bob.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check james loan faceValue");
+        uint256 rate2 = loanOffer2.getRatePerMaturity(marketBorrowRateFeed, block.timestamp + 10 days);
+        assertEq(loan_James_Bob.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check james credit");
     }
 
     function test_Experiments_testLoanMove1() public {
@@ -288,7 +288,7 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(alice, weth, 2e18);
 
         // Alice places a borrow limit order
-        _borrowAsLimitOrder(alice, 0.03e18, block.timestamp + 12 days);
+        _borrowAsLimitOrder(alice, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
 
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
@@ -321,7 +321,7 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(candy, weth, 2e18);
 
         // Candy places a borrow limit order
-        _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 12 days);
+        _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
 
         // Alice deposits in WETH and USDC
         _deposit(alice, weth, 50e18);
@@ -341,13 +341,18 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(_state().bob.borrowAmount, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0.03e18);
+        _lendAsLimitOrder(
+            bob,
+            block.timestamp + 365 days,
+            [int256(0.03e18), int256(0.03e18)],
+            [uint256(365 days), uint256(365 days * 2)]
+        );
 
         // Alice deposits in WETH
         _deposit(alice, weth, 2e18);
 
         // Alice borrows as market order from Bob
-        _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 12 days);
+        _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 365 days);
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.config().crOpening, "Alice should be above CR opening");
@@ -356,7 +361,7 @@ contract ExperimentsTest is Test, BaseTest {
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
         _deposit(candy, weth, 200e18);
         assertEq(_state().candy.collateralAmount, 200e18);
-        _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 12 days);
+        _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(180 days), uint256(365 days * 2)]);
 
         // Update the context (time and price)
         vm.warp(block.timestamp + 1 days);
