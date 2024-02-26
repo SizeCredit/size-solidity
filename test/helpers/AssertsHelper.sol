@@ -48,22 +48,6 @@ abstract contract AssertsHelper is Test {
         }
     }
 
-    function assertEqApprox(uint256 a, uint256 b, uint256 tolerance) internal {
-        string memory reason = string.concat(
-            "Expected ",
-            Strings.toString(a),
-            " to be equal to ",
-            Strings.toString(b),
-            " with tolerance ",
-            Strings.toString(tolerance)
-        );
-        if (a > b) {
-            assertTrue(a - b <= tolerance, reason);
-        } else {
-            assertTrue(b - a <= tolerance, reason);
-        }
-    }
-
     function assertEq(uint256 a, uint256 b, uint256 c) internal {
         string memory reason = string.concat(
             "Expected ", Strings.toString(a), " to be equal to ", Strings.toString(b), " and ", Strings.toString(c)
