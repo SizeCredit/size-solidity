@@ -16,13 +16,13 @@ contract CompensateTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 1e18, 12);
-        _lendAsLimitOrder(bob, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 12, 1e18, 12);
-        _lendAsLimitOrder(james, 12, 1e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 1e18);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 1e18);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 1e18);
+        _lendAsLimitOrder(james, block.timestamp + 12 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
+        uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 12 days);
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[0];
         uint256 repayFee = size.repayFee(debtPositionId);
 
@@ -52,14 +52,14 @@ contract CompensateTest is BaseTest {
         _deposit(candy, usdc, 200e6);
         _deposit(james, weth, 200e18);
         _deposit(james, usdc, 200e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(bob, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        _lendAsLimitOrder(james, 12, 0, 12);
-        _borrowAsMarketOrder(bob, alice, 40e6, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 20e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(james, block.timestamp + 12 days, 0);
+        _borrowAsMarketOrder(bob, alice, 40e6, block.timestamp + 12 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 20e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(bob, alice, 10e6, 12, [creditPositionId]);
+        _borrowAsMarketOrder(bob, alice, 10e6, block.timestamp + 12 days, [creditPositionId]);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         uint256 repaidLoanDebtBefore = size.getDebt(debtPositionId);
@@ -87,13 +87,13 @@ contract CompensateTest is BaseTest {
         _deposit(candy, usdc, 200e6);
         _deposit(james, weth, 200e18);
         _deposit(james, usdc, 200e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(bob, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 40e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(james, block.timestamp + 12 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 40e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 20e6, 12);
+        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 20e6, block.timestamp + 12 days);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
 
         _repay(alice, loanId2);
@@ -108,11 +108,11 @@ contract CompensateTest is BaseTest {
         _deposit(bob, weth, 150e18);
         _deposit(candy, weth, 150e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(bob, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 debtPositionId2 = _borrowAsMarketOrder(candy, bob, 100e6, 12);
+        uint256 debtPositionId2 = _borrowAsMarketOrder(candy, bob, 100e6, block.timestamp + 12 days);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
 
         _compensate(bob, creditPositionId, creditPositionId2);

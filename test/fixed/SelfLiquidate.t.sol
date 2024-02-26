@@ -16,8 +16,8 @@ contract SelfLiquidateTest is BaseTest {
 
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
@@ -60,14 +60,14 @@ contract SelfLiquidateTest is BaseTest {
 
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(alice, candy, 100e6, 12, [creditPositionId]);
+        _borrowAsMarketOrder(alice, candy, 100e6, block.timestamp + 365 days, [creditPositionId]);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        _borrowAsMarketOrder(alice, james, 100e6, 12);
+        _borrowAsMarketOrder(alice, james, 100e6, block.timestamp + 365 days);
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
         assertEq(size.getDebt(debtPositionId), 100e6);
@@ -101,8 +101,8 @@ contract SelfLiquidateTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         _setPrice(0.0001e18);
@@ -121,16 +121,16 @@ contract SelfLiquidateTest is BaseTest {
         _deposit(james, usdc, 200e6);
         _deposit(james, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(bob, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 repayFee = size.repayFee(debtPositionId);
-        _borrowAsMarketOrder(alice, candy, 5e6, 12, [creditPositionId]);
-        _borrowAsMarketOrder(alice, james, 80e6, 12);
-        _borrowAsMarketOrder(bob, james, 40e6, 12);
+        _borrowAsMarketOrder(alice, candy, 5e6, block.timestamp + 365 days, [creditPositionId]);
+        _borrowAsMarketOrder(alice, james, 80e6, block.timestamp + 365 days);
+        _borrowAsMarketOrder(bob, james, 40e6, block.timestamp + 365 days);
 
         _setPrice(0.25e18);
 
@@ -141,7 +141,9 @@ contract SelfLiquidateTest is BaseTest {
 
         _selfLiquidate(alice, creditPositionId);
 
-        assertEq(size.getDebt(debtPositionId), 5e6 + repayFee);
+        assertLt(size.repayFee(debtPositionId), repayFee, "Repay fee is adjusted after self liquidation");
+        assertGt(size.repayFee(debtPositionId), 0);
+        assertEq(size.getDebt(debtPositionId), 5e6 + size.repayFee(debtPositionId));
         assertEq(size.getCreditPosition(creditPositionId).credit, 0);
         assertEq(size.getCreditPosition(creditPositionId).credit, 0);
     }
@@ -157,18 +159,18 @@ contract SelfLiquidateTest is BaseTest {
         _deposit(candy, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(bob, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(alice, candy, 49e6, 12, [creditPositionId]);
+        _borrowAsMarketOrder(alice, candy, 49e6, block.timestamp + 365 days, [creditPositionId]);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        _borrowAsMarketOrder(candy, bob, 44e6, 12, [creditPositionId2]);
+        _borrowAsMarketOrder(candy, bob, 44e6, block.timestamp + 365 days, [creditPositionId2]);
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
-        _borrowAsMarketOrder(alice, james, 60e6, 12);
-        _borrowAsMarketOrder(candy, james, 80e6, 12);
+        _borrowAsMarketOrder(alice, james, 60e6, block.timestamp + 365 days);
+        _borrowAsMarketOrder(candy, james, 80e6, block.timestamp + 365 days);
 
         _setPrice(0.25e18);
 

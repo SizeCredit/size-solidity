@@ -18,7 +18,7 @@ contract LendAsLimitOrderTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         assertTrue(_state().alice.user.loanOffer.isNull());
-        _lendAsLimitOrder(alice, 12, 1.01e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 1.01e18);
         assertTrue(!_state().alice.user.loanOffer.isNull());
     }
 

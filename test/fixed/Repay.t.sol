@@ -20,9 +20,9 @@ contract RepayTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 12 days);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
         uint256 repayFee = size.repayFee(debtPositionId);
 
@@ -49,9 +49,9 @@ contract RepayTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 12 days);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
         uint256 repayFee = size.repayFee(debtPositionId);
 
@@ -88,11 +88,11 @@ contract RepayTest is BaseTest {
         _deposit(bob, usdc, 200e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 12, 1e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 1e18);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(bob, candy, 100e6, 12);
+        _borrowAsMarketOrder(bob, candy, 100e6, block.timestamp + 12 days);
 
         Vars memory _before = _state();
 
@@ -122,8 +122,8 @@ contract RepayTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, borrowAmount, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, borrowAmount, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         vm.prank(bob);

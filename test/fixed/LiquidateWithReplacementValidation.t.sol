@@ -22,9 +22,9 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.03e18, 40);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, block.timestamp + 12 days);
         uint256 minimumCollateralProfit = 0;
 
         _setPrice(0.2e18);
@@ -43,7 +43,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         );
 
         uint256 deadline = block.timestamp;
-        vm.warp(block.timestamp + 1);
+        vm.warp(block.timestamp + 1 days);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DEADLINE.selector, deadline));
         size.liquidateWithReplacement(
@@ -56,9 +56,9 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
             })
         );
 
-        vm.warp(block.timestamp + 11);
+        vm.warp(block.timestamp + 11 days);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 12));
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp + 12 days));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,

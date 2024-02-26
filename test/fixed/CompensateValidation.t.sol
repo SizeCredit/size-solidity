@@ -17,17 +17,19 @@ contract CompensateValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
-        _lendAsLimitOrder(bob, 12, 0.05e18, 12);
-        _lendAsLimitOrder(candy, 12, 0.05e18, 12);
-        _lendAsLimitOrder(james, 12, 0.05e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0.05e18);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.05e18);
+        _lendAsLimitOrder(james, block.timestamp + 12 days, 0.05e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, 12);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, block.timestamp + 12 days);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
-        uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, 12);
+        uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 12 days);
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[0];
-        _borrowAsMarketOrder(bob, alice, 10e6, 12, size.getCreditPositionIdsByDebtPositionId(loanId2));
+        _borrowAsMarketOrder(
+            bob, alice, 10e6, block.timestamp + 12 days, size.getCreditPositionIdsByDebtPositionId(loanId2)
+        );
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
 
         vm.startPrank(bob);
@@ -89,8 +91,8 @@ contract CompensateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        uint256 l1 = _borrowAsMarketOrder(bob, alice, 20e6, 12);
-        uint256 l2 = _borrowAsMarketOrder(alice, james, 20e6, 6);
+        uint256 l1 = _borrowAsMarketOrder(bob, alice, 20e6, block.timestamp + 12 days);
+        uint256 l2 = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 6 days);
         uint256 creditPositionIdL2 = size.getCreditPositionIdsByDebtPositionId(l2)[0];
         uint256 creditPositionIdL1 = size.getCreditPositionIdsByDebtPositionId(l1)[0];
         vm.startPrank(alice);

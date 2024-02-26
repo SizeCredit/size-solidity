@@ -15,7 +15,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, weth, 2 * 150e18);
         _deposit(bob, usdc, 10e6);
-        _borrowAsLimitOrder(alice, 1e18, 12);
+        _borrowAsLimitOrder(alice, 1e18, block.timestamp + 12 days);
 
         uint256 dueDate = block.timestamp;
 

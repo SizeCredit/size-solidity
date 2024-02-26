@@ -18,9 +18,9 @@ contract BorrowerExitTest is BaseTest {
         _deposit(bob, usdc, 100e6 + size.config().earlyBorrowerExitFee);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        _borrowAsLimitOrder(candy, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
+        _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 12 days);
 
         Vars memory _before = _state();
 
@@ -57,9 +57,9 @@ contract BorrowerExitTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6 + size.config().earlyBorrowerExitFee);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        _borrowAsLimitOrder(bob, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
+        _borrowAsLimitOrder(bob, 0.03e18, block.timestamp + 12 days);
 
         Vars memory _before = _state();
 
@@ -94,9 +94,9 @@ contract BorrowerExitTest is BaseTest {
         _deposit(bob, weth, 2 * 150e18);
         _deposit(bob, usdc, 100e6 + size.config().earlyBorrowerExitFee);
         _deposit(candy, weth, 150e18);
-        _lendAsLimitOrder(alice, 12, 1e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        _borrowAsLimitOrder(candy, 0, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
+        _borrowAsLimitOrder(candy, 0, block.timestamp + 12 days);
 
         vm.startPrank(bob);
         vm.expectRevert(

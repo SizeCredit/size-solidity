@@ -18,11 +18,11 @@ contract SelfLiquidateValidationTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(bob, candy, 100e6, 12);
+        _borrowAsMarketOrder(bob, candy, 100e6, block.timestamp + 12 days);
 
         vm.startPrank(alice);
         vm.expectRevert(

@@ -87,8 +87,8 @@ contract WithdrawTest is BaseTest {
         _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
@@ -153,9 +153,9 @@ contract WithdrawTest is BaseTest {
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
         uint256 rate = 1;
-        _lendAsLimitOrder(alice, 12, int256(rate), 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, int256(rate));
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 12 days);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
 
         _setPrice(0.125e18);
@@ -172,8 +172,8 @@ contract WithdrawTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(alice, weth, 160e18);
-        _borrowAsLimitOrder(alice, 1e18, 12);
-        _lendAsMarketOrder(alice, alice, 100e6, 12);
+        _borrowAsLimitOrder(alice, 1e18, block.timestamp + 12 days);
+        _lendAsMarketOrder(alice, alice, 100e6, block.timestamp + 12 days);
         _withdraw(alice, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
     }
@@ -183,8 +183,8 @@ contract WithdrawTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
-        _borrowAsLimitOrder(bob, 1e18, 12);
-        _lendAsMarketOrder(alice, bob, 100e6, 12);
+        _borrowAsLimitOrder(bob, 1e18, block.timestamp + 12 days);
+        _lendAsMarketOrder(alice, bob, 100e6, block.timestamp + 12 days);
         _withdraw(bob, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
     }

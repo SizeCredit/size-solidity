@@ -62,6 +62,22 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     function _lendAsLimitOrder(
         address lender,
         uint256 maxDueDate,
+        int256[1] memory ratesArray,
+        uint256[1] memory maturitiesArray
+    ) internal {
+        int256[] memory rates = new int256[](1);
+        uint256[] memory maturities = new uint256[](1);
+        int256[] memory marketRateMultipliers = new int256[](1);
+        rates[0] = ratesArray[0];
+        maturities[0] = maturitiesArray[0];
+        YieldCurve memory curveRelativeTime =
+            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, rates: rates});
+        return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
+    }
+
+    function _lendAsLimitOrder(
+        address lender,
+        uint256 maxDueDate,
         int256[2] memory ratesArray,
         uint256[2] memory maturitiesArray
     ) internal {
@@ -77,10 +93,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
-    function _lendAsLimitOrder(address lender, uint256 maxDueDate, int256 rate, uint256 numberOfMaturities) internal {
-        YieldCurve memory curveRelativeTime =
-            YieldCurveHelper.customCurve(1 days, rate, numberOfMaturities * 1 days, rate);
-        return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
+    function _lendAsLimitOrder(address lender, uint256 maxDueDate, int256 rate) internal {
+        return _lendAsLimitOrder(lender, maxDueDate, [rate], [maxDueDate - block.timestamp]);
     }
 
     function _lendAsLimitOrder(address lender, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {

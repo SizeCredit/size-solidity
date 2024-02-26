@@ -63,9 +63,9 @@ contract MulticallTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
 
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 faceValue = size.faceValue(debtPositionId);
         uint256 repayFee = size.repayFee(debtPositionId);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());

@@ -30,10 +30,10 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 12 days);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 12 days);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 repayFee = size.repayFee(debtPositionId);
         uint256 delta = faceValue - amount;
@@ -71,10 +71,10 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 0.01e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _borrowAsLimitOrder(candy, 0.01e18, block.timestamp + 12 days);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 12 days);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 newAmount = Math.mulDivDown(faceValue, PERCENT, (PERCENT + 0.01e18));
         uint256 repayFee = size.repayFee(debtPositionId);
@@ -111,9 +111,9 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 0.03e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 12 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, block.timestamp + 12 days);
 
         _setPrice(0.2e18);
 
@@ -141,9 +141,9 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.03e18, 30);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, block.timestamp + 12 days);
 
         _setPrice(0.2e18);
 
@@ -151,9 +151,9 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         vm.startPrank(liquidator);
 
-        vm.warp(block.timestamp + 12);
+        vm.warp(block.timestamp + 12 days);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 12));
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp + 12 days));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,

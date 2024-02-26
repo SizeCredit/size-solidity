@@ -15,15 +15,15 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 24);
-        _lendAsLimitOrder(bob, 5, 0.03e18, 5);
-        _lendAsLimitOrder(candy, 10, 0.03e18, 10);
-        uint256 debtPositionId = _borrowAsMarketOrder(alice, candy, 5e6, 10);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _lendAsLimitOrder(bob, block.timestamp + 5 days, 0.03e18);
+        _lendAsLimitOrder(candy, block.timestamp + 10 days, 0.03e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, candy, 5e6, 10 days);
 
         uint256 deadline = block.timestamp;
 
         uint256 amount = 10e6;
-        uint256 dueDate = 12;
+        uint256 dueDate = 12 days;
         bool exactAmountIn = false;
         uint256[] memory receivableCreditPositionIds;
 
@@ -67,7 +67,9 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector, 13, 12));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector, 13, block.timestamp + 12 days)
+        );
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,

@@ -3,7 +3,6 @@ pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
