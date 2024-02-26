@@ -65,13 +65,13 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         int256[1] memory ratesArray,
         uint256[1] memory maturitiesArray
     ) internal {
-        int256[] memory rates = new int256[](1);
+        int256[] memory aprs = new int256[](1);
         uint256[] memory maturities = new uint256[](1);
         int256[] memory marketRateMultipliers = new int256[](1);
-        rates[0] = ratesArray[0];
+        aprs[0] = ratesArray[0];
         maturities[0] = maturitiesArray[0];
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, rates: rates});
+            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
@@ -81,15 +81,15 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         int256[2] memory ratesArray,
         uint256[2] memory maturitiesArray
     ) internal {
-        int256[] memory rates = new int256[](2);
+        int256[] memory aprs = new int256[](2);
         uint256[] memory maturities = new uint256[](2);
         int256[] memory marketRateMultipliers = new int256[](2);
-        rates[0] = ratesArray[0];
-        rates[1] = ratesArray[1];
+        aprs[0] = ratesArray[0];
+        aprs[1] = ratesArray[1];
         maturities[0] = maturitiesArray[0];
         maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, rates: rates});
+            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
@@ -203,15 +203,15 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     function _borrowAsLimitOrder(address borrower, int256[2] memory ratesArray, uint256[2] memory maturitiesArray)
         internal
     {
-        int256[] memory rates = new int256[](2);
+        int256[] memory aprs = new int256[](2);
         uint256[] memory maturities = new uint256[](2);
         int256[] memory marketRateMultipliers = new int256[](2);
-        rates[0] = ratesArray[0];
-        rates[1] = ratesArray[1];
+        aprs[0] = ratesArray[0];
+        aprs[1] = ratesArray[1];
         maturities[0] = maturitiesArray[0];
         maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, rates: rates});
+            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
         return _borrowAsLimitOrder(borrower, curveRelativeTime);
     }
 

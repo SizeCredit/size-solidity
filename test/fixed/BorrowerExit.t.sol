@@ -141,7 +141,7 @@ contract BorrowerExitTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 1000e6, dueDate);
 
         assertEq(size.repayFee(debtPositionId), 1e6);
-        assertEqApprox(size.getDebtPosition(debtPositionId).rate, 0.1e18, 1);
+        assertEqApprox(size.getDebtPosition(debtPositionId).ratePerMaturity, 0.1e18, 1);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
         assertEq(_state().alice.debtAmount, 1101e6);
@@ -159,7 +159,7 @@ contract BorrowerExitTest is BaseTest {
         uint256 newIssuanceValue = Math.mulDivUp(1100e6, 1e18, 1e18 + 0.25e18);
         uint256 newRepayFee = Math.mulDivUp(0.005e18 * newIssuanceValue, 43 days, 365 days * 1e18);
         assertEq(size.repayFee(debtPositionId), newRepayFee);
-        assertEqApprox(size.getDebtPosition(debtPositionId).rate, 0.25e18, 1);
+        assertEqApprox(size.getDebtPosition(debtPositionId).ratePerMaturity, 0.25e18, 1);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate + 30 days);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
         assertEqApprox(size.faceValue(debtPositionId), 1100e6, 2);

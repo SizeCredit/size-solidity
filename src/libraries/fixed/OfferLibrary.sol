@@ -18,12 +18,12 @@ struct BorrowOffer {
 library OfferLibrary {
     function isNull(LoanOffer memory self) internal pure returns (bool) {
         return self.maxDueDate == 0 && self.curveRelativeTime.maturities.length == 0
-            && self.curveRelativeTime.rates.length == 0;
+            && self.curveRelativeTime.aprs.length == 0;
     }
 
     function isNull(BorrowOffer memory self) internal pure returns (bool) {
         return self.openingLimitBorrowCR == 0 && self.curveRelativeTime.maturities.length == 0
-            && self.curveRelativeTime.rates.length == 0;
+            && self.curveRelativeTime.aprs.length == 0;
     }
 
     function getRatePerMaturity(LoanOffer memory self, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)

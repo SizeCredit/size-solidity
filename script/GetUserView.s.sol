@@ -32,16 +32,16 @@ contract GetUserViewScript is Script, Logger {
         maturities[0] = 1 days;
         maturities[1] = 3 days;
 
-        int256[] memory rates = new int256[](2);
-        rates[0] = 0.1e18;
-        rates[1] = 0.2e18;
+        int256[] memory aprs = new int256[](2);
+        aprs[0] = 0.1e18;
+        aprs[1] = 0.2e18;
 
         int256[] memory marketRateMultipliers = new int256[](2);
         marketRateMultipliers[0] = 1e18;
         marketRateMultipliers[1] = 1e18;
 
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
+            YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
         LoanOffer memory offer =
             LoanOffer({maxDueDate: block.timestamp + 30 days, curveRelativeTime: curveRelativeTime});
 

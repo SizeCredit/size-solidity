@@ -32,7 +32,7 @@ library Events {
         address indexed lender,
         address indexed borrower,
         uint256 issuanceValue,
-        uint256 rate,
+        uint256 ratePerMaturity,
         uint256 dueDate
     );
     event CreateCreditPosition(

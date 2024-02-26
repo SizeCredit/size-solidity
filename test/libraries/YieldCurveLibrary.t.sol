@@ -62,7 +62,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 interval = curve.maturities[0];
         uint256 rate = YieldCurveLibrary.getRatePerMaturity(curve, marketBorrowRateFeed, block.timestamp + interval);
         assertEqApprox(
-            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.rates[0], interval)), TOLERANCE_WAD
+            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.aprs[0], interval)), TOLERANCE_WAD
         );
     }
 
@@ -72,7 +72,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 rate = YieldCurveLibrary.getRatePerMaturity(curve, marketBorrowRateFeed, block.timestamp + interval);
         assertEqApprox(
             rate,
-            SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.rates[curve.rates.length - 1], interval)),
+            SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.aprs[curve.aprs.length - 1], interval)),
             TOLERANCE_WAD
         );
     }
@@ -82,7 +82,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 interval = curve.maturities[2];
         uint256 rate = YieldCurveLibrary.getRatePerMaturity(curve, marketBorrowRateFeed, block.timestamp + interval);
         assertEqApprox(
-            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.rates[2], interval)), TOLERANCE_WAD
+            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.aprs[2], interval)), TOLERANCE_WAD
         );
     }
 
@@ -91,7 +91,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 interval = curve.maturities[1];
         uint256 rate = YieldCurveLibrary.getRatePerMaturity(curve, marketBorrowRateFeed, block.timestamp + interval);
         assertEqApprox(
-            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.rates[1], interval)), TOLERANCE_WAD
+            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.aprs[1], interval)), TOLERANCE_WAD
         );
     }
 
@@ -100,7 +100,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 interval = curve.maturities[3];
         uint256 rate = YieldCurveLibrary.getRatePerMaturity(curve, marketBorrowRateFeed, block.timestamp + interval);
         assertEqApprox(
-            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.rates[3], interval)), TOLERANCE_WAD
+            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.aprs[3], interval)), TOLERANCE_WAD
         );
     }
 
@@ -158,8 +158,8 @@ contract YieldCurveTest is Test, AssertsHelper {
         interval = bound(interval, curve.maturities[p0], curve.maturities[p1]);
         uint256 min = type(uint256).max;
         uint256 max = 0;
-        for (uint256 i = 0; i < curve.rates.length; i++) {
-            uint256 rate = SafeCast.toUint256(curve.rates[i]);
+        for (uint256 i = 0; i < curve.aprs.length; i++) {
+            uint256 rate = SafeCast.toUint256(curve.aprs[i]);
             if (rate < min) {
                 min = rate;
             }

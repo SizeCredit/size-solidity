@@ -69,9 +69,9 @@ library BorrowAsMarketOrder {
         }
 
         // validate params.maxRatePerMaturity
-        uint256 rate = loanOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
-        if (rate > params.maxRatePerMaturity) {
-            revert Errors.RATE_PER_MATURITY_GREATER_THAN_MAX_RATE(rate, params.maxRatePerMaturity);
+        uint256 ratePerMaturity = loanOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
+        if (ratePerMaturity > params.maxRatePerMaturity) {
+            revert Errors.RATE_PER_MATURITY_GREATER_THAN_MAX_RATE(ratePerMaturity, params.maxRatePerMaturity);
         }
 
         // validate params.exactAmountIn
@@ -115,19 +115,20 @@ library BorrowAsMarketOrder {
 
         LoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        uint256 rate = loanOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
+        uint256 ratePerMaturity = loanOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
 
-        amountOutLeft = params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, PERCENT + rate) : params.amount;
+        amountOutLeft =
+            params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, PERCENT + ratePerMaturity) : params.amount;
 
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
             uint256 creditPositionId = params.receivableCreditPositionIds[i];
             CreditPosition memory creditPosition = state.data.creditPositions[creditPositionId];
 
-            uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, PERCENT + rate, PERCENT);
+            uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, PERCENT + ratePerMaturity, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
             if (deltaAmountIn > creditPosition.credit) {
                 deltaAmountIn = creditPosition.credit;
-                deltaAmountOut = Math.mulDivDown(creditPosition.credit, PERCENT, PERCENT + rate);
+                deltaAmountOut = Math.mulDivDown(creditPosition.credit, PERCENT, PERCENT + ratePerMaturity);
             }
 
             // the lender doesn't have enought credit to exit
@@ -163,7 +164,7 @@ library BorrowAsMarketOrder {
 
         LoanOffer storage loanOffer = lenderUser.loanOffer;
 
-        uint256 rate = loanOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
+        uint256 ratePerMaturity = loanOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
         uint256 issuanceValue = params.amount;
 
         // slither-disable-next-line unused-return
@@ -171,7 +172,7 @@ library BorrowAsMarketOrder {
             lender: params.lender,
             borrower: msg.sender,
             issuanceValue: issuanceValue,
-            rate: rate,
+            ratePerMaturity: ratePerMaturity,
             dueDate: params.dueDate
         });
 

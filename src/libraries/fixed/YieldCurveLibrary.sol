@@ -8,28 +8,27 @@ import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 
 struct YieldCurve {
     uint256[] maturities;
-    int256[] rates;
+    int256[] aprs;
     int256[] marketRateMultipliers;
 }
 
 /// @title YieldCurveLibrary
 /// @notice A library for working with yield curves
 ///         The yield curve is defined as following:
-///         R[t] = rates[t] + marketRateMultipliers[t] * marketRate,
+///         R[t] = aprs[t] + marketRateMultipliers[t] * marketRate,
 ///         for all t in `maturities`, with `marketRate` defined by an external oracle
-/// @dev The final rate is an unsigned integer, as it is a percentage
+/// @dev The final rate per maturity is an unsigned integer, as it is a percentage
 library YieldCurveLibrary {
     // @audit Check if we should have a protocol-defined minimum maturity
     function validateYieldCurve(YieldCurve memory self) internal pure {
-        if (self.maturities.length == 0 || self.rates.length == 0 || self.marketRateMultipliers.length == 0) {
+        if (self.maturities.length == 0 || self.aprs.length == 0 || self.marketRateMultipliers.length == 0) {
             revert Errors.NULL_ARRAY();
         }
-        if (self.maturities.length != self.rates.length || self.maturities.length != self.marketRateMultipliers.length)
-        {
+        if (self.maturities.length != self.aprs.length || self.maturities.length != self.marketRateMultipliers.length) {
             revert Errors.ARRAY_LENGTHS_MISMATCH();
         }
 
-        // validate curveRelativeTime.rates
+        // validate curveRelativeTime.aprs
         // N/A
 
         // validate curveRelativeTime.maturities
@@ -53,19 +52,19 @@ library YieldCurveLibrary {
     ///      Only query the market borrow rate feed oracle if the market rate multiplier is not 0
     ///      Converts the market borrow rate from compound to linear interest
     /// @param maturity The maturity
-    /// @param rate The annual percentage rate from the yield curve (linear interest)
+    /// @param apr The annual percentage rate from the yield curve (linear interest)
     /// @param marketBorrowRateFeed The market borrow rate feed
     /// @param marketRateMultiplier The market rate multiplier
     /// @return Returns rate + (marketRate * marketRateMultiplier) / PERCENT for the given maturity
     function getRatePerMaturity(
         uint256 maturity,
-        int256 rate,
+        int256 apr,
         int256 marketRateMultiplier,
         IMarketBorrowRateFeed marketBorrowRateFeed
     ) internal view returns (uint256) {
         // @audit Check if the result should be capped to 0 instead of reverting
 
-        int256 ratePerMaturity = Math.linearAPRToRatePerMaturity(rate, maturity);
+        int256 ratePerMaturity = Math.linearAPRToRatePerMaturity(apr, maturity);
 
         if (marketRateMultiplier == 0) {
             return SafeCast.toUint256(ratePerMaturity);
@@ -103,14 +102,14 @@ library YieldCurveLibrary {
             uint256 x0 = curveRelativeTime.maturities[low];
             uint256 y0 = getRatePerMaturity(
                 curveRelativeTime.maturities[low],
-                curveRelativeTime.rates[low],
+                curveRelativeTime.aprs[low],
                 curveRelativeTime.marketRateMultipliers[low],
                 marketBorrowRateFeed
             );
             uint256 x1 = curveRelativeTime.maturities[high];
             uint256 y1 = getRatePerMaturity(
                 curveRelativeTime.maturities[high],
-                curveRelativeTime.rates[high],
+                curveRelativeTime.aprs[high],
                 curveRelativeTime.marketRateMultipliers[high],
                 marketBorrowRateFeed
             );

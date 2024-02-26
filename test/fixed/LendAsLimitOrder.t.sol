@@ -33,9 +33,9 @@ contract LendAsLimitOrderTest is BaseTest {
         uint256[] memory maturities = new uint256[](2);
         maturities[0] = 30 days;
         maturities[1] = 60 days;
-        int256[] memory rates = new int256[](2);
-        rates[0] = 0.15e18;
-        rates[0] = 0.12e18;
+        int256[] memory aprs = new int256[](2);
+        aprs[0] = 0.15e18;
+        aprs[0] = 0.12e18;
 
         vm.prank(alice);
         size.lendAsLimitOrder(
@@ -44,7 +44,7 @@ contract LendAsLimitOrderTest is BaseTest {
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
                     marketRateMultipliers: marketRateMultipliers,
-                    rates: rates
+                    aprs: aprs
                 })
             })
         );

@@ -18,16 +18,16 @@ contract BorrowAsLimitOrderTest is BaseTest {
         uint256[] memory maturities = new uint256[](2);
         maturities[0] = 1 days;
         maturities[1] = 2 days;
-        int256[] memory rates = new int256[](2);
-        rates[0] = 1.01e18;
-        rates[1] = 1.02e18;
+        int256[] memory aprs = new int256[](2);
+        aprs[0] = 1.01e18;
+        aprs[1] = 1.02e18;
         int256[] memory marketRateMultipliers = new int256[](2);
         uint256 openingLimitBorrowCR = 1.5e18;
         assertTrue(_state().alice.user.borrowOffer.isNull());
         _borrowAsLimitOrder(
             alice,
             openingLimitBorrowCR,
-            YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers})
+            YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers})
         );
 
         assertTrue(!_state().alice.user.borrowOffer.isNull());
@@ -40,17 +40,17 @@ contract BorrowAsLimitOrderTest is BaseTest {
     ) public {
         buckets = bound(buckets, 1, 365);
         uint256[] memory maturities = new uint256[](buckets);
-        int256[] memory rates = new int256[](buckets);
+        int256[] memory aprs = new int256[](buckets);
         int256[] memory marketRateMultipliers = new int256[](buckets);
 
         for (uint256 i = 0; i < buckets; i++) {
             maturities[i] = (i + 1) * 1 days;
-            rates[i] = int256(bound(uint256(keccak256(abi.encode(seed, i))), 0, 10e18));
+            aprs[i] = int256(bound(uint256(keccak256(abi.encode(seed, i))), 0, 10e18));
         }
         _borrowAsLimitOrder(
             alice,
             openingLimitBorrowCR,
-            YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers})
+            YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers})
         );
     }
 
@@ -62,15 +62,15 @@ contract BorrowAsLimitOrderTest is BaseTest {
         uint256[] memory maturities = new uint256[](2);
         maturities[0] = 1 days;
         maturities[1] = 2 days;
-        int256[] memory rates = new int256[](2);
-        rates[0] = 0e18;
-        rates[1] = 1e18;
+        int256[] memory aprs = new int256[](2);
+        aprs[0] = 0e18;
+        aprs[1] = 1e18;
         int256[] memory marketRateMultipliers = new int256[](2);
         uint256 openingLimitBorrowCR = 1.7e18;
         _borrowAsLimitOrder(
             alice,
             openingLimitBorrowCR,
-            YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers})
+            YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers})
         );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.5e18, 1.7e18));
@@ -96,15 +96,15 @@ contract BorrowAsLimitOrderTest is BaseTest {
         uint256[] memory maturities = new uint256[](2);
         maturities[0] = 1 days;
         maturities[1] = 2 days;
-        int256[] memory rates = new int256[](2);
-        rates[0] = 0e18;
-        rates[1] = 1e18;
+        int256[] memory aprs = new int256[](2);
+        aprs[0] = 0e18;
+        aprs[1] = 1e18;
         int256[] memory marketRateMultipliers = new int256[](2);
         uint256 openingLimitBorrowCR = 1.3e18;
         _borrowAsLimitOrder(
             alice,
             openingLimitBorrowCR,
-            YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers})
+            YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers})
         );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.4e18, 1.5e18));

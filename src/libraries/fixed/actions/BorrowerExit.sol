@@ -41,8 +41,8 @@ library BorrowerExit {
             revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
         }
 
-        uint256 rate = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, dueDate);
-        uint256 issuanceValue = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + rate);
+        uint256 ratePerMaturity = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 issuanceValue = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + ratePerMaturity);
 
         // validate msg.sender
         if (msg.sender != debtPosition.borrower) {
@@ -60,8 +60,8 @@ library BorrowerExit {
         }
 
         // validate rate
-        if (rate < params.minRatePerMaturity) {
-            revert Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(rate, params.minRatePerMaturity);
+        if (ratePerMaturity < params.minRatePerMaturity) {
+            revert Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(ratePerMaturity, params.minRatePerMaturity);
         }
 
         // validate borrowerToExitTo
@@ -74,10 +74,11 @@ library BorrowerExit {
         BorrowOffer storage borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
         DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
 
-        uint256 rate = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
+        uint256 ratePerMaturity =
+            borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
 
         uint256 faceValue = debtPosition.faceValue();
-        uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
+        uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + ratePerMaturity);
 
         state.chargeEarlyRepayFeeInCollateral(debtPosition);
         state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee);
@@ -87,7 +88,7 @@ library BorrowerExit {
         debtPosition.borrower = params.borrowerToExitTo;
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
-        debtPosition.rate = rate;
+        debtPosition.ratePerMaturity = ratePerMaturity;
 
         state.data.debtToken.mint(params.borrowerToExitTo, debtPosition.getDebt());
     }

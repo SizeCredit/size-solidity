@@ -15,7 +15,7 @@ struct DebtPosition {
     address lender;
     address borrower;
     uint256 issuanceValue; // updated on repayment
-    uint256 rate;
+    uint256 ratePerMaturity;
     uint256 repayFeeAPR;
     uint256 startDate; // updated opon borrower replacement
     uint256 dueDate;
@@ -59,7 +59,7 @@ library LoanLibrary {
     }
 
     function faceValue(DebtPosition memory self) internal pure returns (uint256) {
-        return Math.mulDivUp(self.issuanceValue, PERCENT + self.rate, PERCENT);
+        return Math.mulDivUp(self.issuanceValue, PERCENT + self.ratePerMaturity, PERCENT);
     }
 
     function getDebtPositionIdByCreditPositionId(State storage state, uint256 creditPositionId)
