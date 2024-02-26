@@ -15,17 +15,21 @@ abstract contract AssertsHelper is Test {
         assertEq(a.candy, b.candy);
         assertEq(a.james, b.james);
         assertEq(a.liquidator, b.liquidator);
-        assertEq(a.variablePool.collateralAmount, b.variablePool.collateralAmount, "variablePool.collateralAmount");
-        assertEq(a.variablePool.borrowAmount, b.variablePool.borrowAmount, "variablePool.borrowAmount");
-        assertEq(a.feeRecipient.collateralAmount, b.feeRecipient.collateralAmount, "feeRecipient.collateralAmount");
-        assertEq(a.feeRecipient.borrowAmount, b.feeRecipient.borrowAmount, "feeRecipient.borrowAmount");
+        assertEq(a.variablePool.collateralBalance, b.variablePool.collateralBalance, "variablePool.collateralBalance");
+        assertEq(
+            a.variablePool.borrowATokenBalance, b.variablePool.borrowATokenBalance, "variablePool.borrowATokenBalance"
+        );
+        assertEq(a.feeRecipient.collateralBalance, b.feeRecipient.collateralBalance, "feeRecipient.collateralBalance");
+        assertEq(
+            a.feeRecipient.borrowATokenBalance, b.feeRecipient.borrowATokenBalance, "feeRecipient.borrowATokenBalance"
+        );
     }
 
     function assertEq(UserView memory a, UserView memory b) internal {
         assertEq(a.account, b.account, "account");
-        assertEq(a.collateralAmount, b.collateralAmount, "collateralAmount");
-        assertEq(a.borrowAmount, b.borrowAmount, "borrowAmount");
-        assertEq(a.debtAmount, b.debtAmount, "debtAmount");
+        assertEq(a.collateralBalance, b.collateralBalance, "collateralBalance");
+        assertEq(a.borrowATokenBalance, b.borrowATokenBalance, "borrowATokenBalance");
+        assertEq(a.debtBalance, b.debtBalance, "debtBalance");
     }
 
     function assertEqApprox(uint256 a, uint256 b, uint256 tolerance) internal {

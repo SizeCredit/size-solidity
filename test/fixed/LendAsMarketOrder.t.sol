@@ -39,9 +39,9 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.faceValue(debtPositionId), faceValue);
         assertEq(size.getDebt(debtPositionId), faceValue + repayFee);
@@ -68,9 +68,9 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.faceValue(debtPositionId), faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
@@ -99,9 +99,9 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amountIn);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - amountIn);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.faceValue(debtPositionId), faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);

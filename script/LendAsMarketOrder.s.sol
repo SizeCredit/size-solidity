@@ -34,7 +34,7 @@ contract LendAsMarketOrderScript is Script, Logger {
             minRatePerMaturity: rate,
             exactAmountIn: false
         });
-        console.log("lender USDC", sizeContract.getUserView(lender).borrowAmount);
+        console.log("lender USDC", sizeContract.getUserView(lender).borrowATokenBalance);
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.lendAsMarketOrder(params);
         vm.stopBroadcast();

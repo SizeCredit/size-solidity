@@ -83,18 +83,18 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         users[4] = address(variablePool);
         users[5] = address(size.config().feeRecipient);
 
-        uint256 borrowAmount;
-        uint256 collateralAmount;
+        uint256 borrowATokenBalance;
+        uint256 collateralBalance;
 
         for (uint256 i = 0; i < users.length; i++) {
             UserView memory userView = size.getUserView(users[i]);
-            borrowAmount += userView.borrowAmount;
-            collateralAmount += userView.collateralAmount;
+            borrowATokenBalance += userView.borrowATokenBalance;
+            collateralBalance += userView.collateralBalance;
         }
 
         if (
-            (usdc.balanceOf(address(variablePool)) != (borrowAmount))
-                || (weth.balanceOf(address(size)) != collateralAmount)
+            (usdc.balanceOf(address(variablePool)) != (borrowATokenBalance))
+                || (weth.balanceOf(address(size)) != collateralBalance)
         ) {
             t(false, TOKENS_01);
             return false;

@@ -46,8 +46,8 @@ abstract contract Logger {
                 userView.user.loanOffer.curveRelativeTime.marketRateMultipliers[i]
             );
         }
-        console.log("collateralAmount", userView.collateralAmount);
-        console.log("borrowAmount", userView.borrowAmount);
-        console.log("debtAmount", userView.debtAmount);
+        console.log("collateralBalance", userView.collateralBalance);
+        console.log("borrowATokenBalance", userView.borrowATokenBalance);
+        console.log("debtBalance", userView.debtBalance);
     }
 }

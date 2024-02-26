@@ -16,14 +16,14 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, address(usdc), 12e6);
         _deposit(alice, address(weth), 23e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, 12e6);
-        assertEq(aliceUser.collateralAmount, 23e18);
+        assertEq(aliceUser.borrowATokenBalance, 12e6);
+        assertEq(aliceUser.collateralBalance, 23e18);
 
         _withdraw(alice, address(usdc), 9e6);
         _withdraw(alice, address(weth), 7e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, 3e6);
-        assertEq(aliceUser.collateralAmount, 16e18);
+        assertEq(aliceUser.borrowATokenBalance, 3e6);
+        assertEq(aliceUser.collateralBalance, 16e18);
     }
 
     function testFuzz_Withdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
@@ -38,8 +38,8 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, address(usdc), x * 1e6);
         _deposit(alice, address(weth), y * 1e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, x * 1e6);
-        assertEq(aliceUser.collateralAmount, y * 1e18);
+        assertEq(aliceUser.borrowATokenBalance, x * 1e6);
+        assertEq(aliceUser.collateralBalance, y * 1e18);
 
         z = bound(z, 1, x);
         w = bound(w, 1, y);
@@ -47,8 +47,8 @@ contract WithdrawTest is BaseTest {
         _withdraw(alice, address(usdc), z * 1e6);
         _withdraw(alice, address(weth), w * 1e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, (x - z) * 1e6);
-        assertEq(aliceUser.collateralAmount, (y - w) * 1e18);
+        assertEq(aliceUser.borrowATokenBalance, (x - z) * 1e6);
+        assertEq(aliceUser.collateralBalance, (y - w) * 1e18);
     }
 
     function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
@@ -164,8 +164,8 @@ contract WithdrawTest is BaseTest {
         _withdraw(liquidator, usdc, type(uint256).max);
 
         assertEq(usdc.balanceOf(liquidator), liquidatorAmount - faceValue);
-        assertEq(_state().variablePool.borrowAmount, 0);
-        assertGt(_state().feeRecipient.collateralAmount, 0);
+        assertEq(_state().variablePool.borrowATokenBalance, 0);
+        assertGt(_state().feeRecipient.collateralBalance, 0);
     }
 
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_self_borrow() public {

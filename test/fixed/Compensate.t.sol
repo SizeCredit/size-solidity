@@ -137,6 +137,6 @@ contract CompensateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e6, 200e6);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6, 200e6);
     }
 }

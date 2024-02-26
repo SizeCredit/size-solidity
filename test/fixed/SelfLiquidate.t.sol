@@ -42,9 +42,9 @@ contract SelfLiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - 150e18, 0);
-        assertEq(_after.alice.collateralAmount, _before.alice.collateralAmount + 150e18);
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e6);
+        assertEq(_after.bob.collateralBalance, _before.bob.collateralBalance - 150e18, 0);
+        assertEq(_after.alice.collateralBalance, _before.alice.collateralBalance + 150e18);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
     }
 
     function test_SelfLiquidate_selfliquidate_CreditPosition_keeps_accounting_in_check() public {
@@ -89,10 +89,10 @@ contract SelfLiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.collateralAmount, _before.bob.collateralAmount - 150e18, 0);
-        assertEq(_after.candy.collateralAmount, _before.candy.collateralAmount + 150e18);
-        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount);
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - 100e6);
+        assertEq(_after.bob.collateralBalance, _before.bob.collateralBalance - 150e18, 0);
+        assertEq(_after.candy.collateralBalance, _before.candy.collateralBalance + 150e18);
+        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
     }
 
     function test_SelfLiquidate_selfliquidate_DebtPosition_should_not_leave_dust_loan_when_no_exits() public {
