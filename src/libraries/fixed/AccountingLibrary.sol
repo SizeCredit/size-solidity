@@ -51,7 +51,7 @@ library AccountingLibrary {
     }
 
     function chargeRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition, uint256 repayAmount)
-        internal
+        external
     {
         uint256 repayFee = debtPosition.partialRepayFee(repayAmount);
         uint256 repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
@@ -76,7 +76,7 @@ library AccountingLibrary {
         uint256 issuanceValue,
         uint256 rate,
         uint256 dueDate
-    ) public returns (DebtPosition memory debtPosition, CreditPosition memory creditPosition) {
+    ) external returns (DebtPosition memory debtPosition, CreditPosition memory creditPosition) {
         debtPosition = DebtPosition({
             lender: lender,
             borrower: borrower,
@@ -115,7 +115,7 @@ library AccountingLibrary {
         address lender,
         address borrower,
         uint256 credit
-    ) public returns (CreditPosition memory creditPosition) {
+    ) external returns (CreditPosition memory creditPosition) {
         uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
         CreditPosition storage exitPosition = state.data.creditPositions[exitCreditPositionId];
 

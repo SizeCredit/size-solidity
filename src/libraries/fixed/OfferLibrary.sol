@@ -2,6 +2,7 @@
 pragma solidity 0.8.24;
 
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 
 struct LoanOffer {
     uint256 maxDueDate;
@@ -21,14 +22,23 @@ library OfferLibrary {
     }
 
     function isNull(BorrowOffer memory self) internal pure returns (bool) {
-        return self.curveRelativeTime.maturities.length == 0 && self.curveRelativeTime.rates.length == 0;
+        return self.openingLimitBorrowCR == 0 && self.curveRelativeTime.maturities.length == 0
+            && self.curveRelativeTime.rates.length == 0;
     }
 
-    function getRate(LoanOffer memory self, uint256 marketRate, uint256 dueDate) internal view returns (uint256) {
-        return YieldCurveLibrary.getRate(self.curveRelativeTime, marketRate, dueDate);
+    function getRate(LoanOffer memory self, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
+        internal
+        view
+        returns (uint256)
+    {
+        return YieldCurveLibrary.getRate(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
     }
 
-    function getRate(BorrowOffer memory self, uint256 marketRate, uint256 dueDate) internal view returns (uint256) {
-        return YieldCurveLibrary.getRate(self.curveRelativeTime, marketRate, dueDate);
+    function getRate(BorrowOffer memory self, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
+        internal
+        view
+        returns (uint256)
+    {
+        return YieldCurveLibrary.getRate(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
     }
 }

@@ -4,6 +4,7 @@ pragma solidity 0.8.24;
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 
 struct YieldCurve {
     uint256[] maturities;
@@ -46,29 +47,41 @@ library YieldCurveLibrary {
 
     /// @notice Get the rate from the yield curve adjusted by the market rate
     /// @dev Reverts if the final result is negative
+    ///      Only query the market borrow rate feed oracle if the market rate multiplier is not 0
+    ///      Converts the market borrow rate from compound to linear interest
+    /// @param maturity The maturity
     /// @param rate The constant rate from the yield curve
-    /// @param marketRate The market rate
+    /// @param marketBorrowRateFeed The market borrow rate feed
     /// @param marketRateMultiplier The market rate multiplier
     /// @return Returns rate + (marketRate * marketRateMultiplier) / PERCENT
-    function getRateAdjustedByMarketRate(int256 rate, uint256 marketRate, int256 marketRateMultiplier)
-        internal
-        pure
-        returns (uint256)
-    {
+    function getRate(
+        uint256 maturity,
+        int256 rate,
+        int256 marketRateMultiplier,
+        IMarketBorrowRateFeed marketBorrowRateFeed
+    ) internal view returns (uint256) {
         // @audit Check if the result should be capped to 0 instead of reverting
-        return SafeCast.toUint256(
-            rate + Math.mulDiv(SafeCast.toInt256(marketRate), marketRateMultiplier, SafeCast.toInt256(PERCENT))
-        );
+
+        if (marketRateMultiplier == 0) {
+            return SafeCast.toUint256(rate);
+        } else {
+            uint128 marketRateCompound = marketBorrowRateFeed.getMarketBorrowRate();
+            uint256 marketRateLinear = Math.compoundRateToLinearRate(marketRateCompound, maturity);
+            return SafeCast.toUint256(
+                rate
+                    + Math.mulDiv(SafeCast.toInt256(marketRateLinear), marketRateMultiplier, SafeCast.toInt256(PERCENT))
+            );
+        }
     }
 
     /// @notice Get the rate from the yield curve by performing a linear interpolation between two time buckets
     /// @dev Reverts if the due date is in the past or out of range
     /// @param curveRelativeTime The yield curve
-    /// @param marketRate The market rate
+    /// @param marketBorrowRateFeed The market borrow rate feed
     /// @param dueDate The due date
     /// @return The rate from the yield curve
-    function getRate(YieldCurve memory curveRelativeTime, uint256 marketRate, uint256 dueDate)
-        internal
+    function getRate(YieldCurve memory curveRelativeTime, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
+        external
         view
         returns (uint256)
     {
@@ -83,12 +96,18 @@ library YieldCurveLibrary {
         } else {
             (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.maturities, interval);
             uint256 x0 = curveRelativeTime.maturities[low];
-            uint256 y0 = getRateAdjustedByMarketRate(
-                curveRelativeTime.rates[low], marketRate, curveRelativeTime.marketRateMultipliers[low]
+            uint256 y0 = getRate(
+                curveRelativeTime.maturities[low],
+                curveRelativeTime.rates[low],
+                curveRelativeTime.marketRateMultipliers[low],
+                marketBorrowRateFeed
             );
             uint256 x1 = curveRelativeTime.maturities[high];
-            uint256 y1 = getRateAdjustedByMarketRate(
-                curveRelativeTime.rates[high], marketRate, curveRelativeTime.marketRateMultipliers[high]
+            uint256 y1 = getRate(
+                curveRelativeTime.maturities[high],
+                curveRelativeTime.rates[high],
+                curveRelativeTime.marketRateMultipliers[high],
+                marketBorrowRateFeed
             );
 
             // @audit Check the rounding direction, as this may lead to debt rounding down

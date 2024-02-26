@@ -2,9 +2,11 @@
 pragma solidity 0.8.24;
 
 import {Math} from "@src/libraries/Math.sol";
+
+import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract MathTest is Test {
+contract MathTest is Test, AssertsHelper {
     function test_Math_min() public {
         assertEq(Math.min(4, 5, 6), 4);
         assertEq(Math.min(4, 6, 5), 4);
@@ -91,5 +93,21 @@ contract MathTest is Test {
         (low, high) = Math.binarySearch(array, 51);
         assertEq(low, type(uint256).max);
         assertEq(high, type(uint256).max);
+    }
+
+    function test_Math_powWadWad() public {
+        uint256 toleranceWAD = 20;
+        assertEq(Math.powWadWad(2e18, 0), 1e18);
+        assertEq(Math.powWadWad(3e18, 0), 1e18);
+        assertEqApprox(Math.powWadWad(2e18, 3), 1e18, toleranceWAD);
+        assertEqApprox(Math.powWadWad(3e18, 2), 1e18, toleranceWAD);
+        assertEqApprox(Math.powWadWad(2e18, 3e18), 8e18, toleranceWAD);
+        assertEqApprox(Math.powWadWad(3e18, 2e18), 9e18, toleranceWAD);
+    }
+
+    function test_Math_compoundRateToLinearRate() public {
+        uint256 toleranceWAD = 1_000;
+        // 7% APY (compound interest) is 0.5576% (linear interest) over the period of 30 days
+        assertEqApprox(Math.compoundRateToLinearRate(0.07e18, 30 days), 0.0055764757837924e18, toleranceWAD);
     }
 }

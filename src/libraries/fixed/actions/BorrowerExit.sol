@@ -41,7 +41,7 @@ library BorrowerExit {
             revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
         }
 
-        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
+        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed, dueDate);
         uint256 issuanceValue = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + rate);
 
         // validate msg.sender
@@ -73,8 +73,7 @@ library BorrowerExit {
         BorrowOffer storage borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
         DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
 
-        uint256 rate =
-            borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), debtPosition.dueDate);
+        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
 
         uint256 faceValue = debtPosition.faceValue();
         uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);

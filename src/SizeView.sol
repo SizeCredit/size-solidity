@@ -241,11 +241,11 @@ abstract contract SizeView is SizeStorage {
 
     function getBorrowOfferRate(address borrower, uint256 dueDate) external view returns (uint256) {
         BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
-        return offer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
+        return offer.getRate(state.oracle.marketBorrowRateFeed, dueDate);
     }
 
     function getLoanOfferRate(address lender, uint256 dueDate) external view returns (uint256) {
         LoanOffer memory offer = state.data.users[lender].loanOffer;
-        return offer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), dueDate);
+        return offer.getRate(state.oracle.marketBorrowRateFeed, dueDate);
     }
 }
