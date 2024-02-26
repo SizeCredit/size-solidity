@@ -5,12 +5,10 @@
     "solhint": "solhint \"src/**/*.sol\"  --max-warnings 0",
     "get-libraries": "(j=$((0x10)); find src/libraries test/helpers/libraries -type f | sed 's/.*\\///' | sed 's/.sol//' | while read i; do echo -n \"($i,$(printf \"0x%x\" $j))\\n\";j=$((j+1));done) | paste -sd, -",
     "deploy-sepolia": "forge script script/Deploy.s.sol --rpc-url sepolia --gas-limit 30000000 --sender $DEPLOYER --account size-testnet-3 --ffi",
-    "coverage": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*' 'script/*' && genhtml lcov.info -o report --branch-coverage && open report/index.html",
-    "typechain": "typechain --target ethers-v5 out/Size.sol/Size.json out/PriceFeed.sol/PriceFeed.json out/MarketBorrowRateFeed.sol/MarketBorrowRateFeed.json out/WETH.sol/WETH.json out/USDC.sol/USDC.json"
+    "coverage": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*' 'script/*' && genhtml lcov.info -o report --branch-coverage && open report/index.html"
   },
   "devDependencies": {
     "@typechain/ethers-v5": "^11.1.2",
-    "solhint": "^4.0.0",
-    "typechain": "^8.3.2"
+    "solhint": "^4.0.0"
   }
 }

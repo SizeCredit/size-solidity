@@ -121,11 +121,11 @@ jobs:
           ./script/prepare_crytic.sh
           ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
 
-  typechain-coverage:
+  abi-coverage:
     strategy:
       fail-fast: true
 
-    name: Typechain/Coverage
+    name: ABI/Coverage
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
@@ -152,14 +152,20 @@ jobs:
           git add README.md
           git commit -m "Update coverage [skip ci]" || true
 
-      - name: Typechain
+      - name: ABI
         run: |
-          forge build
-          npm run typechain
-          git add types/
-          git commit -m "Update types [skip ci]" || true
-        env:
-          token: ${{ secrets.SIZE_BOT_PAT }}
+          forge build --build-info
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: abi
+          path: |
+            out/Size.sol/Size.json
+            out/PriceFeed.sol/PriceFeed.json
+            out/MarketBorrowRateFeed.sol/MarketBorrowRateFeed.json
+            out/WETH.sol/WETH.json
+            out/USDC.sol/USDC.json
 
       - name: Push
         run: |
