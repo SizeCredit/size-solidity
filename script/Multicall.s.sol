@@ -17,7 +17,7 @@ contract MulticallScript is Script {
         Size sizeContract = Size(sizeContractAddress);
 
         uint256 dueDate = block.timestamp + 2 days;
-        uint256 rate = SizeView(address(sizeContract)).getLoanOfferRate(lender, dueDate);
+        uint256 rate = SizeView(address(sizeContract)).getLoanOfferRatePerMaturity(lender, dueDate);
 
         bytes memory depositCall =
             abi.encodeCall(Size.deposit, DepositParams({token: wethAddress, amount: 0.04e18, to: borrower}));
@@ -29,7 +29,7 @@ contract MulticallScript is Script {
                 amount: 51e6,
                 dueDate: dueDate,
                 deadline: block.timestamp,
-                maxRate: rate,
+                maxRatePerMaturity: rate,
                 exactAmountIn: false,
                 receivableCreditPositionIds: new uint256[](0)
             })
@@ -56,14 +56,14 @@ contract MulticallScript is Script {
         maturities[0] = 1 days;
         maturities[1] = 3 days;
 
-        int256[] memory rates = new int256[](2);
-        rates[0] = 0.1e18; // 10%
-        rates[1] = 0.2e18; // 20%
+        int256[] memory aprs = new int256[](2);
+        aprs[0] = 0.1e18; // 10%
+        aprs[1] = 0.2e18; // 20%
 
         int256[] memory marketRateMultipliers = new int256[](2);
         marketRateMultipliers[0] = 1e18; // 1x
         marketRateMultipliers[1] = 1e18; // 1x
 
-        return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
+        return YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }
 }

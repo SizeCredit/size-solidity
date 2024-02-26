@@ -118,14 +118,14 @@ library VariableLibrary {
     /// @param state The state struct
     /// @param from The address of the borrower
     /// @param to The address of the recipient of aTokens
-    /// @param collateralAmount The collateral amount to be supplied to the variable pool
-    /// @param borrowAmount The amount of tokens to borrow
+    /// @param collateralBalance The collateral amount to be supplied to the variable pool
+    /// @param borrowATokenBalance The amount of tokens to borrow
     function _tryBorrowFromVariablePool(
         State storage state,
         address from,
         address to,
-        uint256 collateralAmount,
-        uint256 borrowAmount
+        uint256 collateralBalance,
+        uint256 borrowATokenBalance
     ) internal {
         IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
         IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
@@ -134,11 +134,11 @@ library VariableLibrary {
         Vault vaultTo = getVault(state, to);
 
         // unwrap collateralToken (e.g. szETH) to underlyingCollateralToken (e.g. WETH) from `from` to `address(this)`
-        state.withdrawCollateralToken(from, address(this), collateralAmount);
+        state.withdrawCollateralToken(from, address(this), collateralBalance);
 
         // supply collateral asset
-        state.data.underlyingCollateralToken.forceApprove(address(state.data.variablePool), collateralAmount);
-        state.data.variablePool.supply(address(underlyingCollateralToken), collateralAmount, address(vaultFrom), 0);
+        state.data.underlyingCollateralToken.forceApprove(address(state.data.variablePool), collateralBalance);
+        state.data.variablePool.supply(address(underlyingCollateralToken), collateralBalance, address(vaultFrom), 0);
 
         address[] memory targets = new address[](3);
         bytes[] memory data = new bytes[](3);
@@ -149,18 +149,20 @@ library VariableLibrary {
 
         // borrow
         targets[1] = address(state.data.variablePool);
-        data[1] = abi.encodeCall(IPool.borrow, (address(underlyingBorrowToken), borrowAmount, 2, 0, address(vaultFrom)));
+        data[1] = abi.encodeCall(
+            IPool.borrow, (address(underlyingBorrowToken), borrowATokenBalance, 2, 0, address(vaultFrom))
+        );
 
         // transfer to `address(this)`
         targets[2] = address(state.data.underlyingBorrowToken);
-        data[2] = abi.encodeCall(IERC20.transfer, (address(this), borrowAmount));
+        data[2] = abi.encodeCall(IERC20.transfer, (address(this), borrowATokenBalance));
 
         // slither-disable-next-line unused-return
         vaultFrom.proxy(targets, data);
 
         // supply to `to`
-        underlyingBorrowToken.forceApprove(address(state.data.variablePool), borrowAmount);
-        state.data.variablePool.supply(address(underlyingBorrowToken), borrowAmount, address(vaultTo), 0);
+        underlyingBorrowToken.forceApprove(address(state.data.variablePool), borrowATokenBalance);
+        state.data.variablePool.supply(address(underlyingBorrowToken), borrowATokenBalance, address(vaultTo), 0);
     }
 
     /// @notice Get the balance of aTokens for a user

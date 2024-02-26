@@ -65,7 +65,7 @@ library AccountingLibrary {
         );
 
         // rounding down the deduction means the updated issuanceValue will be rounded up, which means higher fees on the next repayment
-        debtPosition.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + debtPosition.rate);
+        debtPosition.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + debtPosition.ratePerMaturity);
         state.data.debtToken.burn(debtPosition.borrower, repayFee);
     }
 
@@ -74,14 +74,14 @@ library AccountingLibrary {
         address lender,
         address borrower,
         uint256 issuanceValue,
-        uint256 rate,
+        uint256 ratePerMaturity,
         uint256 dueDate
     ) external returns (DebtPosition memory debtPosition, CreditPosition memory creditPosition) {
         debtPosition = DebtPosition({
             lender: lender,
             borrower: borrower,
             issuanceValue: issuanceValue,
-            rate: rate,
+            ratePerMaturity: ratePerMaturity,
             repayFeeAPR: state.config.repayFeeAPR,
             startDate: block.timestamp,
             dueDate: dueDate,
@@ -91,7 +91,7 @@ library AccountingLibrary {
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;
 
-        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, issuanceValue, rate, dueDate);
+        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, issuanceValue, ratePerMaturity, dueDate);
 
         creditPosition = CreditPosition({
             lender: lender,

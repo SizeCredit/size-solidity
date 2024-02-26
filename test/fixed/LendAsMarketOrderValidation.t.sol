@@ -15,9 +15,9 @@ contract LendAsMarketOrderValidationTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, weth, 2 * 150e18);
         _deposit(bob, usdc, 10e6);
-        _borrowAsLimitOrder(alice, 1e18, 12);
+        _borrowAsLimitOrder(alice, [int256(1e18), int256(1e18)], [uint256(365 days), uint256(365 days * 2)]);
 
-        uint256 dueDate = block.timestamp;
+        uint256 dueDate = block.timestamp + 365 days;
 
         vm.startPrank(bob);
 
@@ -28,7 +28,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
                 dueDate: dueDate,
                 amount: 100e6,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 exactAmountIn: false
             })
         );
@@ -40,7 +40,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
                 dueDate: dueDate,
                 amount: 100e6,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 exactAmountIn: false
             })
         );
@@ -52,7 +52,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
                 dueDate: block.timestamp - 1,
                 amount: 100e6,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 exactAmountIn: false
             })
         );
@@ -61,22 +61,22 @@ contract LendAsMarketOrderValidationTest is BaseTest {
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({
                 borrower: alice,
-                dueDate: block.timestamp,
+                dueDate: block.timestamp + 365 days,
                 amount: 10e6,
                 deadline: block.timestamp - 1,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 exactAmountIn: false
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_LOWER_THAN_MIN_RATE.selector, 1e18, 2e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE.selector, 1e18, 2e18));
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({
                 borrower: alice,
-                dueDate: block.timestamp,
+                dueDate: block.timestamp + 365 days,
                 amount: 10e6,
                 deadline: block.timestamp,
-                minRate: 2e18,
+                minRatePerMaturity: 2e18,
                 exactAmountIn: false
             })
         );

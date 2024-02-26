@@ -21,7 +21,7 @@ struct LiquidateWithReplacementParams {
     address borrower;
     uint256 minimumCollateralProfit;
     uint256 deadline;
-    uint256 minRate;
+    uint256 minRatePerMaturity;
 }
 
 library LiquidateWithReplacement {
@@ -38,7 +38,8 @@ library LiquidateWithReplacement {
     {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
-        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
+        uint256 ratePerMaturity =
+            borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
 
         // validate liquidate
         state.validateLiquidate(
@@ -63,9 +64,9 @@ library LiquidateWithReplacement {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate rate
-        if (rate < params.minRate) {
-            revert Errors.RATE_LOWER_THAN_MIN_RATE(rate, params.minRate);
+        // validate minRatePerMaturity
+        if (ratePerMaturity < params.minRatePerMaturity) {
+            revert Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(ratePerMaturity, params.minRatePerMaturity);
         }
     }
 
@@ -101,14 +102,15 @@ library LiquidateWithReplacement {
             })
         );
 
-        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed, debtPositionCopy.dueDate);
-        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.faceValue(), PERCENT, PERCENT + rate);
+        uint256 ratePerMaturity =
+            borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPositionCopy.dueDate);
+        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.faceValue(), PERCENT, PERCENT + ratePerMaturity);
         uint256 liquidatorProfitBorrowAsset = debtPositionCopy.faceValue() - issuanceValue;
 
         debtPosition.borrower = params.borrower;
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
-        debtPosition.rate = rate;
+        debtPosition.ratePerMaturity = ratePerMaturity;
         debtPosition.liquidityIndexAtRepayment = 0;
 
         state.data.debtToken.mint(params.borrower, debtPositionCopy.getDebt());

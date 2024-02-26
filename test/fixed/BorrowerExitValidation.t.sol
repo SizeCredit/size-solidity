@@ -18,14 +18,14 @@ contract BorrowerExitValidationTest is BaseTest {
         _deposit(candy, weth, 150e18);
         _deposit(james, usdc, 100e6);
         _deposit(james, weth, 150e18);
-        _lendAsLimitOrder(alice, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 12, 1e18, 12);
-        _lendAsLimitOrder(james, 12, 1e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
-        _borrowAsLimitOrder(candy, 0, 12);
-        uint256 loanId2 = _borrowAsMarketOrder(candy, james, 50e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        _borrowAsLimitOrder(candy, 0, block.timestamp + 365 days);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, james, 50e6, block.timestamp + 365 days);
         uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
-        _borrowAsMarketOrder(james, candy, 10e6, 12, [creditId2]);
+        _borrowAsMarketOrder(james, candy, 10e6, block.timestamp + 365 days, [creditId2]);
 
         address borrowerToExitTo = candy;
 
@@ -34,7 +34,7 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: borrowerToExitTo
             })
         );
@@ -49,7 +49,7 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: borrowerToExitTo
             })
         );
@@ -61,7 +61,7 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: creditId2,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: borrowerToExitTo
             })
         );
@@ -72,24 +72,24 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: address(0)
             })
         );
         vm.stopPrank();
 
         _deposit(bob, usdc, 200e6);
-        _borrowAsLimitOrder(bob, 2, 12);
-        _borrowAsLimitOrder(candy, 2, 12);
+        _borrowAsLimitOrder(bob, 2, block.timestamp + 365 days);
+        _borrowAsLimitOrder(candy, 2, block.timestamp + 365 days);
 
         vm.startPrank(bob);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_LOWER_THAN_MIN_RATE.selector, 2, 3));
+        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE.selector, 2, 3));
         size.borrowerExit(
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp,
-                minRate: 3,
+                minRatePerMaturity: 3,
                 borrowerToExitTo: bob
             })
         );
@@ -99,18 +99,18 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp - 1,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: bob
             })
         );
 
-        vm.warp(block.timestamp + 12);
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 12));
+        vm.warp(block.timestamp + 365 days);
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp));
         size.borrowerExit(
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: borrowerToExitTo
             })
         );

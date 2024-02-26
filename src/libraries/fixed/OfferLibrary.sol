@@ -18,27 +18,27 @@ struct BorrowOffer {
 library OfferLibrary {
     function isNull(LoanOffer memory self) internal pure returns (bool) {
         return self.maxDueDate == 0 && self.curveRelativeTime.maturities.length == 0
-            && self.curveRelativeTime.rates.length == 0;
+            && self.curveRelativeTime.aprs.length == 0;
     }
 
     function isNull(BorrowOffer memory self) internal pure returns (bool) {
         return self.openingLimitBorrowCR == 0 && self.curveRelativeTime.maturities.length == 0
-            && self.curveRelativeTime.rates.length == 0;
+            && self.curveRelativeTime.aprs.length == 0;
     }
 
-    function getRate(LoanOffer memory self, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
+    function getRatePerMaturity(LoanOffer memory self, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
         internal
         view
         returns (uint256)
     {
-        return YieldCurveLibrary.getRate(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
+        return YieldCurveLibrary.getRatePerMaturity(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
     }
 
-    function getRate(BorrowOffer memory self, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
+    function getRatePerMaturity(BorrowOffer memory self, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
         internal
         view
         returns (uint256)
     {
-        return YieldCurveLibrary.getRate(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
+        return YieldCurveLibrary.getRatePerMaturity(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
     }
 }

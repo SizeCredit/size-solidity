@@ -62,24 +62,39 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     function _lendAsLimitOrder(
         address lender,
         uint256 maxDueDate,
-        int256[2] memory ratesArray,
-        uint256[2] memory maturitiesArray
+        int256[1] memory ratesArray,
+        uint256[1] memory maturitiesArray
     ) internal {
-        int256[] memory rates = new int256[](2);
-        uint256[] memory maturities = new uint256[](2);
-        int256[] memory marketRateMultipliers = new int256[](2);
-        rates[0] = ratesArray[0];
-        rates[1] = ratesArray[1];
+        int256[] memory aprs = new int256[](1);
+        uint256[] memory maturities = new uint256[](1);
+        int256[] memory marketRateMultipliers = new int256[](1);
+        aprs[0] = ratesArray[0];
         maturities[0] = maturitiesArray[0];
-        maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, rates: rates});
+            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
-    function _lendAsLimitOrder(address lender, uint256 maxDueDate, int256 rate, uint256 numberOfMaturities) internal {
-        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(numberOfMaturities, rate);
+    function _lendAsLimitOrder(
+        address lender,
+        uint256 maxDueDate,
+        int256[2] memory ratesArray,
+        uint256[2] memory maturitiesArray
+    ) internal {
+        int256[] memory aprs = new int256[](2);
+        uint256[] memory maturities = new uint256[](2);
+        int256[] memory marketRateMultipliers = new int256[](2);
+        aprs[0] = ratesArray[0];
+        aprs[1] = ratesArray[1];
+        maturities[0] = maturitiesArray[0];
+        maturities[1] = maturitiesArray[1];
+        YieldCurve memory curveRelativeTime =
+            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
         return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
+    }
+
+    function _lendAsLimitOrder(address lender, uint256 maxDueDate, int256 rate) internal {
+        return _lendAsLimitOrder(lender, maxDueDate, [rate], [maxDueDate - block.timestamp]);
     }
 
     function _lendAsLimitOrder(address lender, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {
@@ -136,14 +151,15 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 amount,
         uint256 dueDate,
         uint256 deadline,
-        uint256 maxRate,
+        uint256 maxRatePerMaturity,
         bool exactAmountIn,
         uint256[1] memory ids
     ) internal returns (uint256) {
         uint256[] memory receivableLoanIds = new uint256[](1);
         receivableLoanIds[0] = ids[0];
-        return
-            _borrowAsMarketOrder(borrower, lender, amount, dueDate, deadline, maxRate, exactAmountIn, receivableLoanIds);
+        return _borrowAsMarketOrder(
+            borrower, lender, amount, dueDate, deadline, maxRatePerMaturity, exactAmountIn, receivableLoanIds
+        );
     }
 
     function _borrowAsMarketOrder(
@@ -152,7 +168,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 amount,
         uint256 dueDate,
         uint256 deadline,
-        uint256 maxRate,
+        uint256 maxRatePerMaturity,
         bool exactAmountIn,
         uint256[] memory receivableCreditPositionIds
     ) internal returns (uint256) {
@@ -164,7 +180,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 amount: amount,
                 dueDate: dueDate,
                 deadline: deadline,
-                maxRate: maxRate,
+                maxRatePerMaturity: maxRatePerMaturity,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -184,8 +200,23 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         );
     }
 
-    function _borrowAsLimitOrder(address borrower, int256 rate, uint256 numberOfMaturities) internal {
-        YieldCurve memory curveRelativeTime = YieldCurveHelper.getFlatRate(numberOfMaturities, rate);
+    function _borrowAsLimitOrder(address borrower, int256[2] memory ratesArray, uint256[2] memory maturitiesArray)
+        internal
+    {
+        int256[] memory aprs = new int256[](2);
+        uint256[] memory maturities = new uint256[](2);
+        int256[] memory marketRateMultipliers = new int256[](2);
+        aprs[0] = ratesArray[0];
+        aprs[1] = ratesArray[1];
+        maturities[0] = maturitiesArray[0];
+        maturities[1] = maturitiesArray[1];
+        YieldCurve memory curveRelativeTime =
+            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
+        return _borrowAsLimitOrder(borrower, curveRelativeTime);
+    }
+
+    function _borrowAsLimitOrder(address borrower, int256 rate, uint256 dueDate) internal {
+        YieldCurve memory curveRelativeTime = YieldCurveHelper.pointCurve(dueDate - block.timestamp, rate);
         return _borrowAsLimitOrder(borrower, 0, curveRelativeTime);
     }
 
@@ -218,7 +249,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 amount,
         uint256 dueDate,
         uint256 deadline,
-        uint256 minRate,
+        uint256 minRatePerMaturity,
         bool exactAmountIn
     ) internal returns (uint256 debtPositions) {
         uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
@@ -230,7 +261,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
                 deadline: deadline,
-                minRate: minRate
+                minRatePerMaturity: minRatePerMaturity
             })
         );
         uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
@@ -248,7 +279,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 debtPositionId: debtPositionId,
                 borrowerToExitTo: borrowerToExitTo,
                 deadline: block.timestamp,
-                minRate: 0
+                minRatePerMaturity: 0
             })
         );
     }
@@ -302,7 +333,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit,
                 deadline: block.timestamp,
-                minRate: 0
+                minRatePerMaturity: 0
             })
         );
     }

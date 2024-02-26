@@ -30,10 +30,10 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 365 days);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 repayFee = size.repayFee(debtPositionId);
         uint256 delta = faceValue - amount;
@@ -51,9 +51,9 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
-        assertEq(_after.candy.debtAmount, _before.candy.debtAmount + faceValue + repayFee);
-        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + amount);
-        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
+        assertEq(_after.candy.debtBalance, _before.candy.debtBalance + faceValue + repayFee);
+        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + amount);
+        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
         assertGt(size.getDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
@@ -71,10 +71,10 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 0.01e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        _borrowAsLimitOrder(candy, 0.01e18, block.timestamp + 365 days);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 newAmount = Math.mulDivDown(faceValue, PERCENT, (PERCENT + 0.01e18));
         uint256 repayFee = size.repayFee(debtPositionId);
@@ -93,11 +93,11 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
-        assertEq(_after.candy.debtAmount, _before.candy.debtAmount + faceValue + repayFee);
-        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount + newAmount);
-        assertEq(_before.variablePool.borrowAmount, 0);
-        assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
-        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + delta);
+        assertEq(_after.candy.debtBalance, _before.candy.debtBalance + faceValue + repayFee);
+        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + newAmount);
+        assertEq(_before.variablePool.borrowATokenBalance, 0);
+        assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
+        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
         assertGt(size.getDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
@@ -111,9 +111,9 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 0.03e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, block.timestamp + 365 days);
 
         _setPrice(0.2e18);
 
@@ -125,7 +125,7 @@ contract LiquidateWithReplacementTest is BaseTest {
                 debtPositionId: debtPositionId,
                 borrower: candy,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 minimumCollateralProfit: 0
             })
         );
@@ -141,9 +141,9 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.03e18, 30);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, block.timestamp + 365 days);
 
         _setPrice(0.2e18);
 
@@ -151,15 +151,15 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         vm.startPrank(liquidator);
 
-        vm.warp(block.timestamp + 12);
+        vm.warp(block.timestamp + 365 days + 1);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 12));
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp - 1));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: candy,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 minimumCollateralProfit: 0
             })
         );

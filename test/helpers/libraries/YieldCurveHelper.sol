@@ -4,18 +4,6 @@ pragma solidity 0.8.24;
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 library YieldCurveHelper {
-    function getFlatRate(uint256 numberOfMaturities, int256 rate) public pure returns (YieldCurve memory curve) {
-        curve.maturities = new uint256[](numberOfMaturities);
-        curve.rates = new int256[](numberOfMaturities);
-        curve.marketRateMultipliers = new int256[](numberOfMaturities);
-
-        for (uint256 i = 0; i < numberOfMaturities; ++i) {
-            curve.rates[i] = rate;
-            curve.maturities[i] = i;
-            curve.marketRateMultipliers[i] = 0;
-        }
-    }
-
     // -----------  CURVES -------------
 
     // Normal Yield Curve: This is the most common shape, where
@@ -24,14 +12,14 @@ library YieldCurveHelper {
     // gradual interest rate increases.
     function normalCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
-        int256[] memory rates = new int256[](5);
+        int256[] memory aprs = new int256[](5);
         int256[] memory marketRateMultipliers = new int256[](5);
 
-        rates[0] = 0.01e18;
-        rates[1] = 0.02e18;
-        rates[2] = 0.03e18;
-        rates[3] = 0.04e18;
-        rates[4] = 0.05e18;
+        aprs[0] = 0.01e18;
+        aprs[1] = 0.02e18;
+        aprs[2] = 0.03e18;
+        aprs[3] = 0.04e18;
+        aprs[4] = 0.05e18;
 
         maturities[0] = 30 days;
         maturities[1] = 60 days;
@@ -39,30 +27,30 @@ library YieldCurveHelper {
         maturities[3] = 120 days;
         maturities[4] = 150 days;
 
-        return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
+        return YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Flat Yield Curve: In a flat yield curve, yields across different
     // maturities are similar. It suggests expectations of little change in
-    // interest rates and reflects economic stability and uncertainty.
+    // interest aprs and reflects economic stability and uncertainty.
     function flatCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
-        int256[] memory rates = new int256[](5);
+        int256[] memory aprs = new int256[](5);
         int256[] memory marketRateMultipliers = new int256[](5);
 
-        rates[0] = 0.04e18;
-        rates[1] = 0.04e18;
-        rates[2] = 0.04e18;
-        rates[3] = 0.04e18;
-        rates[4] = 0.04e18;
+        aprs[0] = 0.04e18;
+        aprs[1] = 0.04e18;
+        aprs[2] = 0.04e18;
+        aprs[3] = 0.04e18;
+        aprs[4] = 0.04e18;
 
-        maturities[0] = 0 days;
-        maturities[1] = 30 days;
-        maturities[2] = 60 days;
-        maturities[3] = 90 days;
-        maturities[4] = 120 days;
+        maturities[0] = 30 days;
+        maturities[1] = 60 days;
+        maturities[2] = 90 days;
+        maturities[3] = 120 days;
+        maturities[4] = 150 days;
 
-        return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
+        return YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Inverted Yield Curve: An inverted yield curve occurs when
@@ -71,14 +59,14 @@ library YieldCurveHelper {
     // it signals expectations of future interest rate declines.
     function invertedCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
-        int256[] memory rates = new int256[](5);
+        int256[] memory aprs = new int256[](5);
         int256[] memory marketRateMultipliers = new int256[](5);
 
-        rates[0] = 0.05e18;
-        rates[1] = 0.04e18;
-        rates[2] = 0.03e18;
-        rates[3] = 0.02e18;
-        rates[4] = 0.04e18;
+        aprs[0] = 0.05e18;
+        aprs[1] = 0.04e18;
+        aprs[2] = 0.03e18;
+        aprs[3] = 0.02e18;
+        aprs[4] = 0.04e18;
 
         maturities[0] = 15 days;
         maturities[1] = 30 days;
@@ -86,7 +74,7 @@ library YieldCurveHelper {
         maturities[3] = 120 days;
         maturities[4] = 240 days;
 
-        return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
+        return YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Humped (or Peaked) Yield Curve: A humped yield curve features higher
@@ -96,14 +84,14 @@ library YieldCurveHelper {
     // transitional periods or policy shifts by central banks.
     function humpedCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
-        int256[] memory rates = new int256[](5);
+        int256[] memory aprs = new int256[](5);
         int256[] memory marketRateMultipliers = new int256[](5);
 
-        rates[0] = 0.01e18;
-        rates[1] = 0.02e18;
-        rates[2] = 0.03e18;
-        rates[3] = 0.02e18;
-        rates[4] = 0.01e18;
+        aprs[0] = 0.01e18;
+        aprs[1] = 0.02e18;
+        aprs[2] = 0.03e18;
+        aprs[3] = 0.02e18;
+        aprs[4] = 0.01e18;
 
         maturities[0] = 1 weeks;
         maturities[1] = 2 weeks;
@@ -111,24 +99,24 @@ library YieldCurveHelper {
         maturities[3] = 4 weeks;
         maturities[4] = 5 weeks;
 
-        return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
+        return YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Steep Yield Curve: A steep yield curve indicates a wide spread between
-    // short-maturity and long-maturity interest rates. It suggests expectations of
+    // short-maturity and long-maturity interest aprs. It suggests expectations of
     // accelerating economic growth and rising inflation. A steep yield curve
     // can benefit banks and financial institutions by allowing them to borrow
-    // at lower short-maturity rates and lend at higher long-maturity rates.
+    // at lower short-maturity aprs and lend at higher long-maturity aprs.
     function steepCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
-        int256[] memory rates = new int256[](5);
+        int256[] memory aprs = new int256[](5);
         int256[] memory marketRateMultipliers = new int256[](5);
 
-        rates[0] = 0.01e18;
-        rates[1] = 0.05e18;
-        rates[2] = 0.06e18;
-        rates[3] = 0.07e18;
-        rates[4] = 0.08e18;
+        aprs[0] = 0.01e18;
+        aprs[1] = 0.05e18;
+        aprs[2] = 0.06e18;
+        aprs[3] = 0.07e18;
+        aprs[4] = 0.08e18;
 
         maturities[0] = 1 hours;
         maturities[1] = 12 hours;
@@ -136,7 +124,7 @@ library YieldCurveHelper {
         maturities[3] = 48 days;
         maturities[4] = 96 days;
 
-        return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
+        return YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Negative Yield Curve: In rare instances, a negative yield curve
@@ -146,22 +134,22 @@ library YieldCurveHelper {
     // financial crises or deflation.
     function negativeCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
-        int256[] memory rates = new int256[](5);
+        int256[] memory aprs = new int256[](5);
         int256[] memory marketRateMultipliers = new int256[](5);
 
-        rates[0] = 0.05e18;
-        rates[1] = 0.04e18;
-        rates[2] = 0.03e18;
-        rates[3] = 0.02e18;
-        rates[4] = 0.01e18;
+        aprs[0] = 0.05e18;
+        aprs[1] = 0.04e18;
+        aprs[2] = 0.03e18;
+        aprs[3] = 0.02e18;
+        aprs[4] = 0.01e18;
 
-        maturities[0] = 0 days;
+        maturities[0] = 30 days;
         maturities[1] = 60 days;
         maturities[2] = 180 days;
         maturities[3] = 360 days;
         maturities[4] = 720 days;
 
-        return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
+        return YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }
 
     // Simple way to create a line between two points, in case you need to
@@ -173,16 +161,28 @@ library YieldCurveHelper {
     // r2 = 0.03e18
     function customCurve(uint256 m1, int256 r1, uint256 m2, int256 r2) public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](2);
-        int256[] memory rates = new int256[](2);
+        int256[] memory aprs = new int256[](2);
         int256[] memory marketRateMultipliers = new int256[](2);
 
-        rates[0] = r1;
-        rates[1] = r2;
+        aprs[0] = r1;
+        aprs[1] = r2;
 
         maturities[0] = m1;
         maturities[1] = m2;
 
-        return YieldCurve({maturities: maturities, rates: rates, marketRateMultipliers: marketRateMultipliers});
+        return YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
+    }
+
+    function pointCurve(uint256 m1, int256 r1) public pure returns (YieldCurve memory) {
+        uint256[] memory maturities = new uint256[](1);
+        int256[] memory aprs = new int256[](1);
+        int256[] memory marketRateMultipliers = new int256[](1);
+
+        aprs[0] = r1;
+
+        maturities[0] = m1;
+
+        return YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }
 
     function marketCurve() public pure returns (YieldCurve memory curve) {

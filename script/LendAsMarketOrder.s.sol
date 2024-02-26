@@ -24,17 +24,17 @@ contract LendAsMarketOrderScript is Script, Logger {
 
         uint256 amount = 6e6;
 
-        uint256 rate = SizeView(address(sizeContract)).getBorrowOfferRate(borrower, dueDate);
+        uint256 rate = SizeView(address(sizeContract)).getBorrowOfferRatePerMaturity(borrower, dueDate);
 
         LendAsMarketOrderParams memory params = LendAsMarketOrderParams({
             borrower: borrower,
             dueDate: dueDate,
             amount: amount,
             deadline: block.timestamp,
-            minRate: rate,
+            minRatePerMaturity: rate,
             exactAmountIn: false
         });
-        console.log("lender USDC", sizeContract.getUserView(lender).borrowAmount);
+        console.log("lender USDC", sizeContract.getUserView(lender).borrowATokenBalance);
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.lendAsMarketOrder(params);
         vm.stopBroadcast();

@@ -56,7 +56,7 @@ interface ISize {
     ///     - uint256 openingLimitBorrowCR: The opening limit borrow collateral ratio, which indicates the maximum CR the borrower is willing to accept after their offer is picked by a lender
     ///     - YieldCurve curveRelativeTime: The yield curve for the borrow offer, a struct containing the following fields:
     ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
-    ///         - uint256[] rates: The rates of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5%, 7%, and 8% respectively)
+    ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
     function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) external;
 
@@ -73,14 +73,14 @@ interface ISize {
     ///     - uint256 maxDueDate: The maximum timestamp the limit order can be picked by a borrower (e.g., 1712188800 for April 4th, 2024)
     ///     - YieldCurve curveRelativeTime: The yield curve for the lend offer, a struct containing the following fields:
     ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
-    ///         - uint256[] rates: The rates of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5%, 7%, and 8% respectively)
+    ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
     function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external;
 
     /// @notice Exits a debt position to a new borrower by picking the new borrower offer from the orderbook
     ///         When exiting a debt position to a new borrower, the early exit borrower fee is applied to the current borrower
     ///         Protocol repayment fees are paid pro rata
-    ///         1. Previous borrower pays an "early protocol fee" pro rata to the block.timestamp, and their debt is reduced by that amount
+    ///         1. Previous borrower pays an "early" protocol repay fee pro rata to the block.timestamp, and their debt is reduced by the full protocol repay fee amount
     ///         2. previous borrower also pays to the protocol the early borrower exit fee
     ///         3. previous borrower transfers to the new borrower FV/(1+r), which is the present value of faceValue adjusted by the rate the new borrower has specified
     ///         4. previous borrower debt referring to faceValue is transferred to the new borrower
@@ -139,7 +139,7 @@ interface ISize {
     /// @notice Liquidate a debt position with a replacement borrower
     /// @dev This function works exactly like `liquidate`, with an added logic of replacing the borrower on the storage
     ///         When liquidating with replacement, nothing changes from the lender's perspective, but a spread is created between the previous borrower rate and the new borrower rate.
-    ///         As a result of the spread of these borrow rates, the protocol is able to profit from the liquidation. Since the choice of the borrower impacts on the protocol's profit, this method is permissioned
+    ///         As a result of the spread of these borrow aprs, the protocol is able to profit from the liquidation. Since the choice of the borrower impacts on the protocol's profit, this method is permissioned
     /// @param params LiquidateWithReplacementParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)

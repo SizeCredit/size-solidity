@@ -8,14 +8,14 @@ contract DepositTest is BaseTest {
     function test_Deposit_deposit_increases_user_balance() public {
         _deposit(alice, address(usdc), 1e6);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, 1e6);
-        assertEq(aliceUser.collateralAmount, 0);
+        assertEq(aliceUser.borrowATokenBalance, 1e6);
+        assertEq(aliceUser.collateralBalance, 0);
         assertEq(usdc.balanceOf(address(variablePool)), 1e6);
 
         _deposit(alice, address(weth), 2e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, 1e6);
-        assertEq(aliceUser.collateralAmount, 2e18);
+        assertEq(aliceUser.borrowATokenBalance, 1e6);
+        assertEq(aliceUser.collateralBalance, 2e18);
         assertEq(weth.balanceOf(address(size)), 2e18);
     }
 
@@ -27,14 +27,14 @@ contract DepositTest is BaseTest {
 
         _deposit(alice, address(usdc), x);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, x);
-        assertEq(aliceUser.collateralAmount, 0);
+        assertEq(aliceUser.borrowATokenBalance, x);
+        assertEq(aliceUser.collateralBalance, 0);
         assertEq(usdc.balanceOf(address(variablePool)), x);
 
         _deposit(alice, address(weth), y);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, x);
-        assertEq(aliceUser.collateralAmount, y);
+        assertEq(aliceUser.borrowATokenBalance, x);
+        assertEq(aliceUser.collateralBalance, y);
         assertEq(weth.balanceOf(address(size)), y);
     }
 }

@@ -21,11 +21,11 @@ contract BorrowerExitScript is Script {
 
         Size sizeContract = Size(sizeContractAddress);
         uint256 dueDate = SizeView(address(sizeContract)).getDebtPosition(debtPositionId).dueDate;
-        uint256 rate = SizeView(address(sizeContract)).getBorrowOfferRate(borrower, dueDate);
+        uint256 rate = SizeView(address(sizeContract)).getBorrowOfferRatePerMaturity(borrower, dueDate);
         BorrowerExitParams memory params = BorrowerExitParams({
             debtPositionId: debtPositionId,
             borrowerToExitTo: borrower,
-            minRate: rate,
+            minRatePerMaturity: rate,
             deadline: block.timestamp
         });
 

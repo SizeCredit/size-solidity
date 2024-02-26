@@ -33,9 +33,9 @@ import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 struct UserView {
     User user;
     address account;
-    uint256 collateralAmount;
-    uint256 borrowAmount;
-    uint256 debtAmount;
+    uint256 collateralBalance;
+    uint256 borrowATokenBalance;
+    uint256 debtBalance;
 }
 
 struct DataView {
@@ -116,9 +116,9 @@ abstract contract SizeView is SizeStorage {
         return UserView({
             user: state.data.users[user],
             account: user,
-            collateralAmount: state.data.collateralToken.balanceOf(user),
-            borrowAmount: state.borrowATokenBalanceOf(user),
-            debtAmount: state.data.debtToken.balanceOf(user)
+            collateralBalance: state.data.collateralToken.balanceOf(user),
+            borrowATokenBalance: state.borrowATokenBalanceOf(user),
+            debtBalance: state.data.debtToken.balanceOf(user)
         });
     }
 
@@ -239,13 +239,13 @@ abstract contract SizeView is SizeStorage {
         );
     }
 
-    function getBorrowOfferRate(address borrower, uint256 dueDate) external view returns (uint256) {
+    function getBorrowOfferRatePerMaturity(address borrower, uint256 dueDate) external view returns (uint256) {
         BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
-        return offer.getRate(state.oracle.marketBorrowRateFeed, dueDate);
+        return offer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, dueDate);
     }
 
-    function getLoanOfferRate(address lender, uint256 dueDate) external view returns (uint256) {
+    function getLoanOfferRatePerMaturity(address lender, uint256 dueDate) external view returns (uint256) {
         LoanOffer memory offer = state.data.users[lender].loanOffer;
-        return offer.getRate(state.oracle.marketBorrowRateFeed, dueDate);
+        return offer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, dueDate);
     }
 }

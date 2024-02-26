@@ -4,3 +4,5 @@
 export { MarketBorrowRateFeed__factory } from "./MarketBorrowRateFeed__factory";
 export { PriceFeed__factory } from "./PriceFeed__factory";
 export { Size__factory } from "./Size__factory";
+export { USDC__factory } from "./USDC__factory";
+export { WETH__factory } from "./WETH__factory";

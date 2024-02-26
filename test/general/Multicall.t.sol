@@ -24,7 +24,7 @@ contract MulticallTest is BaseTest {
         deal(token, alice, amount);
         IERC20Metadata(token).approve(address(size), amount);
 
-        assertEq(size.getUserView(alice).borrowAmount, 0);
+        assertEq(size.getUserView(alice).borrowATokenBalance, 0);
 
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
@@ -37,7 +37,7 @@ contract MulticallTest is BaseTest {
         );
         size.multicall(data);
 
-        assertEq(size.getUserView(alice).borrowAmount, amount);
+        assertEq(size.getUserView(alice).borrowATokenBalance, amount);
     }
 
     function test_Multicall_multicall_cannot_execute_unauthorized_actions() public {
@@ -63,9 +63,9 @@ contract MulticallTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
 
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 faceValue = size.faceValue(debtPositionId);
         uint256 repayFee = size.repayFee(debtPositionId);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
@@ -105,12 +105,12 @@ contract MulticallTest is BaseTest {
         uint256 afterLiquidatorUSDC = usdc.balanceOf(liquidator);
         uint256 afterLiquidatorWETH = weth.balanceOf(liquidator);
 
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - debt, 0);
-        assertEq(_after.liquidator.borrowAmount, _before.liquidator.borrowAmount, 0);
-        assertEq(_after.liquidator.collateralAmount, _before.liquidator.collateralAmount, 0);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - debt, 0);
+        assertEq(_after.liquidator.borrowATokenBalance, _before.liquidator.borrowATokenBalance, 0);
+        assertEq(_after.liquidator.collateralBalance, _before.liquidator.collateralBalance, 0);
         assertGt(
-            _after.feeRecipient.collateralAmount,
-            _before.feeRecipient.collateralAmount + repayFeeCollateral,
+            _after.feeRecipient.collateralBalance,
+            _before.feeRecipient.collateralBalance + repayFeeCollateral,
             "feeRecipient has repayFee and liquidation split"
         );
         assertEq(beforeLiquidatorWETH, 0);

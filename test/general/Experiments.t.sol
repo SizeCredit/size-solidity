@@ -4,8 +4,6 @@ pragma solidity 0.8.24;
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
-import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -31,12 +29,12 @@ contract ExperimentsTest is Test, BaseTest {
 
     function test_Experiments_test1() public {
         _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
-        assertEq(_state().alice.borrowAmount, 100e6 + size.config().earlyLenderExitFee);
-        _lendAsLimitOrder(alice, 10, 0.03e18, 12);
+        assertEq(_state().alice.borrowATokenBalance, 100e6 + size.config().earlyLenderExitFee);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _deposit(james, weth, 50e18);
-        assertEq(_state().james.collateralAmount, 50e18);
+        assertEq(_state().james.collateralBalance, 50e18);
 
-        uint256 debtPositionId = _borrowAsMarketOrder(james, alice, 100e6, 6);
+        uint256 debtPositionId = _borrowAsMarketOrder(james, alice, 100e6, block.timestamp + 365 days);
         (uint256 debtPositions,) = size.getPositionsCount();
         assertEq(debtPositionId, 0, "debt positions start at 0");
         assertGt(debtPositions, 0);
@@ -46,12 +44,12 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(creditPosition.credit, debtPosition.faceValue());
 
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowAmount, 100e6);
-        _lendAsLimitOrder(bob, 10, 0.02e18, 12);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0.02e18);
         console.log("alice borrows form bob using virtual collateral");
         console.log("(do not use full CreditPosition credit)");
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(0)[0];
-        _borrowAsMarketOrder(alice, bob, 50e6, 6, [creditPositionId]);
+        _borrowAsMarketOrder(alice, bob, 50e6, block.timestamp + 365 days, [creditPositionId]);
 
         console.log("should not be able to claim");
         vm.expectRevert();
@@ -72,13 +70,13 @@ contract ExperimentsTest is Test, BaseTest {
 
     function test_Experiments_test3() public {
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowAmount, 100e6);
-        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
+        _lendAsLimitOrder(bob, block.timestamp + 6 days, 0.03e18);
         _deposit(alice, weth, 2e18);
-        _borrowAsMarketOrder(alice, bob, 100e6, 6);
+        _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 6 days);
         assertGe(size.collateralRatio(alice), size.config().crOpening);
         assertTrue(!size.isUserLiquidatable(alice), "borrower should not be liquidatable");
-        vm.warp(block.timestamp + 1);
+        vm.warp(block.timestamp + 1 days);
         _setPrice(60e18);
 
         assertTrue(size.isUserLiquidatable(alice), "borrower should be liquidatable");
@@ -93,23 +91,23 @@ contract ExperimentsTest is Test, BaseTest {
         uint256 amountToExitPercent = 1e18;
         // Deposit by bob in USDC
         _deposit(bob, usdc, 100e6 + size.config().earlyLenderExitFee);
-        assertEq(_state().bob.borrowAmount, 100e6 + size.config().earlyLenderExitFee);
+        assertEq(_state().bob.borrowATokenBalance, 100e6 + size.config().earlyLenderExitFee);
 
         // Bob lending as limit order
-        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, block.timestamp + 10 days, 0.03e18);
 
         // Deposit by candy in USDC
         _deposit(candy, usdc, 100e6);
-        assertEq(_state().candy.borrowAmount, 100e6);
+        assertEq(_state().candy.borrowATokenBalance, 100e6);
 
         // Candy lending as limit order
-        _lendAsLimitOrder(candy, 10, 0.05e18, 12);
+        _lendAsLimitOrder(candy, block.timestamp + 10 days, 0.05e18);
 
         // Deposit by alice in WETH
         _deposit(alice, weth, 50e18);
 
         // Alice borrowing as market order
-        uint256 dueDate = 6;
+        uint256 dueDate = block.timestamp + 10 days;
         _borrowAsMarketOrder(alice, bob, 50e6, dueDate);
 
         // Assertions and operations for loans
@@ -149,27 +147,31 @@ contract ExperimentsTest is Test, BaseTest {
     function test_Experiments_testBorrowWithExit1() public {
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6 + size.config().earlyLenderExitFee);
-        assertEq(_state().bob.borrowAmount, 100e6 + size.config().earlyLenderExitFee);
+        assertEq(_state().bob.borrowATokenBalance, 100e6 + size.config().earlyLenderExitFee);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, [int256(0.03e18), int256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(
+            bob, block.timestamp + 10 days, [int256(0.03e18), int256(0.03e18)], [uint256(3 days), uint256(8 days)]
+        );
 
         // James deposits in USDC
         _deposit(james, usdc, 100e6);
-        assertEq(_state().james.borrowAmount, 100e6);
+        assertEq(_state().james.borrowATokenBalance, 100e6);
 
         // James lends as limit order
-        _lendAsLimitOrder(james, 12, 0.05e18, 12);
+        _lendAsLimitOrder(
+            james, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(5 days), uint256(10 days)]
+        );
 
         // Alice deposits in ETH and USDC
         _deposit(alice, weth, 50e18);
 
         // Alice borrows from Bob using real collateral
-        _borrowAsMarketOrder(alice, bob, 70e6, 5);
+        _borrowAsMarketOrder(alice, bob, 70e6, block.timestamp + 5 days);
 
         // Check conditions after Alice borrows from Bob
         assertEq(
-            _state().bob.borrowAmount,
+            _state().bob.borrowATokenBalance,
             100e6 - 70e6 + size.config().earlyLenderExitFee,
             "Bob should have 30e6 left to borrow"
         );
@@ -180,42 +182,44 @@ contract ExperimentsTest is Test, BaseTest {
         assertTrue(loan_Bob_Alice.lender == bob, "Bob should be the lender");
         assertTrue(loan_Bob_Alice.borrower == alice, "Alice should be the borrower");
         LoanOffer memory loanOffer = size.getUserView(bob).user.loanOffer;
-        uint256 rate = loanOffer.getRate(marketBorrowRateFeed, 5);
-        assertEq(loan_Bob_Alice.faceValue(), Math.mulDivUp(70e6, (PERCENT + rate), PERCENT), "Check loan faceValue");
-        assertEq(size.getDebtPosition(0).dueDate, 5, "Check loan due date");
+        uint256 rate = loanOffer.getRatePerMaturity(marketBorrowRateFeed, 5 days);
+        assertEq(loan_Bob_Alice.faceValue(), Math.mulDivUp(70e6, (PERCENT + rate), PERCENT), "Check bob loan faceValue");
+        assertEq(size.getDebtPosition(0).dueDate, 5 days, "Check loan due date");
 
         // Bob borrows using the loan as virtual collateral
-        _borrowAsMarketOrder(bob, james, 35e6, 10, size.getCreditPositionIdsByDebtPositionId(0));
+        _borrowAsMarketOrder(bob, james, 35e6, block.timestamp + 10 days, size.getCreditPositionIdsByDebtPositionId(0));
 
         // Check conditions after Bob borrows
         (uint256 debtPositionsCountAfter, uint256 creditPositionsCountAfter) = size.getPositionsCount();
-        assertEq(_state().bob.borrowAmount, 100e6 - 70e6 + 35e6, "Bob should have borrowed 35e6");
+        assertEq(_state().bob.borrowATokenBalance, 100e6 - 70e6 + 35e6, "Bob should have borrowed 35e6");
         assertEq(debtPositionsCountAfter, 1, "Expected 1 debt position");
-        assertEq(creditPositionsCountAfter, 2, "Expected two active loans");
+        assertEq(creditPositionsCountAfter, 2, "Expected 2 active loans");
         CreditPosition memory loan_James_Bob = size.getCreditPositions(size.getCreditPositionIdsByDebtPositionId(0))[1];
         assertEq(loan_James_Bob.lender, james, "James should be the lender");
         assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
         LoanOffer memory loanOffer2 = size.getUserView(james).user.loanOffer;
-        uint256 rate2 = loanOffer2.getRate(marketBorrowRateFeed, size.getDebtPosition(0).dueDate);
-        assertEq(loan_James_Bob.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check loan faceValue");
+        uint256 rate2 = loanOffer2.getRatePerMaturity(marketBorrowRateFeed, block.timestamp + 10 days);
+        assertEq(loan_James_Bob.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check james credit");
     }
 
     function test_Experiments_testLoanMove1() public {
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowAmount, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, [int256(0.03e18), int256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(
+            bob, block.timestamp + 5 days, [int256(0.03e18), int256(0.03e18)], [uint256(3 days), uint256(8 days)]
+        );
 
         // Alice deposits in WETH
         _deposit(alice, weth, 50e18);
 
         // Alice borrows as market order from Bob
-        _borrowAsMarketOrder(alice, bob, 70e6, 5);
+        _borrowAsMarketOrder(alice, bob, 70e6, block.timestamp + 5 days);
 
         // Move forward the clock as the loan is overdue
-        vm.warp(block.timestamp + 6);
+        vm.warp(block.timestamp + 6 days);
 
         // Assert loan conditions
         DebtPosition memory fol = size.getDebtPosition(0);
@@ -225,7 +229,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(creditPositionsCount, 1, "Expect one active loan");
 
         assertGt(size.getDebt(0), 0, "Loan should not be repaid before moving to the variable pool");
-        uint256 aliceCollateralBefore = _state().alice.collateralAmount;
+        uint256 aliceCollateralBefore = _state().alice.collateralBalance;
         assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
 
         // add funds to the VP
@@ -235,7 +239,7 @@ contract ExperimentsTest is Test, BaseTest {
         _liquidate(liquidator, 0);
 
         fol = size.getDebtPosition(0);
-        uint256 aliceCollateralAfter = _state().alice.collateralAmount;
+        uint256 aliceCollateralAfter = _state().alice.collateralBalance;
 
         // Assert post-move conditions
         assertEq(size.getDebt(0), 0, "Loan should be repaid by moving into the variable pool");
@@ -246,22 +250,22 @@ contract ExperimentsTest is Test, BaseTest {
     function test_Experiments_testSL1() public {
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowAmount, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, block.timestamp + 6 days, 0.03e18);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 2e18);
 
         // Alice borrows as market order from Bob
-        _borrowAsMarketOrder(alice, bob, 100e6, 6);
+        _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 6 days);
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.config().crOpening);
         assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
 
-        vm.warp(block.timestamp + 1);
+        vm.warp(block.timestamp + 1 days);
         _setPrice(30e18);
 
         // Assert conditions for liquidation
@@ -270,12 +274,12 @@ contract ExperimentsTest is Test, BaseTest {
 
         // Perform self liquidation
         assertGt(size.getDebt(0), 0, "Loan should be greater than 0");
-        assertEq(_state().bob.collateralAmount, 0, "Bob should have no free ETH initially");
+        assertEq(_state().bob.collateralBalance, 0, "Bob should have no free ETH initially");
 
         _selfLiquidate(bob, size.getCreditPositionIdsByDebtPositionId(0)[0]);
 
         // Assert post-liquidation conditions
-        assertGt(_state().bob.collateralAmount, 0, "Bob should have free ETH after self liquidation");
+        assertGt(_state().bob.collateralBalance, 0, "Bob should have free ETH after self liquidation");
         assertEq(size.getDebt(0), 0, "Loan should be 0 after self liquidation");
     }
 
@@ -284,18 +288,18 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(alice, weth, 2e18);
 
         // Alice places a borrow limit order
-        _borrowAsLimitOrder(alice, 0.03e18, 12);
+        _borrowAsLimitOrder(alice, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
 
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowAmount, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
 
         // Assert there are no active loans initially
         (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
         assertEq(debtPositionsCount, 0, "There should be no active loans initially");
 
         // Bob lends to Alice's offer in the market order
-        _lendAsMarketOrder(bob, alice, 70e6, 5);
+        _lendAsMarketOrder(bob, alice, 70e6, block.timestamp + 5 days);
 
         // Assert a loan is active after lending
         (debtPositionsCount, creditPositionsCount) = size.getPositionsCount();
@@ -306,24 +310,26 @@ contract ExperimentsTest is Test, BaseTest {
     function test_Experiments_testBorrowerExit1() public {
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowAmount, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, [int256(0.03e18), int256(0.03e18)], [uint256(3), uint256(8)]);
+        _lendAsLimitOrder(
+            bob, block.timestamp + 10 days, [int256(0.03e18), int256(0.03e18)], [uint256(3 days), uint256(8 days)]
+        );
 
         // Candy deposits in WETH
         _deposit(candy, weth, 2e18);
 
         // Candy places a borrow limit order
-        _borrowAsLimitOrder(candy, 0.03e18, 12);
+        _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
 
         // Alice deposits in WETH and USDC
         _deposit(alice, weth, 50e18);
         _deposit(alice, usdc, 200e6);
-        assertEq(_state().alice.borrowAmount, 200e6);
+        assertEq(_state().alice.borrowATokenBalance, 200e6);
 
         // Alice borrows from Bob's offer
-        _borrowAsMarketOrder(alice, bob, 70e6, 5);
+        _borrowAsMarketOrder(alice, bob, 70e6, block.timestamp + 5 days);
 
         // Borrower (Alice) exits the loan to the offer made by Candy
         _borrowerExit(alice, 0, candy);
@@ -332,16 +338,21 @@ contract ExperimentsTest is Test, BaseTest {
     function test_Experiments_testLiquidationWithReplacement() public {
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowAmount, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
+        _lendAsLimitOrder(
+            bob,
+            block.timestamp + 365 days,
+            [int256(0.03e18), int256(0.03e18)],
+            [uint256(365 days), uint256(365 days * 2)]
+        );
 
         // Alice deposits in WETH
         _deposit(alice, weth, 2e18);
 
         // Alice borrows as market order from Bob
-        _borrowAsMarketOrder(alice, bob, 100e6, 6);
+        _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 365 days);
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.config().crOpening, "Alice should be above CR opening");
@@ -349,11 +360,11 @@ contract ExperimentsTest is Test, BaseTest {
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
         _deposit(candy, weth, 200e18);
-        assertEq(_state().candy.collateralAmount, 200e18);
-        _borrowAsLimitOrder(candy, 0.03e18, 12);
+        assertEq(_state().candy.collateralBalance, 200e18);
+        _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(180 days), uint256(365 days * 2)]);
 
         // Update the context (time and price)
-        vm.warp(block.timestamp + 1);
+        vm.warp(block.timestamp + 1 days);
         _setPrice(60e18);
 
         // Assert conditions for liquidation
@@ -363,34 +374,34 @@ contract ExperimentsTest is Test, BaseTest {
         DebtPosition memory fol = size.getDebtPosition(0);
         uint256 repayFee = size.repayFee(0);
         assertEq(fol.borrower, alice, "Alice should be the borrower");
-        assertEq(_state().alice.debtAmount, fol.faceValue() + repayFee, "Alice should have the debt");
+        assertEq(_state().alice.debtBalance, fol.faceValue() + repayFee, "Alice should have the debt");
 
-        assertEq(_state().candy.debtAmount, 0, "Candy should have no debt");
+        assertEq(_state().candy.debtBalance, 0, "Candy should have no debt");
         // Perform the liquidation with replacement
         _deposit(liquidator, usdc, 10_000e6);
         _liquidateWithReplacement(liquidator, 0, candy);
-        assertEq(_state().alice.debtAmount, 0, "Alice should have no debt after");
-        assertEq(_state().candy.debtAmount, fol.faceValue() + repayFee, "Candy should have the debt after");
+        assertEq(_state().alice.debtBalance, 0, "Alice should have no debt after");
+        assertEq(_state().candy.debtBalance, fol.faceValue() + repayFee, "Candy should have the debt after");
     }
 
     function test_Experiments_testBasicCompensate1() public {
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowAmount, 100e6, "Bob's borrow amount should be 100e6");
+        assertEq(_state().bob.borrowATokenBalance, 100e6, "Bob's borrow amount should be 100e6");
 
         // Bob lends as limit order
-        _lendAsLimitOrder(bob, 10, 0.03e18, 12);
+        _lendAsLimitOrder(bob, block.timestamp + 10 days, 0.03e18);
 
         // Candy deposits in USDC
         _deposit(candy, usdc, 100e6);
-        assertEq(_state().candy.borrowAmount, 100e6, "Candy's borrow amount should be 100e6");
+        assertEq(_state().candy.borrowATokenBalance, 100e6, "Candy's borrow amount should be 100e6");
 
         // Candy lends as limit order
-        _lendAsLimitOrder(candy, 10, 0.05e18, 12);
+        _lendAsLimitOrder(candy, block.timestamp + 10 days, 0.05e18);
 
         // Alice deposits in WETH
         _deposit(alice, weth, 50e18);
-        uint256 dueDate = 6;
+        uint256 dueDate = block.timestamp + 10 days;
 
         // Alice borrows as market order from Bob
         uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 50e6, dueDate);
@@ -408,10 +419,10 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(bob, weth, 50e18);
 
         // Bob borrows as market order from Candy
-        uint256 bobDebtBefore = _state().bob.debtAmount;
+        uint256 bobDebtBefore = _state().bob.debtBalance;
         uint256 loanId2 = _borrowAsMarketOrder(bob, candy, amountToBorrow, dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
-        uint256 bobDebtAfter = _state().bob.debtAmount;
+        uint256 bobDebtAfter = _state().bob.debtBalance;
         assertGt(bobDebtAfter, bobDebtBefore, "Bob's debt should increase");
 
         // Bob compensates
@@ -419,7 +430,7 @@ contract ExperimentsTest is Test, BaseTest {
         _compensate(bob, creditPositionId2, creditPositionToCompensateId, type(uint256).max);
 
         assertEq(
-            _state().bob.debtAmount,
+            _state().bob.debtBalance,
             bobDebtBefore,
             "Bob's total debt covered by real collateral should revert to previous state"
         );
@@ -429,9 +440,9 @@ contract ExperimentsTest is Test, BaseTest {
         _setPrice(1e18);
         _deposit(bob, weth, 180e18);
         _deposit(alice, usdc, 100e6);
-        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
+        YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 repayFee = size.repayFee(debtPositionId);
         // Borrower B1 submits a borror market order for
         // Loan1
@@ -453,7 +464,7 @@ contract ExperimentsTest is Test, BaseTest {
 
         // If the loan completes its lifecycle, we have
         // protocolFee = 100 * (0.005 * 1) --> 0.5
-        assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral);
+        assertEq(size.getUserView(feeRecipient).collateralBalance, repayFeeCollateral);
     }
 
     function test_Experiments_repayFeeAPR_change_fee_after_borrow() public {
@@ -462,14 +473,14 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(candy, weth, 180e18);
         _deposit(bob, weth, 180e18);
         _deposit(alice, usdc, 200e6);
-        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0);
+        YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
 
         // admin changes repayFeeAPR
         _updateConfig("repayFeeAPR", 0.1e18);
 
-        uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 100e6, 365 days);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 100e6, block.timestamp + 365 days);
 
         uint256 repayFee = size.repayFee(debtPositionId);
         uint256 repayFee2 = size.repayFee(loanId2);
@@ -480,17 +491,17 @@ contract ExperimentsTest is Test, BaseTest {
 
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
-        assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral);
+        assertEq(size.getUserView(feeRecipient).collateralBalance, repayFeeCollateral);
 
         _repay(candy, loanId2);
 
         uint256 repayFeeWad2 = ConversionLibrary.amountToWad(repayFee2, usdc.decimals());
         uint256 repayFeeCollateral2 = Math.mulDivUp(repayFeeWad2, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
-        assertEq(size.getUserView(feeRecipient).collateralAmount, repayFeeCollateral + repayFeeCollateral2);
-        assertGt(_state().bob.collateralAmount, _state().candy.collateralAmount);
-        assertEq(_state().bob.collateralAmount, 180e18 - repayFeeCollateral);
-        assertEq(_state().candy.collateralAmount, 180e18 - repayFeeCollateral2);
+        assertEq(size.getUserView(feeRecipient).collateralBalance, repayFeeCollateral + repayFeeCollateral2);
+        assertGt(_state().bob.collateralBalance, _state().candy.collateralBalance);
+        assertEq(_state().bob.collateralBalance, 180e18 - repayFeeCollateral);
+        assertEq(_state().candy.collateralBalance, 180e18 - repayFeeCollateral2);
     }
 
     function test_Experiments_repayFeeAPR_compensate() public {
@@ -506,17 +517,17 @@ contract ExperimentsTest is Test, BaseTest {
             _deposit(users[i], weth, 500e18);
             _deposit(users[i], usdc, 500e6);
         }
-        YieldCurve memory curve = YieldCurveHelper.customCurve(0, 0, 365 days, 0.1e18);
-        YieldCurve memory curve2 = YieldCurveHelper.customCurve(0, 0, 365 days, 0);
+        YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
+        YieldCurve memory curve2 = YieldCurveHelper.pointCurve(365 days, 0);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
         _lendAsLimitOrder(bob, block.timestamp + 365 days, curve2);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, curve2);
         _lendAsLimitOrder(james, block.timestamp + 365 days, curve2);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 365 days);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditPosition1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 loanId2 = _borrowAsMarketOrder(candy, james, 200e6, 365 days);
+        uint256 loanId2 = _borrowAsMarketOrder(candy, james, 200e6, block.timestamp + 365 days);
         uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
-        _borrowAsMarketOrder(james, bob, 120e6, 365 days, [creditId2]);
+        _borrowAsMarketOrder(james, bob, 120e6, block.timestamp + 365 days, [creditId2]);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
         // DebtPosition1
         // DebtPosition.Borrower = B1
@@ -565,6 +576,6 @@ contract ExperimentsTest is Test, BaseTest {
         // and no CreditPosition_For_Repayment is emitted
         // and to take the fees instead, we do
         // collateral[borrower] -= DebtPosition1.protocolFees(t=7) / Oracle.CurrentPrice
-        assertEq(_state().bob.collateralAmount, 500e18 - (0.5e6 - (0.409091e6 - 1)) * 1e12);
+        assertEq(_state().bob.collateralBalance, 500e18 - (0.5e6 - (0.409091e6 - 1)) * 1e12);
     }
 }

@@ -38,7 +38,15 @@ library Math {
         return SafeCast.toUint256(FixedPointMathLib.powWad(SafeCast.toInt256(wad1), SafeCast.toInt256(wad2)));
     }
 
-    function compoundRateToLinearRate(uint256 rate, uint256 maturity) internal pure returns (uint256) {
+    function ratePerMaturityToLinearAPR(int256 rate, uint256 maturity) internal pure returns (int256) {
+        return mulDiv(rate, 365 days, SafeCast.toInt256(maturity));
+    }
+
+    function linearAPRToRatePerMaturity(int256 rate, uint256 maturity) internal pure returns (int256) {
+        return mulDiv(rate, SafeCast.toInt256(maturity), 365 days);
+    }
+
+    function compoundAPRToRatePerMaturity(uint256 rate, uint256 maturity) internal pure returns (uint256) {
         return powWadWad(PERCENT + rate, mulDivDown(PERCENT, maturity, 365 days)) - PERCENT;
     }
 

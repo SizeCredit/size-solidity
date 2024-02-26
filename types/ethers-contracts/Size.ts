@@ -29,13 +29,13 @@ import type {
 
 export type YieldCurveStruct = {
   maturities: BigNumberish[];
-  rates: BigNumberish[];
+  aprs: BigNumberish[];
   marketRateMultipliers: BigNumberish[];
 };
 
 export type YieldCurveStructOutput = [BigNumber[], BigNumber[], BigNumber[]] & {
   maturities: BigNumber[];
-  rates: BigNumber[];
+  aprs: BigNumber[];
   marketRateMultipliers: BigNumber[];
 };
 
@@ -57,7 +57,7 @@ export type BorrowAsMarketOrderParamsStruct = {
   amount: BigNumberish;
   dueDate: BigNumberish;
   deadline: BigNumberish;
-  maxRate: BigNumberish;
+  maxRatePerMaturity: BigNumberish;
   exactAmountIn: boolean;
   receivableCreditPositionIds: BigNumberish[];
 };
@@ -75,7 +75,7 @@ export type BorrowAsMarketOrderParamsStructOutput = [
   amount: BigNumber;
   dueDate: BigNumber;
   deadline: BigNumber;
-  maxRate: BigNumber;
+  maxRatePerMaturity: BigNumber;
   exactAmountIn: boolean;
   receivableCreditPositionIds: BigNumber[];
 };
@@ -84,7 +84,7 @@ export type BorrowerExitParamsStruct = {
   debtPositionId: BigNumberish;
   borrowerToExitTo: string;
   deadline: BigNumberish;
-  minRate: BigNumberish;
+  minRatePerMaturity: BigNumberish;
 };
 
 export type BorrowerExitParamsStructOutput = [
@@ -96,7 +96,7 @@ export type BorrowerExitParamsStructOutput = [
   debtPositionId: BigNumber;
   borrowerToExitTo: string;
   deadline: BigNumber;
-  minRate: BigNumber;
+  minRatePerMaturity: BigNumber;
 };
 
 export type ClaimParamsStruct = { creditPositionId: BigNumberish };
@@ -229,7 +229,7 @@ export type DebtPositionStruct = {
   lender: string;
   borrower: string;
   issuanceValue: BigNumberish;
-  rate: BigNumberish;
+  ratePerMaturity: BigNumberish;
   repayFeeAPR: BigNumberish;
   startDate: BigNumberish;
   dueDate: BigNumberish;
@@ -249,7 +249,7 @@ export type DebtPositionStructOutput = [
   lender: string;
   borrower: string;
   issuanceValue: BigNumber;
-  rate: BigNumber;
+  ratePerMaturity: BigNumber;
   repayFeeAPR: BigNumber;
   startDate: BigNumber;
   dueDate: BigNumber;
@@ -295,9 +295,9 @@ export type UserStructOutput = [
 export type UserViewStruct = {
   user: UserStruct;
   account: string;
-  collateralAmount: BigNumberish;
-  borrowAmount: BigNumberish;
-  debtAmount: BigNumberish;
+  collateralBalance: BigNumberish;
+  borrowATokenBalance: BigNumberish;
+  debtBalance: BigNumberish;
 };
 
 export type UserViewStructOutput = [
@@ -309,9 +309,9 @@ export type UserViewStructOutput = [
 ] & {
   user: UserStructOutput;
   account: string;
-  collateralAmount: BigNumber;
-  borrowAmount: BigNumber;
-  debtAmount: BigNumber;
+  collateralBalance: BigNumber;
+  borrowATokenBalance: BigNumber;
+  debtBalance: BigNumber;
 };
 
 export type InitializeOracleParamsStruct = {
@@ -351,7 +351,7 @@ export type LendAsMarketOrderParamsStruct = {
   dueDate: BigNumberish;
   amount: BigNumberish;
   deadline: BigNumberish;
-  minRate: BigNumberish;
+  minRatePerMaturity: BigNumberish;
   exactAmountIn: boolean;
 };
 
@@ -367,7 +367,7 @@ export type LendAsMarketOrderParamsStructOutput = [
   dueDate: BigNumber;
   amount: BigNumber;
   deadline: BigNumber;
-  minRate: BigNumber;
+  minRatePerMaturity: BigNumber;
   exactAmountIn: boolean;
 };
 
@@ -386,7 +386,7 @@ export type LiquidateWithReplacementParamsStruct = {
   borrower: string;
   minimumCollateralProfit: BigNumberish;
   deadline: BigNumberish;
-  minRate: BigNumberish;
+  minRatePerMaturity: BigNumberish;
 };
 
 export type LiquidateWithReplacementParamsStructOutput = [
@@ -400,7 +400,7 @@ export type LiquidateWithReplacementParamsStructOutput = [
   borrower: string;
   minimumCollateralProfit: BigNumber;
   deadline: BigNumber;
-  minRate: BigNumber;
+  minRatePerMaturity: BigNumber;
 };
 
 export type RepayParamsStruct = { debtPositionId: BigNumberish };
@@ -451,7 +451,7 @@ export interface SizeInterface extends utils.Interface {
     "debtTokenAmountToCollateralTokenAmount(uint256)": FunctionFragment;
     "deposit((address,uint256,address))": FunctionFragment;
     "faceValue(uint256)": FunctionFragment;
-    "getBorrowOfferRate(address,uint256)": FunctionFragment;
+    "getBorrowOfferRatePerMaturity(address,uint256)": FunctionFragment;
     "getCreditPosition(uint256)": FunctionFragment;
     "getCreditPositionIdsByDebtPositionId(uint256)": FunctionFragment;
     "getCreditPositions()": FunctionFragment;
@@ -462,7 +462,7 @@ export interface SizeInterface extends utils.Interface {
     "getDebtPositionAssignedCollateral(uint256)": FunctionFragment;
     "getDebtPositions()": FunctionFragment;
     "getDebtPositions(uint256[])": FunctionFragment;
-    "getLoanOfferRate(address,uint256)": FunctionFragment;
+    "getLoanOfferRatePerMaturity(address,uint256)": FunctionFragment;
     "getLoanStatus(uint256)": FunctionFragment;
     "getPositionsCount()": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
@@ -515,7 +515,7 @@ export interface SizeInterface extends utils.Interface {
       | "debtTokenAmountToCollateralTokenAmount"
       | "deposit"
       | "faceValue"
-      | "getBorrowOfferRate"
+      | "getBorrowOfferRatePerMaturity"
       | "getCreditPosition"
       | "getCreditPositionIdsByDebtPositionId"
       | "getCreditPositions()"
@@ -526,7 +526,7 @@ export interface SizeInterface extends utils.Interface {
       | "getDebtPositionAssignedCollateral"
       | "getDebtPositions()"
       | "getDebtPositions(uint256[])"
-      | "getLoanOfferRate"
+      | "getLoanOfferRatePerMaturity"
       | "getLoanStatus"
       | "getPositionsCount"
       | "getRoleAdmin"
@@ -617,7 +617,7 @@ export interface SizeInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getBorrowOfferRate",
+    functionFragment: "getBorrowOfferRatePerMaturity",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -661,7 +661,7 @@ export interface SizeInterface extends utils.Interface {
     values: [BigNumberish[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "getLoanOfferRate",
+    functionFragment: "getLoanOfferRatePerMaturity",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -830,7 +830,7 @@ export interface SizeInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "faceValue", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getBorrowOfferRate",
+    functionFragment: "getBorrowOfferRatePerMaturity",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -871,7 +871,7 @@ export interface SizeInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getLoanOfferRate",
+    functionFragment: "getLoanOfferRatePerMaturity",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -1141,7 +1141,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    getBorrowOfferRate(
+    getBorrowOfferRatePerMaturity(
       borrower: string,
       dueDate: BigNumberish,
       overrides?: CallOverrides
@@ -1215,7 +1215,7 @@ export interface Size extends BaseContract {
       }
     >;
 
-    getLoanOfferRate(
+    getLoanOfferRatePerMaturity(
       lender: string,
       dueDate: BigNumberish,
       overrides?: CallOverrides
@@ -1439,7 +1439,7 @@ export interface Size extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  getBorrowOfferRate(
+  getBorrowOfferRatePerMaturity(
     borrower: string,
     dueDate: BigNumberish,
     overrides?: CallOverrides
@@ -1493,7 +1493,7 @@ export interface Size extends BaseContract {
     overrides?: CallOverrides
   ): Promise<DebtPositionStructOutput[]>;
 
-  getLoanOfferRate(
+  getLoanOfferRatePerMaturity(
     lender: string,
     dueDate: BigNumberish,
     overrides?: CallOverrides
@@ -1712,7 +1712,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getBorrowOfferRate(
+    getBorrowOfferRatePerMaturity(
       borrower: string,
       dueDate: BigNumberish,
       overrides?: CallOverrides
@@ -1766,7 +1766,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<DebtPositionStructOutput[]>;
 
-    getLoanOfferRate(
+    getLoanOfferRatePerMaturity(
       lender: string,
       dueDate: BigNumberish,
       overrides?: CallOverrides
@@ -2034,7 +2034,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getBorrowOfferRate(
+    getBorrowOfferRatePerMaturity(
       borrower: string,
       dueDate: BigNumberish,
       overrides?: CallOverrides
@@ -2084,7 +2084,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getLoanOfferRate(
+    getLoanOfferRatePerMaturity(
       lender: string,
       dueDate: BigNumberish,
       overrides?: CallOverrides
@@ -2309,7 +2309,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getBorrowOfferRate(
+    getBorrowOfferRatePerMaturity(
       borrower: string,
       dueDate: BigNumberish,
       overrides?: CallOverrides
@@ -2363,7 +2363,7 @@ export interface Size extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getLoanOfferRate(
+    getLoanOfferRatePerMaturity(
       lender: string,
       dueDate: BigNumberish,
       overrides?: CallOverrides

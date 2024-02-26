@@ -21,14 +21,14 @@ contract BorrowAsMarketOrder is Script, Logger {
         uint256 dueDate = block.timestamp + 4 days;
 
         Size sizeContract = Size(sizeContractAddress);
-        uint256 rate = SizeView(address(sizeContract)).getLoanOfferRate(lender, dueDate);
+        uint256 rate = SizeView(address(sizeContract)).getLoanOfferRatePerMaturity(lender, dueDate);
 
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             lender: lender,
             amount: 5e6,
             dueDate: dueDate,
             deadline: block.timestamp,
-            maxRate: rate,
+            maxRatePerMaturity: rate,
             exactAmountIn: false,
             receivableCreditPositionIds: new uint256[](0)
         });

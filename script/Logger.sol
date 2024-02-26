@@ -17,7 +17,7 @@ abstract contract Logger {
             console.log("Borrower Address:", debtPositions[i].borrower);
             console.log("Issuance Value:", debtPositions[i].issuanceValue);
             console.log("Face Value:", debtPositions[i].faceValue());
-            console.log("Rate:", debtPositions[i].rate);
+            console.log("Rate Per Maturity:", debtPositions[i].ratePerMaturity);
             console.log("Start Date:", debtPositions[i].startDate);
             console.log("Due Date:", debtPositions[i].dueDate);
 
@@ -36,18 +36,18 @@ abstract contract Logger {
     function log(UserView memory userView) internal pure {
         console.log("account", userView.account);
         console.log("user.loanOffer.maxDueDate", userView.user.loanOffer.maxDueDate);
-        for (uint256 i = 0; i < userView.user.loanOffer.curveRelativeTime.rates.length; i++) {
+        for (uint256 i = 0; i < userView.user.loanOffer.curveRelativeTime.aprs.length; i++) {
             console.log(
                 "user.loanOffer.curveRelativeTime.maturities[]", userView.user.loanOffer.curveRelativeTime.maturities[i]
             );
-            console.log("user.loanOffer.curveRelativeTime.rates[]", userView.user.loanOffer.curveRelativeTime.rates[i]);
+            console.log("user.loanOffer.curveRelativeTime.aprs[]", userView.user.loanOffer.curveRelativeTime.aprs[i]);
             console.log(
                 "user.loanOffer.curveRelativeTime.marketRateMultipliers[]",
                 userView.user.loanOffer.curveRelativeTime.marketRateMultipliers[i]
             );
         }
-        console.log("collateralAmount", userView.collateralAmount);
-        console.log("borrowAmount", userView.borrowAmount);
-        console.log("debtAmount", userView.debtAmount);
+        console.log("collateralBalance", userView.collateralBalance);
+        console.log("borrowATokenBalance", userView.borrowATokenBalance);
+        console.log("debtBalance", userView.debtBalance);
     }
 }

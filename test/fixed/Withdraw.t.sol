@@ -16,14 +16,14 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, address(usdc), 12e6);
         _deposit(alice, address(weth), 23e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, 12e6);
-        assertEq(aliceUser.collateralAmount, 23e18);
+        assertEq(aliceUser.borrowATokenBalance, 12e6);
+        assertEq(aliceUser.collateralBalance, 23e18);
 
         _withdraw(alice, address(usdc), 9e6);
         _withdraw(alice, address(weth), 7e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, 3e6);
-        assertEq(aliceUser.collateralAmount, 16e18);
+        assertEq(aliceUser.borrowATokenBalance, 3e6);
+        assertEq(aliceUser.collateralBalance, 16e18);
     }
 
     function testFuzz_Withdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
@@ -38,8 +38,8 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, address(usdc), x * 1e6);
         _deposit(alice, address(weth), y * 1e18);
         UserView memory aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, x * 1e6);
-        assertEq(aliceUser.collateralAmount, y * 1e18);
+        assertEq(aliceUser.borrowATokenBalance, x * 1e6);
+        assertEq(aliceUser.collateralBalance, y * 1e18);
 
         z = bound(z, 1, x);
         w = bound(w, 1, y);
@@ -47,8 +47,8 @@ contract WithdrawTest is BaseTest {
         _withdraw(alice, address(usdc), z * 1e6);
         _withdraw(alice, address(weth), w * 1e18);
         aliceUser = size.getUserView(alice);
-        assertEq(aliceUser.borrowAmount, (x - z) * 1e6);
-        assertEq(aliceUser.collateralAmount, (y - w) * 1e18);
+        assertEq(aliceUser.borrowATokenBalance, (x - z) * 1e6);
+        assertEq(aliceUser.collateralBalance, (y - w) * 1e18);
     }
 
     function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
@@ -87,8 +87,8 @@ contract WithdrawTest is BaseTest {
         _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
@@ -153,9 +153,9 @@ contract WithdrawTest is BaseTest {
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
         uint256 rate = 1;
-        _lendAsLimitOrder(alice, 12, int256(rate), 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, int256(rate));
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
 
         _setPrice(0.125e18);
@@ -164,16 +164,16 @@ contract WithdrawTest is BaseTest {
         _withdraw(liquidator, usdc, type(uint256).max);
 
         assertEq(usdc.balanceOf(liquidator), liquidatorAmount - faceValue);
-        assertEq(_state().variablePool.borrowAmount, 0);
-        assertGt(_state().feeRecipient.collateralAmount, 0);
+        assertEq(_state().variablePool.borrowATokenBalance, 0);
+        assertGt(_state().feeRecipient.collateralBalance, 0);
     }
 
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_self_borrow() public {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(alice, weth, 160e18);
-        _borrowAsLimitOrder(alice, 1e18, 12);
-        _lendAsMarketOrder(alice, alice, 100e6, 12);
+        _borrowAsLimitOrder(alice, 1e18, block.timestamp + 12 days);
+        _lendAsMarketOrder(alice, alice, 100e6, block.timestamp + 12 days);
         _withdraw(alice, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
     }
@@ -183,8 +183,8 @@ contract WithdrawTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
-        _borrowAsLimitOrder(bob, 1e18, 12);
-        _lendAsMarketOrder(alice, bob, 100e6, 12);
+        _borrowAsLimitOrder(bob, 1e18, block.timestamp + 12 days);
+        _lendAsMarketOrder(alice, bob, 100e6, block.timestamp + 12 days);
         _withdraw(bob, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
     }

@@ -21,7 +21,7 @@ struct LendAsMarketOrderParams {
     uint256 dueDate;
     uint256 amount;
     uint256 deadline;
-    uint256 minRate;
+    uint256 minRatePerMaturity;
     bool exactAmountIn;
 }
 
@@ -37,19 +37,13 @@ library LendAsMarketOrder {
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.data.users[params.borrower].borrowOffer;
 
-        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed, params.dueDate);
-        uint256 amountIn;
-        if (params.exactAmountIn) {
-            amountIn = params.amount;
-        } else {
-            amountIn = Math.mulDivUp(params.amount, PERCENT, PERCENT + rate);
-        }
-
         // validate msg.sender
         // N/A
 
         // validate borrower
-        // N/A
+        if (borrowOffer.isNull()) {
+            revert Errors.INVALID_BORROW_OFFER(params.borrower);
+        }
 
         // validate dueDate
         if (params.dueDate < block.timestamp) {
@@ -57,6 +51,13 @@ library LendAsMarketOrder {
         }
 
         // validate amount
+        uint256 ratePerMaturity = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
+        uint256 amountIn;
+        if (params.exactAmountIn) {
+            amountIn = params.amount;
+        } else {
+            amountIn = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
+        }
         if (state.borrowATokenBalanceOf(msg.sender) < amountIn) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
                 msg.sender, state.borrowATokenBalanceOf(msg.sender), amountIn
@@ -68,9 +69,9 @@ library LendAsMarketOrder {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate minRate
-        if (rate < params.minRate) {
-            revert Errors.RATE_LOWER_THAN_MIN_RATE(rate, params.minRate);
+        // validate minRatePerMaturity
+        if (ratePerMaturity < params.minRatePerMaturity) {
+            revert Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(ratePerMaturity, params.minRatePerMaturity);
         }
 
         // validate exactAmountIn
@@ -82,12 +83,12 @@ library LendAsMarketOrder {
 
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
-        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed, params.dueDate);
+        uint256 ratePerMaturity = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
         uint256 issuanceValue;
         if (params.exactAmountIn) {
             issuanceValue = params.amount;
         } else {
-            issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + rate);
+            issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
         }
 
         // slither-disable-next-line unused-return
@@ -95,7 +96,7 @@ library LendAsMarketOrder {
             lender: msg.sender,
             borrower: params.borrower,
             issuanceValue: issuanceValue,
-            rate: rate,
+            ratePerMaturity: ratePerMaturity,
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(params.borrower, debtPosition.getDebt());

@@ -20,7 +20,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
     uint256 private constant MAX_RATE = 2e18;
-    uint256 private constant MAX_DUE_DATE = 12;
+    uint256 private constant MAX_MATURITY = 365 days * 2;
     uint256 private constant MAX_AMOUNT_USDC = 100e6;
     uint256 private constant MAX_AMOUNT_WETH = 2e18;
 
@@ -29,12 +29,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
 
         Vars memory _before = _state();
 
         uint256 amount = 10e6;
-        uint256 dueDate = 12;
+        uint256 dueDate = block.timestamp + 365 days;
 
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
 
@@ -45,36 +45,33 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         Vars memory _after = _state();
 
-        assertGt(_before.bob.collateralAmount, minimumCollateral);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount + amount);
-        assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
-        assertEq(_after.bob.debtAmount, debt + repayFee);
+        assertGt(_before.bob.collateralBalance, minimumCollateral);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - amount);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
+        assertEq(_after.variablePool.collateralBalance, _before.variablePool.collateralBalance);
+        assertEq(_after.bob.debtBalance, debt + repayFee);
     }
 
     function testFuzz_BorrowAsMarketOrder_borrowAsMarketOrder_with_real_collateral(
         uint256 amount,
-        uint256 rate,
+        uint256 apr,
         uint256 dueDate
     ) public {
-        amount = bound(amount, 1, MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
-        rate = bound(rate, 0, MAX_RATE);
-        dueDate = bound(dueDate, block.timestamp, block.timestamp + MAX_DUE_DATE - 1);
-
-        amount = 10e6;
-        rate = 0.03e18;
-        dueDate = 12;
+        amount = bound(amount, MAX_AMOUNT_USDC / 20, MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
+        apr = bound(apr, 0, MAX_RATE);
+        dueDate = bound(dueDate, block.timestamp + 1, block.timestamp + MAX_MATURITY - 1);
 
         _deposit(alice, weth, MAX_AMOUNT_WETH);
         _deposit(alice, usdc, MAX_AMOUNT_USDC);
         _deposit(bob, weth, MAX_AMOUNT_WETH);
         _deposit(bob, usdc, MAX_AMOUNT_USDC);
 
-        _lendAsLimitOrder(alice, block.timestamp + MAX_DUE_DATE, int256(rate), MAX_DUE_DATE);
+        _lendAsLimitOrder(alice, dueDate, int256(apr));
 
         Vars memory _before = _state();
 
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
+        uint256 rate = size.getLoanOfferRatePerMaturity(alice, dueDate);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
         uint256 debtOpening = Math.mulDivUp(debt, size.config().crOpening, PERCENT);
         uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
@@ -82,11 +79,11 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 repayFee = size.repayFee(debtPositionId);
         Vars memory _after = _state();
 
-        assertGt(_before.bob.collateralAmount, minimumCollateral);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount - amount);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount + amount);
-        assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
-        assertEq(_after.bob.debtAmount, debt + repayFee);
+        assertGt(_before.bob.collateralBalance, minimumCollateral);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - amount);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
+        assertEq(_after.variablePool.collateralBalance, _before.variablePool.collateralBalance);
+        assertEq(_after.bob.debtBalance, debt + repayFee);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral() public {
@@ -97,22 +94,29 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         uint256 amount = 30e6;
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _lendAsLimitOrder(candy, 12, 0.03e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 60e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 60e6, block.timestamp + 12 days);
 
         Vars memory _before = _state();
 
-        uint256 loanId2 =
-            _borrowAsMarketOrder(alice, candy, amount, 12, size.getCreditPositionIdsByDebtPositionId(debtPositionId));
+        uint256 loanId2 = _borrowAsMarketOrder(
+            alice, candy, amount, block.timestamp + 12 days, size.getCreditPositionIdsByDebtPositionId(debtPositionId)
+        );
 
         Vars memory _after = _state();
 
-        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount - amount);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amount - size.config().earlyLenderExitFee);
-        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.config().earlyLenderExitFee);
-        assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
+        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance - amount);
+        assertEq(
+            _after.alice.borrowATokenBalance,
+            _before.alice.borrowATokenBalance + amount - size.config().earlyLenderExitFee
+        );
+        assertEq(
+            _after.feeRecipient.borrowATokenBalance,
+            _before.feeRecipient.borrowATokenBalance + size.config().earlyLenderExitFee
+        );
+        assertEq(_after.variablePool.collateralBalance, _before.variablePool.collateralBalance);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
         assertEq(_after.bob, _before.bob);
         assertTrue(!size.isDebtPositionId(loanId2));
     }
@@ -120,11 +124,13 @@ contract BorrowAsMarketOrderTest is BaseTest {
     function testFuzz_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral(
         uint256 amount,
         uint256 rate,
-        uint256 dueDate
+        uint256 maturity
     ) public {
         amount = bound(amount, MAX_AMOUNT_USDC / 10, 2 * MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
         rate = bound(rate, 0, MAX_RATE);
-        dueDate = bound(dueDate, block.timestamp, block.timestamp + MAX_DUE_DATE - 1);
+        maturity = bound(maturity, 1, MAX_MATURITY - 1);
+
+        uint256 dueDate = block.timestamp + maturity;
 
         _deposit(alice, weth, MAX_AMOUNT_WETH);
         _deposit(alice, usdc, MAX_AMOUNT_USDC + size.config().earlyLenderExitFee);
@@ -133,8 +139,18 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, weth, MAX_AMOUNT_WETH);
         _deposit(candy, usdc, MAX_AMOUNT_USDC);
 
-        _lendAsLimitOrder(alice, block.timestamp + MAX_DUE_DATE, int256(rate), MAX_DUE_DATE);
-        _lendAsLimitOrder(candy, block.timestamp + MAX_DUE_DATE, int256(rate), MAX_DUE_DATE);
+        _lendAsLimitOrder(
+            alice,
+            block.timestamp + MAX_MATURITY,
+            [int256(rate), int256(rate)],
+            [uint256(maturity), uint256(maturity) * 2]
+        );
+        _lendAsLimitOrder(
+            candy,
+            block.timestamp + MAX_MATURITY,
+            [int256(rate), int256(rate)],
+            [uint256(maturity), uint256(maturity) * 2]
+        );
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
 
         Vars memory _before = _state();
@@ -145,11 +161,17 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.candy.borrowAmount, _before.candy.borrowAmount - amount);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + amount - size.config().earlyLenderExitFee);
-        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.config().earlyLenderExitFee);
-        assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
+        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance - amount);
+        assertEq(
+            _after.alice.borrowATokenBalance,
+            _before.alice.borrowATokenBalance + amount - size.config().earlyLenderExitFee
+        );
+        assertEq(
+            _after.feeRecipient.borrowATokenBalance,
+            _before.feeRecipient.borrowATokenBalance + size.config().earlyLenderExitFee
+        );
+        assertEq(_after.variablePool.collateralBalance, _before.variablePool.collateralBalance);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
         assertEq(_after.bob, _before.bob);
         assertTrue(!size.isDebtPositionId(loanId2));
     }
@@ -161,15 +183,15 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
-        _lendAsLimitOrder(candy, 12, 0.05e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 12 days);
         LoanOffer memory loanOffer = size.getUserView(candy).user.loanOffer;
 
         Vars memory _before = _state();
 
-        uint256 dueDate = 12;
+        uint256 dueDate = block.timestamp + 12 days;
         uint256 amountLoanId2 = 30e6;
         uint256 loanId2 = _borrowAsMarketOrder(
             alice, candy, amountLoanId2, dueDate, size.getCreditPositionIdsByDebtPositionId(debtPositionId)
@@ -178,17 +200,17 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 r = PERCENT + loanOffer.getRate(marketBorrowRateFeed, dueDate);
+        uint256 r = PERCENT + loanOffer.getRatePerMaturity(marketBorrowRateFeed, dueDate);
 
         uint256 faceValue = Math.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
         uint256 faceValueOpening = Math.mulDivUp(faceValue, size.config().crOpening, PERCENT);
         uint256 minimumCollateral = Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
-        assertGt(_before.bob.collateralAmount, minimumCollateral);
-        assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
-        assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
+        assertGt(_before.bob.collateralBalance, minimumCollateral);
+        assertLt(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance);
+        assertGt(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
+        assertEq(_after.variablePool.collateralBalance, _before.variablePool.collateralBalance);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isDebtPositionId(loanId2));
         assertEq(size.getDebt(loanId2), faceValue + repayFee);
@@ -207,13 +229,13 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
-        _lendAsLimitOrder(candy, 12, 0.05e18, 12);
-        uint256 loanId1 = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.05e18);
+        uint256 loanId1 = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 12 days);
         uint256 creditId1 = size.getCreditPositionIdsByDebtPositionId(loanId1)[0];
 
-        uint256 dueDate = 12;
-        uint256 r = PERCENT + size.getUserView(candy).user.loanOffer.getRate(marketBorrowRateFeed, dueDate);
+        uint256 dueDate = block.timestamp + 12 days;
+        uint256 r = PERCENT + size.getUserView(candy).user.loanOffer.getRatePerMaturity(marketBorrowRateFeed, dueDate);
         uint256 deltaAmountOut = (Math.mulDivUp(r, amountLoanId2, PERCENT) > size.getCreditPosition(creditId1).credit)
             ? Math.mulDivDown(size.getCreditPosition(creditId1).credit, PERCENT, r)
             : amountLoanId2;
@@ -232,12 +254,15 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 minimumCollateralAmount =
             Math.mulDivUp(faceValueOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
-        assertGt(_before.bob.collateralAmount, minimumCollateralAmount);
-        assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
-        assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount + size.config().earlyLenderExitFee);
-        assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + faceValue + repayFee);
+        assertGt(_before.bob.collateralBalance, minimumCollateralAmount);
+        assertLt(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance);
+        assertGt(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
+        assertEq(
+            _after.feeRecipient.borrowATokenBalance,
+            _before.feeRecipient.borrowATokenBalance + size.config().earlyLenderExitFee
+        );
+        assertEq(_after.variablePool.collateralBalance, _before.variablePool.collateralBalance);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isDebtPositionId(loanId2));
         assertEq(size.getDebt(loanId2), faceValue + repayFee);
@@ -250,21 +275,22 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _lendAsLimitOrder(candy, 12, 0.03e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 30e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 30e6, block.timestamp + 12 days);
 
         Vars memory _before = _state();
 
-        uint256 loanId2 =
-            _borrowAsMarketOrder(alice, candy, 30e6, 12, size.getCreditPositionIdsByDebtPositionId(debtPositionId));
+        uint256 loanId2 = _borrowAsMarketOrder(
+            alice, candy, 30e6, block.timestamp + 12 days, size.getCreditPositionIdsByDebtPositionId(debtPositionId)
+        );
 
         Vars memory _after = _state();
 
-        assertLt(_after.candy.borrowAmount, _before.candy.borrowAmount);
-        assertGt(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount);
+        assertLt(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance);
+        assertGt(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
+        assertEq(_after.variablePool.collateralBalance, _before.variablePool.collateralBalance);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
         assertEq(_after.bob, _before.bob);
         assertTrue(!size.isDebtPositionId(loanId2));
     }
@@ -272,9 +298,9 @@ contract BorrowAsMarketOrderTest is BaseTest {
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_reverts_if_free_eth_is_lower_than_locked_amount() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
         uint256 amount = 100e6;
-        uint256 dueDate = 12;
+        uint256 dueDate = block.timestamp + 12 days;
         vm.startPrank(bob);
         uint256[] memory receivableCreditPositionIds;
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
@@ -284,7 +310,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 deadline: block.timestamp,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: false,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -296,12 +322,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
     {
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1e18);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
 
         _withdraw(alice, usdc, 999e6);
 
         uint256 amount = 10e6;
-        uint256 dueDate = 12;
+        uint256 dueDate = block.timestamp + 12 days;
 
         vm.startPrank(bob);
         uint256[] memory receivableCreditPositionIds;
@@ -312,7 +338,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 deadline: block.timestamp,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: false,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -332,26 +358,30 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _lendAsLimitOrder(candy, 12, 0.03e18, 12);
-        _lendAsLimitOrder(james, 12, 0.03e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 0.03e18);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, 0.03e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(alice, candy, 100e6, 12, [creditPositionId]);
+        _borrowAsMarketOrder(alice, candy, 100e6, block.timestamp + 365 days, [creditPositionId]);
 
         (uint256 loansBefore,) = size.getPositionsCount();
         Vars memory _before = _state();
 
-        _borrowAsMarketOrder(alice, james, 100e6, 12, [creditPositionId]);
+        _borrowAsMarketOrder(alice, james, 100e6, block.timestamp + 365 days, [creditPositionId]);
         uint256 repayFee = size.repayFee(debtPositionId);
 
         (uint256 loansAfter,) = size.getPositionsCount();
         Vars memory _after = _state();
 
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 100e6);
-        assertEq(_after.feeRecipient.borrowAmount, _before.feeRecipient.borrowAmount, size.config().earlyLenderExitFee);
-        assertEq(_after.alice.debtAmount, _before.alice.debtAmount + 103e6 + repayFee);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 100e6);
+        assertEq(
+            _after.feeRecipient.borrowATokenBalance,
+            _before.feeRecipient.borrowATokenBalance,
+            size.config().earlyLenderExitFee
+        );
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + 103e6 + repayFee);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_CreditPosition_of_CreditPosition_creates_with_correct_debtPositionId(
@@ -366,15 +396,15 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, usdc, 100e6 + size.config().earlyLenderExitFee);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(bob, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(james, block.timestamp + 12 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 49e6, 12, [creditPositionId]);
+        uint256 loanId2 = _borrowAsMarketOrder(alice, candy, 49e6, block.timestamp + 12 days, [creditPositionId]);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        uint256 loanId3 = _borrowAsMarketOrder(candy, bob, 42e6, 12, [creditPositionId2]);
+        uint256 loanId3 = _borrowAsMarketOrder(candy, bob, 42e6, block.timestamp + 12 days, [creditPositionId2]);
 
         assertEq(loanId2, loanId3, type(uint256).max);
         assertEq(size.getCreditPosition(creditPositionId).debtPositionId, debtPositionId);
@@ -391,19 +421,19 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(bob, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(james, block.timestamp + 12 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(alice, candy, 49e6, 12, [creditPositionId]);
+        _borrowAsMarketOrder(alice, candy, 49e6, block.timestamp + 12 days, [creditPositionId]);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         CreditPosition memory creditBefore1 = size.getCreditPosition(creditPositionId);
         CreditPosition memory creditBefore2 = size.getCreditPosition(creditPositionId2);
 
-        _borrowAsMarketOrder(candy, bob, 40e6, 12, [creditPositionId2]);
+        _borrowAsMarketOrder(candy, bob, 40e6, block.timestamp + 12 days, [creditPositionId2]);
 
         CreditPosition memory creditAfter1 = size.getCreditPosition(creditPositionId);
         CreditPosition memory creditAfter2 = size.getCreditPosition(creditPositionId2);
@@ -422,22 +452,22 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        _lendAsLimitOrder(bob, 12, 0, 12);
-        _lendAsLimitOrder(candy, 12, 0, 12);
-        _lendAsLimitOrder(james, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
+        _lendAsLimitOrder(james, block.timestamp + 12 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
         uint256[] memory receivableCreditPositionIds = size.getCreditPositionIdsByDebtPositionId(debtPositionId);
-        _borrowAsMarketOrder(alice, candy, 100e6, 12, receivableCreditPositionIds);
+        _borrowAsMarketOrder(alice, candy, 100e6, block.timestamp + 12 days, receivableCreditPositionIds);
 
         console.log("User attempts to fully exit twice, but a DebtPosition is attempted to be created, which reverts");
 
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             lender: james,
             amount: 100e6,
-            dueDate: 12,
+            dueDate: block.timestamp + 12 days,
             deadline: block.timestamp,
-            maxRate: type(uint256).max,
+            maxRatePerMaturity: type(uint256).max,
             exactAmountIn: false,
             receivableCreditPositionIds: receivableCreditPositionIds
         });
@@ -451,12 +481,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.1e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.1e18);
 
         Vars memory _before = _state();
 
         uint256 amount = 1;
-        uint256 dueDate = 12;
+        uint256 dueDate = block.timestamp + 12 days;
 
         _borrowAsMarketOrder(bob, alice, amount, dueDate, true);
 
@@ -464,22 +494,22 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         assertEq(_after.alice, _before.alice);
         assertEq(_after.bob, _before.bob);
-        assertEq(_after.bob.debtAmount, 0);
-        assertEq(_after.variablePool.collateralAmount, _before.variablePool.collateralAmount);
+        assertEq(_after.bob.debtBalance, 0);
+        assertEq(_after.variablePool.collateralBalance, _before.variablePool.collateralBalance);
         (uint256 debtPositions,) = size.getPositionsCount();
         assertEq(debtPositions, 0);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_cannot_surpass_debtTokenCap() public {
         _setPrice(1e18);
-        uint256 dueDate = 12;
+        uint256 dueDate = block.timestamp + 12 days;
         uint256 startDate = block.timestamp;
         uint256 amount = 10e6;
         uint256 repayFee = size.repayFee(amount, startDate, dueDate, size.config().repayFeeAPR);
         _updateConfig("debtTokenCap", 5e6);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
-        _lendAsLimitOrder(bob, 12, 0, 12);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
 
         vm.startPrank(alice);
         uint256[] memory receivableCreditPositionIds;
@@ -493,7 +523,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 dueDate: dueDate,
                 exactAmountIn: false,
                 deadline: block.timestamp,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
         );

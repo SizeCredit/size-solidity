@@ -18,7 +18,7 @@ contract LendAsLimitOrderTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         assertTrue(_state().alice.user.loanOffer.isNull());
-        _lendAsLimitOrder(alice, 12, 1.01e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 1.01e18);
         assertTrue(!_state().alice.user.loanOffer.isNull());
     }
 
@@ -33,9 +33,9 @@ contract LendAsLimitOrderTest is BaseTest {
         uint256[] memory maturities = new uint256[](2);
         maturities[0] = 30 days;
         maturities[1] = 60 days;
-        int256[] memory rates = new int256[](2);
-        rates[0] = 0.15e18;
-        rates[0] = 0.12e18;
+        int256[] memory aprs = new int256[](2);
+        aprs[0] = 0.15e18;
+        aprs[0] = 0.12e18;
 
         vm.prank(alice);
         size.lendAsLimitOrder(
@@ -44,7 +44,7 @@ contract LendAsLimitOrderTest is BaseTest {
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
                     marketRateMultipliers: marketRateMultipliers,
-                    rates: rates
+                    aprs: aprs
                 })
             })
         );
@@ -56,7 +56,7 @@ contract LendAsLimitOrderTest is BaseTest {
                 amount: 100e6,
                 dueDate: 45 days,
                 deadline: block.timestamp,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: false,
                 receivableCreditPositionIds: new uint256[](0)
             })
@@ -74,7 +74,7 @@ contract LendAsLimitOrderTest is BaseTest {
                 amount: 100e6,
                 dueDate: 45 days,
                 deadline: block.timestamp,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: false,
                 receivableCreditPositionIds: new uint256[](0)
             })

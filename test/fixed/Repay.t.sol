@@ -20,9 +20,9 @@ contract RepayTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
         uint256 repayFee = size.repayFee(debtPositionId);
 
@@ -32,11 +32,11 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue - repayFee);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(_after.size.borrowAmount, _before.size.borrowAmount + faceValue);
-        assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue - repayFee);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
+        assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
+        assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
         assertEq(size.getDebt(debtPositionId), 0);
     }
 
@@ -49,22 +49,22 @@ contract RepayTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.05e18, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
         uint256 repayFee = size.repayFee(debtPositionId);
 
         Vars memory _before = _state();
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
 
-        vm.warp(365 days);
+        vm.warp(block.timestamp + 365 days);
 
         Vars memory _overdue = _state();
 
-        assertEq(_overdue.bob.debtAmount, _before.bob.debtAmount);
-        assertEq(_overdue.bob.borrowAmount, _before.bob.borrowAmount);
-        assertEq(_overdue.variablePool.borrowAmount, _before.variablePool.borrowAmount);
+        assertEq(_overdue.bob.debtBalance, _before.bob.debtBalance);
+        assertEq(_overdue.bob.borrowATokenBalance, _before.bob.borrowATokenBalance);
+        assertEq(_overdue.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
         assertGt(size.getDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.OVERDUE);
 
@@ -72,11 +72,11 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtAmount, _before.bob.debtAmount - faceValue - repayFee);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - faceValue);
-        assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount);
-        assertEq(_after.size.borrowAmount, _before.size.borrowAmount + faceValue);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue - repayFee);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
+        assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
+        assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
         assertEq(size.getDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
     }
@@ -88,11 +88,11 @@ contract RepayTest is BaseTest {
         _deposit(bob, usdc, 200e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 1e18, 12);
-        _lendAsLimitOrder(candy, 12, 1e18, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(bob, candy, 100e6, 12);
+        _borrowAsMarketOrder(bob, candy, 100e6, block.timestamp + 365 days);
 
         Vars memory _before = _state();
 
@@ -101,10 +101,10 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowAmount, _before.alice.borrowAmount + 200e6);
-        assertEq(_after.bob.borrowAmount, _before.bob.borrowAmount - 200e6);
-        assertEq(_after.variablePool.borrowAmount, _before.variablePool.borrowAmount);
-        assertEq(_after.size.borrowAmount, _before.size.borrowAmount, 0);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - 200e6);
+        assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
+        assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance, 0);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, debtPositionId));
         _repay(bob, debtPositionId);
@@ -113,17 +113,17 @@ contract RepayTest is BaseTest {
     function test_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAToken() internal {}
 
     function testFuzz_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAToken(
-        uint256 borrowAmount,
+        uint256 borrowATokenBalance,
         uint256 repayAmount
     ) internal {
-        borrowAmount = bound(borrowAmount, size.config().minimumCreditBorrowAToken, 100e6);
-        repayAmount = bound(repayAmount, 0, borrowAmount);
+        borrowATokenBalance = bound(borrowATokenBalance, size.config().minimumCreditBorrowAToken, 100e6);
+        repayAmount = bound(repayAmount, 0, borrowATokenBalance);
 
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
-        _lendAsLimitOrder(alice, 12, 0, 12);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, borrowAmount, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, borrowATokenBalance, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         vm.prank(bob);

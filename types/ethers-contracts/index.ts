@@ -4,7 +4,11 @@
 export type { MarketBorrowRateFeed } from "./MarketBorrowRateFeed";
 export type { PriceFeed } from "./PriceFeed";
 export type { Size } from "./Size";
+export type { USDC } from "./USDC";
+export type { WETH } from "./WETH";
 export * as factories from "./factories";
 export { Size__factory } from "./factories/Size__factory";
 export { PriceFeed__factory } from "./factories/PriceFeed__factory";
 export { MarketBorrowRateFeed__factory } from "./factories/MarketBorrowRateFeed__factory";
+export { WETH__factory } from "./factories/WETH__factory";
+export { USDC__factory } from "./factories/USDC__factory";

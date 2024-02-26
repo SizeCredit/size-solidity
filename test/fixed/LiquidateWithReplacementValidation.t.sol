@@ -22,48 +22,56 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _borrowAsLimitOrder(candy, 0.03e18, 40);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, 12);
+        _lendAsLimitOrder(
+            alice,
+            block.timestamp + 365 days * 2,
+            [int256(0.03e18), int256(0.03e18)],
+            [uint256(365 days), uint256(365 days * 2)]
+        );
+        _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
+        uint256 dueDate = block.timestamp + 365 days * 2;
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, dueDate);
         uint256 minimumCollateralProfit = 0;
 
         _setPrice(0.2e18);
 
         vm.startPrank(liquidator);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_LOWER_THAN_MIN_RATE.selector, 0.03e18, 1e18));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE.selector, 0.03e18 * 2, 1e18)
+        );
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: candy,
-                minRate: 1e18,
+                minRatePerMaturity: 1e18,
                 deadline: block.timestamp,
                 minimumCollateralProfit: minimumCollateralProfit
             })
         );
 
         uint256 deadline = block.timestamp;
-        vm.warp(block.timestamp + 1);
+        vm.warp(block.timestamp + 365 days);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DEADLINE.selector, deadline));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: candy,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 deadline: deadline,
                 minimumCollateralProfit: minimumCollateralProfit
             })
         );
 
-        vm.warp(block.timestamp + 11);
+        vm.warp(block.timestamp + 365 days * 2);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 12));
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, dueDate));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: candy,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 deadline: block.timestamp,
                 minimumCollateralProfit: minimumCollateralProfit
             })

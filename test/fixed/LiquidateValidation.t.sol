@@ -18,15 +18,15 @@ contract LiquidateValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _lendAsLimitOrder(alice, 12, 0.03e18, 12);
-        _lendAsLimitOrder(bob, 12, 0.03e18, 12);
-        _lendAsLimitOrder(candy, 12, 0.03e18, 12);
-        _lendAsLimitOrder(james, 12, 0.03e18, 12);
-        _borrowAsMarketOrder(bob, candy, 90e6, 12);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0.03e18);
+        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
+        _lendAsLimitOrder(james, block.timestamp + 12 days, 0.03e18);
+        _borrowAsMarketOrder(bob, candy, 90e6, block.timestamp + 12 days);
 
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, 12);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(alice, james, 5e6, 12, [creditId]);
+        _borrowAsMarketOrder(alice, james, 5e6, block.timestamp + 12 days, [creditId]);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 minimumCollateralProfit = 0;
 
@@ -50,8 +50,8 @@ contract LiquidateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        _borrowAsMarketOrder(alice, candy, 10e6, 12, [creditId]);
-        _borrowAsMarketOrder(alice, james, 50e6, 12);
+        _borrowAsMarketOrder(alice, candy, 10e6, block.timestamp + 12 days, [creditId]);
+        _borrowAsMarketOrder(alice, james, 50e6, block.timestamp + 12 days);
 
         // DebtPosition with high CR cannot be liquidated
         vm.startPrank(liquidator);

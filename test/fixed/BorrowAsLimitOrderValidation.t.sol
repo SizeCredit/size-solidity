@@ -29,7 +29,7 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
                     marketRateMultipliers: marketRateMultipliers,
-                    rates: rates1
+                    aprs: rates1
                 })
             })
         );
@@ -43,14 +43,14 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
                     marketRateMultipliers: marketRateMultipliers,
-                    rates: empty
+                    aprs: empty
                 })
             })
         );
 
-        int256[] memory rates = new int256[](2);
-        rates[0] = 1.01e18;
-        rates[1] = 1.02e18;
+        int256[] memory aprs = new int256[](2);
+        aprs[0] = 1.01e18;
+        aprs[1] = 1.02e18;
 
         maturities[0] = 2 days;
         maturities[1] = 1 days;
@@ -61,7 +61,21 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
                     marketRateMultipliers: marketRateMultipliers,
-                    rates: rates
+                    aprs: aprs
+                })
+            })
+        );
+
+        maturities[0] = 0 days;
+        maturities[1] = 1 days;
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_MATURITY.selector));
+        size.borrowAsLimitOrder(
+            BorrowAsLimitOrderParams({
+                openingLimitBorrowCR: 0,
+                curveRelativeTime: YieldCurve({
+                    maturities: maturities,
+                    marketRateMultipliers: marketRateMultipliers,
+                    aprs: aprs
                 })
             })
         );
