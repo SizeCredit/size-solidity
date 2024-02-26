@@ -21,7 +21,7 @@ struct LendAsMarketOrderParams {
     uint256 dueDate;
     uint256 amount;
     uint256 deadline;
-    uint256 minRate;
+    uint256 minRatePerMaturity;
     bool exactAmountIn;
 }
 
@@ -68,9 +68,9 @@ library LendAsMarketOrder {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate minRate
-        if (rate < params.minRate) {
-            revert Errors.RATE_LOWER_THAN_MIN_RATE(rate, params.minRate);
+        // validate minRatePerMaturity
+        if (rate < params.minRatePerMaturity) {
+            revert Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(rate, params.minRatePerMaturity);
         }
 
         // validate exactAmountIn

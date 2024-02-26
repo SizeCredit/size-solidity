@@ -29,7 +29,7 @@ contract MulticallScript is Script {
                 amount: 51e6,
                 dueDate: dueDate,
                 deadline: block.timestamp,
-                maxRate: rate,
+                maxRatePerMaturity: rate,
                 exactAmountIn: false,
                 receivableCreditPositionIds: new uint256[](0)
             })

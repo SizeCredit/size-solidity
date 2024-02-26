@@ -21,7 +21,7 @@ struct LiquidateWithReplacementParams {
     address borrower;
     uint256 minimumCollateralProfit;
     uint256 deadline;
-    uint256 minRate;
+    uint256 minRatePerMaturity;
 }
 
 library LiquidateWithReplacement {
@@ -64,8 +64,8 @@ library LiquidateWithReplacement {
         }
 
         // validate rate
-        if (rate < params.minRate) {
-            revert Errors.RATE_LOWER_THAN_MIN_RATE(rate, params.minRate);
+        if (rate < params.minRatePerMaturity) {
+            revert Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(rate, params.minRatePerMaturity);
         }
     }
 

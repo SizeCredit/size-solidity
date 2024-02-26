@@ -23,7 +23,7 @@ struct BorrowAsMarketOrderParams {
     uint256 amount;
     uint256 dueDate;
     uint256 deadline;
-    uint256 maxRate;
+    uint256 maxRatePerMaturity;
     bool exactAmountIn;
     uint256[] receivableCreditPositionIds;
 }
@@ -66,9 +66,9 @@ library BorrowAsMarketOrder {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate params.maxRate
-        if (rate > params.maxRate) {
-            revert Errors.RATE_GREATER_THAN_MAX_RATE(rate, params.maxRate);
+        // validate params.maxRatePerMaturity
+        if (rate > params.maxRatePerMaturity) {
+            revert Errors.RATE_PER_MATURITY_GREATER_THAN_MAX_RATE(rate, params.maxRatePerMaturity);
         }
 
         // validate params.exactAmountIn

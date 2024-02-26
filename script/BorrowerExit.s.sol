@@ -25,7 +25,7 @@ contract BorrowerExitScript is Script {
         BorrowerExitParams memory params = BorrowerExitParams({
             debtPositionId: debtPositionId,
             borrowerToExitTo: borrower,
-            minRate: rate,
+            minRatePerMaturity: rate,
             deadline: block.timestamp
         });
 

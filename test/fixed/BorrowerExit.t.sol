@@ -107,7 +107,7 @@ contract BorrowerExitTest is BaseTest {
                 debtPositionId: debtPositionId,
                 borrowerToExitTo: candy,
                 deadline: block.timestamp,
-                minRate: 0
+                minRatePerMaturity: 0
             })
         );
     }

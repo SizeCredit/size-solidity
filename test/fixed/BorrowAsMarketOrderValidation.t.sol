@@ -42,7 +42,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 deadline: deadline,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -55,7 +55,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 0,
                 dueDate: dueDate,
                 deadline: deadline,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -68,7 +68,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: 0,
                 deadline: deadline,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -85,7 +85,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: block.timestamp + 11 days,
                 deadline: deadline,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -104,7 +104,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 1e6,
                 dueDate: block.timestamp + 365 days,
                 deadline: deadline,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -118,7 +118,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: dueDate,
                 deadline: deadline,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -138,7 +138,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: block.timestamp + 4 days,
                 deadline: deadline,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -146,14 +146,16 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_GREATER_THAN_MAX_RATE.selector, 0.03e18, 0.01e18));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.RATE_PER_MATURITY_GREATER_THAN_MAX_RATE.selector, 0.03e18, 0.01e18)
+        );
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: james,
                 amount: 100e6,
                 dueDate: block.timestamp + 365 days,
                 deadline: deadline,
-                maxRate: 0.01e18,
+                maxRatePerMaturity: 0.01e18,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -168,7 +170,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: block.timestamp + 365 days,
                 deadline: deadline - 1,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })

@@ -295,7 +295,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 deadline: block.timestamp,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: false,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -323,7 +323,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 deadline: block.timestamp,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: false,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -448,7 +448,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
             amount: 100e6,
             dueDate: block.timestamp + 12 days,
             deadline: block.timestamp,
-            maxRate: type(uint256).max,
+            maxRatePerMaturity: type(uint256).max,
             exactAmountIn: false,
             receivableCreditPositionIds: receivableCreditPositionIds
         });
@@ -504,7 +504,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 dueDate: dueDate,
                 exactAmountIn: false,
                 deadline: block.timestamp,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
         );

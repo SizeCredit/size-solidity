@@ -34,7 +34,7 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: borrowerToExitTo
             })
         );
@@ -49,7 +49,7 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: borrowerToExitTo
             })
         );
@@ -61,7 +61,7 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: creditId2,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: borrowerToExitTo
             })
         );
@@ -72,7 +72,7 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: address(0)
             })
         );
@@ -84,12 +84,12 @@ contract BorrowerExitValidationTest is BaseTest {
 
         vm.startPrank(bob);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_LOWER_THAN_MIN_RATE.selector, 2, 3));
+        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE.selector, 2, 3));
         size.borrowerExit(
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp,
-                minRate: 3,
+                minRatePerMaturity: 3,
                 borrowerToExitTo: bob
             })
         );
@@ -99,7 +99,7 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp - 1,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: bob
             })
         );
@@ -110,7 +110,7 @@ contract BorrowerExitValidationTest is BaseTest {
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 borrowerToExitTo: borrowerToExitTo
             })
         );

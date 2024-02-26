@@ -31,7 +31,7 @@ contract LendAsMarketOrderScript is Script, Logger {
             dueDate: dueDate,
             amount: amount,
             deadline: block.timestamp,
-            minRate: rate,
+            minRatePerMaturity: rate,
             exactAmountIn: false
         });
         console.log("lender USDC", sizeContract.getUserView(lender).borrowAmount);

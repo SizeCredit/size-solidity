@@ -81,7 +81,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
                 amount: 100e6,
                 dueDate: block.timestamp + 1 days,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 exactAmountIn: true
             })
         );
@@ -115,7 +115,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
                 amount: 100e6,
                 dueDate: block.timestamp + 1 days,
                 deadline: block.timestamp,
-                minRate: 0,
+                minRatePerMaturity: 0,
                 exactAmountIn: true
             })
         );

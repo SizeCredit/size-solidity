@@ -56,7 +56,7 @@ contract LendAsLimitOrderTest is BaseTest {
                 amount: 100e6,
                 dueDate: 45 days,
                 deadline: block.timestamp,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: false,
                 receivableCreditPositionIds: new uint256[](0)
             })
@@ -74,7 +74,7 @@ contract LendAsLimitOrderTest is BaseTest {
                 amount: 100e6,
                 dueDate: 45 days,
                 deadline: block.timestamp,
-                maxRate: type(uint256).max,
+                maxRatePerMaturity: type(uint256).max,
                 exactAmountIn: false,
                 receivableCreditPositionIds: new uint256[](0)
             })

@@ -22,8 +22,8 @@ library Errors {
     error PAST_DUE_DATE(uint256 dueDate);
     error PAST_DEADLINE(uint256 deadline);
     error PAST_MAX_DUE_DATE(uint256 maxDueDate);
-    error RATE_LOWER_THAN_MIN_RATE(uint256 rate, uint256 minRate);
-    error RATE_GREATER_THAN_MAX_RATE(uint256 rate, uint256 maxRate);
+    error RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(uint256 rate, uint256 minRatePerMaturity);
+    error RATE_PER_MATURITY_GREATER_THAN_MAX_RATE(uint256 rate, uint256 maxRatePerMaturity);
     error DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(uint256 dueDate, uint256 debtPositionDueDate);
     error DUE_DATE_NOT_COMPATIBLE(uint256 debtPositionIdToRepay, uint256 creditPositionIdToCompensate);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
