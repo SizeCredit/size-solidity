@@ -33,7 +33,7 @@ contract LiquidateWithReplacementScript is Script, Logger {
 
         LiquidateWithReplacementParams memory params = LiquidateWithReplacementParams({
             debtPositionId: debtPositionId,
-            minRatePerMaturity: rate,
+            minAPR: rate,
             deadline: block.timestamp,
             borrower: borrower,
             minimumCollateralProfit: minimumCollateralProfit

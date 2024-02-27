@@ -124,7 +124,7 @@ contract LendAsMarketOrderTest is BaseTest {
                 dueDate: block.timestamp + 365 days,
                 amount: 200e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -148,7 +148,7 @@ contract LendAsMarketOrderTest is BaseTest {
                 dueDate: block.timestamp + 365 days,
                 amount: 10e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -169,7 +169,7 @@ contract LendAsMarketOrderTest is BaseTest {
                 dueDate: block.timestamp + 6 days,
                 amount: 10e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -181,7 +181,7 @@ contract LendAsMarketOrderTest is BaseTest {
                 dueDate: block.timestamp + 151 days,
                 amount: 10e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -192,7 +192,7 @@ contract LendAsMarketOrderTest is BaseTest {
                 dueDate: block.timestamp + 150 days,
                 amount: 10e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );

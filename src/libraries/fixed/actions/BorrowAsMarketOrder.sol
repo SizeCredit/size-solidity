@@ -23,7 +23,7 @@ struct BorrowAsMarketOrderParams {
     uint256 amount;
     uint256 dueDate;
     uint256 deadline;
-    uint256 maxRatePerMaturity;
+    uint256 maxAPR;
     bool exactAmountIn;
     uint256[] receivableCreditPositionIds;
 }
@@ -68,10 +68,13 @@ library BorrowAsMarketOrder {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate params.maxRatePerMaturity
+        // validate params.maxAPR
         uint256 ratePerMaturity = loanOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
-        if (ratePerMaturity > params.maxRatePerMaturity) {
-            revert Errors.RATE_PER_MATURITY_GREATER_THAN_MAX_RATE(ratePerMaturity, params.maxRatePerMaturity);
+        uint256 maturity = params.dueDate - block.timestamp;
+        if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) > params.maxAPR) {
+            revert Errors.APR_GREATER_THAN_MAX_APR(
+                Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.maxAPR
+            );
         }
 
         // validate params.exactAmountIn

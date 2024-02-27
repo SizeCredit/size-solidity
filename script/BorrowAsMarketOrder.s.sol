@@ -28,7 +28,7 @@ contract BorrowAsMarketOrder is Script, Logger {
             amount: 5e6,
             dueDate: dueDate,
             deadline: block.timestamp,
-            maxRatePerMaturity: rate,
+            maxAPR: rate,
             exactAmountIn: false,
             receivableCreditPositionIds: new uint256[](0)
         });

@@ -21,7 +21,7 @@ struct LiquidateWithReplacementParams {
     address borrower;
     uint256 minimumCollateralProfit;
     uint256 deadline;
-    uint256 minRatePerMaturity;
+    uint256 minAPR;
 }
 
 library LiquidateWithReplacement {
@@ -64,9 +64,12 @@ library LiquidateWithReplacement {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate minRatePerMaturity
-        if (ratePerMaturity < params.minRatePerMaturity) {
-            revert Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(ratePerMaturity, params.minRatePerMaturity);
+        // validate minAPR
+        uint256 maturity = debtPosition.dueDate - block.timestamp;
+        if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(
+                Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.minAPR
+            );
         }
     }
 

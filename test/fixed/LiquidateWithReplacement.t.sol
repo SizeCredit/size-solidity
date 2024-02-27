@@ -125,7 +125,7 @@ contract LiquidateWithReplacementTest is BaseTest {
                 debtPositionId: debtPositionId,
                 borrower: candy,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 minimumCollateralProfit: 0
             })
         );
@@ -159,7 +159,7 @@ contract LiquidateWithReplacementTest is BaseTest {
                 debtPositionId: debtPositionId,
                 borrower: candy,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 minimumCollateralProfit: 0
             })
         );
