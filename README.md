@@ -1,7 +1,5 @@
 # size-v2-solidity
 
-Size V2 Solidity
-
 ![Size](./size.jpeg)
 
 Size is an order book based fixed rate lending protocol with an integrated variable pool.
@@ -191,7 +189,7 @@ forge test
 - Taking a collateralized loan decreases the borrower CR
 - The user cannot withdraw more than their deposits
 - If the loan is liquidatable, the liquidation should not revert
-- When a user self liquidates a SOL, it will improve the collateralization ratio of other SOLs. This is because self liquidating decreases the FOL's faceValue, so it decreases all SOL's debt
+- When a user self liquidates a CreditPosition, it will improve the collateralization ratio of other CreditPosition. This is because self liquidating decreases the DebtPosition's faceValue, so it decreases all CreditPosition's assigned collateral
 
 ## Known limitations
 
@@ -209,6 +207,6 @@ forge test
 
 ## Areas of concern
 
-- A rounding issue as a result of the FOL's `faceValue` calculation may result in the borrower debt being 1 more when the lender picks their borrow offer with `lendAsMarketOrder`, passing `exactAmountIn` equals `false`. In this case, to calculate the `issuanceValue`, a `mulDivUp` is performed, so that the borrower, being the passive party, receives _more_ aszUSDC tokens. The issue is that the `faceValue` calculation is also rounded up in `LoanLibrary`, as it represents a users' debt. In summary, the borrower receives rounding up in the present value, but pays rounding up in future cash flow. Exploits arising from this issue are welcome.
+- A rounding issue as a result of the DebtPosition's `faceValue` calculation may result in the borrower debt being 1 more when the lender picks their borrow offer with `lendAsMarketOrder`, passing `exactAmountIn` equals `false`. In this case, to calculate the `issuanceValue`, a `mulDivUp` is performed, so that the borrower, being the passive party, receives _more_ aszUSDC tokens. The issue is that the `faceValue` calculation is also rounded up in `LoanLibrary`, as it represents a users' debt. In summary, the borrower receives rounding up in the present value, but pays rounding up in future cash flow. Exploits arising from this issue are welcome.
 - Exploits arising from notes marked with `// @audit` on the codebase are welcome
 - Recommendations for the usage of `PriceFeed` or `VariablePoolPriceFeed` in production
