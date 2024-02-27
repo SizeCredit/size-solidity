@@ -90,13 +90,14 @@ library LendAsMarketOrder {
         } else {
             issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
         }
+        uint256 faceValue = Math.mulDivDown(issuanceValue, PERCENT + ratePerMaturity, PERCENT);
 
         // slither-disable-next-line unused-return
         (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,
             issuanceValue: issuanceValue,
-            ratePerMaturity: ratePerMaturity,
+            faceValue: faceValue,
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(params.borrower, debtPosition.getDebt());

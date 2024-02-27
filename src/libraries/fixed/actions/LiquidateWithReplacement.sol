@@ -104,13 +104,12 @@ library LiquidateWithReplacement {
 
         uint256 ratePerMaturity =
             borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPositionCopy.dueDate);
-        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.faceValue(), PERCENT, PERCENT + ratePerMaturity);
-        uint256 liquidatorProfitBorrowAsset = debtPositionCopy.faceValue() - issuanceValue;
+        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.faceValue, PERCENT, PERCENT + ratePerMaturity);
+        uint256 liquidatorProfitBorrowAsset = debtPositionCopy.faceValue - issuanceValue;
 
         debtPosition.borrower = params.borrower;
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
-        debtPosition.ratePerMaturity = ratePerMaturity;
         debtPosition.liquidityIndexAtRepayment = 0;
 
         state.data.debtToken.mint(params.borrower, debtPositionCopy.getDebt());

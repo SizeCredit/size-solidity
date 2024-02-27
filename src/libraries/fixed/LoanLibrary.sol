@@ -14,12 +14,12 @@ uint256 constant RESERVED_ID = type(uint256).max;
 struct DebtPosition {
     address lender;
     address borrower;
-    uint256 issuanceValue; // updated on repayment
-    uint256 ratePerMaturity;
+    uint256 issuanceValue; // updated on debt reduction
+    uint256 faceValue; // updated on debt reduction
     uint256 repayFeeAPR;
     uint256 startDate; // updated opon borrower replacement
     uint256 dueDate;
-    uint256 liquidityIndexAtRepayment; // set on repayment
+    uint256 liquidityIndexAtRepayment; // set on full repayment
 }
 
 struct CreditPosition {
@@ -55,11 +55,7 @@ library LoanLibrary {
     }
 
     function getDebt(DebtPosition memory self) internal pure returns (uint256) {
-        return faceValue(self) + repayFee(self);
-    }
-
-    function faceValue(DebtPosition memory self) internal pure returns (uint256) {
-        return Math.mulDivUp(self.issuanceValue, PERCENT + self.ratePerMaturity, PERCENT);
+        return self.faceValue + repayFee(self);
     }
 
     function getDebtPositionIdByCreditPositionId(State storage state, uint256 creditPositionId)
@@ -138,7 +134,7 @@ library LoanLibrary {
         uint256 collateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
 
         if (debt > 0) {
-            return Math.mulDivDown(collateral, faceValue(debtPosition), debt);
+            return Math.mulDivDown(collateral, debtPosition.faceValue, debt);
         } else {
             return 0;
         }
@@ -159,7 +155,7 @@ library LoanLibrary {
 
         uint256 creditPositionCredit = creditPosition.credit;
         uint256 debtPositionCollateral = getDebtPositionAssignedCollateral(state, debtPosition);
-        uint256 debtPositionFaceValue = faceValue(debtPosition);
+        uint256 debtPositionFaceValue = debtPosition.faceValue;
 
         if (debtPositionFaceValue > 0) {
             return Math.mulDivDown(debtPositionCollateral, creditPositionCredit, debtPositionFaceValue);
@@ -188,6 +184,6 @@ library LoanLibrary {
     }
 
     function partialRepayFee(DebtPosition memory self, uint256 repayAmount) internal pure returns (uint256) {
-        return Math.mulDivUp(repayAmount, repayFee(self), faceValue(self));
+        return Math.mulDivUp(repayAmount, repayFee(self), self.faceValue);
     }
 }

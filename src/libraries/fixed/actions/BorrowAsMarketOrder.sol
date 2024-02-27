@@ -166,13 +166,14 @@ library BorrowAsMarketOrder {
 
         uint256 ratePerMaturity = loanOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
         uint256 issuanceValue = params.amount;
+        uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + ratePerMaturity, PERCENT);
 
         // slither-disable-next-line unused-return
         (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({
             lender: params.lender,
             borrower: msg.sender,
             issuanceValue: issuanceValue,
-            ratePerMaturity: ratePerMaturity,
+            faceValue: faceValue,
             dueDate: params.dueDate
         });
 
