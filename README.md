@@ -88,7 +88,7 @@ In production, only one of `PriceFeed` or `VariablePoolPriceFeed` oracles will b
 
 ##### Market Borrow Rate Feed
 
-In order to approximate the current market average value of USDC variable borrow rates, we use Aave v3, and convert it to 18 decimals. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
+In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation with Aave, convert it to 18 decimals, and store it on the oracle. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
 
 Note that this rate is extracted from Aave v3 itself, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 is a better proxy for the real market rate, and less prone to market manipulation attacks.
 
@@ -204,6 +204,7 @@ forge test
 - The protocol does not have any fallback oracles.
 - Price feeds must be redeployed and updated in case any Chainlink configuration changes (stale price timeouts, decimals)
 - In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues
+- In case the protocol is paused, the price of the collateral may change during the unpause event. This may cause unforseen liquidations, among other issues
 - The Variable Pool Price Feed depends on `AaveOracle`, which uses `latestAnswer`, and does not perform any kind of stale checks for oracle prices
 
 ## Areas of concern

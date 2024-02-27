@@ -29,7 +29,19 @@ contract MarketBorrowRateFeedTest is Test, AssertsHelper {
         assertEq(marketBorrowRateFeed.getMarketBorrowRate(), rate);
     }
 
-    function test_MarketBorrowRateFeed__getMarketBorrowRate_reverts_stale_rate() public {
+    function testFuzz_MarketBorrowRateFeed_setStaleRateInterval(uint64 interval) public {
+        marketBorrowRateFeed.setMarketBorrowRate(123e18);
+        marketBorrowRateFeed.setStaleRateInterval(interval);
+        assertEq(marketBorrowRateFeed.getMarketBorrowRate(), 123e18);
+        vm.warp(block.timestamp + interval + 1);
+        try marketBorrowRateFeed.getMarketBorrowRate() {
+            assertTrue(false, "getMarketBorrowRate should revert if stale rate interval is reached");
+        } catch {
+            assertTrue(true);
+        }
+    }
+
+    function test_MarketBorrowRateFeed_getMarketBorrowRate_reverts_stale_rate() public {
         uint64 timestamp = uint64(block.timestamp);
         marketBorrowRateFeed.setMarketBorrowRate(1.23e18);
         vm.warp(2 hours);
