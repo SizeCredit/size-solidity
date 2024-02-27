@@ -204,6 +204,7 @@ forge test
 - In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues
 - In case the protocol is paused, the price of the collateral may change during the unpause event. This may cause unforseen liquidations, among other issues
 - The Variable Pool Price Feed depends on `AaveOracle`, which uses `latestAnswer`, and does not perform any kind of stale checks for oracle prices
+- Variable rate loans can increase the total supply of aszUSDC, which in turn limits the cap of fixed rate loans
 
 ## Areas of concern
 
