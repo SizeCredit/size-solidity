@@ -1,12 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import "../src/Size.sol";
+import {Logger} from "@script/Logger.sol";
+import {Size} from "@src/Size.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import "forge-std/Script.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 
-contract MulticallScript is Script {
+import {Script} from "forge-std/Script.sol";
+
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {Script} from "forge-std/Script.sol";
+
+contract MulticallScript is Script, Logger {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
@@ -17,7 +25,7 @@ contract MulticallScript is Script {
         Size sizeContract = Size(sizeContractAddress);
 
         uint256 dueDate = block.timestamp + 2 days;
-        uint256 rate = SizeView(address(sizeContract)).getLoanOfferRatePerMaturity(lender, dueDate);
+        uint256 apr = sizeContract.getLoanOfferAPR(lender, dueDate);
 
         bytes memory depositCall =
             abi.encodeCall(Size.deposit, DepositParams({token: wethAddress, amount: 0.04e18, to: borrower}));
@@ -29,7 +37,7 @@ contract MulticallScript is Script {
                 amount: 51e6,
                 dueDate: dueDate,
                 deadline: block.timestamp,
-                maxAPR: rate,
+                maxAPR: apr,
                 exactAmountIn: false,
                 receivableCreditPositionIds: new uint256[](0)
             })
@@ -49,6 +57,8 @@ contract MulticallScript is Script {
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.multicall(calls);
         vm.stopBroadcast();
+
+        log(address(sizeContract));
     }
 
     function createYieldCurve() internal pure returns (YieldCurve memory) {

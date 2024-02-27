@@ -26,19 +26,19 @@ library OfferLibrary {
             && self.curveRelativeTime.aprs.length == 0;
     }
 
-    function getRatePerMaturity(LoanOffer memory self, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
-        internal
-        view
-        returns (uint256)
-    {
-        return YieldCurveLibrary.getRatePerMaturity(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
+    function getRatePerMaturityByDueDate(
+        LoanOffer memory self,
+        IMarketBorrowRateFeed marketBorrowRateFeed,
+        uint256 dueDate
+    ) internal view returns (uint256) {
+        return YieldCurveLibrary.getRatePerMaturityByDueDate(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
     }
 
-    function getRatePerMaturity(BorrowOffer memory self, IMarketBorrowRateFeed marketBorrowRateFeed, uint256 dueDate)
-        internal
-        view
-        returns (uint256)
-    {
-        return YieldCurveLibrary.getRatePerMaturity(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
+    function getRatePerMaturityByDueDate(
+        BorrowOffer memory self,
+        IMarketBorrowRateFeed marketBorrowRateFeed,
+        uint256 dueDate
+    ) internal view returns (uint256) {
+        return YieldCurveLibrary.getRatePerMaturityByDueDate(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
     }
 }

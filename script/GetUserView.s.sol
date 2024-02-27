@@ -45,8 +45,10 @@ contract GetUserViewScript is Script, Logger {
         LoanOffer memory offer =
             LoanOffer({maxDueDate: block.timestamp + 30 days, curveRelativeTime: curveRelativeTime});
 
-        console.log(offer.getRatePerMaturity(IMarketBorrowRateFeed(size.oracle().marketBorrowRateFeed), dueDate));
-        console.log(size.getLoanOfferRatePerMaturity(lender, block.timestamp + 86400));
+        console.log(
+            offer.getRatePerMaturityByDueDate(IMarketBorrowRateFeed(size.oracle().marketBorrowRateFeed), dueDate)
+        );
+        console.log(size.getLoanOfferAPR(lender, block.timestamp + 86400));
         vm.stopBroadcast();
     }
 }
