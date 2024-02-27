@@ -2,7 +2,6 @@
 pragma solidity 0.8.24;
 
 import {Size} from "@src/Size.sol";
-import {SizeView} from "@src/SizeView.sol";
 import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
@@ -20,12 +19,12 @@ contract BorrowerExitScript is Script {
         console.log("borrower", borrower);
 
         Size sizeContract = Size(sizeContractAddress);
-        uint256 dueDate = SizeView(address(sizeContract)).getDebtPosition(debtPositionId).dueDate;
-        uint256 rate = SizeView(address(sizeContract)).getBorrowOfferRatePerMaturity(borrower, dueDate);
+        uint256 dueDate = sizeContract.getDebtPosition(debtPositionId).dueDate;
+        uint256 apr = sizeContract.getBorrowOfferAPR(borrower, dueDate);
         BorrowerExitParams memory params = BorrowerExitParams({
             debtPositionId: debtPositionId,
             borrowerToExitTo: borrower,
-            minRatePerMaturity: rate,
+            minAPR: apr,
             deadline: block.timestamp
         });
 

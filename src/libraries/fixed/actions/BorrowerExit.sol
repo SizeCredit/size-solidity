@@ -21,7 +21,7 @@ struct BorrowerExitParams {
     uint256 debtPositionId;
     address borrowerToExitTo;
     uint256 deadline;
-    uint256 minRatePerMaturity;
+    uint256 minAPR;
 }
 
 library BorrowerExit {
@@ -37,11 +37,11 @@ library BorrowerExit {
 
         // validate debtPositionId
         uint256 dueDate = debtPosition.dueDate;
-        if (dueDate <= block.timestamp) {
+        if (dueDate < block.timestamp) {
             revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
         }
 
-        uint256 ratePerMaturity = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 ratePerMaturity = borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
         uint256 issuanceValue = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + ratePerMaturity);
 
         // validate msg.sender
@@ -59,9 +59,12 @@ library BorrowerExit {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate rate
-        if (ratePerMaturity < params.minRatePerMaturity) {
-            revert Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(ratePerMaturity, params.minRatePerMaturity);
+        // validate minAPR
+        uint256 maturity = dueDate - block.timestamp;
+        if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(
+                Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.minAPR
+            );
         }
 
         // validate borrowerToExitTo
@@ -75,7 +78,7 @@ library BorrowerExit {
         DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
 
         uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
+            borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
 
         uint256 faceValue = debtPosition.faceValue;
         uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + ratePerMaturity);

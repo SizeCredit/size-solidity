@@ -56,7 +56,7 @@ library YieldCurveLibrary {
     /// @param marketBorrowRateFeed The market borrow rate feed
     /// @param marketRateMultiplier The market rate multiplier
     /// @return Returns rate + (marketRate * marketRateMultiplier) / PERCENT for the given maturity
-    function getRatePerMaturity(
+    function getRatePerMaturityByDueDate(
         uint256 maturity,
         int256 apr,
         int256 marketRateMultiplier,
@@ -84,7 +84,7 @@ library YieldCurveLibrary {
     /// @param marketBorrowRateFeed The market borrow rate feed
     /// @param dueDate The due date
     /// @return The rate from the yield curve per given maturity
-    function getRatePerMaturity(
+    function getRatePerMaturityByDueDate(
         YieldCurve memory curveRelativeTime,
         IMarketBorrowRateFeed marketBorrowRateFeed,
         uint256 dueDate
@@ -100,14 +100,14 @@ library YieldCurveLibrary {
         } else {
             (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.maturities, maturity);
             uint256 x0 = curveRelativeTime.maturities[low];
-            uint256 y0 = getRatePerMaturity(
+            uint256 y0 = getRatePerMaturityByDueDate(
                 curveRelativeTime.maturities[low],
                 curveRelativeTime.aprs[low],
                 curveRelativeTime.marketRateMultipliers[low],
                 marketBorrowRateFeed
             );
             uint256 x1 = curveRelativeTime.maturities[high];
-            uint256 y1 = getRatePerMaturity(
+            uint256 y1 = getRatePerMaturityByDueDate(
                 curveRelativeTime.maturities[high],
                 curveRelativeTime.aprs[high],
                 curveRelativeTime.marketRateMultipliers[high],

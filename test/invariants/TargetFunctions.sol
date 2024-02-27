@@ -117,7 +117,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 amount: amount,
                 dueDate: dueDate,
                 deadline: block.timestamp,
-                maxRatePerMaturity: type(uint256).max,
+                maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -171,7 +171,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 dueDate: dueDate,
                 amount: amount,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: exactAmountIn
             })
         );
@@ -211,7 +211,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         size.borrowerExit(
             BorrowerExitParams({
                 debtPositionId: debtPositionId,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 deadline: block.timestamp,
                 borrowerToExitTo: borrowerToExitTo
             })
@@ -318,7 +318,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         (uint256 liquidatorProfitCollateralToken,) = size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 deadline: block.timestamp,
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit

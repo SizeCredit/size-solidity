@@ -21,7 +21,7 @@ struct LiquidateWithReplacementParams {
     address borrower;
     uint256 minimumCollateralProfit;
     uint256 deadline;
-    uint256 minRatePerMaturity;
+    uint256 minAPR;
 }
 
 library LiquidateWithReplacement {
@@ -39,7 +39,7 @@ library LiquidateWithReplacement {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
         uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
+            borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
 
         // validate liquidate
         state.validateLiquidate(
@@ -64,9 +64,12 @@ library LiquidateWithReplacement {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate minRatePerMaturity
-        if (ratePerMaturity < params.minRatePerMaturity) {
-            revert Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(ratePerMaturity, params.minRatePerMaturity);
+        // validate minAPR
+        uint256 maturity = debtPosition.dueDate - block.timestamp;
+        if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(
+                Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.minAPR
+            );
         }
     }
 
@@ -103,7 +106,7 @@ library LiquidateWithReplacement {
         );
 
         uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPositionCopy.dueDate);
+            borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, debtPositionCopy.dueDate);
         uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.faceValue, PERCENT, PERCENT + ratePerMaturity);
         uint256 liquidatorProfitBorrowAsset = debtPositionCopy.faceValue - issuanceValue;
 

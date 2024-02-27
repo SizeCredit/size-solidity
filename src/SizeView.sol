@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SizeStorage, State} from "@src/SizeStorage.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -81,6 +82,13 @@ abstract contract SizeView is SizeStorage {
 
     function getDebt(uint256 debtPositionId) external view returns (uint256) {
         return state.getDebtPosition(debtPositionId).getDebt();
+    }
+
+    function getAPR(uint256 debtPositionId) external view returns (uint256) {
+        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
+        uint256 maturity = debtPosition.dueDate - debtPosition.startDate;
+        uint256 ratePerMaturity = Math.mulDivDown(debtPosition.faceValue, PERCENT, debtPosition.issuanceValue) - PERCENT;
+        return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
     }
 
     function debtTokenAmountToCollateralTokenAmount(uint256 borrowATokenAmount) external view returns (uint256) {
@@ -235,13 +243,17 @@ abstract contract SizeView is SizeStorage {
         );
     }
 
-    function getBorrowOfferRatePerMaturity(address borrower, uint256 dueDate) external view returns (uint256) {
+    function getBorrowOfferAPR(address borrower, uint256 dueDate) external view returns (uint256) {
         BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
-        return offer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 maturity = dueDate - block.timestamp;
+        return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
     }
 
-    function getLoanOfferRatePerMaturity(address lender, uint256 dueDate) external view returns (uint256) {
+    function getLoanOfferAPR(address lender, uint256 dueDate) external view returns (uint256) {
         LoanOffer memory offer = state.data.users[lender].loanOffer;
-        return offer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 maturity = dueDate - block.timestamp;
+        return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
     }
 }

@@ -109,7 +109,7 @@ contract BorrowerExitTest is BaseTest {
                 debtPositionId: debtPositionId,
                 borrowerToExitTo: candy,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0
+                minAPR: 0
             })
         );
     }
@@ -125,7 +125,10 @@ contract BorrowerExitTest is BaseTest {
         _lendAsLimitOrder(
             bob,
             block.timestamp + 365 days,
-            [Math.ratePerMaturityToLinearAPR(0.1e18, 30 days), Math.ratePerMaturityToLinearAPR(0.1e18, 365 days)],
+            [
+                Math.ratePerMaturityToLinearAPR(int256(0.1e18), 30 days),
+                Math.ratePerMaturityToLinearAPR(int256(0.1e18), 365 days)
+            ],
             [uint256(30 days), uint256(365 days)]
         );
         _borrowAsLimitOrder(
@@ -133,9 +136,9 @@ contract BorrowerExitTest is BaseTest {
             0,
             YieldCurveHelper.customCurve(
                 30 days,
-                Math.ratePerMaturityToLinearAPR(0.25e18, 30 days),
+                Math.ratePerMaturityToLinearAPR(int256(0.25e18), 30 days),
                 73 days,
-                Math.ratePerMaturityToLinearAPR(0.25e18, 73 days)
+                Math.ratePerMaturityToLinearAPR(int256(0.25e18), 73 days)
             )
         );
         uint256 startDate = block.timestamp;
