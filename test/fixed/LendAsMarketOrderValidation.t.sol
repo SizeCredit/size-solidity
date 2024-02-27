@@ -28,7 +28,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
                 dueDate: dueDate,
                 amount: 100e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -40,7 +40,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
                 dueDate: dueDate,
                 amount: 100e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -52,7 +52,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
                 dueDate: block.timestamp - 1,
                 amount: 100e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -64,19 +64,19 @@ contract LendAsMarketOrderValidationTest is BaseTest {
                 dueDate: block.timestamp + 365 days,
                 amount: 10e6,
                 deadline: block.timestamp - 1,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE.selector, 1e18, 2e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.APR_LOWER_THAN_MIN_APR.selector, 1e18, 2e18));
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({
                 borrower: alice,
                 dueDate: block.timestamp + 365 days,
                 amount: 10e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 2e18,
+                minAPR: 2e18,
                 exactAmountIn: false
             })
         );

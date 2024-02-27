@@ -87,7 +87,7 @@ contract LendAsMarketOrderTest is BaseTest {
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.maturities[0] + curve.maturities[1]) / 2;
-        uint256 rate = YieldCurveLibrary.getRatePerMaturity(curve, marketBorrowRateFeed, dueDate);
+        uint256 rate = YieldCurveLibrary.getRatePerMaturityByDueDate(curve, marketBorrowRateFeed, dueDate);
         uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + rate, PERCENT);
 
         Vars memory _before = _state();
@@ -124,7 +124,7 @@ contract LendAsMarketOrderTest is BaseTest {
                 dueDate: block.timestamp + 365 days,
                 amount: 200e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -148,7 +148,7 @@ contract LendAsMarketOrderTest is BaseTest {
                 dueDate: block.timestamp + 365 days,
                 amount: 10e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -169,7 +169,7 @@ contract LendAsMarketOrderTest is BaseTest {
                 dueDate: block.timestamp + 6 days,
                 amount: 10e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -181,7 +181,7 @@ contract LendAsMarketOrderTest is BaseTest {
                 dueDate: block.timestamp + 151 days,
                 amount: 10e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );
@@ -192,7 +192,7 @@ contract LendAsMarketOrderTest is BaseTest {
                 dueDate: block.timestamp + 150 days,
                 amount: 10e6,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 exactAmountIn: false
             })
         );

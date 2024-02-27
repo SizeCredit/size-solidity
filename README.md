@@ -1,7 +1,5 @@
 # size-v2-solidity
 
-Size V2 Solidity
-
 ![Size](./size.jpeg)
 
 Size is an order book based fixed rate lending protocol with an integrated variable pool.
@@ -88,7 +86,7 @@ In production, only one of `PriceFeed` or `VariablePoolPriceFeed` oracles will b
 
 ##### Market Borrow Rate Feed
 
-In order to approximate the current market average value of USDC variable borrow rates, we use Aave v3, and convert it to 18 decimals. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
+In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation with Aave, convert it to 18 decimals, and store it on the oracle. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
 
 Note that this rate is extracted from Aave v3 itself, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 is a better proxy for the real market rate, and less prone to market manipulation attacks.
 
@@ -191,7 +189,7 @@ forge test
 - Taking a collateralized loan decreases the borrower CR
 - The user cannot withdraw more than their deposits
 - If the loan is liquidatable, the liquidation should not revert
-- When a user self liquidates a SOL, it will improve the collateralization ratio of other SOLs. This is because self liquidating decreases the FOL's faceValue, so it decreases all SOL's debt
+- When a user self liquidates a CreditPosition, it will improve the collateralization ratio of other CreditPosition. This is because self liquidating decreases the DebtPosition's faceValue, so it decreases all CreditPosition's assigned collateral
 
 ## Known limitations
 
@@ -204,10 +202,11 @@ forge test
 - The protocol does not have any fallback oracles.
 - Price feeds must be redeployed and updated in case any Chainlink configuration changes (stale price timeouts, decimals)
 - In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues
+- In case the protocol is paused, the price of the collateral may change during the unpause event. This may cause unforseen liquidations, among other issues
 - The Variable Pool Price Feed depends on `AaveOracle`, which uses `latestAnswer`, and does not perform any kind of stale checks for oracle prices
 
 ## Areas of concern
 
-- A rounding issue as a result of the FOL's `faceValue` calculation may result in the borrower debt being 1 more when the lender picks their borrow offer with `lendAsMarketOrder`, passing `exactAmountIn` equals `false`. In this case, to calculate the `issuanceValue`, a `mulDivUp` is performed, so that the borrower, being the passive party, receives _more_ aszUSDC tokens. The issue is that the `faceValue` calculation is also rounded up in `LoanLibrary`, as it represents a users' debt. In summary, the borrower receives rounding up in the present value, but pays rounding up in future cash flow. Exploits arising from this issue are welcome.
+- A rounding issue as a result of the DebtPosition's `faceValue` calculation may result in the borrower debt being 1 more when the lender picks their borrow offer with `lendAsMarketOrder`, passing `exactAmountIn` equals `false`. In this case, to calculate the `issuanceValue`, a `mulDivUp` is performed, so that the borrower, being the passive party, receives _more_ aszUSDC tokens. The issue is that the `faceValue` calculation is also rounded up in `LoanLibrary`, as it represents a users' debt. In summary, the borrower receives rounding up in the present value, but pays rounding up in future cash flow. Exploits arising from this issue are welcome.
 - Exploits arising from notes marked with `// @audit` on the codebase are welcome
 - Recommendations for the usage of `PriceFeed` or `VariablePoolPriceFeed` in production

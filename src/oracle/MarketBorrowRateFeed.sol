@@ -11,10 +11,11 @@ import {Errors} from "@src/libraries/Errors.sol";
 /// @dev Aave v3 is used to get the market borrow rate
 contract MarketBorrowRateFeed is IMarketBorrowRateFeed, Ownable2Step {
     uint128 internal marketBorrowRate;
-    uint64 internal updatedAt;
+    uint64 internal marketBorrowRateUpdatedAt;
     uint64 internal staleRateInterval;
 
     event MarketBorrowRateUpdated(uint128 oldMarketBorrowRate, uint128 newMarketBorrowRate);
+    event StaleRateIntervalUpdated(uint64 oldStaleRateInterval, uint64 newStaleRateInterval);
 
     constructor(address _owner, uint64 _staleRateInterval) Ownable(_owner) {
         if (_staleRateInterval == 0) {
@@ -24,16 +25,22 @@ contract MarketBorrowRateFeed is IMarketBorrowRateFeed, Ownable2Step {
         staleRateInterval = _staleRateInterval;
     }
 
+    function setStaleRateInterval(uint64 _staleRateInterval) external onlyOwner {
+        uint64 oldStaleRateInterval = staleRateInterval;
+        staleRateInterval = _staleRateInterval;
+        emit StaleRateIntervalUpdated(oldStaleRateInterval, _staleRateInterval);
+    }
+
     function setMarketBorrowRate(uint128 _marketBorrowRate) external onlyOwner {
         uint128 oldMarketBorrowRate = marketBorrowRate;
         marketBorrowRate = _marketBorrowRate;
-        updatedAt = uint64(block.timestamp);
+        marketBorrowRateUpdatedAt = uint64(block.timestamp);
         emit MarketBorrowRateUpdated(oldMarketBorrowRate, _marketBorrowRate);
     }
 
     function getMarketBorrowRate() external view override returns (uint128) {
-        if (block.timestamp - updatedAt > staleRateInterval) {
-            revert Errors.STALE_RATE(updatedAt);
+        if (block.timestamp - marketBorrowRateUpdatedAt > staleRateInterval) {
+            revert Errors.STALE_RATE(marketBorrowRateUpdatedAt);
         }
         return marketBorrowRate;
     }

@@ -21,7 +21,7 @@ struct LendAsMarketOrderParams {
     uint256 dueDate;
     uint256 amount;
     uint256 deadline;
-    uint256 minRatePerMaturity;
+    uint256 minAPR;
     bool exactAmountIn;
 }
 
@@ -51,7 +51,8 @@ library LendAsMarketOrder {
         }
 
         // validate amount
-        uint256 ratePerMaturity = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
+        uint256 ratePerMaturity =
+            borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, params.dueDate);
         uint256 amountIn;
         if (params.exactAmountIn) {
             amountIn = params.amount;
@@ -69,9 +70,12 @@ library LendAsMarketOrder {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate minRatePerMaturity
-        if (ratePerMaturity < params.minRatePerMaturity) {
-            revert Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE(ratePerMaturity, params.minRatePerMaturity);
+        // validate minAPR
+        uint256 maturity = params.dueDate - block.timestamp;
+        if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(
+                Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.minAPR
+            );
         }
 
         // validate exactAmountIn
@@ -83,7 +87,8 @@ library LendAsMarketOrder {
 
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
-        uint256 ratePerMaturity = borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, params.dueDate);
+        uint256 ratePerMaturity =
+            borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, params.dueDate);
         uint256 issuanceValue;
         if (params.exactAmountIn) {
             issuanceValue = params.amount;

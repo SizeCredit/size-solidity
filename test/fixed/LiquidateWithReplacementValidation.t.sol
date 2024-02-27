@@ -37,14 +37,12 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
 
         vm.startPrank(liquidator);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.RATE_PER_MATURITY_LOWER_THAN_MIN_RATE.selector, 0.03e18 * 2, 1e18)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.APR_LOWER_THAN_MIN_APR.selector, 0.03e18, 1e18));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: candy,
-                minRatePerMaturity: 1e18,
+                minAPR: 1e18,
                 deadline: block.timestamp,
                 minimumCollateralProfit: minimumCollateralProfit
             })
@@ -58,7 +56,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: candy,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 deadline: deadline,
                 minimumCollateralProfit: minimumCollateralProfit
             })
@@ -71,7 +69,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: candy,
-                minRatePerMaturity: 0,
+                minAPR: 0,
                 deadline: block.timestamp,
                 minimumCollateralProfit: minimumCollateralProfit
             })

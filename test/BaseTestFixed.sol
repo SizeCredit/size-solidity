@@ -151,15 +151,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 amount,
         uint256 dueDate,
         uint256 deadline,
-        uint256 maxRatePerMaturity,
+        uint256 maxAPR,
         bool exactAmountIn,
         uint256[1] memory ids
     ) internal returns (uint256) {
         uint256[] memory receivableLoanIds = new uint256[](1);
         receivableLoanIds[0] = ids[0];
-        return _borrowAsMarketOrder(
-            borrower, lender, amount, dueDate, deadline, maxRatePerMaturity, exactAmountIn, receivableLoanIds
-        );
+        return
+            _borrowAsMarketOrder(borrower, lender, amount, dueDate, deadline, maxAPR, exactAmountIn, receivableLoanIds);
     }
 
     function _borrowAsMarketOrder(
@@ -168,7 +167,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 amount,
         uint256 dueDate,
         uint256 deadline,
-        uint256 maxRatePerMaturity,
+        uint256 maxAPR,
         bool exactAmountIn,
         uint256[] memory receivableCreditPositionIds
     ) internal returns (uint256) {
@@ -180,7 +179,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 amount: amount,
                 dueDate: dueDate,
                 deadline: deadline,
-                maxRatePerMaturity: maxRatePerMaturity,
+                maxAPR: maxAPR,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -249,7 +248,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 amount,
         uint256 dueDate,
         uint256 deadline,
-        uint256 minRatePerMaturity,
+        uint256 minAPR,
         bool exactAmountIn
     ) internal returns (uint256 debtPositions) {
         uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
@@ -261,7 +260,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 dueDate: dueDate,
                 exactAmountIn: exactAmountIn,
                 deadline: deadline,
-                minRatePerMaturity: minRatePerMaturity
+                minAPR: minAPR
             })
         );
         uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
@@ -279,7 +278,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 debtPositionId: debtPositionId,
                 borrowerToExitTo: borrowerToExitTo,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0
+                minAPR: 0
             })
         );
     }
@@ -333,7 +332,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit,
                 deadline: block.timestamp,
-                minRatePerMaturity: 0
+                minAPR: 0
             })
         );
     }
