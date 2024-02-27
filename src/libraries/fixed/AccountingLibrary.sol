@@ -50,9 +50,11 @@ library AccountingLibrary {
         state.data.debtToken.burn(debtPosition.borrower, repayFee);
     }
 
-    function chargeRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition, uint256 repayAmount)
-        external
-    {
+    function chargeAndUpdateRepayFeeInCollateral(
+        State storage state,
+        DebtPosition storage debtPosition,
+        uint256 repayAmount
+    ) external {
         uint256 repayFee = debtPosition.partialRepayFee(repayAmount);
         uint256 repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
 
@@ -65,7 +67,8 @@ library AccountingLibrary {
         );
 
         // rounding down the deduction means the updated issuanceValue will be rounded up, which means higher fees on the next repayment
-        debtPosition.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + debtPosition.ratePerMaturity);
+        debtPosition.issuanceValue -= Math.mulDivDown(repayAmount, debtPosition.issuanceValue, debtPosition.faceValue);
+        debtPosition.faceValue -= repayAmount;
         state.data.debtToken.burn(debtPosition.borrower, repayFee);
     }
 
@@ -74,14 +77,14 @@ library AccountingLibrary {
         address lender,
         address borrower,
         uint256 issuanceValue,
-        uint256 ratePerMaturity,
+        uint256 faceValue,
         uint256 dueDate
     ) external returns (DebtPosition memory debtPosition, CreditPosition memory creditPosition) {
         debtPosition = DebtPosition({
             lender: lender,
             borrower: borrower,
             issuanceValue: issuanceValue,
-            ratePerMaturity: ratePerMaturity,
+            faceValue: faceValue,
             repayFeeAPR: state.config.repayFeeAPR,
             startDate: block.timestamp,
             dueDate: dueDate,
@@ -91,12 +94,12 @@ library AccountingLibrary {
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;
 
-        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, issuanceValue, ratePerMaturity, dueDate);
+        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, issuanceValue, faceValue, dueDate);
 
         creditPosition = CreditPosition({
             lender: lender,
             borrower: borrower,
-            credit: debtPosition.faceValue(),
+            credit: debtPosition.faceValue,
             debtPositionId: debtPositionId
         });
 

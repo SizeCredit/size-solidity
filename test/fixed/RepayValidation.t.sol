@@ -19,7 +19,7 @@ contract RepayValidationTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
         uint256 amount = 20e6;
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 12 days);
-        uint256 faceValue = size.faceValue(debtPositionId);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
 
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];

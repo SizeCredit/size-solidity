@@ -40,8 +40,8 @@ contract ExperimentsTest is Test, BaseTest {
         assertGt(debtPositions, 0);
         DebtPosition memory debtPosition = size.getDebtPosition(0);
         CreditPosition memory creditPosition = size.getCreditPositions(size.getCreditPositionIdsByDebtPositionId(0))[0];
-        assertEq(debtPosition.faceValue(), 100e6 * 1.03e18 / 1e18);
-        assertEq(creditPosition.credit, debtPosition.faceValue());
+        assertEq(debtPosition.faceValue, 100e6 * 1.03e18 / 1e18);
+        assertEq(creditPosition.credit, debtPosition.faceValue);
 
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowATokenBalance, 100e6);
@@ -55,7 +55,7 @@ contract ExperimentsTest is Test, BaseTest {
         vm.expectRevert();
         _claim(alice, creditPositionId);
 
-        _deposit(james, usdc, debtPosition.faceValue());
+        _deposit(james, usdc, debtPosition.faceValue);
         console.log("loan is repaid");
         _repay(james, 0);
         assertEq(size.getDebt(0), 0);
@@ -117,7 +117,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertTrue(size.isDebtPositionId(0), "The first loan should be DebtPosition");
 
         // Calculate amount to exit
-        uint256 amountToExit = Math.mulDivDown(fol.faceValue(), amountToExitPercent, PERCENT);
+        uint256 amountToExit = Math.mulDivDown(fol.faceValue, amountToExitPercent, PERCENT);
 
         // Lender exiting using borrow as market order
         _borrowAsMarketOrder(
@@ -139,7 +139,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(size.getCreditPosition(creditPositionIds[1]).credit, amountToExit, "Amount to Exit should match");
         assertEq(
             size.getCreditPosition(creditPositionIds[0]).credit,
-            fol.faceValue() - amountToExit,
+            fol.faceValue - amountToExit,
             "Should be able to exit the full amount"
         );
     }
@@ -183,7 +183,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertTrue(loan_Bob_Alice.borrower == alice, "Alice should be the borrower");
         LoanOffer memory loanOffer = size.getUserView(bob).user.loanOffer;
         uint256 rate = loanOffer.getRatePerMaturity(marketBorrowRateFeed, 5 days);
-        assertEq(loan_Bob_Alice.faceValue(), Math.mulDivUp(70e6, (PERCENT + rate), PERCENT), "Check bob loan faceValue");
+        assertEq(loan_Bob_Alice.faceValue, Math.mulDivUp(70e6, (PERCENT + rate), PERCENT), "Check bob loan faceValue");
         assertEq(size.getDebtPosition(0).dueDate, 5 days, "Check loan due date");
 
         // Bob borrows using the loan as virtual collateral
@@ -374,14 +374,14 @@ contract ExperimentsTest is Test, BaseTest {
         DebtPosition memory fol = size.getDebtPosition(0);
         uint256 repayFee = size.repayFee(0);
         assertEq(fol.borrower, alice, "Alice should be the borrower");
-        assertEq(_state().alice.debtBalance, fol.faceValue() + repayFee, "Alice should have the debt");
+        assertEq(_state().alice.debtBalance, fol.faceValue + repayFee, "Alice should have the debt");
 
         assertEq(_state().candy.debtBalance, 0, "Candy should have no debt");
         // Perform the liquidation with replacement
         _deposit(liquidator, usdc, 10_000e6);
         _liquidateWithReplacement(liquidator, 0, candy);
         assertEq(_state().alice.debtBalance, 0, "Alice should have no debt after");
-        assertEq(_state().candy.debtBalance, fol.faceValue() + repayFee, "Candy should have the debt after");
+        assertEq(_state().candy.debtBalance, fol.faceValue + repayFee, "Candy should have the debt after");
     }
 
     function test_Experiments_testBasicCompensate1() public {
@@ -413,7 +413,7 @@ contract ExperimentsTest is Test, BaseTest {
         DebtPosition memory fol = size.getDebtPosition(debtPositionId);
 
         // Calculate amount to borrow
-        uint256 amountToBorrow = fol.faceValue() / 10;
+        uint256 amountToBorrow = fol.faceValue / 10;
 
         // Bob deposits in WETH
         _deposit(bob, weth, 50e18);
@@ -541,7 +541,7 @@ contract ExperimentsTest is Test, BaseTest {
         // DebtPosition.FV() = DebtPosition.IV * DebtPosition.FullLenderRate
         // Also tracked
         // fol.credit = DebtPosition.FV() --> 110
-        assertEq(size.getDebtPosition(debtPositionId).faceValue(), 110e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 110e6);
         assertEq(size.getDebtPosition(debtPositionId).issuanceValue, 100e6);
         assertEq(size.getCreditPositionsByDebtPositionId(debtPositionId)[0].credit, 110e6);
         assertEq(size.repayFee(debtPositionId), 0.5e6);

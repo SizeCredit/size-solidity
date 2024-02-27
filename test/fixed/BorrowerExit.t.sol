@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -134,16 +134,19 @@ contract BorrowerExitTest is BaseTest {
             YieldCurveHelper.customCurve(
                 30 days,
                 Math.ratePerMaturityToLinearAPR(0.25e18, 30 days),
-                365 days,
-                Math.ratePerMaturityToLinearAPR(0.25e18, 365 days)
+                73 days,
+                Math.ratePerMaturityToLinearAPR(0.25e18, 73 days)
             )
         );
         uint256 startDate = block.timestamp;
         uint256 dueDate = startDate + 73 days;
         uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 1000e6, dueDate);
+        uint256 ratePerMaturity = Math.mulDivDown(
+            size.getDebtPosition(debtPositionId).faceValue, PERCENT, size.getDebtPosition(debtPositionId).issuanceValue
+        ) - PERCENT;
 
         assertEq(size.repayFee(debtPositionId), 1e6);
-        assertEqApprox(size.getDebtPosition(debtPositionId).ratePerMaturity, 0.1e18, 1);
+        assertEq(ratePerMaturity, 0.1e18);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
         assertEq(_state().alice.debtBalance, 1101e6);
@@ -157,16 +160,19 @@ contract BorrowerExitTest is BaseTest {
         _borrowerExit(alice, debtPositionId, candy);
 
         uint256 aliceCollateralAfter = _state().alice.collateralBalance;
+        uint256 newRatePerMaturity = Math.mulDivUp(
+            size.getDebtPosition(debtPositionId).faceValue, PERCENT, size.getDebtPosition(debtPositionId).issuanceValue
+        ) - PERCENT;
 
         uint256 newIssuanceValue = Math.mulDivUp(1100e6, 1e18, 1e18 + 0.25e18);
         uint256 newRepayFee = Math.mulDivUp(0.005e18 * newIssuanceValue, 43 days, 365 days * 1e18);
         assertEq(size.repayFee(debtPositionId), newRepayFee);
-        assertEqApprox(size.getDebtPosition(debtPositionId).ratePerMaturity, 0.25e18, 1);
+        assertEqApprox(newRatePerMaturity, 0.25e18, 1e10);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate + 30 days);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
-        assertEqApprox(size.faceValue(debtPositionId), 1100e6, 2);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 1100e6);
         assertEq(_state().alice.debtBalance, 0);
-        assertEqApprox(_state().candy.debtBalance, 1100e6 + newRepayFee, 2);
+        assertEq(_state().candy.debtBalance, 1100e6 + newRepayFee);
         assertEq(
             aliceCollateralAfter, aliceCollateralBefore - size.debtTokenAmountToCollateralTokenAmount(earlyRepayFee)
         );

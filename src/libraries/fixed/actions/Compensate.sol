@@ -36,7 +36,7 @@ library Compensate {
         CreditPosition storage creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
 
         uint256 amountToCompensate =
-            Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue());
+            Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue);
 
         // validate creditPositionWithDebtToRepayId
         if (state.getLoanStatus(params.creditPositionWithDebtToRepayId) == LoanStatus.REPAID) {
@@ -87,10 +87,10 @@ library Compensate {
         CreditPosition storage creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
 
         uint256 amountToCompensate =
-            Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue());
+            Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue);
 
         // debt reduction
-        state.chargeRepayFeeInCollateral(debtPositionToRepay, amountToCompensate);
+        state.chargeAndUpdateRepayFeeInCollateral(debtPositionToRepay, amountToCompensate);
         state.data.debtToken.burn(debtPositionToRepay.borrower, amountToCompensate);
         if (debtPositionToRepay.getDebt() == 0) {
             debtPositionToRepay.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();

@@ -77,7 +77,7 @@ library BorrowerExit {
         uint256 ratePerMaturity =
             borrowOffer.getRatePerMaturity(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
 
-        uint256 faceValue = debtPosition.faceValue();
+        uint256 faceValue = debtPosition.faceValue;
         uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + ratePerMaturity);
 
         state.chargeEarlyRepayFeeInCollateral(debtPosition);
@@ -88,7 +88,6 @@ library BorrowerExit {
         debtPosition.borrower = params.borrowerToExitTo;
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
-        debtPosition.ratePerMaturity = ratePerMaturity;
 
         state.data.debtToken.mint(params.borrowerToExitTo, debtPosition.getDebt());
     }

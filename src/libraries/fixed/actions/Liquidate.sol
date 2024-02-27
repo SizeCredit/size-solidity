@@ -65,7 +65,7 @@ library Liquidate {
         bool splitCollateralRemainder
     ) private returns (uint256 liquidatorProfitCollateralToken) {
         uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPositionCopy);
-        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPositionCopy.faceValue());
+        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPositionCopy.faceValue);
 
         // CR > 100%
         if (assignedCollateral > debtInCollateralToken) {
@@ -92,7 +92,7 @@ library Liquidate {
         }
 
         state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
-        state.transferBorrowAToken(msg.sender, address(this), debtPositionCopy.faceValue());
+        state.transferBorrowAToken(msg.sender, address(this), debtPositionCopy.faceValue);
     }
 
     function _executeLiquidateOverdue(
@@ -128,7 +128,7 @@ library Liquidate {
 
         emit Events.Liquidate(params.debtPositionId, params.minimumCollateralProfit, collateralRatio, loanStatus);
 
-        state.chargeRepayFeeInCollateral(debtPosition, debtPosition.faceValue());
+        state.chargeAndUpdateRepayFeeInCollateral(debtPosition, debtPosition.faceValue);
 
         // case 1a: the user is liquidatable profitably
         if (PERCENT <= collateralRatio && collateralRatio < state.config.crLiquidation) {
@@ -151,7 +151,7 @@ library Liquidate {
             }
         }
 
-        state.data.debtToken.burn(debtPosition.borrower, debtPositionCopy.faceValue());
+        state.data.debtToken.burn(debtPosition.borrower, debtPositionCopy.faceValue);
         debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
     }
 }

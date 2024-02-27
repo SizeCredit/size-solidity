@@ -29,7 +29,7 @@ library SelfLiquidate {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
-        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.faceValue());
+        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.faceValue);
 
         // validate creditPositionId
         if (!state.isLoanSelfLiquidatable(params.creditPositionId)) {
@@ -63,7 +63,7 @@ library SelfLiquidate {
         creditPosition.credit -= credit;
         state.validateMinimumCredit(creditPosition.credit);
 
-        state.chargeRepayFeeInCollateral(debtPosition, credit);
+        state.chargeAndUpdateRepayFeeInCollateral(debtPosition, credit);
         state.data.debtToken.burn(debtPosition.borrower, credit);
     }
 }

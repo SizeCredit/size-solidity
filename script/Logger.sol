@@ -16,8 +16,7 @@ abstract contract Logger {
             console.log("Lender Address:", debtPositions[i].lender);
             console.log("Borrower Address:", debtPositions[i].borrower);
             console.log("Issuance Value:", debtPositions[i].issuanceValue);
-            console.log("Face Value:", debtPositions[i].faceValue());
-            console.log("Rate Per Maturity:", debtPositions[i].ratePerMaturity);
+            console.log("Face Value:", debtPositions[i].faceValue);
             console.log("Start Date:", debtPositions[i].startDate);
             console.log("Due Date:", debtPositions[i].dueDate);
 

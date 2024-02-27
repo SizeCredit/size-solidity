@@ -29,7 +29,8 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(bob), 0.75e18);
 
-        uint256 debtBorrowTokenWad = ConversionLibrary.amountToWad(size.faceValue(debtPositionId), usdc.decimals());
+        uint256 debtBorrowTokenWad =
+            ConversionLibrary.amountToWad(size.getDebtPosition(debtPositionId).faceValue, usdc.decimals());
         uint256 debtInCollateralToken =
             Math.mulDivDown(debtBorrowTokenWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
@@ -78,7 +79,8 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(bob), 0.75e18);
 
-        uint256 faceValueInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(size.faceValue(debtPositionId));
+        uint256 faceValueInCollateralToken =
+            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).faceValue);
 
         vm.expectRevert();
         _liquidate(liquidator, debtPositionId, faceValueInCollateralToken);
@@ -134,7 +136,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _setPrice(0.25e18);
 
-        assertEq(size.faceValue(debtPositionId), 50e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 50e6);
         assertEq(size.getDebt(debtPositionId), 50e6 + repayFee);
         assertEq(size.getCreditPosition(creditPositionId).credit, 50e6 - 5e6);
         assertEq(size.getCreditPosition(creditPositionId).credit, 45e6);

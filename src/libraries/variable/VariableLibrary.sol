@@ -205,7 +205,7 @@ library VariableLibrary {
             debtPositionCopy.borrower,
             address(this),
             assignedCollateral - liquidatorProfitCollateralToken,
-            debtPositionCopy.faceValue()
+            debtPositionCopy.faceValue
         );
     }
 }

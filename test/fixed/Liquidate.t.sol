@@ -159,7 +159,8 @@ contract LiquidateTest is BaseTest {
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
         uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(debtPositionId);
-        uint256 faceValueWad = ConversionLibrary.amountToWad(size.faceValue(debtPositionId), usdc.decimals());
+        uint256 faceValueWad =
+            ConversionLibrary.amountToWad(size.getDebtPosition(debtPositionId).faceValue, usdc.decimals());
         uint256 faceValueCollateral = Math.mulDivDown(faceValueWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
         Vars memory _before = _state();
@@ -195,11 +196,11 @@ contract LiquidateTest is BaseTest {
 
         uint256 assignedCollateralAfterFee = Math.mulDivDown(
             _before.bob.collateralBalance,
-            size.faceValue(debtPositionId),
+            size.getDebtPosition(debtPositionId).faceValue,
             (_before.bob.debtBalance - size.repayFee(debtPositionId))
         );
 
-        uint256 repayFee = size.partialRepayFee(debtPositionId, size.faceValue(debtPositionId));
+        uint256 repayFee = size.partialRepayFee(debtPositionId, size.getDebtPosition(debtPositionId).faceValue);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
@@ -230,7 +231,7 @@ contract LiquidateTest is BaseTest {
         _deposit(bob, address(weth), 160e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
-        uint256 faceValue = size.faceValue(debtPositionId);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         vm.warp(block.timestamp + 365 days);

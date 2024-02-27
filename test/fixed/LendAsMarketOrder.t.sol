@@ -43,7 +43,7 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(size.faceValue(debtPositionId), faceValue);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebt(debtPositionId), faceValue + repayFee);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
@@ -72,7 +72,7 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(size.faceValue(debtPositionId), faceValue);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
@@ -88,7 +88,7 @@ contract LendAsMarketOrderTest is BaseTest {
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.maturities[0] + curve.maturities[1]) / 2;
         uint256 rate = YieldCurveLibrary.getRatePerMaturity(curve, marketBorrowRateFeed, dueDate);
-        uint256 faceValue = Math.mulDivUp(amountIn, PERCENT + rate, PERCENT);
+        uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + rate, PERCENT);
 
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
@@ -103,7 +103,7 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
-        assertEq(size.faceValue(debtPositionId), faceValue);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
