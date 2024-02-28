@@ -9,6 +9,11 @@ struct Deployment {
     address addr;
 }
 
+struct Parameter {
+    string key;
+    string value;
+}
+
 abstract contract BaseScript is Script {
     error InvalidChainId(uint256 chainid);
     error InvalidPrivateKey(string privateKey);
@@ -16,8 +21,7 @@ abstract contract BaseScript is Script {
     string root;
     string path;
     Deployment[] public deployments;
-
-    string chainName = "sepolia";
+    Parameter[] public parameters;
 
     modifier broadcast() {
         vm.startBroadcast();
@@ -36,7 +40,7 @@ abstract contract BaseScript is Script {
         }
     }
 
-    function exportDeployments() internal {
+    function export() internal {
         // fetch already existing contracts
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
@@ -45,10 +49,15 @@ abstract contract BaseScript is Script {
 
         string memory finalObject;
         string memory deploymentsObject;
+        string memory parametersObject;
         for (uint256 i = 0; i < deployments.length; i++) {
             deploymentsObject = vm.serializeAddress(".deployments", deployments[i].name, deployments[i].addr);
         }
+        for (uint256 i = 0; i < parameters.length; i++) {
+            parametersObject = vm.serializeString(".parameters", parameters[i].key, parameters[i].value);
+        }
         finalObject = vm.serializeString(".", "deployments", deploymentsObject);
+        finalObject = vm.serializeString(".", "parameters", parametersObject);
 
         string memory networkName = getNetworkName();
         finalObject = vm.serializeString(".", "networkName", networkName);
