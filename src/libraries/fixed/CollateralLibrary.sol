@@ -18,7 +18,9 @@ library CollateralLibrary {
         state.data.collateralToken.mint(to, amount);
     }
 
-    function withdrawUnderlyingCollateralToken(State storage state, address from, address to, uint256 amount) external {
+    function withdrawUnderlyingCollateralToken(State storage state, address from, address to, uint256 amount)
+        external
+    {
         IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
         state.data.collateralToken.burn(from, amount);
         underlyingCollateralToken.safeTransfer(to, amount);

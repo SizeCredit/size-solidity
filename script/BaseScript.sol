@@ -18,6 +18,9 @@ abstract contract BaseScript is Script {
     error InvalidChainId(uint256 chainid);
     error InvalidPrivateKey(string privateKey);
 
+    string constant TEST_MNEMONIC = "test test test test test test test test test test test junk";
+    string constant TEST_CHAIN_NAME = "anvil";
+
     string root;
     string path;
     Deployment[] public deployments;
@@ -27,17 +30,6 @@ abstract contract BaseScript is Script {
         vm.startBroadcast();
         _;
         vm.stopBroadcast();
-    }
-
-    function setupLocalhostEnv(uint32 index) internal returns (uint256 localhostPrivateKey) {
-        if (block.chainid == 31337) {
-            root = vm.projectRoot();
-            path = string.concat(root, "/localhost.json");
-            string memory mnemonic = "test test test test test test test test test test test junk";
-            return vm.deriveKey(mnemonic, index);
-        } else {
-            return vm.envUint("DEPLOYER_PRIVATE_KEY");
-        }
     }
 
     function export() internal {
