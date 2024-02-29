@@ -81,7 +81,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        marketBorrowRateFeed.setMarketBorrowRate(0);
+        _setMarketBorrowRate(0);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
         _borrowAsLimitOrder(alice, curve);
 
