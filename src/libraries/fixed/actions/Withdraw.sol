@@ -46,7 +46,7 @@ library Withdraw {
         if (params.token == address(state.data.underlyingCollateralToken)) {
             uint256 amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));
             if (amount > 0) {
-                state.withdrawCollateralToken(msg.sender, params.to, amount);
+                state.withdrawUnderlyingCollateralToken(msg.sender, params.to, amount);
             }
         } else {
             uint256 amount = Math.min(params.amount, state.borrowATokenBalanceOf(msg.sender));

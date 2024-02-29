@@ -134,7 +134,7 @@ library VariableLibrary {
         Vault vaultTo = getVault(state, to);
 
         // unwrap collateralToken (e.g. szETH) to underlyingCollateralToken (e.g. WETH) from `from` to `address(this)`
-        state.withdrawCollateralToken(from, address(this), collateralBalance);
+        state.withdrawUnderlyingCollateralToken(from, address(this), collateralBalance);
 
         // supply collateral asset
         state.data.underlyingCollateralToken.forceApprove(address(state.data.variablePool), collateralBalance);
