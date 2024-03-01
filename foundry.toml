@@ -3,7 +3,7 @@
   out = "out"
   libs = ["lib"]
   fs_permissions = [{access = "read-write", path = "./deployments"}]
-  no_match_contract = 'CryticTester|Handler|Deploy'
+  no_match_contract = 'CryticTester|Handler'
 
 [invariant]
   runs = 1000

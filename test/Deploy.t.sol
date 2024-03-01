@@ -1,19 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {Deployment, Parameter} from "@script/BaseScript.sol";
-import {DeployScript} from "@script/Deploy.s.sol";
-import {Test} from "forge-std/Test.sol";
+import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
+import {ForkTest} from "@test/ForkTest.sol";
 
-contract DeployScriptTest is Test {
-    DeployScript deployScript;
-
-    function testFork_Deploy_deploy() public {
-        deployScript = new DeployScript();
-
-        (Deployment[] memory deployments, Parameter[] memory parameters) = deployScript.run();
-
-        assertGt(deployments.length, 0);
-        assertGt(parameters.length, 0);
+contract DeployScriptTest is ForkTest {
+    function testFork_Deploy_check_variablePool_is_configured() public {
+        assertTrue(address(size.data().variablePool) != address(0));
+        assertEq(address(size.data().variablePool), address(variablePool));
+        assertEq(size.data().variablePool.getReserveNormalizedIncome(address(usdc)), WadRayMath.RAY);
     }
 }
