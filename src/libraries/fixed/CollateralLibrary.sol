@@ -12,13 +12,15 @@ import {State} from "@src/SizeStorage.sol";
 library CollateralLibrary {
     using SafeERC20 for IERC20Metadata;
 
-    function depositCollateralToken(State storage state, address from, address to, uint256 amount) external {
+    function depositUnderlyingCollateralToken(State storage state, address from, address to, uint256 amount) external {
         IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
         underlyingCollateralToken.transferFrom(from, address(this), amount);
         state.data.collateralToken.mint(to, amount);
     }
 
-    function withdrawCollateralToken(State storage state, address from, address to, uint256 amount) external {
+    function withdrawUnderlyingCollateralToken(State storage state, address from, address to, uint256 amount)
+        external
+    {
         IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
         state.data.collateralToken.burn(from, amount);
         underlyingCollateralToken.safeTransfer(to, amount);

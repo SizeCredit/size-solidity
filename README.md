@@ -205,9 +205,17 @@ forge test
 - In case the protocol is paused, the price of the collateral may change during the unpause event. This may cause unforseen liquidations, among other issues
 - The Variable Pool Price Feed depends on `AaveOracle`, which uses `latestAnswer`, and does not perform any kind of stale checks for oracle prices
 - Variable rate loans can increase the total supply of aszUSDC, which in turn limits the cap of fixed rate loans
+- Users blocklisted by underlying tokens (e.g. USDC) may be unable to withdraw or interact with the protocol
 
 ## Areas of concern
 
 - A rounding issue as a result of the DebtPosition's `faceValue` calculation may result in the borrower debt being 1 more when the lender picks their borrow offer with `lendAsMarketOrder`, passing `exactAmountIn` equals `false`. In this case, to calculate the `issuanceValue`, a `mulDivUp` is performed, so that the borrower, being the passive party, receives _more_ aszUSDC tokens. The issue is that the `faceValue` calculation is also rounded up in `LoanLibrary`, as it represents a users' debt. In summary, the borrower receives rounding up in the present value, but pays rounding up in future cash flow. Exploits arising from this issue are welcome.
 - Exploits arising from notes marked with `// @audit` on the codebase are welcome
 - Recommendations for the usage of `PriceFeed` or `VariablePoolPriceFeed` in production
+
+## Deployment
+
+```bash
+source .env
+CHAIN_NAME=$CHAIN_NAME DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS yarn deploy --broadcast
+```

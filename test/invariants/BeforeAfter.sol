@@ -5,7 +5,7 @@ import {UserView} from "@src/SizeView.sol";
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {Deploy} from "@test/Deploy.sol";
+import {Deploy} from "@script/Deploy.sol";
 
 abstract contract BeforeAfter is Deploy {
     struct Vars {

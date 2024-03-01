@@ -6,7 +6,8 @@ import {Properties} from "./Properties.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 import "@crytic/properties/contracts/util/Hevm.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Deploy} from "@test/Deploy.sol";
+import {Deploy} from "@script/Deploy.sol";
+import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
@@ -364,7 +365,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
     function setPrice(uint256 price) public {
         price = between(price, MIN_PRICE, MAX_PRICE);
-
-        priceFeed.setPrice(price);
+        PriceFeedMock(address(priceFeed)).setPrice(price);
     }
 }

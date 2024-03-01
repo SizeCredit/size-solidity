@@ -7,9 +7,12 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
+import {MarketBorrowRateFeedMock} from "@test/mocks/MarketBorrowRateFeedMock.sol";
+import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
+
 import {UserView} from "@src/SizeView.sol";
 
-import {Deploy} from "./Deploy.sol";
+import {Deploy} from "@script/Deploy.sol";
 
 struct Vars {
     UserView alice;
@@ -63,7 +66,12 @@ abstract contract BaseTestGeneral is Test, Deploy {
 
     function _setPrice(uint256 price) internal {
         vm.prank(address(this));
-        priceFeed.setPrice(price);
+        PriceFeedMock(address(priceFeed)).setPrice(price);
+    }
+
+    function _setMarketBorrowRate(uint128 rate) internal {
+        vm.prank(address(this));
+        MarketBorrowRateFeedMock(address(marketBorrowRateFeed)).setMarketBorrowRate(rate);
     }
 
     function _updateConfig(bytes32 key, uint256 value) internal {

@@ -1,11 +1,18 @@
 {
-  "commit": "8150e5b",
+  "commit": "cd51491",
   "deployments": {
-    "implementation": "0x756846De8C73404738A936915f3253415C57933c",
-    "marketBorrowRateFeed": "0xDac2BAe801F961384F9D1273e6acfF289C43eDba",
-    "priceFeed": "0xc6aba3Cf3CC00dF1ADf947911C5bF36921331543",
-    "proxy": "0x3e2D014Dd050e730Ba7691cf75b7b0688442592C",
-    "variablePool": "0x5ff3420115d1d0c71d036b72fCDBf2D3C2Ed1834"
+    "MarketBorrowRateFeed": "0x4e684de74b07d89Ae8d169f610bF5F3B6F755B90",
+    "PriceFeed": "0xbE57D032Ad72BAA72325E145039c6e0B229fDE6c",
+    "Size-implementation": "0x4D8e3A356215fE5438ab6F8B1262FDDb9ce221F3",
+    "Size-proxy": "0xc6623E26C8A9c14A2AC82719713212DF47020E4f",
+    "VariablePool": "0x5148C21B40131529419a8B3C93a22541beC60986"
   },
-  "networkName": "Sepolia"
+  "networkName": "Sepolia",
+  "parameters": {
+    "owner": "0xf0c7f57f5f889d546f032e50fba953bd7c026350",
+    "sizeVariablePoolAaveOracle": "0x0000000000000000000000000000000000000000",
+    "sizeVariablePoolPool": "0x5148c21b40131529419a8b3c93a22541bec60986",
+    "usdc": "0x94a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8",
+    "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14"
+  }
 }

@@ -9,15 +9,22 @@ struct Deployment {
     address addr;
 }
 
+struct Parameter {
+    string key;
+    string value;
+}
+
 abstract contract BaseScript is Script {
     error InvalidChainId(uint256 chainid);
     error InvalidPrivateKey(string privateKey);
 
+    string constant TEST_MNEMONIC = "test test test test test test test test test test test junk";
+    string constant TEST_CHAIN_NAME = "anvil";
+
     string root;
     string path;
     Deployment[] public deployments;
-
-    string chainName = "sepolia";
+    Parameter[] public parameters;
 
     modifier broadcast() {
         vm.startBroadcast();
@@ -25,18 +32,7 @@ abstract contract BaseScript is Script {
         vm.stopBroadcast();
     }
 
-    function setupLocalhostEnv(uint32 index) internal returns (uint256 localhostPrivateKey) {
-        if (block.chainid == 31337) {
-            root = vm.projectRoot();
-            path = string.concat(root, "/localhost.json");
-            string memory mnemonic = "test test test test test test test test test test test junk";
-            return vm.deriveKey(mnemonic, index);
-        } else {
-            return vm.envUint("DEPLOYER_PRIVATE_KEY");
-        }
-    }
-
-    function exportDeployments() internal {
+    function export() internal {
         // fetch already existing contracts
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
@@ -45,10 +41,15 @@ abstract contract BaseScript is Script {
 
         string memory finalObject;
         string memory deploymentsObject;
+        string memory parametersObject;
         for (uint256 i = 0; i < deployments.length; i++) {
             deploymentsObject = vm.serializeAddress(".deployments", deployments[i].name, deployments[i].addr);
         }
+        for (uint256 i = 0; i < parameters.length; i++) {
+            parametersObject = vm.serializeString(".parameters", parameters[i].key, parameters[i].value);
+        }
         finalObject = vm.serializeString(".", "deployments", deploymentsObject);
+        finalObject = vm.serializeString(".", "parameters", parametersObject);
 
         string memory networkName = getNetworkName();
         finalObject = vm.serializeString(".", "networkName", networkName);
