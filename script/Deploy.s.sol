@@ -40,11 +40,13 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         address usdc = addresses(chainName).usdc;
 
         if (mockContracts) {
-            setupChainWithMocks(deployer, weth, usdc);
             console.log("[Size v2] using MOCK contracts");
+            setupChainWithMocks(deployer, weth, usdc);
+            sizeVariablePoolPool = address(variablePool);
+            sizeVariablePoolAaveOracle = address(0);
         } else {
-            setupChain(owner, weth, usdc, sizeVariablePoolPool, sizeVariablePoolAaveOracle);
             console.log("[Size v2] using REAL contracts");
+            setupChain(owner, weth, usdc, sizeVariablePoolPool, sizeVariablePoolAaveOracle);
         }
 
         deployments.push(Deployment({name: "Size-implementation", addr: address(size)}));
