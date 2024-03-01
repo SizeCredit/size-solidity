@@ -57,10 +57,22 @@ contract DeployScriptTest is ForkTest {
         assertEq(size.getUserView(bob).borrowATokenBalance, 1_000e6);
     }
 
+    function testFork_Deploy_RevertWith_supplyVariable_borrowVariable_low_liquidity() public {
+        _supplyVariable(alice, usdc, 2_500e6);
+        _supplyVariable(candy, weth, 2e18);
+        _borrowVariable(candy, usdc, 2_000e6);
+        assertEq(aToken.balanceOf(alice), 2_500e6);
+        assertEq(aToken.scaledBalanceOf(alice), 2_500e6);
+
+        vm.expectRevert();
+        _withdrawVariable(alice, usdc, 2_500e6);
+    }
+
     function testFork_Deploy_RevertWith_deposit_lendAsLimitOrder_variablePool_borrow_borrowAsMarketOrder_low_liquidity()
         public
     {
-        _deposit(alice, usdc, 2500 * 1e6);
+        _deposit(alice, usdc, 2_500e6);
+        assertEq(usdc.balanceOf(address(variablePool)), 2_500e6);
         _lendAsLimitOrder(
             alice, block.timestamp + 365 days, [int256(0.05e18), int256(0.07e18)], [uint256(30 days), uint256(180 days)]
         );
@@ -69,6 +81,12 @@ contract DeployScriptTest is ForkTest {
 
         _supplyVariable(candy, weth, 2e18);
         _borrowVariable(candy, usdc, 2_000e6);
+
+        assertEq(usdc.balanceOf(address(variablePool)), 500e6);
+        assertEq(usdc.balanceOf(candy), 2_000e6);
+        assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
+        assertEq(aToken.balanceOf(address(size.getUserView(alice).user.vault)), 2_500e6);
+        assertEq(aToken.scaledBalanceOf(address(size.getUserView(alice).user.vault)), 2_500e6);
 
         _deposit(bob, weth, 1e18);
         _borrowAsMarketOrder(bob, alice, 1_000e6, block.timestamp + 60 days);

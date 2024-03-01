@@ -28,6 +28,15 @@ abstract contract BaseTestVariable is Test, BaseTestGeneral {
         variablePool.borrow(token, amount, 2, 0, user);
     }
 
+    function _withdrawVariable(address user, IERC20Metadata token, uint256 amount) internal {
+        return _withdrawVariable(user, address(token), amount);
+    }
+
+    function _withdrawVariable(address user, address token, uint256 amount) internal {
+        vm.prank(user);
+        variablePool.withdraw(token, amount, user);
+    }
+
     function _setLiquidityIndex(uint256 index) internal {
         vm.prank(address(this));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), index);
