@@ -77,7 +77,8 @@ abstract contract BaseScript is Script {
             IPriceFeed priceFeed,
             IPool variablePool,
             USDC usdc,
-            WETH weth
+            WETH weth,
+            address owner
         )
     {
         root = vm.projectRoot();
@@ -94,6 +95,7 @@ abstract contract BaseScript is Script {
         variablePool = IPool(abi.decode(json.parseRaw(".deployments.VariablePool"), (address)));
         usdc = USDC(abi.decode(json.parseRaw(".parameters.usdc"), (address)));
         weth = WETH(abi.decode(json.parseRaw(".parameters.weth"), (address)));
+        owner = address(abi.decode(json.parseRaw(".parameters.owner"), (address)));
     }
 
     function getChain() public returns (Chain memory) {
