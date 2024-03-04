@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
+import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -577,5 +580,42 @@ contract ExperimentsTest is Test, BaseTest {
         // and to take the fees instead, we do
         // collateral[borrower] -= DebtPosition1.protocolFees(t=7) / Oracle.CurrentPrice
         assertEq(_state().bob.collateralBalance, 500e18 - (0.5e6 - (0.409091e6 - 1)) * 1e12);
+    }
+
+    function testFork_Experiments_transferBorrowAToken_reverts_if_low_liquidity() public {
+        IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
+
+        _setPrice(2468e18);
+        _deposit(alice, usdc, 2_500e6);
+        assertEq(usdc.balanceOf(address(variablePool)), 2_500e6);
+        _lendAsLimitOrder(
+            alice, block.timestamp + 365 days, [int256(0.05e18), int256(0.07e18)], [uint256(30 days), uint256(180 days)]
+        );
+
+        vm.warp(block.timestamp + 30 days);
+
+        _supplyVariable(candy, weth, 2e18);
+        _borrowVariable(candy, usdc, 2_000e6);
+
+        assertEq(usdc.balanceOf(address(variablePool)), 500e6);
+        assertEq(usdc.balanceOf(candy), 2_000e6);
+        assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
+        assertEq(aToken.balanceOf(address(size.getUserView(alice).user.vault)), 2_500e6);
+        assertEq(aToken.scaledBalanceOf(address(size.getUserView(alice).user.vault)), 2_500e6);
+
+        _deposit(bob, weth, 1e18);
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector, 500e6, 2500e6));
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: alice,
+                amount: 1_000e6,
+                dueDate: block.timestamp + 60 days,
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max,
+                exactAmountIn: false,
+                receivableCreditPositionIds: new uint256[](0)
+            })
+        );
     }
 }
