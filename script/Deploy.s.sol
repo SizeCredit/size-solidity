@@ -69,7 +69,7 @@ contract DeployScript is BaseScript, Addresses, Deploy {
             console.log("[Size v2] Parameter:  ", parameters[i].key, "\t", parameters[i].value);
         }
 
-        exportDeployments();
+        export();
 
         console.log("[Size v2] done");
 
