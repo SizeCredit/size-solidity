@@ -12,7 +12,9 @@ import {
 // solhint-disable var-name-mixedcase
 /// @title Events
 library Events {
-    event Initialize(InitializeConfigParams indexed c, InitializeOracleParams indexed o, InitializeDataParams indexed d);
+    event Initialize(
+        InitializeConfigParams indexed c, InitializeOracleParams indexed o, InitializeDataParams indexed d
+    );
     event UpdateConfig(bytes32 indexed key, uint256 value);
     event CreateVault(address indexed user, address indexed vault);
     event Deposit(address indexed token, address indexed to, uint256 amount);
@@ -25,7 +27,9 @@ library Events {
         uint256[] receivableCreditPositionIds
     );
     event BorrowAsLimitOrder(YieldCurve curveRelativeTime);
-    event LendAsMarketOrder(address indexed borrower, uint256 indexed dueDate, uint256 indexed amount, bool exactAmountIn);
+    event LendAsMarketOrder(
+        address indexed borrower, uint256 indexed dueDate, uint256 indexed amount, bool exactAmountIn
+    );
     event LendAsLimitOrder(uint256 indexed maxDueDate, YieldCurve indexed curveRelativeTime);
     event CreateDebtPosition(
         uint256 indexed debtPositionId,
@@ -47,7 +51,10 @@ library Events {
     event Repay(uint256 indexed debtPositionId);
     event Claim(uint256 indexed creditPositionId);
     event Liquidate(
-        uint256 indexed debtPositionId, uint256 indexed minimumCollateralProfit, uint256 indexed collateralRatio, LoanStatus loanStatus
+        uint256 indexed debtPositionId,
+        uint256 indexed minimumCollateralProfit,
+        uint256 indexed collateralRatio,
+        LoanStatus loanStatus
     );
     event SelfLiquidate(uint256 indexed creditPositionId);
     event LiquidateWithReplacement(
@@ -58,6 +65,8 @@ library Events {
     event LiquidateOverdueMoveToVariablePool(uint256 indexed debtPositionId);
     event LiquidateOverdueNoSplitRemainder(uint256 indexed debtPositionId);
     event Compensate(
-        uint256 indexed creditPositionWithDebtToRepayId, uint256 indexed creditPositionToCompensateId, uint256 indexed amount
+        uint256 indexed creditPositionWithDebtToRepayId,
+        uint256 indexed creditPositionToCompensateId,
+        uint256 indexed amount
     );
 }
