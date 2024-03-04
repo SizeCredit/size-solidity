@@ -155,4 +155,8 @@ interface ISize {
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
     function compensate(CompensateParams calldata params) external;
+
+    /// @notice Check if an account is allowlisted to interact with the Variable Pool
+    /// @param account The address of the account to check
+    function variablePoolAllowlisted(address account) external returns (bool);
 }
