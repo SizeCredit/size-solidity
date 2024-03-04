@@ -71,7 +71,7 @@ library Compensate {
         state.chargeRepayFee(loanToRepay, amountToCompensate);
         state.data.debtToken.burn(loanToRepay.generic.borrower, amountToCompensate);
         if (loanToRepay.getDebt() == 0) {
-            loanToCompensate.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+            loanToRepay.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
 
         // slither-disable-next-line unused-return

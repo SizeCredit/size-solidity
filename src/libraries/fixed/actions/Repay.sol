@@ -37,7 +37,7 @@ library Repay {
         if (!loan.isFOL()) {
             revert Errors.ONLY_FOL_CAN_BE_REPAID(params.loanId);
         }
-        if (state.either(loan, [LoanStatus.REPAID, LoanStatus.CLAIMED])) {
+        if (state.getLoanStatus(loan) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.loanId);
         }
     }
