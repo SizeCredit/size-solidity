@@ -43,7 +43,7 @@ library VariableLibrary {
     }
 
     /// @notice Deposit underlying borrow tokens into the variable pool
-    /// @dev Assumes `from` has approvet to `address(this)` the `amount` of `underlyingBorrowToken`
+    /// @dev Assumes `from` has approved to `address(this)` the `amount` of `underlyingBorrowToken`
     ///      The deposit is made to the vault of `to`
     /// @param state The state struct
     /// @param from The address of the depositor

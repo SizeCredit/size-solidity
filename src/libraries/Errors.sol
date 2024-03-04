@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
-/// @title Events
+/// @title Errors
 library Errors {
     error USER_IS_LIQUIDATABLE(address account, uint256 cr);
     error NULL_ADDRESS();
