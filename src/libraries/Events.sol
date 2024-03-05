@@ -42,8 +42,7 @@ library Events {
     event CreateCreditPosition(
         uint256 indexed creditPositionId,
         address indexed lender,
-        address indexed borrower,
-        uint256 exitPositionId,
+        uint256 indexed exitPositionId,
         uint256 debtPositionId,
         uint256 credit
     );

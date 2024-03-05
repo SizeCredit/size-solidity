@@ -196,7 +196,6 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(creditPositionsCountAfter, 2, "Expected 2 active loans");
         CreditPosition memory loan_James_Bob = size.getCreditPositions(size.getCreditPositionIdsByDebtPositionId(0))[1];
         assertEq(loan_James_Bob.lender, james, "James should be the lender");
-        assertEq(loan_James_Bob.borrower, bob, "Bob should be the borrower");
         LoanOffer memory loanOffer2 = size.getUserView(james).user.loanOffer;
         uint256 rate2 = loanOffer2.getRatePerMaturityByDueDate(marketBorrowRateFeed, block.timestamp + 10 days);
         assertEq(loan_James_Bob.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check james credit");

@@ -5,7 +5,7 @@ import {State} from "@src/SizeStorage.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 
 import {Events} from "@src/libraries/Events.sol";
-import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
@@ -96,34 +96,24 @@ library AccountingLibrary {
 
         emit Events.CreateDebtPosition(debtPositionId, lender, borrower, issuanceValue, faceValue, dueDate);
 
-        creditPosition = CreditPosition({
-            lender: lender,
-            borrower: borrower,
-            credit: debtPosition.faceValue,
-            debtPositionId: debtPositionId
-        });
+        creditPosition =
+            CreditPosition({lender: lender, credit: debtPosition.faceValue, debtPositionId: debtPositionId});
 
         uint256 creditPositionId = state.data.nextCreditPositionId++;
         state.data.creditPositions[creditPositionId] = creditPosition;
         state.validateMinimumCreditOpening(creditPosition.credit);
 
-        emit Events.CreateCreditPosition(
-            creditPositionId, lender, borrower, RESERVED_ID, debtPositionId, creditPosition.credit
-        );
+        emit Events.CreateCreditPosition(creditPositionId, lender, RESERVED_ID, debtPositionId, creditPosition.credit);
     }
 
-    function createCreditPosition(
-        State storage state,
-        uint256 exitCreditPositionId,
-        address lender,
-        address borrower,
-        uint256 credit
-    ) external returns (CreditPosition memory creditPosition) {
+    function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)
+        external
+        returns (CreditPosition memory creditPosition)
+    {
         uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
         CreditPosition storage exitPosition = state.data.creditPositions[exitCreditPositionId];
 
-        creditPosition =
-            CreditPosition({lender: lender, borrower: borrower, credit: credit, debtPositionId: debtPositionId});
+        creditPosition = CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId});
 
         uint256 creditPositionId = state.data.nextCreditPositionId++;
         state.data.creditPositions[creditPositionId] = creditPosition;
@@ -132,8 +122,6 @@ library AccountingLibrary {
         state.validateMinimumCredit(exitPosition.credit);
         state.validateMinimumCreditOpening(creditPosition.credit);
 
-        emit Events.CreateCreditPosition(
-            creditPositionId, lender, borrower, exitCreditPositionId, debtPositionId, credit
-        );
+        emit Events.CreateCreditPosition(creditPositionId, lender, exitCreditPositionId, debtPositionId, credit);
     }
 }

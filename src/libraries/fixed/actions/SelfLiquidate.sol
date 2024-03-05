@@ -35,7 +35,7 @@ library SelfLiquidate {
         if (!state.isCreditPositionSelfLiquidatable(params.creditPositionId)) {
             revert Errors.LOAN_NOT_SELF_LIQUIDATABLE(
                 params.creditPositionId,
-                state.collateralRatio(creditPosition.borrower),
+                state.collateralRatio(debtPosition.borrower),
                 state.getLoanStatus(params.creditPositionId)
             );
         }

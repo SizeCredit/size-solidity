@@ -100,7 +100,6 @@ library Compensate {
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionToCompensateId,
             lender: debtPositionToRepay.lender,
-            borrower: msg.sender,
             credit: amountToCompensate
         });
     }

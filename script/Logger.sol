@@ -26,7 +26,6 @@ abstract contract Logger {
                 CreditPosition memory creditPosition = creditPositions[j];
                 console.log("\tCredit Position Id:", i);
                 console.log("\tLender Address:", creditPosition.lender);
-                console.log("\tBorrower Address:", creditPosition.borrower);
                 console.log("\tCredit:", creditPosition.credit);
             }
         }

@@ -41,8 +41,8 @@ abstract contract BeforeAfter is Deploy {
         if (positionId != RESERVED_ID) {
             if (size.isCreditPositionId(positionId)) {
                 c = size.getCreditPosition(positionId);
-                vars.borrower = size.getUserView(c.borrower);
-                vars.isBorrowerLiquidatable = size.isUserLiquidatable(c.borrower);
+                vars.borrower = size.getUserView(size.getDebtPosition(c.debtPositionId).borrower);
+                vars.isBorrowerLiquidatable = size.isUserLiquidatable(vars.borrower.account);
                 vars.lender = size.getUserView(c.lender);
             } else {
                 d = size.getDebtPosition(positionId);

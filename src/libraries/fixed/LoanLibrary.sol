@@ -24,7 +24,6 @@ struct DebtPosition {
 
 struct CreditPosition {
     address lender;
-    address borrower;
     uint256 credit;
     uint256 debtPositionId;
 }
