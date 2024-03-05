@@ -75,11 +75,6 @@ abstract contract SizeView is SizeStorage {
         return state.isDebtPositionLiquidatable(debtPositionId);
     }
 
-    function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
-        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
-        return state.getDebtPositionAssignedCollateral(debtPosition);
-    }
-
     function getDebt(uint256 debtPositionId) external view returns (uint256) {
         return state.getDebtPosition(debtPositionId).getDebt();
     }
@@ -255,5 +250,15 @@ abstract contract SizeView is SizeStorage {
         uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
+    }
+
+    function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
+        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
+        return state.getDebtPositionAssignedCollateral(debtPosition);
+    }
+
+    function getCreditPositionProRataAssignedCollateral(uint256 creditPositionId) external view returns (uint256) {
+        CreditPosition memory creditPosition = state.getCreditPosition(creditPositionId);
+        return state.getCreditPositionProRataAssignedCollateral(creditPosition);
     }
 }

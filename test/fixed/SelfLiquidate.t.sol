@@ -184,4 +184,40 @@ contract SelfLiquidateTest is BaseTest {
 
         assertEq(size.getCreditPosition(creditPositionId3).credit, 0);
     }
+
+    function test_SelfLiquidateLoan_selfliquidateLoan_creditPosition_should_work() public {
+        _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("earlyLenderExitFee", 0);
+
+        _deposit(alice, weth, 150e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
+        _deposit(candy, weth, 150e18);
+        _deposit(candy, usdc, 100e6);
+        _deposit(james, usdc, 100e6);
+        _deposit(liquidator, usdc, 10_000e6);
+
+        assertEq(size.collateralRatio(bob), type(uint256).max);
+
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
+
+        uint256 debtPositionId1 = _borrowAsMarketOrder(alice, candy, 100e6, block.timestamp + 365 days);
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
+        _borrowAsMarketOrder(candy, james, 30e6, block.timestamp + 365 days, [creditPositionId1]);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+
+        assertEq(size.getDebtPositionAssignedCollateral(debtPositionId1), 150e18);
+        assertEq(size.getDebt(debtPositionId1), 100e6);
+        assertEq(size.getCreditPosition(creditPositionId1).credit, 70e6);
+        assertEq(size.collateralRatio(alice), 1.5e18);
+        assertTrue(!size.isUserLiquidatable(bob));
+        assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
+        _setPrice(0.5e18);
+        assertEq(size.collateralRatio(alice), 0.75e18);
+        _selfLiquidate(candy, creditPositionId1);
+        _selfLiquidate(james, creditPositionId2);
+    }
 }

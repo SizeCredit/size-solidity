@@ -32,7 +32,7 @@ library SelfLiquidate {
         uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.faceValue);
 
         // validate creditPositionId
-        if (!state.isLoanSelfLiquidatable(params.creditPositionId)) {
+        if (!state.isCreditPositionSelfLiquidatable(params.creditPositionId)) {
             revert Errors.LOAN_NOT_SELF_LIQUIDATABLE(
                 params.creditPositionId,
                 state.collateralRatio(creditPosition.borrower),

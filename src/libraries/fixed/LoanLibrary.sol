@@ -17,7 +17,7 @@ struct DebtPosition {
     uint256 issuanceValue; // updated on debt reduction
     uint256 faceValue; // updated on debt reduction
     uint256 repayFeeAPR;
-    uint256 startDate; // updated opon borrower replacement
+    uint256 startDate; // updated on borrower replacement
     uint256 dueDate;
     uint256 liquidityIndexAtRepayment; // set on full repayment
 }
