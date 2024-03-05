@@ -42,10 +42,11 @@ library RiskLibrary {
 
     function isLoanSelfLiquidatable(State storage state, uint256 loanId) public view returns (bool) {
         Loan storage loan = state.data.loans[loanId];
+        Loan storage fol = state.getFOL(loan);
         LoanStatus status = state.getLoanStatus(loan);
         // both FOLs and SOLs can be self liquidated
         return
-            (isUserLiquidatable(state, loan.generic.borrower) && status.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE]));
+            (isUserLiquidatable(state, fol.generic.borrower) && status.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE]));
     }
 
     function isLoanLiquidatable(State storage state, uint256 loanId) public view returns (bool) {
