@@ -53,9 +53,9 @@ library RiskLibrary {
         LoanStatus status = state.getLoanStatus(loan);
         // only FOLs can be liquidated
         return loan.isFOL()
-        // case 1: if the user is liquidatable, only active/overdue FOLs can be liquidated
+        // case 1: if the user is liquidatable, only active/overdue/claimed FOLs can be liquidated
         && (
-            (isUserLiquidatable(state, loan.generic.borrower) && status.either([LoanStatus.ACTIVE, LoanStatus.OVERDUE]))
+            (isUserLiquidatable(state, loan.generic.borrower) && status != LoanStatus.REPAID)
             // case 2: overdue loans can always be liquidated regardless of the user's CR
             || status == LoanStatus.OVERDUE
         );
