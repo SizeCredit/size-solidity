@@ -139,4 +139,40 @@ contract CompensateTest is BaseTest {
 
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6, 200e6);
     }
+
+    function test_Compensate_compensate_compensated_loan_cannot_be_liquidated() public {
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(james, weth, 100e18);
+        _deposit(james, usdc, 100e6);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
+        uint256 loanToCompensateId = _borrowAsMarketOrder(bob, alice, 20e6, block.timestamp + 365 days);
+        uint256 creditPositionToCompensateId = size.getCreditPositionIdsByDebtPositionId(loanToCompensateId)[0];
+        uint256 loanToRepay = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 365 days);
+        uint256 creditPositionWithDebtToRepayId = size.getCreditPositionIdsByDebtPositionId(loanToRepay)[0];
+        uint256 repayFee = size.repayFee(loanToCompensateId);
+
+        uint256 repaidLoanDebtBefore = size.getDebt(loanToRepay);
+        uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionToCompensateId).credit;
+
+        _compensate(alice, creditPositionWithDebtToRepayId, creditPositionToCompensateId);
+
+        uint256 repaidLoanDebtAfter = size.getDebt(loanToRepay);
+        uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionToCompensateId).credit;
+
+        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e6 - repayFee);
+        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 2 * 20e6);
+        assertEq(
+            repaidLoanDebtBefore - repaidLoanDebtAfter - repayFee,
+            compensatedLoanCreditBefore - compensatedLoanCreditAfter
+        );
+
+        _setPrice(0.1e18);
+        assertTrue(size.isUserLiquidatable(bob));
+        assertTrue(size.isDebtPositionLiquidatable(loanToCompensateId));
+    }
 }
