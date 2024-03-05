@@ -140,7 +140,7 @@ contract CompensateTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6, 200e6);
     }
 
-    function test_Compensate_compensate_compensated_loan_cannot_be_liquidated() public {
+    function test_Compensate_compensate_compensated_loan_can_be_liquidated() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -170,9 +170,23 @@ contract CompensateTest is BaseTest {
             repaidLoanDebtBefore - repaidLoanDebtAfter - repayFee,
             compensatedLoanCreditBefore - compensatedLoanCreditAfter
         );
+        assertEq(repaidLoanDebtAfter, 0);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector, creditPositionWithDebtToRepayId)
+        );
+        _claim(james, creditPositionWithDebtToRepayId);
 
         _setPrice(0.1e18);
         assertTrue(size.isUserLiquidatable(bob));
         assertTrue(size.isDebtPositionLiquidatable(loanToCompensateId));
+
+        uint256 newCreditPositionId = size.getCreditPositionIdsByDebtPositionId(loanToCompensateId)[1];
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_REPAID.selector, newCreditPositionId));
+        _claim(james, newCreditPositionId);
+
+        _repay(bob, loanToCompensateId);
+        _claim(james, newCreditPositionId);
     }
 }

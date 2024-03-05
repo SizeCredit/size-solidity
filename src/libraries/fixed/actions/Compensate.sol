@@ -92,9 +92,6 @@ library Compensate {
         // debt reduction
         state.chargeAndUpdateRepayFeeInCollateral(debtPositionToRepay, amountToCompensate);
         state.data.debtToken.burn(debtPositionToRepay.borrower, amountToCompensate);
-        if (debtPositionToRepay.getDebt() == 0) {
-            debtPositionToRepay.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
-        }
         creditPositionWithDebtToRepay.credit -= amountToCompensate;
         state.validateMinimumCredit(creditPositionWithDebtToRepay.credit);
 
