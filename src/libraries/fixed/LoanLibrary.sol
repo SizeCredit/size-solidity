@@ -174,8 +174,8 @@ library LoanLibrary {
         return fee;
     }
 
-    function repayFee(DebtPosition memory self, uint256 repayTime) internal pure returns (uint256) {
-        return repayFee(self.issuanceValue, self.startDate, repayTime, self.repayFeeAPR);
+    function earlyRepayFee(DebtPosition memory self) internal view returns (uint256) {
+        return repayFee(self.issuanceValue, self.startDate, block.timestamp, self.repayFeeAPR);
     }
 
     function repayFee(DebtPosition memory self) internal pure returns (uint256) {

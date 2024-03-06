@@ -34,16 +34,16 @@ library AccountingLibrary {
 
     function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition) internal {
         uint256 repayFee = debtPosition.repayFee();
-        uint256 earlyRepayFee = debtPosition.repayFee(block.timestamp);
+        uint256 earlyRepayFee = debtPosition.earlyRepayFee();
 
-        uint256 repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
+        uint256 earlyRepayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
 
         // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
-        uint256 cappedRepayFeeCollateral =
-            Math.min(repayFeeCollateral, state.data.collateralToken.balanceOf(debtPosition.borrower));
+        uint256 cappedEarlyRepayFeeCollateral =
+            Math.min(earlyRepayFeeCollateral, state.data.collateralToken.balanceOf(debtPosition.borrower));
 
         state.data.collateralToken.transferFrom(
-            debtPosition.borrower, state.config.feeRecipient, cappedRepayFeeCollateral
+            debtPosition.borrower, state.config.feeRecipient, cappedEarlyRepayFeeCollateral
         );
 
         // clears the whole fee, as it has been provisioned in full during the debt position creation
