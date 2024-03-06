@@ -7,8 +7,8 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 struct YieldCurve {
     uint256[] timeBuckets;
-    uint256[] rates;
-    int256[] marketRateMultipliers;
+    int256[] rates;
+    uint256[] marketRateMultipliers;
 }
 
 /// @title YieldCurveLibrary
@@ -47,16 +47,13 @@ library YieldCurveLibrary {
     /// @param marketRate The market rate
     /// @param marketRateMultiplier The market rate multiplier
     /// @return Returns rate + (marketRate * marketRateMultiplier) / PERCENT
-    function getRateAdjustedByMarketRate(uint256 rate, uint256 marketRate, int256 marketRateMultiplier)
+    function getRateAdjustedByMarketRate(int256 rate, uint256 marketRate, uint256 marketRateMultiplier)
         internal
         pure
         returns (uint256)
     {
         // @audit Check if the result should be capped to 0 instead of reverting
-        return SafeCast.toUint256(
-            SafeCast.toInt256(rate)
-                + Math.mulDiv(SafeCast.toInt256(marketRate), marketRateMultiplier, SafeCast.toInt256(PERCENT))
-        );
+        return SafeCast.toUint256(rate + SafeCast.toInt256(Math.mulDivDown(marketRate, marketRateMultiplier, PERCENT)));
     }
 
     /// @notice Get the rate from the yield curve by performing a linear interpolation between two time buckets
