@@ -2,7 +2,10 @@
 pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
+
+import {CapERC20Library} from "@src/libraries/CapERC20Library.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {Events} from "@src/libraries/Events.sol";
 import {Math} from "@src/libraries/Math.sol";
@@ -18,7 +21,13 @@ library AccountingLibrary {
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using VariableLibrary for State;
+    using CapERC20Library for NonTransferrableToken;
 
+    /// @notice Converts debt token amount to a value in collateral tokens
+    /// @dev Rounds up the debt token amount
+    /// @param state The state object
+    /// @param debtTokenAmount The amount of debt tokens
+    /// @return collateralTokenAmount The amount of collateral tokens
     function debtTokenAmountToCollateralTokenAmount(State storage state, uint256 debtTokenAmount)
         internal
         view
@@ -26,7 +35,6 @@ library AccountingLibrary {
     {
         uint256 debtTokenAmountWad =
             ConversionLibrary.amountToWad(debtTokenAmount, state.data.underlyingBorrowToken.decimals());
-        // rounds debt up
         collateralTokenAmount = Math.mulDivUp(
             debtTokenAmountWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice()
         );
@@ -35,21 +43,21 @@ library AccountingLibrary {
     function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition) internal {
         uint256 repayFee = debtPosition.repayFee();
         uint256 earlyRepayFee = debtPosition.earlyRepayFee();
-
         uint256 earlyRepayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
 
-        // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
-        uint256 cappedEarlyRepayFeeCollateral =
-            Math.min(earlyRepayFeeCollateral, state.data.collateralToken.balanceOf(debtPosition.borrower));
-
-        state.data.collateralToken.transferFrom(
-            debtPosition.borrower, state.config.feeRecipient, cappedEarlyRepayFeeCollateral
+        state.data.collateralToken.transferFromCapped(
+            debtPosition.borrower, state.config.feeRecipient, earlyRepayFeeCollateral
         );
 
-        // clears the whole fee, as it has been provisioned in full during the debt position creation
-        state.data.debtToken.burn(debtPosition.borrower, repayFee);
+        state.data.debtToken.burnCapped(debtPosition.borrower, repayFee);
     }
 
+    /// @notice Charges the repay fee and updates the debt position
+    /// @dev The repay fee is charged in collateral tokens
+    ///      Rounds down the deduction of `issuanceValue`, which means the updated value will be rounded up, which means higher fees on the next repayment
+    /// @param state The state object
+    /// @param debtPosition The debt position
+    /// @param repayAmount The amount to repay
     function chargeAndUpdateRepayFeeInCollateral(
         State storage state,
         DebtPosition storage debtPosition,
@@ -58,18 +66,13 @@ library AccountingLibrary {
         uint256 repayFee = debtPosition.partialRepayFee(repayAmount);
         uint256 repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
 
-        // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
-        uint256 cappedRepayFeeCollateral =
-            Math.min(repayFeeCollateral, state.data.collateralToken.balanceOf(debtPosition.borrower));
-
-        state.data.collateralToken.transferFrom(
-            debtPosition.borrower, state.config.feeRecipient, cappedRepayFeeCollateral
+        state.data.collateralToken.transferFromCapped(
+            debtPosition.borrower, state.config.feeRecipient, repayFeeCollateral
         );
 
-        // rounding down the deduction means the updated issuanceValue will be rounded up, which means higher fees on the next repayment
         debtPosition.issuanceValue -= Math.mulDivDown(repayAmount, debtPosition.issuanceValue, debtPosition.faceValue);
         debtPosition.faceValue -= repayAmount;
-        state.data.debtToken.burn(debtPosition.borrower, repayFee);
+        state.data.debtToken.burnCapped(debtPosition.borrower, repayFee);
     }
 
     function createDebtAndCreditPositions(
