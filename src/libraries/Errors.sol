@@ -68,4 +68,8 @@ library Errors {
     error DEBT_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
 
     error NOT_SUPPORTED();
+
+    error PAST_DEADLINE(uint256 deadline);
+    error RATE_GREATER_THAN_MAX_RATE(uint256 rate, uint256 maxRate);
+    error RATE_LOWER_THAN_MIN_RATE(uint256 rate, uint256 minRate);
 }

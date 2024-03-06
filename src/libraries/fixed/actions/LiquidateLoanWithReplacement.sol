@@ -21,6 +21,8 @@ struct LiquidateLoanWithReplacementParams {
     uint256 loanId;
     address borrower;
     uint256 minimumCollateralProfit;
+    uint256 deadline;
+    uint256 minRate;
 }
 
 library LiquidateLoanWithReplacement {
@@ -50,6 +52,19 @@ library LiquidateLoanWithReplacement {
         // validate borrower
         if (borrowOffer.isNull()) {
             revert Errors.INVALID_BORROW_OFFER(params.borrower);
+        }
+
+        // validate params.deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
+
+        // validate params.minRate
+        uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), loan.fol.dueDate);
+        if (rate < params.minRate) {
+            revert Errors.RATE_LOWER_THAN_MIN_RATE(
+                rate, params.minRate
+            );
         }
     }
 

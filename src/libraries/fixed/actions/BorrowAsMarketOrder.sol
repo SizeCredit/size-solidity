@@ -26,6 +26,8 @@ struct BorrowAsMarketOrderParams {
     uint256 dueDate;
     bool exactAmountIn;
     uint256[] receivableLoanIds;
+    uint256 deadline;
+    uint256 maxRate;
 }
 
 library BorrowAsMarketOrder {
@@ -76,6 +78,19 @@ library BorrowAsMarketOrder {
             if (params.dueDate < fol.fol.dueDate) {
                 revert Errors.DUE_DATE_LOWER_THAN_LOAN_DUE_DATE(params.dueDate, fol.fol.dueDate);
             }
+        }
+
+        // validate params.deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
+
+        // validate params.maxRate
+        uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
+        if (rate > params.maxRate) {
+            revert Errors.RATE_GREATER_THAN_MAX_RATE(
+                rate, params.maxRate
+            );
         }
     }
 

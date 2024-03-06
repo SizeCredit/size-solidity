@@ -21,6 +21,8 @@ import {Events} from "@src/libraries/Events.sol";
 struct BorrowerExitParams {
     uint256 loanId;
     address borrowerToExitTo;
+    uint256 deadline;
+    uint256 minRate;
 }
 
 library BorrowerExit {
@@ -57,6 +59,18 @@ library BorrowerExit {
         }
 
         // validate borrowerToExitTo
+
+        // validate params.deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
+
+        // validate params.minRate
+        if (rate < params.minRate) {
+            revert Errors.RATE_LOWER_THAN_MIN_RATE(
+                rate, params.minRate
+            );
+        }
     }
 
     function executeBorrowerExit(State storage state, BorrowerExitParams calldata params) external {

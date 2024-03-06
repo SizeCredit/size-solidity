@@ -23,6 +23,8 @@ struct LendAsMarketOrderParams {
     uint256 dueDate;
     uint256 amount;
     bool exactAmountIn;
+    uint256 deadline;
+    uint256 minRate;
 }
 
 library LendAsMarketOrder {
@@ -59,6 +61,18 @@ library LendAsMarketOrder {
         }
 
         // validate exactAmountIn
+
+        // validate params.deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
+
+        // validate params.minRate
+        if (rate < params.minRate) {
+            revert Errors.RATE_LOWER_THAN_MIN_RATE(
+                rate, params.minRate
+            );
+        }
     }
 
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) external {
