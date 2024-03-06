@@ -66,7 +66,8 @@ library SelfLiquidate {
         creditPosition.credit -= credit;
         state.validateMinimumCredit(creditPosition.credit);
 
-        state.chargeAndUpdateRepayFeeInCollateral(debtPosition, credit);
+        state.chargeRepayFeeInCollateral(debtPosition, credit);
+        state.updateRepayFee(debtPosition, credit);
         state.data.debtToken.burnCapped(debtPosition.borrower, credit);
     }
 }

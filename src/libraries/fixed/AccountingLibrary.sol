@@ -40,39 +40,56 @@ library AccountingLibrary {
         );
     }
 
-    function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition) internal {
-        uint256 repayFee = debtPosition.repayFee();
-        uint256 earlyRepayFee = debtPosition.earlyRepayFee();
-        uint256 earlyRepayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
-
-        state.data.collateralToken.transferFromCapped(
-            debtPosition.borrower, state.config.feeRecipient, earlyRepayFeeCollateral
-        );
-
-        state.data.debtToken.burnCapped(debtPosition.borrower, repayFee);
-    }
-
     /// @notice Charges the repay fee and updates the debt position
     /// @dev The repay fee is charged in collateral tokens
     ///      Rounds down the deduction of `issuanceValue`, which means the updated value will be rounded up, which means higher fees on the next repayment
+    ///      The full repayFee is deducted from the borrower debt, as it had been provisioned during the loan creation
     /// @param state The state object
     /// @param debtPosition The debt position
     /// @param repayAmount The amount to repay
-    function chargeAndUpdateRepayFeeInCollateral(
+    /// @param isEarlyRepay Whether the repayment is early. In this case, the fee is charged pro-rata to the time elapsed
+    function chargeRepayFeeInCollateral(
         State storage state,
         DebtPosition storage debtPosition,
-        uint256 repayAmount
-    ) external {
-        uint256 repayFee = debtPosition.partialRepayFee(repayAmount);
-        uint256 repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
+        uint256 repayAmount,
+        bool isEarlyRepay
+    ) public {
+        uint256 repayFee;
+        repayFee = debtPosition.partialRepayFee(repayAmount);
+        uint256 repayFeeCollateral;
+
+        if (isEarlyRepay) {
+            // repayFee = debtPosition.repayFee();
+            uint256 earlyRepayFee = debtPosition.earlyRepayFee();
+            repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
+        } else {
+            repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
+        }
 
         state.data.collateralToken.transferFromCapped(
             debtPosition.borrower, state.config.feeRecipient, repayFeeCollateral
         );
 
+        state.data.debtToken.burnCapped(debtPosition.borrower, repayFee);
+    }
+
+    function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition) external {
+        return chargeRepayFeeInCollateral(state, debtPosition, debtPosition.faceValue, true);
+    }
+
+    function chargeRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition, uint256 repayAmount)
+        external
+    {
+        return chargeRepayFeeInCollateral(state, debtPosition, repayAmount, false);
+    }
+
+    /// @notice Updates the debt position after a repay, which indirectly updates the repay fee
+    /// @dev Rounds down the deduction of `issuanceValue`, which means the updated value will be rounded up, which means higher fees on the next repayment
+    /// @param debtPosition The debt position
+    /// @param repayAmount The amount to repay
+    function updateRepayFee(State storage, DebtPosition storage debtPosition, uint256 repayAmount) external {
         debtPosition.issuanceValue -= Math.mulDivDown(repayAmount, debtPosition.issuanceValue, debtPosition.faceValue);
         debtPosition.faceValue -= repayAmount;
-        state.data.debtToken.burnCapped(debtPosition.borrower, repayFee);
     }
 
     function createDebtAndCreditPositions(
