@@ -129,6 +129,7 @@ library LiquidateLoan {
         emit Events.LiquidateLoan(params.loanId, params.minimumCollateralProfit, collateralRatio, loanStatus);
 
         state.chargeRepayFee(fol, fol.faceValue());
+        state.updateRepayFee(fol, fol.faceValue());
 
         // case 1a: the user is liquidatable profitably
         if (PERCENT <= collateralRatio && collateralRatio < state.config.crLiquidation) {

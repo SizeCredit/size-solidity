@@ -67,9 +67,7 @@ library BorrowerExit {
 
         // validate params.minRate
         if (rate < params.minRate) {
-            revert Errors.RATE_LOWER_THAN_MIN_RATE(
-                rate, params.minRate
-            );
+            revert Errors.RATE_LOWER_THAN_MIN_RATE(rate, params.minRate);
         }
     }
 

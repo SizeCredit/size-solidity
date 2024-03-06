@@ -69,6 +69,7 @@ library Compensate {
         uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.generic.credit, loanToRepay.faceValue());
 
         state.chargeRepayFee(loanToRepay, amountToCompensate);
+        state.updateRepayFee(loanToRepay, amountToCompensate);
         state.data.debtToken.burn(loanToRepay.generic.borrower, amountToCompensate);
         if (loanToRepay.getDebt() == 0) {
             loanToRepay.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();

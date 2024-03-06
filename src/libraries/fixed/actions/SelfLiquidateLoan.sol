@@ -4,7 +4,9 @@ pragma solidity 0.8.24;
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
 
+import {CapERC20Library} from "@src/libraries/CapERC20Library.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {Loan} from "@src/libraries/fixed/LoanLibrary.sol";
 import {Loan, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -26,6 +28,7 @@ library SelfLiquidateLoan {
     using VariableLibrary for State;
     using AccountingLibrary for State;
     using RiskLibrary for State;
+    using CapERC20Library for NonTransferrableToken;
 
     function validateSelfLiquidateLoan(State storage state, SelfLiquidateLoanParams calldata params) external view {
         Loan storage loan = state.data.loans[params.loanId];
@@ -65,6 +68,7 @@ library SelfLiquidateLoan {
 
         state.reduceLoanCredit(params.loanId, credit);
         state.chargeRepayFee(fol, credit);
-        state.data.debtToken.burn(fol.generic.borrower, credit);
+        state.updateRepayFee(fol, credit);
+        state.data.debtToken.burnCapped(fol.generic.borrower, credit);
     }
 }

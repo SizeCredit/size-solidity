@@ -2,7 +2,10 @@
 pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
+
+import {CapERC20Library} from "@src/libraries/CapERC20Library.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {Events} from "@src/libraries/Events.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
@@ -18,6 +21,7 @@ library AccountingLibrary {
     using LoanLibrary for Loan;
     using LoanLibrary for State;
     using VariableLibrary for State;
+    using CapERC20Library for NonTransferrableToken;
 
     function reduceLoanCredit(State storage state, uint256 loanId, uint256 amount) public {
         Loan storage loan = state.data.loans[loanId];
@@ -27,25 +31,65 @@ library AccountingLibrary {
         state.validateMinimumCredit(loan.generic.credit);
     }
 
-    function chargeEarlyRepayFeeInCollateral(State storage state, Loan storage fol) internal {
-        uint256 repayFee = fol.repayFee();
-        uint256 earlyRepayFee = fol.earlyRepayFee();
+    /// @notice Converts debt token amount to a value in collateral tokens
+    /// @dev Rounds up the debt token amount
+    /// @param state The state object
+    /// @param debtTokenAmount The amount of debt tokens
+    /// @return collateralTokenAmount The amount of collateral tokens
+    function debtTokenAmountToCollateralTokenAmount(State storage state, uint256 debtTokenAmount)
+        internal
+        view
+        returns (uint256 collateralTokenAmount)
+    {
+        uint256 debtTokenAmountWad =
+            ConversionLibrary.amountToWad(debtTokenAmount, state.data.underlyingBorrowToken.decimals());
+        collateralTokenAmount = Math.mulDivUp(
+            debtTokenAmountWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice()
+        );
+    }
 
-        uint256 earlyRepayFeeWad =
-            ConversionLibrary.amountToWad(earlyRepayFee, state.data.underlyingBorrowToken.decimals());
-        uint256 earlyRepayFeeCollateral =
-            Math.mulDivUp(earlyRepayFeeWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice());
+    /// @notice Charges the repay fee and updates the debt position
+    /// @dev The repay fee is charged in collateral tokens
+    ///      Rounds down the deduction of `issuanceValue`, which means the updated value will be rounded up, which means higher fees on the next repayment
+    ///      The full repayFee is deducted from the borrower debt, as it had been provisioned during the loan creation
+    /// @param state The state object
+    /// @param fol The FOL
+    /// @param repayAmount The amount to repay
+    /// @param isEarlyRepay Whether the repayment is early. In this case, the fee is charged pro-rata to the time elapsed
+    function chargeRepayFeeInCollateral(State storage state, Loan storage fol, uint256 repayAmount, bool isEarlyRepay)
+        public
+    {
+        uint256 repayFee = fol.partialRepayFee(repayAmount);
+        uint256 repayFeeCollateral;
 
-        // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
-        uint256 cappedEarlyRepayFeeCollateral =
-            Math.min(earlyRepayFeeCollateral, state.data.collateralToken.balanceOf(fol.generic.borrower));
+        if (isEarlyRepay) {
+            uint256 earlyRepayFee = fol.earlyRepayFee();
+            repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
+        } else {
+            repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
+        }
 
-        state.data.collateralToken.transferFrom(
-            fol.generic.borrower, state.config.feeRecipient, cappedEarlyRepayFeeCollateral
+        state.data.collateralToken.transferFromCapped(
+            fol.generic.borrower, state.config.feeRecipient, repayFeeCollateral
         );
 
-        // clears the whole fee, as it had been provisioned in full during the FOL creation
-        state.data.debtToken.burn(fol.generic.borrower, repayFee);
+        state.data.debtToken.burnCapped(fol.generic.borrower, repayFee);
+    }
+
+    function chargeEarlyRepayFeeInCollateral(State storage state, Loan storage fol) external {
+        return chargeRepayFeeInCollateral(state, fol, fol.faceValue(), true);
+    }
+
+    function chargeRepayFeeInCollateral(State storage state, Loan storage fol, uint256 repayAmount) external {
+        return chargeRepayFeeInCollateral(state, fol, repayAmount, false);
+    }
+
+    /// @notice Updates the debt position after a repay, which indirectly updates the repay fee
+    /// @dev Rounds down the deduction of `issuanceValue`, which means the updated value will be rounded up, which means higher fees on the next repayment
+    /// @param fol The FOL
+    /// @param repayAmount The amount to repay
+    function updateRepayFee(State storage, Loan storage fol, uint256 repayAmount) external {
+        fol.fol.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + fol.fol.rate);
     }
 
     function chargeRepayFee(State storage state, Loan storage fol, uint256 repayAmount) internal {

@@ -62,9 +62,7 @@ library LiquidateLoanWithReplacement {
         // validate params.minRate
         uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), loan.fol.dueDate);
         if (rate < params.minRate) {
-            revert Errors.RATE_LOWER_THAN_MIN_RATE(
-                rate, params.minRate
-            );
+            revert Errors.RATE_LOWER_THAN_MIN_RATE(rate, params.minRate);
         }
     }
 

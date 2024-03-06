@@ -88,9 +88,7 @@ library BorrowAsMarketOrder {
         // validate params.maxRate
         uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         if (rate > params.maxRate) {
-            revert Errors.RATE_GREATER_THAN_MAX_RATE(
-                rate, params.maxRate
-            );
+            revert Errors.RATE_GREATER_THAN_MAX_RATE(rate, params.maxRate);
         }
     }
 
