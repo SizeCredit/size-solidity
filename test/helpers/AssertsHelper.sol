@@ -32,6 +32,21 @@ abstract contract AssertsHelper is Test {
         assertEq(a.debtBalance, b.debtBalance, "debtBalance");
     }
 
+    function assertIn(bytes4 a, bytes4[3] memory array) internal {
+        string memory arrayStr = string.concat(
+            "[",
+            Strings.toHexString(uint256(uint32(array[0])), 4),
+            ", ",
+            Strings.toHexString(uint256(uint32(array[1])), 4),
+            ", ",
+            Strings.toHexString(uint256(uint32(array[2])), 4),
+            "]"
+        );
+        string memory reason =
+            string.concat("Value ", Strings.toHexString(uint256(uint32(a)), 4), " not in array ", arrayStr);
+        assertTrue(a == array[0] || a == array[1] || a == array[2], reason);
+    }
+
     function assertEqApprox(uint256 a, uint256 b, uint256 tolerance) internal {
         string memory reason = string.concat(
             "Expected ",
