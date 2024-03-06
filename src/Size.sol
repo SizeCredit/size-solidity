@@ -107,6 +107,14 @@ contract Size is
     // solhint-disable-next-line no-empty-blocks
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
+    function pause() public onlyRole(PAUSER_ROLE) {
+        _pause();
+    }
+
+    function unpause() public onlyRole(PAUSER_ROLE) {
+        _unpause();
+    }
+
     function updateConfig(UpdateConfigParams calldata params) external onlyRole(DEFAULT_ADMIN_ROLE) {
         state.validateUpdateConfig(params);
         state.executeUpdateConfig(params);
