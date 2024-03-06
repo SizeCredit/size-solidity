@@ -10,6 +10,7 @@ library Errors {
     error NULL_AMOUNT();
     error NULL_MAX_DUE_DATE();
     error NULL_ARRAY();
+    error NULL_STALE_RATE();
     error TIME_BUCKETS_NOT_STRICTLY_INCREASING();
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
@@ -57,6 +58,7 @@ library Errors {
     error INVALID_DECIMALS(uint8 decimals);
     error INVALID_PRICE(address aggregator, int256 price);
     error STALE_PRICE(address aggregator, uint256 updatedAt);
+    error STALE_RATE(uint256 updatedAt);
     error NULL_STALE_PRICE();
 
     error PROXY_CALL_FAILED(address target, bytes data);
