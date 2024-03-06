@@ -27,6 +27,27 @@ library AccountingLibrary {
         state.validateMinimumCredit(loan.generic.credit);
     }
 
+    function chargeEarlyRepayFeeInCollateral(State storage state, Loan storage fol) internal {
+        uint256 repayFee = fol.repayFee();
+        uint256 earlyRepayFee = fol.earlyRepayFee();
+
+        uint256 earlyRepayFeeWad =
+            ConversionLibrary.amountToWad(earlyRepayFee, state.data.underlyingBorrowToken.decimals());
+        uint256 earlyRepayFeeCollateral =
+            Math.mulDivUp(earlyRepayFeeWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice());
+
+        // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
+        uint256 cappedEarlyRepayFeeCollateral =
+            Math.min(earlyRepayFeeCollateral, state.data.collateralToken.balanceOf(fol.generic.borrower));
+
+        state.data.collateralToken.transferFrom(
+            fol.generic.borrower, state.config.feeRecipient, cappedEarlyRepayFeeCollateral
+        );
+
+        // clears the whole fee, as it had been provisioned in full during the FOL creation
+        state.data.debtToken.burn(fol.generic.borrower, repayFee);
+    }
+
     function chargeRepayFee(State storage state, Loan storage fol, uint256 repayAmount) internal {
         uint256 repayFee = fol.partialRepayFee(repayAmount);
 

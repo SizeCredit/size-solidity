@@ -66,13 +66,19 @@ library BorrowerExit {
         Loan storage fol = state.data.loans[params.loanId];
 
         uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), fol.fol.dueDate);
-        uint256 debt = fol.getDebt();
-        uint256 amountIn = Math.mulDivUp(debt, PERCENT, PERCENT + rate);
+        uint256 faceValue = fol.faceValue();
+        uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
 
-        state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, amountIn);
+        state.chargeEarlyRepayFeeInCollateral(fol);
         state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee);
-        state.data.debtToken.transferFrom(msg.sender, params.borrowerToExitTo, debt);
+        state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, issuanceValue);
+        state.data.debtToken.burn(msg.sender, faceValue);
+
         fol.generic.borrower = params.borrowerToExitTo;
         fol.fol.startDate = block.timestamp;
+        fol.fol.issuanceValue = issuanceValue;
+        fol.fol.rate = rate;
+
+        state.data.debtToken.mint(params.borrowerToExitTo, fol.getDebt());
     }
 }

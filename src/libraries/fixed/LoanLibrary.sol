@@ -149,6 +149,10 @@ library LoanLibrary {
         return repayFee(fol.fol.issuanceValue, fol.fol.startDate, fol.fol.dueDate, fol.fol.repayFeeAPR);
     }
 
+    function earlyRepayFee(Loan memory fol) internal returns (uint256) {
+        return repayFee(fol.fol.issuanceValue, fol.fol.startDate, block.timestamp, fol.fol.repayFeeAPR);
+    }
+
     function partialRepayFee(Loan memory fol, uint256 repayAmount) internal pure returns (uint256) {
         return Math.mulDivUp(repayAmount, repayFee(fol), faceValue(fol));
     }
