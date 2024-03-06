@@ -67,7 +67,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     ) internal {
         int256[] memory aprs = new int256[](1);
         uint256[] memory maturities = new uint256[](1);
-        int256[] memory marketRateMultipliers = new int256[](1);
+        uint256[] memory marketRateMultipliers = new uint256[](1);
         aprs[0] = ratesArray[0];
         maturities[0] = maturitiesArray[0];
         YieldCurve memory curveRelativeTime =
@@ -83,7 +83,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     ) internal {
         int256[] memory aprs = new int256[](2);
         uint256[] memory maturities = new uint256[](2);
-        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
         aprs[0] = ratesArray[0];
         aprs[1] = ratesArray[1];
         maturities[0] = maturitiesArray[0];
@@ -204,7 +204,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     {
         int256[] memory aprs = new int256[](1);
         uint256[] memory maturities = new uint256[](1);
-        int256[] memory marketRateMultipliers = new int256[](1);
+        uint256[] memory marketRateMultipliers = new uint256[](1);
         aprs[0] = ratesArray[0];
         maturities[0] = maturitiesArray[0];
         YieldCurve memory curveRelativeTime =
@@ -217,7 +217,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     {
         int256[] memory aprs = new int256[](2);
         uint256[] memory maturities = new uint256[](2);
-        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
         aprs[0] = ratesArray[0];
         aprs[1] = ratesArray[1];
         maturities[0] = maturitiesArray[0];

@@ -21,7 +21,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         int256[] memory aprs = new int256[](2);
         aprs[0] = 1.01e18;
         aprs[1] = 1.02e18;
-        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
         uint256 openingLimitBorrowCR = 1.5e18;
         assertTrue(_state().alice.user.borrowOffer.isNull());
         _borrowAsLimitOrder(
@@ -41,7 +41,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         buckets = bound(buckets, 1, 365);
         uint256[] memory maturities = new uint256[](buckets);
         int256[] memory aprs = new int256[](buckets);
-        int256[] memory marketRateMultipliers = new int256[](buckets);
+        uint256[] memory marketRateMultipliers = new uint256[](buckets);
 
         for (uint256 i = 0; i < buckets; i++) {
             maturities[i] = (i + 1) * 1 days;
@@ -65,7 +65,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         int256[] memory aprs = new int256[](2);
         aprs[0] = 0e18;
         aprs[1] = 1e18;
-        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
         uint256 openingLimitBorrowCR = 1.7e18;
         _borrowAsLimitOrder(
             alice,
@@ -99,7 +99,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         int256[] memory aprs = new int256[](2);
         aprs[0] = 0e18;
         aprs[1] = 1e18;
-        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
         uint256 openingLimitBorrowCR = 1.3e18;
         _borrowAsLimitOrder(
             alice,

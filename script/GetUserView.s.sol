@@ -36,7 +36,7 @@ contract GetUserViewScript is Script, Logger {
         aprs[0] = 0.1e18;
         aprs[1] = 0.2e18;
 
-        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
         marketRateMultipliers[0] = 1e18;
         marketRateMultipliers[1] = 1e18;
 

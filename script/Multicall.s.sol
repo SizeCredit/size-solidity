@@ -70,7 +70,7 @@ contract MulticallScript is Script, Logger {
         aprs[0] = 0.1e18; // 10%
         aprs[1] = 0.2e18; // 20%
 
-        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
         marketRateMultipliers[0] = 1e18; // 1x
         marketRateMultipliers[1] = 1e18; // 1x
 
