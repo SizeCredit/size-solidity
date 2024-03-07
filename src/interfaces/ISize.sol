@@ -18,6 +18,9 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
+import {DepositVariableParams} from "@src/libraries/variable/actions/DepositVariable.sol";
+import {WithdrawVariableParams} from "@src/libraries/variable/actions/WithdrawVariable.sol";
+
 /// @title ISize
 /// @author Size Lending
 /// @notice This interface is the main interface for all user-facing methods of the Size v2 protocol
@@ -38,6 +41,23 @@ interface ISize {
     ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)
     ///     - uint256 to: The recipient of the withdrawal
     function withdraw(WithdrawParams calldata params) external;
+
+    /// @notice Deposit underlying borrow/collateral tokens to the Variable Pool (e.g. USDC, WETH)
+    /// @dev The caller must approve the transfer of the token to the protocol.
+    ///      This function mints 1:1 szTokens (e.g. aszUSDC, szETH) in exchange of the deposited tokens
+    /// @param params DepositParams struct containing the following fields:
+    ///     - address token: The address of the token to deposit
+    ///     - uint256 amount: The amount of tokens to deposit
+    ///     - uint256 to: The recipient of the deposit
+    function depositVariable(DepositVariableParams calldata params) external;
+
+    /// @notice Withdraw underlying borrow/collateral tokens from the Variable Pool (e.g. USDC, WETH)
+    /// @dev This function burns 1:1 szTokens (e.g. aszUSDC, szETH) in exchange of the withdrawn tokens
+    /// @param params WithdrawParams struct containing the following fields:
+    ///     - address token: The address of the token to withdraw
+    ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)
+    ///     - uint256 to: The recipient of the withdrawal
+    function withdrawVariable(WithdrawVariableParams calldata params) external;
 
     /// @notice Picks a lender offer and borrow tokens from the orderbook
     ///         When using receivable credit positions as credit, the early exit lender fee is applied to the borrower

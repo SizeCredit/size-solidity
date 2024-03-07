@@ -12,11 +12,18 @@ import {
 // solhint-disable var-name-mixedcase
 /// @title Events
 library Events {
+    // general
     event Initialize(
         InitializeConfigParams indexed c, InitializeOracleParams indexed o, InitializeDataParams indexed d
     );
     event UpdateConfig(bytes32 indexed key, uint256 value);
     event CreateVault(address indexed user, address indexed vault);
+
+    // variable
+    event DepositVariable(address indexed token, address indexed to, uint256 amount);
+    event WithdrawVariable(address indexed token, address indexed to, uint256 amount);
+
+    // fixed
     event Deposit(address indexed token, address indexed to, uint256 amount);
     event Withdraw(address indexed token, address indexed to, uint256 amount);
     event BorrowAsMarketOrder(

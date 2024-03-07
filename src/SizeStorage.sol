@@ -45,6 +45,7 @@ struct Data {
     IERC20Metadata underlyingBorrowToken; // e.g. USDC
     NonTransferrableToken collateralToken; // e.g. szWETH
     IAToken borrowAToken; // e.g. aszUSDC
+    IAToken collateralAToken; // e.g. aszWETH
     NonTransferrableToken debtToken; // e.g. szDebt
     IPool variablePool; // Size Variable Pool (Aave v3 fork)
     Vault vaultImplementation; // Vault implementation

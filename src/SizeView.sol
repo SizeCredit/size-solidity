@@ -116,7 +116,7 @@ abstract contract SizeView is SizeStorage {
             user: state.data.users[user],
             account: user,
             collateralBalance: state.data.collateralToken.balanceOf(user),
-            borrowATokenBalance: state.borrowATokenBalanceOf(user),
+            borrowATokenBalance: state.aTokenBalanceOf(state.data.borrowAToken, user),
             debtBalance: state.data.debtToken.balanceOf(user)
         });
     }

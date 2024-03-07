@@ -42,52 +42,65 @@ library VariableLibrary {
         return vault;
     }
 
-    /// @notice Deposit underlying borrow tokens into the variable pool
-    /// @dev Assumes `from` has approved to `address(this)` the `amount` of `underlyingBorrowToken`
+    /// @notice Deposit underlyin tokens into the variable pool
+    /// @dev Assumes `from` has approved to `address(this)` the `amount` of `underlyingToken`
     ///      The deposit is made to the vault of `to`
     /// @param state The state struct
+    /// @param underlyingToken The underlying token
     /// @param from The address of the depositor
     /// @param to The address of the recipient
     /// @param amount The amount of tokens to deposit
-    function depositUnderlyingBorrowTokenToVariablePool(State storage state, address from, address to, uint256 amount)
-        external
-    {
-        IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
-
-        underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
+    /// @param setUseReserveAsCollateral Whether to set the collateral as collateral. Note: this can later be optimized so that it is called only once
+    function depositUnderlyingTokenToVariablePool(
+        State storage state,
+        IERC20Metadata underlyingToken,
+        address from,
+        address to,
+        uint256 amount,
+        bool setUseReserveAsCollateral
+    ) external {
+        underlyingToken.safeTransferFrom(from, address(this), amount);
 
         Vault vaultTo = getVault(state, to);
 
-        underlyingBorrowToken.forceApprove(address(state.data.variablePool), amount);
-        state.data.variablePool.supply(address(underlyingBorrowToken), amount, address(vaultTo), 0);
+        underlyingToken.forceApprove(address(state.data.variablePool), amount);
+        state.data.variablePool.supply(address(underlyingToken), amount, address(vaultTo), 0);
+
+        if (setUseReserveAsCollateral) {
+            // set underlyingToken as collateral
+            address target = address(state.data.variablePool);
+            bytes memory data = abi.encodeCall(IPool.setUserUseReserveAsCollateral, (address(underlyingToken), true));
+
+            // slither-disable-next-line unused-return
+            vaultTo.proxy(target, data);
+        }
     }
 
-    /// @notice Withdraw underlying borrow tokens from the variable pool
+    /// @notice Withdraw underlying tokens from the variable pool
     /// @dev Assumes `from` has enough aTokens to withdraw
     ///      The withdraw is made from the vault of `from`
     /// @param state The state struct
+    /// @param aToken The aToken
     /// @param from The address of the withdrawer
     /// @param to The address of the recipient
     /// @param amount The amount of tokens to withdraw
-    function withdrawUnderlyingBorrowTokenFromVariablePool(
+    function withdrawUnderlyingTokenFromVariablePool(
         State storage state,
+        IAToken aToken,
         address from,
         address to,
         uint256 amount
     ) external {
-        if (borrowATokenBalanceOf(state, from) < amount) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
+        if (aTokenBalanceOf(state, aToken, from) < amount) {
+            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(from, aTokenBalanceOf(state, aToken, from), amount);
         }
 
-        IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
+        address underlyingToken = aToken.UNDERLYING_ASSET_ADDRESS();
 
         Vault vaultFrom = getVault(state, from);
 
         // slither-disable-next-line unused-return
-        vaultFrom.proxy(
-            address(state.data.variablePool),
-            abi.encodeCall(IPool.withdraw, (address(underlyingBorrowToken), amount, to))
-        );
+        vaultFrom.proxy(address(state.data.variablePool), abi.encodeCall(IPool.withdraw, (underlyingToken, amount, to)));
     }
 
     /// @notice Transfer aTokens from one user to another
@@ -98,11 +111,10 @@ library VariableLibrary {
     /// @param to The address of the recipient
     /// @param amount The amount of aTokens to transfer
     function transferBorrowAToken(State storage state, address from, address to, uint256 amount) public {
-        if (borrowATokenBalanceOf(state, from) < amount) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
-        }
-
         IAToken borrowAToken = state.data.borrowAToken;
+        if (aTokenBalanceOf(state, borrowAToken, from) < amount) {
+            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(from, aTokenBalanceOf(state, borrowAToken, from), amount);
+        }
 
         Vault vaultFrom = getVault(state, from);
         Vault vaultTo = getVault(state, to);
@@ -165,17 +177,13 @@ library VariableLibrary {
         state.data.variablePool.supply(address(underlyingBorrowToken), borrowATokenBalance, address(vaultTo), 0);
     }
 
-    /// @notice Get the balance of aTokens for a user
+    /// @notice Get the balance of borrow aTokens for a user on the Variable Pool
     /// @param state The state struct
     /// @param account The user's address
     /// @return The balance of aTokens
-    function borrowATokenBalanceOf(State storage state, address account) public view returns (uint256) {
+    function aTokenBalanceOf(State storage state, IAToken aToken, address account) public view returns (uint256) {
         Vault vault = state.data.users[account].vault;
-        if (address(vault) == address(0)) {
-            return 0;
-        } else {
-            return state.data.borrowAToken.balanceOf(address(vault));
-        }
+        return aToken.balanceOf(address(vault));
     }
 
     /// @notice Get the liquidity index of Size Variable Pool (Aave v3 fork)

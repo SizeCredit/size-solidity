@@ -12,22 +12,25 @@ import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-struct DepositParams {
+struct DepositVariableParams {
     address token;
     uint256 amount;
     address to;
 }
 
-library Deposit {
+library DepositVariable {
     using SafeERC20 for IERC20Metadata;
     using VariableLibrary for State;
     using CollateralLibrary for State;
 
-    function validateDeposit(State storage state, DepositParams calldata params) external view {
+    function validateDepositVariable(State storage state, DepositVariableParams calldata params) external view {
         // validte msg.sender
 
         // validate token
-        if (params.token != address(state.data.underlyingCollateralToken)) {
+        if (
+            params.token != address(state.data.underlyingCollateralToken)
+                && params.token != address(state.data.underlyingBorrowToken)
+        ) {
             revert Errors.INVALID_TOKEN(params.token);
         }
 
@@ -42,9 +45,13 @@ library Deposit {
         }
     }
 
-    function executeDeposit(State storage state, DepositParams calldata params) public {
-        state.depositUnderlyingCollateralToken(msg.sender, params.to, params.amount);
+    function executeDepositVariable(State storage state, DepositVariableParams calldata params) public {
+        bool setUseReserveAsCollateral = params.token == address(state.data.underlyingCollateralToken);
 
-        emit Events.Deposit(params.token, params.to, params.amount);
+        state.depositUnderlyingTokenToVariablePool(
+            IERC20Metadata(params.token), msg.sender, params.to, params.amount, setUseReserveAsCollateral
+        );
+
+        emit Events.DepositVariable(params.token, params.to, params.amount);
     }
 }

@@ -24,10 +24,7 @@ library Withdraw {
         // validte msg.sender
 
         // validate token
-        if (
-            params.token != address(state.data.underlyingCollateralToken)
-                && params.token != address(state.data.underlyingBorrowToken)
-        ) {
+        if (params.token != address(state.data.underlyingCollateralToken)) {
             revert Errors.INVALID_TOKEN(params.token);
         }
 
@@ -43,16 +40,9 @@ library Withdraw {
     }
 
     function executeWithdraw(State storage state, WithdrawParams calldata params) public {
-        if (params.token == address(state.data.underlyingCollateralToken)) {
-            uint256 amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));
-            if (amount > 0) {
-                state.withdrawUnderlyingCollateralToken(msg.sender, params.to, amount);
-            }
-        } else {
-            uint256 amount = Math.min(params.amount, state.borrowATokenBalanceOf(msg.sender));
-            if (amount > 0) {
-                state.withdrawUnderlyingBorrowTokenFromVariablePool(msg.sender, params.to, amount);
-            }
+        uint256 amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));
+        if (amount > 0) {
+            state.withdrawUnderlyingCollateralToken(msg.sender, params.to, amount);
         }
 
         emit Events.Withdraw(params.token, params.to, params.amount);
