@@ -88,8 +88,8 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
 
         for (uint256 i = 0; i < users.length; i++) {
             UserView memory userView = size.getUserView(users[i]);
-            borrowATokenBalance += userView.borrowATokenBalance;
-            collateralBalance += userView.collateralBalance;
+            borrowATokenBalance += userView.borrowATokenBalanceFixed;
+            collateralBalance += userView.collateralTokenBalanceFixed;
         }
 
         if (

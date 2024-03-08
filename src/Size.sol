@@ -7,8 +7,6 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import {DepositVariable, DepositVariableParams} from "@src/libraries/variable/actions/DepositVariable.sol";
-import {WithdrawVariable, WithdrawVariableParams} from "@src/libraries/variable/actions/WithdrawVariable.sol";
 
 import {
     Initialize,
@@ -76,8 +74,6 @@ contract Size is
     using Compensate for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
-    using DepositVariable for State;
-    using WithdrawVariable for State;
 
     bytes32 public constant KEEPER_ROLE = "KEEPER_ROLE";
     bytes32 public constant PAUSER_ROLE = "PAUSER_ROLE";
@@ -127,26 +123,13 @@ contract Size is
         state.validateDeposit(params);
         state.executeDeposit(params);
         state.validateCollateralTokenCap();
+        state.validateBorrowATokenCap();
     }
 
     /// @inheritdoc ISize
     function withdraw(WithdrawParams calldata params) external override(ISize) whenNotPaused {
         state.validateWithdraw(params);
         state.executeWithdraw(params);
-    }
-
-    /// @inheritdoc ISize
-    function depositVariable(DepositVariableParams calldata params) external override(ISize) whenNotPaused {
-        state.validateDepositVariable(params);
-        state.executeDepositVariable(params);
-        state.validateCollateralTokenCap();
-        state.validateBorrowATokenCap();
-    }
-
-    /// @inheritdoc ISize
-    function withdrawVariable(WithdrawVariableParams calldata params) external override(ISize) whenNotPaused {
-        state.validateWithdrawVariable(params);
-        state.executeWithdrawVariable(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
     }
 

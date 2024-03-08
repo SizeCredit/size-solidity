@@ -17,15 +17,13 @@ library Events {
         InitializeConfigParams indexed c, InitializeOracleParams indexed o, InitializeDataParams indexed d
     );
     event UpdateConfig(bytes32 indexed key, uint256 value);
-    event CreateVault(address indexed user, address indexed vault);
+    event CreateVault(address indexed user, address indexed vault, bool indexed variable);
+    event Deposit(address indexed token, address indexed to, bool indexed variable, uint256 amount);
+    event Withdraw(address indexed token, address indexed to, bool indexed variable, uint256 amount);
 
     // variable
-    event DepositVariable(address indexed token, address indexed to, uint256 amount);
-    event WithdrawVariable(address indexed token, address indexed to, uint256 amount);
 
     // fixed
-    event Deposit(address indexed token, address indexed to, uint256 amount);
-    event Withdraw(address indexed token, address indexed to, uint256 amount);
     event BorrowAsMarketOrder(
         address indexed lender,
         uint256 indexed amount,

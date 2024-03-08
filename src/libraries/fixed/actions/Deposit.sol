@@ -15,6 +15,7 @@ import {Events} from "@src/libraries/Events.sol";
 struct DepositParams {
     address token;
     uint256 amount;
+    bool variable;
     address to;
 }
 
@@ -27,7 +28,10 @@ library Deposit {
         // validte msg.sender
 
         // validate token
-        if (params.token != address(state.data.underlyingCollateralToken)) {
+        if (
+            params.token != address(state.data.underlyingCollateralToken)
+                && params.token != address(state.data.underlyingBorrowToken)
+        ) {
             revert Errors.INVALID_TOKEN(params.token);
         }
 
@@ -40,11 +44,27 @@ library Deposit {
         if (params.to == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+
+        // validate variable
+        // N/A
     }
 
     function executeDeposit(State storage state, DepositParams calldata params) public {
-        state.depositUnderlyingCollateralToken(msg.sender, params.to, params.amount);
+        if (params.variable || params.token == address(state.data.underlyingBorrowToken)) {
+            bool setUseReserveAsCollateral = params.token == address(state.data.underlyingCollateralToken);
 
-        emit Events.Deposit(params.token, params.to, params.amount);
+            state.depositUnderlyingTokenToVariablePool(
+                IERC20Metadata(params.token),
+                msg.sender,
+                params.to,
+                params.amount,
+                params.variable,
+                setUseReserveAsCollateral
+            );
+        } else {
+            state.depositUnderlyingCollateralToken(msg.sender, params.to, params.amount);
+        }
+
+        emit Events.Deposit(params.token, params.to, params.variable, params.amount);
     }
 }

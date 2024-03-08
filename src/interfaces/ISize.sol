@@ -18,46 +18,42 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
-import {DepositVariableParams} from "@src/libraries/variable/actions/DepositVariable.sol";
-import {WithdrawVariableParams} from "@src/libraries/variable/actions/WithdrawVariable.sol";
-
 /// @title ISize
 /// @author Size Lending
 /// @notice This interface is the main interface for all user-facing methods of the Size v2 protocol
 interface ISize {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
+    ///         Borrow tokens are always deposited into the Variable Pool,
+    ///         wheteher `variable` is passed as `true` or `false`. The difference is that a `true`
+    ///         value means this deposit is destined for variable-rate lending only, while a `false` value
+    ///         means this deposit is destined for both fixed-rate lending and variable-rate lending.
+    ///         Collateral tokens are deposited into the Variable Pool only if the user passes
+    ///         `variable` as `true`. If `variable` is `false`, the collateral tokens are deposited
+    ///         into the Size contract through the CollateralLibrary.
     /// @dev The caller must approve the transfer of the token to the protocol.
     ///      This function mints 1:1 szTokens (e.g. aszUSDC, szETH) in exchange of the deposited tokens
     /// @param params DepositParams struct containing the following fields:
     ///     - address token: The address of the token to deposit
     ///     - uint256 amount: The amount of tokens to deposit
     ///     - uint256 to: The recipient of the deposit
+    ///     - bool variable: Whether the deposit is destined for variable-rate lending or fixed-rate lending
     function deposit(DepositParams calldata params) external;
 
     /// @notice Withdraw underlying borrow/collateral tokens from the protocol (e.g. USDC, WETH)
+    ///         Borrow tokens are always withdrawn into the Variable Pool,
+    ///         wheteher `variable` is passed as `true` or `false`. The difference is that a `true`
+    ///         value means the withdrawal is taken from variable-rate lending, while a `false` value
+    ///         means the withdrawal is taken for both fixed-rate lending and variable-rate lending.
+    ///         Collateral tokens are withdrawn from the Variable Pool only if the user passes
+    ///         `variable` as `true`. If `variable` is `false`, the collateral tokens are withdrawn
+    ///         from the Size contract through the CollateralLibrary.
     /// @dev This function burns 1:1 szTokens (e.g. aszUSDC, szETH) in exchange of the withdrawn tokens
     /// @param params WithdrawParams struct containing the following fields:
     ///     - address token: The address of the token to withdraw
     ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)
     ///     - uint256 to: The recipient of the withdrawal
+    ///     - bool variable: Whether the deposit is destined for variable-rate lending or fixed-rate lending
     function withdraw(WithdrawParams calldata params) external;
-
-    /// @notice Deposit underlying borrow/collateral tokens to the Variable Pool (e.g. USDC, WETH)
-    /// @dev The caller must approve the transfer of the token to the protocol.
-    ///      This function mints 1:1 szTokens (e.g. aszUSDC, szETH) in exchange of the deposited tokens
-    /// @param params DepositParams struct containing the following fields:
-    ///     - address token: The address of the token to deposit
-    ///     - uint256 amount: The amount of tokens to deposit
-    ///     - uint256 to: The recipient of the deposit
-    function depositVariable(DepositVariableParams calldata params) external;
-
-    /// @notice Withdraw underlying borrow/collateral tokens from the Variable Pool (e.g. USDC, WETH)
-    /// @dev This function burns 1:1 szTokens (e.g. aszUSDC, szETH) in exchange of the withdrawn tokens
-    /// @param params WithdrawParams struct containing the following fields:
-    ///     - address token: The address of the token to withdraw
-    ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)
-    ///     - uint256 to: The recipient of the withdrawal
-    function withdrawVariable(WithdrawVariableParams calldata params) external;
 
     /// @notice Picks a lender offer and borrow tokens from the orderbook
     ///         When using receivable credit positions as credit, the early exit lender fee is applied to the borrower

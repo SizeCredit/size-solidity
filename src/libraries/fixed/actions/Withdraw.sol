@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import {State} from "@src/SizeStorage.sol";
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
@@ -13,6 +14,7 @@ import {Events} from "@src/libraries/Events.sol";
 struct WithdrawParams {
     address token;
     uint256 amount;
+    bool variable;
     address to;
 }
 
@@ -24,7 +26,10 @@ library Withdraw {
         // validte msg.sender
 
         // validate token
-        if (params.token != address(state.data.underlyingCollateralToken)) {
+        if (
+            params.token != address(state.data.underlyingCollateralToken)
+                && params.token != address(state.data.underlyingBorrowToken)
+        ) {
             revert Errors.INVALID_TOKEN(params.token);
         }
 
@@ -37,14 +42,28 @@ library Withdraw {
         if (params.to == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+
+        // validate variable
+        // N/A
     }
 
     function executeWithdraw(State storage state, WithdrawParams calldata params) public {
-        uint256 amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));
-        if (amount > 0) {
-            state.withdrawUnderlyingCollateralToken(msg.sender, params.to, amount);
+        if (params.variable || params.token == address(state.data.underlyingBorrowToken)) {
+            IAToken aToken = params.token == address(state.data.underlyingBorrowToken)
+                ? state.data.borrowAToken
+                : state.data.collateralAToken;
+
+            uint256 amount = Math.min(params.amount, state.aTokenBalanceOf(aToken, msg.sender, params.variable));
+            if (amount > 0) {
+                state.withdrawUnderlyingTokenFromVariablePool(aToken, msg.sender, params.to, amount, params.variable);
+            }
+        } else {
+            uint256 amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));
+            if (amount > 0) {
+                state.withdrawUnderlyingCollateralToken(msg.sender, params.to, amount);
+            }
         }
 
-        emit Events.Withdraw(params.token, params.to, params.amount);
+        emit Events.Withdraw(params.token, params.to, params.variable, params.amount);
     }
 }

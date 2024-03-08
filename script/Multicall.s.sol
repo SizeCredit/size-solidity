@@ -27,8 +27,9 @@ contract MulticallScript is Script, Logger {
         uint256 dueDate = block.timestamp + 2 days;
         uint256 apr = sizeContract.getLoanOfferAPR(lender, dueDate);
 
-        bytes memory depositCall =
-            abi.encodeCall(Size.deposit, DepositParams({token: wethAddress, amount: 0.04e18, to: borrower}));
+        bytes memory depositCall = abi.encodeCall(
+            Size.deposit, DepositParams({token: wethAddress, amount: 0.04e18, to: borrower, variable: false})
+        );
 
         bytes memory borrowCall = abi.encodeCall(
             Size.borrowAsMarketOrder,

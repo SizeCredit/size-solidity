@@ -52,8 +52,8 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         assertEq(_after.alice, _before.alice);
         assertEq(_after.candy.debtBalance, _before.candy.debtBalance + faceValue + repayFee);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + amount);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
+        assertEq(_after.candy.borrowATokenBalanceFixed, _before.candy.borrowATokenBalanceFixed + amount);
+        assertEq(_after.feeRecipient.borrowATokenBalanceFixed, _before.feeRecipient.borrowATokenBalanceFixed + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
         assertGt(size.getDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
@@ -94,10 +94,10 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         assertEq(_after.alice, _before.alice);
         assertEq(_after.candy.debtBalance, _before.candy.debtBalance + faceValue + repayFee);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + newAmount);
-        assertEq(_before.variablePool.borrowATokenBalance, 0);
-        assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
+        assertEq(_after.candy.borrowATokenBalanceFixed, _before.candy.borrowATokenBalanceFixed + newAmount);
+        assertEq(_before.variablePool.borrowATokenBalanceFixed, 0);
+        assertEq(_after.variablePool.borrowATokenBalanceFixed, _before.variablePool.borrowATokenBalanceFixed);
+        assertEq(_after.feeRecipient.borrowATokenBalanceFixed, _before.feeRecipient.borrowATokenBalanceFixed + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
         assertGt(size.getDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);

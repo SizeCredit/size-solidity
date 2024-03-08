@@ -37,14 +37,14 @@ contract BorrowerExitTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertGt(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance);
-        assertLt(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance);
+        assertGt(_after.candy.borrowATokenBalanceFixed, _before.candy.borrowATokenBalanceFixed);
+        assertLt(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed);
         assertGt(_after.candy.debtBalance, _before.candy.debtBalance);
         assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
         assertEq(creditPositionAfter.credit, creditPositionBefore.credit);
         assertEq(
-            _after.feeRecipient.borrowATokenBalance,
-            _before.feeRecipient.borrowATokenBalance + size.config().earlyBorrowerExitFee
+            _after.feeRecipient.borrowATokenBalanceFixed,
+            _before.feeRecipient.borrowATokenBalanceFixed + size.config().earlyBorrowerExitFee
         );
         assertEq(debtPositionBefore.borrower, bob);
         assertEq(debtPositionAfter.borrower, candy);
@@ -80,12 +80,15 @@ contract BorrowerExitTest is BaseTest {
         assertEq(creditPositionAfter.credit, creditPositionBefore.credit);
         assertEq(_before.alice, _after.alice);
         assertEq(
-            _after.feeRecipient.borrowATokenBalance,
-            _before.feeRecipient.borrowATokenBalance + size.config().earlyBorrowerExitFee
+            _after.feeRecipient.borrowATokenBalanceFixed,
+            _before.feeRecipient.borrowATokenBalanceFixed + size.config().earlyBorrowerExitFee
         );
-        assertEq(_after.bob.collateralBalance, _before.bob.collateralBalance);
+        assertEq(_after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed);
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - size.config().earlyBorrowerExitFee);
+        assertEq(
+            _after.bob.borrowATokenBalanceFixed,
+            _before.bob.borrowATokenBalanceFixed - size.config().earlyBorrowerExitFee
+        );
         assertEq(loansAfter, loansBefore);
     }
 
@@ -154,7 +157,7 @@ contract BorrowerExitTest is BaseTest {
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
         assertEq(_state().alice.debtBalance, 1101e6);
 
-        uint256 aliceCollateralBefore = _state().alice.collateralBalance;
+        uint256 aliceCollateralBefore = _state().alice.collateralTokenBalanceFixed;
 
         vm.warp(block.timestamp + 30 days);
 
@@ -162,7 +165,7 @@ contract BorrowerExitTest is BaseTest {
         _deposit(alice, usdc, size.config().earlyBorrowerExitFee);
         _borrowerExit(alice, debtPositionId, candy);
 
-        uint256 aliceCollateralAfter = _state().alice.collateralBalance;
+        uint256 aliceCollateralAfter = _state().alice.collateralTokenBalanceFixed;
         uint256 newRatePerMaturity = Math.mulDivUp(
             size.getDebtPosition(debtPositionId).faceValue, PERCENT, size.getDebtPosition(debtPositionId).issuanceValue
         ) - PERCENT;
@@ -184,9 +187,9 @@ contract BorrowerExitTest is BaseTest {
         _repay(candy, debtPositionId);
         assertEq(_state().alice.debtBalance, 0);
         assertEq(_state().candy.debtBalance, 0);
-        assertEq(_state().feeRecipient.borrowATokenBalance, size.config().earlyBorrowerExitFee);
+        assertEq(_state().feeRecipient.borrowATokenBalanceFixed, size.config().earlyBorrowerExitFee);
         assertEq(
-            _state().feeRecipient.collateralBalance,
+            _state().feeRecipient.collateralTokenBalanceFixed,
             size.debtTokenAmountToCollateralTokenAmount(earlyRepayFee + newRepayFee)
         );
     }
@@ -215,7 +218,7 @@ contract BorrowerExitTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEqApprox(_after.candy.borrowATokenBalance, 104.76e6, 0.01e6);
+        assertEqApprox(_after.candy.borrowATokenBalanceFixed, 104.76e6, 0.01e6);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 110e6);
         assertLt(size.getDebt(debtPositionId), 120e6);
     }

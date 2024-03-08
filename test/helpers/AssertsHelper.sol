@@ -15,20 +15,32 @@ abstract contract AssertsHelper is Test {
         assertEq(a.candy, b.candy);
         assertEq(a.james, b.james);
         assertEq(a.liquidator, b.liquidator);
-        assertEq(a.variablePool.collateralBalance, b.variablePool.collateralBalance, "variablePool.collateralBalance");
         assertEq(
-            a.variablePool.borrowATokenBalance, b.variablePool.borrowATokenBalance, "variablePool.borrowATokenBalance"
+            a.variablePool.collateralTokenBalanceFixed,
+            b.variablePool.collateralTokenBalanceFixed,
+            "variablePool.collateralTokenBalanceFixed"
         );
-        assertEq(a.feeRecipient.collateralBalance, b.feeRecipient.collateralBalance, "feeRecipient.collateralBalance");
         assertEq(
-            a.feeRecipient.borrowATokenBalance, b.feeRecipient.borrowATokenBalance, "feeRecipient.borrowATokenBalance"
+            a.variablePool.borrowATokenBalanceFixed,
+            b.variablePool.borrowATokenBalanceFixed,
+            "variablePool.borrowATokenBalanceFixed"
+        );
+        assertEq(
+            a.feeRecipient.collateralTokenBalanceFixed,
+            b.feeRecipient.collateralTokenBalanceFixed,
+            "feeRecipient.collateralTokenBalanceFixed"
+        );
+        assertEq(
+            a.feeRecipient.borrowATokenBalanceFixed,
+            b.feeRecipient.borrowATokenBalanceFixed,
+            "feeRecipient.borrowATokenBalanceFixed"
         );
     }
 
     function assertEq(UserView memory a, UserView memory b) internal {
         assertEq(a.account, b.account, "account");
-        assertEq(a.collateralBalance, b.collateralBalance, "collateralBalance");
-        assertEq(a.borrowATokenBalance, b.borrowATokenBalance, "borrowATokenBalance");
+        assertEq(a.collateralTokenBalanceFixed, b.collateralTokenBalanceFixed, "collateralBalance");
+        assertEq(a.borrowATokenBalanceFixed, b.borrowATokenBalanceFixed, "borrowATokenBalance");
         assertEq(a.debtBalance, b.debtBalance, "debtBalance");
     }
 
