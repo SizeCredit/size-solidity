@@ -42,15 +42,20 @@ library BorrowerExit {
         }
 
         uint256 ratePerMaturity = borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
-        uint256 issuanceValue = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + ratePerMaturity);
+        uint256 issuanceValue = Math.mulDivUp(debtPosition.faceValue, PERCENT, PERCENT + ratePerMaturity);
 
         // validate msg.sender
         if (msg.sender != debtPosition.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < issuanceValue + state.config.earlyBorrowerExitFee) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                msg.sender, state.borrowATokenBalanceOf(msg.sender), issuanceValue + state.config.earlyBorrowerExitFee
+        if (
+            state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false)
+                < issuanceValue + state.config.earlyBorrowerExitFee
+        ) {
+            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
+                msg.sender,
+                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),
+                issuanceValue + state.config.earlyBorrowerExitFee
             );
         }
 

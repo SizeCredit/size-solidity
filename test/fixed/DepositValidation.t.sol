@@ -10,10 +10,10 @@ contract DepositValidationTest is BaseTest {
     function test_Deposit_validation() public {
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TOKEN.selector, address(0)));
-        size.deposit(DepositParams({token: address(0), amount: 1, to: alice}));
+        size.deposit(DepositParams({token: address(0), amount: 1, to: alice, variable: false}));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        size.deposit(DepositParams({token: address(weth), amount: 0, to: alice}));
+        size.deposit(DepositParams({token: address(weth), amount: 0, to: alice, variable: false}));
     }
 
     function test_Deposit_validation_collateralTokenCap_borrowATokenCap() public {
@@ -29,13 +29,13 @@ contract DepositValidationTest is BaseTest {
                 Errors.COLLATERAL_TOKEN_CAP_EXCEEDED.selector, size.config().collateralTokenCap, amount * 1e18
             )
         );
-        size.deposit(DepositParams({token: address(weth), amount: amount * 1e18, to: alice}));
+        size.deposit(DepositParams({token: address(weth), amount: amount * 1e18, to: alice, variable: false}));
 
         vm.expectRevert(
             abi.encodeWithSelector(
                 Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, size.config().borrowATokenCap, amount * 1e6
             )
         );
-        size.deposit(DepositParams({token: address(usdc), amount: amount * 1e6, to: alice}));
+        size.deposit(DepositParams({token: address(usdc), amount: amount * 1e6, to: alice, variable: false}));
     }
 }

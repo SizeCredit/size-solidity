@@ -40,12 +40,17 @@ library RiskLibrary {
         }
     }
 
-    function isLoanSelfLiquidatable(State storage state, uint256 creditPositionId) public view returns (bool) {
+    function isCreditPositionSelfLiquidatable(State storage state, uint256 creditPositionId)
+        public
+        view
+        returns (bool)
+    {
         CreditPosition storage creditPosition = state.data.creditPositions[creditPositionId];
+        DebtPosition storage debtPosition = state.data.debtPositions[creditPosition.debtPositionId];
         LoanStatus status = state.getLoanStatus(creditPositionId);
         // Only CreditPositions can be self liquidated
         return state.isCreditPositionId(creditPositionId)
-            && (isUserLiquidatable(state, creditPosition.borrower) && status != LoanStatus.REPAID);
+            && (isUserLiquidatable(state, debtPosition.borrower) && status != LoanStatus.REPAID);
     }
 
     function isDebtPositionLiquidatable(State storage state, uint256 debtPositionId) public view returns (bool) {
@@ -81,10 +86,5 @@ library RiskLibrary {
                 account, collateralRatio(state, account), openingLimitBorrowCR
             );
         }
-    }
-
-    function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
-        uint256 faceValueWad = ConversionLibrary.amountToWad(faceValue, state.data.underlyingBorrowToken.decimals());
-        return Math.mulDivUp(faceValueWad, state.config.crOpening, state.oracle.priceFeed.getPrice());
     }
 }

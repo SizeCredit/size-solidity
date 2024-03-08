@@ -14,7 +14,7 @@ contract PauseTest is BaseTest {
 
         size.pause();
         vm.expectRevert(abi.encodePacked(Pausable.EnforcedPause.selector));
-        size.deposit(DepositParams({token: address(weth), amount: 1e18, to: alice}));
+        size.deposit(DepositParams({token: address(weth), amount: 1e18, to: alice, variable: false}));
     }
 
     function test_Pause_pause_can_updateConfig() public {

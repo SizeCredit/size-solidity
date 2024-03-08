@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
+import {Size} from "@src/Size.sol";
+
+import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
@@ -83,6 +87,69 @@ contract CompensateTest is BaseTest {
         assertEq(creditFromRepaidPositionAfter, creditFromRepaidPositionBefore - 10e6);
     }
 
+    function testFuzz_Compensate_compensate_catch_rounding_issue(uint256 borrowAmount, int256 rate) public {
+        uint256 amount = 200e6;
+
+        rate = bound(rate, 0, 1e18);
+        borrowAmount = bound(borrowAmount, size.config().minimumCreditBorrowAToken, amount);
+
+        _deposit(alice, weth, 2e18);
+        _deposit(alice, usdc, amount);
+        _deposit(bob, weth, 2e18);
+        _deposit(bob, usdc, amount);
+        _deposit(candy, weth, 2e18);
+        _deposit(candy, usdc, amount);
+        _deposit(james, weth, 2e18);
+        _deposit(james, usdc, amount);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, rate);
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, rate);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, rate);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, rate);
+
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, borrowAmount, block.timestamp + 365 days);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+
+        uint256[] memory receivableCreditPositionIds = new uint256[](1);
+        receivableCreditPositionIds[0] = creditPositionId;
+
+        vm.prank(bob);
+        try size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: alice,
+                amount: borrowAmount,
+                dueDate: block.timestamp + 365 days,
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max,
+                exactAmountIn: false,
+                receivableCreditPositionIds: receivableCreditPositionIds
+            })
+        ) {
+            uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+
+            vm.prank(alice);
+            (bool success, bytes memory err) = address(size).call(
+                abi.encodeCall(
+                    Size.compensate,
+                    CompensateParams({
+                        creditPositionWithDebtToRepayId: creditPositionId,
+                        creditPositionToCompensateId: creditPositionId2,
+                        amount: type(uint256).max
+                    })
+                )
+            );
+            if (!success) {
+                assertIn(
+                    bytes4(err),
+                    [
+                        Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE.selector,
+                        Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector,
+                        Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
+                    ]
+                );
+            }
+        } catch {}
+    }
+
     function test_Compensate_compensate_DebtPosition_repaid_reverts() public {
         _deposit(alice, weth, 200e18);
         _deposit(alice, usdc, 200e6);
@@ -137,6 +204,56 @@ contract CompensateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6, 200e6);
+        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed + 200e6, 200e6);
+    }
+
+    function test_Compensate_compensate_compensated_loan_can_be_liquidated() public {
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(james, weth, 100e18);
+        _deposit(james, usdc, 100e6);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
+        uint256 loanToCompensateId = _borrowAsMarketOrder(bob, alice, 20e6, block.timestamp + 365 days);
+        uint256 creditPositionToCompensateId = size.getCreditPositionIdsByDebtPositionId(loanToCompensateId)[0];
+        uint256 loanToRepay = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 365 days);
+        uint256 creditPositionWithDebtToRepayId = size.getCreditPositionIdsByDebtPositionId(loanToRepay)[0];
+        uint256 repayFee = size.repayFee(loanToCompensateId);
+
+        uint256 repaidLoanDebtBefore = size.getDebt(loanToRepay);
+        uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionToCompensateId).credit;
+
+        _compensate(alice, creditPositionWithDebtToRepayId, creditPositionToCompensateId);
+
+        uint256 repaidLoanDebtAfter = size.getDebt(loanToRepay);
+        uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionToCompensateId).credit;
+
+        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e6 - repayFee);
+        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 2 * 20e6);
+        assertEq(
+            repaidLoanDebtBefore - repaidLoanDebtAfter - repayFee,
+            compensatedLoanCreditBefore - compensatedLoanCreditAfter
+        );
+        assertEq(repaidLoanDebtAfter, 0);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector, creditPositionWithDebtToRepayId)
+        );
+        _claim(james, creditPositionWithDebtToRepayId);
+
+        _setPrice(0.1e18);
+        assertTrue(size.isUserLiquidatable(bob));
+        assertTrue(size.isDebtPositionLiquidatable(loanToCompensateId));
+
+        uint256 newCreditPositionId = size.getCreditPositionIdsByDebtPositionId(loanToCompensateId)[1];
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_REPAID.selector, newCreditPositionId));
+        _claim(james, newCreditPositionId);
+
+        _repay(bob, loanToCompensateId);
+        _claim(james, newCreditPositionId);
     }
 }

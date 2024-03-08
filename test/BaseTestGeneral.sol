@@ -10,6 +10,9 @@ import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.so
 import {MarketBorrowRateFeedMock} from "@test/mocks/MarketBorrowRateFeedMock.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
+import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
+
 import {UserView} from "@src/SizeView.sol";
 
 import {Deploy} from "@script/Deploy.sol";
@@ -45,6 +48,13 @@ abstract contract BaseTestGeneral is Test, Deploy {
         vm.label(james, "james");
         vm.label(liquidator, "liquidator");
         vm.label(feeRecipient, "feeRecipient");
+
+        vm.label(address(size), "size");
+        vm.label(address(priceFeed), "priceFeed");
+        vm.label(address(marketBorrowRateFeed), "marketBorrowRateFeed");
+        vm.label(address(usdc), "usdc");
+        vm.label(address(weth), "weth");
+        vm.label(address(variablePool), "variablePool");
     }
 
     function _mint(address token, address user, uint256 amount) internal {
@@ -54,6 +64,34 @@ abstract contract BaseTestGeneral is Test, Deploy {
     function _approve(address user, address token, address spender, uint256 amount) internal {
         vm.prank(user);
         IERC20Metadata(token).approve(spender, amount);
+    }
+
+    function _deposit(address user, IERC20Metadata token, uint256 amount) internal {
+        _deposit(user, address(token), amount, user, false);
+    }
+
+    function _depositVariable(address user, IERC20Metadata token, uint256 amount) internal {
+        _deposit(user, address(token), amount, user, true);
+    }
+
+    function _deposit(address user, address token, uint256 amount, address to, bool variable) internal {
+        _mint(token, user, amount);
+        _approve(user, token, address(size), amount);
+        vm.prank(user);
+        size.deposit(DepositParams({token: token, amount: amount, to: to, variable: variable}));
+    }
+
+    function _withdraw(address user, IERC20Metadata token, uint256 amount) internal {
+        _withdraw(user, address(token), amount, user, false);
+    }
+
+    function _withdrawVariable(address user, IERC20Metadata token, uint256 amount) internal {
+        _withdraw(user, address(token), amount, user, true);
+    }
+
+    function _withdraw(address user, address token, uint256 amount, address to, bool variable) internal {
+        vm.prank(user);
+        size.withdraw(WithdrawParams({token: token, amount: amount, to: to, variable: variable}));
     }
 
     function _state() internal view returns (Vars memory vars) {

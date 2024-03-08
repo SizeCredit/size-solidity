@@ -29,7 +29,6 @@ abstract contract Logger {
                 CreditPosition memory creditPosition = creditPositions[j];
                 console.log("\tCredit Position Id:", i);
                 console.log("\tLender Address:", creditPosition.lender);
-                console.log("\tBorrower Address:", creditPosition.borrower);
                 console.log("\tCredit:", creditPosition.credit);
             }
         }
@@ -69,8 +68,8 @@ abstract contract Logger {
                 );
             }
         }
-        console.log("collateralBalance", userView.collateralBalance);
-        console.log("borrowATokenBalance", userView.borrowATokenBalance);
+        console.log("collateralBalance", userView.collateralTokenBalanceFixed);
+        console.log("borrowATokenBalance", userView.borrowATokenBalanceFixed);
         console.log("debtBalance", userView.debtBalance);
     }
 }

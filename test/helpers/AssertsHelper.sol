@@ -15,21 +15,48 @@ abstract contract AssertsHelper is Test {
         assertEq(a.candy, b.candy);
         assertEq(a.james, b.james);
         assertEq(a.liquidator, b.liquidator);
-        assertEq(a.variablePool.collateralBalance, b.variablePool.collateralBalance, "variablePool.collateralBalance");
         assertEq(
-            a.variablePool.borrowATokenBalance, b.variablePool.borrowATokenBalance, "variablePool.borrowATokenBalance"
+            a.variablePool.collateralTokenBalanceFixed,
+            b.variablePool.collateralTokenBalanceFixed,
+            "variablePool.collateralTokenBalanceFixed"
         );
-        assertEq(a.feeRecipient.collateralBalance, b.feeRecipient.collateralBalance, "feeRecipient.collateralBalance");
         assertEq(
-            a.feeRecipient.borrowATokenBalance, b.feeRecipient.borrowATokenBalance, "feeRecipient.borrowATokenBalance"
+            a.variablePool.borrowATokenBalanceFixed,
+            b.variablePool.borrowATokenBalanceFixed,
+            "variablePool.borrowATokenBalanceFixed"
+        );
+        assertEq(
+            a.feeRecipient.collateralTokenBalanceFixed,
+            b.feeRecipient.collateralTokenBalanceFixed,
+            "feeRecipient.collateralTokenBalanceFixed"
+        );
+        assertEq(
+            a.feeRecipient.borrowATokenBalanceFixed,
+            b.feeRecipient.borrowATokenBalanceFixed,
+            "feeRecipient.borrowATokenBalanceFixed"
         );
     }
 
     function assertEq(UserView memory a, UserView memory b) internal {
         assertEq(a.account, b.account, "account");
-        assertEq(a.collateralBalance, b.collateralBalance, "collateralBalance");
-        assertEq(a.borrowATokenBalance, b.borrowATokenBalance, "borrowATokenBalance");
+        assertEq(a.collateralTokenBalanceFixed, b.collateralTokenBalanceFixed, "collateralBalance");
+        assertEq(a.borrowATokenBalanceFixed, b.borrowATokenBalanceFixed, "borrowATokenBalance");
         assertEq(a.debtBalance, b.debtBalance, "debtBalance");
+    }
+
+    function assertIn(bytes4 a, bytes4[3] memory array) internal {
+        string memory arrayStr = string.concat(
+            "[",
+            Strings.toHexString(uint256(uint32(array[0])), 4),
+            ", ",
+            Strings.toHexString(uint256(uint32(array[1])), 4),
+            ", ",
+            Strings.toHexString(uint256(uint32(array[2])), 4),
+            "]"
+        );
+        string memory reason =
+            string.concat("Value ", Strings.toHexString(uint256(uint32(a)), 4), " not in array ", arrayStr);
+        assertTrue(a == array[0] || a == array[1] || a == array[2], reason);
     }
 
     function assertEqApprox(uint256 a, uint256 b, uint256 tolerance) internal {
