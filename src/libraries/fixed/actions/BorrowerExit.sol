@@ -53,6 +53,7 @@ library BorrowerExit {
                 < issuanceValue + state.config.earlyBorrowerExitFee
         ) {
             revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
+                address(state.data.borrowAToken),
                 msg.sender,
                 false,
                 state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),

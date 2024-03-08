@@ -36,6 +36,7 @@ library Repay {
         }
         if (state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false) < debtPosition.faceValue) {
             revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
+                address(state.data.borrowAToken),
                 msg.sender,
                 false,
                 state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),

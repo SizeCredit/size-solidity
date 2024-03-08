@@ -85,7 +85,7 @@ library VariableLibrary {
     ) external {
         if (aTokenBalanceOf(state, aToken, from, variable) < amount) {
             revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
-                from, variable, aTokenBalanceOf(state, aToken, from, variable), amount
+                address(aToken), from, variable, aTokenBalanceOf(state, aToken, from, variable), amount
             );
         }
 
@@ -126,7 +126,7 @@ library VariableLibrary {
         IAToken borrowAToken = state.data.borrowAToken;
         if (aTokenBalanceOf(state, borrowAToken, from, false) < amount) {
             revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
-                from, false, aTokenBalanceOf(state, borrowAToken, from, false), amount
+                address(borrowAToken), from, false, aTokenBalanceOf(state, borrowAToken, from, false), amount
             );
         }
 
