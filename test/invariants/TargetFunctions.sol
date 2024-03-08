@@ -47,7 +47,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function deposit(address token, uint256 amount, bool variable) public getSender {
+    function deposit(address token, uint256 amount) public getSender {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
         uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH / 3 : MAX_AMOUNT_USDC / 3;
         amount = between(amount, maxAmount / 2, maxAmount);
@@ -57,7 +57,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         hevm.prank(sender);
         IERC20Metadata(token).approve(address(size), amount);
         hevm.prank(sender);
-        size.deposit(DepositParams({token: token, amount: amount, to: sender, variable: variable}));
+        size.deposit(DepositParams({token: token, amount: amount, to: sender, variable: false}));
 
         __after();
 
@@ -74,7 +74,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function withdraw(address token, uint256 amount, bool variable) public getSender {
+    function withdraw(address token, uint256 amount) public getSender {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
 
         __before();
@@ -82,7 +82,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
         amount = between(amount, 0, maxAmount);
         hevm.prank(sender);
-        size.withdraw(WithdrawParams({token: token, amount: amount, to: sender, variable: variable}));
+        size.withdraw(WithdrawParams({token: token, amount: amount, to: sender, variable: false}));
 
         __after();
 

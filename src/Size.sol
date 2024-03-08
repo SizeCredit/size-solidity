@@ -218,4 +218,9 @@ contract Size is
         state.validateCompensate(params);
         state.executeCompensate(params);
     }
+
+    /// @inheritdoc ISize
+    function variablePoolAllowlisted(address account) external view override(ISize) returns (bool) {
+        return state.data.variablePoolAllowlisted[account];
+    }
 }

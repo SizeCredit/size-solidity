@@ -82,7 +82,9 @@ library VariableLibrary {
         bool variable
     ) external {
         if (aTokenBalanceOf(state, aToken, from, variable) < amount) {
-            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(from, aTokenBalanceOf(state, aToken, from, variable), amount);
+            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
+                from, variable, aTokenBalanceOf(state, aToken, from, variable), amount
+            );
         }
 
         address underlyingToken = aToken.UNDERLYING_ASSET_ADDRESS();
@@ -100,10 +102,12 @@ library VariableLibrary {
     /// @param from The address of the sender
     /// @param to The address of the recipient
     /// @param amount The amount of aTokens to transfer
-    function transferBorrowAToken(State storage state, address from, address to, uint256 amount) public {
+    function transferBorrowATokenFixed(State storage state, address from, address to, uint256 amount) public {
         IAToken borrowAToken = state.data.borrowAToken;
         if (aTokenBalanceOf(state, borrowAToken, from, false) < amount) {
-            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(from, aTokenBalanceOf(state, borrowAToken, from, false), amount);
+            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
+                from, false, aTokenBalanceOf(state, borrowAToken, from, false), amount
+            );
         }
 
         Vault vaultFrom = state.getVaultFixed(from);

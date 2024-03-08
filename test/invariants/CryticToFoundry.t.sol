@@ -20,4 +20,8 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
             : uint160(msg.sender) % 3 == 1 ? address(USER2) : address(USER3);
         _;
     }
+
+    function test_CryticToFoundry_deposit_simple() public {
+        deposit(address(0x1fffffffe), 4);
+    }
 }

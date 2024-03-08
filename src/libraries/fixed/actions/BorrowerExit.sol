@@ -54,6 +54,7 @@ library BorrowerExit {
         ) {
             revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
                 msg.sender,
+                false,
                 state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),
                 issuanceValue + state.config.earlyBorrowerExitFee
             );
@@ -89,8 +90,8 @@ library BorrowerExit {
         uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + ratePerMaturity);
 
         state.chargeEarlyRepayFeeInCollateral(debtPosition);
-        state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee);
-        state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, issuanceValue);
+        state.transferBorrowATokenFixed(msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee);
+        state.transferBorrowATokenFixed(msg.sender, params.borrowerToExitTo, issuanceValue);
         state.data.debtToken.burn(msg.sender, faceValue);
 
         debtPosition.borrower = params.borrowerToExitTo;

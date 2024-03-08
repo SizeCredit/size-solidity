@@ -37,6 +37,7 @@ struct Oracle {
 
 struct Data {
     mapping(address => User) users; // mapping of User structs
+    mapping(address => bool) variablePoolAllowlisted; // mapping of addresses allowlisted to interact with the Variable Pool
     mapping(uint256 => DebtPosition) debtPositions; // mapping of DebtPosition structs
     mapping(uint256 => CreditPosition) creditPositions; // mapping of CreditPosition structs
     uint256 nextDebtPositionId; // next debt position id

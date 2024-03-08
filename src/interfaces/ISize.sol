@@ -173,6 +173,8 @@ interface ISize {
     function compensate(CompensateParams calldata params) external;
 
     /// @notice Check if an account is allowlisted to interact with the Variable Pool
+    /// @dev Only vaults should be allowlisted. See `UserLibrary`
     /// @param account The address of the account to check
+    /// @return Whether the account is allowlisted
     function variablePoolAllowlisted(address account) external returns (bool);
 }

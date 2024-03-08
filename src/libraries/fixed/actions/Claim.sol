@@ -43,7 +43,7 @@ library Claim {
         uint256 claimAmount = Math.mulDivDown(
             creditPosition.credit, state.borrowATokenLiquidityIndex(), debtPosition.liquidityIndexAtRepayment
         );
-        state.transferBorrowAToken(address(this), creditPosition.lender, claimAmount);
+        state.transferBorrowATokenFixed(address(this), creditPosition.lender, claimAmount);
         creditPosition.credit = 0;
 
         emit Events.Claim(params.creditPositionId);

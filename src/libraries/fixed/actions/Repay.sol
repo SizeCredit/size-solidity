@@ -36,7 +36,10 @@ library Repay {
         }
         if (state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false) < debtPosition.faceValue) {
             revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
-                msg.sender, state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false), debtPosition.faceValue
+                msg.sender,
+                false,
+                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),
+                debtPosition.faceValue
             );
         }
     }
@@ -45,7 +48,7 @@ library Repay {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
 
-        state.transferBorrowAToken(msg.sender, address(this), faceValue);
+        state.transferBorrowATokenFixed(msg.sender, address(this), faceValue);
         state.chargeRepayFeeInCollateral(debtPosition, faceValue);
         state.updateRepayFee(debtPosition, faceValue);
         state.data.debtToken.burn(debtPosition.borrower, faceValue);

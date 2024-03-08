@@ -33,7 +33,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_ATOKEN_BALANCE.selector, bob, 10e6, 50e6));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_ATOKEN_BALANCE.selector, bob, false, 10e6, 50e6));
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({
                 borrower: alice,

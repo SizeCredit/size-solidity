@@ -13,4 +13,9 @@ abstract contract BaseTestVariable is Test, BaseTestGeneral {
         vm.prank(address(this));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), index);
     }
+
+    function _borrowVariable(address user, IERC20Metadata token, uint256 amount) internal {
+        vm.prank(user);
+        variablePool.borrow(address(token), amount, 2, 0, user);
+    }
 }

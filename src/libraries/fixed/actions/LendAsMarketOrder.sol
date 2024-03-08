@@ -61,7 +61,7 @@ library LendAsMarketOrder {
         }
         if (state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false) < amountIn) {
             revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
-                msg.sender, state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false), amountIn
+                msg.sender, false, state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false), amountIn
             );
         }
 
@@ -106,6 +106,6 @@ library LendAsMarketOrder {
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(params.borrower, debtPosition.getDebt());
-        state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
+        state.transferBorrowATokenFixed(msg.sender, params.borrower, issuanceValue);
     }
 }
