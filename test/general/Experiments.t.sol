@@ -232,7 +232,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
 
         // add funds to the VP
-        _deposit(liquidator, usdc, 1_000e6);
+        _depositVariable(liquidator, usdc, 1_000e6);
 
         // Move to variable pool
         _liquidate(liquidator, 0);

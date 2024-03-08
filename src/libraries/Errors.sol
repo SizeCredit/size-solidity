@@ -10,6 +10,7 @@ library Errors {
     error NULL_AMOUNT();
     error NULL_MAX_DUE_DATE();
     error NULL_ARRAY();
+    error NULL_OFFER();
     error MATURITIES_NOT_STRICTLY_INCREASING();
     error NULL_MATURITY();
     error ARRAY_LENGTHS_MISMATCH();
