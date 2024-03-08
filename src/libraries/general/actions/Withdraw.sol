@@ -49,22 +49,23 @@ library Withdraw {
     }
 
     function executeWithdraw(State storage state, WithdrawParams calldata params) public {
+        uint256 amount;
         if (params.variable || params.token == address(state.data.underlyingBorrowToken)) {
             IAToken aToken = params.token == address(state.data.underlyingBorrowToken)
                 ? state.data.borrowAToken
                 : state.data.collateralAToken;
 
-            uint256 amount = Math.min(params.amount, state.aTokenBalanceOf(aToken, msg.sender, params.variable));
+            amount = Math.min(params.amount, state.aTokenBalanceOf(aToken, msg.sender, params.variable));
             if (amount > 0) {
                 state.withdrawUnderlyingTokenFromVariablePool(aToken, msg.sender, params.to, amount, params.variable);
             }
         } else {
-            uint256 amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));
+            amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));
             if (amount > 0) {
                 state.withdrawUnderlyingCollateralToken(msg.sender, params.to, amount);
             }
         }
 
-        emit Events.Withdraw(params.token, params.to, params.variable, params.amount);
+        emit Events.Withdraw(params.token, params.to, params.variable, amount);
     }
 }
