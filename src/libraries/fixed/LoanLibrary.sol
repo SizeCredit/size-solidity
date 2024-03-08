@@ -109,6 +109,7 @@ library LoanLibrary {
             revert Errors.INVALID_POSITION_ID(positionId);
         }
 
+        // slither-disable-next-line incorrect-equality
         if (getDebt(debtPosition) == 0) {
             return LoanStatus.REPAID;
         } else if (block.timestamp >= debtPosition.dueDate) {

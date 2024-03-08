@@ -105,6 +105,7 @@ library VariableLibrary {
         // @audit Validate if we can use `repayWithATokens` without reaching any caps
         Vault vaultFrom = state.getVaultVariable(from);
 
+        // slither-disable-next-line unused-return
         vaultFrom.proxy(
             address(state.data.variablePool),
             abi.encodeCall(
