@@ -267,6 +267,38 @@ contract LiquidateTest is BaseTest {
         );
     }
 
+    function test_Liquidate_liquidate_move_to_VP_borrower_should_repay_and_withdraw_collateral() public {
+        _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("collateralOverdueTransferFee", 0);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
+
+        vm.warp(block.timestamp + 365 days);
+
+        _liquidate(liquidator, debtPositionId);
+
+        _depositVariable(bob, usdc, 100e6);
+
+        Vars memory _before = _state();
+
+        _repayVariable(bob, type(uint256).max);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.bob.borrowATokenBalanceVariable, _before.bob.borrowATokenBalanceVariable - 100e6);
+
+        uint256 weth1 = weth.balanceOf(address(bob));
+
+        _withdrawVariable(bob, weth, type(uint256).max);
+
+        uint256 weth2 = weth.balanceOf(address(bob));
+
+        assertEq(weth2, weth1 + 150e18);
+    }
+
     function testFuzz_Liquidate_liquidate_minimumCollateralProfit(
         uint256 newPrice,
         uint256 interval,

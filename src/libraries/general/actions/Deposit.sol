@@ -26,6 +26,7 @@ library Deposit {
 
     function validateDeposit(State storage state, DepositParams calldata params) external view {
         // validte msg.sender
+        // N/A
 
         // validate token
         if (

@@ -9,10 +9,11 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
-import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
-import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
+import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

@@ -3,6 +3,8 @@ pragma solidity 0.8.24;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
+
+import {DataTypes} from "@aave/protocol/libraries/types/DataTypes.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -95,6 +97,23 @@ library VariableLibrary {
         vaultFrom.proxy(address(state.data.variablePool), abi.encodeCall(IPool.withdraw, (underlyingToken, amount, to)));
     }
 
+    /// @notice Repay a variable loan from the variable pool
+    /// @param state The state struct
+    /// @param from The address of the repayer
+    /// @param amount The amount of tokens to repay
+    function repayVariableLoan(State storage state, address from, uint256 amount) external {
+        // @audit Validate if we can use `repayWithATokens` without reaching any caps
+        Vault vaultFrom = state.getVaultVariable(from);
+
+        vaultFrom.proxy(
+            address(state.data.variablePool),
+            abi.encodeCall(
+                IPool.repayWithATokens,
+                (address(state.data.underlyingBorrowToken), amount, uint256(DataTypes.InterestRateMode.VARIABLE))
+            )
+        );
+    }
+
     /// @notice Transfer aTokens from one user to another, from the vault destined to fixed-rate loans
     /// @dev Assumes `from` has enough aTokens to transfer
     ///      The transfer is made from the vault of `from` to the vault of `to`
@@ -121,6 +140,7 @@ library VariableLibrary {
     /// @dev Assumes `from` has enough collateral to borrow `amount`
     ///      The `supply` and `borrow` is made from the vault of `from` and on supplied to the vault of `to`
     ///      This function may revert due to the Variable Pool health check or liquidity conditions
+    ///      The borrow is made on behalf of the variable-rate vault of the `from` user and the supply is made to the fixed-rate vault of the `to` user
     /// @param state The state struct
     /// @param from The address of the borrower
     /// @param to The address of the recipient of aTokens
@@ -136,7 +156,7 @@ library VariableLibrary {
         IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
         IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
 
-        Vault vaultFrom = state.getVaultFixed(from);
+        Vault vaultFrom = state.getVaultVariable(from);
         Vault vaultTo = state.getVaultFixed(to);
 
         // unwrap collateralToken (e.g. szETH) to underlyingCollateralToken (e.g. WETH) from `from` to `address(this)`
@@ -156,7 +176,14 @@ library VariableLibrary {
         // borrow
         targets[1] = address(state.data.variablePool);
         data[1] = abi.encodeCall(
-            IPool.borrow, (address(underlyingBorrowToken), borrowATokenBalance, 2, 0, address(vaultFrom))
+            IPool.borrow,
+            (
+                address(underlyingBorrowToken),
+                borrowATokenBalance,
+                uint256(DataTypes.InterestRateMode.VARIABLE),
+                0,
+                address(vaultFrom)
+            )
         );
 
         // transfer to `address(this)`

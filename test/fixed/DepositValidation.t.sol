@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";

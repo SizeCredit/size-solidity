@@ -6,8 +6,9 @@ import {Size} from "@src/Size.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
-import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
 import {Script} from "forge-std/Script.sol";
 

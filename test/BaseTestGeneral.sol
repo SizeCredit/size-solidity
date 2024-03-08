@@ -10,8 +10,8 @@ import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.so
 import {MarketBorrowRateFeedMock} from "@test/mocks/MarketBorrowRateFeedMock.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
-import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
-import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
+import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
 import {UserView} from "@src/SizeView.sol";
 

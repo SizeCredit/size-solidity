@@ -6,17 +6,19 @@ import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMa
 
 import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
-import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
-import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
+import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+import {RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
 
 /// @title ISize
 /// @author Size Lending
@@ -177,4 +179,9 @@ interface ISize {
     /// @param account The address of the account to check
     /// @return Whether the account is allowlisted
     function variablePoolAllowlisted(address account) external returns (bool);
+
+    /// @notice Repay a variable loan by forwarding a call from the user proxy to the Variable Pool `repayWithATokens`
+    /// @param params RepayVariableParams struct containing the following fields:
+    ///     - uint256 amount: The amount to repay
+    function repayVariable(RepayVariableParams calldata params) external;
 }

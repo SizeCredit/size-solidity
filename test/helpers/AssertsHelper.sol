@@ -39,8 +39,12 @@ abstract contract AssertsHelper is Test {
 
     function assertEq(UserView memory a, UserView memory b) internal {
         assertEq(a.account, b.account, "account");
-        assertEq(a.collateralTokenBalanceFixed, b.collateralTokenBalanceFixed, "collateralBalance");
-        assertEq(a.borrowATokenBalanceFixed, b.borrowATokenBalanceFixed, "borrowATokenBalance");
+        assertEq(a.collateralTokenBalanceFixed, b.collateralTokenBalanceFixed, "collateralTokenBalanceFixed");
+        assertEq(
+            a.collateralATokenBalanceVariable, b.collateralATokenBalanceVariable, "collateralATokenBalanceVariable"
+        );
+        assertEq(a.borrowATokenBalanceFixed, b.borrowATokenBalanceFixed, "borrowATokenBalanceFixed");
+        assertEq(a.borrowATokenBalanceVariable, b.borrowATokenBalanceVariable, "borrowATokenBalanceVariable");
         assertEq(a.debtBalance, b.debtBalance, "debtBalance");
     }
 

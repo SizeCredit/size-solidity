@@ -24,6 +24,7 @@ library Withdraw {
 
     function validateWithdraw(State storage state, WithdrawParams calldata params) external view {
         // validte msg.sender
+        // N/A
 
         // validate token
         if (
