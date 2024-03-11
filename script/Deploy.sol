@@ -45,7 +45,7 @@ abstract contract Deploy {
         marketBorrowRateFeed = new MarketBorrowRateFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
-        variablePool = IPool(address(new PoolMock()));
+        variablePool = IPool(address(new PoolMock(priceFeed)));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         PoolMock(address(variablePool)).setLiquidityIndex(address(weth), WadRayMath.RAY);
         c = InitializeConfigParams({
@@ -108,10 +108,10 @@ abstract contract Deploy {
     }
 
     function setupChainWithMocks(address _owner, address _weth, address _usdc) internal {
-        variablePool = IPool(address(new PoolMock()));
+        priceFeed = new PriceFeedMock(_owner);
+        variablePool = IPool(address(new PoolMock(priceFeed)));
         PoolMock(address(variablePool)).setLiquidityIndex(address(_usdc), WadRayMath.RAY);
         PoolMock(address(variablePool)).setLiquidityIndex(address(_weth), WadRayMath.RAY);
-        priceFeed = new PriceFeedMock(_owner);
         PriceFeedMock(address(priceFeed)).setPrice(2468e18);
         marketBorrowRateFeed = new MarketBorrowRateFeedMock(_owner);
         MarketBorrowRateFeedMock(address(marketBorrowRateFeed)).setMarketBorrowRate(0.0724e18);

@@ -169,13 +169,18 @@ library VariableLibrary {
         address[] memory targets = new address[](3);
         bytes[] memory data = new bytes[](3);
 
-        // approve collateral
-        targets[0] = address(state.data.underlyingCollateralToken);
-        data[0] = abi.encodeCall(IERC20.approve, (address(state.data.variablePool), type(uint256).max));
+        // unwrap borrow aTokens (e.g. aszUSDC) to underlying borrow tokens (e.g. USDC)
+        targets[0] = address(state.data.variablePool);
+        data[0] =
+            abi.encodeCall(IPool.withdraw, (address(state.data.underlyingBorrowToken), amount, address(vaultFrom)));
+
+        // approve underlying borrow tokens
+        targets[1] = address(state.data.underlyingBorrowToken);
+        data[1] = abi.encodeCall(IERC20.approve, (address(state.data.variablePool), amount));
 
         // liquidate
-        targets[1] = address(state.data.variablePool);
-        data[1] = abi.encodeCall(
+        targets[2] = address(state.data.variablePool);
+        data[2] = abi.encodeCall(
             IPool.liquidationCall,
             (
                 address(state.data.underlyingCollateralToken),
@@ -185,10 +190,6 @@ library VariableLibrary {
                 true
             )
         );
-
-        // reset approval to 0
-        targets[2] = address(state.data.underlyingCollateralToken);
-        data[2] = abi.encodeCall(IERC20.approve, (address(state.data.variablePool), 0));
 
         // slither-disable-next-line unused-return
         vaultFrom.proxy(targets, data);

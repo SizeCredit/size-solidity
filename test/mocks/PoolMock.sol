@@ -16,20 +16,23 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {Math} from "@src/libraries/Math.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
 contract PoolMock is Ownable {
     using SafeERC20 for IERC20Metadata;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
-    uint256 public constant RATE = 1.01e27;
     EnumerableMap.AddressToUintMap internal reserveIndexes;
     PoolAddressesProvider internal immutable addressesProvider;
+    IPriceFeed internal immutable priceFeed;
+
     mapping(address asset => AToken aToken) internal aTokens;
     mapping(address asset => VariableDebtToken) internal debtTokens;
     MockIncentivesController internal incentivesController;
 
-    constructor() Ownable(msg.sender) {
+    constructor(IPriceFeed _priceFeed) Ownable(msg.sender) {
         addressesProvider = new PoolAddressesProvider("", address(this));
+        priceFeed = _priceFeed;
     }
 
     function setLiquidityIndex(address asset, uint256 index) external onlyOwner {
@@ -53,7 +56,7 @@ contract PoolMock is Ownable {
                 asset,
                 incentivesController,
                 IERC20Metadata(asset).decimals(),
-                string.concat("Size debtToken ", IERC20Metadata(asset).name()),
+                string.concat("Size variableDebtToken ", IERC20Metadata(asset).name()),
                 string.concat("dsz", IERC20Metadata(asset).symbol()),
                 ""
             );
@@ -88,6 +91,16 @@ contract PoolMock is Ownable {
         debtTokens[asset].burn(msg.sender, amount, reserveIndexes.get(asset));
         aTokens[asset].burn(msg.sender, address(aTokens[asset]), amount, reserveIndexes.get(asset));
         return amount;
+    }
+
+    function liquidationCall(address collateralAsset, address debtAsset, address user, uint256 debtToCover, bool)
+        public
+    {
+        uint8 decimals = IERC20Metadata(collateralAsset).decimals() - IERC20Metadata(debtAsset).decimals();
+        uint256 collateralAmount = debtToCover * 10 ** decimals * (10 ** priceFeed.decimals()) / priceFeed.getPrice();
+        IERC20Metadata(debtAsset).transferFrom(msg.sender, address(this), debtToCover);
+        aTokens[collateralAsset].transferOnLiquidation(user, msg.sender, collateralAmount);
+        debtTokens[debtAsset].burn(user, debtToCover, reserveIndexes.get(debtAsset));
     }
 
     function getUserAccountData(address)
