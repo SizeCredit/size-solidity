@@ -598,9 +598,9 @@ contract ExperimentsTest is Test, BaseTest {
 
         assertEq(usdc.balanceOf(address(variablePool)), 500e6);
         assertEq(usdc.balanceOf(candy), 2_000e6);
-        assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
-        assertEq(aToken.balanceOf(address(size.getUserView(alice).user.vault)), 2_500e6);
-        assertEq(aToken.scaledBalanceOf(address(size.getUserView(alice).user.vault)), 2_500e6);
+        assertEq(size.getUserView(alice).borrowATokenBalanceFixed, 2_500e6);
+        assertEq(aToken.balanceOf(address(size.getUserView(alice).user.vaultFixed)), 2_500e6);
+        assertEq(aToken.scaledBalanceOf(address(size.getUserView(alice).user.vaultFixed)), 2_500e6);
 
         _deposit(bob, weth, 1e18);
         vm.prank(bob);
