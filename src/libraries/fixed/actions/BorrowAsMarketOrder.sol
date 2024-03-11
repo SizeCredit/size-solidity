@@ -151,8 +151,8 @@ library BorrowAsMarketOrder {
                 lender: params.lender,
                 credit: deltaAmountIn
             });
-            state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
-            state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyLenderExitFee);
+            state.transferBorrowATokenFixed(params.lender, msg.sender, deltaAmountOut);
+            state.transferBorrowATokenFixed(msg.sender, state.config.feeRecipient, state.config.earlyLenderExitFee);
             amountOutLeft -= deltaAmountOut;
         }
     }
@@ -183,6 +183,6 @@ library BorrowAsMarketOrder {
         });
 
         state.data.debtToken.mint(msg.sender, debtPosition.getDebt());
-        state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
+        state.transferBorrowATokenFixed(params.lender, msg.sender, issuanceValue);
     }
 }

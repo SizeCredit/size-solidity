@@ -17,7 +17,6 @@ import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
-import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
@@ -26,39 +25,10 @@ import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
-import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {BaseTestGeneral} from "@test/BaseTestGeneral.sol";
 
 abstract contract BaseTestFixed is Test, BaseTestGeneral {
-    function _deposit(address user, IERC20Metadata token, uint256 amount) internal {
-        _deposit(user, address(token), amount);
-    }
-
-    function _deposit(address user, address token, uint256 amount) internal {
-        return _deposit(user, token, amount, user);
-    }
-
-    function _deposit(address user, address token, uint256 amount, address to) internal {
-        _mint(token, user, amount);
-        _approve(user, token, address(size), amount);
-        vm.prank(user);
-        size.deposit(DepositParams({token: token, amount: amount, to: to}));
-    }
-
-    function _withdraw(address user, IERC20Metadata token, uint256 amount) internal {
-        _withdraw(user, address(token), amount);
-    }
-
-    function _withdraw(address user, address token, uint256 amount) internal {
-        return _withdraw(user, token, amount, user);
-    }
-
-    function _withdraw(address user, address token, uint256 amount, address to) internal {
-        vm.prank(user);
-        size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
-    }
-
     function _lendAsLimitOrder(
         address lender,
         uint256 maxDueDate,

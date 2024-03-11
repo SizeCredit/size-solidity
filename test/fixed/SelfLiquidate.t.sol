@@ -43,8 +43,8 @@ contract SelfLiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.collateralBalance, _before.bob.collateralBalance - 150e18, 0);
-        assertEq(_after.alice.collateralBalance, _before.alice.collateralBalance + 150e18);
+        assertEq(_after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed - 150e18, 0);
+        assertEq(_after.alice.collateralTokenBalanceFixed, _before.alice.collateralTokenBalanceFixed + 150e18);
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
     }
 
@@ -91,9 +91,9 @@ contract SelfLiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.collateralBalance, _before.bob.collateralBalance - 150e18, 0);
-        assertEq(_after.candy.collateralBalance, _before.candy.collateralBalance + 150e18);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance);
+        assertEq(_after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed - 150e18, 0);
+        assertEq(_after.candy.collateralTokenBalanceFixed, _before.candy.collateralTokenBalanceFixed + 150e18);
+        assertEq(_after.feeRecipient.borrowATokenBalanceFixed, _before.feeRecipient.borrowATokenBalanceFixed);
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
     }
 

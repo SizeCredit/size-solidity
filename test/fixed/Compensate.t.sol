@@ -204,7 +204,7 @@ contract CompensateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6, 200e6);
+        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed + 200e6, 200e6);
     }
 
     function test_Compensate_compensate_compensated_loan_can_be_liquidated() public {

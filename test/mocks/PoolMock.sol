@@ -15,6 +15,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 contract PoolMock is Ownable {
     using SafeERC20 for IERC20Metadata;
@@ -80,6 +81,14 @@ contract PoolMock is Ownable {
         _updateLiquidityIndex(asset);
         debts[onBehalfOf][asset] -= amount;
         IERC20Metadata(asset).transferFrom(msg.sender, address(this), amount);
+        return amount;
+    }
+
+    function repayWithATokens(address asset, uint256 amount, uint256) external returns (uint256) {
+        _updateLiquidityIndex(asset);
+        amount = Math.min(amount, debts[msg.sender][asset]);
+        debts[msg.sender][asset] -= amount;
+        aTokens[asset].burn(msg.sender, address(aTokens[asset]), amount, reserveIndexes.get(asset));
         return amount;
     }
 

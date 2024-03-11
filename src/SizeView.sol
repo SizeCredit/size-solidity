@@ -22,6 +22,7 @@ import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
 import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {
@@ -34,8 +35,10 @@ import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 struct UserView {
     User user;
     address account;
-    uint256 collateralBalance;
-    uint256 borrowATokenBalance;
+    uint256 collateralTokenBalanceFixed;
+    uint256 collateralATokenBalanceVariable;
+    uint256 borrowATokenBalanceFixed;
+    uint256 borrowATokenBalanceVariable;
     uint256 debtBalance;
 }
 
@@ -46,6 +49,7 @@ struct DataView {
     IERC20Metadata underlyingBorrowToken;
     IPool variablePool;
     NonTransferrableToken collateralToken;
+    IAToken collateralAToken;
     IAToken borrowAToken;
     NonTransferrableToken debtToken;
 }
@@ -106,6 +110,7 @@ abstract contract SizeView is SizeStorage {
             underlyingBorrowToken: state.data.underlyingBorrowToken,
             variablePool: state.data.variablePool,
             collateralToken: state.data.collateralToken,
+            collateralAToken: state.data.collateralAToken,
             borrowAToken: state.data.borrowAToken,
             debtToken: state.data.debtToken
         });
@@ -115,14 +120,16 @@ abstract contract SizeView is SizeStorage {
         return UserView({
             user: state.data.users[user],
             account: user,
-            collateralBalance: state.data.collateralToken.balanceOf(user),
-            borrowATokenBalance: state.borrowATokenBalanceOf(user),
+            collateralTokenBalanceFixed: state.data.collateralToken.balanceOf(user),
+            collateralATokenBalanceVariable: state.aTokenBalanceOf(state.data.collateralAToken, user, true),
+            borrowATokenBalanceFixed: state.aTokenBalanceOf(state.data.borrowAToken, user, false),
+            borrowATokenBalanceVariable: state.aTokenBalanceOf(state.data.borrowAToken, user, true),
             debtBalance: state.data.debtToken.balanceOf(user)
         });
     }
 
-    function getVaultAddress(address user) external view returns (address) {
-        return address(state.data.users[user].vault);
+    function getVaultFixedAddress(address user) external view returns (address) {
+        return address(state.data.users[user].vaultFixed);
     }
 
     function isDebtPositionId(uint256 debtPositionId) external view returns (bool) {
@@ -240,6 +247,7 @@ abstract contract SizeView is SizeStorage {
 
     function getBorrowOfferAPR(address borrower, uint256 dueDate) external view returns (uint256) {
         BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
+        if (offer.isNull()) revert Errors.NULL_OFFER();
         uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
@@ -247,6 +255,7 @@ abstract contract SizeView is SizeStorage {
 
     function getLoanOfferAPR(address lender, uint256 dueDate) external view returns (uint256) {
         LoanOffer memory offer = state.data.users[lender].loanOffer;
+        if (offer.isNull()) revert Errors.NULL_OFFER();
         uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);

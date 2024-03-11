@@ -92,7 +92,7 @@ library Liquidate {
         }
 
         state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
-        state.transferBorrowAToken(msg.sender, address(this), debtPositionCopy.faceValue);
+        state.transferBorrowATokenFixed(msg.sender, address(this), debtPositionCopy.faceValue);
     }
 
     function _executeLiquidateOverdue(
