@@ -3,6 +3,7 @@ pragma solidity 0.8.24;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
+import {VariableDebtToken} from "@aave/protocol/tokenization/VariableDebtToken.sol";
 
 import {DataTypes} from "@aave/protocol/libraries/types/DataTypes.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -289,6 +290,17 @@ library VariableLibrary {
     {
         Vault vault = variable ? state.data.users[account].vaultVariable : state.data.users[account].vaultFixed;
         return aToken.balanceOf(address(vault));
+    }
+
+    /// @notice Get the balance of variable debt for a user on the Variable Pool
+    /// @param state The state struct
+    /// @param account The user's address
+    function variableDebtTokenBalanceOf(State storage state, address account) public view returns (uint256) {
+        VariableDebtToken token = VariableDebtToken(
+            state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).variableDebtTokenAddress
+        );
+        Vault vault = state.data.users[account].vaultVariable;
+        return token.balanceOf(address(vault));
     }
 
     /// @notice Get the liquidity index of Size Variable Pool (Aave v3 fork)

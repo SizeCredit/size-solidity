@@ -49,7 +49,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed - amount);
         assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed + amount);
         assertEq(_after.variablePool.collateralTokenBalanceFixed, _before.variablePool.collateralTokenBalanceFixed);
-        assertEq(_after.bob.debtBalance, debt + repayFee);
+        assertEq(_after.bob.debtBalanceFixed, debt + repayFee);
     }
 
     function testFuzz_BorrowAsMarketOrder_borrowAsMarketOrder_with_real_collateral(
@@ -83,7 +83,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed - amount);
         assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed + amount);
         assertEq(_after.variablePool.collateralTokenBalanceFixed, _before.variablePool.collateralTokenBalanceFixed);
-        assertEq(_after.bob.debtBalance, debt + repayFee);
+        assertEq(_after.bob.debtBalanceFixed, debt + repayFee);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral() public {
@@ -116,7 +116,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
             _before.feeRecipient.borrowATokenBalanceFixed + size.config().earlyLenderExitFee
         );
         assertEq(_after.variablePool.collateralTokenBalanceFixed, _before.variablePool.collateralTokenBalanceFixed);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
+        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed);
         assertEq(_after.bob, _before.bob);
         assertTrue(!size.isDebtPositionId(loanId2));
     }
@@ -171,7 +171,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
             _before.feeRecipient.borrowATokenBalanceFixed + size.config().earlyLenderExitFee
         );
         assertEq(_after.variablePool.collateralTokenBalanceFixed, _before.variablePool.collateralTokenBalanceFixed);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
+        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed);
         assertEq(_after.bob, _before.bob);
         assertTrue(!size.isDebtPositionId(loanId2));
     }
@@ -210,7 +210,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertLt(_after.candy.borrowATokenBalanceFixed, _before.candy.borrowATokenBalanceFixed);
         assertGt(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed);
         assertEq(_after.variablePool.collateralTokenBalanceFixed, _before.variablePool.collateralTokenBalanceFixed);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
+        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed + faceValue + repayFee);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isDebtPositionId(loanId2));
         assertEq(size.getDebt(loanId2), faceValue + repayFee);
@@ -263,7 +263,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
             _before.feeRecipient.borrowATokenBalanceFixed + size.config().earlyLenderExitFee
         );
         assertEq(_after.variablePool.collateralTokenBalanceFixed, _before.variablePool.collateralTokenBalanceFixed);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
+        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed + faceValue + repayFee);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isDebtPositionId(loanId2));
         assertEq(size.getDebt(loanId2), faceValue + repayFee);
@@ -291,7 +291,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertLt(_after.candy.borrowATokenBalanceFixed, _before.candy.borrowATokenBalanceFixed);
         assertGt(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed);
         assertEq(_after.variablePool.collateralTokenBalanceFixed, _before.variablePool.collateralTokenBalanceFixed);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
+        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed);
         assertEq(_after.bob, _before.bob);
         assertTrue(!size.isDebtPositionId(loanId2));
     }
@@ -382,7 +382,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
             _before.feeRecipient.borrowATokenBalanceFixed,
             size.config().earlyLenderExitFee
         );
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + 103e6 + repayFee);
+        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed + 103e6 + repayFee);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_CreditPosition_of_CreditPosition_creates_with_correct_debtPositionId(
@@ -495,7 +495,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         assertEq(_after.alice, _before.alice);
         assertEq(_after.bob, _before.bob);
-        assertEq(_after.bob.debtBalance, 0);
+        assertEq(_after.bob.debtBalanceFixed, 0);
         assertEq(_after.variablePool.collateralTokenBalanceFixed, _before.variablePool.collateralTokenBalanceFixed);
         (uint256 debtPositions,) = size.getPositionsCount();
         assertEq(debtPositions, 0);

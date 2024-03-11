@@ -376,14 +376,14 @@ contract ExperimentsTest is Test, BaseTest {
         DebtPosition memory fol = size.getDebtPosition(0);
         uint256 repayFee = size.repayFee(0);
         assertEq(fol.borrower, alice, "Alice should be the borrower");
-        assertEq(_state().alice.debtBalance, fol.faceValue + repayFee, "Alice should have the debt");
+        assertEq(_state().alice.debtBalanceFixed, fol.faceValue + repayFee, "Alice should have the debt");
 
-        assertEq(_state().candy.debtBalance, 0, "Candy should have no debt");
+        assertEq(_state().candy.debtBalanceFixed, 0, "Candy should have no debt");
         // Perform the liquidation with replacement
         _deposit(liquidator, usdc, 10_000e6);
         _liquidateWithReplacement(liquidator, 0, candy);
-        assertEq(_state().alice.debtBalance, 0, "Alice should have no debt after");
-        assertEq(_state().candy.debtBalance, fol.faceValue + repayFee, "Candy should have the debt after");
+        assertEq(_state().alice.debtBalanceFixed, 0, "Alice should have no debt after");
+        assertEq(_state().candy.debtBalanceFixed, fol.faceValue + repayFee, "Candy should have the debt after");
     }
 
     function test_Experiments_testBasicCompensate1() public {
@@ -421,10 +421,10 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(bob, weth, 50e18);
 
         // Bob borrows as market order from Candy
-        uint256 bobDebtBefore = _state().bob.debtBalance;
+        uint256 bobDebtBefore = _state().bob.debtBalanceFixed;
         uint256 loanId2 = _borrowAsMarketOrder(bob, candy, amountToBorrow, dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
-        uint256 bobDebtAfter = _state().bob.debtBalance;
+        uint256 bobDebtAfter = _state().bob.debtBalanceFixed;
         assertGt(bobDebtAfter, bobDebtBefore, "Bob's debt should increase");
 
         // Bob compensates
@@ -432,7 +432,7 @@ contract ExperimentsTest is Test, BaseTest {
         _compensate(bob, creditPositionId2, creditPositionToCompensateId, type(uint256).max);
 
         assertEq(
-            _state().bob.debtBalance,
+            _state().bob.debtBalanceFixed,
             bobDebtBefore,
             "Bob's total debt covered by real collateral should revert to previous state"
         );

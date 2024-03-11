@@ -39,7 +39,8 @@ struct UserView {
     uint256 collateralATokenBalanceVariable;
     uint256 borrowATokenBalanceFixed;
     uint256 borrowATokenBalanceVariable;
-    uint256 debtBalance;
+    uint256 debtBalanceFixed;
+    uint256 debtBalanceVariable;
 }
 
 struct DataView {
@@ -124,7 +125,8 @@ abstract contract SizeView is SizeStorage {
             collateralATokenBalanceVariable: state.aTokenBalanceOf(state.data.collateralAToken, user, true),
             borrowATokenBalanceFixed: state.aTokenBalanceOf(state.data.borrowAToken, user, false),
             borrowATokenBalanceVariable: state.aTokenBalanceOf(state.data.borrowAToken, user, true),
-            debtBalance: state.data.debtToken.balanceOf(user)
+            debtBalanceFixed: state.data.debtToken.balanceOf(user),
+            debtBalanceVariable: state.variableDebtTokenBalanceOf(user)
         });
     }
 

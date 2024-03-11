@@ -32,7 +32,7 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue - repayFee);
+        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed - faceValue - repayFee);
         assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - faceValue);
         assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed);
         assertEq(_after.size.borrowATokenBalanceFixed, _before.size.borrowATokenBalanceFixed + faceValue);
@@ -62,7 +62,7 @@ contract RepayTest is BaseTest {
 
         Vars memory _overdue = _state();
 
-        assertEq(_overdue.bob.debtBalance, _before.bob.debtBalance);
+        assertEq(_overdue.bob.debtBalanceFixed, _before.bob.debtBalanceFixed);
         assertEq(_overdue.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed);
         assertEq(_overdue.variablePool.borrowATokenBalanceFixed, _before.variablePool.borrowATokenBalanceFixed);
         assertGt(size.getDebt(debtPositionId), 0);
@@ -72,7 +72,7 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue - repayFee);
+        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed - faceValue - repayFee);
         assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - faceValue);
         assertEq(_after.variablePool.borrowATokenBalanceFixed, _before.variablePool.borrowATokenBalanceFixed);
         assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed);

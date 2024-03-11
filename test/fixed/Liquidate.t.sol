@@ -138,7 +138,7 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - debt - repayFee, 0);
+        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed - debt - repayFee, 0);
     }
 
     function test_Liquidate_liquidate_can_be_called_unprofitably() public {
@@ -203,7 +203,7 @@ contract LiquidateTest is BaseTest {
         uint256 assignedCollateralAfterFee = Math.mulDivDown(
             _before.bob.collateralTokenBalanceFixed,
             size.getDebtPosition(debtPositionId).faceValue,
-            (_before.bob.debtBalance - size.repayFee(debtPositionId))
+            (_before.bob.debtBalanceFixed - size.repayFee(debtPositionId))
         );
 
         uint256 repayFee = size.partialRepayFee(debtPositionId, size.getDebtPosition(debtPositionId).faceValue);
@@ -232,8 +232,8 @@ contract LiquidateTest is BaseTest {
                 - repayFeeCollateral
         );
         assertEq(size.getDebt(debtPositionId), 0);
-        assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
-        assertEq(_after.bob.debtBalance, 0);
+        assertLt(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed);
+        assertEq(_after.bob.debtBalanceFixed, 0);
     }
 
     function test_Liquidate_liquidate_move_to_VP_should_claim_later_with_interest() public {

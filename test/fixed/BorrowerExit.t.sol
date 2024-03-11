@@ -39,8 +39,8 @@ contract BorrowerExitTest is BaseTest {
 
         assertGt(_after.candy.borrowATokenBalanceFixed, _before.candy.borrowATokenBalanceFixed);
         assertLt(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed);
-        assertGt(_after.candy.debtBalance, _before.candy.debtBalance);
-        assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
+        assertGt(_after.candy.debtBalanceFixed, _before.candy.debtBalanceFixed);
+        assertLt(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed);
         assertEq(creditPositionAfter.credit, creditPositionBefore.credit);
         assertEq(
             _after.feeRecipient.borrowATokenBalanceFixed,
@@ -84,7 +84,7 @@ contract BorrowerExitTest is BaseTest {
             _before.feeRecipient.borrowATokenBalanceFixed + size.config().earlyBorrowerExitFee
         );
         assertEq(_after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed);
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance);
+        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed);
         assertEq(
             _after.bob.borrowATokenBalanceFixed,
             _before.bob.borrowATokenBalanceFixed - size.config().earlyBorrowerExitFee
@@ -155,7 +155,7 @@ contract BorrowerExitTest is BaseTest {
         assertEq(ratePerMaturity, 0.1e18);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
-        assertEq(_state().alice.debtBalance, 1101e6);
+        assertEq(_state().alice.debtBalanceFixed, 1101e6);
 
         uint256 aliceCollateralBefore = _state().alice.collateralTokenBalanceFixed;
 
@@ -177,16 +177,16 @@ contract BorrowerExitTest is BaseTest {
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate + 30 days);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 1100e6);
-        assertEq(_state().alice.debtBalance, 0);
-        assertEq(_state().candy.debtBalance, 1100e6 + newRepayFee);
+        assertEq(_state().alice.debtBalanceFixed, 0);
+        assertEq(_state().candy.debtBalanceFixed, 1100e6 + newRepayFee);
         assertEq(
             aliceCollateralAfter, aliceCollateralBefore - size.debtTokenAmountToCollateralTokenAmount(earlyRepayFee)
         );
 
         _deposit(candy, usdc, 1100e6 - 880e6 + 1 /* rounding */ );
         _repay(candy, debtPositionId);
-        assertEq(_state().alice.debtBalance, 0);
-        assertEq(_state().candy.debtBalance, 0);
+        assertEq(_state().alice.debtBalanceFixed, 0);
+        assertEq(_state().candy.debtBalanceFixed, 0);
         assertEq(_state().feeRecipient.borrowATokenBalanceFixed, size.config().earlyBorrowerExitFee);
         assertEq(
             _state().feeRecipient.collateralTokenBalanceFixed,

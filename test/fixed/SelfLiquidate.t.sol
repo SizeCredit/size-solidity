@@ -45,7 +45,7 @@ contract SelfLiquidateTest is BaseTest {
 
         assertEq(_after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed - 150e18, 0);
         assertEq(_after.alice.collateralTokenBalanceFixed, _before.alice.collateralTokenBalanceFixed + 150e18);
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
+        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed - 100e6);
     }
 
     function test_SelfLiquidate_selfliquidate_CreditPosition_keeps_accounting_in_check() public {
@@ -94,7 +94,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(_after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed - 150e18, 0);
         assertEq(_after.candy.collateralTokenBalanceFixed, _before.candy.collateralTokenBalanceFixed + 150e18);
         assertEq(_after.feeRecipient.borrowATokenBalanceFixed, _before.feeRecipient.borrowATokenBalanceFixed);
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
+        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed - 100e6);
     }
 
     function test_SelfLiquidate_selfliquidate_DebtPosition_should_not_leave_dust_loan_when_no_exits() public {

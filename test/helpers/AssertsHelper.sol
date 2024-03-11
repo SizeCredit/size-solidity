@@ -45,7 +45,7 @@ abstract contract AssertsHelper is Test {
         );
         assertEq(a.borrowATokenBalanceFixed, b.borrowATokenBalanceFixed, "borrowATokenBalanceFixed");
         assertEq(a.borrowATokenBalanceVariable, b.borrowATokenBalanceVariable, "borrowATokenBalanceVariable");
-        assertEq(a.debtBalance, b.debtBalance, "debtBalance");
+        assertEq(a.debtBalanceFixed, b.debtBalanceFixed, "debtBalanceFixed");
     }
 
     function assertIn(bytes4 a, bytes4[3] memory array) internal {

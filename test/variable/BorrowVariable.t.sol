@@ -11,7 +11,7 @@ contract BorrowVariableTest is BaseTest {
         _borrowVariable(alice, 100e6);
         assertEq(size.getUserView(alice).borrowATokenBalanceFixed, 0);
         assertEq(size.getUserView(alice).borrowATokenBalanceVariable, 100e6);
-        assertEq(size.getUserView(alice).debtBalance, 0);
+        assertEq(size.getUserView(alice).debtBalanceFixed, 0);
         assertEq(size.data().debtToken.totalSupply(), 0);
         assertEq(
             VariableDebtToken(variablePool.getReserveData(address(usdc)).variableDebtTokenAddress).balanceOf(
