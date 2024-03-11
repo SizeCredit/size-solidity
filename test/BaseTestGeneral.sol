@@ -34,14 +34,17 @@ abstract contract BaseTestGeneral is Test, Deploy {
     address internal feeRecipient = address(0x70000);
 
     function setUp() public virtual {
+        _labels();
+        setup(address(this), feeRecipient);
+    }
+
+    function _labels() internal {
         vm.label(alice, "alice");
         vm.label(bob, "bob");
         vm.label(candy, "candy");
         vm.label(james, "james");
         vm.label(liquidator, "liquidator");
         vm.label(feeRecipient, "feeRecipient");
-
-        setup(address(this), feeRecipient);
     }
 
     function _mint(address token, address user, uint256 amount) internal {

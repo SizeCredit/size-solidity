@@ -182,7 +182,7 @@ contract LiquidateTest is BaseTest {
         _deposit(alice, address(usdc), 100e6);
         _deposit(bob, address(weth), 160e18);
         _deposit(candy, address(usdc), 100e6);
-        _depositVariable(alice, address(usdc), 100e6);
+        _supplyVariable(alice, address(usdc), 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);

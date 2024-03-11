@@ -205,7 +205,7 @@ library Initialize {
         state.data.borrowAToken =
             IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
         state.data.debtToken = new NonTransferrableToken(
-            address(this), "Size Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+            address(this), "Size Debt Token", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
 
         state.data.vaultImplementation = new Vault();
