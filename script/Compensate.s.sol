@@ -24,7 +24,7 @@ contract CompensateScript is Script, Logger {
 
         console.log(currentAddress);
 
-        uint256 balance = sizeView.getUserView(currentAddress).collateralBalance;
+        uint256 balance = sizeView.getUserView(currentAddress).collateralTokenBalanceFixed;
         uint256 debt = sizeView.getUserView(currentAddress).debtBalance;
 
         log(address(sizeView));

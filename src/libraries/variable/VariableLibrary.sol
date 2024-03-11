@@ -3,18 +3,19 @@ pragma solidity 0.8.24;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
-import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+
+import {DataTypes} from "@aave/protocol/libraries/types/DataTypes.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {Events} from "@src/libraries/Events.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 
+import {UserLibrary} from "@src/libraries/fixed/UserLibrary.sol";
 import {Vault} from "@src/proxy/Vault.sol";
 
 /// @title VariableLibrary
@@ -25,87 +26,112 @@ library VariableLibrary {
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
+    using UserLibrary for State;
 
-    /// @notice Get the vault for a user
-    /// @dev If the user does not have a vault, create one
-    /// @param state The state struct
-    /// @param user The user's address
-    /// @return vault The user's vault
-    function getVault(State storage state, address user) public returns (Vault) {
-        if (address(state.data.users[user].vault) != address(0)) {
-            return state.data.users[user].vault;
-        }
-        Vault vault = Vault(payable(Clones.clone(address(state.data.vaultImplementation))));
-        emit Events.CreateVault(user, address(vault));
-        vault.initialize(address(this));
-        state.data.users[user].vault = vault;
-        return vault;
-    }
-
-    /// @notice Deposit underlying borrow tokens into the variable pool
-    /// @dev Assumes `from` has approvet to `address(this)` the `amount` of `underlyingBorrowToken`
+    /// @notice Deposit underlyin tokens into the variable pool
+    /// @dev Assumes `from` has approved to `address(this)` the `amount` of `underlyingToken`
     ///      The deposit is made to the vault of `to`
+    ///      Note: Only the underlying collateral token should be set as collateral
+    ///      Note: `setUseReserveAsCollateral` can later be optimized so that it is called only once per vault
     /// @param state The state struct
+    /// @param underlyingToken The underlying token
     /// @param from The address of the depositor
     /// @param to The address of the recipient
     /// @param amount The amount of tokens to deposit
-    function depositUnderlyingBorrowTokenToVariablePool(State storage state, address from, address to, uint256 amount)
-        external
-    {
-        IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
+    /// @param variable Whether to deposit on the vault for variable or fixed-rate lending
+    /// @param setUseReserveAsCollateral Whether to set the collateral as collateral.
+    function depositUnderlyingTokenToVariablePool(
+        State storage state,
+        IERC20Metadata underlyingToken,
+        address from,
+        address to,
+        uint256 amount,
+        bool variable,
+        bool setUseReserveAsCollateral
+    ) external {
+        underlyingToken.safeTransferFrom(from, address(this), amount);
 
-        underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
+        Vault vaultTo = variable ? state.getVaultVariable(to) : state.getVaultFixed(to);
 
-        Vault vaultTo = getVault(state, to);
+        underlyingToken.forceApprove(address(state.data.variablePool), amount);
+        state.data.variablePool.supply(address(underlyingToken), amount, address(vaultTo), 0);
 
-        underlyingBorrowToken.forceApprove(address(state.data.variablePool), amount);
-        state.data.variablePool.supply(address(underlyingBorrowToken), amount, address(vaultTo), 0);
+        // set underlyingToken as collateral
+        if (setUseReserveAsCollateral) {
+            // slither-disable-next-line unused-return
+            vaultTo.proxy(
+                address(state.data.variablePool),
+                abi.encodeCall(IPool.setUserUseReserveAsCollateral, (address(underlyingToken), true))
+            );
+        }
     }
 
-    /// @notice Withdraw underlying borrow tokens from the variable pool
+    /// @notice Withdraw underlying tokens from the variable pool
     /// @dev Assumes `from` has enough aTokens to withdraw
     ///      The withdraw is made from the vault of `from`
     /// @param state The state struct
+    /// @param aToken The aToken
     /// @param from The address of the withdrawer
     /// @param to The address of the recipient
     /// @param amount The amount of tokens to withdraw
-    function withdrawUnderlyingBorrowTokenFromVariablePool(
+    /// @param variable Whether to withdrawm from the vault for variable or fixed-rate lending
+    function withdrawUnderlyingTokenFromVariablePool(
         State storage state,
+        IAToken aToken,
         address from,
         address to,
-        uint256 amount
+        uint256 amount,
+        bool variable
     ) external {
-        if (borrowATokenBalanceOf(state, from) < amount) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
+        if (aTokenBalanceOf(state, aToken, from, variable) < amount) {
+            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
+                address(aToken), from, variable, aTokenBalanceOf(state, aToken, from, variable), amount
+            );
         }
 
-        IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
+        address underlyingToken = aToken.UNDERLYING_ASSET_ADDRESS();
 
-        Vault vaultFrom = getVault(state, from);
+        Vault vaultFrom = variable ? state.getVaultVariable(from) : state.getVaultFixed(from);
+
+        // slither-disable-next-line unused-return
+        vaultFrom.proxy(address(state.data.variablePool), abi.encodeCall(IPool.withdraw, (underlyingToken, amount, to)));
+    }
+
+    /// @notice Repay a variable loan from the variable pool
+    /// @param state The state struct
+    /// @param from The address of the repayer
+    /// @param amount The amount of tokens to repay
+    function repayVariableLoan(State storage state, address from, uint256 amount) external {
+        // @audit Validate if we can use `repayWithATokens` without reaching any caps
+        Vault vaultFrom = state.getVaultVariable(from);
 
         // slither-disable-next-line unused-return
         vaultFrom.proxy(
             address(state.data.variablePool),
-            abi.encodeCall(IPool.withdraw, (address(underlyingBorrowToken), amount, to))
+            abi.encodeCall(
+                IPool.repayWithATokens,
+                (address(state.data.underlyingBorrowToken), amount, uint256(DataTypes.InterestRateMode.VARIABLE))
+            )
         );
     }
 
-    /// @notice Transfer aTokens from one user to another
+    /// @notice Transfer aTokens from one user to another, from the vault destined to fixed-rate loans
     /// @dev Assumes `from` has enough aTokens to transfer
     ///      The transfer is made from the vault of `from` to the vault of `to`
     /// @param state The state struct
     /// @param from The address of the sender
     /// @param to The address of the recipient
     /// @param amount The amount of aTokens to transfer
-    function transferBorrowAToken(State storage state, address from, address to, uint256 amount) public {
-        if (borrowATokenBalanceOf(state, from) < amount) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
+    function transferBorrowATokenFixed(State storage state, address from, address to, uint256 amount) public {
+        IAToken borrowAToken = state.data.borrowAToken;
+        if (aTokenBalanceOf(state, borrowAToken, from, false) < amount) {
+            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
+                address(borrowAToken), from, false, aTokenBalanceOf(state, borrowAToken, from, false), amount
+            );
         }
 
-        IAToken borrowAToken = state.data.borrowAToken;
-
-        Vault vaultFrom = getVault(state, from);
-        Vault vaultTo = getVault(state, to);
+        Vault vaultFrom = state.getVaultFixed(from);
+        Vault vaultTo = state.getVaultFixed(to);
 
         // slither-disable-next-line unused-return
         vaultFrom.proxy(address(borrowAToken), abi.encodeCall(IERC20.transfer, (address(vaultTo), amount)));
@@ -115,6 +141,7 @@ library VariableLibrary {
     /// @dev Assumes `from` has enough collateral to borrow `amount`
     ///      The `supply` and `borrow` is made from the vault of `from` and on supplied to the vault of `to`
     ///      This function may revert due to the Variable Pool health check or liquidity conditions
+    ///      The borrow is made on behalf of the variable-rate vault of the `from` user and the supply is made to the fixed-rate vault of the `to` user
     /// @param state The state struct
     /// @param from The address of the borrower
     /// @param to The address of the recipient of aTokens
@@ -130,8 +157,8 @@ library VariableLibrary {
         IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
         IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
 
-        Vault vaultFrom = getVault(state, from);
-        Vault vaultTo = getVault(state, to);
+        Vault vaultFrom = state.getVaultVariable(from);
+        Vault vaultTo = state.getVaultFixed(to);
 
         // unwrap collateralToken (e.g. szETH) to underlyingCollateralToken (e.g. WETH) from `from` to `address(this)`
         state.withdrawUnderlyingCollateralToken(from, address(this), collateralBalance);
@@ -150,7 +177,14 @@ library VariableLibrary {
         // borrow
         targets[1] = address(state.data.variablePool);
         data[1] = abi.encodeCall(
-            IPool.borrow, (address(underlyingBorrowToken), borrowATokenBalance, 2, 0, address(vaultFrom))
+            IPool.borrow,
+            (
+                address(underlyingBorrowToken),
+                borrowATokenBalance,
+                uint256(DataTypes.InterestRateMode.VARIABLE),
+                0,
+                address(vaultFrom)
+            )
         );
 
         // transfer to `address(this)`
@@ -165,17 +199,18 @@ library VariableLibrary {
         state.data.variablePool.supply(address(underlyingBorrowToken), borrowATokenBalance, address(vaultTo), 0);
     }
 
-    /// @notice Get the balance of aTokens for a user
+    /// @notice Get the balance of borrow aTokens for a user on the Variable Pool
     /// @param state The state struct
     /// @param account The user's address
+    /// @param variable Whether to get the balance for the variable or fixed-rate vault
     /// @return The balance of aTokens
-    function borrowATokenBalanceOf(State storage state, address account) public view returns (uint256) {
-        Vault vault = state.data.users[account].vault;
-        if (address(vault) == address(0)) {
-            return 0;
-        } else {
-            return state.data.borrowAToken.balanceOf(address(vault));
-        }
+    function aTokenBalanceOf(State storage state, IAToken aToken, address account, bool variable)
+        public
+        view
+        returns (uint256)
+    {
+        Vault vault = variable ? state.data.users[account].vaultVariable : state.data.users[account].vaultFixed;
+        return aToken.balanceOf(address(vault));
     }
 
     /// @notice Get the liquidity index of Size Variable Pool (Aave v3 fork)

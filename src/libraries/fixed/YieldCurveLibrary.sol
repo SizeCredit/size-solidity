@@ -9,7 +9,7 @@ import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 struct YieldCurve {
     uint256[] maturities;
     int256[] aprs;
-    int256[] marketRateMultipliers;
+    uint256[] marketRateMultipliers;
 }
 
 /// @title YieldCurveLibrary
@@ -59,7 +59,7 @@ library YieldCurveLibrary {
     function getRatePerMaturityByDueDate(
         uint256 maturity,
         int256 apr,
-        int256 marketRateMultiplier,
+        uint256 marketRateMultiplier,
         IMarketBorrowRateFeed marketBorrowRateFeed
     ) internal view returns (uint256) {
         // @audit Check if the result should be capped to 0 instead of reverting
@@ -72,8 +72,7 @@ library YieldCurveLibrary {
             uint128 marketRateCompound = marketBorrowRateFeed.getMarketBorrowRate();
             uint256 marketRateLinear = Math.compoundAPRToRatePerMaturity(marketRateCompound, maturity);
             return SafeCast.toUint256(
-                ratePerMaturity
-                    + Math.mulDiv(SafeCast.toInt256(marketRateLinear), marketRateMultiplier, SafeCast.toInt256(PERCENT))
+                ratePerMaturity + SafeCast.toInt256(Math.mulDivDown(marketRateLinear, marketRateMultiplier, PERCENT))
             );
         }
     }

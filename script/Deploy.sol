@@ -45,6 +45,7 @@ abstract contract Deploy {
         usdc = new USDC(owner);
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
+        PoolMock(address(variablePool)).setLiquidityIndex(address(weth), WadRayMath.RAY);
         c = InitializeConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
