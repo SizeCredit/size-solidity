@@ -112,8 +112,8 @@ library VariableLibrary {
         bytes[] memory data = new bytes[](2);
 
         // borrow
-        targets[1] = address(state.data.variablePool);
-        data[1] = abi.encodeCall(
+        targets[0] = address(state.data.variablePool);
+        data[0] = abi.encodeCall(
             IPool.borrow,
             (
                 address(underlyingBorrowToken),
@@ -125,8 +125,8 @@ library VariableLibrary {
         );
 
         // transfer to `address(this)`
-        targets[2] = address(state.data.underlyingBorrowToken);
-        data[2] = abi.encodeCall(IERC20.transfer, (address(this), amount));
+        targets[1] = address(state.data.underlyingBorrowToken);
+        data[1] = abi.encodeCall(IERC20.transfer, (address(this), amount));
 
         // slither-disable-next-line unused-return
         vaultFrom.proxy(targets, data);

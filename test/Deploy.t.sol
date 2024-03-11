@@ -66,7 +66,7 @@ contract DeployScriptTest is ForkTest {
     function testFork_Deploy_RevertWith_depositVariable_borrowVariable_low_liquidity() public {
         _depositVariable(alice, usdc, 2_500e6);
         _depositVariable(candy, weth, 2e18);
-        _borrowVariable(candy, usdc, 2_000e6);
+        _borrowVariable(candy, 2_000e6);
         assertEq(aToken.balanceOf(alice), 2_500e6);
         assertEq(aToken.scaledBalanceOf(alice), 2_500e6);
 
@@ -86,7 +86,7 @@ contract DeployScriptTest is ForkTest {
         vm.warp(block.timestamp + 30 days);
 
         _depositVariable(candy, weth, 2e18);
-        _borrowVariable(candy, usdc, 2_000e6);
+        _borrowVariable(candy, 2_000e6);
 
         assertEq(usdc.balanceOf(address(variablePool)), 500e6);
         assertEq(usdc.balanceOf(candy), 2_000e6);

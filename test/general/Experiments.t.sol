@@ -594,7 +594,7 @@ contract ExperimentsTest is Test, BaseTest {
         vm.warp(block.timestamp + 30 days);
 
         _depositVariable(candy, weth, 2e18);
-        _borrowVariable(candy, usdc, 2_000e6);
+        _borrowVariable(candy, 2_000e6);
 
         assertEq(usdc.balanceOf(address(variablePool)), 500e6);
         assertEq(usdc.balanceOf(candy), 2_000e6);

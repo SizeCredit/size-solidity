@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.24;
 
-import {IAaveIncentivesController} from "@aave/interfaces/IAaveIncentivesController.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/interfaces/IPoolAddressesProvider.sol";
 
 import {PoolAddressesProvider} from "@aave/protocol/configuration/PoolAddressesProvider.sol";
 import {AToken} from "@aave/protocol/tokenization/AToken.sol";
 
-import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {DataTypes} from "@aave/protocol/libraries/types/DataTypes.sol";
 
+import {MockIncentivesController} from "@aave/mocks/helpers/MockIncentivesController.sol";
+import {VariableDebtToken} from "@aave/protocol/tokenization/VariableDebtToken.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -24,70 +24,68 @@ contract PoolMock is Ownable {
     uint256 public constant RATE = 1.01e27;
     EnumerableMap.AddressToUintMap internal reserveIndexes;
     PoolAddressesProvider internal immutable addressesProvider;
-    mapping(address user => mapping(address asset => uint256 amount)) internal debts;
     mapping(address asset => AToken aToken) internal aTokens;
+    mapping(address asset => VariableDebtToken) internal debtTokens;
+    MockIncentivesController internal incentivesController;
 
     constructor() Ownable(msg.sender) {
         addressesProvider = new PoolAddressesProvider("", address(this));
     }
 
     function setLiquidityIndex(address asset, uint256 index) external onlyOwner {
-        _updateLiquidityIndex(asset);
-        reserveIndexes.set(asset, index);
-    }
-
-    function _updateLiquidityIndex(address asset) private {
         (bool exists,) = reserveIndexes.tryGet(asset);
         if (!exists) {
             aTokens[asset] = new AToken(IPool(address(this)));
+            debtTokens[asset] = new VariableDebtToken(IPool(address(this)));
 
             aTokens[asset].initialize(
                 IPool(address(this)),
                 owner(),
                 asset,
-                IAaveIncentivesController(address(0)),
+                incentivesController,
                 IERC20Metadata(asset).decimals(),
                 string.concat("Size aToken ", IERC20Metadata(asset).name()),
                 string.concat("asz", IERC20Metadata(asset).symbol()),
                 ""
             );
-            reserveIndexes.set(asset, WadRayMath.RAY);
-        } else {
-            // index = index * RATE / WadRayMath.RAY;
-            // reserveIndexes.set(asset, index);
+            debtTokens[asset].initialize(
+                IPool(address(this)),
+                asset,
+                incentivesController,
+                IERC20Metadata(asset).decimals(),
+                string.concat("Size debtToken ", IERC20Metadata(asset).name()),
+                string.concat("dsz", IERC20Metadata(asset).symbol()),
+                ""
+            );
         }
+        reserveIndexes.set(asset, index);
     }
 
     function supply(address asset, uint256 amount, address onBehalfOf, uint16) external {
-        _updateLiquidityIndex(asset);
         IERC20Metadata(asset).transferFrom(msg.sender, address(this), amount);
         aTokens[asset].mint(address(this), onBehalfOf, amount, reserveIndexes.get(asset));
     }
 
     function withdraw(address asset, uint256 amount, address to) external returns (uint256) {
-        _updateLiquidityIndex(asset);
         aTokens[asset].burn(msg.sender, address(aTokens[asset]), amount, reserveIndexes.get(asset));
         IERC20Metadata(asset).safeTransfer(to, amount);
         return amount;
     }
 
     function borrow(address asset, uint256 amount, uint256, uint16, address) external {
-        _updateLiquidityIndex(asset);
-        debts[msg.sender][asset] += amount;
+        debtTokens[asset].mint(msg.sender, msg.sender, amount, reserveIndexes.get(asset));
         IERC20Metadata(asset).safeTransfer(msg.sender, amount);
     }
 
     function repay(address asset, uint256 amount, uint256, address onBehalfOf) external returns (uint256) {
-        _updateLiquidityIndex(asset);
-        debts[onBehalfOf][asset] -= amount;
+        debtTokens[asset].burn(onBehalfOf, amount, reserveIndexes.get(asset));
         IERC20Metadata(asset).transferFrom(msg.sender, address(this), amount);
         return amount;
     }
 
     function repayWithATokens(address asset, uint256 amount, uint256) external returns (uint256) {
-        _updateLiquidityIndex(asset);
-        amount = Math.min(amount, debts[msg.sender][asset]);
-        debts[msg.sender][asset] -= amount;
+        amount = Math.min(amount, debtTokens[asset].balanceOf(msg.sender));
+        debtTokens[asset].burn(msg.sender, amount, reserveIndexes.get(asset));
         aTokens[asset].burn(msg.sender, address(aTokens[asset]), amount, reserveIndexes.get(asset));
         return amount;
     }
@@ -111,9 +109,14 @@ contract PoolMock is Ownable {
         return reserveIndexes.get(asset);
     }
 
+    function getReserveNormalizedVariableDebt(address asset) external view returns (uint256) {
+        return reserveIndexes.get(asset);
+    }
+
     function getReserveData(address asset) external view returns (DataTypes.ReserveData memory) {
         DataTypes.ReserveData memory data;
         data.aTokenAddress = address(aTokens[asset]);
+        data.variableDebtTokenAddress = address(debtTokens[asset]);
         return data;
     }
 
