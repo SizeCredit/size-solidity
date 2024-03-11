@@ -2,6 +2,8 @@
 pragma solidity 0.8.24;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
+
+import {Errors} from "@src/libraries/Errors.sol";
 import {Test} from "forge-std/Test.sol";
 
 import {BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
@@ -20,7 +22,7 @@ abstract contract BaseTestVariable is Test, BaseTestGeneral {
     }
 
     function _borrowVariable(address user, IERC20Metadata token, uint256 amount) internal {
-        if (token != usdc) revert Error.INVALID_TOKEN(address(token));
+        if (token != usdc) revert Errors.INVALID_TOKEN(address(token));
         vm.prank(user);
         size.borrowVariable(BorrowVariableParams({amount: amount, to: user}));
     }
