@@ -21,7 +21,5 @@ contract LiquidateScript is Script, Logger {
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.liquidate(params);
         vm.stopBroadcast();
-
-        log(address(sizeContract));
     }
 }

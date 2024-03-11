@@ -37,7 +37,5 @@ contract LendAsMarketOrderScript is Script, Logger {
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.lendAsMarketOrder(params);
         vm.stopBroadcast();
-
-        log(address(sizeContract));
     }
 }

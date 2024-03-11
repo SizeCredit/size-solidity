@@ -204,12 +204,12 @@ contract ClaimTest is BaseTest {
             "Alice repaid amount is now on Size for claiming for DebtPosition/CreditPosition"
         );
         assertEq(
-            borrowAToken.scaledBalanceOf(size.getVaultFixedAddress(address(alice))),
+            borrowAToken.scaledBalanceOf(address(size.getUserView(alice).user.vaultFixed)),
             50e6,
             "Alice has 50e6 Scaled aTokens"
         );
         assertEq(
-            borrowAToken.scaledBalanceOf(size.getVaultFixedAddress(address(size))),
+            borrowAToken.scaledBalanceOf(address(size.getUserView(address(size)).user.vaultFixed)),
             50e6,
             "Size has 50e6 Scaled aTokens for claiming"
         );
@@ -226,10 +226,12 @@ contract ClaimTest is BaseTest {
             "Size had 100e6 for claiming, it 4x to 400e6, and Candy claimed 40e6, now there's 360e6 left for claiming"
         );
         assertEq(
-            borrowAToken.scaledBalanceOf(size.getVaultFixedAddress(address(candy))), 5e6, "Alice has 5e6 Scaled aTokens"
+            borrowAToken.scaledBalanceOf(address(size.getUserView(candy).user.vaultFixed)),
+            5e6,
+            "Alice has 5e6 Scaled aTokens"
         );
         assertEq(
-            borrowAToken.scaledBalanceOf(size.getVaultFixedAddress(address(size))),
+            borrowAToken.scaledBalanceOf(address(size.getUserView(address(size)).user.vaultFixed)),
             45e6,
             "Size has 45e6 Scaled aTokens for claiming"
         );
@@ -247,10 +249,12 @@ contract ClaimTest is BaseTest {
         assertEq(_s4.candy.borrowATokenBalanceFixed, 80e6, "Candy borrowed 40e6 2x, so it is now 80e6");
         assertEq(_s4.size.borrowATokenBalanceFixed, 0, "Size has 0 because everything was claimed");
         assertEq(
-            borrowAToken.scaledBalanceOf(size.getVaultFixedAddress(address(candy))), 5e6, "Alice has 5e6 Scaled aTokens"
+            borrowAToken.scaledBalanceOf(address(size.getUserView(candy).user.vaultFixed)),
+            5e6,
+            "Alice has 5e6 Scaled aTokens"
         );
         assertEq(
-            borrowAToken.scaledBalanceOf(size.getVaultFixedAddress(address(size))),
+            borrowAToken.scaledBalanceOf(address(size.getUserView(address(size)).user.vaultFixed)),
             0,
             "Size has 0 Scaled aTokens for claiming"
         );

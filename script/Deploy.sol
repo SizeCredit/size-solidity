@@ -17,18 +17,20 @@ import {MarketBorrowRateFeedMock} from "@test/mocks/MarketBorrowRateFeedMock.sol
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {Size} from "@src/Size.sol";
+
 import {
     Initialize,
     InitializeConfigParams,
     InitializeDataParams,
     InitializeOracleParams
 } from "@src/libraries/general/actions/Initialize.sol";
+import {SizeMock} from "@test/mocks/SizeMock.t.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 
 abstract contract Deploy {
     ERC1967Proxy internal proxy;
-    Size internal size;
+    SizeMock internal size;
     IPriceFeed internal priceFeed;
     IMarketBorrowRateFeed internal marketBorrowRateFeed;
     WETH internal weth;
@@ -68,8 +70,8 @@ abstract contract Deploy {
             variablePool: address(variablePool) // Aave v3 fork
         });
 
-        proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (owner, c, o, d)));
-        size = Size(address(proxy));
+        proxy = new ERC1967Proxy(address(new SizeMock()), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        size = SizeMock(address(proxy));
 
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
@@ -101,7 +103,7 @@ abstract contract Deploy {
             underlyingBorrowToken: address(_usdc),
             variablePool: address(variablePool) // Aave v3 fork
         });
-        size = new Size();
+        size = SizeMock(address(new Size()));
         proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, c, o, d)));
     }
 
@@ -133,7 +135,7 @@ abstract contract Deploy {
             underlyingBorrowToken: address(_usdc),
             variablePool: address(variablePool) // Aave v3 fork
         });
-        size = new Size();
+        size = SizeMock(address(new Size()));
         proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, c, o, d)));
     }
 }

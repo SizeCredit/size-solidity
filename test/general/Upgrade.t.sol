@@ -6,7 +6,7 @@ import {Test} from "forge-std/Test.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {SizeV2} from "@test/mocks/SizeV2.sol";
+import {SizeMock} from "@test/mocks/SizeMock.t.sol";
 
 import {Size} from "@src/Size.sol";
 import {BaseTest} from "@test/BaseTest.sol";
@@ -16,19 +16,19 @@ contract UpgradeTest is Test, BaseTest {
         address owner = address(this);
         Size v1 = new Size();
         ERC1967Proxy proxy = new ERC1967Proxy(address(v1), abi.encodeCall(Size.initialize, (owner, c, o, d)));
-        Size v2 = new SizeV2();
+        Size v2 = new SizeMock();
 
         UUPSUpgradeable(address(proxy)).upgradeToAndCall(address(v2), "");
-        assertEq(SizeV2(address(proxy)).version(), 2);
+        assertEq(SizeMock(address(proxy)).version(), 2);
     }
 
     function test_Upgrade_proxy_can_be_upgraded_directly() public {
         address owner = address(this);
         Size v1 = new Size();
         ERC1967Proxy proxy = new ERC1967Proxy(address(v1), abi.encodeCall(Size.initialize, (owner, c, o, d)));
-        Size v2 = new SizeV2();
+        Size v2 = new SizeMock();
 
         Size(address(proxy)).upgradeToAndCall(address(v2), "");
-        assertEq(SizeV2(address(proxy)).version(), 2);
+        assertEq(SizeMock(address(proxy)).version(), 2);
     }
 }

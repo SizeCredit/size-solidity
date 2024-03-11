@@ -38,7 +38,5 @@ contract BorrowAsMarketOrder is Script, Logger {
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.borrowAsMarketOrder(params);
         vm.stopBroadcast();
-
-        log(address(sizeContract));
     }
 }

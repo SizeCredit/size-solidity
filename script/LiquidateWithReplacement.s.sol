@@ -42,7 +42,5 @@ contract LiquidateWithReplacementScript is Script, Logger {
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.liquidateWithReplacement(params);
         vm.stopBroadcast();
-
-        log(address(sizeContract));
     }
 }

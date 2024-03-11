@@ -59,8 +59,6 @@ contract MulticallScript is Script, Logger {
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.multicall(calls);
         vm.stopBroadcast();
-
-        log(address(sizeContract));
     }
 
     function createYieldCurve() internal pure returns (YieldCurve memory) {

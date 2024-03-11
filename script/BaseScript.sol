@@ -3,8 +3,10 @@ pragma solidity ^0.8.19;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {Size} from "@src/Size.sol";
+
 import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {SizeMock} from "@test/mocks/SizeMock.t.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 import {Script} from "forge-std/Script.sol";
@@ -72,7 +74,7 @@ abstract contract BaseScript is Script {
     function importDeployments()
         internal
         returns (
-            Size size,
+            SizeMock size,
             IMarketBorrowRateFeed marketBorrowRateFeed,
             IPriceFeed priceFeed,
             IPool variablePool,
@@ -88,7 +90,7 @@ abstract contract BaseScript is Script {
 
         string memory json = vm.readFile(path);
 
-        size = Size(abi.decode(json.parseRaw(".deployments.Size-proxy"), (address)));
+        size = SizeMock(abi.decode(json.parseRaw(".deployments.Size-proxy"), (address)));
         marketBorrowRateFeed =
             IMarketBorrowRateFeed(abi.decode(json.parseRaw(".deployments.MarketBorrowRateFeed"), (address)));
         priceFeed = IPriceFeed(abi.decode(json.parseRaw(".deployments.PriceFeed"), (address)));

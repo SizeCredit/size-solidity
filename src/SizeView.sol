@@ -128,10 +128,6 @@ abstract contract SizeView is SizeStorage {
         });
     }
 
-    function getVaultFixedAddress(address user) external view returns (address) {
-        return address(state.data.users[user].vaultFixed);
-    }
-
     function isDebtPositionId(uint256 debtPositionId) external view returns (bool) {
         return state.isDebtPositionId(debtPositionId);
     }
@@ -144,78 +140,8 @@ abstract contract SizeView is SizeStorage {
         return state.getDebtPosition(debtPositionId);
     }
 
-    function getDebtPositions() external view returns (DebtPosition[] memory debtPositions) {
-        uint256 length = state.data.nextDebtPositionId - DEBT_POSITION_ID_START;
-        debtPositions = new DebtPosition[](length);
-        for (uint256 i = 0; i < length; ++i) {
-            uint256 debtPositionId = DEBT_POSITION_ID_START + i;
-            debtPositions[i] = state.getDebtPosition(debtPositionId);
-        }
-    }
-
-    function getDebtPositions(uint256[] memory debtPositionIds)
-        external
-        view
-        returns (DebtPosition[] memory debtPositions)
-    {
-        uint256 length = debtPositionIds.length;
-        debtPositions = new DebtPosition[](length);
-        for (uint256 i = 0; i < length; ++i) {
-            debtPositions[i] = state.getDebtPosition(debtPositionIds[i]);
-        }
-    }
-
     function getCreditPosition(uint256 creditPositionId) external view returns (CreditPosition memory) {
         return state.getCreditPosition(creditPositionId);
-    }
-
-    function getCreditPositions() external view returns (CreditPosition[] memory creditPositions) {
-        uint256 length = state.data.nextCreditPositionId - CREDIT_POSITION_ID_START;
-        creditPositions = new CreditPosition[](length);
-        for (uint256 i = 0; i < length; ++i) {
-            uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
-            creditPositions[i] = state.getCreditPosition(creditPositionId);
-        }
-    }
-
-    function getCreditPositions(uint256[] memory creditPositionIds)
-        public
-        view
-        returns (CreditPosition[] memory creditPositions)
-    {
-        uint256 length = creditPositionIds.length;
-        creditPositions = new CreditPosition[](length);
-        for (uint256 i = 0; i < length; ++i) {
-            creditPositions[i] = state.getCreditPosition(creditPositionIds[i]);
-        }
-    }
-
-    function getCreditPositionIdsByDebtPositionId(uint256 debtPositionId)
-        public
-        view
-        returns (uint256[] memory creditPositionIds)
-    {
-        uint256 length = state.data.nextCreditPositionId - CREDIT_POSITION_ID_START;
-        creditPositionIds = new uint256[](length);
-        uint256 numberOfCreditPositions = 0;
-        for (uint256 i = 0; i < length; ++i) {
-            uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
-            if (state.getCreditPosition(creditPositionId).debtPositionId == debtPositionId) {
-                creditPositionIds[numberOfCreditPositions++] = creditPositionId;
-            }
-        }
-        // downsize array length
-        assembly {
-            mstore(creditPositionIds, numberOfCreditPositions)
-        }
-    }
-
-    function getCreditPositionsByDebtPositionId(uint256 debtPositionId)
-        external
-        view
-        returns (CreditPosition[] memory creditPositions)
-    {
-        return getCreditPositions(getCreditPositionIdsByDebtPositionId(debtPositionId));
     }
 
     function getLoanStatus(uint256 positionId) external view returns (LoanStatus) {
