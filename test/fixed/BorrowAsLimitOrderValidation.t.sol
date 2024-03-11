@@ -16,7 +16,7 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
     function test_BorrowAsLimitOrder_validation() public {
         _deposit(alice, weth, 100e18);
         uint256[] memory maturities = new uint256[](2);
-        uint256[] memory marketRateMultipliers = new uint256[](2);
+        int256[] memory marketRateMultipliers = new int256[](2);
         maturities[0] = 1 days;
         maturities[1] = 2 days;
         int256[] memory rates1 = new int256[](1);

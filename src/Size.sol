@@ -21,7 +21,7 @@ import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/fix
 
 import {BorrowerExit, BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
-import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {Deposit, DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
@@ -34,16 +34,16 @@ import {
 } from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {Repay, RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidate, SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
-import {Withdraw, WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
-import {State} from "@src/SizeStorage.sol";
+import {SizeStorage, State} from "@src/SizeStorage.sol";
 
 import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
-import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
-
 import {SizeView} from "@src/SizeView.sol";
+
+import {State} from "@src/SizeStorage.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
@@ -76,7 +76,6 @@ contract Size is
     using Compensate for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
-    using RepayVariable for State;
 
     bytes32 public constant KEEPER_ROLE = "KEEPER_ROLE";
     bytes32 public constant PAUSER_ROLE = "PAUSER_ROLE";
@@ -220,16 +219,5 @@ contract Size is
     function compensate(CompensateParams calldata params) external override(ISize) whenNotPaused {
         state.validateCompensate(params);
         state.executeCompensate(params);
-    }
-
-    /// @inheritdoc ISize
-    function variablePoolAllowlisted(address account) external view override(ISize) whenNotPaused returns (bool) {
-        return state.data.variablePoolAllowlisted[account];
-    }
-
-    /// @inheritdoc ISize
-    function repayVariable(RepayVariableParams calldata params) external override(ISize) whenNotPaused {
-        state.validateRepayVariable(params);
-        state.executeRepayVariable(params);
     }
 }

@@ -9,11 +9,10 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
-
+import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
-import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
-import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -25,11 +24,10 @@ contract MulticallTest is BaseTest {
         deal(token, alice, amount);
         IERC20Metadata(token).approve(address(size), amount);
 
-        assertEq(size.getUserView(alice).borrowATokenBalanceFixed, 0);
+        assertEq(size.getUserView(alice).borrowATokenBalance, 0);
 
         bytes[] memory data = new bytes[](2);
-        data[0] =
-            abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice, variable: false})));
+        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
         data[1] = abi.encodeCall(
             size.lendAsLimitOrder,
             LendAsLimitOrderParams({
@@ -39,7 +37,7 @@ contract MulticallTest is BaseTest {
         );
         size.multicall(data);
 
-        assertEq(size.getUserView(alice).borrowATokenBalanceFixed, amount);
+        assertEq(size.getUserView(alice).borrowATokenBalance, amount);
     }
 
     function test_Multicall_multicall_cannot_execute_unauthorized_actions() public {
@@ -50,8 +48,7 @@ contract MulticallTest is BaseTest {
         IERC20Metadata(token).approve(address(size), amount);
 
         bytes[] memory data = new bytes[](2);
-        data[0] =
-            abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice, variable: false})));
+        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
         data[1] = abi.encodeCall(size.grantRole, (0x00, alice));
         vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, 0x00));
         size.multicall(data);
@@ -89,21 +86,17 @@ contract MulticallTest is BaseTest {
 
         bytes[] memory data = new bytes[](4);
         // deposit only the necessary to cover for the loan's faceValue
-        data[0] = abi.encodeCall(
-            size.deposit, DepositParams({token: address(usdc), amount: faceValue, to: liquidator, variable: false})
-        );
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: faceValue, to: liquidator}));
         // liquidate profitably (but does not enforce CR)
         data[1] = abi.encodeCall(
             size.liquidate, LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: 0})
         );
         // withdraw everything
         data[2] = abi.encodeCall(
-            size.withdraw,
-            WithdrawParams({token: address(weth), amount: type(uint256).max, to: liquidator, variable: false})
+            size.withdraw, WithdrawParams({token: address(weth), amount: type(uint256).max, to: liquidator})
         );
         data[3] = abi.encodeCall(
-            size.withdraw,
-            WithdrawParams({token: address(usdc), amount: type(uint256).max, to: liquidator, variable: false})
+            size.withdraw, WithdrawParams({token: address(usdc), amount: type(uint256).max, to: liquidator})
         );
         vm.prank(liquidator);
         size.multicall(data);
@@ -113,11 +106,11 @@ contract MulticallTest is BaseTest {
         uint256 afterLiquidatorWETH = weth.balanceOf(liquidator);
 
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - debt, 0);
-        assertEq(_after.liquidator.borrowATokenBalanceFixed, _before.liquidator.borrowATokenBalanceFixed, 0);
-        assertEq(_after.liquidator.collateralTokenBalanceFixed, _before.liquidator.collateralTokenBalanceFixed, 0);
+        assertEq(_after.liquidator.borrowATokenBalance, _before.liquidator.borrowATokenBalance, 0);
+        assertEq(_after.liquidator.collateralBalance, _before.liquidator.collateralBalance, 0);
         assertGt(
-            _after.feeRecipient.collateralTokenBalanceFixed,
-            _before.feeRecipient.collateralTokenBalanceFixed + repayFeeCollateral,
+            _after.feeRecipient.collateralBalance,
+            _before.feeRecipient.collateralBalance + repayFeeCollateral,
             "feeRecipient has repayFee and liquidation split"
         );
         assertEq(beforeLiquidatorWETH, 0);

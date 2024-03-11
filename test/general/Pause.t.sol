@@ -2,7 +2,7 @@
 pragma solidity 0.8.24;
 
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
 import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -14,7 +14,7 @@ contract PauseTest is BaseTest {
 
         size.pause();
         vm.expectRevert(abi.encodePacked(Pausable.EnforcedPause.selector));
-        size.deposit(DepositParams({token: address(weth), amount: 1e18, to: alice, variable: false}));
+        size.deposit(DepositParams({token: address(weth), amount: 1e18, to: alice}));
     }
 
     function test_Pause_pause_can_updateConfig() public {

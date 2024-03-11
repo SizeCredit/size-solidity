@@ -34,13 +34,9 @@ library Repay {
         if (msg.sender != debtPosition.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
-        if (state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false) < debtPosition.faceValue) {
-            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
-                address(state.data.borrowAToken),
-                msg.sender,
-                false,
-                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),
-                debtPosition.faceValue
+        if (state.borrowATokenBalanceOf(msg.sender) < debtPosition.faceValue) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
+                msg.sender, state.borrowATokenBalanceOf(msg.sender), debtPosition.faceValue
             );
         }
     }
@@ -49,9 +45,8 @@ library Repay {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
 
-        state.transferBorrowATokenFixed(msg.sender, address(this), faceValue);
-        state.chargeRepayFeeInCollateral(debtPosition, faceValue);
-        state.updateRepayFee(debtPosition, faceValue);
+        state.transferBorrowAToken(msg.sender, address(this), faceValue);
+        state.chargeAndUpdateRepayFeeInCollateral(debtPosition, faceValue);
         state.data.debtToken.burn(debtPosition.borrower, faceValue);
         debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 

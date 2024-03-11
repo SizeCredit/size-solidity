@@ -3,14 +3,13 @@ pragma solidity 0.8.24;
 
 import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
-/// @title Errors
+/// @title Events
 library Errors {
     error USER_IS_LIQUIDATABLE(address account, uint256 cr);
     error NULL_ADDRESS();
     error NULL_AMOUNT();
     error NULL_MAX_DUE_DATE();
     error NULL_ARRAY();
-    error NULL_OFFER();
     error MATURITIES_NOT_STRICTLY_INCREASING();
     error NULL_MATURITY();
     error ARRAY_LENGTHS_MISMATCH();
@@ -42,7 +41,7 @@ library Errors {
     error EXITER_IS_NOT_BORROWER(address exiter, address borrower);
     error REPAYER_IS_NOT_BORROWER(address repayer, address borrower);
 
-    error NOT_ENOUGH_ATOKEN_BALANCE(address token, address account, bool variable, uint256 balance, uint256 required);
+    error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(address account, uint256 balance, uint256 required);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE(uint256 credit, uint256 amountToCompensate);

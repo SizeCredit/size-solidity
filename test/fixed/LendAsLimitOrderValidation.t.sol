@@ -13,9 +13,9 @@ contract LendAsLimitOrderValidationTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
     function test_LendAsLimitOrder_validation() public {
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, address(usdc), 100e6);
         uint256 maxDueDate = 12;
-        uint256[] memory marketRateMultipliers = new uint256[](2);
+        int256[] memory marketRateMultipliers = new int256[](2);
         uint256[] memory maturities = new uint256[](2);
         maturities[0] = 1 days;
         maturities[1] = 2 days;
