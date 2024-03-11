@@ -97,6 +97,45 @@ library VariableLibrary {
         vaultFrom.proxy(address(state.data.variablePool), abi.encodeCall(IPool.withdraw, (underlyingToken, amount, to)));
     }
 
+    /// @notice Borrow a variable loan from the variable pool
+    /// @param state The state struct
+    /// @param from The address of the borrower
+    /// @param to The address of the recipient
+    /// @param amount The amount of tokens to borrow
+    function borrowVariableLoan(State storage state, address from, address to, uint256 amount) external {
+        IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
+
+        Vault vaultFrom = state.getVaultVariable(from);
+        Vault vaultTo = state.getVaultVariable(to);
+
+        address[] memory targets = new address[](2);
+        bytes[] memory data = new bytes[](2);
+
+        // borrow
+        targets[1] = address(state.data.variablePool);
+        data[1] = abi.encodeCall(
+            IPool.borrow,
+            (
+                address(underlyingBorrowToken),
+                amount,
+                uint256(DataTypes.InterestRateMode.VARIABLE),
+                0,
+                address(vaultFrom)
+            )
+        );
+
+        // transfer to `address(this)`
+        targets[2] = address(state.data.underlyingBorrowToken);
+        data[2] = abi.encodeCall(IERC20.transfer, (address(this), amount));
+
+        // slither-disable-next-line unused-return
+        vaultFrom.proxy(targets, data);
+
+        // supply to `to`
+        underlyingBorrowToken.forceApprove(address(state.data.variablePool), amount);
+        state.data.variablePool.supply(address(underlyingBorrowToken), amount, address(vaultTo), 0);
+    }
+
     /// @notice Repay a variable loan from the variable pool
     /// @param state The state struct
     /// @param from The address of the repayer
@@ -113,6 +152,45 @@ library VariableLibrary {
                 (address(state.data.underlyingBorrowToken), amount, uint256(DataTypes.InterestRateMode.VARIABLE))
             )
         );
+    }
+
+    /// @notice Liquidate a variable loan from the variable pool
+    /// @dev    The caller must have underlying collateral tokens on their vault
+    /// @param state The state struct
+    /// @param from The address of the liquidator
+    /// @param borrower The address of the liquidated borrower
+    /// @param amount The amount of debt to cover
+    function liquidateVariableLoan(State storage state, address from, address borrower, uint256 amount) external {
+        // @audit Validate if we can use `liquidationCall` without reaching any caps
+        Vault vaultFrom = state.getVaultVariable(from);
+        Vault vaultTo = state.getVaultVariable(borrower);
+
+        address[] memory targets = new address[](3);
+        bytes[] memory data = new bytes[](3);
+
+        // approve collateral
+        targets[0] = address(state.data.underlyingCollateralToken);
+        data[0] = abi.encodeCall(IERC20.approve, (address(state.data.variablePool), type(uint256).max));
+
+        // liquidate
+        targets[1] = address(state.data.variablePool);
+        data[1] = abi.encodeCall(
+            IPool.liquidationCall,
+            (
+                address(state.data.underlyingCollateralToken),
+                address(state.data.underlyingBorrowToken),
+                address(vaultTo),
+                amount,
+                true
+            )
+        );
+
+        // reset approval to 0
+        targets[2] = address(state.data.underlyingCollateralToken);
+        data[2] = abi.encodeCall(IERC20.approve, (address(state.data.variablePool), 0));
+
+        // slither-disable-next-line unused-return
+        vaultFrom.proxy(targets, data);
     }
 
     /// @notice Transfer aTokens from one user to another, from the vault destined to fixed-rate loans

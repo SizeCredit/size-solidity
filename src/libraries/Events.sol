@@ -23,7 +23,9 @@ library Events {
 
     // variable
 
+    event BorrowVariable(address indexed to, uint256 indexed amount);
     event RepayVariable(uint256 indexed amount);
+    event LiquidateVariable(address indexed borrower, uint256 indexed amount);
 
     // fixed
     event BorrowAsMarketOrder(
