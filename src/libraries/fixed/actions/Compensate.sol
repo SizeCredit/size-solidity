@@ -5,9 +5,7 @@ import {State} from "@src/SizeStorage.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
-import {CapERC20Library} from "@src/libraries/CapERC20Library.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -29,7 +27,6 @@ library Compensate {
     using LoanLibrary for CreditPosition;
     using VariableLibrary for State;
     using RiskLibrary for State;
-    using CapERC20Library for NonTransferrableToken;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
         CreditPosition storage creditPositionWithDebtToRepay =
@@ -93,9 +90,11 @@ library Compensate {
             Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue);
 
         // debt reduction
-        state.chargeRepayFeeInCollateral(debtPositionToRepay, amountToCompensate);
-        state.updateRepayFee(debtPositionToRepay, amountToCompensate);
+        state.chargeAndUpdateRepayFeeInCollateral(debtPositionToRepay, amountToCompensate);
         state.data.debtToken.burn(debtPositionToRepay.borrower, amountToCompensate);
+        if (debtPositionToRepay.getDebt() == 0) {
+            debtPositionToRepay.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+        }
         creditPositionWithDebtToRepay.credit -= amountToCompensate;
         state.validateMinimumCredit(creditPositionWithDebtToRepay.credit);
 
@@ -104,6 +103,7 @@ library Compensate {
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionToCompensateId,
             lender: debtPositionToRepay.lender,
+            borrower: msg.sender,
             credit: amountToCompensate
         });
     }

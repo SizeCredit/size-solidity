@@ -5,6 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
@@ -28,7 +29,7 @@ contract LendAsLimitOrderTest is BaseTest {
         _deposit(candy, weth, 300e18);
 
         uint256 maxDueDate = block.timestamp + 365 days;
-        uint256[] memory marketRateMultipliers = new uint256[](2);
+        int256[] memory marketRateMultipliers = new int256[](2);
         uint256[] memory maturities = new uint256[](2);
         maturities[0] = 30 days;
         maturities[1] = 60 days;

@@ -43,8 +43,6 @@ jobs:
         run: |
           forge test -vvv
         id: test
-        env:
-          API_KEY_INFURA: ${{ secrets.API_KEY_INFURA }} 
 
   slither:
     strategy:
@@ -168,7 +166,6 @@ jobs:
             out/MarketBorrowRateFeed.sol/MarketBorrowRateFeed.json
             out/WETH.sol/WETH.json
             out/USDC.sol/USDC.json
-            out/Errors.sol/Errors.json
 
       - name: Push
         run: |

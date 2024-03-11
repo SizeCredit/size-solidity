@@ -194,6 +194,17 @@ contract YieldCurveTest is Test, AssertsHelper {
         );
     }
 
+    function test_YieldCurve_getRate_with_non_null_marketBorrowRate_negative_multiplier() public {
+        YieldCurve memory curve = YieldCurveHelper.negativeMarketCurve();
+        marketBorrowRateFeed.setMarketBorrowRate(0.01337e18);
+
+        assertEq(
+            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, marketBorrowRateFeed, block.timestamp + 60 days),
+            SafeCast.toUint256(Math.linearAPRToRatePerMaturity(0.04e18, 60 days))
+                - Math.compoundAPRToRatePerMaturity(0.01337e18, 60 days)
+        );
+    }
+
     function test_YieldCurve_getRate_with_negative_rate() public {
         marketBorrowRateFeed.setMarketBorrowRate(0.07e18);
         YieldCurve memory curve = YieldCurveHelper.customCurve(20 days, -0.001e18, 40 days, -0.002e18);

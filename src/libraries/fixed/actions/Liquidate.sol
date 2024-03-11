@@ -92,7 +92,7 @@ library Liquidate {
         }
 
         state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
-        state.transferBorrowATokenFixed(msg.sender, address(this), debtPositionCopy.faceValue);
+        state.transferBorrowAToken(msg.sender, address(this), debtPositionCopy.faceValue);
     }
 
     function _executeLiquidateOverdue(
@@ -128,8 +128,7 @@ library Liquidate {
 
         emit Events.Liquidate(params.debtPositionId, params.minimumCollateralProfit, collateralRatio, loanStatus);
 
-        state.chargeRepayFeeInCollateral(debtPosition, debtPosition.faceValue);
-        state.updateRepayFee(debtPosition, debtPosition.faceValue);
+        state.chargeAndUpdateRepayFeeInCollateral(debtPosition, debtPosition.faceValue);
 
         // case 1a: the user is liquidatable profitably
         if (PERCENT <= collateralRatio && collateralRatio < state.config.crLiquidation) {

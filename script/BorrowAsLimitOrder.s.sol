@@ -25,9 +25,9 @@ contract BorrowAsLimitOrder is Script, Logger {
         aprs[0] = 0.1e18;
         aprs[1] = 0.2e18;
 
-        uint256[] memory marketRateMultipliers = new uint256[](2);
-        marketRateMultipliers[0] = 0;
-        marketRateMultipliers[1] = 0;
+        int256[] memory marketRateMultipliers = new int256[](2);
+        marketRateMultipliers[0] = int256(0);
+        marketRateMultipliers[1] = int256(0);
 
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});

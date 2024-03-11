@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
@@ -31,17 +31,8 @@ contract RepayValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(bob);
-        size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob, variable: false}));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.NOT_ENOUGH_ATOKEN_BALANCE.selector,
-                address(size.data().borrowAToken),
-                bob,
-                false,
-                20e6,
-                faceValue
-            )
-        );
+        size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, bob, 20e6, faceValue));
         size.repay(RepayParams({debtPositionId: debtPositionId}));
         vm.stopPrank();
 
