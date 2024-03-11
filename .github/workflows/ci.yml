@@ -168,6 +168,7 @@ jobs:
             out/MarketBorrowRateFeed.sol/MarketBorrowRateFeed.json
             out/WETH.sol/WETH.json
             out/USDC.sol/USDC.json
+            out/Errors.sol/Errors.json
 
       - name: Push
         run: |

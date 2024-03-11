@@ -12,21 +12,25 @@ import {
 // solhint-disable var-name-mixedcase
 /// @title Events
 library Events {
-    event Initialize(InitializeConfigParams c, InitializeOracleParams o, InitializeDataParams d);
-    event UpdateConfig(bytes32 key, uint256 value);
+    event Initialize(
+        InitializeConfigParams indexed c, InitializeOracleParams indexed o, InitializeDataParams indexed d
+    );
+    event UpdateConfig(bytes32 indexed key, uint256 value);
     event CreateVault(address indexed user, address indexed vault);
     event Deposit(address indexed token, address indexed to, uint256 amount);
     event Withdraw(address indexed token, address indexed to, uint256 amount);
     event BorrowAsMarketOrder(
         address indexed lender,
-        uint256 amount,
-        uint256 dueDate,
+        uint256 indexed amount,
+        uint256 indexed dueDate,
         bool exactAmountIn,
         uint256[] receivableCreditPositionIds
     );
     event BorrowAsLimitOrder(YieldCurve curveRelativeTime);
-    event LendAsMarketOrder(address indexed borrower, uint256 dueDate, uint256 amount, bool exactAmountIn);
-    event LendAsLimitOrder(uint256 maxDueDate, YieldCurve curveRelativeTime);
+    event LendAsMarketOrder(
+        address indexed borrower, uint256 indexed dueDate, uint256 indexed amount, bool exactAmountIn
+    );
+    event LendAsLimitOrder(uint256 indexed maxDueDate, YieldCurve indexed curveRelativeTime);
     event CreateDebtPosition(
         uint256 indexed debtPositionId,
         address indexed lender,
@@ -38,26 +42,30 @@ library Events {
     event CreateCreditPosition(
         uint256 indexed creditPositionId,
         address indexed lender,
-        address indexed borrower,
-        uint256 exitPositionId,
+        uint256 indexed exitPositionId,
         uint256 debtPositionId,
         uint256 credit
     );
-    event BorrowerExit(uint256 indexed debtPositionId, address borrowerExitedTo);
+    event BorrowerExit(uint256 indexed debtPositionId, address indexed borrowerExitedTo);
     event Repay(uint256 indexed debtPositionId);
     event Claim(uint256 indexed creditPositionId);
     event Liquidate(
-        uint256 indexed debtPositionId, uint256 minimumCollateralProfit, uint256 collateralRatio, LoanStatus loanStatus
+        uint256 indexed debtPositionId,
+        uint256 indexed minimumCollateralProfit,
+        uint256 indexed collateralRatio,
+        LoanStatus loanStatus
     );
     event SelfLiquidate(uint256 indexed creditPositionId);
     event LiquidateWithReplacement(
-        uint256 indexed debtPositionId, address indexed borrower, uint256 minimumCollateralProfit
+        uint256 indexed debtPositionId, address indexed borrower, uint256 indexed minimumCollateralProfit
     );
     event LiquidateUserLiquidatableProfitably(uint256 indexed debtPositionId);
     event LiquidateUserLiquidatableUnprofitably(uint256 indexed debtPositionId);
     event LiquidateOverdueMoveToVariablePool(uint256 indexed debtPositionId);
     event LiquidateOverdueNoSplitRemainder(uint256 indexed debtPositionId);
     event Compensate(
-        uint256 indexed creditPositionWithDebtToRepayId, uint256 indexed creditPositionToCompensateId, uint256 amount
+        uint256 indexed creditPositionWithDebtToRepayId,
+        uint256 indexed creditPositionToCompensateId,
+        uint256 indexed amount
     );
 }

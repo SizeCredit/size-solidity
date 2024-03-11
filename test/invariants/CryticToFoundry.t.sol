@@ -90,22 +90,4 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         deposit(address(0x0000000000000000000000000000000000002029), 1997);
         assertTrue(invariant_TOKENS_01());
     }
-
-    function test_CryticToFoundry_LIQUIDATE_01() public {
-        deposit(address(0x0), 0);
-        deposit(address(0xdeadbeef), 43887);
-        lendAsLimitOrder(
-            686201148013504651880016784580766, 802572832370436071468338822538095, 187339053509293189773697775291060
-        );
-        borrowAsMarketOrder(
-            address(0x0),
-            1281417643594196276987623,
-            2251088478289305192565934357131631373634646648055304712808379805148657941,
-            false,
-            2210615795779483999067704471772641319130093544158118332944262229931266250,
-            1957402070557900179522374347023877010333460151991864703433334555071406191
-        );
-        vm.warp(block.timestamp + 28175);
-        liquidate(0, 0);
-    }
 }

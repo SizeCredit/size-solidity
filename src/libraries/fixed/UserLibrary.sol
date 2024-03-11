@@ -9,6 +9,3 @@ struct User {
     BorrowOffer borrowOffer;
     Vault vault;
 }
-
-/// @title UserLibrary
-library UserLibrary {}

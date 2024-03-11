@@ -149,7 +149,6 @@ library BorrowAsMarketOrder {
             state.createCreditPosition({
                 exitCreditPositionId: creditPositionId,
                 lender: params.lender,
-                borrower: msg.sender,
                 credit: deltaAmountIn
             });
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);

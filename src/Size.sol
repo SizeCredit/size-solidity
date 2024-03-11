@@ -43,8 +43,6 @@ import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 
-import {State} from "@src/SizeStorage.sol";
-
 import {ISize} from "@src/interfaces/ISize.sol";
 
 /// @title Size

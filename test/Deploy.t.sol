@@ -2,9 +2,23 @@
 pragma solidity 0.8.24;
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
+import {Deployment, Parameter} from "@script/BaseScript.sol";
+import {DeployScript} from "@script/Deploy.s.sol";
 import {ForkTest} from "@test/ForkTest.sol";
+import {Test} from "forge-std/Test.sol";
 
 contract DeployScriptTest is ForkTest {
+    DeployScript deployScript;
+
+    function testFork_Deploy_deploy() public {
+        deployScript = new DeployScript();
+
+        (Deployment[] memory deployments, Parameter[] memory parameters) = deployScript.run();
+
+        assertGt(deployments.length, 0);
+        assertGt(parameters.length, 0);
+    }
+
     function testFork_Deploy_size_is_configured() public {
         assertTrue(address(size.data().variablePool) != address(0));
         assertTrue(address(size.oracle().priceFeed) != address(0));
