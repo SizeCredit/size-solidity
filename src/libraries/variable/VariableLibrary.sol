@@ -141,7 +141,7 @@ library VariableLibrary {
     /// @dev Assumes `from` has enough collateral to borrow `amount`
     ///      The `supply` and `borrow` is made from the vault of `from` and on supplied to the vault of `to`
     ///      This function may revert due to the Variable Pool health check or liquidity conditions
-    ///      The borrow is made on behalf of the variable-rate vault of the `from` user and the supply is made to the fixed-rate vault of the `to` user
+    ///      The borrow is made on behalf of the variable-rate vault of the `from` user and the supply is made to the fixed-rate vault of the `to` user, so that it later can be claimed
     /// @param state The state struct
     /// @param from The address of the borrower
     /// @param to The address of the recipient of aTokens
