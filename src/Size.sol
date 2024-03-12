@@ -41,6 +41,11 @@ import {SizeStorage, State} from "@src/SizeStorage.sol";
 import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
+import {BorrowVariable, BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
+
+import {LiquidateVariable, LiquidateVariableParams} from "@src/libraries/variable/actions/LiquidateVariable.sol";
+import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
+
 import {SizeView} from "@src/SizeView.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -76,6 +81,9 @@ contract Size is
     using Compensate for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
+    using BorrowVariable for State;
+    using RepayVariable for State;
+    using LiquidateVariable for State;
 
     bytes32 public constant KEEPER_ROLE = "KEEPER_ROLE";
     bytes32 public constant PAUSER_ROLE = "PAUSER_ROLE";
@@ -220,5 +228,28 @@ contract Size is
     function compensate(CompensateParams calldata params) external override(ISize) whenNotPaused {
         state.validateCompensate(params);
         state.executeCompensate(params);
+    }
+
+    /// @inheritdoc ISize
+    function variablePoolAllowlisted(address account) external view override(ISize) whenNotPaused returns (bool) {
+        return state.data.variablePoolAllowlisted[account];
+    }
+
+    /// @inheritdoc ISize
+    function borrowVariable(BorrowVariableParams calldata params) external override(ISize) whenNotPaused {
+        state.validateBorrowVariable(params);
+        state.executeBorrowVariable(params);
+    }
+
+    /// @inheritdoc ISize
+    function repayVariable(RepayVariableParams calldata params) external override(ISize) whenNotPaused {
+        state.validateRepayVariable(params);
+        state.executeRepayVariable(params);
+    }
+
+    /// @inheritdoc ISize
+    function liquidateVariable(LiquidateVariableParams calldata params) external override(ISize) whenNotPaused {
+        state.validateLiquidateVariable(params);
+        state.executeLiquidateVariable(params);
     }
 }

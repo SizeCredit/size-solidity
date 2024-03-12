@@ -24,9 +24,12 @@ import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 struct UserView {
     User user;
     address account;
-    uint256 collateralAmount;
-    uint256 borrowAmount;
-    uint256 debtAmount;
+    uint256 collateralTokenBalanceFixed;
+    uint256 collateralATokenBalanceVariable;
+    uint256 borrowATokenBalanceFixed;
+    uint256 borrowATokenBalanceVariable;
+    uint256 debtBalanceFixed;
+    uint256 debtBalanceVariable;
 }
 
 /// @title SizeView
@@ -95,14 +98,13 @@ abstract contract SizeView is SizeStorage {
         return UserView({
             user: state.data.users[user],
             account: user,
-            collateralAmount: state.data.collateralToken.balanceOf(user),
-            borrowAmount: state.borrowATokenBalanceOf(user),
-            debtAmount: state.data.debtToken.balanceOf(user)
+            collateralTokenBalanceFixed: state.data.collateralToken.balanceOf(user),
+            collateralATokenBalanceVariable: state.aTokenBalanceOf(state.data.collateralAToken, user, true),
+            borrowATokenBalanceFixed: state.aTokenBalanceOf(state.data.borrowAToken, user, false),
+            borrowATokenBalanceVariable: state.aTokenBalanceOf(state.data.borrowAToken, user, true),
+            debtBalanceFixed: state.data.debtToken.balanceOf(user),
+            debtBalanceVariable: state.variableDebtTokenBalanceOf(user)
         });
-    }
-
-    function getVaultAddress(address user) external view returns (address) {
-        return address(state.data.users[user].vault);
     }
 
     function activeLoans() external view returns (uint256) {

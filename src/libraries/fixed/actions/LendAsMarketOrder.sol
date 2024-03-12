@@ -56,8 +56,10 @@ library LendAsMarketOrder {
         }
 
         // validate amount
-        if (state.borrowATokenBalanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(state.borrowATokenBalanceOf(msg.sender), amountIn);
+        if (state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false) < amountIn) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
+                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false), amountIn
+            );
         }
 
         // validate exactAmountIn
@@ -94,6 +96,6 @@ library LendAsMarketOrder {
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(params.borrower, fol.getDebt());
-        state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
+        state.transferBorrowATokenFixed(msg.sender, params.borrower, issuanceValue);
     }
 }

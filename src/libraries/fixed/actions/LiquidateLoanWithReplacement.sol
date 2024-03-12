@@ -103,8 +103,8 @@ library LiquidateLoanWithReplacement {
         fol.fol.rate = rate;
 
         state.data.debtToken.mint(params.borrower, folCopy.getDebt());
-        state.transferBorrowAToken(address(this), params.borrower, amountOut);
-        state.transferBorrowAToken(address(this), state.config.feeRecipient, liquidatorProfitBorrowAsset);
+        state.transferBorrowATokenFixed(address(this), params.borrower, amountOut);
+        state.transferBorrowATokenFixed(address(this), state.config.feeRecipient, liquidatorProfitBorrowAsset);
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

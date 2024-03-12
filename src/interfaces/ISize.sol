@@ -18,25 +18,45 @@ import {SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidat
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
+import {BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
+import {LiquidateVariableParams} from "@src/libraries/variable/actions/LiquidateVariable.sol";
+import {RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
+
 /// @title ISize
 /// @author Size Lending
 /// @notice This interface is the main interface for all user-facing methods of the Size v2 protocol
 interface ISize {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
+    ///         Borrow tokens are always deposited into the Variable Pool,
+    ///         wheteher `variable` is passed as `true` or `false`. The difference is that a `true`
+    ///         value means this deposit is destined for variable-rate lending only, while a `false` value
+    ///         means this deposit is destined for both fixed-rate lending and variable-rate lending.
+    ///         Collateral tokens are deposited into the Variable Pool only if the user passes
+    ///         `variable` as `true`. If `variable` is `false`, the collateral tokens are deposited
+    ///         into the Size contract through the CollateralLibrary.
     /// @dev The caller must approve the transfer of the token to the protocol.
     ///      This function mints 1:1 szTokens (e.g. aszUSDC, szETH) in exchange of the deposited tokens
     /// @param params DepositParams struct containing the following fields:
     ///     - address token: The address of the token to deposit
     ///     - uint256 amount: The amount of tokens to deposit
     ///     - uint256 to: The recipient of the deposit
+    ///     - bool variable: Whether the deposit is destined for variable-rate lending or fixed-rate lending
     function deposit(DepositParams calldata params) external;
 
     /// @notice Withdraw underlying borrow/collateral tokens from the protocol (e.g. USDC, WETH)
+    ///         Borrow tokens are always withdrawn into the Variable Pool,
+    ///         wheteher `variable` is passed as `true` or `false`. The difference is that a `true`
+    ///         value means the withdrawal is taken from variable-rate lending, while a `false` value
+    ///         means the withdrawal is taken for both fixed-rate lending and variable-rate lending.
+    ///         Collateral tokens are withdrawn from the Variable Pool only if the user passes
+    ///         `variable` as `true`. If `variable` is `false`, the collateral tokens are withdrawn
+    ///         from the Size contract through the CollateralLibrary.
     /// @dev This function burns 1:1 szTokens (e.g. aszUSDC, szETH) in exchange of the withdrawn tokens
     /// @param params WithdrawParams struct containing the following fields:
     ///     - address token: The address of the token to withdraw
     ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)
     ///     - uint256 to: The recipient of the withdrawal
+    ///     - bool variable: Whether the deposit is destined for variable-rate lending or fixed-rate lending
     function withdraw(WithdrawParams calldata params) external;
 
     /// @notice Picks a lender offer and borrow tokens from the orderbook
@@ -148,4 +168,27 @@ interface ISize {
     ///     - uint256 loanToCompensateId: The id of the loan to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
     function compensate(CompensateParams calldata params) external;
+
+    /// @notice Check if an account is allowlisted to interact with the Variable Pool
+    /// @dev Only vaults should be allowlisted. See `UserLibrary`
+    /// @param account The address of the account to check
+    /// @return Whether the account is allowlisted
+    function variablePoolAllowlisted(address account) external returns (bool);
+
+    /// @notice Borrow a variable loan by forwarding a call from the user proxy to the Variable Pool `borrow`
+    /// @param params BorrowVariableParams struct containing the following fields:
+    ///     - address to: The recipient address
+    ///     - uint256 amount: The amount to borrow
+    function borrowVariable(BorrowVariableParams calldata params) external;
+
+    /// @notice Repay a variable loan by forwarding a call from the user proxy to the Variable Pool `repayWithATokens`
+    /// @param params RepayVariableParams struct containing the following fields:
+    ///     - uint256 amount: The amount to repay
+    function repayVariable(RepayVariableParams calldata params) external;
+
+    /// @notice Liquidate a variable loan by forwarding a call from the user proxy to the Variable Pool `liquidationCall`
+    /// @param params RepayVariableParams struct containing the following fields:
+    ///     - address borrower: The liquidated address
+    ///     - uint256 amount: The debt amount to cover
+    function liquidateVariable(LiquidateVariableParams calldata params) external;
 }

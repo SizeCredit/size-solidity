@@ -29,8 +29,10 @@ library Repay {
         if (msg.sender != loan.generic.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.generic.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < loan.faceValue()) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(state.borrowATokenBalanceOf(msg.sender), loan.faceValue());
+        if (state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false) < loan.faceValue()) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
+                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false), loan.faceValue()
+            );
         }
 
         // validate loanId
@@ -46,7 +48,7 @@ library Repay {
         Loan storage fol = state.data.loans[params.loanId];
         uint256 faceValue = fol.faceValue();
 
-        state.transferBorrowAToken(msg.sender, address(this), faceValue);
+        state.transferBorrowATokenFixed(msg.sender, address(this), faceValue);
         state.chargeRepayFee(fol, faceValue);
         state.updateRepayFee(fol, faceValue);
         state.data.debtToken.burn(fol.generic.borrower, faceValue);

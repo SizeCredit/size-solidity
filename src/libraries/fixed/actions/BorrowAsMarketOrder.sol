@@ -142,8 +142,8 @@ library BorrowAsMarketOrder {
 
             // slither-disable-next-line unused-return
             state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, credit: deltaAmountIn});
-            state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyLenderExitFee);
-            state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
+            state.transferBorrowATokenFixed(msg.sender, state.config.feeRecipient, state.config.earlyLenderExitFee);
+            state.transferBorrowATokenFixed(params.lender, msg.sender, deltaAmountOut);
             amountOutLeft -= deltaAmountOut;
         }
     }
@@ -172,6 +172,6 @@ library BorrowAsMarketOrder {
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(msg.sender, fol.getDebt());
-        state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
+        state.transferBorrowATokenFixed(params.lender, msg.sender, issuanceValue);
     }
 }
