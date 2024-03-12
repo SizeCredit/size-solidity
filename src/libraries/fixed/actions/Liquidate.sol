@@ -101,8 +101,7 @@ library Liquidate {
         DebtPosition memory debtPositionCopy
     ) private returns (uint256 liquidatorProfitCollateralToken) {
         // case 2a: the loan is overdue and can be moved to the variable pool
-        try state.tryMoveDebtPositionToVariablePool(debtPositionCopy) returns (uint256 _liquidatorProfitCollateralToken)
-        {
+        try state.moveDebtPositionToVariablePool(debtPositionCopy) returns (uint256 _liquidatorProfitCollateralToken) {
             emit Events.LiquidateOverdueMoveToVariablePool(params.debtPositionId);
             liquidatorProfitCollateralToken = _liquidatorProfitCollateralToken;
             // case 2b: the loan is overdue and cannot be moved to the variable pool

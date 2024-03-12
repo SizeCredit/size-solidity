@@ -217,23 +217,63 @@ library VariableLibrary {
         vaultFrom.proxy(address(borrowAToken), abi.encodeCall(IERC20.transfer, (address(vaultTo), amount)));
     }
 
-    /// @notice Try borrowing underlying borrow tokens from the variable pool by first supplying collateral
-    /// @dev Assumes `from` has enough collateral to borrow `amount`
-    ///      The `supply` and `borrow` is made from the vault of `from` and on supplied to the vault of `to`
-    ///      This function may revert due to the Variable Pool health check or liquidity conditions
-    ///      The borrow is made on behalf of the variable-rate vault of the `from` user and the supply is made to the fixed-rate vault of the `to` user, so that it later can be claimed
+    /// @notice Get the balance of borrow aTokens for a user on the Variable Pool
     /// @param state The state struct
-    /// @param from The address of the borrower
-    /// @param to The address of the recipient of aTokens
-    /// @param collateralBalance The collateral amount to be supplied to the variable pool
-    /// @param borrowATokenBalance The amount of tokens to borrow
-    function _tryBorrowFromVariablePool(
-        State storage state,
-        address from,
-        address to,
-        uint256 collateralBalance,
-        uint256 borrowATokenBalance
-    ) internal {
+    /// @param account The user's address
+    /// @param variable Whether to get the balance for the variable or fixed-rate vault
+    /// @return The balance of aTokens
+    function aTokenBalanceOf(State storage state, IAToken aToken, address account, bool variable)
+        public
+        view
+        returns (uint256)
+    {
+        Vault vault = variable ? state.data.users[account].vaultVariable : state.data.users[account].vaultFixed;
+        return aToken.balanceOf(address(vault));
+    }
+
+    /// @notice Get the balance of variable debt for a user on the Variable Pool
+    /// @param state The state struct
+    /// @param account The user's address
+    function variableDebtTokenBalanceOf(State storage state, address account) public view returns (uint256) {
+        VariableDebtToken token = VariableDebtToken(
+            state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).variableDebtTokenAddress
+        );
+        Vault vault = state.data.users[account].vaultVariable;
+        return token.balanceOf(address(vault));
+    }
+
+    /// @notice Get the liquidity index of Size Variable Pool (Aave v3 fork)
+    /// @param state The state struct
+    /// @return The liquidity index
+    function borrowATokenLiquidityIndex(State storage state) public view returns (uint256) {
+        return state.data.variablePool.getReserveNormalizedIncome(address(state.data.underlyingBorrowToken));
+    }
+
+    /// @notice Move a fixed-rate DebtPosition to the variable pool by supplying the assigned collateral and paying the liquidator with the move fee
+    ///        Try borrowing underlying borrow tokens from the variable pool by first supplying collateral
+    ///        The borrow is made on behalf of the variable-rate vault of the `from` user and the supply is made to the fixed-rate vault of the `to` user, so that it later can be claimed
+    /// @dev Assumes `from` has enough collateral to borrow `amount`
+    ///      We use a memory copy of the DebtPosition as it might have already changed in storage as a result of the liquidation process
+    ///      This function may revert due to Variable Pool health checks or liquidity conditions
+    /// @param state The state struct
+    /// @param debtPositionCopy The DebtPosition to move
+    /// @return liquidatorProfitCollateralToken The amount of collateral tokens paid to the liquidator
+    function moveDebtPositionToVariablePool(State storage state, DebtPosition memory debtPositionCopy)
+        external
+        returns (uint256 liquidatorProfitCollateralToken)
+    {
+        liquidatorProfitCollateralToken = state.config.collateralOverdueTransferFee;
+        state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
+
+        // define local variables used to convert the loan from fixed to variable
+        uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPositionCopy);
+
+        address from = debtPositionCopy.borrower;
+        address to = address(this);
+        uint256 collateralBalance = assignedCollateral - liquidatorProfitCollateralToken;
+        uint256 borrowATokenBalance = debtPositionCopy.faceValue;
+
+        // begin move to variable pool
         IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
         IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
 
@@ -277,61 +317,5 @@ library VariableLibrary {
         // supply to `to`
         underlyingBorrowToken.forceApprove(address(state.data.variablePool), borrowATokenBalance);
         state.data.variablePool.supply(address(underlyingBorrowToken), borrowATokenBalance, address(vaultTo), 0);
-    }
-
-    /// @notice Get the balance of borrow aTokens for a user on the Variable Pool
-    /// @param state The state struct
-    /// @param account The user's address
-    /// @param variable Whether to get the balance for the variable or fixed-rate vault
-    /// @return The balance of aTokens
-    function aTokenBalanceOf(State storage state, IAToken aToken, address account, bool variable)
-        public
-        view
-        returns (uint256)
-    {
-        Vault vault = variable ? state.data.users[account].vaultVariable : state.data.users[account].vaultFixed;
-        return aToken.balanceOf(address(vault));
-    }
-
-    /// @notice Get the balance of variable debt for a user on the Variable Pool
-    /// @param state The state struct
-    /// @param account The user's address
-    function variableDebtTokenBalanceOf(State storage state, address account) public view returns (uint256) {
-        VariableDebtToken token = VariableDebtToken(
-            state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).variableDebtTokenAddress
-        );
-        Vault vault = state.data.users[account].vaultVariable;
-        return token.balanceOf(address(vault));
-    }
-
-    /// @notice Get the liquidity index of Size Variable Pool (Aave v3 fork)
-    /// @param state The state struct
-    /// @return The liquidity index
-    function borrowATokenLiquidityIndex(State storage state) public view returns (uint256) {
-        return state.data.variablePool.getReserveNormalizedIncome(address(state.data.underlyingBorrowToken));
-    }
-
-    /// @notice Move a fixed-rate DebtPosition to the variable pool by supplying the assigned collateral and paying the liquidator with the move fee
-    /// @dev We use a memory copy of the DebtPosition as it might have already changed in storage as a result of the liquidation process
-    /// @dev This function may revert due to the Variable Pool health check or liquidity conditions
-    /// @param state The state struct
-    /// @param debtPositionCopy The DebtPosition to move
-    /// @return liquidatorProfitCollateralToken The amount of collateral tokens paid to the liquidator
-    function tryMoveDebtPositionToVariablePool(State storage state, DebtPosition memory debtPositionCopy)
-        external
-        returns (uint256 liquidatorProfitCollateralToken)
-    {
-        uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPositionCopy);
-
-        liquidatorProfitCollateralToken = state.config.collateralOverdueTransferFee;
-        state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
-
-        _tryBorrowFromVariablePool(
-            state,
-            debtPositionCopy.borrower,
-            address(this),
-            assignedCollateral - liquidatorProfitCollateralToken,
-            debtPositionCopy.faceValue
-        );
     }
 }
