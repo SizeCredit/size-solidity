@@ -13,6 +13,7 @@ import {
 /// @title Events
 library Events {
     // general
+
     event Initialize(
         InitializeConfigParams indexed c, InitializeOracleParams indexed o, InitializeDataParams indexed d
     );
@@ -28,6 +29,7 @@ library Events {
     event LiquidateVariable(address indexed borrower, uint256 indexed amount);
 
     // fixed
+
     event BorrowAsMarketOrder(
         address indexed lender,
         uint256 indexed amount,

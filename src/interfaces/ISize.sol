@@ -18,8 +18,8 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
-import {BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
 
+import {BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
 import {LiquidateVariableParams} from "@src/libraries/variable/actions/LiquidateVariable.sol";
 import {RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
 

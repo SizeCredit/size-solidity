@@ -198,7 +198,7 @@ library Initialize {
 
         state.data.collateralToken = new NonTransferrableToken(
             address(this),
-            string.concat("Size ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
+            string.concat("Size Fixed ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
             string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
             IERC20Metadata(state.data.underlyingCollateralToken).decimals()
         );
@@ -207,7 +207,7 @@ library Initialize {
         state.data.collateralAToken =
             IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingCollateralToken)).aTokenAddress);
         state.data.debtToken = new NonTransferrableToken(
-            address(this), "Size Debt Token", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+            address(this), "Size Fixed Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
 
         state.data.vaultImplementation = new Vault();
