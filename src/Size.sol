@@ -161,6 +161,7 @@ contract Size is
         state.executeLendAsMarketOrder(params);
         state.validateUserIsNotBelowRiskCR(params.borrower);
         state.validateDebtTokenCap();
+        state.validateVariablePoolHasEnoughLiquidity();
     }
 
     /// @inheritdoc ISize
@@ -169,6 +170,7 @@ contract Size is
         state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotBelowRiskCR(msg.sender);
         state.validateDebtTokenCap();
+        state.validateVariablePoolHasEnoughLiquidity();
     }
 
     /// @inheritdoc ISize
@@ -176,6 +178,7 @@ contract Size is
         state.validateBorrowerExit(params);
         state.executeBorrowerExit(params);
         state.validateUserIsNotBelowRiskCR(params.borrowerToExitTo);
+        state.validateVariablePoolHasEnoughLiquidity();
     }
 
     /// @inheritdoc ISize
