@@ -231,6 +231,7 @@ contract Size is
     function compensate(CompensateParams calldata params) external override(ISize) whenNotPaused {
         state.validateCompensate(params);
         state.executeCompensate(params);
+        state.validateUserIsNotBelowRiskCR(msg.sender);
     }
 
     /// @inheritdoc ISize
