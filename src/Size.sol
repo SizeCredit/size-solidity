@@ -42,9 +42,8 @@ import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {BorrowVariable, BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
-
-import {LiquidateVariable, LiquidateVariableParams} from "@src/libraries/variable/actions/LiquidateVariable.sol";
 import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
+import {LiquidateVariable, LiquidateVariableParams} from "@src/libraries/variable/actions/LiquidateVariable.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 
@@ -228,6 +227,7 @@ contract Size is
     function compensate(CompensateParams calldata params) external override(ISize) whenNotPaused {
         state.validateCompensate(params);
         state.executeCompensate(params);
+        state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
     }
 
     /// @inheritdoc ISize
