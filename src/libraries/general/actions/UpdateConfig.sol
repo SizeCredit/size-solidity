@@ -10,9 +10,10 @@ import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
 import {
-    InitializeConfigParams,
     InitializeDataParams,
-    InitializeOracleParams
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
 
 struct UpdateConfigParams {
@@ -28,21 +29,27 @@ struct UpdateConfigParams {
 library UpdateConfig {
     using Initialize for State;
 
-    function configParams(State storage state) public view returns (InitializeConfigParams memory) {
-        return InitializeConfigParams({
-            crOpening: state.config.crOpening,
-            crLiquidation: state.config.crLiquidation,
-            minimumCreditBorrowAToken: state.config.minimumCreditBorrowAToken,
-            collateralSplitLiquidatorPercent: state.config.collateralSplitLiquidatorPercent,
-            collateralSplitProtocolPercent: state.config.collateralSplitProtocolPercent,
-            collateralTokenCap: state.config.collateralTokenCap,
-            borrowATokenCap: state.config.borrowATokenCap,
-            debtTokenCap: state.config.debtTokenCap,
-            repayFeeAPR: state.config.repayFeeAPR,
-            earlyLenderExitFee: state.config.earlyLenderExitFee,
-            earlyBorrowerExitFee: state.config.earlyBorrowerExitFee,
-            collateralOverdueTransferFee: state.config.collateralOverdueTransferFee,
-            feeRecipient: state.config.feeRecipient
+    function feeConfigParams(State storage state) public view returns (InitializeFeeConfigParams memory) {
+        return InitializeFeeConfigParams({
+            repayFeeAPR: state.feeConfig.repayFeeAPR,
+            earlyLenderExitFee: state.feeConfig.earlyLenderExitFee,
+            earlyBorrowerExitFee: state.feeConfig.earlyBorrowerExitFee,
+            collateralOverdueTransferFee: state.feeConfig.collateralOverdueTransferFee,
+            feeRecipient: state.feeConfig.feeRecipient
+        });
+    }
+
+    function riskConfigParams(State storage state) public view returns (InitializeRiskConfigParams memory) {
+        return InitializeRiskConfigParams({
+            crOpening: state.riskConfig.crOpening,
+            crLiquidation: state.riskConfig.crLiquidation,
+            minimumCreditBorrowAToken: state.riskConfig.minimumCreditBorrowAToken,
+            collateralSplitLiquidatorPercent: state.riskConfig.collateralSplitLiquidatorPercent,
+            collateralSplitProtocolPercent: state.riskConfig.collateralSplitProtocolPercent,
+            collateralTokenCap: state.riskConfig.collateralTokenCap,
+            borrowATokenCap: state.riskConfig.borrowATokenCap,
+            debtTokenCap: state.riskConfig.debtTokenCap,
+            moveToVariablePoolHFThreshold: state.riskConfig.moveToVariablePoolHFThreshold
         });
     }
 
@@ -67,31 +74,33 @@ library UpdateConfig {
 
     function executeUpdateConfig(State storage state, UpdateConfigParams calldata params) external {
         if (params.key == "crOpening") {
-            state.config.crOpening = params.value;
+            state.riskConfig.crOpening = params.value;
         } else if (params.key == "crLiquidation") {
-            state.config.crLiquidation = params.value;
+            state.riskConfig.crLiquidation = params.value;
         } else if (params.key == "minimumCreditBorrowAToken") {
-            state.config.minimumCreditBorrowAToken = params.value;
+            state.riskConfig.minimumCreditBorrowAToken = params.value;
         } else if (params.key == "collateralSplitLiquidatorPercent") {
-            state.config.collateralSplitLiquidatorPercent = params.value;
+            state.riskConfig.collateralSplitLiquidatorPercent = params.value;
         } else if (params.key == "collateralSplitProtocolPercent") {
-            state.config.collateralSplitProtocolPercent = params.value;
+            state.riskConfig.collateralSplitProtocolPercent = params.value;
         } else if (params.key == "collateralTokenCap") {
-            state.config.collateralTokenCap = params.value;
+            state.riskConfig.collateralTokenCap = params.value;
         } else if (params.key == "borrowATokenCap") {
-            state.config.borrowATokenCap = params.value;
+            state.riskConfig.borrowATokenCap = params.value;
         } else if (params.key == "debtTokenCap") {
-            state.config.debtTokenCap = params.value;
+            state.riskConfig.debtTokenCap = params.value;
+        } else if (params.key == "moveToVariablePoolHFThreshold") {
+            state.riskConfig.moveToVariablePoolHFThreshold = params.value;
         } else if (params.key == "repayFeeAPR") {
-            state.config.repayFeeAPR = params.value;
+            state.feeConfig.repayFeeAPR = params.value;
         } else if (params.key == "earlyLenderExitFee") {
-            state.config.earlyLenderExitFee = params.value;
+            state.feeConfig.earlyLenderExitFee = params.value;
         } else if (params.key == "earlyBorrowerExitFee") {
-            state.config.earlyBorrowerExitFee = params.value;
+            state.feeConfig.earlyBorrowerExitFee = params.value;
         } else if (params.key == "collateralOverdueTransferFee") {
-            state.config.collateralOverdueTransferFee = params.value;
+            state.feeConfig.collateralOverdueTransferFee = params.value;
         } else if (params.key == "feeRecipient") {
-            state.config.feeRecipient = address(uint160(params.value));
+            state.feeConfig.feeRecipient = address(uint160(params.value));
         } else if (params.key == "priceFeed") {
             state.oracle.priceFeed = IPriceFeed(address(uint160(params.value)));
         } else if (params.key == "marketBorrowRateFeed") {
@@ -100,7 +109,8 @@ library UpdateConfig {
             revert Errors.INVALID_KEY(params.key);
         }
 
-        Initialize.validateInitializeConfigParams(configParams(state));
+        Initialize.validateInitializeFeeConfigParams(feeConfigParams(state));
+        Initialize.validateInitializeRiskConfigParams(riskConfigParams(state));
         Initialize.validateInitializeOracleParams(oracleParams(state));
 
         emit Events.UpdateConfig(params.key, params.value);

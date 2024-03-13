@@ -4,9 +4,10 @@ pragma solidity 0.8.24;
 import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {
-    InitializeConfigParams,
     InitializeDataParams,
-    InitializeOracleParams
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
 
 // solhint-disable var-name-mixedcase
@@ -15,7 +16,10 @@ library Events {
     // general
 
     event Initialize(
-        InitializeConfigParams indexed c, InitializeOracleParams indexed o, InitializeDataParams indexed d
+        InitializeFeeConfigParams indexed f,
+        InitializeRiskConfigParams indexed r,
+        InitializeOracleParams indexed o,
+        InitializeDataParams d
     );
     event UpdateConfig(bytes32 indexed key, uint256 value);
     event CreateVault(address indexed user, address indexed vault, bool indexed variable);

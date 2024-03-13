@@ -70,7 +70,7 @@ library AccountingLibrary {
         }
 
         state.data.collateralToken.transferFromCapped(
-            fol.generic.borrower, state.config.feeRecipient, repayFeeCollateral
+            fol.generic.borrower, state.feeConfig.feeRecipient, repayFeeCollateral
         );
 
         state.data.debtToken.burnCapped(fol.generic.borrower, repayFee);
@@ -104,7 +104,7 @@ library AccountingLibrary {
             Math.min(repayFeeCollateral, state.data.collateralToken.balanceOf(fol.generic.borrower));
 
         state.data.collateralToken.transferFrom(
-            fol.generic.borrower, state.config.feeRecipient, cappedRepayFeeCollateral
+            fol.generic.borrower, state.feeConfig.feeRecipient, cappedRepayFeeCollateral
         );
 
         // rounding down the deduction means the updated issuanceValue will be rounded up, which means higher fees on the next repayment
@@ -126,7 +126,7 @@ library AccountingLibrary {
             fol: FOL({
                 issuanceValue: issuanceValue,
                 rate: rate,
-                repayFeeAPR: state.config.repayFeeAPR,
+                repayFeeAPR: state.feeConfig.repayFeeAPR,
                 startDate: block.timestamp,
                 dueDate: dueDate,
                 liquidityIndexAtRepayment: 0

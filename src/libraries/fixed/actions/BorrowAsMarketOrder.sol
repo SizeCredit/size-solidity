@@ -132,7 +132,7 @@ library BorrowAsMarketOrder {
             }
 
             // the lender doesn't have enought credit to exit
-            if (deltaAmountIn < state.config.minimumCreditBorrowAToken) {
+            if (deltaAmountIn < state.riskConfig.minimumCreditBorrowAToken) {
                 continue;
             }
             // full amount borrowed
@@ -142,7 +142,9 @@ library BorrowAsMarketOrder {
 
             // slither-disable-next-line unused-return
             state.createSOL({exiterId: loanId, lender: params.lender, borrower: msg.sender, credit: deltaAmountIn});
-            state.transferBorrowATokenFixed(msg.sender, state.config.feeRecipient, state.config.earlyLenderExitFee);
+            state.transferBorrowATokenFixed(
+                msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee
+            );
             state.transferBorrowATokenFixed(params.lender, msg.sender, deltaAmountOut);
             amountOutLeft -= deltaAmountOut;
         }

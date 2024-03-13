@@ -18,7 +18,15 @@ import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-struct InitializeConfigParams {
+struct InitializeFeeConfigParams {
+    uint256 repayFeeAPR;
+    uint256 earlyLenderExitFee;
+    uint256 earlyBorrowerExitFee;
+    uint256 collateralOverdueTransferFee;
+    address feeRecipient;
+}
+
+struct InitializeRiskConfigParams {
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 minimumCreditBorrowAToken;
@@ -27,11 +35,7 @@ struct InitializeConfigParams {
     uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
-    uint256 repayFeeAPR;
-    uint256 earlyLenderExitFee;
-    uint256 earlyBorrowerExitFee;
-    uint256 collateralOverdueTransferFee;
-    address feeRecipient;
+    uint256 moveToVariablePoolHFThreshold;
 }
 
 struct InitializeOracleParams {
@@ -56,37 +60,56 @@ library Initialize {
         }
     }
 
-    function validateInitializeConfigParams(InitializeConfigParams memory c) internal pure {
+    function validateInitializeFeeConfigParams(InitializeFeeConfigParams memory f) internal pure {
+        // validate repayFeeAPR
+        // N/A
+
+        // validate earlyLenderExitFee
+        // N/A
+
+        // validate earlyBorrowerExitFee
+        // N/A
+
+        // validate collateralOverdueTransferFee
+        // N/A
+
+        // validate feeRecipient
+        if (f.feeRecipient == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+    }
+
+    function validateInitializeRiskConfigParams(InitializeRiskConfigParams memory r) internal pure {
         // validate crOpening
-        if (c.crOpening < PERCENT) {
-            revert Errors.INVALID_COLLATERAL_RATIO(c.crOpening);
+        if (r.crOpening < PERCENT) {
+            revert Errors.INVALID_COLLATERAL_RATIO(r.crOpening);
         }
 
         // validate crLiquidation
-        if (c.crLiquidation < PERCENT) {
-            revert Errors.INVALID_COLLATERAL_RATIO(c.crLiquidation);
+        if (r.crLiquidation < PERCENT) {
+            revert Errors.INVALID_COLLATERAL_RATIO(r.crLiquidation);
         }
-        if (c.crOpening <= c.crLiquidation) {
-            revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(c.crOpening, c.crLiquidation);
+        if (r.crOpening <= r.crLiquidation) {
+            revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(r.crOpening, r.crLiquidation);
         }
 
         // validate minimumCreditBorrowAToken
-        if (c.minimumCreditBorrowAToken == 0) {
+        if (r.minimumCreditBorrowAToken == 0) {
             revert Errors.NULL_AMOUNT();
         }
 
         // validate collateralSplitLiquidatorPercent
-        if (c.collateralSplitLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(c.collateralSplitLiquidatorPercent);
+        if (r.collateralSplitLiquidatorPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(r.collateralSplitLiquidatorPercent);
         }
 
         // validate collateralSplitProtocolPercent
-        if (c.collateralSplitProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(c.collateralSplitProtocolPercent);
+        if (r.collateralSplitProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(r.collateralSplitProtocolPercent);
         }
-        if (c.collateralSplitLiquidatorPercent + c.collateralSplitProtocolPercent > PERCENT) {
+        if (r.collateralSplitLiquidatorPercent + r.collateralSplitProtocolPercent > PERCENT) {
             revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                c.collateralSplitLiquidatorPercent + c.collateralSplitProtocolPercent
+                r.collateralSplitLiquidatorPercent + r.collateralSplitProtocolPercent
             );
         }
 
@@ -99,18 +122,9 @@ library Initialize {
         // validate debtTokenCap
         // N/A
 
-        // validate repayFeeAPR
-        // N/A
-
-        // validate earlyLenderExitFee
-        // N/A
-
-        // validate earlyBorrowerExitFee
-        // N/A
-
-        // validate feeRecipient
-        if (c.feeRecipient == address(0)) {
-            revert Errors.NULL_ADDRESS();
+        // validate moveToVariablePoolHFThreshold
+        if (r.moveToVariablePoolHFThreshold < PERCENT) {
+            revert Errors.INVALID_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(r.moveToVariablePoolHFThreshold);
         }
     }
 
@@ -124,9 +138,6 @@ library Initialize {
         if (o.marketBorrowRateFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-
-        // validate collateralOverdueTransferFee
-        // N/A
     }
 
     function validateInitializeDataParams(InitializeDataParams memory d) internal pure {
@@ -149,37 +160,43 @@ library Initialize {
     function validateInitialize(
         State storage,
         address owner,
-        InitializeConfigParams memory c,
+        InitializeFeeConfigParams memory f,
+        InitializeRiskConfigParams memory r,
         InitializeOracleParams memory o,
         InitializeDataParams memory d
     ) external pure {
         validateOwner(owner);
-        validateInitializeConfigParams(c);
+        validateInitializeFeeConfigParams(f);
+        validateInitializeRiskConfigParams(r);
         validateInitializeOracleParams(o);
         validateInitializeDataParams(d);
     }
 
-    function executeInitializeConfig(State storage state, InitializeConfigParams memory c) internal {
-        state.config.crOpening = c.crOpening;
-        state.config.crLiquidation = c.crLiquidation;
+    function executeInitializeFeeConfig(State storage state, InitializeFeeConfigParams memory f) internal {
+        state.feeConfig.repayFeeAPR = f.repayFeeAPR;
 
-        state.config.minimumCreditBorrowAToken = c.minimumCreditBorrowAToken;
+        state.feeConfig.earlyLenderExitFee = f.earlyLenderExitFee;
+        state.feeConfig.earlyBorrowerExitFee = f.earlyBorrowerExitFee;
 
-        state.config.collateralSplitLiquidatorPercent = c.collateralSplitLiquidatorPercent;
-        state.config.collateralSplitProtocolPercent = c.collateralSplitProtocolPercent;
+        state.feeConfig.collateralOverdueTransferFee = f.collateralOverdueTransferFee;
 
-        state.config.collateralTokenCap = c.collateralTokenCap;
-        state.config.borrowATokenCap = c.borrowATokenCap;
-        state.config.debtTokenCap = c.debtTokenCap;
+        state.feeConfig.feeRecipient = f.feeRecipient;
+    }
 
-        state.config.repayFeeAPR = c.repayFeeAPR;
+    function executeInitializeRiskConfig(State storage state, InitializeRiskConfigParams memory r) internal {
+        state.riskConfig.crOpening = r.crOpening;
+        state.riskConfig.crLiquidation = r.crLiquidation;
 
-        state.config.earlyLenderExitFee = c.earlyLenderExitFee;
-        state.config.earlyBorrowerExitFee = c.earlyBorrowerExitFee;
+        state.riskConfig.minimumCreditBorrowAToken = r.minimumCreditBorrowAToken;
 
-        state.config.collateralOverdueTransferFee = c.collateralOverdueTransferFee;
+        state.riskConfig.collateralSplitLiquidatorPercent = r.collateralSplitLiquidatorPercent;
+        state.riskConfig.collateralSplitProtocolPercent = r.collateralSplitProtocolPercent;
 
-        state.config.feeRecipient = c.feeRecipient;
+        state.riskConfig.collateralTokenCap = r.collateralTokenCap;
+        state.riskConfig.borrowATokenCap = r.borrowATokenCap;
+        state.riskConfig.debtTokenCap = r.debtTokenCap;
+
+        state.riskConfig.moveToVariablePoolHFThreshold = r.moveToVariablePoolHFThreshold;
     }
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {
@@ -193,14 +210,17 @@ library Initialize {
         state.data.variablePool = IPool(d.variablePool);
 
         state.data.collateralToken = new NonTransferrableToken(
-            address(this), "Size Fixed ETH", "szETH", IERC20Metadata(state.data.underlyingCollateralToken).decimals()
+            address(this),
+            string.concat("Size Fixed ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
+            string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
+            IERC20Metadata(state.data.underlyingCollateralToken).decimals()
         );
         state.data.borrowAToken =
             IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
         state.data.collateralAToken =
             IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingCollateralToken)).aTokenAddress);
         state.data.debtToken = new NonTransferrableToken(
-            address(this), "Size Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+            address(this), "Size Fixed Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
 
         state.data.vaultImplementation = new Vault();
@@ -208,13 +228,15 @@ library Initialize {
 
     function executeInitialize(
         State storage state,
-        InitializeConfigParams memory c,
+        InitializeFeeConfigParams memory f,
+        InitializeRiskConfigParams memory r,
         InitializeOracleParams memory o,
         InitializeDataParams memory d
     ) external {
-        executeInitializeConfig(state, c);
+        executeInitializeFeeConfig(state, f);
+        executeInitializeRiskConfig(state, r);
         executeInitializeOracle(state, o);
         executeInitializeData(state, d);
-        emit Events.Initialize(c, o, d);
+        emit Events.Initialize(f, r, o, d);
     }
 }

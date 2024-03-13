@@ -14,7 +14,15 @@ import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
-struct Config {
+struct FeeConfig {
+    uint256 repayFeeAPR; // annual percentage rate of the protocol repay fee
+    uint256 earlyLenderExitFee; // fee for early lender exits
+    uint256 earlyBorrowerExitFee; // fee for early borrower exits
+    uint256 collateralOverdueTransferFee; // fee for converting overdue fixed-rate loans into the variable-rate loans
+    address feeRecipient; // address to receive protocol fees
+}
+
+struct RiskConfig {
     uint256 crOpening; // minimum collateral ratio for opening a loan
     uint256 crLiquidation; // minimum collateral ratio for liquidation
     uint256 minimumCreditBorrowAToken; // minimum credit value of loans
@@ -23,11 +31,7 @@ struct Config {
     uint256 collateralTokenCap; // maximum amount of deposited collateral tokens
     uint256 borrowATokenCap; // maximum amount of deposited borrowed aTokens
     uint256 debtTokenCap; // maximum amount of minted debt tokens
-    uint256 repayFeeAPR; // annual percentage rate of the protocol repay fee
-    uint256 earlyLenderExitFee; // fee for early lender exits
-    uint256 earlyBorrowerExitFee; // fee for early borrower exits
-    uint256 collateralOverdueTransferFee; // fee for converting overdue fixed-rate loans into the variable-rate loans
-    address feeRecipient; // address to receive protocol fees
+    uint256 moveToVariablePoolHFThreshold; // health factor threshold for moving a loan to the variable pool
 }
 
 struct Oracle {
@@ -50,7 +54,8 @@ struct Data {
 }
 
 struct State {
-    Config config;
+    FeeConfig feeConfig;
+    RiskConfig riskConfig;
     Oracle oracle;
     Data data;
 }
