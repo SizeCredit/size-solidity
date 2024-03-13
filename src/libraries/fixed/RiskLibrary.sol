@@ -16,14 +16,14 @@ library RiskLibrary {
     using LoanLibrary for CreditPosition;
 
     function validateMinimumCredit(State storage state, uint256 credit) public view {
-        if (0 < credit && credit < state.config.minimumCreditBorrowAToken) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.config.minimumCreditBorrowAToken);
+        if (0 < credit && credit < state.riskConfig.minimumCreditBorrowAToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.riskConfig.minimumCreditBorrowAToken);
         }
     }
 
     function validateMinimumCreditOpening(State storage state, uint256 credit) public view {
-        if (credit < state.config.minimumCreditBorrowAToken) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(credit, state.config.minimumCreditBorrowAToken);
+        if (credit < state.riskConfig.minimumCreditBorrowAToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(credit, state.riskConfig.minimumCreditBorrowAToken);
         }
     }
 
@@ -67,7 +67,7 @@ library RiskLibrary {
     }
 
     function isUserLiquidatable(State storage state, address account) public view returns (bool) {
-        return collateralRatio(state, account) < state.config.crLiquidation;
+        return collateralRatio(state, account) < state.riskConfig.crLiquidation;
     }
 
     function validateUserIsNotLiquidatable(State storage state, address account) external view {
@@ -78,7 +78,7 @@ library RiskLibrary {
 
     function validateUserIsNotBelowopeningLimitBorrowCR(State storage state, address account) external view {
         uint256 openingLimitBorrowCR = Math.max(
-            state.config.crOpening,
+            state.riskConfig.crOpening,
             state.data.users[account].borrowOffer.openingLimitBorrowCR // 0 by default, or user-defined if BorrowAsLimitOrder has been placed
         );
         if (collateralRatio(state, account) < openingLimitBorrowCR) {

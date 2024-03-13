@@ -76,13 +76,13 @@ library Liquidate {
                 uint256 collateralRemainder = assignedCollateral - debtInCollateralToken;
 
                 uint256 collateralRemainderToLiquidator =
-                    Math.mulDivDown(collateralRemainder, state.config.collateralSplitLiquidatorPercent, PERCENT);
+                    Math.mulDivDown(collateralRemainder, state.riskConfig.collateralSplitLiquidatorPercent, PERCENT);
                 uint256 collateralRemainderToProtocol =
-                    Math.mulDivDown(collateralRemainder, state.config.collateralSplitProtocolPercent, PERCENT);
+                    Math.mulDivDown(collateralRemainder, state.riskConfig.collateralSplitProtocolPercent, PERCENT);
 
                 liquidatorProfitCollateralToken += collateralRemainderToLiquidator;
                 state.data.collateralToken.transferFrom(
-                    debtPositionCopy.borrower, state.config.feeRecipient, collateralRemainderToProtocol
+                    debtPositionCopy.borrower, state.feeConfig.feeRecipient, collateralRemainderToProtocol
                 );
             }
             // CR <= 100%
@@ -108,9 +108,9 @@ library Liquidate {
         } catch {
             emit Events.LiquidateOverdueNoSplitRemainder(params.debtPositionId);
             liquidatorProfitCollateralToken = _executeLiquidateTakeCollateral(state, debtPositionCopy, false)
-                + state.config.collateralOverdueTransferFee;
+                + state.feeConfig.collateralOverdueTransferFee;
             state.data.collateralToken.transferFrom(
-                debtPositionCopy.borrower, msg.sender, state.config.collateralOverdueTransferFee
+                debtPositionCopy.borrower, msg.sender, state.feeConfig.collateralOverdueTransferFee
             );
         }
     }
@@ -131,7 +131,7 @@ library Liquidate {
         state.updateRepayFee(debtPosition, debtPosition.faceValue);
 
         // case 1a: the user is liquidatable profitably
-        if (PERCENT <= collateralRatio && collateralRatio < state.config.crLiquidation) {
+        if (PERCENT <= collateralRatio && collateralRatio < state.riskConfig.crLiquidation) {
             emit Events.LiquidateUserLiquidatableProfitably(params.debtPositionId);
             liquidatorProfitCollateralToken = _executeLiquidateTakeCollateral(state, debtPositionCopy, true);
             // case 1b: the user is liquidatable unprofitably
@@ -141,7 +141,7 @@ library Liquidate {
                 _executeLiquidateTakeCollateral(state, debtPositionCopy, false /* this parameter should not matter */ );
             // case 2: the loan is overdue
         } else {
-            // collateralRatio > state.config.crLiquidation
+            // collateralRatio > state.riskConfig.crLiquidation
             if (loanStatus == LoanStatus.OVERDUE) {
                 liquidatorProfitCollateralToken = _executeLiquidateOverdue(state, params, debtPositionCopy);
                 // loan is ACTIVE

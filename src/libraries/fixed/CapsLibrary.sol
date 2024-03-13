@@ -8,24 +8,24 @@ import {Errors} from "@src/libraries/Errors.sol";
 /// @notice Contains functions for validating the cap of minted protocol-controlled tokens
 library CapsLibrary {
     function validateCollateralTokenCap(State storage state) external view {
-        if (state.data.collateralToken.totalSupply() > state.config.collateralTokenCap) {
+        if (state.data.collateralToken.totalSupply() > state.riskConfig.collateralTokenCap) {
             revert Errors.COLLATERAL_TOKEN_CAP_EXCEEDED(
-                state.config.collateralTokenCap, state.data.collateralToken.totalSupply()
+                state.riskConfig.collateralTokenCap, state.data.collateralToken.totalSupply()
             );
         }
     }
 
     function validateBorrowATokenCap(State storage state) external view {
-        if (state.data.borrowAToken.totalSupply() > state.config.borrowATokenCap) {
+        if (state.data.borrowAToken.totalSupply() > state.riskConfig.borrowATokenCap) {
             revert Errors.BORROW_ATOKEN_CAP_EXCEEDED(
-                state.config.borrowATokenCap, state.data.borrowAToken.totalSupply()
+                state.riskConfig.borrowATokenCap, state.data.borrowAToken.totalSupply()
             );
         }
     }
 
     function validateDebtTokenCap(State storage state) external view {
-        if (state.data.debtToken.totalSupply() > state.config.debtTokenCap) {
-            revert Errors.DEBT_TOKEN_CAP_EXCEEDED(state.config.debtTokenCap, state.data.debtToken.totalSupply());
+        if (state.data.debtToken.totalSupply() > state.riskConfig.debtTokenCap) {
+            revert Errors.DEBT_TOKEN_CAP_EXCEEDED(state.riskConfig.debtTokenCap, state.data.debtToken.totalSupply());
         }
     }
 

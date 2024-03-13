@@ -28,6 +28,7 @@ contract PoolMock is Ownable {
 
     mapping(address asset => AToken aToken) internal aTokens;
     mapping(address asset => VariableDebtToken) internal debtTokens;
+    mapping(address asset => bool) internal isCollateralToken;
     MockIncentivesController internal incentivesController;
 
     constructor(IPriceFeed _priceFeed) Ownable(msg.sender) {
@@ -35,7 +36,12 @@ contract PoolMock is Ownable {
         priceFeed = _priceFeed;
     }
 
-    function setLiquidityIndex(address asset, uint256 index) external onlyOwner {
+    function setLiquidityIndex(address asset, uint256 index, bool isCollateral) external onlyOwner {
+        setLiquidityIndex(asset, index);
+        isCollateralToken[asset] = isCollateral;
+    }
+
+    function setLiquidityIndex(address asset, uint256 index) public onlyOwner {
         (bool exists,) = reserveIndexes.tryGet(asset);
         if (!exists) {
             aTokens[asset] = new AToken(IPool(address(this)));
@@ -103,19 +109,27 @@ contract PoolMock is Ownable {
         debtTokens[debtAsset].burn(user, debtToCover, reserveIndexes.get(debtAsset));
     }
 
-    function getUserAccountData(address)
+    function getUserAccountData(address user)
         external
-        pure
-        returns (
-            uint256 totalCollateralBase,
-            uint256 totalDebtBase,
-            uint256 availableBorrowsBase,
-            uint256 currentLiquidationThreshold,
-            uint256 ltv,
-            uint256 healthFactor
-        )
+        view
+        returns (uint256 totalCollateralBase, uint256 totalDebtBase, uint256, uint256, uint256, uint256 healthFactor)
     {
-        return (0, 0, 0, 0, 0, 0);
+        uint256 length = reserveIndexes.length();
+        address collateralAsset;
+        address debtAsset;
+        for (uint256 i = 0; i < length; i++) {
+            (address asset,) = reserveIndexes.at(i);
+            if (isCollateralToken[asset]) {
+                collateralAsset = asset;
+            } else {
+                debtAsset = asset;
+            }
+        }
+
+        uint8 decimals = IERC20Metadata(collateralAsset).decimals() - IERC20Metadata(debtAsset).decimals();
+        totalCollateralBase = aTokens[collateralAsset].balanceOf(user);
+        totalDebtBase = debtTokens[debtAsset].balanceOf(user);
+        healthFactor = totalCollateralBase * priceFeed.getPrice() / (totalDebtBase * 10 ** decimals);
     }
 
     function getReserveNormalizedIncome(address asset) external view returns (uint256) {

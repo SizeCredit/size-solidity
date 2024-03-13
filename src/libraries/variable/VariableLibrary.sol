@@ -252,6 +252,7 @@ library VariableLibrary {
     /// @notice Move a fixed-rate DebtPosition to the variable pool by supplying the assigned collateral and paying the liquidator with the move fee
     ///        Try borrowing underlying borrow tokens from the variable pool by first supplying collateral
     ///        The borrow is made on behalf of the variable-rate vault of the `from` user and the supply is made to the fixed-rate vault of the `to` user, so that it later can be claimed
+    ///        After moving the loan to the Variable Pool, we check the vault's health factor and revert if it is below the liquidation threshold. See https://docs.aave.com/risk/asset-risk/risk-parameters#health-factor
     /// @dev Assumes `from` has enough collateral to borrow `amount`
     ///      We use a memory copy of the DebtPosition as it might have already changed in storage as a result of the liquidation process
     ///      This function may revert due to Variable Pool health checks or liquidity conditions
@@ -262,7 +263,7 @@ library VariableLibrary {
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
-        liquidatorProfitCollateralToken = state.config.collateralOverdueTransferFee;
+        liquidatorProfitCollateralToken = state.feeConfig.collateralOverdueTransferFee;
         state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
 
         // define local variables used to convert the loan from fixed to variable
@@ -274,9 +275,6 @@ library VariableLibrary {
         uint256 borrowATokenBalance = debtPositionCopy.faceValue;
 
         // begin move to variable pool
-        IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
-        IERC20Metadata underlyingBorrowToken = IERC20Metadata(state.data.underlyingBorrowToken);
-
         Vault vaultFrom = state.getVaultVariable(from);
         Vault vaultTo = state.getVaultFixed(to);
 
@@ -285,21 +283,24 @@ library VariableLibrary {
 
         // supply collateral asset
         state.data.underlyingCollateralToken.forceApprove(address(state.data.variablePool), collateralBalance);
-        state.data.variablePool.supply(address(underlyingCollateralToken), collateralBalance, address(vaultFrom), 0);
+        state.data.variablePool.supply(
+            address(state.data.underlyingCollateralToken), collateralBalance, address(vaultFrom), 0
+        );
 
         address[] memory targets = new address[](3);
         bytes[] memory data = new bytes[](3);
 
         // set underlyingCollateralToken as collateral
         targets[0] = address(state.data.variablePool);
-        data[0] = abi.encodeCall(IPool.setUserUseReserveAsCollateral, (address(underlyingCollateralToken), true));
+        data[0] =
+            abi.encodeCall(IPool.setUserUseReserveAsCollateral, (address(state.data.underlyingCollateralToken), true));
 
         // borrow
         targets[1] = address(state.data.variablePool);
         data[1] = abi.encodeCall(
             IPool.borrow,
             (
-                address(underlyingBorrowToken),
+                address(state.data.underlyingBorrowToken),
                 borrowATokenBalance,
                 uint256(DataTypes.InterestRateMode.VARIABLE),
                 0,
@@ -315,7 +316,17 @@ library VariableLibrary {
         vaultFrom.proxy(targets, data);
 
         // supply to `to`
-        underlyingBorrowToken.forceApprove(address(state.data.variablePool), borrowATokenBalance);
-        state.data.variablePool.supply(address(underlyingBorrowToken), borrowATokenBalance, address(vaultTo), 0);
+        state.data.underlyingBorrowToken.forceApprove(address(state.data.variablePool), borrowATokenBalance);
+        state.data.variablePool.supply(
+            address(state.data.underlyingBorrowToken), borrowATokenBalance, address(vaultTo), 0
+        );
+
+        // check if the user HF is greater than the threshold
+        (,,,,, uint256 healthFactor) = state.data.variablePool.getUserAccountData(address(vaultFrom));
+        if (healthFactor < state.riskConfig.moveToVariablePoolHFThreshold) {
+            revert Errors.HEALTH_FACTOR_BELOW_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(
+                address(vaultFrom), healthFactor, state.riskConfig.moveToVariablePoolHFThreshold
+            );
+        }
     }
 }

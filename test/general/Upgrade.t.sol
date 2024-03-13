@@ -15,7 +15,7 @@ contract UpgradeTest is Test, BaseTest {
     function test_Upgrade_proxy_can_be_upgraded_with_uups_castingeneralConfig() public {
         address owner = address(this);
         Size v1 = new Size();
-        ERC1967Proxy proxy = new ERC1967Proxy(address(v1), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(v1), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         Size v2 = new SizeMock();
 
         UUPSUpgradeable(address(proxy)).upgradeToAndCall(address(v2), "");
@@ -25,7 +25,7 @@ contract UpgradeTest is Test, BaseTest {
     function test_Upgrade_proxy_can_be_upgraded_directly() public {
         address owner = address(this);
         Size v1 = new Size();
-        ERC1967Proxy proxy = new ERC1967Proxy(address(v1), abi.encodeCall(Size.initialize, (owner, c, o, d)));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(v1), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         Size v2 = new SizeMock();
 
         Size(address(proxy)).upgradeToAndCall(address(v2), "");

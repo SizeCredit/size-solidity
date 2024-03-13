@@ -47,7 +47,7 @@ contract BorrowerExitValidationTest is BaseTest {
                 bob,
                 false,
                 100e6,
-                200e6 + size.config().earlyBorrowerExitFee
+                200e6 + size.feeConfig().earlyBorrowerExitFee
             )
         );
         size.borrowerExit(

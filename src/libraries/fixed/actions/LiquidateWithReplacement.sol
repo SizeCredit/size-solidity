@@ -117,7 +117,7 @@ library LiquidateWithReplacement {
 
         state.data.debtToken.mint(params.borrower, debtPositionCopy.getDebt());
         state.transferBorrowATokenFixed(address(this), params.borrower, issuanceValue);
-        state.transferBorrowATokenFixed(address(this), state.config.feeRecipient, liquidatorProfitBorrowAsset);
+        state.transferBorrowATokenFixed(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

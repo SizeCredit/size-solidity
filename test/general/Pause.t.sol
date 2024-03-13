@@ -18,9 +18,9 @@ contract PauseTest is BaseTest {
     }
 
     function test_Pause_pause_can_updateConfig() public {
-        assertGt(size.config().repayFeeAPR, 0);
+        assertGt(size.feeConfig().repayFeeAPR, 0);
         size.pause();
         size.updateConfig(UpdateConfigParams({key: "repayFeeAPR", value: 0}));
-        assertEq(size.config().repayFeeAPR, 0);
+        assertEq(size.feeConfig().repayFeeAPR, 0);
     }
 }

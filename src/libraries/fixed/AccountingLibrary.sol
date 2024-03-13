@@ -67,7 +67,7 @@ library AccountingLibrary {
         }
 
         state.data.collateralToken.transferFromCapped(
-            debtPosition.borrower, state.config.feeRecipient, repayFeeCollateral
+            debtPosition.borrower, state.feeConfig.feeRecipient, repayFeeCollateral
         );
 
         state.data.debtToken.burnCapped(debtPosition.borrower, repayFee);
@@ -105,7 +105,7 @@ library AccountingLibrary {
             borrower: borrower,
             issuanceValue: issuanceValue,
             faceValue: faceValue,
-            repayFeeAPR: state.config.repayFeeAPR,
+            repayFeeAPR: state.feeConfig.repayFeeAPR,
             startDate: block.timestamp,
             dueDate: dueDate,
             liquidityIndexAtRepayment: 0

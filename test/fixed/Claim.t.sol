@@ -39,7 +39,7 @@ contract ClaimTest is BaseTest {
 
     function test_Claim_claim_of_exited_loan_gets_credit_back() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
@@ -70,7 +70,7 @@ contract ClaimTest is BaseTest {
 
     function test_Claim_claim_of_CreditPosition_where_DebtPosition_is_repaid_works() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
@@ -122,7 +122,8 @@ contract ClaimTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
-        uint256 repayFee = size.repayFee(100e6, block.timestamp, block.timestamp + 365 days, size.config().repayFeeAPR);
+        uint256 repayFee =
+            size.repayFee(100e6, block.timestamp, block.timestamp + 365 days, size.feeConfig().repayFeeAPR);
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         _deposit(bob, usdc, 100e6);
@@ -176,7 +177,7 @@ contract ClaimTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, weth, 160e18);
-        _deposit(bob, usdc, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(bob, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
         _deposit(candy, usdc, 10e6);
         _deposit(liquidator, usdc, 1000e6);
         _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);

@@ -26,9 +26,10 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {
-    InitializeConfigParams,
     InitializeDataParams,
-    InitializeOracleParams
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -95,8 +96,12 @@ abstract contract SizeView is SizeStorage {
         return state.debtTokenAmountToCollateralTokenAmount(borrowATokenAmount);
     }
 
-    function config() external view returns (InitializeConfigParams memory) {
-        return state.configParams();
+    function feeConfig() external view returns (InitializeFeeConfigParams memory) {
+        return state.feeConfigParams();
+    }
+
+    function riskConfig() external view returns (InitializeRiskConfigParams memory) {
+        return state.riskConfigParams();
     }
 
     function oracle() external view returns (InitializeOracleParams memory) {

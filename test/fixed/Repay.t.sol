@@ -116,7 +116,7 @@ contract RepayTest is BaseTest {
         uint256 borrowATokenBalance,
         uint256 repayAmount
     ) internal {
-        borrowATokenBalance = bound(borrowATokenBalance, size.config().minimumCreditBorrowAToken, 100e6);
+        borrowATokenBalance = bound(borrowATokenBalance, size.riskConfig().minimumCreditBorrowAToken, 100e6);
         repayAmount = bound(repayAmount, 0, borrowATokenBalance);
 
         _setPrice(1e18);
@@ -128,7 +128,7 @@ contract RepayTest is BaseTest {
 
         vm.prank(bob);
         try size.repay(RepayParams({debtPositionId: debtPositionId})) {} catch {}
-        assertGe(size.getCreditPosition(creditPositionId).credit, size.config().minimumCreditBorrowAToken);
+        assertGe(size.getCreditPosition(creditPositionId).credit, size.riskConfig().minimumCreditBorrowAToken);
     }
 
     function test_Repay_repay_pays_repayFeeAPR() private {}

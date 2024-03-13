@@ -95,7 +95,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
             abi.encodeWithSelector(
                 Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
                 1.03e6,
-                size.config().minimumCreditBorrowAToken
+                size.riskConfig().minimumCreditBorrowAToken
             )
         );
         size.borrowAsMarketOrder(

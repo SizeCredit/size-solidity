@@ -91,7 +91,7 @@ contract CompensateTest is BaseTest {
         uint256 amount = 200e6;
 
         rate = bound(rate, 0, 1e18);
-        borrowAmount = bound(borrowAmount, size.config().minimumCreditBorrowAToken, amount);
+        borrowAmount = bound(borrowAmount, size.riskConfig().minimumCreditBorrowAToken, amount);
 
         _deposit(alice, weth, 2e18);
         _deposit(alice, usdc, amount);

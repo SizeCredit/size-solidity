@@ -137,7 +137,7 @@ library BorrowAsMarketOrder {
             }
 
             // the lender doesn't have enought credit to exit
-            if (deltaAmountIn < state.config.minimumCreditBorrowAToken) {
+            if (deltaAmountIn < state.riskConfig.minimumCreditBorrowAToken) {
                 continue;
             }
             // full amount borrowed
@@ -152,7 +152,9 @@ library BorrowAsMarketOrder {
                 credit: deltaAmountIn
             });
             state.transferBorrowATokenFixed(params.lender, msg.sender, deltaAmountOut);
-            state.transferBorrowATokenFixed(msg.sender, state.config.feeRecipient, state.config.earlyLenderExitFee);
+            state.transferBorrowATokenFixed(
+                msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee
+            );
             amountOutLeft -= deltaAmountOut;
         }
     }

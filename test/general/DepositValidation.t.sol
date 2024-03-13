@@ -26,14 +26,14 @@ contract DepositValidationTest is BaseTest {
         vm.startPrank(alice);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.COLLATERAL_TOKEN_CAP_EXCEEDED.selector, size.config().collateralTokenCap, amount * 1e18
+                Errors.COLLATERAL_TOKEN_CAP_EXCEEDED.selector, size.riskConfig().collateralTokenCap, amount * 1e18
             )
         );
         size.deposit(DepositParams({token: address(weth), amount: amount * 1e18, to: alice, variable: false}));
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, size.config().borrowATokenCap, amount * 1e6
+                Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, size.riskConfig().borrowATokenCap, amount * 1e6
             )
         );
         size.deposit(DepositParams({token: address(usdc), amount: amount * 1e6, to: alice, variable: false}));

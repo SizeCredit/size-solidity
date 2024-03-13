@@ -31,8 +31,8 @@ contract ExperimentsTest is Test, BaseTest {
     }
 
     function test_Experiments_test1() public {
-        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
-        assertEq(_state().alice.borrowATokenBalanceFixed, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
+        assertEq(_state().alice.borrowATokenBalanceFixed, 100e6 + size.feeConfig().earlyLenderExitFee);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _deposit(james, weth, 50e18);
         assertEq(_state().james.collateralTokenBalanceFixed, 50e18);
@@ -77,7 +77,7 @@ contract ExperimentsTest is Test, BaseTest {
         _lendAsLimitOrder(bob, block.timestamp + 6 days, 0.03e18);
         _deposit(alice, weth, 2e18);
         _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 6 days);
-        assertGe(size.collateralRatio(alice), size.config().crOpening);
+        assertGe(size.collateralRatio(alice), size.riskConfig().crOpening);
         assertTrue(!size.isUserLiquidatable(alice), "borrower should not be liquidatable");
         vm.warp(block.timestamp + 1 days);
         _setPrice(60e18);
@@ -93,8 +93,8 @@ contract ExperimentsTest is Test, BaseTest {
     function test_Experiments_testBasicExit1() public {
         uint256 amountToExitPercent = 1e18;
         // Deposit by bob in USDC
-        _deposit(bob, usdc, 100e6 + size.config().earlyLenderExitFee);
-        assertEq(_state().bob.borrowATokenBalanceFixed, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(bob, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
+        assertEq(_state().bob.borrowATokenBalanceFixed, 100e6 + size.feeConfig().earlyLenderExitFee);
 
         // Bob lending as limit order
         _lendAsLimitOrder(bob, block.timestamp + 10 days, 0.03e18);
@@ -149,8 +149,8 @@ contract ExperimentsTest is Test, BaseTest {
 
     function test_Experiments_testBorrowWithExit1() public {
         // Bob deposits in USDC
-        _deposit(bob, usdc, 100e6 + size.config().earlyLenderExitFee);
-        assertEq(_state().bob.borrowATokenBalanceFixed, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(bob, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
+        assertEq(_state().bob.borrowATokenBalanceFixed, 100e6 + size.feeConfig().earlyLenderExitFee);
 
         // Bob lends as limit order
         _lendAsLimitOrder(
@@ -175,7 +175,7 @@ contract ExperimentsTest is Test, BaseTest {
         // Check conditions after Alice borrows from Bob
         assertEq(
             _state().bob.borrowATokenBalanceFixed,
-            100e6 - 70e6 + size.config().earlyLenderExitFee,
+            100e6 - 70e6 + size.feeConfig().earlyLenderExitFee,
             "Bob should have 30e6 left to borrow"
         );
         (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
@@ -264,7 +264,7 @@ contract ExperimentsTest is Test, BaseTest {
         _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 6 days);
 
         // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.config().crOpening);
+        assertGe(size.collateralRatio(alice), size.riskConfig().crOpening);
         assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
 
         vm.warp(block.timestamp + 1 days);
@@ -357,7 +357,7 @@ contract ExperimentsTest is Test, BaseTest {
         _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 365 days);
 
         // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.config().crOpening, "Alice should be above CR opening");
+        assertGe(size.collateralRatio(alice), size.riskConfig().crOpening, "Alice should be above CR opening");
         assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
@@ -595,6 +595,7 @@ contract ExperimentsTest is Test, BaseTest {
 
         _depositVariable(candy, weth, 2e18);
         _borrowVariable(candy, 2_000e6);
+        _withdrawVariable(candy, usdc, 2_000e6);
 
         assertEq(usdc.balanceOf(address(variablePool)), 500e6);
         assertEq(usdc.balanceOf(candy), 2_000e6);

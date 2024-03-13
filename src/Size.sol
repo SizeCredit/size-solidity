@@ -10,9 +10,10 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 
 import {
     Initialize,
-    InitializeConfigParams,
     InitializeDataParams,
-    InitializeOracleParams
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
@@ -42,8 +43,9 @@ import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {BorrowVariable, BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
-import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
+
 import {LiquidateVariable, LiquidateVariableParams} from "@src/libraries/variable/actions/LiquidateVariable.sol";
+import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 
@@ -92,18 +94,19 @@ contract Size is
 
     function initialize(
         address owner,
-        InitializeConfigParams calldata c,
+        InitializeFeeConfigParams calldata f,
+        InitializeRiskConfigParams calldata r,
         InitializeOracleParams calldata o,
         InitializeDataParams calldata d
     ) external initializer {
-        state.validateInitialize(owner, c, o, d);
+        state.validateInitialize(owner, f, r, o, d);
 
         __AccessControl_init();
         __Pausable_init();
         __Multicall_init();
         __UUPSUpgradeable_init();
 
-        state.executeInitialize(c, o, d);
+        state.executeInitialize(f, r, o, d);
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(PAUSER_ROLE, owner);
         _grantRole(KEEPER_ROLE, owner);

@@ -53,7 +53,7 @@ contract SelfLiquidateTest is BaseTest {
         _updateConfig("repayFeeAPR", 0);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
         _deposit(bob, weth, 150e18);
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 100e6);
@@ -154,11 +154,11 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
         _deposit(bob, weth, 300e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
-        _deposit(candy, usdc, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(candy, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
@@ -224,10 +224,10 @@ contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidateLoan_selfliquidateLoan_creditPosition_insufficient_debt_token_repay_fee() public {
         _setPrice(1e18);
         _deposit(alice, weth, 200e18);
-        _deposit(alice, usdc, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
         _deposit(bob, weth, 200e18);
         _deposit(candy, weth, 200e18);
-        _deposit(candy, usdc, 100e6 + size.config().earlyLenderExitFee);
+        _deposit(candy, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
         _deposit(james, usdc, 100e6);
         _deposit(liquidator, usdc, 10_000e6);
 
@@ -263,7 +263,9 @@ contract SelfLiquidateTest is BaseTest {
 
         uint256 borrowAmount = 100e6;
         exitAmount = bound(
-            exitAmount, size.config().minimumCreditBorrowAToken, borrowAmount - size.config().minimumCreditBorrowAToken
+            exitAmount,
+            size.riskConfig().minimumCreditBorrowAToken,
+            borrowAmount - size.riskConfig().minimumCreditBorrowAToken
         );
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
@@ -300,7 +302,9 @@ contract SelfLiquidateTest is BaseTest {
 
         uint256 borrowAmount = 100e6;
         exitAmount = bound(
-            exitAmount, size.config().minimumCreditBorrowAToken, borrowAmount - size.config().minimumCreditBorrowAToken
+            exitAmount,
+            size.riskConfig().minimumCreditBorrowAToken,
+            borrowAmount - size.riskConfig().minimumCreditBorrowAToken
         );
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);

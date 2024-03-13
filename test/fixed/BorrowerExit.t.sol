@@ -15,7 +15,7 @@ contract BorrowerExitTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
-        _deposit(bob, usdc, 100e6 + size.config().earlyBorrowerExitFee);
+        _deposit(bob, usdc, 100e6 + size.feeConfig().earlyBorrowerExitFee);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
@@ -44,7 +44,7 @@ contract BorrowerExitTest is BaseTest {
         assertEq(creditPositionAfter.credit, creditPositionBefore.credit);
         assertEq(
             _after.feeRecipient.borrowATokenBalanceFixed,
-            _before.feeRecipient.borrowATokenBalanceFixed + size.config().earlyBorrowerExitFee
+            _before.feeRecipient.borrowATokenBalanceFixed + size.feeConfig().earlyBorrowerExitFee
         );
         assertEq(debtPositionBefore.borrower, bob);
         assertEq(debtPositionAfter.borrower, candy);
@@ -57,7 +57,7 @@ contract BorrowerExitTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
-        _deposit(bob, usdc, 100e6 + size.config().earlyBorrowerExitFee);
+        _deposit(bob, usdc, 100e6 + size.feeConfig().earlyBorrowerExitFee);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
         _borrowAsLimitOrder(bob, 0.03e18, block.timestamp + 365 days);
@@ -81,13 +81,13 @@ contract BorrowerExitTest is BaseTest {
         assertEq(_before.alice, _after.alice);
         assertEq(
             _after.feeRecipient.borrowATokenBalanceFixed,
-            _before.feeRecipient.borrowATokenBalanceFixed + size.config().earlyBorrowerExitFee
+            _before.feeRecipient.borrowATokenBalanceFixed + size.feeConfig().earlyBorrowerExitFee
         );
         assertEq(_after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed);
         assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed);
         assertEq(
             _after.bob.borrowATokenBalanceFixed,
-            _before.bob.borrowATokenBalanceFixed - size.config().earlyBorrowerExitFee
+            _before.bob.borrowATokenBalanceFixed - size.feeConfig().earlyBorrowerExitFee
         );
         assertEq(loansAfter, loansBefore);
     }
@@ -97,7 +97,7 @@ contract BorrowerExitTest is BaseTest {
         _updateConfig("repayFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
-        _deposit(bob, usdc, 100e6 + size.config().earlyBorrowerExitFee);
+        _deposit(bob, usdc, 100e6 + size.feeConfig().earlyBorrowerExitFee);
         _deposit(candy, weth, 150e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
@@ -162,7 +162,7 @@ contract BorrowerExitTest is BaseTest {
         vm.warp(block.timestamp + 30 days);
 
         uint256 earlyRepayFee = Math.mulDivUp(1e6, 30 days, 73 days);
-        _deposit(alice, usdc, size.config().earlyBorrowerExitFee);
+        _deposit(alice, usdc, size.feeConfig().earlyBorrowerExitFee);
         _borrowerExit(alice, debtPositionId, candy);
 
         uint256 aliceCollateralAfter = _state().alice.collateralTokenBalanceFixed;
@@ -187,7 +187,7 @@ contract BorrowerExitTest is BaseTest {
         _repay(candy, debtPositionId);
         assertEq(_state().alice.debtBalanceFixed, 0);
         assertEq(_state().candy.debtBalanceFixed, 0);
-        assertEq(_state().feeRecipient.borrowATokenBalanceFixed, size.config().earlyBorrowerExitFee);
+        assertEq(_state().feeRecipient.borrowATokenBalanceFixed, size.feeConfig().earlyBorrowerExitFee);
         assertEq(
             _state().feeRecipient.collateralTokenBalanceFixed,
             size.debtTokenAmountToCollateralTokenAmount(earlyRepayFee + newRepayFee)

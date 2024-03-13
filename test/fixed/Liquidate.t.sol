@@ -30,7 +30,7 @@ contract LiquidateTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtWad = ConversionLibrary.amountToWad(debt, usdc.decimals());
-        uint256 debtOpening = Math.mulDivUp(debtWad, size.config().crOpening, PERCENT);
+        uint256 debtOpening = Math.mulDivUp(debtWad, size.riskConfig().crOpening, PERCENT);
         uint256 lock = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
         // nothing is locked anymore on v2
         lock = 0;
@@ -64,23 +64,23 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.feeRecipient.collateralTokenBalanceFixed,
             _before.feeRecipient.collateralTokenBalanceFixed
-                + Math.mulDivDown(collateralRemainder, size.config().collateralSplitProtocolPercent, PERCENT)
+                + Math.mulDivDown(collateralRemainder, size.riskConfig().collateralSplitProtocolPercent, PERCENT)
         );
-        uint256 collateralPremiumToBorrower =
-            PERCENT - size.config().collateralSplitProtocolPercent - size.config().collateralSplitLiquidatorPercent;
+        uint256 collateralPremiumToBorrower = PERCENT - size.riskConfig().collateralSplitProtocolPercent
+            - size.riskConfig().collateralSplitLiquidatorPercent;
         assertEq(
             _after.bob.collateralTokenBalanceFixed,
             _before.bob.collateralTokenBalanceFixed - (debtWad * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
-                    (size.config().collateralSplitProtocolPercent + size.config().collateralSplitLiquidatorPercent),
+                    (size.riskConfig().collateralSplitProtocolPercent + size.riskConfig().collateralSplitLiquidatorPercent),
                     PERCENT
                 ),
             _before.bob.collateralTokenBalanceFixed - (debtWad * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
         uint256 liquidatorProfitAmount = (debtWad * 5)
-            + Math.mulDivDown(collateralRemainder, size.config().collateralSplitLiquidatorPercent, PERCENT);
+            + Math.mulDivDown(collateralRemainder, size.riskConfig().collateralSplitLiquidatorPercent, PERCENT);
         assertEq(
             _after.liquidator.collateralTokenBalanceFixed,
             _before.liquidator.collateralTokenBalanceFixed + liquidatorProfitAmount
@@ -221,14 +221,14 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed - assignedCollateralAfterFee
         );
-        assertGt(size.config().collateralOverdueTransferFee, 0);
+        assertGt(size.feeConfig().collateralOverdueTransferFee, 0);
         assertEq(
             _after.feeRecipient.collateralTokenBalanceFixed,
             _before.feeRecipient.collateralTokenBalanceFixed + repayFeeCollateral
         );
         assertEq(
             variablePoolWETHAfter,
-            variablePoolWETHBefore + assignedCollateralAfterFee - size.config().collateralOverdueTransferFee
+            variablePoolWETHBefore + assignedCollateralAfterFee - size.feeConfig().collateralOverdueTransferFee
                 - repayFeeCollateral
         );
         assertEq(size.getDebt(debtPositionId), 0);
@@ -332,6 +332,24 @@ contract LiquidateTest is BaseTest {
             assertGe(liquidatorProfitCollateralToken, minimumCollateralProfit);
             assertGe(_after.liquidator.collateralTokenBalanceFixed, _before.liquidator.collateralTokenBalanceFixed);
         } catch {}
+    }
+
+    function test_Liquidate_liquidate_move_to_VP_fails_if_variable_loan_health_factor_is_below_threshold() public {
+        _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("collateralOverdueTransferFee", 0);
+        _updateConfig("moveToVariablePoolHFThreshold", 1.6e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
+
+        vm.warp(block.timestamp + 365 days);
+
+        _deposit(liquidator, usdc, 100e6);
+        _liquidate(liquidator, debtPositionId);
+
+        assertEq(weth.balanceOf(address(variablePool)), 0);
     }
 
     function test_Liquidate_liquidate_move_to_VP_fails_if_VP_does_not_have_enough_liquidity() internal {}
