@@ -40,6 +40,10 @@ library BorrowerExit {
         if (dueDate < block.timestamp) {
             revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
         }
+        uint256 maturity = dueDate - block.timestamp;
+        if (maturity < state.riskConfig.minimumMaturity) {
+            revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(maturity, state.riskConfig.minimumMaturity);
+        }
 
         uint256 ratePerMaturity = borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
         uint256 issuanceValue = Math.mulDivUp(debtPosition.faceValue, PERCENT, PERCENT + ratePerMaturity);
@@ -67,7 +71,6 @@ library BorrowerExit {
         }
 
         // validate minAPR
-        uint256 maturity = dueDate - block.timestamp;
         if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(
                 Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.minAPR

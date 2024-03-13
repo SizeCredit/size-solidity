@@ -37,6 +37,7 @@ struct InitializeRiskConfigParams {
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
     uint256 moveToVariablePoolHFThreshold;
+    uint256 minimumMaturity;
 }
 
 struct InitializeOracleParams {
@@ -127,6 +128,11 @@ library Initialize {
         if (r.moveToVariablePoolHFThreshold < PERCENT) {
             revert Errors.INVALID_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(r.moveToVariablePoolHFThreshold);
         }
+
+        // validate minimumMaturity
+        if (r.minimumMaturity == 0) {
+            revert Errors.NULL_AMOUNT();
+        }
     }
 
     function validateInitializeOracleParams(InitializeOracleParams memory o) internal pure {
@@ -198,6 +204,7 @@ library Initialize {
         state.riskConfig.debtTokenCap = r.debtTokenCap;
 
         state.riskConfig.moveToVariablePoolHFThreshold = r.moveToVariablePoolHFThreshold;
+        state.riskConfig.minimumMaturity = r.minimumMaturity;
     }
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {

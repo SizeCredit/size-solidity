@@ -26,6 +26,9 @@ contract PoolMock is Ownable {
     PoolAddressesProvider internal immutable addressesProvider;
     IPriceFeed internal immutable priceFeed;
 
+    // https://github.com/foundry-rs/foundry/issues/4615
+    bool public IS_TEST = true;
+
     mapping(address asset => AToken aToken) internal aTokens;
     mapping(address asset => VariableDebtToken) internal debtTokens;
     mapping(address asset => bool) internal isCollateralToken;
@@ -112,8 +115,18 @@ contract PoolMock is Ownable {
     function getUserAccountData(address user)
         external
         view
-        returns (uint256 totalCollateralBase, uint256 totalDebtBase, uint256, uint256, uint256, uint256 healthFactor)
+        returns (
+            uint256 totalCollateralBase,
+            uint256 totalDebtBase,
+            uint256 availableBorrowsBase,
+            uint256 currentLiquidationThreshold,
+            uint256 ltv,
+            uint256 healthFactor
+        )
     {
+        availableBorrowsBase = 0;
+        currentLiquidationThreshold = 0;
+        ltv = 0;
         uint256 length = reserveIndexes.length();
         address collateralAsset;
         address debtAsset;

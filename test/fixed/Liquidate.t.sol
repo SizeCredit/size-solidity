@@ -184,6 +184,7 @@ contract LiquidateTest is BaseTest {
     }
 
     function test_Liquidate_liquidate_move_to_VP_if_overdue_and_high_CR_borrows_from_VP() public {
+        _updateConfig("minimumMaturity", 1);
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);

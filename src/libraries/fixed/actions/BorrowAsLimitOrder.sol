@@ -15,7 +15,7 @@ struct BorrowAsLimitOrderParams {
 library BorrowAsLimitOrder {
     using OfferLibrary for BorrowOffer;
 
-    function validateBorrowAsLimitOrder(State storage, BorrowAsLimitOrderParams calldata params) external pure {
+    function validateBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = BorrowOffer({
             openingLimitBorrowCR: params.openingLimitBorrowCR,
             curveRelativeTime: params.curveRelativeTime
@@ -30,7 +30,7 @@ library BorrowAsLimitOrder {
             // N/A
 
             // validate curveRelativeTime
-            YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime);
+            YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime, state.riskConfig.minimumMaturity);
         }
     }
 

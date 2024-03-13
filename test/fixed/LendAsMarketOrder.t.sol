@@ -77,6 +77,7 @@ contract LendAsMarketOrderTest is BaseTest {
     }
 
     function testFuzz_LendAsMarketOrder_lendAsMarketOrder_exactAmountIn(uint256 amountIn, uint256 seed) public {
+        _updateConfig("minimumMaturity", 1);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);

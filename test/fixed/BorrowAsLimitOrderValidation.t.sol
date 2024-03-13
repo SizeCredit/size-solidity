@@ -66,9 +66,9 @@ contract BorrowAsLimitOrderValidationTest is BaseTest {
             })
         );
 
-        maturities[0] = 0 days;
+        maturities[0] = 6 hours;
         maturities[1] = 1 days;
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_MATURITY.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector, 6 hours, 24 hours));
         size.borrowAsLimitOrder(
             BorrowAsLimitOrderParams({
                 openingLimitBorrowCR: 0,

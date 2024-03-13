@@ -25,7 +25,7 @@ import {
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
-import {SizeMock} from "@test/mocks/SizeMock.t.sol";
+import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 
@@ -66,7 +66,8 @@ abstract contract Deploy {
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            moveToVariablePoolHFThreshold: 1.1e18
+            moveToVariablePoolHFThreshold: 1.1e18,
+            minimumMaturity: 1 days
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
         d = InitializeDataParams({
@@ -103,7 +104,8 @@ abstract contract Deploy {
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            moveToVariablePoolHFThreshold: 1.1e18
+            moveToVariablePoolHFThreshold: 1.1e18,
+            minimumMaturity: 1 days
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
         d = InitializeDataParams({
@@ -139,7 +141,8 @@ abstract contract Deploy {
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            moveToVariablePoolHFThreshold: 1.1e18
+            moveToVariablePoolHFThreshold: 1.1e18,
+            minimumMaturity: 1 days
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
         d = InitializeDataParams({

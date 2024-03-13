@@ -12,7 +12,7 @@ library Errors {
     error NULL_ARRAY();
     error NULL_OFFER();
     error MATURITIES_NOT_STRICTLY_INCREASING();
-    error NULL_MATURITY();
+    error MATURITY_BELOW_MINIMUM_MATURITY(uint256 maturity, uint256 minimumMaturity);
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
     error INVALID_KEY(bytes32 key);

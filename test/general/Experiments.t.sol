@@ -224,7 +224,6 @@ contract ExperimentsTest is Test, BaseTest {
         vm.warp(block.timestamp + 6 days);
 
         // Assert loan conditions
-        DebtPosition memory fol = size.getDebtPosition(0);
         assertEq(size.getLoanStatus(0), LoanStatus.OVERDUE, "Loan should be overdue");
         (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
         assertEq(debtPositionsCount, 1, "Expect one active loan");
@@ -240,12 +239,10 @@ contract ExperimentsTest is Test, BaseTest {
         // Move to variable pool
         _liquidate(liquidator, 0);
 
-        fol = size.getDebtPosition(0);
         uint256 aliceCollateralAfter = _state().alice.collateralTokenBalanceFixed;
 
         // Assert post-move conditions
         assertEq(size.getDebt(0), 0, "Loan should be repaid by moving into the variable pool");
-        // assertEq(size.activeVariableLoans(), 1, "Expect one active loan in variable pool");
         assertEq(aliceCollateralAfter, 0, "Alice should have locked ETH after moving to variable pool");
     }
 

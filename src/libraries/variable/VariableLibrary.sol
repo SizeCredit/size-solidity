@@ -263,11 +263,11 @@ library VariableLibrary {
         external
         returns (uint256 liquidatorProfitCollateralToken)
     {
+        uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPositionCopy);
+
+        // take overdue transfer fee from collateral
         liquidatorProfitCollateralToken = state.feeConfig.collateralOverdueTransferFee;
         state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
-
-        // define local variables used to convert the loan from fixed to variable
-        uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPositionCopy);
 
         address from = debtPositionCopy.borrower;
         address to = address(this);
@@ -281,7 +281,7 @@ library VariableLibrary {
         // unwrap collateralToken (e.g. szETH) to underlyingCollateralToken (e.g. WETH) from `from` to `address(this)`
         state.withdrawUnderlyingCollateralToken(from, address(this), collateralBalance);
 
-        // supply collateral asset
+        // supply underlying collateral token
         state.data.underlyingCollateralToken.forceApprove(address(state.data.variablePool), collateralBalance);
         state.data.variablePool.supply(
             address(state.data.underlyingCollateralToken), collateralBalance, address(vaultFrom), 0
@@ -308,7 +308,7 @@ library VariableLibrary {
             )
         );
 
-        // transfer to `address(this)`
+        // transfer underlying borrow tokens to `address(this)`
         targets[2] = address(state.data.underlyingBorrowToken);
         data[2] = abi.encodeCall(IERC20.transfer, (address(this), borrowATokenBalance));
 

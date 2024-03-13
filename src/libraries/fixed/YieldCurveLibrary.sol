@@ -19,8 +19,7 @@ struct YieldCurve {
 ///         for all t in `maturities`, with `marketRate` defined by an external oracle
 /// @dev The final rate per maturity is an unsigned integer, as it is a percentage
 library YieldCurveLibrary {
-    // @audit Check if we should have a protocol-defined minimum maturity
-    function validateYieldCurve(YieldCurve memory self) internal pure {
+    function validateYieldCurve(YieldCurve memory self, uint256 minimumMaturity) internal pure {
         if (self.maturities.length == 0 || self.aprs.length == 0 || self.marketRateMultipliers.length == 0) {
             revert Errors.NULL_ARRAY();
         }
@@ -39,8 +38,8 @@ library YieldCurveLibrary {
             }
             lastMaturity = self.maturities[i - 1];
         }
-        if (self.maturities[0] == 0) {
-            revert Errors.NULL_MATURITY();
+        if (self.maturities[0] < minimumMaturity) {
+            revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(self.maturities[0], minimumMaturity);
         }
 
         // validate curveRelativeTime.marketRateMultipliers

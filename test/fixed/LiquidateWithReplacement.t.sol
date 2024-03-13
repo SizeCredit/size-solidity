@@ -132,6 +132,7 @@ contract LiquidateWithReplacementTest is BaseTest {
     }
 
     function test_LiquidateWithReplacement_liquidateWithReplacement_cannot_be_executed_if_loan_is_overdue() public {
+        _updateConfig("minimumMaturity", 1);
         _setPrice(1e18);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);

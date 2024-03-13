@@ -6,7 +6,7 @@ import {Test} from "forge-std/Test.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {SizeMock} from "@test/mocks/SizeMock.t.sol";
+import {SizeMock} from "@test/mocks/SizeMock.sol";
 
 import {Size} from "@src/Size.sol";
 import {BaseTest} from "@test/BaseTest.sol";

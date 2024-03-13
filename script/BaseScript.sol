@@ -6,7 +6,7 @@ import {Size} from "@src/Size.sol";
 
 import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {SizeMock} from "@test/mocks/SizeMock.t.sol";
+import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 import {Script} from "forge-std/Script.sol";

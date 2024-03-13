@@ -57,6 +57,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 apr,
         uint256 dueDate
     ) public {
+        _updateConfig("minimumMaturity", 1);
         amount = bound(amount, MAX_AMOUNT_USDC / 20, MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
         apr = bound(apr, 0, MAX_RATE);
         dueDate = bound(dueDate, block.timestamp + 1, block.timestamp + MAX_MATURITY - 1);
@@ -121,11 +122,12 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertTrue(!size.isDebtPositionId(loanId2));
     }
 
-    function testFuzz_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral(
+    function testFuzz_BorrowAsMarketOrder_borrowAsMarketOrder_with_virtual_collateral_2(
         uint256 amount,
         uint256 rate,
         uint256 maturity
     ) public {
+        _updateConfig("minimumMaturity", 1);
         amount = bound(amount, MAX_AMOUNT_USDC / 10, 2 * MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
         rate = bound(rate, 0, MAX_RATE);
         maturity = bound(maturity, 1, MAX_MATURITY - 1);
