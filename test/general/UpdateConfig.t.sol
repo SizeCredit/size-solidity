@@ -29,7 +29,7 @@ contract UpdateConfigTest is BaseTest {
     }
 
     function test_UpdateConfig_updateConfig_can_maliciously_liquidate_all_positions() public {
-        size.updateConfig(UpdateConfigParams({key: "crOpening", value: 10.00e18}));
+        size.updateConfig(UpdateConfigParams({key: "crOpening", value: 10.0e18}));
         size.updateConfig(UpdateConfigParams({key: "crLiquidation", value: 9.99e18}));
     }
 }

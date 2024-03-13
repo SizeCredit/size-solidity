@@ -59,7 +59,7 @@ Decimal amounts are preserved until a conversion is necessary, and performed via
 - USDC/aszUSDC: 6 decimals
 - szDebt: 6 decimals (same as borrow token)
 - WETH/szETH: 18 decimals
-- PriceFeed (ETH/USDC): 18 decimals
+- VariablePoolPriceFeed (ETH/USDC): 18 decimals
 - MarketBorrowRateFeed (USDC): 18 decimals
 
 All percentages are expressed in 18 decimals. For example, a 150% liquidation collateral ratio is represented as 1500000000000000000.
@@ -72,17 +72,11 @@ When an account executes `supply` into Size's Variable Pool (Aave v3 fork), the 
 
 #### Oracles
 
-##### Price Feed
-
-Two Chainlink aggregators are used to fetch the ETH/USDC rate. A conversion from ETH/USD and USDC/USD is performed and the result is rounded down to 18 decimals. For example, a spot price of 2,426.59 ETH/USDC is represented as 2426590000000000000000.
-
 ##### Variable Pool Price Feed
 
 Since both `Size` contract (fixed-rate orderbook) ant the Size's Variable Pool (Aave v3 fork) depend on the ETH/USDC rate, it may be appropriate to use a single contract interfacing with Chainlink aggregators, as different error handling and LINK funding may cause issues once these two interconected systems are deployed.
 
-A solution is proposed to use Size's Variable Pool (Aave v3 fork) `AaveOracle` contract directly, and simply converting the returned price to 18 decimals as the `Size` contract expects. One drawback of using `AaveOracle` is that it does not perform stale price checks for the oracle response, as it simply executes [`latestAnswer()`](https://github.com/aave/aave-v3-core/blob/6070e82d962d9b12835c88e68210d0e63f08d035/contracts/misc/AaveOracle.sol#L109) instead of `latestRoundData()`.
-
-In production, only one of `PriceFeed` or `VariablePoolPriceFeed` oracles will be deployed, since they both conform with the `IPriceFeed` interface, expected by the `Size` contract. The specific implementation will be determined with the help and feedback from audits and security reviews.
+A solution is proposed to use Size's Variable Pool (Aave v3 fork) `AaveOracle` contract directly, and simply converting the returned price to 18 decimals as the `Size` contract expects. One drawback of using `AaveOracle` is that it does not perform stale price checks for the oracle response, as it simply executes [`latestAnswer()`](https://github.com/aave/aave-v3-core/blob/6070e82d962d9b12835c88e68210d0e63f08d035/contracts/misc/AaveOracle.sol#L109) instead of `latestRoundData()`. We will update AaveOracle on our fork to also check for stale data.
 
 ##### Market Borrow Rate Feed
 
