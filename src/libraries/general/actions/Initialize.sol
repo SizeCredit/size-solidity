@@ -36,6 +36,7 @@ struct InitializeRiskConfigParams {
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
     uint256 moveToVariablePoolHFThreshold;
+    uint256 minimumMaturity;
 }
 
 struct InitializeOracleParams {
@@ -197,6 +198,7 @@ library Initialize {
         state.riskConfig.debtTokenCap = r.debtTokenCap;
 
         state.riskConfig.moveToVariablePoolHFThreshold = r.moveToVariablePoolHFThreshold;
+        state.riskConfig.minimumMaturity = r.minimumMaturity;
     }
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {

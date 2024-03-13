@@ -49,7 +49,8 @@ library UpdateConfig {
             collateralTokenCap: state.riskConfig.collateralTokenCap,
             borrowATokenCap: state.riskConfig.borrowATokenCap,
             debtTokenCap: state.riskConfig.debtTokenCap,
-            moveToVariablePoolHFThreshold: state.riskConfig.moveToVariablePoolHFThreshold
+            moveToVariablePoolHFThreshold: state.riskConfig.moveToVariablePoolHFThreshold,
+            minimumMaturity: state.riskConfig.minimumMaturity
         });
     }
 
@@ -91,6 +92,8 @@ library UpdateConfig {
             state.riskConfig.debtTokenCap = params.value;
         } else if (params.key == "moveToVariablePoolHFThreshold") {
             state.riskConfig.moveToVariablePoolHFThreshold = params.value;
+        } else if (params.key == "minimumMaturity") {
+            state.riskConfig.minimumMaturity = params.value;
         } else if (params.key == "repayFeeAPR") {
             state.feeConfig.repayFeeAPR = params.value;
         } else if (params.key == "earlyLenderExitFee") {

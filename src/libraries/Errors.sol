@@ -14,6 +14,7 @@ library Errors {
     error TIME_BUCKETS_NOT_STRICTLY_INCREASING();
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
+    error MATURITY_BELOW_MINIMUM_MATURITY(uint256 maturity, uint256 minimumMaturity);
     error INVALID_KEY(bytes32 key);
     error INVALID_COLLATERAL_RATIO(uint256 cr);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM(uint256 percentage);

@@ -32,6 +32,7 @@ struct RiskConfig {
     uint256 borrowATokenCap; // maximum amount of deposited borrowed aTokens
     uint256 debtTokenCap; // maximum amount of minted debt tokens
     uint256 moveToVariablePoolHFThreshold; // health factor threshold for moving a loan to the variable pool
+    uint256 minimumMaturity; // minimum loan maturity
 }
 
 struct Oracle {

@@ -64,6 +64,10 @@ library LiquidateLoanWithReplacement {
         if (rate < params.minRate) {
             revert Errors.RATE_LOWER_THAN_MIN_RATE(rate, params.minRate);
         }
+
+        if (loan.fol.dueDate - block.timestamp < state.riskConfig.minimumMaturity) {
+            revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(loan.fol.dueDate, state.riskConfig.minimumMaturity);
+        }
     }
 
     function validateMinimumCollateralProfit(

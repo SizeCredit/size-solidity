@@ -15,7 +15,7 @@ struct YieldCurve {
 /// @notice A library for working with yield curves
 library YieldCurveLibrary {
     // @audit Check if we should have a protocol-defined minimum maturity
-    function validateYieldCurve(YieldCurve memory self) internal pure {
+    function validateYieldCurve(YieldCurve memory self, uint256 minimumMaturity) internal pure {
         if (self.timeBuckets.length == 0 || self.rates.length == 0 || self.marketRateMultipliers.length == 0) {
             revert Errors.NULL_ARRAY();
         }
@@ -35,6 +35,9 @@ library YieldCurveLibrary {
                 revert Errors.TIME_BUCKETS_NOT_STRICTLY_INCREASING();
             }
             lastTimeBucket = self.timeBuckets[i - 1];
+        }
+        if (self.timeBuckets[0] < minimumMaturity) {
+            revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(self.timeBuckets[0], minimumMaturity);
         }
 
         // validate curveRelativeTime.marketRateMultipliers

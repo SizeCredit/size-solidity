@@ -61,6 +61,9 @@ library BorrowerExit {
         if (dueDate <= block.timestamp) {
             revert Errors.PAST_DUE_DATE(fol.fol.dueDate);
         }
+        if (dueDate - block.timestamp < state.riskConfig.minimumMaturity) {
+            revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(dueDate, state.riskConfig.minimumMaturity);
+        }
 
         // validate borrowerToExitTo
 

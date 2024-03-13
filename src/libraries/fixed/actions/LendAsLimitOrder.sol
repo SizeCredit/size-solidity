@@ -18,7 +18,7 @@ struct LendAsLimitOrderParams {
 library LendAsLimitOrder {
     using VariableLibrary for State;
 
-    function validateLendAsLimitOrder(State storage, LendAsLimitOrderParams calldata params) external view {
+    function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external view {
         // validate msg.sender
 
         // validate maxDueDate
@@ -30,7 +30,7 @@ library LendAsLimitOrder {
         }
 
         // validate params.curveRelativeTime
-        YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime);
+        YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime, state.riskConfig.minimumMaturity);
     }
 
     function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external {
