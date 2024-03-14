@@ -14,6 +14,10 @@ struct YieldCurve {
 /// @title YieldCurveLibrary
 /// @notice A library for working with yield curves
 library YieldCurveLibrary {
+    function isNull(YieldCurve memory self) internal pure returns (bool) {
+        return self.timeBuckets.length == 0 && self.rates.length == 0 && self.marketRateMultipliers.length == 0;
+    }
+
     // @audit Check if we should have a protocol-defined minimum maturity
     function validateYieldCurve(YieldCurve memory self, uint256 minimumMaturity) internal pure {
         if (self.timeBuckets.length == 0 || self.rates.length == 0 || self.marketRateMultipliers.length == 0) {
