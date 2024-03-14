@@ -69,8 +69,6 @@ library Errors {
         address account, uint256 healthFactor, uint256 moveToVariablePoolHFThreshold
     );
 
-    error PROXY_CALL_FAILED(address target, bytes data);
-
     error COLLATERAL_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
     error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
     error DEBT_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
