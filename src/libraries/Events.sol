@@ -21,7 +21,7 @@ library Events {
         InitializeOracleParams indexed o,
         InitializeDataParams d
     );
-    event UpdateConfig(bytes32 indexed key, uint256 value);
+    event UpdateConfig(bytes32 indexed key, uint256 indexed value);
     event CreateVault(address indexed user, address indexed vault, bool indexed variable);
     event Deposit(address indexed token, address indexed to, bool indexed variable, uint256 amount);
     event Withdraw(address indexed token, address indexed to, bool indexed variable, uint256 amount);
@@ -35,11 +35,17 @@ library Events {
     // fixed
 
     event BorrowAsMarketOrder(
-        address indexed lender, uint256 amount, uint256 dueDate, bool exactAmountIn, uint256[] receivableLoanIds
+        address indexed lender,
+        uint256 indexed amount,
+        uint256 indexed dueDate,
+        bool exactAmountIn,
+        uint256[] receivableLoanIds
     );
-    event BorrowAsLimitOrder(YieldCurve curveRelativeTime);
-    event LendAsMarketOrder(address indexed borrower, uint256 dueDate, uint256 amount, bool exactAmountIn);
-    event LendAsLimitOrder(uint256 maxDueDate, YieldCurve curveRelativeTime);
+    event BorrowAsLimitOrder(YieldCurve indexed curveRelativeTime);
+    event LendAsMarketOrder(
+        address indexed borrower, uint256 indexed dueDate, uint256 indexed amount, bool exactAmountIn
+    );
+    event LendAsLimitOrder(uint256 indexed maxDueDate, YieldCurve indexed curveRelativeTime);
     event CreateFOL(
         uint256 indexed loanId,
         address indexed lender,
@@ -56,19 +62,22 @@ library Events {
         uint256 folId,
         uint256 credit
     );
-    event BorrowerExit(uint256 indexed loanId, address borrowerExitedTo);
+    event BorrowerExit(uint256 indexed loanId, address indexed borrowerExitedTo);
     event Repay(uint256 indexed loanId);
     event Claim(uint256 indexed loanId);
     event LiquidateLoan(
-        uint256 indexed loanId, uint256 minimumCollateralProfit, uint256 collateralRatio, LoanStatus loanStatus
+        uint256 indexed loanId,
+        uint256 indexed minimumCollateralProfit,
+        uint256 indexed collateralRatio,
+        LoanStatus loanStatus
     );
     event SelfLiquidateLoan(uint256 indexed loanId);
     event LiquidateLoanWithReplacement(
-        uint256 indexed loanId, address indexed borrower, uint256 minimumCollateralProfit
+        uint256 indexed loanId, address indexed borrower, uint256 indexed minimumCollateralProfit
     );
     event LiquidateLoanUserLiquidatableProfitably(uint256 indexed loanId);
     event LiquidateLoanUserLiquidatableUnprofitably(uint256 indexed loanId);
     event LiquidateLoanOverdueMoveToVariablePool(uint256 indexed loanId);
     event LiquidateLoanOverdueNoSplitRemainder(uint256 indexed loanId);
-    event Compensate(uint256 indexed loanToRepayId, uint256 indexed loanToCompensateId, uint256 amount);
+    event Compensate(uint256 indexed loanToRepayId, uint256 indexed loanToCompensateId, uint256 indexed amount);
 }
