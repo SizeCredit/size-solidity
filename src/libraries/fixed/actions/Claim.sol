@@ -29,7 +29,7 @@ library Claim {
 
         // validate loanId
         if (state.getLoanStatus(loan) != LoanStatus.REPAID) {
-            revert Errors.LOAN_NOT_REPAID(params.loanId);
+            revert Errors.INVALID_LOAN_STATUS(params.loanId, state.getLoanStatus(loan), LoanStatus.REPAID);
         }
     }
 
