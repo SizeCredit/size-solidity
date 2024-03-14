@@ -49,8 +49,6 @@ import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/action
 
 import {SizeView} from "@src/SizeView.sol";
 
-import {State} from "@src/SizeStorage.sol";
-
 import {ISize} from "@src/interfaces/ISize.sol";
 
 /// @title Size
