@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 // @audit-info The protocol does not support tokens with more than 18 decimals
 

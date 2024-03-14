@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {CapERC20Library} from "@src/libraries/CapERC20Library.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";

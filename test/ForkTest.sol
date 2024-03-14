@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {BaseScript} from "@script/BaseScript.sol";

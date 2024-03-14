@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {console2 as console} from "forge-std/Script.sol";

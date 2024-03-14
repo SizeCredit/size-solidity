@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";

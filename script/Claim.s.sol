@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Size} from "@src/Size.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";

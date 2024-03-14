@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Helper} from "./Helper.sol";
 import {Properties} from "./Properties.sol";

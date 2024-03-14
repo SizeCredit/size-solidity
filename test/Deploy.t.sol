@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {ForkTest} from "@test/ForkTest.sol";
