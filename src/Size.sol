@@ -37,7 +37,7 @@ import {Repay, RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateLoan, SelfLiquidateLoanParams} from "@src/libraries/fixed/actions/SelfLiquidateLoan.sol";
 import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
 
-import {SizeStorage, State} from "@src/SizeStorage.sol";
+import {State} from "@src/SizeStorage.sol";
 
 import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
