@@ -83,9 +83,4 @@ library RiskLibrary {
             );
         }
     }
-
-    function getMinimumCollateralOpening(State storage state, uint256 faceValue) public view returns (uint256) {
-        uint256 faceValueWad = ConversionLibrary.amountToWad(faceValue, state.data.underlyingBorrowToken.decimals());
-        return Math.mulDivUp(faceValueWad, state.riskConfig.crOpening, state.oracle.priceFeed.getPrice());
-    }
 }
