@@ -39,8 +39,8 @@ library Claim {
 
         uint256 claimAmount =
             Math.mulDivDown(loan.generic.credit, state.borrowATokenLiquidityIndex(), fol.fol.liquidityIndexAtRepayment);
-        state.transferBorrowATokenFixed(address(this), loan.generic.lender, claimAmount);
         state.reduceLoanCredit(params.loanId, loan.generic.credit);
+        state.transferBorrowATokenFixed(address(this), loan.generic.lender, claimAmount);
 
         emit Events.Claim(params.loanId);
     }

@@ -93,8 +93,8 @@ library LiquidateLoan {
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 
-        state.data.collateralToken.transferFrom(folCopy.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
         state.transferBorrowATokenFixed(msg.sender, address(this), folCopy.faceValue());
+        state.data.collateralToken.transferFrom(folCopy.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
     }
 
     function _executeLiquidateLoanOverdue(State storage state, LiquidateLoanParams calldata params, Loan memory folCopy)
