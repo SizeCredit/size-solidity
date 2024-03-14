@@ -91,8 +91,8 @@ library Liquidate {
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 
-        state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
         state.transferBorrowATokenFixed(msg.sender, address(this), debtPositionCopy.faceValue);
+        state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
     }
 
     function _executeLiquidateOverdue(

@@ -41,7 +41,7 @@ library Events {
         bool exactAmountIn,
         uint256[] receivableCreditPositionIds
     );
-    event BorrowAsLimitOrder(YieldCurve curveRelativeTime);
+    event BorrowAsLimitOrder(YieldCurve indexed curveRelativeTime);
     event LendAsMarketOrder(
         address indexed borrower, uint256 indexed dueDate, uint256 indexed amount, bool exactAmountIn
     );

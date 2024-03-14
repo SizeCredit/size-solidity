@@ -8,7 +8,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
-import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
@@ -259,5 +259,38 @@ contract ClaimTest is BaseTest {
             0,
             "Size has 0 Scaled aTokens for claiming"
         );
+    }
+
+    function test_Claim_isClaimable() public {
+        _setPrice(1e18);
+        _deposit(alice, weth, 150e18);
+        _deposit(bob, usdc, 100e6);
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0.1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 50e6, block.timestamp + 365 days);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+
+        vm.warp(block.timestamp + 365 days);
+        _deposit(alice, usdc, 5e6);
+
+        bytes[] memory data = new bytes[](2);
+        data[0] = abi.encodeCall(size.getLoanStatus, creditPositionId);
+        data[1] = abi.encodeCall(size.getCreditPosition, creditPositionId);
+        bytes[] memory returnDatas = size.multicall(data);
+
+        bool isClaimable = abi.decode(returnDatas[0], (LoanStatus)) == LoanStatus.REPAID
+            && abi.decode(returnDatas[1], (CreditPosition)).credit > 0;
+        assertTrue(!isClaimable);
+
+        vm.expectRevert();
+        _claim(bob, creditPositionId);
+
+        _repay(alice, debtPositionId);
+
+        returnDatas = size.multicall(data);
+        isClaimable = abi.decode(returnDatas[0], (LoanStatus)) == LoanStatus.REPAID
+            && abi.decode(returnDatas[1], (CreditPosition)).credit > 0;
+        assertTrue(isClaimable);
+
+        _claim(bob, creditPositionId);
     }
 }
