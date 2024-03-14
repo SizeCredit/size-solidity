@@ -135,16 +135,18 @@ library Initialize {
         }
     }
 
-    function validateInitializeOracleParams(InitializeOracleParams memory o) internal pure {
-        // validate price feed
+    function validateInitializeOracleParams(InitializeOracleParams memory o) internal view {
+        // validate priceFeed
         if (o.priceFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+        IPriceFeed(o.priceFeed).getPrice();
 
         // validate marketBorrowRateFeed
         if (o.marketBorrowRateFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+        IMarketBorrowRateFeed(o.marketBorrowRateFeed).getMarketBorrowRate();
     }
 
     function validateInitializeDataParams(InitializeDataParams memory d) internal pure {
@@ -171,7 +173,7 @@ library Initialize {
         InitializeRiskConfigParams memory r,
         InitializeOracleParams memory o,
         InitializeDataParams memory d
-    ) external pure {
+    ) external view {
         validateOwner(owner);
         validateInitializeFeeConfigParams(f);
         validateInitializeRiskConfigParams(r);
