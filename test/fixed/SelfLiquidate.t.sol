@@ -289,7 +289,44 @@ contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidateLoan_selfliquidateLoan_creditPosition_insufficient_debt_token_repay_fee_2_concrete()
         public
     {
-        testFuzz_SelfLiquidateLoan_selfliquidateLoan_creditPosition_insufficient_debt_token_repay_fee_2(5.000001e6);
+        _setPrice(1e18);
+        _deposit(alice, weth, 200e18);
+        _deposit(candy, usdc, 100e6);
+        _deposit(james, usdc, 100e6);
+
+        uint256 borrowAmount = 100e6;
+        uint256 exitAmount = 5.000001e6;
+
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
+
+        uint256 debtPositionId1 = _borrowAsMarketOrder(alice, candy, borrowAmount, block.timestamp + 365 days);
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
+        uint256 id = _borrowAsMarketOrder(candy, james, exitAmount, block.timestamp + 365 days, [creditPositionId1]);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+
+        assertEq(id, type(uint256).max);
+        assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
+        _setPrice(0.5e18);
+
+        assertEq(size.getUserView(alice).debtBalanceFixed, 100.5e6);
+        assertEq(size.repayFee(debtPositionId1), 0.5e6);
+
+        _selfLiquidate(candy, creditPositionId1);
+
+        assertEq(size.getUserView(alice).debtBalanceFixed, 5.025001e6);
+        assertEq(size.repayFee(debtPositionId1), 0.025001e6);
+        assertEq(size.getCreditPosition(creditPositionId2).credit, 5.000001e6);
+        assertLt(
+            size.getUserView(alice).debtBalanceFixed,
+            size.repayFee(debtPositionId1) + size.getCreditPosition(creditPositionId2).credit
+        );
+
+        assertTrue(size.isUserLiquidatable(alice));
+        _selfLiquidate(james, creditPositionId2);
+
+        assertEq(size.getUserView(alice).debtBalanceFixed, 0);
     }
 
     function testFuzz_SelfLiquidateLoan_selfliquidateLoan_creditPosition_insufficient_debt_token_repay_fee_2(

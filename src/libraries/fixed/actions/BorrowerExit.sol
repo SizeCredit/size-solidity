@@ -102,6 +102,7 @@ library BorrowerExit {
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
 
+        // @audit Check if this underflows see CapERC20Library
         state.data.debtToken.mint(params.borrowerToExitTo, debtPosition.getDebt());
     }
 }

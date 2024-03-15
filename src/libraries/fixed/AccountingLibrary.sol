@@ -59,7 +59,6 @@ library AccountingLibrary {
         uint256 repayFeeCollateral;
 
         if (isEarlyRepay) {
-            // repayFee = debtPosition.repayFee();
             uint256 earlyRepayFee = debtPosition.earlyRepayFee();
             repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
         } else {
