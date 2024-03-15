@@ -35,7 +35,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         uint256 amount = 15e6;
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         uint256 delta = faceValue - amount;
 
         _setPrice(0.2e18);
@@ -77,7 +77,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 newAmount = Math.mulDivDown(faceValue, PERCENT, (PERCENT + 0.01e18));
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         uint256 delta = faceValue - newAmount;
 
         _setPrice(0.2e18);

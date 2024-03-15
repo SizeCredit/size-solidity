@@ -93,7 +93,8 @@ library BorrowerExit {
         uint256 faceValue = debtPosition.faceValue;
         uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + ratePerMaturity);
 
-        state.chargeEarlyRepayFeeInCollateral(debtPosition);
+        uint256 repayFee = state.chargeEarlyRepayFeeInCollateral(debtPosition);
+        debtPosition.updateFee(faceValue, repayFee);
         state.transferBorrowATokenFixed(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyBorrowerExitFee);
         state.transferBorrowATokenFixed(msg.sender, params.borrowerToExitTo, issuanceValue);
         state.data.debtToken.burn(msg.sender, faceValue);
@@ -101,6 +102,9 @@ library BorrowerExit {
         debtPosition.borrower = params.borrowerToExitTo;
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
+        debtPosition.faceValue = faceValue;
+        debtPosition.repayFee =
+            LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
 
         state.data.debtToken.mint(params.borrowerToExitTo, debtPosition.getDebt());
     }

@@ -116,7 +116,10 @@ library LiquidateWithReplacement {
         debtPosition.borrower = params.borrower;
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
+        debtPosition.faceValue = debtPositionCopy.faceValue;
         debtPosition.liquidityIndexAtRepayment = 0;
+        debtPosition.repayFee =
+            LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
 
         state.data.debtToken.mint(params.borrower, debtPositionCopy.getDebt());
         state.transferBorrowATokenFixed(address(this), params.borrower, issuanceValue);

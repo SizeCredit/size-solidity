@@ -7,6 +7,7 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
+import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
@@ -69,8 +70,9 @@ contract MulticallTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
-        uint256 repayFee = size.repayFee(debtPositionId);
+        DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
+        uint256 faceValue = debtPosition.faceValue;
+        uint256 repayFee = debtPosition.repayFee;
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 debt = faceValue + repayFee;
 

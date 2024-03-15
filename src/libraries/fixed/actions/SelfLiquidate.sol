@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {CapERC20Library} from "@src/libraries/CapERC20Library.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
@@ -25,7 +23,6 @@ library SelfLiquidate {
     using VariableLibrary for State;
     using AccountingLibrary for State;
     using RiskLibrary for State;
-    using CapERC20Library for NonTransferrableToken;
 
     function validateSelfLiquidate(State storage state, SelfLiquidateParams calldata params) external view {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
@@ -59,15 +56,12 @@ library SelfLiquidate {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 credit = creditPosition.credit;
-
+        uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, credit);
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
+        debtPosition.updateFee(credit, repayFee);
+        creditPosition.credit = 0;
+
+        state.data.debtToken.burn(debtPosition.borrower, credit);
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, assignedCollateral);
-
-        creditPosition.credit -= credit;
-        state.validateMinimumCredit(creditPosition.credit);
-
-        state.chargeRepayFeeInCollateral(debtPosition, credit);
-        state.updateRepayFee(debtPosition, credit);
-        state.data.debtToken.burnCapped(debtPosition.borrower, credit);
     }
 }

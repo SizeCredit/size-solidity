@@ -117,7 +117,7 @@ contract BorrowerExitTest is BaseTest {
         );
     }
 
-    function test_BorrowerExit_borrowerExit_before_maturity() public {
+    function test_BorrowerExit_borrowerExit_before_maturity_1() public {
         _setPrice(1e18);
         vm.warp(block.timestamp + 12345 days);
         _updateConfig("collateralTokenCap", type(uint256).max);
@@ -151,7 +151,7 @@ contract BorrowerExitTest is BaseTest {
             size.getDebtPosition(debtPositionId).faceValue, PERCENT, size.getDebtPosition(debtPositionId).issuanceValue
         ) - PERCENT;
 
-        assertEq(size.repayFee(debtPositionId), 1e6);
+        assertEq(size.getDebtPosition(debtPositionId).repayFee, 1e6);
         assertEq(ratePerMaturity, 0.1e18);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
@@ -161,21 +161,22 @@ contract BorrowerExitTest is BaseTest {
 
         vm.warp(block.timestamp + 30 days);
 
-        uint256 earlyRepayFee = Math.mulDivUp(1e6, 30 days, 73 days);
+        uint256 earlyRepayFee = Math.mulDivDown(1e6, 30 days, 73 days);
         _deposit(alice, usdc, size.feeConfig().earlyBorrowerExitFee);
         _borrowerExit(alice, debtPositionId, candy);
 
         uint256 aliceCollateralAfter = _state().alice.collateralTokenBalanceFixed;
-        uint256 newRatePerMaturity = Math.mulDivUp(
+        uint256 newRatePerMaturity = Math.mulDivDown(
             size.getDebtPosition(debtPositionId).faceValue, PERCENT, size.getDebtPosition(debtPositionId).issuanceValue
         ) - PERCENT;
 
-        uint256 newIssuanceValue = Math.mulDivUp(1100e6, 1e18, 1e18 + 0.25e18);
-        uint256 newRepayFee = Math.mulDivUp(0.005e18 * newIssuanceValue, 43 days, 365 days * 1e18);
-        assertEq(size.repayFee(debtPositionId), newRepayFee);
+        uint256 newIssuanceValue = Math.mulDivDown(1100e6, 1e18, 1e18 + 0.25e18) + 1;
+        uint256 newRepayFee = Math.mulDivDown(0.005e18 * newIssuanceValue, 43 days, 365 days * 1e18) + 1;
+        assertEq(size.getDebtPosition(debtPositionId).repayFee, newRepayFee);
         assertEqApprox(newRatePerMaturity, 0.25e18, 1e10);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate + 30 days);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
+        assertEq(size.getDebtPosition(debtPositionId).issuanceValue, newIssuanceValue);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 1100e6);
         assertEq(_state().alice.debtBalanceFixed, 0);
         assertEq(_state().candy.debtBalanceFixed, 1100e6 + newRepayFee);

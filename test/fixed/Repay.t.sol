@@ -24,7 +24,7 @@ contract RepayTest is BaseTest {
         uint256 amountLoanId1 = 10e6;
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
         Vars memory _before = _state();
 
@@ -53,7 +53,7 @@ contract RepayTest is BaseTest {
         uint256 amountLoanId1 = 10e6;
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
         Vars memory _before = _state();
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);

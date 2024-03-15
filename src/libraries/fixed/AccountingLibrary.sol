@@ -8,7 +8,7 @@ import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {Events} from "@src/libraries/Events.sol";
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
@@ -42,8 +42,8 @@ library AccountingLibrary {
 
     /// @notice Charges the repay fee and updates the debt position
     /// @dev The repay fee is charged in collateral tokens
-    ///      Rounds down the deduction of `issuanceValue`, which means the updated value will be rounded up, which means higher fees on the next repayment
-    ///      The full repayFee is deducted from the borrower debt, as it had been provisioned during the loan creation
+    ///      Rounds fees down during partial repayment
+    ///      During early repayment, the full repayFee is deducted from the borrower debt, as it had been provisioned during the loan creation
     /// @param state The state object
     /// @param debtPosition The debt position
     /// @param repayAmount The amount to repay
@@ -53,43 +53,34 @@ library AccountingLibrary {
         DebtPosition storage debtPosition,
         uint256 repayAmount,
         bool isEarlyRepay
-    ) public {
-        uint256 repayFee;
-        repayFee = debtPosition.partialRepayFee(repayAmount);
+    ) public returns (uint256 repayFee) {
+        repayFee = Math.mulDivDown(debtPosition.repayFee, repayAmount, debtPosition.faceValue);
         uint256 repayFeeCollateral;
 
         if (isEarlyRepay) {
-            // repayFee = debtPosition.repayFee();
             uint256 earlyRepayFee = debtPosition.earlyRepayFee();
             repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
         } else {
             repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
         }
 
-        state.data.collateralToken.transferFromCapped(
-            debtPosition.borrower, state.feeConfig.feeRecipient, repayFeeCollateral
-        );
+        state.data.collateralToken.transferFrom(debtPosition.borrower, state.feeConfig.feeRecipient, repayFeeCollateral);
 
-        state.data.debtToken.burnCapped(debtPosition.borrower, repayFee);
+        state.data.debtToken.burn(debtPosition.borrower, repayFee);
     }
 
-    function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition) external {
+    function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition)
+        external
+        returns (uint256)
+    {
         return chargeRepayFeeInCollateral(state, debtPosition, debtPosition.faceValue, true);
     }
 
     function chargeRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition, uint256 repayAmount)
         external
+        returns (uint256)
     {
         return chargeRepayFeeInCollateral(state, debtPosition, repayAmount, false);
-    }
-
-    /// @notice Updates the debt position after a repay, which indirectly updates the repay fee
-    /// @dev Rounds down the deduction of `issuanceValue`, which means the updated value will be rounded up, which means higher fees on the next repayment
-    /// @param debtPosition The debt position
-    /// @param repayAmount The amount to repay
-    function updateRepayFee(State storage, DebtPosition storage debtPosition, uint256 repayAmount) external {
-        debtPosition.issuanceValue -= Math.mulDivDown(repayAmount, debtPosition.issuanceValue, debtPosition.faceValue);
-        debtPosition.faceValue -= repayAmount;
     }
 
     function createDebtAndCreditPositions(
@@ -105,7 +96,7 @@ library AccountingLibrary {
             borrower: borrower,
             issuanceValue: issuanceValue,
             faceValue: faceValue,
-            repayFeeAPR: state.feeConfig.repayFeeAPR,
+            repayFee: LoanLibrary.repayFee(issuanceValue, block.timestamp, dueDate, state.feeConfig.repayFeeAPR),
             startDate: block.timestamp,
             dueDate: dueDate,
             liquidityIndexAtRepayment: 0

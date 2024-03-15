@@ -16,7 +16,7 @@ struct DebtPosition {
     address borrower;
     uint256 issuanceValue; // updated on debt reduction
     uint256 faceValue; // updated on debt reduction
-    uint256 repayFeeAPR;
+    uint256 repayFee; // updated on debt reduction
     uint256 startDate; // updated on borrower replacement
     uint256 dueDate;
     uint256 liquidityIndexAtRepayment; // set on full repayment
@@ -54,7 +54,7 @@ library LoanLibrary {
     }
 
     function getDebt(DebtPosition memory self) internal pure returns (uint256) {
-        return self.faceValue + repayFee(self);
+        return self.faceValue + self.repayFee;
     }
 
     function getDebtPositionIdByCreditPositionId(State storage state, uint256 creditPositionId)
@@ -142,7 +142,7 @@ library LoanLibrary {
 
     /// @notice Get the amount of collateral assigned to a CreditPosition, pro-rata to the DebtPosition's faceValue
     /// @dev Takes into account the total debt of the user, which includes the repayment fee
-    ///      When used to calculate the amount of collateral on liquidations, the repayment fee must be excluded first from the user debt
+    ///      When used to calculate the amount of collateral on self liquidation, the repayment fee must be excluded first from the user debt
     /// @param state The state struct
     /// @param creditPosition The CreditPosition
     /// @return The amount of collateral assigned to the CreditPosition
@@ -164,6 +164,13 @@ library LoanLibrary {
         }
     }
 
+    function updateFee(DebtPosition storage self, uint256 _repayAmount, uint256 _repayFee) external {
+        uint256 r = Math.mulDivDown(PERCENT, self.faceValue, self.issuanceValue);
+        self.faceValue -= _repayAmount;
+        self.repayFee -= _repayFee;
+        self.issuanceValue = Math.mulDivDown(self.faceValue, PERCENT, r);
+    }
+
     function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
         internal
         pure
@@ -176,14 +183,8 @@ library LoanLibrary {
     }
 
     function earlyRepayFee(DebtPosition memory self) internal view returns (uint256) {
-        return repayFee(self.issuanceValue, self.startDate, block.timestamp, self.repayFeeAPR);
-    }
-
-    function repayFee(DebtPosition memory self) internal pure returns (uint256) {
-        return repayFee(self.issuanceValue, self.startDate, self.dueDate, self.repayFeeAPR);
-    }
-
-    function partialRepayFee(DebtPosition memory self, uint256 repayAmount) internal pure returns (uint256) {
-        return Math.mulDivUp(repayAmount, repayFee(self), self.faceValue);
+        uint256 elapsed = block.timestamp - self.startDate;
+        uint256 maturity = self.dueDate - self.startDate;
+        return Math.mulDivDown(self.repayFee, elapsed, maturity);
     }
 }

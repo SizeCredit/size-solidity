@@ -208,6 +208,7 @@ forge test
 - The Variable Pool Price Feed depends on `AaveOracle`, which uses `latestAnswer`, and does not perform any kind of stale checks for oracle prices
 - Variable rate loans can increase the total supply of aszUSDC, which in turn limits the cap of fixed rate loans
 - Users blocklisted by underlying tokens (e.g. USDC) may be unable to withdraw or interact with the protocol
+- Protocol fees may prevent self liquidations
 - All issues acknowledged on previous audits
 
 ## Deployment

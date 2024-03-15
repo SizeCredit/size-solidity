@@ -155,14 +155,6 @@ abstract contract SizeView is SizeStorage {
         return state.getLoanStatus(positionId);
     }
 
-    function partialRepayFee(uint256 debtPositionId, uint256 repayAmount) public view returns (uint256) {
-        return state.getDebtPosition(debtPositionId).partialRepayFee(repayAmount);
-    }
-
-    function repayFee(uint256 debtPositionId) external view returns (uint256) {
-        return state.getDebtPosition(debtPositionId).repayFee();
-    }
-
     function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
         external
         pure
