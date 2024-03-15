@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
@@ -33,11 +33,9 @@ contract LendAsMarketOrderScript is Script, Logger {
             minAPR: apr,
             exactAmountIn: false
         });
-        console.log("lender USDC", sizeContract.getUserView(lender).borrowATokenBalance);
+        console.log("lender USDC", sizeContract.getUserView(lender).borrowATokenBalanceFixed);
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.lendAsMarketOrder(params);
         vm.stopBroadcast();
-
-        log(address(sizeContract));
     }
 }

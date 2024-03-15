@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
@@ -13,7 +13,7 @@ library YieldCurveHelper {
     function normalCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
         int256[] memory aprs = new int256[](5);
-        int256[] memory marketRateMultipliers = new int256[](5);
+        uint256[] memory marketRateMultipliers = new uint256[](5);
 
         aprs[0] = 0.01e18;
         aprs[1] = 0.02e18;
@@ -36,7 +36,7 @@ library YieldCurveHelper {
     function flatCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
         int256[] memory aprs = new int256[](5);
-        int256[] memory marketRateMultipliers = new int256[](5);
+        uint256[] memory marketRateMultipliers = new uint256[](5);
 
         aprs[0] = 0.04e18;
         aprs[1] = 0.04e18;
@@ -60,7 +60,7 @@ library YieldCurveHelper {
     function invertedCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
         int256[] memory aprs = new int256[](5);
-        int256[] memory marketRateMultipliers = new int256[](5);
+        uint256[] memory marketRateMultipliers = new uint256[](5);
 
         aprs[0] = 0.05e18;
         aprs[1] = 0.04e18;
@@ -85,7 +85,7 @@ library YieldCurveHelper {
     function humpedCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
         int256[] memory aprs = new int256[](5);
-        int256[] memory marketRateMultipliers = new int256[](5);
+        uint256[] memory marketRateMultipliers = new uint256[](5);
 
         aprs[0] = 0.01e18;
         aprs[1] = 0.02e18;
@@ -110,7 +110,7 @@ library YieldCurveHelper {
     function steepCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
         int256[] memory aprs = new int256[](5);
-        int256[] memory marketRateMultipliers = new int256[](5);
+        uint256[] memory marketRateMultipliers = new uint256[](5);
 
         aprs[0] = 0.01e18;
         aprs[1] = 0.05e18;
@@ -135,7 +135,7 @@ library YieldCurveHelper {
     function negativeCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
         int256[] memory aprs = new int256[](5);
-        int256[] memory marketRateMultipliers = new int256[](5);
+        uint256[] memory marketRateMultipliers = new uint256[](5);
 
         aprs[0] = 0.05e18;
         aprs[1] = 0.04e18;
@@ -162,7 +162,7 @@ library YieldCurveHelper {
     function customCurve(uint256 m1, int256 r1, uint256 m2, int256 r2) public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](2);
         int256[] memory aprs = new int256[](2);
-        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
 
         aprs[0] = r1;
         aprs[1] = r2;
@@ -176,7 +176,7 @@ library YieldCurveHelper {
     function pointCurve(uint256 m1, int256 r1) public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](1);
         int256[] memory aprs = new int256[](1);
-        int256[] memory marketRateMultipliers = new int256[](1);
+        uint256[] memory marketRateMultipliers = new uint256[](1);
 
         aprs[0] = r1;
 
@@ -195,31 +195,19 @@ library YieldCurveHelper {
         curve.marketRateMultipliers[4] = 1e18;
     }
 
-    function negativeMarketCurve() public pure returns (YieldCurve memory curve) {
-        curve = negativeCurve();
-
-        curve.marketRateMultipliers[0] = -1e18;
-        curve.marketRateMultipliers[1] = -1e18;
-        curve.marketRateMultipliers[2] = -1e18;
-        curve.marketRateMultipliers[3] = -1e18;
-        curve.marketRateMultipliers[4] = -1e18;
-    }
-
     function getRandomYieldCurve(uint256 seed) public pure returns (YieldCurve memory) {
-        if (seed % 7 == 0) {
+        if (seed % 6 == 0) {
             return normalCurve();
-        } else if (seed % 7 == 1) {
+        } else if (seed % 6 == 1) {
             return flatCurve();
-        } else if (seed % 7 == 2) {
+        } else if (seed % 6 == 2) {
             return invertedCurve();
-        } else if (seed % 7 == 3) {
+        } else if (seed % 6 == 3) {
             return humpedCurve();
-        } else if (seed % 7 == 4) {
+        } else if (seed % 6 == 4) {
             return steepCurve();
-        } else if (seed % 7 == 5) {
+        } else if (seed % 6 == 5) {
             return marketCurve();
-        } else if (seed % 7 == 6) {
-            return negativeMarketCurve();
         } else {
             return negativeCurve();
         }

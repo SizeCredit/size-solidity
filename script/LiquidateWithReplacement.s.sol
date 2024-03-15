@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
@@ -42,7 +42,5 @@ contract LiquidateWithReplacementScript is Script, Logger {
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.liquidateWithReplacement(params);
         vm.stopBroadcast();
-
-        log(address(sizeContract));
     }
 }

@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Vault} from "@src/proxy/Vault.sol";
@@ -51,11 +53,7 @@ contract VaultTest is Test {
 
         assertEq(abi.decode(ans, (uint256)), 123e6);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.PROXY_CALL_FAILED.selector, address(usdc), abi.encodeCall(USDC.mint, (address(this), 42e6))
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(proxy)));
         ans = proxy.proxy(address(usdc), abi.encodeCall(USDC.mint, (address(this), 42e6)));
     }
 
@@ -68,11 +66,7 @@ contract VaultTest is Test {
 
         bytes memory ans;
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.PROXY_CALL_FAILED.selector, address(usdc), abi.encodeCall(USDC.mint, (address(this), 42e6))
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Address.FailedInnerCall.selector));
         ans = proxy.proxy(address(usdc), abi.encodeCall(USDC.mint, (address(this), 42e6)), 1 ether);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
@@ -109,11 +103,7 @@ contract VaultTest is Test {
         targets[1] = address(usdc);
         datas[1] = abi.encodeCall(USDC.mint, (address(this), 42e6));
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.PROXY_CALL_FAILED.selector, address(usdc), abi.encodeCall(USDC.mint, (address(this), 42e6))
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(proxy)));
         ans = proxy.proxy(targets, datas);
     }
 }

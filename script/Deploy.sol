@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
 
@@ -17,23 +17,27 @@ import {MarketBorrowRateFeedMock} from "@test/mocks/MarketBorrowRateFeedMock.sol
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {Size} from "@src/Size.sol";
+
 import {
     Initialize,
-    InitializeConfigParams,
     InitializeDataParams,
-    InitializeOracleParams
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
+import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 
 abstract contract Deploy {
     ERC1967Proxy internal proxy;
-    Size internal size;
+    SizeMock internal size;
     IPriceFeed internal priceFeed;
     IMarketBorrowRateFeed internal marketBorrowRateFeed;
     WETH internal weth;
     USDC internal usdc;
-    InitializeConfigParams internal c;
+    InitializeFeeConfigParams internal f;
+    InitializeRiskConfigParams internal r;
     InitializeOracleParams internal o;
     InitializeDataParams internal d;
     IPool internal variablePool;
@@ -43,9 +47,17 @@ abstract contract Deploy {
         marketBorrowRateFeed = new MarketBorrowRateFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
-        variablePool = IPool(address(new PoolMock()));
+        variablePool = IPool(address(new PoolMock(priceFeed)));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
-        c = InitializeConfigParams({
+        PoolMock(address(variablePool)).setLiquidityIndex(address(weth), WadRayMath.RAY, true);
+        f = InitializeFeeConfigParams({
+            repayFeeAPR: 0.005e18,
+            earlyLenderExitFee: 5e6,
+            earlyBorrowerExitFee: 1e6,
+            collateralOverdueTransferFee: 0.1e18,
+            feeRecipient: feeRecipient
+        });
+        r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             collateralSplitLiquidatorPercent: 0.3e18,
@@ -54,11 +66,8 @@ abstract contract Deploy {
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            repayFeeAPR: 0.005e18,
-            earlyLenderExitFee: 5e6,
-            earlyBorrowerExitFee: 1e6,
-            collateralOverdueTransferFee: 0.1e18,
-            feeRecipient: feeRecipient
+            moveToVariablePoolHFThreshold: 1.1e18,
+            minimumMaturity: 1 days
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
         d = InitializeDataParams({
@@ -67,8 +76,8 @@ abstract contract Deploy {
             variablePool: address(variablePool) // Aave v3 fork
         });
 
-        proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (owner, c, o, d)));
-        size = Size(address(proxy));
+        proxy = new ERC1967Proxy(address(new SizeMock()), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        size = SizeMock(address(proxy));
 
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
@@ -79,20 +88,24 @@ abstract contract Deploy {
         variablePool = IPool(_variablePool);
         priceFeed = new VariablePoolPriceFeed(_aaveOracle, _weth, 8, _usdc, 8, 18);
         marketBorrowRateFeed = new MarketBorrowRateFeed(_owner, 6 hours);
-        c = InitializeConfigParams({
-            crOpening: 1.5e18,
-            crLiquidation: 1.3e18,
-            collateralSplitLiquidatorPercent: 0.2e18,
-            collateralSplitProtocolPercent: 0.2e18,
-            minimumCreditBorrowAToken: 50e6,
-            collateralTokenCap: 1000e18,
-            borrowATokenCap: 1_000_000e6,
-            debtTokenCap: 500_000e6,
+        f = InitializeFeeConfigParams({
             repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
             earlyBorrowerExitFee: 1e6,
-            collateralOverdueTransferFee: 0.005e18,
+            collateralOverdueTransferFee: 0.1e18,
             feeRecipient: _owner
+        });
+        r = InitializeRiskConfigParams({
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            collateralSplitLiquidatorPercent: 0.3e18,
+            collateralSplitProtocolPercent: 0.1e18,
+            minimumCreditBorrowAToken: 5e6,
+            collateralTokenCap: 1000e18,
+            borrowATokenCap: 1_000_000e6,
+            debtTokenCap: 500_000e6,
+            moveToVariablePoolHFThreshold: 1.1e18,
+            minimumMaturity: 1 days
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
         d = InitializeDataParams({
@@ -100,31 +113,36 @@ abstract contract Deploy {
             underlyingBorrowToken: address(_usdc),
             variablePool: address(variablePool) // Aave v3 fork
         });
-        size = new Size();
-        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, c, o, d)));
+        size = SizeMock(address(new Size()));
+        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
     }
 
     function setupChainWithMocks(address _owner, address _weth, address _usdc) internal {
-        variablePool = IPool(address(new PoolMock()));
-        PoolMock(address(variablePool)).setLiquidityIndex(_usdc, WadRayMath.RAY);
         priceFeed = new PriceFeedMock(_owner);
+        variablePool = IPool(address(new PoolMock(priceFeed)));
+        PoolMock(address(variablePool)).setLiquidityIndex(address(_usdc), WadRayMath.RAY);
+        PoolMock(address(variablePool)).setLiquidityIndex(address(_weth), WadRayMath.RAY, true);
         PriceFeedMock(address(priceFeed)).setPrice(2468e18);
         marketBorrowRateFeed = new MarketBorrowRateFeedMock(_owner);
         MarketBorrowRateFeedMock(address(marketBorrowRateFeed)).setMarketBorrowRate(0.0724e18);
-        c = InitializeConfigParams({
-            crOpening: 1.5e18,
-            crLiquidation: 1.3e18,
-            collateralSplitLiquidatorPercent: 0.2e18,
-            collateralSplitProtocolPercent: 0.2e18,
-            minimumCreditBorrowAToken: 50e6,
-            collateralTokenCap: 1000e18,
-            borrowATokenCap: 1_000_000e6,
-            debtTokenCap: 500_000e6,
+        f = InitializeFeeConfigParams({
             repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
             earlyBorrowerExitFee: 1e6,
-            collateralOverdueTransferFee: 0.005e18,
+            collateralOverdueTransferFee: 0.1e18,
             feeRecipient: _owner
+        });
+        r = InitializeRiskConfigParams({
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            collateralSplitLiquidatorPercent: 0.3e18,
+            collateralSplitProtocolPercent: 0.1e18,
+            minimumCreditBorrowAToken: 5e6,
+            collateralTokenCap: 1000e18,
+            borrowATokenCap: 1_000_000e6,
+            debtTokenCap: 500_000e6,
+            moveToVariablePoolHFThreshold: 1.1e18,
+            minimumMaturity: 1 days
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
         d = InitializeDataParams({
@@ -132,7 +150,7 @@ abstract contract Deploy {
             underlyingBorrowToken: address(_usdc),
             variablePool: address(variablePool) // Aave v3 fork
         });
-        size = new Size();
-        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, c, o, d)));
+        size = SizeMock(address(new Size()));
+        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
     }
 }

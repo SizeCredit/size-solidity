@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
@@ -40,17 +40,28 @@ library BorrowerExit {
         if (dueDate < block.timestamp) {
             revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
         }
+        uint256 maturity = dueDate - block.timestamp;
+        if (maturity < state.riskConfig.minimumMaturity) {
+            revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(maturity, state.riskConfig.minimumMaturity);
+        }
 
         uint256 ratePerMaturity = borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
-        uint256 issuanceValue = Math.mulDivUp(debtPosition.getDebt(), PERCENT, PERCENT + ratePerMaturity);
+        uint256 issuanceValue = Math.mulDivUp(debtPosition.faceValue, PERCENT, PERCENT + ratePerMaturity);
 
         // validate msg.sender
         if (msg.sender != debtPosition.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
-        if (state.borrowATokenBalanceOf(msg.sender) < issuanceValue + state.config.earlyBorrowerExitFee) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                msg.sender, state.borrowATokenBalanceOf(msg.sender), issuanceValue + state.config.earlyBorrowerExitFee
+        if (
+            state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false)
+                < issuanceValue + state.feeConfig.earlyBorrowerExitFee
+        ) {
+            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
+                address(state.data.borrowAToken),
+                msg.sender,
+                false,
+                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),
+                issuanceValue + state.feeConfig.earlyBorrowerExitFee
             );
         }
 
@@ -60,7 +71,6 @@ library BorrowerExit {
         }
 
         // validate minAPR
-        uint256 maturity = dueDate - block.timestamp;
         if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(
                 Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.minAPR
@@ -84,8 +94,8 @@ library BorrowerExit {
         uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + ratePerMaturity);
 
         state.chargeEarlyRepayFeeInCollateral(debtPosition);
-        state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyBorrowerExitFee);
-        state.transferBorrowAToken(msg.sender, params.borrowerToExitTo, issuanceValue);
+        state.transferBorrowATokenFixed(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyBorrowerExitFee);
+        state.transferBorrowATokenFixed(msg.sender, params.borrowerToExitTo, issuanceValue);
         state.data.debtToken.burn(msg.sender, faceValue);
 
         debtPosition.borrower = params.borrowerToExitTo;

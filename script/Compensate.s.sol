@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
@@ -24,10 +24,8 @@ contract CompensateScript is Script, Logger {
 
         console.log(currentAddress);
 
-        uint256 balance = sizeView.getUserView(currentAddress).collateralBalance;
-        uint256 debt = sizeView.getUserView(currentAddress).debtBalance;
-
-        log(address(sizeView));
+        uint256 balance = sizeView.getUserView(currentAddress).collateralTokenBalanceFixed;
+        uint256 debt = sizeView.getUserView(currentAddress).debtBalanceFixed;
 
         console.log("balance", balance);
         console.log("debt", debt);

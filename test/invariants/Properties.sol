@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {BeforeAfter} from "./BeforeAfter.sol";
 import {Asserts} from "@chimera/Asserts.sol";
@@ -54,7 +54,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant COMPENSATE_01 = "COMPENSATE_01: Compensate reduces the borrower debt";
 
     function invariant_LOAN() public returns (bool) {
-        uint256 minimumCreditBorrowAToken = size.config().minimumCreditBorrowAToken;
+        uint256 minimumCreditBorrowAToken = size.riskConfig().minimumCreditBorrowAToken;
         CreditPosition[] memory creditPositions = size.getCreditPositions();
 
         for (uint256 i = 0; i < creditPositions.length; i++) {
@@ -81,15 +81,15 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         users[2] = USER3;
         users[3] = address(size);
         users[4] = address(variablePool);
-        users[5] = address(size.config().feeRecipient);
+        users[5] = address(size.feeConfig().feeRecipient);
 
         uint256 borrowATokenBalance;
         uint256 collateralBalance;
 
         for (uint256 i = 0; i < users.length; i++) {
             UserView memory userView = size.getUserView(users[i]);
-            borrowATokenBalance += userView.borrowATokenBalance;
-            collateralBalance += userView.collateralBalance;
+            borrowATokenBalance += userView.borrowATokenBalanceFixed;
+            collateralBalance += userView.collateralTokenBalanceFixed;
         }
 
         if (

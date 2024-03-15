@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Errors} from "@src/libraries/Errors.sol";
@@ -191,17 +191,6 @@ contract YieldCurveTest is Test, AssertsHelper {
             YieldCurveLibrary.getRatePerMaturityByDueDate(curve, marketBorrowRateFeed, block.timestamp + 60 days),
             SafeCast.toUint256(Math.linearAPRToRatePerMaturity(0.02e18, 60 days))
                 + Math.compoundAPRToRatePerMaturity(0.31415e18, 60 days)
-        );
-    }
-
-    function test_YieldCurve_getRate_with_non_null_marketBorrowRate_negative_multiplier() public {
-        YieldCurve memory curve = YieldCurveHelper.negativeMarketCurve();
-        marketBorrowRateFeed.setMarketBorrowRate(0.01337e18);
-
-        assertEq(
-            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, marketBorrowRateFeed, block.timestamp + 60 days),
-            SafeCast.toUint256(Math.linearAPRToRatePerMaturity(0.04e18, 60 days))
-                - Math.compoundAPRToRatePerMaturity(0.01337e18, 60 days)
         );
     }
 

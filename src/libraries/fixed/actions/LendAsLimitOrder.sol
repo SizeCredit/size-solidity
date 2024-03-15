@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
@@ -19,7 +19,7 @@ library LendAsLimitOrder {
     using VariableLibrary for State;
     using OfferLibrary for LoanOffer;
 
-    function validateLendAsLimitOrder(State storage, LendAsLimitOrderParams calldata params) external view {
+    function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external view {
         LoanOffer memory loanOffer =
             LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
@@ -37,7 +37,7 @@ library LendAsLimitOrder {
             }
 
             // validate params.curveRelativeTime
-            YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime);
+            YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime, state.riskConfig.minimumMaturity);
         }
     }
 

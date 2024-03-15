@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -51,9 +51,9 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
-        assertEq(_after.candy.debtBalance, _before.candy.debtBalance + faceValue + repayFee);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + amount);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
+        assertEq(_after.candy.debtBalanceFixed, _before.candy.debtBalanceFixed + faceValue + repayFee);
+        assertEq(_after.candy.borrowATokenBalanceFixed, _before.candy.borrowATokenBalanceFixed + amount);
+        assertEq(_after.feeRecipient.borrowATokenBalanceFixed, _before.feeRecipient.borrowATokenBalanceFixed + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
         assertGt(size.getDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
@@ -93,11 +93,11 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
-        assertEq(_after.candy.debtBalance, _before.candy.debtBalance + faceValue + repayFee);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + newAmount);
-        assertEq(_before.variablePool.borrowATokenBalance, 0);
-        assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
+        assertEq(_after.candy.debtBalanceFixed, _before.candy.debtBalanceFixed + faceValue + repayFee);
+        assertEq(_after.candy.borrowATokenBalanceFixed, _before.candy.borrowATokenBalanceFixed + newAmount);
+        assertEq(_before.variablePool.borrowATokenBalanceFixed, 0);
+        assertEq(_after.variablePool.borrowATokenBalanceFixed, _before.variablePool.borrowATokenBalanceFixed);
+        assertEq(_after.feeRecipient.borrowATokenBalanceFixed, _before.feeRecipient.borrowATokenBalanceFixed + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
         assertGt(size.getDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
@@ -132,6 +132,7 @@ contract LiquidateWithReplacementTest is BaseTest {
     }
 
     function test_LiquidateWithReplacement_liquidateWithReplacement_cannot_be_executed_if_loan_is_overdue() public {
+        _updateConfig("minimumMaturity", 1);
         _setPrice(1e18);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);

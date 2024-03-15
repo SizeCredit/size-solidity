@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Math} from "@src/libraries/Math.sol";
 
@@ -53,6 +53,10 @@ library LiquidateWithReplacement {
         if (state.getLoanStatus(params.debtPositionId) != LoanStatus.ACTIVE) {
             revert Errors.LOAN_NOT_ACTIVE(params.debtPositionId);
         }
+        uint256 maturity = debtPosition.dueDate - block.timestamp;
+        if (maturity < state.riskConfig.minimumMaturity) {
+            revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(maturity, state.riskConfig.minimumMaturity);
+        }
 
         // validate borrower
         if (borrowOffer.isNull()) {
@@ -65,7 +69,6 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        uint256 maturity = debtPosition.dueDate - block.timestamp;
         if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(
                 Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.minAPR
@@ -116,8 +119,8 @@ library LiquidateWithReplacement {
         debtPosition.liquidityIndexAtRepayment = 0;
 
         state.data.debtToken.mint(params.borrower, debtPositionCopy.getDebt());
-        state.transferBorrowAToken(address(this), params.borrower, issuanceValue);
-        state.transferBorrowAToken(address(this), state.config.feeRecipient, liquidatorProfitBorrowAsset);
+        state.transferBorrowATokenFixed(address(this), params.borrower, issuanceValue);
+        state.transferBorrowATokenFixed(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Math} from "@src/libraries/Math.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -43,8 +43,8 @@ library Claim {
         uint256 claimAmount = Math.mulDivDown(
             creditPosition.credit, state.borrowATokenLiquidityIndex(), debtPosition.liquidityIndexAtRepayment
         );
-        state.transferBorrowAToken(address(this), creditPosition.lender, claimAmount);
         creditPosition.credit = 0;
+        state.transferBorrowATokenFixed(address(this), creditPosition.lender, claimAmount);
 
         emit Events.Claim(params.creditPositionId);
     }

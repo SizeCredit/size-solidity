@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
-/// @title Events
+/// @title Errors
 library Errors {
     error USER_IS_LIQUIDATABLE(address account, uint256 cr);
     error NULL_ADDRESS();
     error NULL_AMOUNT();
     error NULL_MAX_DUE_DATE();
     error NULL_ARRAY();
+    error NULL_OFFER();
     error MATURITIES_NOT_STRICTLY_INCREASING();
-    error NULL_MATURITY();
+    error MATURITY_BELOW_MINIMUM_MATURITY(uint256 maturity, uint256 minimumMaturity);
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
     error INVALID_KEY(bytes32 key);
@@ -41,7 +42,8 @@ library Errors {
     error EXITER_IS_NOT_BORROWER(address exiter, address borrower);
     error REPAYER_IS_NOT_BORROWER(address repayer, address borrower);
 
-    error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(address account, uint256 balance, uint256 required);
+    error NOT_ENOUGH_ATOKEN_BALANCE(address token, address account, bool variable, uint256 balance, uint256 required);
+    error NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(uint256 liquidity, uint256 required);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE(uint256 credit, uint256 amountToCompensate);
@@ -75,7 +77,10 @@ library Errors {
     error NULL_STALE_RATE();
     error STALE_RATE(uint128 updatedAt);
 
-    error PROXY_CALL_FAILED(address target, bytes data);
+    error INVALID_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(uint256 moveToVariablePoolHFThreshold);
+    error HEALTH_FACTOR_BELOW_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(
+        address account, uint256 healthFactor, uint256 moveToVariablePoolHFThreshold
+    );
 
     error COLLATERAL_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
     error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);

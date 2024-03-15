@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import "../src/Size.sol";
 import "forge-std/Script.sol";
@@ -24,7 +24,7 @@ contract DepositWETHScript is Script {
 
         Size sizeContract = Size(sizeContractAddress);
 
-        DepositParams memory params = DepositParams({token: wethAddress, amount: amount, to: borrower});
+        DepositParams memory params = DepositParams({token: wethAddress, amount: amount, to: borrower, variable: false});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.deposit(params);

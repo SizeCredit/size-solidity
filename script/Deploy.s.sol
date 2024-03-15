@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {console2 as console} from "forge-std/Script.sol";
@@ -40,13 +40,11 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         address usdc = addresses(chainName).usdc;
 
         if (mockContracts) {
-            console.log("[Size v2] using MOCK contracts");
             setupChainWithMocks(deployer, weth, usdc);
-            sizeVariablePoolPool = address(variablePool);
-            sizeVariablePoolAaveOracle = address(0);
+            console.log("[Size v2] using MOCK contracts");
         } else {
-            console.log("[Size v2] using REAL contracts");
             setupChain(owner, weth, usdc, sizeVariablePoolPool, sizeVariablePoolAaveOracle);
+            console.log("[Size v2] using REAL contracts");
         }
 
         deployments.push(Deployment({name: "Size-implementation", addr: address(size)}));
@@ -71,7 +69,7 @@ contract DeployScript is BaseScript, Addresses, Deploy {
             console.log("[Size v2] Parameter:  ", parameters[i].key, "\t", parameters[i].value);
         }
 
-        export();
+        exportDeployments();
 
         console.log("[Size v2] done");
 

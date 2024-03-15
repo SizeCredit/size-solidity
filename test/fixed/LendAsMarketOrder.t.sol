@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -39,9 +39,9 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
+        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed + amountIn);
+        assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - amountIn);
+        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebt(debtPositionId), faceValue + repayFee);
@@ -68,15 +68,16 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
+        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed + amountIn);
+        assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - amountIn);
+        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
     function testFuzz_LendAsMarketOrder_lendAsMarketOrder_exactAmountIn(uint256 amountIn, uint256 seed) public {
+        _updateConfig("minimumMaturity", 1);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -99,9 +100,9 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
+        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed + amountIn);
+        assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - amountIn);
+        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
@@ -140,7 +141,7 @@ contract LendAsMarketOrderTest is BaseTest {
 
         vm.startPrank(bob);
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.config().debtTokenCap, 10e6)
+            abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.riskConfig().debtTokenCap, 10e6)
         );
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -32,11 +32,11 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue - repayFee);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
-        assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
-        assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
+        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed - faceValue - repayFee);
+        assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - faceValue);
+        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed);
+        assertEq(_after.size.borrowATokenBalanceFixed, _before.size.borrowATokenBalanceFixed + faceValue);
+        assertEq(_after.variablePool.borrowATokenBalanceFixed, _before.variablePool.borrowATokenBalanceFixed);
         assertEq(size.getDebt(debtPositionId), 0);
     }
 
@@ -62,9 +62,9 @@ contract RepayTest is BaseTest {
 
         Vars memory _overdue = _state();
 
-        assertEq(_overdue.bob.debtBalance, _before.bob.debtBalance);
-        assertEq(_overdue.bob.borrowATokenBalance, _before.bob.borrowATokenBalance);
-        assertEq(_overdue.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
+        assertEq(_overdue.bob.debtBalanceFixed, _before.bob.debtBalanceFixed);
+        assertEq(_overdue.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed);
+        assertEq(_overdue.variablePool.borrowATokenBalanceFixed, _before.variablePool.borrowATokenBalanceFixed);
         assertGt(size.getDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.OVERDUE);
 
@@ -72,11 +72,11 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue - repayFee);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
-        assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
-        assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
+        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed - faceValue - repayFee);
+        assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - faceValue);
+        assertEq(_after.variablePool.borrowATokenBalanceFixed, _before.variablePool.borrowATokenBalanceFixed);
+        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed);
+        assertEq(_after.size.borrowATokenBalanceFixed, _before.size.borrowATokenBalanceFixed + faceValue);
         assertEq(size.getDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
     }
@@ -101,10 +101,10 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - 200e6);
-        assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance, 0);
+        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed + 200e6);
+        assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - 200e6);
+        assertEq(_after.variablePool.borrowATokenBalanceFixed, _before.variablePool.borrowATokenBalanceFixed);
+        assertEq(_after.size.borrowATokenBalanceFixed, _before.size.borrowATokenBalanceFixed, 0);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, debtPositionId));
         _repay(bob, debtPositionId);
@@ -116,7 +116,7 @@ contract RepayTest is BaseTest {
         uint256 borrowATokenBalance,
         uint256 repayAmount
     ) internal {
-        borrowATokenBalance = bound(borrowATokenBalance, size.config().minimumCreditBorrowAToken, 100e6);
+        borrowATokenBalance = bound(borrowATokenBalance, size.riskConfig().minimumCreditBorrowAToken, 100e6);
         repayAmount = bound(repayAmount, 0, borrowATokenBalance);
 
         _setPrice(1e18);
@@ -128,7 +128,7 @@ contract RepayTest is BaseTest {
 
         vm.prank(bob);
         try size.repay(RepayParams({debtPositionId: debtPositionId})) {} catch {}
-        assertGe(size.getCreditPosition(creditPositionId).credit, size.config().minimumCreditBorrowAToken);
+        assertGe(size.getCreditPosition(creditPositionId).credit, size.riskConfig().minimumCreditBorrowAToken);
     }
 
     function test_Repay_repay_pays_repayFeeAPR() private {}

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -17,14 +17,13 @@ struct DebtPosition {
     uint256 issuanceValue; // updated on debt reduction
     uint256 faceValue; // updated on debt reduction
     uint256 repayFeeAPR;
-    uint256 startDate; // updated opon borrower replacement
+    uint256 startDate; // updated on borrower replacement
     uint256 dueDate;
     uint256 liquidityIndexAtRepayment; // set on full repayment
 }
 
 struct CreditPosition {
     address lender;
-    address borrower;
     uint256 credit;
     uint256 debtPositionId;
 }
@@ -110,6 +109,7 @@ library LoanLibrary {
             revert Errors.INVALID_POSITION_ID(positionId);
         }
 
+        // slither-disable-next-line incorrect-equality
         if (getDebt(debtPosition) == 0) {
             return LoanStatus.REPAID;
         } else if (block.timestamp >= debtPosition.dueDate) {
@@ -175,8 +175,8 @@ library LoanLibrary {
         return fee;
     }
 
-    function repayFee(DebtPosition memory self, uint256 repayTime) internal pure returns (uint256) {
-        return repayFee(self.issuanceValue, self.startDate, repayTime, self.repayFeeAPR);
+    function earlyRepayFee(DebtPosition memory self) internal view returns (uint256) {
+        return repayFee(self.issuanceValue, self.startDate, block.timestamp, self.repayFeeAPR);
     }
 
     function repayFee(DebtPosition memory self) internal pure returns (uint256) {

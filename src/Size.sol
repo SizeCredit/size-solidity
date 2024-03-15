@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
@@ -10,9 +10,10 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 
 import {
     Initialize,
-    InitializeConfigParams,
     InitializeDataParams,
-    InitializeOracleParams
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
@@ -21,7 +22,7 @@ import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/fix
 
 import {BorrowerExit, BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
-import {Deposit, DepositParams} from "@src/libraries/fixed/actions/Deposit.sol";
+import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
@@ -34,16 +35,19 @@ import {
 } from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {Repay, RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidate, SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
-import {Withdraw, WithdrawParams} from "@src/libraries/fixed/actions/Withdraw.sol";
+import {Withdraw, WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
-import {SizeStorage, State} from "@src/SizeStorage.sol";
+import {State} from "@src/SizeStorage.sol";
 
 import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
-import {SizeView} from "@src/SizeView.sol";
+import {BorrowVariable, BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
 
-import {State} from "@src/SizeStorage.sol";
+import {LiquidateVariable, LiquidateVariableParams} from "@src/libraries/variable/actions/LiquidateVariable.sol";
+import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
+
+import {SizeView} from "@src/SizeView.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
@@ -76,6 +80,9 @@ contract Size is
     using Compensate for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
+    using BorrowVariable for State;
+    using RepayVariable for State;
+    using LiquidateVariable for State;
 
     bytes32 public constant KEEPER_ROLE = "KEEPER_ROLE";
     bytes32 public constant PAUSER_ROLE = "PAUSER_ROLE";
@@ -87,18 +94,19 @@ contract Size is
 
     function initialize(
         address owner,
-        InitializeConfigParams calldata c,
+        InitializeFeeConfigParams calldata f,
+        InitializeRiskConfigParams calldata r,
         InitializeOracleParams calldata o,
         InitializeDataParams calldata d
     ) external initializer {
-        state.validateInitialize(owner, c, o, d);
+        state.validateInitialize(owner, f, r, o, d);
 
         __AccessControl_init();
         __Pausable_init();
         __Multicall_init();
         __UUPSUpgradeable_init();
 
-        state.executeInitialize(c, o, d);
+        state.executeInitialize(f, r, o, d);
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(PAUSER_ROLE, owner);
         _grantRole(KEEPER_ROLE, owner);
@@ -153,6 +161,7 @@ contract Size is
         state.executeLendAsMarketOrder(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrower);
         state.validateDebtTokenCap();
+        state.validateVariablePoolHasEnoughLiquidity();
     }
 
     /// @inheritdoc ISize
@@ -161,6 +170,7 @@ contract Size is
         state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
         state.validateDebtTokenCap();
+        state.validateVariablePoolHasEnoughLiquidity();
     }
 
     /// @inheritdoc ISize
@@ -168,6 +178,7 @@ contract Size is
         state.validateBorrowerExit(params);
         state.executeBorrowerExit(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrowerToExitTo);
+        state.validateVariablePoolHasEnoughLiquidity();
     }
 
     /// @inheritdoc ISize
@@ -219,5 +230,29 @@ contract Size is
     function compensate(CompensateParams calldata params) external override(ISize) whenNotPaused {
         state.validateCompensate(params);
         state.executeCompensate(params);
+        state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
+    }
+
+    /// @inheritdoc ISize
+    function variablePoolAllowlisted(address account) external view override(ISize) whenNotPaused returns (bool) {
+        return state.data.variablePoolAllowlisted[account];
+    }
+
+    /// @inheritdoc ISize
+    function borrowVariable(BorrowVariableParams calldata params) external override(ISize) whenNotPaused {
+        state.validateBorrowVariable(params);
+        state.executeBorrowVariable(params);
+    }
+
+    /// @inheritdoc ISize
+    function repayVariable(RepayVariableParams calldata params) external override(ISize) whenNotPaused {
+        state.validateRepayVariable(params);
+        state.executeRepayVariable(params);
+    }
+
+    /// @inheritdoc ISize
+    function liquidateVariable(LiquidateVariableParams calldata params) external override(ISize) whenNotPaused {
+        state.validateLiquidateVariable(params);
+        state.executeLiquidateVariable(params);
     }
 }

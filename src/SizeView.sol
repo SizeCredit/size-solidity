@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SizeStorage, State} from "@src/SizeStorage.sol";
@@ -22,21 +22,26 @@ import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
 import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {
-    InitializeConfigParams,
     InitializeDataParams,
-    InitializeOracleParams
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 struct UserView {
     User user;
     address account;
-    uint256 collateralBalance;
-    uint256 borrowATokenBalance;
-    uint256 debtBalance;
+    uint256 collateralTokenBalanceFixed;
+    uint256 collateralATokenBalanceVariable;
+    uint256 borrowATokenBalanceFixed;
+    uint256 borrowATokenBalanceVariable;
+    uint256 debtBalanceFixed;
+    uint256 debtBalanceVariable;
 }
 
 struct DataView {
@@ -46,6 +51,7 @@ struct DataView {
     IERC20Metadata underlyingBorrowToken;
     IPool variablePool;
     NonTransferrableToken collateralToken;
+    IAToken collateralAToken;
     IAToken borrowAToken;
     NonTransferrableToken debtToken;
 }
@@ -75,11 +81,6 @@ abstract contract SizeView is SizeStorage {
         return state.isDebtPositionLiquidatable(debtPositionId);
     }
 
-    function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
-        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
-        return state.getDebtPositionAssignedCollateral(debtPosition);
-    }
-
     function getDebt(uint256 debtPositionId) external view returns (uint256) {
         return state.getDebtPosition(debtPositionId).getDebt();
     }
@@ -95,8 +96,12 @@ abstract contract SizeView is SizeStorage {
         return state.debtTokenAmountToCollateralTokenAmount(borrowATokenAmount);
     }
 
-    function config() external view returns (InitializeConfigParams memory) {
-        return state.configParams();
+    function feeConfig() external view returns (InitializeFeeConfigParams memory) {
+        return state.feeConfigParams();
+    }
+
+    function riskConfig() external view returns (InitializeRiskConfigParams memory) {
+        return state.riskConfigParams();
     }
 
     function oracle() external view returns (InitializeOracleParams memory) {
@@ -111,6 +116,7 @@ abstract contract SizeView is SizeStorage {
             underlyingBorrowToken: state.data.underlyingBorrowToken,
             variablePool: state.data.variablePool,
             collateralToken: state.data.collateralToken,
+            collateralAToken: state.data.collateralAToken,
             borrowAToken: state.data.borrowAToken,
             debtToken: state.data.debtToken
         });
@@ -120,14 +126,13 @@ abstract contract SizeView is SizeStorage {
         return UserView({
             user: state.data.users[user],
             account: user,
-            collateralBalance: state.data.collateralToken.balanceOf(user),
-            borrowATokenBalance: state.borrowATokenBalanceOf(user),
-            debtBalance: state.data.debtToken.balanceOf(user)
+            collateralTokenBalanceFixed: state.data.collateralToken.balanceOf(user),
+            collateralATokenBalanceVariable: state.aTokenBalanceOf(state.data.collateralAToken, user, true),
+            borrowATokenBalanceFixed: state.aTokenBalanceOf(state.data.borrowAToken, user, false),
+            borrowATokenBalanceVariable: state.aTokenBalanceOf(state.data.borrowAToken, user, true),
+            debtBalanceFixed: state.data.debtToken.balanceOf(user),
+            debtBalanceVariable: state.variableDebtTokenBalanceOf(user)
         });
-    }
-
-    function getVaultAddress(address user) external view returns (address) {
-        return address(state.data.users[user].vault);
     }
 
     function isDebtPositionId(uint256 debtPositionId) external view returns (bool) {
@@ -142,78 +147,8 @@ abstract contract SizeView is SizeStorage {
         return state.getDebtPosition(debtPositionId);
     }
 
-    function getDebtPositions() external view returns (DebtPosition[] memory debtPositions) {
-        uint256 length = state.data.nextDebtPositionId - DEBT_POSITION_ID_START;
-        debtPositions = new DebtPosition[](length);
-        for (uint256 i = 0; i < length; ++i) {
-            uint256 debtPositionId = DEBT_POSITION_ID_START + i;
-            debtPositions[i] = state.getDebtPosition(debtPositionId);
-        }
-    }
-
-    function getDebtPositions(uint256[] memory debtPositionIds)
-        external
-        view
-        returns (DebtPosition[] memory debtPositions)
-    {
-        uint256 length = debtPositionIds.length;
-        debtPositions = new DebtPosition[](length);
-        for (uint256 i = 0; i < length; ++i) {
-            debtPositions[i] = state.getDebtPosition(debtPositionIds[i]);
-        }
-    }
-
     function getCreditPosition(uint256 creditPositionId) external view returns (CreditPosition memory) {
         return state.getCreditPosition(creditPositionId);
-    }
-
-    function getCreditPositions() external view returns (CreditPosition[] memory creditPositions) {
-        uint256 length = state.data.nextCreditPositionId - CREDIT_POSITION_ID_START;
-        creditPositions = new CreditPosition[](length);
-        for (uint256 i = 0; i < length; ++i) {
-            uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
-            creditPositions[i] = state.getCreditPosition(creditPositionId);
-        }
-    }
-
-    function getCreditPositions(uint256[] memory creditPositionIds)
-        public
-        view
-        returns (CreditPosition[] memory creditPositions)
-    {
-        uint256 length = creditPositionIds.length;
-        creditPositions = new CreditPosition[](length);
-        for (uint256 i = 0; i < length; ++i) {
-            creditPositions[i] = state.getCreditPosition(creditPositionIds[i]);
-        }
-    }
-
-    function getCreditPositionIdsByDebtPositionId(uint256 debtPositionId)
-        public
-        view
-        returns (uint256[] memory creditPositionIds)
-    {
-        uint256 length = state.data.nextCreditPositionId - CREDIT_POSITION_ID_START;
-        creditPositionIds = new uint256[](length);
-        uint256 numberOfCreditPositions = 0;
-        for (uint256 i = 0; i < length; ++i) {
-            uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
-            if (state.getCreditPosition(creditPositionId).debtPositionId == debtPositionId) {
-                creditPositionIds[numberOfCreditPositions++] = creditPositionId;
-            }
-        }
-        // downsize array length
-        assembly {
-            mstore(creditPositionIds, numberOfCreditPositions)
-        }
-    }
-
-    function getCreditPositionsByDebtPositionId(uint256 debtPositionId)
-        external
-        view
-        returns (CreditPosition[] memory creditPositions)
-    {
-        return getCreditPositions(getCreditPositionIdsByDebtPositionId(debtPositionId));
     }
 
     function getLoanStatus(uint256 positionId) external view returns (LoanStatus) {
@@ -245,6 +180,12 @@ abstract contract SizeView is SizeStorage {
 
     function getBorrowOfferAPR(address borrower, uint256 dueDate) external view returns (uint256) {
         BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
+        if (offer.isNull()) {
+            revert Errors.NULL_OFFER();
+        }
+        if (dueDate < block.timestamp) {
+            revert Errors.PAST_DUE_DATE(dueDate);
+        }
         uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
@@ -252,8 +193,24 @@ abstract contract SizeView is SizeStorage {
 
     function getLoanOfferAPR(address lender, uint256 dueDate) external view returns (uint256) {
         LoanOffer memory offer = state.data.users[lender].loanOffer;
+        if (offer.isNull()) {
+            revert Errors.NULL_OFFER();
+        }
+        if (dueDate < block.timestamp) {
+            revert Errors.PAST_DUE_DATE(dueDate);
+        }
         uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
+    }
+
+    function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
+        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
+        return state.getDebtPositionAssignedCollateral(debtPosition);
+    }
+
+    function getCreditPositionProRataAssignedCollateral(uint256 creditPositionId) external view returns (uint256) {
+        CreditPosition memory creditPosition = state.getCreditPosition(creditPositionId);
+        return state.getCreditPositionProRataAssignedCollateral(creditPosition);
     }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
@@ -15,7 +15,7 @@ struct BorrowAsLimitOrderParams {
 library BorrowAsLimitOrder {
     using OfferLibrary for BorrowOffer;
 
-    function validateBorrowAsLimitOrder(State storage, BorrowAsLimitOrderParams calldata params) external pure {
+    function validateBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = BorrowOffer({
             openingLimitBorrowCR: params.openingLimitBorrowCR,
             curveRelativeTime: params.curveRelativeTime
@@ -30,7 +30,7 @@ library BorrowAsLimitOrder {
             // N/A
 
             // validate curveRelativeTime
-            YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime);
+            YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime, state.riskConfig.minimumMaturity);
         }
     }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
@@ -25,9 +25,9 @@ contract BorrowAsLimitOrder is Script, Logger {
         aprs[0] = 0.1e18;
         aprs[1] = 0.2e18;
 
-        int256[] memory marketRateMultipliers = new int256[](2);
-        marketRateMultipliers[0] = int256(0);
-        marketRateMultipliers[1] = int256(0);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
+        marketRateMultipliers[0] = 0;
+        marketRateMultipliers[1] = 0;
 
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
@@ -38,7 +38,5 @@ contract BorrowAsLimitOrder is Script, Logger {
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.borrowAsLimitOrder(params);
         vm.stopBroadcast();
-
-        log(address(sizeContract));
     }
 }

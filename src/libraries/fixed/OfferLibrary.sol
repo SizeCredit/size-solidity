@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
@@ -16,14 +16,14 @@ struct BorrowOffer {
 
 /// @title OfferLibrary
 library OfferLibrary {
+    using YieldCurveLibrary for YieldCurve;
+
     function isNull(LoanOffer memory self) internal pure returns (bool) {
-        return self.maxDueDate == 0 && self.curveRelativeTime.maturities.length == 0
-            && self.curveRelativeTime.aprs.length == 0;
+        return self.maxDueDate == 0 && self.curveRelativeTime.isNull();
     }
 
     function isNull(BorrowOffer memory self) internal pure returns (bool) {
-        return self.openingLimitBorrowCR == 0 && self.curveRelativeTime.maturities.length == 0
-            && self.curveRelativeTime.aprs.length == 0;
+        return self.openingLimitBorrowCR == 0 && self.curveRelativeTime.isNull();
     }
 
     function getRatePerMaturityByDueDate(

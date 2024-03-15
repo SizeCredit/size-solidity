@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {Size} from "@src/Size.sol";
 
@@ -26,7 +26,7 @@ contract LendAsLimitOrderScript is Script {
         aprs[0] = 0.1e18;
         aprs[1] = 0.2e18;
 
-        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
         marketRateMultipliers[0] = 1e18;
         marketRateMultipliers[1] = 1e18;
 

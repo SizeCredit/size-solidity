@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -13,9 +13,9 @@ contract LendAsLimitOrderValidationTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
     function test_LendAsLimitOrder_validation() public {
-        _deposit(alice, address(usdc), 100e6);
+        _deposit(alice, usdc, 100e6);
         uint256 maxDueDate = 12;
-        int256[] memory marketRateMultipliers = new int256[](2);
+        uint256[] memory marketRateMultipliers = new uint256[](2);
         uint256[] memory maturities = new uint256[](2);
         maturities[0] = 1 days;
         maturities[1] = 2 days;
@@ -67,9 +67,9 @@ contract LendAsLimitOrderValidationTest is BaseTest {
             })
         );
 
-        maturities[0] = 0 days;
+        maturities[0] = 6 hours;
         maturities[1] = 1 days;
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_MATURITY.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector, 6 hours, 24 hours));
         size.lendAsLimitOrder(
             LendAsLimitOrderParams({
                 maxDueDate: maxDueDate,

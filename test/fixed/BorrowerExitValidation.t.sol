@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -42,7 +42,12 @@ contract BorrowerExitValidationTest is BaseTest {
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, bob, 100e6, 200e6 + size.config().earlyBorrowerExitFee
+                Errors.NOT_ENOUGH_ATOKEN_BALANCE.selector,
+                address(size.data().borrowAToken),
+                bob,
+                false,
+                100e6,
+                200e6 + size.feeConfig().earlyBorrowerExitFee
             )
         );
         size.borrowerExit(

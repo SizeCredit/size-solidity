@@ -1,7 +1,16 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import {IPool} from "@aave/interfaces/IPool.sol";
+import {Size} from "@src/Size.sol";
+
+import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {SizeMock} from "@test/mocks/SizeMock.sol";
+import {USDC} from "@test/mocks/USDC.sol";
+import {WETH} from "@test/mocks/WETH.sol";
 import {Script} from "forge-std/Script.sol";
+import {stdJson} from "forge-std/StdJson.sol";
 import {Vm} from "forge-std/Vm.sol";
 
 struct Deployment {
@@ -15,6 +24,8 @@ struct Parameter {
 }
 
 abstract contract BaseScript is Script {
+    using stdJson for string;
+
     error InvalidChainId(uint256 chainid);
     error InvalidPrivateKey(string privateKey);
 
@@ -32,7 +43,7 @@ abstract contract BaseScript is Script {
         vm.stopBroadcast();
     }
 
-    function export() internal {
+    function exportDeployments() internal {
         // fetch already existing contracts
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
@@ -58,6 +69,35 @@ abstract contract BaseScript is Script {
         finalObject = vm.serializeString(".", "commit", commit);
 
         vm.writeJson(finalObject, path);
+    }
+
+    function importDeployments()
+        internal
+        returns (
+            SizeMock size,
+            IMarketBorrowRateFeed marketBorrowRateFeed,
+            IPriceFeed priceFeed,
+            IPool variablePool,
+            USDC usdc,
+            WETH weth,
+            address owner
+        )
+    {
+        root = vm.projectRoot();
+        path = string.concat(root, "/deployments/");
+        string memory chainIdStr = vm.toString(block.chainid);
+        path = string.concat(path, string.concat(chainIdStr, ".json"));
+
+        string memory json = vm.readFile(path);
+
+        size = SizeMock(abi.decode(json.parseRaw(".deployments.Size-proxy"), (address)));
+        marketBorrowRateFeed =
+            IMarketBorrowRateFeed(abi.decode(json.parseRaw(".deployments.MarketBorrowRateFeed"), (address)));
+        priceFeed = IPriceFeed(abi.decode(json.parseRaw(".deployments.PriceFeed"), (address)));
+        variablePool = IPool(abi.decode(json.parseRaw(".deployments.VariablePool"), (address)));
+        usdc = USDC(abi.decode(json.parseRaw(".parameters.usdc"), (address)));
+        weth = WETH(abi.decode(json.parseRaw(".parameters.weth"), (address)));
+        owner = address(abi.decode(json.parseRaw(".parameters.owner"), (address)));
     }
 
     function getChain() public returns (Chain memory) {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
@@ -137,7 +137,7 @@ library BorrowAsMarketOrder {
             }
 
             // the lender doesn't have enought credit to exit
-            if (deltaAmountIn < state.config.minimumCreditBorrowAToken) {
+            if (deltaAmountIn < state.riskConfig.minimumCreditBorrowAToken) {
                 continue;
             }
             // full amount borrowed
@@ -149,11 +149,12 @@ library BorrowAsMarketOrder {
             state.createCreditPosition({
                 exitCreditPositionId: creditPositionId,
                 lender: params.lender,
-                borrower: msg.sender,
                 credit: deltaAmountIn
             });
-            state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
-            state.transferBorrowAToken(msg.sender, state.config.feeRecipient, state.config.earlyLenderExitFee);
+            state.transferBorrowATokenFixed(params.lender, msg.sender, deltaAmountOut);
+            state.transferBorrowATokenFixed(
+                msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee
+            );
             amountOutLeft -= deltaAmountOut;
         }
     }
@@ -184,6 +185,6 @@ library BorrowAsMarketOrder {
         });
 
         state.data.debtToken.mint(msg.sender, debtPosition.getDebt());
-        state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
+        state.transferBorrowATokenFixed(params.lender, msg.sender, issuanceValue);
     }
 }

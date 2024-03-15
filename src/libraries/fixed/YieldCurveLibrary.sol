@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.24;
+pragma solidity 0.8.23;
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Errors} from "@src/libraries/Errors.sol";
@@ -9,7 +9,7 @@ import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 struct YieldCurve {
     uint256[] maturities;
     int256[] aprs;
-    int256[] marketRateMultipliers;
+    uint256[] marketRateMultipliers;
 }
 
 /// @title YieldCurveLibrary
@@ -19,8 +19,11 @@ struct YieldCurve {
 ///         for all t in `maturities`, with `marketRate` defined by an external oracle
 /// @dev The final rate per maturity is an unsigned integer, as it is a percentage
 library YieldCurveLibrary {
-    // @audit Check if we should have a protocol-defined minimum maturity
-    function validateYieldCurve(YieldCurve memory self) internal pure {
+    function isNull(YieldCurve memory self) internal pure returns (bool) {
+        return self.maturities.length == 0 && self.aprs.length == 0 && self.marketRateMultipliers.length == 0;
+    }
+
+    function validateYieldCurve(YieldCurve memory self, uint256 minimumMaturity) internal pure {
         if (self.maturities.length == 0 || self.aprs.length == 0 || self.marketRateMultipliers.length == 0) {
             revert Errors.NULL_ARRAY();
         }
@@ -39,8 +42,8 @@ library YieldCurveLibrary {
             }
             lastMaturity = self.maturities[i - 1];
         }
-        if (self.maturities[0] == 0) {
-            revert Errors.NULL_MATURITY();
+        if (self.maturities[0] < minimumMaturity) {
+            revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(self.maturities[0], minimumMaturity);
         }
 
         // validate curveRelativeTime.marketRateMultipliers
@@ -59,7 +62,7 @@ library YieldCurveLibrary {
     function getRatePerMaturityByDueDate(
         uint256 maturity,
         int256 apr,
-        int256 marketRateMultiplier,
+        uint256 marketRateMultiplier,
         IMarketBorrowRateFeed marketBorrowRateFeed
     ) internal view returns (uint256) {
         // @audit Check if the result should be capped to 0 instead of reverting
@@ -72,8 +75,7 @@ library YieldCurveLibrary {
             uint128 marketRateCompound = marketBorrowRateFeed.getMarketBorrowRate();
             uint256 marketRateLinear = Math.compoundAPRToRatePerMaturity(marketRateCompound, maturity);
             return SafeCast.toUint256(
-                ratePerMaturity
-                    + Math.mulDiv(SafeCast.toInt256(marketRateLinear), marketRateMultiplier, SafeCast.toInt256(PERCENT))
+                ratePerMaturity + SafeCast.toInt256(Math.mulDivDown(marketRateLinear, marketRateMultiplier, PERCENT))
             );
         }
     }
