@@ -67,7 +67,6 @@ jobs:
         id: slither
         with:
           fail-on: low
-          slither-version: 0.9.3
 
 
   solhint:
