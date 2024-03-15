@@ -181,6 +181,7 @@ abstract contract SizeView is SizeStorage {
     function getBorrowOfferAPR(address borrower, uint256 dueDate) external view returns (uint256) {
         BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
         if (offer.isNull()) revert Errors.NULL_OFFER();
+        if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
         uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
@@ -189,6 +190,7 @@ abstract contract SizeView is SizeStorage {
     function getLoanOfferAPR(address lender, uint256 dueDate) external view returns (uint256) {
         LoanOffer memory offer = state.data.users[lender].loanOffer;
         if (offer.isNull()) revert Errors.NULL_OFFER();
+        if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
         uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
