@@ -126,7 +126,7 @@ contract LiquidateTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
 
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
         _setPrice(0.2e18);
 
@@ -156,7 +156,7 @@ contract LiquidateTest is BaseTest {
 
         _setPrice(0.1e18);
 
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
@@ -204,10 +204,10 @@ contract LiquidateTest is BaseTest {
         uint256 assignedCollateralAfterFee = Math.mulDivDown(
             _before.bob.collateralTokenBalanceFixed,
             size.getDebtPosition(debtPositionId).faceValue,
-            (_before.bob.debtBalanceFixed - size.repayFee(debtPositionId))
+            (_before.bob.debtBalanceFixed - size.getDebtPosition(debtPositionId).repayFee)
         );
 
-        uint256 repayFee = size.partialRepayFee(debtPositionId, size.getDebtPosition(debtPositionId).faceValue);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 

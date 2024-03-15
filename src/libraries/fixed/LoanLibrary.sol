@@ -16,7 +16,7 @@ struct DebtPosition {
     address borrower;
     uint256 issuanceValue; // updated on debt reduction
     uint256 faceValue; // updated on debt reduction
-    uint256 repayFeeAPR;
+    uint256 repayFee; // updated on debt reduction
     uint256 startDate; // updated on borrower replacement
     uint256 dueDate;
     uint256 liquidityIndexAtRepayment; // set on full repayment
@@ -54,7 +54,7 @@ library LoanLibrary {
     }
 
     function getDebt(DebtPosition memory self) internal pure returns (uint256) {
-        return self.faceValue + repayFee(self);
+        return self.faceValue + self.repayFee;
     }
 
     function getDebtPositionIdByCreditPositionId(State storage state, uint256 creditPositionId)
@@ -176,14 +176,8 @@ library LoanLibrary {
     }
 
     function earlyRepayFee(DebtPosition memory self) internal view returns (uint256) {
-        return repayFee(self.issuanceValue, self.startDate, block.timestamp, self.repayFeeAPR);
-    }
-
-    function repayFee(DebtPosition memory self) internal pure returns (uint256) {
-        return repayFee(self.issuanceValue, self.startDate, self.dueDate, self.repayFeeAPR);
-    }
-
-    function partialRepayFee(DebtPosition memory self, uint256 repayAmount) internal pure returns (uint256) {
-        return Math.mulDivUp(repayAmount, repayFee(self), self.faceValue);
+        uint256 elapsed = block.timestamp - self.startDate;
+        uint256 maturity = self.dueDate - self.startDate;
+        return Math.mulDivDown(self.repayFee, elapsed, maturity);
     }
 }

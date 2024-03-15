@@ -101,8 +101,10 @@ library BorrowerExit {
         debtPosition.borrower = params.borrowerToExitTo;
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
+        debtPosition.faceValue = faceValue;
+        debtPosition.repayFee =
+            LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
 
-        // @audit Check if this underflows see CapERC20Library
         state.data.debtToken.mint(params.borrowerToExitTo, debtPosition.getDebt());
     }
 }

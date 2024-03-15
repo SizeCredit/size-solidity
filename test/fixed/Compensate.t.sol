@@ -28,7 +28,7 @@ contract CompensateTest is BaseTest {
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 365 days);
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[0];
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
         uint256 repaidLoanDebtBefore = size.getDebt(loanId3);
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionId).credit;
@@ -63,7 +63,7 @@ contract CompensateTest is BaseTest {
         _borrowAsMarketOrder(bob, alice, 40e6, block.timestamp + 365 days);
         uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 20e6, block.timestamp + 365 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         uint256 prorataRepayFee = repayFee / 2;
         _borrowAsMarketOrder(bob, alice, 10e6, block.timestamp + 365 days, [creditPositionId]);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
@@ -221,7 +221,7 @@ contract CompensateTest is BaseTest {
         uint256 creditPositionToCompensateId = size.getCreditPositionIdsByDebtPositionId(loanToCompensateId)[0];
         uint256 loanToRepay = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 365 days);
         uint256 creditPositionWithDebtToRepayId = size.getCreditPositionIdsByDebtPositionId(loanToRepay)[0];
-        uint256 repayFee = size.repayFee(loanToCompensateId);
+        uint256 repayFee = size.getDebtPosition(loanToCompensateId).repayFee;
 
         uint256 repaidLoanDebtBefore = size.getDebt(loanToRepay);
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionToCompensateId).credit;

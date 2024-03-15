@@ -34,7 +34,7 @@ contract LendAsMarketOrderTest is BaseTest {
         (uint256 loansBefore,) = size.getPositionsCount();
 
         uint256 debtPositionId = _lendAsMarketOrder(bob, alice, faceValue, dueDate);
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -63,7 +63,7 @@ contract LendAsMarketOrderTest is BaseTest {
         (uint256 loansBefore,) = size.getPositionsCount();
 
         uint256 debtPositionId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -95,7 +95,7 @@ contract LendAsMarketOrderTest is BaseTest {
         (uint256 loansBefore,) = size.getPositionsCount();
 
         uint256 debtPositionId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();

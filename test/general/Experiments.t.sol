@@ -371,7 +371,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertTrue(size.isDebtPositionLiquidatable(0), "Loan should be liquidatable");
 
         DebtPosition memory fol = size.getDebtPosition(0);
-        uint256 repayFee = size.repayFee(0);
+        uint256 repayFee = fol.repayFee;
         assertEq(fol.borrower, alice, "Alice should be the borrower");
         assertEq(_state().alice.debtBalanceFixed, fol.faceValue + repayFee, "Alice should have the debt");
 
@@ -442,7 +442,7 @@ contract ExperimentsTest is Test, BaseTest {
         YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
-        uint256 repayFee = size.repayFee(debtPositionId);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         // Borrower B1 submits a borror market order for
         // Loan1
         // - Lender=L
@@ -481,8 +481,8 @@ contract ExperimentsTest is Test, BaseTest {
 
         uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 100e6, block.timestamp + 365 days);
 
-        uint256 repayFee = size.repayFee(debtPositionId);
-        uint256 repayFee2 = size.repayFee(loanId2);
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
+        uint256 repayFee2 = size.getDebtPosition(loanId2).repayFee;
 
         vm.warp(block.timestamp + 365 days);
 
@@ -543,7 +543,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 110e6);
         assertEq(size.getDebtPosition(debtPositionId).issuanceValue, 100e6);
         assertEq(size.getCreditPositionsByDebtPositionId(debtPositionId)[0].credit, 110e6);
-        assertEq(size.repayFee(debtPositionId), 0.5e6);
+        assertEq(size.getDebtPosition(debtPositionId).repayFee, 0.5e6);
 
         // At t=7 borrower compensates for an amount A=20
         // Let's say this amount comes from a CreditPosition CreditPosition1 the borrower owns, so something like
@@ -561,9 +561,13 @@ contract ExperimentsTest is Test, BaseTest {
 
         // Now Borrower has A=20 to compensate his debt on DebtPosition1 which results in
         // DebtPosition1.protocolFees(t=7) = 100 * 0.005  --> 0.29
-        assertEq(size.getDebtPosition(debtPositionId).issuanceValue, 100e6 - uint256(20e6 * 1e18) / 1.1e18, 81.818182e6);
         assertEq(
-            size.repayFee(debtPositionId), ((100e6 - uint256(20e6 * 1e18) / 1.1e18) * 0.005e18 / 1e18) + 1, 0.409091e6
+            size.getDebtPosition(debtPositionId).issuanceValue, 100e6 - uint256(20e6 * 1e18) / 1.1e18 - 1, 81.818181e6
+        );
+        assertEq(
+            size.getDebtPosition(debtPositionId).repayFee,
+            ((100e6 - uint256(20e6 * 1e18) / 1.1e18) * 0.005e18 / 1e18) + 1,
+            0.409091e6
         );
 
         // At this point, we need to take 0.29 USDC in fees and we have 2 ways to do it
@@ -575,7 +579,7 @@ contract ExperimentsTest is Test, BaseTest {
         // and no CreditPosition_For_Repayment is emitted
         // and to take the fees instead, we do
         // collateral[borrower] -= DebtPosition1.protocolFees(t=7) / Oracle.CurrentPrice
-        assertEq(_state().bob.collateralTokenBalanceFixed, 500e18 - (0.5e6 - (0.409091e6 - 1)) * 1e12);
+        assertEq(_state().bob.collateralTokenBalanceFixed, 500e18 - (0.5e6 - 0.409091e6) * 1e12);
     }
 
     function testFork_Experiments_transferBorrowAToken_reverts_if_low_liquidity() public {
