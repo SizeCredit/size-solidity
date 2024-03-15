@@ -53,8 +53,8 @@ library AccountingLibrary {
         DebtPosition storage debtPosition,
         uint256 repayAmount,
         bool isEarlyRepay
-    ) public {
-        uint256 repayFee = Math.mulDivDown(debtPosition.repayFee, repayAmount, debtPosition.faceValue);
+    ) public returns (uint256 repayFee) {
+        repayFee = Math.mulDivDown(debtPosition.repayFee, repayAmount, debtPosition.faceValue);
         uint256 repayFeeCollateral;
 
         if (isEarlyRepay) {
@@ -64,24 +64,21 @@ library AccountingLibrary {
             repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
         }
 
-        state.data.collateralToken.transferFromCapped(
-            debtPosition.borrower, state.feeConfig.feeRecipient, repayFeeCollateral
-        );
+        state.data.collateralToken.transferFrom(debtPosition.borrower, state.feeConfig.feeRecipient, repayFeeCollateral);
 
         state.data.debtToken.burn(debtPosition.borrower, repayFee);
-
-        uint256 r = Math.mulDivDown(PERCENT, debtPosition.faceValue, debtPosition.issuanceValue);
-        debtPosition.faceValue -= repayAmount;
-        debtPosition.repayFee -= repayFee;
-        debtPosition.issuanceValue = Math.mulDivDown(debtPosition.faceValue, PERCENT, r);
     }
 
-    function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition) external {
+    function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition)
+        external
+        returns (uint256)
+    {
         return chargeRepayFeeInCollateral(state, debtPosition, debtPosition.faceValue, true);
     }
 
     function chargeRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition, uint256 repayAmount)
         external
+        returns (uint256)
     {
         return chargeRepayFeeInCollateral(state, debtPosition, repayAmount, false);
     }

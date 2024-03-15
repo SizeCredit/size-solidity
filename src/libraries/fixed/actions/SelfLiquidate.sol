@@ -56,14 +56,12 @@ library SelfLiquidate {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 credit = creditPosition.credit;
-
+        uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, credit);
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
-        state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, assignedCollateral);
+        debtPosition.updateFee(credit, repayFee);
+        creditPosition.credit = 0;
 
-        creditPosition.credit -= credit;
-        state.validateMinimumCredit(creditPosition.credit);
-
-        state.chargeRepayFeeInCollateral(debtPosition, credit);
         state.data.debtToken.burn(debtPosition.borrower, credit);
+        state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, assignedCollateral);
     }
 }

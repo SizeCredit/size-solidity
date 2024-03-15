@@ -142,7 +142,7 @@ library LoanLibrary {
 
     /// @notice Get the amount of collateral assigned to a CreditPosition, pro-rata to the DebtPosition's faceValue
     /// @dev Takes into account the total debt of the user, which includes the repayment fee
-    ///      When used to calculate the amount of collateral on liquidations, the repayment fee must be excluded first from the user debt
+    ///      When used to calculate the amount of collateral on self liquidation, the repayment fee must be excluded first from the user debt
     /// @param state The state struct
     /// @param creditPosition The CreditPosition
     /// @return The amount of collateral assigned to the CreditPosition
@@ -162,6 +162,13 @@ library LoanLibrary {
         } else {
             return 0;
         }
+    }
+
+    function updateFee(DebtPosition storage self, uint256 _repayAmount, uint256 _repayFee) external {
+        uint256 r = Math.mulDivDown(PERCENT, self.faceValue, self.issuanceValue);
+        self.faceValue -= _repayAmount;
+        self.repayFee -= _repayFee;
+        self.issuanceValue = Math.mulDivDown(self.faceValue, PERCENT, r);
     }
 
     function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
