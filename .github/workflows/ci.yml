@@ -62,11 +62,17 @@ jobs:
         with:
           version: nightly
 
+      - name: Build
+        run: |
+          forge build --build-info --skip '*/test/**' '*/script/**'
+
       - name: Run Slither
         uses: crytic/slither-action@v0.3.1
         id: slither
         with:
           fail-on: low
+          ignore-compile: true
+
 
   solhint:
     strategy:
