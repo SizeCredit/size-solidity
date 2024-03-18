@@ -164,7 +164,7 @@ library LoanLibrary {
         }
     }
 
-    function updateFee(DebtPosition storage self, uint256 _repayAmount, uint256 _repayFee) external {
+    function updateRepayFee(DebtPosition storage self, uint256 _repayAmount, uint256 _repayFee) external {
         uint256 r = Math.mulDivDown(PERCENT, self.faceValue, self.issuanceValue);
         self.faceValue -= _repayAmount;
         self.repayFee -= _repayFee;

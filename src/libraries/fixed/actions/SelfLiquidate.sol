@@ -58,7 +58,7 @@ library SelfLiquidate {
         uint256 credit = creditPosition.credit;
         uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, credit);
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
-        debtPosition.updateFee(credit, repayFee);
+        debtPosition.updateRepayFee(credit, repayFee);
         creditPosition.credit = 0;
 
         state.data.debtToken.burn(debtPosition.borrower, credit);

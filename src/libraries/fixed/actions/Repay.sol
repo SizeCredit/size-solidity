@@ -51,7 +51,7 @@ library Repay {
 
         state.transferBorrowATokenFixed(msg.sender, address(this), faceValue);
         uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, faceValue);
-        debtPosition.updateFee(faceValue, repayFee);
+        debtPosition.updateRepayFee(faceValue, repayFee);
         state.data.debtToken.burn(debtPosition.borrower, faceValue);
         debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 
