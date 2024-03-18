@@ -3,12 +3,10 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {CapERC20Library} from "@src/libraries/CapERC20Library.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {Events} from "@src/libraries/Events.sol";
-import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
@@ -21,7 +19,6 @@ library AccountingLibrary {
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using VariableLibrary for State;
-    using CapERC20Library for NonTransferrableToken;
 
     /// @notice Converts debt token amount to a value in collateral tokens
     /// @dev Rounds up the debt token amount

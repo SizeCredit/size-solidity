@@ -91,7 +91,7 @@ library Compensate {
 
         // debt reduction
         uint256 repayFee = state.chargeRepayFeeInCollateral(debtPositionToRepay, amountToCompensate);
-        debtPositionToRepay.updateFee(amountToCompensate, repayFee);
+        debtPositionToRepay.updateRepayFee(amountToCompensate, repayFee);
         state.data.debtToken.burn(debtPositionToRepay.borrower, amountToCompensate);
         creditPositionWithDebtToRepay.credit -= amountToCompensate;
         state.validateMinimumCredit(creditPositionWithDebtToRepay.credit);

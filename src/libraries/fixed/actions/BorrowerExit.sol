@@ -94,7 +94,7 @@ library BorrowerExit {
         uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + ratePerMaturity);
 
         uint256 repayFee = state.chargeEarlyRepayFeeInCollateral(debtPosition);
-        debtPosition.updateFee(faceValue, repayFee);
+        debtPosition.updateRepayFee(faceValue, repayFee);
         state.transferBorrowATokenFixed(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyBorrowerExitFee);
         state.transferBorrowATokenFixed(msg.sender, params.borrowerToExitTo, issuanceValue);
         state.data.debtToken.burn(msg.sender, faceValue);
