@@ -165,12 +165,13 @@ library BorrowAsMarketOrder {
 
         uint256 rate = loanOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), params.dueDate);
         uint256 issuanceValue = params.amount;
+        uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + rate, PERCENT);
 
         Loan memory fol = state.createFOL({
             lender: params.lender,
             borrower: msg.sender,
             issuanceValue: issuanceValue,
-            rate: rate,
+            faceValue: faceValue,
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(msg.sender, fol.getDebt());

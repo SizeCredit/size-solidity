@@ -271,7 +271,7 @@ library VariableLibrary {
         address from = folCopy.generic.borrower;
         address to = address(this);
         uint256 collateralBalance = assignedCollateral - liquidatorProfitCollateralToken;
-        uint256 borrowATokenBalance = folCopy.faceValue();
+        uint256 borrowATokenBalance = folCopy.fol.faceValue;
 
         // begin move to variable pool
         Vault vaultFrom = state.getVaultVariable(from);

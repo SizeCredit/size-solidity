@@ -63,10 +63,10 @@ library Compensate {
 
         Loan storage loanToRepay = state.data.loans[params.loanToRepayId];
         Loan storage loanToCompensate = state.data.loans[params.loanToCompensateId];
-        uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.generic.credit, loanToRepay.faceValue());
+        uint256 amountToCompensate = Math.min(params.amount, loanToCompensate.generic.credit, loanToRepay.fol.faceValue);
 
-        state.chargeRepayFee(loanToRepay, amountToCompensate);
-        state.updateRepayFee(loanToRepay, amountToCompensate);
+        uint256 repayFee = state.chargeRepayFeeInCollateral(loanToRepay, amountToCompensate);
+        loanToRepay.updateRepayFee(amountToCompensate, repayFee);
         state.data.debtToken.burn(loanToRepay.generic.borrower, amountToCompensate);
         if (loanToRepay.getDebt() == 0) {
             loanToRepay.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();

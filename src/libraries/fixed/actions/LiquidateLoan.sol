@@ -63,11 +63,7 @@ library LiquidateLoan {
         bool splitCollateralRemainder
     ) private returns (uint256 liquidatorProfitCollateralToken) {
         uint256 assignedCollateral = state.getFOLAssignedCollateral(folCopy);
-        uint256 debtBorrowTokenWad =
-            ConversionLibrary.amountToWad(folCopy.faceValue(), state.data.underlyingBorrowToken.decimals());
-        uint256 debtInCollateralToken = Math.mulDivDown(
-            debtBorrowTokenWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice()
-        );
+        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(folCopy.fol.faceValue);
 
         // CR > 100%
         if (assignedCollateral > debtInCollateralToken) {
@@ -93,7 +89,7 @@ library LiquidateLoan {
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 
-        state.transferBorrowATokenFixed(msg.sender, address(this), folCopy.faceValue());
+        state.transferBorrowATokenFixed(msg.sender, address(this), folCopy.fol.faceValue);
         state.data.collateralToken.transferFrom(folCopy.generic.borrower, msg.sender, liquidatorProfitCollateralToken);
     }
 
@@ -128,8 +124,8 @@ library LiquidateLoan {
 
         emit Events.LiquidateLoan(params.loanId, params.minimumCollateralProfit, collateralRatio, loanStatus);
 
-        state.chargeRepayFee(fol, fol.faceValue());
-        state.updateRepayFee(fol, fol.faceValue());
+        uint256 repayFee = state.chargeRepayFeeInCollateral(fol, fol.fol.faceValue);
+        fol.updateRepayFee(fol.fol.faceValue, repayFee);
 
         // case 1a: the user is liquidatable profitably
         if (PERCENT <= collateralRatio && collateralRatio < state.riskConfig.crLiquidation) {
@@ -152,7 +148,7 @@ library LiquidateLoan {
             }
         }
 
-        state.data.debtToken.burn(fol.generic.borrower, folCopy.faceValue());
+        state.data.debtToken.burn(fol.generic.borrower, folCopy.fol.faceValue);
         fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
     }
 }

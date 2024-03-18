@@ -87,12 +87,13 @@ library LendAsMarketOrder {
         } else {
             issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + rate);
         }
+        uint256 faceValue = Math.mulDivDown(issuanceValue, PERCENT + rate, PERCENT);
 
         Loan memory fol = state.createFOL({
             lender: msg.sender,
             borrower: params.borrower,
             issuanceValue: issuanceValue,
-            rate: rate,
+            faceValue: faceValue,
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(params.borrower, fol.getDebt());

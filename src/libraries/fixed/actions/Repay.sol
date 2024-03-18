@@ -29,9 +29,9 @@ library Repay {
         if (msg.sender != loan.generic.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, loan.generic.borrower);
         }
-        if (state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false) < loan.faceValue()) {
+        if (state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false) < loan.fol.faceValue) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false), loan.faceValue()
+                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false), loan.fol.faceValue
             );
         }
 
@@ -46,11 +46,11 @@ library Repay {
 
     function executeRepay(State storage state, RepayParams calldata params) external {
         Loan storage fol = state.data.loans[params.loanId];
-        uint256 faceValue = fol.faceValue();
+        uint256 faceValue = fol.fol.faceValue;
 
         state.transferBorrowATokenFixed(msg.sender, address(this), faceValue);
-        state.chargeRepayFee(fol, faceValue);
-        state.updateRepayFee(fol, faceValue);
+        uint256 repayFee = state.chargeRepayFeeInCollateral(fol, faceValue);
+        fol.updateRepayFee(faceValue, repayFee);
         state.data.debtToken.burn(fol.generic.borrower, faceValue);
         fol.fol.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 

@@ -3,10 +3,7 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {CapERC20Library} from "@src/libraries/CapERC20Library.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
-
 import {Events} from "@src/libraries/Events.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
@@ -21,7 +18,6 @@ library AccountingLibrary {
     using LoanLibrary for Loan;
     using LoanLibrary for State;
     using VariableLibrary for State;
-    using CapERC20Library for NonTransferrableToken;
 
     function reduceLoanCredit(State storage state, uint256 loanId, uint256 amount) public {
         Loan storage loan = state.data.loans[loanId];
@@ -58,8 +54,9 @@ library AccountingLibrary {
     /// @param isEarlyRepay Whether the repayment is early. In this case, the fee is charged pro-rata to the time elapsed
     function chargeRepayFeeInCollateral(State storage state, Loan storage fol, uint256 repayAmount, bool isEarlyRepay)
         public
+        returns (uint256 repayFee)
     {
-        uint256 repayFee = fol.partialRepayFee(repayAmount);
+        repayFee = Math.mulDivDown(fol.fol.repayFee, repayAmount, fol.fol.faceValue);
         uint256 repayFeeCollateral;
 
         if (isEarlyRepay) {
@@ -69,47 +66,20 @@ library AccountingLibrary {
             repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
         }
 
-        state.data.collateralToken.transferFromCapped(
-            fol.generic.borrower, state.feeConfig.feeRecipient, repayFeeCollateral
-        );
+        state.data.collateralToken.transferFrom(fol.generic.borrower, state.feeConfig.feeRecipient, repayFeeCollateral);
 
-        state.data.debtToken.burnCapped(fol.generic.borrower, repayFee);
-    }
-
-    function chargeEarlyRepayFeeInCollateral(State storage state, Loan storage fol) external {
-        return chargeRepayFeeInCollateral(state, fol, fol.faceValue(), true);
-    }
-
-    function chargeRepayFeeInCollateral(State storage state, Loan storage fol, uint256 repayAmount) external {
-        return chargeRepayFeeInCollateral(state, fol, repayAmount, false);
-    }
-
-    /// @notice Updates the debt position after a repay, which indirectly updates the repay fee
-    /// @dev Rounds down the deduction of `issuanceValue`, which means the updated value will be rounded up, which means higher fees on the next repayment
-    /// @param fol The FOL
-    /// @param repayAmount The amount to repay
-    function updateRepayFee(State storage, Loan storage fol, uint256 repayAmount) external {
-        fol.fol.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + fol.fol.rate);
-    }
-
-    function chargeRepayFee(State storage state, Loan storage fol, uint256 repayAmount) internal {
-        uint256 repayFee = fol.partialRepayFee(repayAmount);
-
-        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, state.data.underlyingBorrowToken.decimals());
-        uint256 repayFeeCollateral =
-            Math.mulDivUp(repayFeeWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice());
-
-        // due to rounding up, it is possible that repayFeeCollateral is greater than the borrower collateral
-        uint256 cappedRepayFeeCollateral =
-            Math.min(repayFeeCollateral, state.data.collateralToken.balanceOf(fol.generic.borrower));
-
-        state.data.collateralToken.transferFrom(
-            fol.generic.borrower, state.feeConfig.feeRecipient, cappedRepayFeeCollateral
-        );
-
-        // rounding down the deduction means the updated issuanceValue will be rounded up, which means higher fees on the next repayment
-        fol.fol.issuanceValue -= Math.mulDivDown(repayAmount, PERCENT, PERCENT + fol.fol.rate);
         state.data.debtToken.burn(fol.generic.borrower, repayFee);
+    }
+
+    function chargeEarlyRepayFeeInCollateral(State storage state, Loan storage fol) external returns (uint256) {
+        return chargeRepayFeeInCollateral(state, fol, fol.fol.faceValue, true);
+    }
+
+    function chargeRepayFeeInCollateral(State storage state, Loan storage fol, uint256 repayAmount)
+        external
+        returns (uint256)
+    {
+        return chargeRepayFeeInCollateral(state, fol, repayAmount, false);
     }
 
     // solhint-disable-next-line var-name-mixedcase
@@ -118,28 +88,28 @@ library AccountingLibrary {
         address lender,
         address borrower,
         uint256 issuanceValue,
-        uint256 rate,
+        uint256 faceValue,
         uint256 dueDate
     ) public returns (Loan memory fol) {
         fol = Loan({
             generic: GenericLoan({lender: lender, borrower: borrower, credit: 0}),
             fol: FOL({
                 issuanceValue: issuanceValue,
-                rate: rate,
-                repayFeeAPR: state.feeConfig.repayFeeAPR,
+                faceValue: faceValue,
+                repayFee: LoanLibrary.repayFee(issuanceValue, block.timestamp, dueDate, state.feeConfig.repayFeeAPR),
                 startDate: block.timestamp,
                 dueDate: dueDate,
                 liquidityIndexAtRepayment: 0
             }),
             sol: SOL({folId: RESERVED_ID})
         });
-        fol.generic.credit = fol.faceValue();
+        fol.generic.credit = faceValue;
         state.validateMinimumCreditOpening(fol.generic.credit);
 
         state.data.loans.push(fol);
         uint256 folId = state.data.loans.length - 1;
 
-        emit Events.CreateFOL(folId, lender, borrower, issuanceValue, rate, dueDate);
+        emit Events.CreateFOL(folId, lender, borrower, issuanceValue, faceValue, dueDate);
     }
 
     // solhint-disable-next-line var-name-mixedcase
@@ -151,7 +121,7 @@ library AccountingLibrary {
 
         sol = Loan({
             generic: GenericLoan({lender: lender, borrower: borrower, credit: credit}),
-            fol: FOL({issuanceValue: 0, rate: 0, repayFeeAPR: 0, startDate: 0, dueDate: 0, liquidityIndexAtRepayment: 0}),
+            fol: FOL({issuanceValue: 0, faceValue: 0, repayFee: 0, startDate: 0, dueDate: 0, liquidityIndexAtRepayment: 0}),
             sol: SOL({folId: folId})
         });
 

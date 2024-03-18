@@ -16,8 +16,8 @@ struct GenericLoan {
 
 struct FOL {
     uint256 issuanceValue; // updated on repayment
-    uint256 rate;
-    uint256 repayFeeAPR;
+    uint256 faceValue; // updated on repayment
+    uint256 repayFee; // updated on repayment
     uint256 startDate; // updated opon borrower replacement
     uint256 dueDate;
     uint256 liquidityIndexAtRepayment; // set on repayment
@@ -58,11 +58,7 @@ library LoanLibrary {
     }
 
     function getDebt(Loan memory fol) internal pure returns (uint256) {
-        return faceValue(fol) + repayFee(fol);
-    }
-
-    function faceValue(Loan memory self) internal pure returns (uint256) {
-        return Math.mulDivUp(self.fol.issuanceValue, PERCENT + self.fol.rate, PERCENT);
+        return fol.fol.faceValue + fol.fol.repayFee;
     }
 
     function getFOL(State storage state, Loan storage loan) public view returns (Loan storage) {
@@ -108,7 +104,7 @@ library LoanLibrary {
         uint256 collateral = state.data.collateralToken.balanceOf(fol.generic.borrower);
 
         if (debt > 0) {
-            return Math.mulDivDown(collateral, faceValue(fol), debt);
+            return Math.mulDivDown(collateral, fol.fol.faceValue, debt);
         } else {
             return 0;
         }
@@ -125,13 +121,20 @@ library LoanLibrary {
         Loan storage fol = getFOL(state, loan);
         uint256 loanCredit = loan.generic.credit;
         uint256 folCollateral = getFOLAssignedCollateral(state, fol);
-        uint256 folFaceValue = faceValue(fol);
+        uint256 folFaceValue = fol.fol.faceValue;
 
         if (folFaceValue > 0) {
             return Math.mulDivDown(folCollateral, loanCredit, folFaceValue);
         } else {
             return 0;
         }
+    }
+
+    function updateRepayFee(Loan storage self, uint256 _repayAmount, uint256 _repayFee) external {
+        uint256 r = Math.mulDivDown(PERCENT, self.fol.faceValue, self.fol.issuanceValue);
+        self.fol.faceValue -= _repayAmount;
+        self.fol.repayFee -= _repayFee;
+        self.fol.issuanceValue = Math.mulDivDown(self.fol.faceValue, PERCENT, r);
     }
 
     function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
@@ -145,15 +148,9 @@ library LoanLibrary {
         return fee;
     }
 
-    function repayFee(Loan memory fol) internal pure returns (uint256) {
-        return repayFee(fol.fol.issuanceValue, fol.fol.startDate, fol.fol.dueDate, fol.fol.repayFeeAPR);
-    }
-
-    function earlyRepayFee(Loan memory fol) internal view returns (uint256) {
-        return repayFee(fol.fol.issuanceValue, fol.fol.startDate, block.timestamp, fol.fol.repayFeeAPR);
-    }
-
-    function partialRepayFee(Loan memory fol, uint256 repayAmount) internal pure returns (uint256) {
-        return Math.mulDivUp(repayAmount, repayFee(fol), faceValue(fol));
+    function earlyRepayFee(Loan memory self) internal view returns (uint256) {
+        uint256 elapsed = block.timestamp - self.fol.startDate;
+        uint256 maturity = self.fol.dueDate - self.fol.startDate;
+        return Math.mulDivDown(self.fol.repayFee, elapsed, maturity);
     }
 }

@@ -68,12 +68,6 @@ abstract contract SizeView is SizeStorage {
         return fol.getDebt();
     }
 
-    function faceValue(uint256 loanId) external view returns (uint256) {
-        Loan storage loan = state.data.loans[loanId];
-        Loan storage fol = state.getFOL(loan);
-        return fol.faceValue();
-    }
-
     function getCredit(uint256 loanId) external view returns (uint256) {
         return state.data.loans[loanId].generic.credit;
     }
@@ -130,18 +124,6 @@ abstract contract SizeView is SizeStorage {
 
     function getLoanStatus(uint256 loanId) external view returns (LoanStatus) {
         return state.getLoanStatus(state.data.loans[loanId]);
-    }
-
-    function partialRepayFee(uint256 loanId, uint256 repayAmount) public view returns (uint256) {
-        Loan storage loan = state.data.loans[loanId];
-        Loan storage fol = state.getFOL(loan);
-        return fol.partialRepayFee(repayAmount);
-    }
-
-    function repayFee(uint256 loanId) external view returns (uint256) {
-        Loan storage loan = state.data.loans[loanId];
-        Loan storage fol = state.getFOL(loan);
-        return fol.repayFee();
     }
 
     function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
