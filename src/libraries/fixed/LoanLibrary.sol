@@ -112,7 +112,7 @@ library LoanLibrary {
         // slither-disable-next-line incorrect-equality
         if (getDebt(debtPosition) == 0) {
             return LoanStatus.REPAID;
-        } else if (block.timestamp >= debtPosition.dueDate) {
+        } else if (block.timestamp > debtPosition.dueDate) {
             return LoanStatus.OVERDUE;
         } else {
             return LoanStatus.ACTIVE;
