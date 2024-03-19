@@ -14,6 +14,10 @@ Target networks:
 - Ethereum mainnet
 - Base
 
+## Audits
+
+- [LightChaserV3](./audits/LightChaserV3_SizeV2.md)
+
 ## Documentation
 
 ### Overview, Accounting and Protocol Design
