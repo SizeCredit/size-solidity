@@ -106,7 +106,7 @@ forge test
 |----------------------------------------------------------|--------------------|--------------------|------------------|------------------|
 | src/Size.sol                                             | 96.77% (60/62)     | 96.77% (60/62)     | 100.00% (0/0)    | 90.91% (20/22)   |
 | src/SizeView.sol                                         | 43.90% (18/41)     | 48.61% (35/72)     | 0.00% (0/8)      | 77.27% (17/22)   |
-| src/libraries/ConversionLibrary.sol                      | 33.33% (1/3)       | 37.50% (3/8)       | 100.00% (0/0)    | 33.33% (1/3)     |
+| src/libraries/ConversionLibrary.sol                      | 100.00% (1/1)      | 100.00% (3/3)      | 100.00% (0/0)    | 100.00% (1/1)    |
 | src/libraries/Math.sol                                   | 86.96% (20/23)     | 87.18% (34/39)     | 83.33% (5/6)     | 83.33% (10/12)   |
 | src/libraries/fixed/AccountingLibrary.sol                | 100.00% (31/31)    | 100.00% (37/37)    | 100.00% (2/2)    | 83.33% (5/6)     |
 | src/libraries/fixed/CapsLibrary.sol                      | 100.00% (10/10)    | 100.00% (15/15)    | 62.50% (5/8)     | 100.00% (4/4)    |
@@ -152,7 +152,7 @@ forge test
 │       BorrowerExit       │   6    │
 │          Claim           │   9    │
 │        Compensate        │   6    │
-│    ConversionLibrary     │   7    │
+│    ConversionLibrary     │   3    │
 │     CryticToFoundry      │   1    │
 │         Deposit          │   3    │
 │       Experiments        │   13   │
