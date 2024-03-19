@@ -13,8 +13,8 @@ import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
-import {KEEPER_ROLE} from "@src/Size.sol";
 import {UserView} from "@src/SizeView.sol";
+import {Roles} from "@src/libraries/Roles.sol";
 
 import {Deploy} from "@script/Deploy.sol";
 
@@ -123,6 +123,6 @@ abstract contract BaseTestGeneral is Test, Deploy {
 
     function _setKeeperRole(address user) internal {
         vm.prank(address(this));
-        size.grantRole(KEEPER_ROLE, user);
+        size.grantRole(Roles.KEEPER_ROLE, user);
     }
 }

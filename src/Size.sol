@@ -50,9 +50,7 @@ import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/action
 import {SizeView} from "@src/SizeView.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
-
-bytes32 constant KEEPER_ROLE = "KEEPER_ROLE";
-bytes32 constant PAUSER_ROLE = "PAUSER_ROLE";
+import {Roles} from "@src/libraries/Roles.sol";
 
 /// @title Size
 /// @notice See the documentation in {ISize}.
@@ -108,8 +106,8 @@ contract Size is
 
         state.executeInitialize(f, r, o, d);
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
-        _grantRole(PAUSER_ROLE, owner);
-        _grantRole(KEEPER_ROLE, owner);
+        _grantRole(Roles.PAUSER_ROLE, owner);
+        _grantRole(Roles.KEEPER_ROLE, owner);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
@@ -119,11 +117,11 @@ contract Size is
         state.executeUpdateConfig(params);
     }
 
-    function pause() public onlyRole(PAUSER_ROLE) {
+    function pause() public onlyRole(Roles.PAUSER_ROLE) {
         _pause();
     }
 
-    function unpause() public onlyRole(PAUSER_ROLE) {
+    function unpause() public onlyRole(Roles.PAUSER_ROLE) {
         _unpause();
     }
 
@@ -216,7 +214,7 @@ contract Size is
         external
         override(ISize)
         whenNotPaused
-        onlyRole(KEEPER_ROLE)
+        onlyRole(Roles.KEEPER_ROLE)
         returns (uint256 liquidatorProfitCollateralAsset, uint256 liquidatorProfitBorrowAsset)
     {
         state.validateLiquidateWithReplacement(params);

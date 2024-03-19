@@ -3,8 +3,6 @@ pragma solidity 0.8.23;
 
 import {Test} from "forge-std/Test.sol";
 
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import {Size} from "@src/Size.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 

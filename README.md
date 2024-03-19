@@ -64,7 +64,7 @@ Decimal amounts are preserved until a conversion is necessary, and performed via
 - szDebt: 6 decimals (same as borrow token)
 - WETH/szETH: 18 decimals
 - VariablePoolPriceFeed (ETH/USDC): 18 decimals
-- MarketBorrowRateFeed (USDC): 18 decimals
+- BorrowRateFeed (USDC): 18 decimals
 
 All percentages are expressed in 18 decimals. For example, a 150% liquidation collateral ratio is represented as 1500000000000000000.
 
@@ -82,13 +82,13 @@ Since both `Size` contract (fixed-rate orderbook) ant the Size's Variable Pool (
 
 A solution is proposed to use Size's Variable Pool (Aave v3 fork) `AaveOracle` contract directly, and simply converting the returned price to 18 decimals as the `Size` contract expects. One drawback of using `AaveOracle` is that it does not perform stale price checks for the oracle response, as it simply executes [`latestAnswer()`](https://github.com/aave/aave-v3-core/blob/6070e82d962d9b12835c88e68210d0e63f08d035/contracts/misc/AaveOracle.sol#L109) instead of `latestRoundData()`. We will update AaveOracle on our fork to also check for stale data.
 
-##### Market Borrow Rate Feed
+##### Borrow Rate Feed
 
 In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation with Aave, convert it to 18 decimals, and store it on the oracle. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
 
-Note that this rate is extracted from Aave v3 itself, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 is a better proxy for the real market rate, and less prone to market manipulation attacks.
+Note that this rate is extracted from Aave v3 itself, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 is a better proxy for the real market rate, and less prone to market manipulation attacks. In the future, integrations with other protocols will be implemented in order to have a more realistic global average.
 
-In the future, integrations with other protocols will be implemented in order to have a more realistic global average.
+A fallback rate is used in case Aave v3's computation is stale. For that purpose, we use a median of the Variable Pool's borrow rates.
 
 ## Test
 
