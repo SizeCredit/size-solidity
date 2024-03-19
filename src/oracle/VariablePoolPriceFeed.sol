@@ -15,14 +15,12 @@ import {Errors} from "@src/libraries/Errors.sol";
 ///      _decimals: 18
 ///      answer: ETH/USDC in 1e18
 contract VariablePoolPriceFeed is IPriceFeed {
-    /* solhint-disable immutable-vars-naming */
     IAaveOracle public immutable aaveOracle;
     address public immutable base;
     uint8 public immutable baseDecimals;
     address public immutable quote;
     uint8 public immutable quoteDecimals;
     uint8 public immutable decimals;
-    /* solhint-enable immutable-vars-naming */
 
     constructor(
         address _aaveOracle,

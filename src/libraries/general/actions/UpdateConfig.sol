@@ -61,7 +61,7 @@ library UpdateConfig {
         });
     }
 
-    function dataParams(State storage state) public view returns (InitializeDataParams memory) {
+    function dataParams(State storage state) external view returns (InitializeDataParams memory) {
         return InitializeDataParams({
             underlyingCollateralToken: address(state.data.underlyingCollateralToken),
             underlyingBorrowToken: address(state.data.underlyingBorrowToken),

@@ -51,6 +51,9 @@ import {SizeView} from "@src/SizeView.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
+bytes32 constant KEEPER_ROLE = "KEEPER_ROLE";
+bytes32 constant PAUSER_ROLE = "PAUSER_ROLE";
+
 /// @title Size
 /// @notice See the documentation in {ISize}.
 contract Size is
@@ -84,9 +87,6 @@ contract Size is
     using RepayVariable for State;
     using LiquidateVariable for State;
 
-    bytes32 public constant KEEPER_ROLE = "KEEPER_ROLE";
-    bytes32 public constant PAUSER_ROLE = "PAUSER_ROLE";
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -112,7 +112,6 @@ contract Size is
         _grantRole(KEEPER_ROLE, owner);
     }
 
-    // solhint-disable-next-line no-empty-blocks
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
     function updateConfig(UpdateConfigParams calldata params) external onlyRole(DEFAULT_ADMIN_ROLE) {

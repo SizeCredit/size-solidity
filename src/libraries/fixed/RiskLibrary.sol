@@ -33,7 +33,7 @@ library RiskLibrary {
         uint256 debtWad = ConversionLibrary.amountToWad(debt, state.data.underlyingBorrowToken.decimals());
         uint256 price = state.oracle.priceFeed.getPrice();
 
-        if (debt > 0) {
+        if (debt != 0) {
             return Math.mulDivDown(collateral, price, debtWad);
         } else {
             return type(uint256).max;

@@ -40,8 +40,6 @@ contract RepayTest is BaseTest {
         assertEq(size.getDebt(debtPositionId), 0);
     }
 
-    function test_Repay_repay_partial_DebtPosition() internal {}
-
     function test_Repay_overdue_does_not_increase_debt() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -58,7 +56,7 @@ contract RepayTest is BaseTest {
         Vars memory _before = _state();
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
 
-        vm.warp(block.timestamp + 365 days);
+        vm.warp(block.timestamp + 365 days + 1);
 
         Vars memory _overdue = _state();
 

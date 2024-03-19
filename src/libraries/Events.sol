@@ -10,7 +10,6 @@ import {
     InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
 
-// solhint-disable var-name-mixedcase
 /// @title Events
 library Events {
     // general
