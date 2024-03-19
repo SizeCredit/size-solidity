@@ -51,6 +51,9 @@ import {SizeView} from "@src/SizeView.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
+bytes32 constant KEEPER_ROLE = "KEEPER_ROLE";
+bytes32 constant PAUSER_ROLE = "PAUSER_ROLE";
+
 /// @title Size
 /// @notice See the documentation in {ISize}.
 contract Size is
@@ -83,9 +86,6 @@ contract Size is
     using BorrowVariable for State;
     using RepayVariable for State;
     using LiquidateVariable for State;
-
-    bytes32 public constant KEEPER_ROLE = "KEEPER_ROLE";
-    bytes32 public constant PAUSER_ROLE = "PAUSER_ROLE";
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {

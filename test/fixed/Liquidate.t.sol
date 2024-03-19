@@ -194,7 +194,7 @@ contract LiquidateTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
 
-        vm.warp(block.timestamp + 365 days);
+        vm.warp(block.timestamp + 365 days + 1);
 
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
@@ -246,7 +246,7 @@ contract LiquidateTest is BaseTest {
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
-        vm.warp(block.timestamp + 365 days);
+        vm.warp(block.timestamp + 365 days + 1);
 
         _liquidate(liquidator, debtPositionId);
 
@@ -277,7 +277,7 @@ contract LiquidateTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
 
-        vm.warp(block.timestamp + 365 days);
+        vm.warp(block.timestamp + 365 days + 1);
 
         _liquidate(liquidator, debtPositionId);
 
@@ -345,7 +345,7 @@ contract LiquidateTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
 
-        vm.warp(block.timestamp + 365 days);
+        vm.warp(block.timestamp + 365 days + 1);
 
         _deposit(liquidator, usdc, 100e6);
         _liquidate(liquidator, debtPositionId);

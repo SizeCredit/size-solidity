@@ -133,7 +133,7 @@ library LoanLibrary {
         uint256 debt = state.data.debtToken.balanceOf(debtPosition.borrower);
         uint256 collateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
 
-        if (debt > 0) {
+        if (debt != 0) {
             return Math.mulDivDown(collateral, debtPosition.faceValue, debt);
         } else {
             return 0;
@@ -157,7 +157,7 @@ library LoanLibrary {
         uint256 debtPositionCollateral = getDebtPositionAssignedCollateral(state, debtPosition);
         uint256 debtPositionFaceValue = debtPosition.faceValue;
 
-        if (debtPositionFaceValue > 0) {
+        if (debtPositionFaceValue != 0) {
             return Math.mulDivDown(debtPositionCollateral, creditPositionCredit, debtPositionFaceValue);
         } else {
             return 0;
