@@ -78,9 +78,9 @@ In order to interact with Aave v3, a proxy pattern is employed, which creates us
 
 A contract that provides the price of ETH in terms of USDC in 18 decimals. For example, a price of 3327.39 ETH/USDC is represented as 3327390000000000000000.
 
-##### Market Borrow Rate Feed
+##### Variable Pool Borrow Rate Feed
 
-In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation with Aave, convert it to 18 decimals, and store it on the oracle. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
+In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation on Aave's rate, convert it to 18 decimals, and store it on the oracle. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
 
 ## Test
 

@@ -8,8 +8,8 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {PERCENT} from "@src/libraries/Math.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {Vault} from "@src/proxy/Vault.sol";
@@ -42,7 +42,7 @@ struct InitializeRiskConfigParams {
 
 struct InitializeOracleParams {
     address priceFeed;
-    address marketBorrowRateFeed;
+    address variablePoolBorrowRateFeed;
 }
 
 struct InitializeDataParams {
@@ -142,11 +142,11 @@ library Initialize {
         }
         IPriceFeed(o.priceFeed).getPrice();
 
-        // validate marketBorrowRateFeed
-        if (o.marketBorrowRateFeed == address(0)) {
+        // validate variablePoolBorrowRateFeed
+        if (o.variablePoolBorrowRateFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        IMarketBorrowRateFeed(o.marketBorrowRateFeed).getMarketBorrowRate();
+        IVariablePoolBorrowRateFeed(o.variablePoolBorrowRateFeed).getVariableBorrowRate();
     }
 
     function validateInitializeDataParams(InitializeDataParams memory d) internal pure {
@@ -211,7 +211,7 @@ library Initialize {
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {
         state.oracle.priceFeed = IPriceFeed(o.priceFeed);
-        state.oracle.marketBorrowRateFeed = IMarketBorrowRateFeed(o.marketBorrowRateFeed);
+        state.oracle.variablePoolBorrowRateFeed = IVariablePoolBorrowRateFeed(o.variablePoolBorrowRateFeed);
     }
 
     function executeInitializeData(State storage state, InitializeDataParams memory d) internal {

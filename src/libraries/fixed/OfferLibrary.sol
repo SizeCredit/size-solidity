@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
+import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 
 struct LoanOffer {
     uint256 maxDueDate;
@@ -28,17 +28,19 @@ library OfferLibrary {
 
     function getRatePerMaturityByDueDate(
         LoanOffer memory self,
-        IMarketBorrowRateFeed marketBorrowRateFeed,
+        IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
         uint256 dueDate
     ) internal view returns (uint256) {
-        return YieldCurveLibrary.getRatePerMaturityByDueDate(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
+        return
+            YieldCurveLibrary.getRatePerMaturityByDueDate(self.curveRelativeTime, variablePoolBorrowRateFeed, dueDate);
     }
 
     function getRatePerMaturityByDueDate(
         BorrowOffer memory self,
-        IMarketBorrowRateFeed marketBorrowRateFeed,
+        IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
         uint256 dueDate
     ) internal view returns (uint256) {
-        return YieldCurveLibrary.getRatePerMaturityByDueDate(self.curveRelativeTime, marketBorrowRateFeed, dueDate);
+        return
+            YieldCurveLibrary.getRatePerMaturityByDueDate(self.curveRelativeTime, variablePoolBorrowRateFeed, dueDate);
     }
 }

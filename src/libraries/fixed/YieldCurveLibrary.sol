@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
-import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
+import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 
 struct YieldCurve {
     uint256[] maturities;
@@ -56,14 +56,14 @@ library YieldCurveLibrary {
     ///      Converts the market borrow rate from compound to linear interest
     /// @param maturity The maturity
     /// @param apr The annual percentage rate from the yield curve (linear interest)
-    /// @param marketBorrowRateFeed The market borrow rate feed
+    /// @param variablePoolBorrowRateFeed The market borrow rate feed
     /// @param marketRateMultiplier The market rate multiplier
     /// @return Returns rate + (marketRate * marketRateMultiplier) / PERCENT for the given maturity
     function getRatePerMaturityByDueDate(
         uint256 maturity,
         int256 apr,
         uint256 marketRateMultiplier,
-        IMarketBorrowRateFeed marketBorrowRateFeed
+        IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed
     ) internal view returns (uint256) {
         // @audit Check if the result should be capped to 0 instead of reverting
 
@@ -72,7 +72,7 @@ library YieldCurveLibrary {
         if (marketRateMultiplier == 0) {
             return SafeCast.toUint256(ratePerMaturity);
         } else {
-            uint128 marketRateCompound = marketBorrowRateFeed.getMarketBorrowRate();
+            uint128 marketRateCompound = variablePoolBorrowRateFeed.getVariableBorrowRate();
             uint256 marketRateLinear = Math.compoundAPRToRatePerMaturity(marketRateCompound, maturity);
             return SafeCast.toUint256(
                 ratePerMaturity + SafeCast.toInt256(Math.mulDivDown(marketRateLinear, marketRateMultiplier, PERCENT))
@@ -83,12 +83,12 @@ library YieldCurveLibrary {
     /// @notice Get the rate from the yield curve by performing a linear interpolation between two time buckets
     /// @dev Reverts if the due date is in the past or out of range
     /// @param curveRelativeTime The yield curve
-    /// @param marketBorrowRateFeed The market borrow rate feed
+    /// @param variablePoolBorrowRateFeed The market borrow rate feed
     /// @param dueDate The due date
     /// @return The rate from the yield curve per given maturity
     function getRatePerMaturityByDueDate(
         YieldCurve memory curveRelativeTime,
-        IMarketBorrowRateFeed marketBorrowRateFeed,
+        IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
         uint256 dueDate
     ) external view returns (uint256) {
         // @audit Check the correctness of this function
@@ -106,14 +106,14 @@ library YieldCurveLibrary {
                 curveRelativeTime.maturities[low],
                 curveRelativeTime.aprs[low],
                 curveRelativeTime.marketRateMultipliers[low],
-                marketBorrowRateFeed
+                variablePoolBorrowRateFeed
             );
             uint256 x1 = curveRelativeTime.maturities[high];
             uint256 y1 = getRatePerMaturityByDueDate(
                 curveRelativeTime.maturities[high],
                 curveRelativeTime.aprs[high],
                 curveRelativeTime.marketRateMultipliers[high],
-                marketBorrowRateFeed
+                variablePoolBorrowRateFeed
             );
 
             // @audit Check the rounding direction, as this may lead to debt rounding down

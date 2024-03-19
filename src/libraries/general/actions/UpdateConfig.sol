@@ -6,8 +6,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {Initialize} from "@src/libraries/general/actions/Initialize.sol";
 
-import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 
 import {
     InitializeDataParams,
@@ -57,7 +57,7 @@ library UpdateConfig {
     function oracleParams(State storage state) public view returns (InitializeOracleParams memory) {
         return InitializeOracleParams({
             priceFeed: address(state.oracle.priceFeed),
-            marketBorrowRateFeed: address(state.oracle.marketBorrowRateFeed)
+            variablePoolBorrowRateFeed: address(state.oracle.variablePoolBorrowRateFeed)
         });
     }
 
@@ -106,8 +106,8 @@ library UpdateConfig {
             state.feeConfig.feeRecipient = address(uint160(params.value));
         } else if (params.key == "priceFeed") {
             state.oracle.priceFeed = IPriceFeed(address(uint160(params.value)));
-        } else if (params.key == "marketBorrowRateFeed") {
-            state.oracle.marketBorrowRateFeed = IMarketBorrowRateFeed(address(uint160(params.value)));
+        } else if (params.key == "variablePoolBorrowRateFeed") {
+            state.oracle.variablePoolBorrowRateFeed = IVariablePoolBorrowRateFeed(address(uint160(params.value)));
         } else {
             revert Errors.INVALID_KEY(params.key);
         }

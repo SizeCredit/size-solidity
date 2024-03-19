@@ -7,14 +7,15 @@ import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
-import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 
-import {MarketBorrowRateFeed} from "@src/oracle/MarketBorrowRateFeed.sol";
+import {VariablePoolBorrowRateFeed} from "@src/oracle/VariablePoolBorrowRateFeed.sol";
 
-import {VariablePoolPriceFeed} from "@src/oracle/VariablePoolPriceFeed.sol";
-import {MarketBorrowRateFeedMock} from "@test/mocks/MarketBorrowRateFeedMock.sol";
+import {PriceFeed} from "@src/oracle/PriceFeed.sol";
+
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
+import {VariablePoolBorrowRateFeedMock} from "@test/mocks/VariablePoolBorrowRateFeedMock.sol";
 
 import {Size} from "@src/Size.sol";
 
@@ -33,7 +34,7 @@ abstract contract Deploy {
     ERC1967Proxy internal proxy;
     SizeMock internal size;
     IPriceFeed internal priceFeed;
-    IMarketBorrowRateFeed internal marketBorrowRateFeed;
+    IVariablePoolBorrowRateFeed internal variablePoolBorrowRateFeed;
     WETH internal weth;
     USDC internal usdc;
     InitializeFeeConfigParams internal f;
@@ -44,7 +45,7 @@ abstract contract Deploy {
 
     function setup(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
-        marketBorrowRateFeed = new MarketBorrowRateFeedMock(owner);
+        variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
         variablePool = IPool(address(new PoolMock(priceFeed)));
@@ -69,7 +70,10 @@ abstract contract Deploy {
             moveToVariablePoolHFThreshold: 1.1e18,
             minimumMaturity: 1 days
         });
-        o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
+        o = InitializeOracleParams({
+            priceFeed: address(priceFeed),
+            variablePoolBorrowRateFeed: address(variablePoolBorrowRateFeed)
+        });
         d = InitializeDataParams({
             underlyingCollateralToken: address(weth),
             underlyingBorrowToken: address(usdc),
@@ -86,8 +90,8 @@ abstract contract Deploy {
         internal
     {
         variablePool = IPool(_variablePool);
-        priceFeed = new VariablePoolPriceFeed(_aaveOracle, _weth, 8, _usdc, 8, 18);
-        marketBorrowRateFeed = new MarketBorrowRateFeed(_owner, 6 hours);
+        priceFeed = new PriceFeed(_weth, _usdc, 18, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
+        variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeed(_owner, 6 hours);
         f = InitializeFeeConfigParams({
             repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
@@ -107,7 +111,10 @@ abstract contract Deploy {
             moveToVariablePoolHFThreshold: 1.1e18,
             minimumMaturity: 1 days
         });
-        o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
+        o = InitializeOracleParams({
+            priceFeed: address(priceFeed),
+            variablePoolBorrowRateFeed: address(variablePoolBorrowRateFeed)
+        });
         d = InitializeDataParams({
             underlyingCollateralToken: address(_weth),
             underlyingBorrowToken: address(_usdc),
@@ -123,8 +130,8 @@ abstract contract Deploy {
         PoolMock(address(variablePool)).setLiquidityIndex(address(_usdc), WadRayMath.RAY);
         PoolMock(address(variablePool)).setLiquidityIndex(address(_weth), WadRayMath.RAY, true);
         PriceFeedMock(address(priceFeed)).setPrice(2468e18);
-        marketBorrowRateFeed = new MarketBorrowRateFeedMock(_owner);
-        MarketBorrowRateFeedMock(address(marketBorrowRateFeed)).setMarketBorrowRate(0.0724e18);
+        variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(_owner);
+        VariablePoolBorrowRateFeedMock(address(variablePoolBorrowRateFeed)).setVariableBorrowRate(0.0724e18);
         f = InitializeFeeConfigParams({
             repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
@@ -144,7 +151,10 @@ abstract contract Deploy {
             moveToVariablePoolHFThreshold: 1.1e18,
             minimumMaturity: 1 days
         });
-        o = InitializeOracleParams({priceFeed: address(priceFeed), marketBorrowRateFeed: address(marketBorrowRateFeed)});
+        o = InitializeOracleParams({
+            priceFeed: address(priceFeed),
+            variablePoolBorrowRateFeed: address(variablePoolBorrowRateFeed)
+        });
         d = InitializeDataParams({
             underlyingCollateralToken: address(_weth),
             underlyingBorrowToken: address(_usdc),

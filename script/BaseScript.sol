@@ -4,8 +4,8 @@ pragma solidity ^0.8.19;
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {Size} from "@src/Size.sol";
 
-import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
@@ -75,7 +75,7 @@ abstract contract BaseScript is Script {
         internal
         returns (
             SizeMock size,
-            IMarketBorrowRateFeed marketBorrowRateFeed,
+            IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
             IPriceFeed priceFeed,
             IPool variablePool,
             USDC usdc,
@@ -91,8 +91,8 @@ abstract contract BaseScript is Script {
         string memory json = vm.readFile(path);
 
         size = SizeMock(abi.decode(json.parseRaw(".deployments.Size-proxy"), (address)));
-        marketBorrowRateFeed =
-            IMarketBorrowRateFeed(abi.decode(json.parseRaw(".deployments.MarketBorrowRateFeed"), (address)));
+        variablePoolBorrowRateFeed =
+            IVariablePoolBorrowRateFeed(abi.decode(json.parseRaw(".deployments.VariablePoolBorrowRateFeed"), (address)));
         priceFeed = IPriceFeed(abi.decode(json.parseRaw(".deployments.PriceFeed"), (address)));
         variablePool = IPool(abi.decode(json.parseRaw(".deployments.VariablePool"), (address)));
         usdc = USDC(abi.decode(json.parseRaw(".parameters.usdc"), (address)));

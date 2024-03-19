@@ -202,7 +202,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 r = PERCENT + loanOffer.getRatePerMaturityByDueDate(marketBorrowRateFeed, dueDate);
+        uint256 r = PERCENT + loanOffer.getRatePerMaturityByDueDate(variablePoolBorrowRateFeed, dueDate);
 
         uint256 faceValue = Math.mulDivUp(r, (amountLoanId2 - amountLoanId1), PERCENT);
         uint256 faceValueOpening = Math.mulDivUp(faceValue, size.riskConfig().crOpening, PERCENT);
@@ -237,8 +237,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 creditId1 = size.getCreditPositionIdsByDebtPositionId(loanId1)[0];
 
         uint256 dueDate = block.timestamp + 12 days;
-        uint256 r =
-            PERCENT + size.getUserView(candy).user.loanOffer.getRatePerMaturityByDueDate(marketBorrowRateFeed, dueDate);
+        uint256 r = PERCENT
+            + size.getUserView(candy).user.loanOffer.getRatePerMaturityByDueDate(variablePoolBorrowRateFeed, dueDate);
         uint256 deltaAmountOut = (Math.mulDivUp(r, amountLoanId2, PERCENT) > size.getCreditPosition(creditId1).credit)
             ? Math.mulDivDown(size.getCreditPosition(creditId1).credit, PERCENT, r)
             : amountLoanId2;

@@ -52,7 +52,7 @@ library LendAsMarketOrder {
 
         // validate amount
         uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, params.dueDate);
+            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
         uint256 amountIn;
         if (params.exactAmountIn) {
             amountIn = params.amount;
@@ -92,7 +92,7 @@ library LendAsMarketOrder {
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
         uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, params.dueDate);
+            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
         uint256 issuanceValue;
         if (params.exactAmountIn) {
             issuanceValue = params.amount;

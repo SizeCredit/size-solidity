@@ -10,8 +10,8 @@ import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {Vault} from "@src/proxy/Vault.sol";
 
-import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 struct FeeConfig {
@@ -37,7 +37,7 @@ struct RiskConfig {
 
 struct Oracle {
     IPriceFeed priceFeed; // price feed oracle
-    IMarketBorrowRateFeed marketBorrowRateFeed; // market borrow rate feed oracle
+    IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed; // market borrow rate feed oracle
 }
 
 struct Data {

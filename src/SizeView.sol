@@ -178,7 +178,7 @@ abstract contract SizeView is SizeStorage {
         if (dueDate < block.timestamp) {
             revert Errors.PAST_DUE_DATE(dueDate);
         }
-        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
     }
@@ -191,7 +191,7 @@ abstract contract SizeView is SizeStorage {
         if (dueDate < block.timestamp) {
             revert Errors.PAST_DUE_DATE(dueDate);
         }
-        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
     }

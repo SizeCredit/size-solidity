@@ -82,13 +82,13 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _setMarketBorrowRate(0);
+        _setVariableBorrowRate(0);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
         _borrowAsLimitOrder(alice, curve);
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.maturities[0] + curve.maturities[1]) / 2;
-        uint256 rate = YieldCurveLibrary.getRatePerMaturityByDueDate(curve, marketBorrowRateFeed, dueDate);
+        uint256 rate = YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, dueDate);
         uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + rate, PERCENT);
 
         Vars memory _before = _state();

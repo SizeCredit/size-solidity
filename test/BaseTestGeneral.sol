@@ -7,8 +7,8 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
-import {MarketBorrowRateFeedMock} from "@test/mocks/MarketBorrowRateFeedMock.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
+import {VariablePoolBorrowRateFeedMock} from "@test/mocks/VariablePoolBorrowRateFeedMock.sol";
 
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
@@ -52,7 +52,7 @@ abstract contract BaseTestGeneral is Test, Deploy {
 
         vm.label(address(size), "size");
         vm.label(address(priceFeed), "priceFeed");
-        vm.label(address(marketBorrowRateFeed), "marketBorrowRateFeed");
+        vm.label(address(variablePoolBorrowRateFeed), "variablePoolBorrowRateFeed");
         vm.label(address(usdc), "usdc");
         vm.label(address(weth), "weth");
         vm.label(address(variablePool), "variablePool");
@@ -111,9 +111,9 @@ abstract contract BaseTestGeneral is Test, Deploy {
         PriceFeedMock(address(priceFeed)).setPrice(price);
     }
 
-    function _setMarketBorrowRate(uint128 rate) internal {
+    function _setVariableBorrowRate(uint128 rate) internal {
         vm.prank(address(this));
-        MarketBorrowRateFeedMock(address(marketBorrowRateFeed)).setMarketBorrowRate(rate);
+        VariablePoolBorrowRateFeedMock(address(variablePoolBorrowRateFeed)).setVariableBorrowRate(rate);
     }
 
     function _updateConfig(bytes32 key, uint256 value) internal {

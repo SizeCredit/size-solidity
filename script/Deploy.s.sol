@@ -50,7 +50,7 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         deployments.push(Deployment({name: "Size-implementation", addr: address(size)}));
         deployments.push(Deployment({name: "Size-proxy", addr: address(proxy)}));
         deployments.push(Deployment({name: "PriceFeed", addr: address(priceFeed)}));
-        deployments.push(Deployment({name: "MarketBorrowRateFeed", addr: address(marketBorrowRateFeed)}));
+        deployments.push(Deployment({name: "VariablePoolBorrowRateFeed", addr: address(variablePoolBorrowRateFeed)}));
         deployments.push(Deployment({name: "VariablePool", addr: address(variablePool)}));
         parameters.push(Parameter({key: "owner", value: Strings.toHexString(deployer)}));
         parameters.push(Parameter({key: "usdc", value: Strings.toHexString(usdc)}));
