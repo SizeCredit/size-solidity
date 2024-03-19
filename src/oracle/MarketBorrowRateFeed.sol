@@ -14,8 +14,8 @@ contract MarketBorrowRateFeed is IMarketBorrowRateFeed, Ownable2Step {
     uint64 internal marketBorrowRateUpdatedAt;
     uint64 internal staleRateInterval;
 
-    event MarketBorrowRateUpdated(uint128 oldMarketBorrowRate, uint128 newMarketBorrowRate);
-    event StaleRateIntervalUpdated(uint64 oldStaleRateInterval, uint64 newStaleRateInterval);
+    event MarketBorrowRateUpdated(uint128 indexed oldMarketBorrowRate, uint128 indexed newMarketBorrowRate);
+    event StaleRateIntervalUpdated(uint64 indexed oldStaleRateInterval, uint64 indexed newStaleRateInterval);
 
     constructor(address _owner, uint64 _staleRateInterval) Ownable(_owner) {
         if (_staleRateInterval == 0) {
