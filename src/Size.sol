@@ -44,7 +44,6 @@ import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {BorrowVariable, BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
 
-import {LiquidateVariable, LiquidateVariableParams} from "@src/libraries/variable/actions/LiquidateVariable.sol";
 import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
 
 import {SizeView} from "@src/SizeView.sol";
@@ -85,7 +84,6 @@ contract Size is
     using CapsLibrary for State;
     using BorrowVariable for State;
     using RepayVariable for State;
-    using LiquidateVariable for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -233,11 +231,6 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function variablePoolAllowlisted(address account) external view override(ISize) whenNotPaused returns (bool) {
-        return state.data.variablePoolAllowlisted[account];
-    }
-
-    /// @inheritdoc ISize
     function borrowVariable(BorrowVariableParams calldata params) external override(ISize) whenNotPaused {
         state.validateBorrowVariable(params);
         state.executeBorrowVariable(params);
@@ -247,11 +240,5 @@ contract Size is
     function repayVariable(RepayVariableParams calldata params) external override(ISize) whenNotPaused {
         state.validateRepayVariable(params);
         state.executeRepayVariable(params);
-    }
-
-    /// @inheritdoc ISize
-    function liquidateVariable(LiquidateVariableParams calldata params) external override(ISize) whenNotPaused {
-        state.validateLiquidateVariable(params);
-        state.executeLiquidateVariable(params);
     }
 }

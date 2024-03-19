@@ -2,7 +2,7 @@
 
 ![Size](./size.jpeg)
 
-Size is an order book based fixed rate lending protocol with an integrated variable pool.
+Size is an order book based fixed rate lending protocol with an integrated variable pool (Aave v3).
 
 Initial pairs supported:
 
@@ -52,7 +52,7 @@ Additional safety features were employed, such as different levels of Access Con
 In order to address donation and reentrancy attacks, the following measures were adopted:
 
 - No usage of native ether, only wrapped ether (WETH)
-- Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into protocol tokens via `deposit`, which mints `aszUSDC` and `szWETH`, and received back via `withdraw`, which burns protocol tokens 1:1 in exchange of the underlying tokens.
+- Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into protocol tokens via `deposit`, which mints `aUSDC` and `szWETH`, and received back via `withdraw`, which burns protocol tokens 1:1 in exchange of the underlying tokens.
 
 #### Maths
 
@@ -60,7 +60,7 @@ All mathematical operations are implemented with explicit rounding (`mulDivUp` o
 
 Decimal amounts are preserved until a conversion is necessary, and performed via the `ConversionLibrary`:
 
-- USDC/aszUSDC: 6 decimals
+- USDC/aUSDC: 6 decimals
 - szDebt: 6 decimals (same as borrow token)
 - WETH/szETH: 18 decimals
 - VariablePoolPriceFeed (ETH/USDC): 18 decimals
@@ -70,25 +70,17 @@ All percentages are expressed in 18 decimals. For example, a 150% liquidation co
 
 #### Variable Pool
 
-In order to interact with Size's Variable Pool (Aave v3 fork), a proxy pattern is employed, which creates user Vault proxies using OpenZeppelin Clone's library to deploy copies on demand. This way, each address can have an individual health factor on Size's Variable Pool (Aave v3 fork). The `Vault` contract is owned by the `Size` contract, which can perform arbitrary calls on behalf of the user. For example, when a `deposit` is performed on `Size`, it creates a `Vault`, if needed, which then executes a `supply` on Size's Variable Pool (Aave v3 fork). This way, all deposited `USDC` can be lent out through variable rates until a fixed-rate loan is matched and created on the orderbook.
-
-When an account executes `supply` into Size's Variable Pool (Aave v3 fork), the `aszUSDC` token is minted 1:1. This is an instance of `AToken`, an interest-bearing rebasing token that represents users' USDC available for variable-rate loans, which grows according to a variable interest rate equation.
+In order to interact with Aave v3, a proxy pattern is employed, which creates user Vault proxies using OpenZeppelin Clone's library to deploy copies on demand. This way, each address can have an individual health factor on Aave v3. The `Vault` contract is owned by the `Size` contract, which can perform arbitrary calls on behalf of the user. For example, when a `deposit` is performed on `Size`, it creates a `Vault`, if needed, which then executes a `supply` on Aave v3. This way, all deposited `USDC` can be lent out through variable rates until a fixed-rate loan is matched and created on the orderbook.
 
 #### Oracles
 
-##### Variable Pool Price Feed
+##### Price Feed
 
-Since both `Size` contract (fixed-rate orderbook) ant the Size's Variable Pool (Aave v3 fork) depend on the ETH/USDC rate, it may be appropriate to use a single contract interfacing with Chainlink aggregators, as different error handling and LINK funding may cause issues once these two interconected systems are deployed.
-
-A solution is proposed to use Size's Variable Pool (Aave v3 fork) `AaveOracle` contract directly, and simply converting the returned price to 18 decimals as the `Size` contract expects. One drawback of using `AaveOracle` is that it does not perform stale price checks for the oracle response, as it simply executes [`latestAnswer()`](https://github.com/aave/aave-v3-core/blob/6070e82d962d9b12835c88e68210d0e63f08d035/contracts/misc/AaveOracle.sol#L109) instead of `latestRoundData()`. We will update AaveOracle on our fork to also check for stale data.
+A contract that provides the price of ETH in terms of USDC in 18 decimals. For example, a price of 3327.39 ETH/USDC is represented as 3327390000000000000000.
 
 ##### Market Borrow Rate Feed
 
 In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation with Aave, convert it to 18 decimals, and store it on the oracle. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
-
-Note that this rate is extracted from Aave v3 itself, not from Size's Variable Pool (Aave v3 fork). Although these two pools share the same code and interfaces, we believe Aave v3 is a better proxy for the real market rate, and less prone to market manipulation attacks.
-
-In the future, integrations with other protocols will be implemented in order to have a more realistic global average.
 
 ## Test
 
@@ -207,8 +199,6 @@ forge test
 - Price feeds must be redeployed and updated in case any Chainlink configuration changes (stale price timeouts, decimals)
 - In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues
 - In case the protocol is paused, the price of the collateral may change during the unpause event. This may cause unforseen liquidations, among other issues
-- The Variable Pool Price Feed depends on `AaveOracle`, which uses `latestAnswer`, and does not perform any kind of stale checks for oracle prices
-- Variable rate loans can increase the total supply of aszUSDC, which in turn limits the cap of fixed rate loans
 - Users blocklisted by underlying tokens (e.g. USDC) may be unable to withdraw or interact with the protocol
 - Protocol fees may prevent self liquidations
 - All issues acknowledged on previous audits

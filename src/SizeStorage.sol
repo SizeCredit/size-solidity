@@ -42,7 +42,6 @@ struct Oracle {
 
 struct Data {
     mapping(address => User) users; // mapping of User structs
-    mapping(address => bool) variablePoolAllowlisted; // mapping of addresses allowlisted to interact with the Variable Pool
     mapping(uint256 => DebtPosition) debtPositions; // mapping of DebtPosition structs
     mapping(uint256 => CreditPosition) creditPositions; // mapping of CreditPosition structs
     uint256 nextDebtPositionId; // next debt position id
@@ -50,10 +49,10 @@ struct Data {
     IERC20Metadata underlyingCollateralToken; // e.g. WETH
     IERC20Metadata underlyingBorrowToken; // e.g. USDC
     NonTransferrableToken collateralToken; // e.g. szWETH
-    IAToken borrowAToken; // e.g. aszUSDC
-    IAToken collateralAToken; // e.g. aszWETH
+    IAToken borrowAToken; // e.g. aUSDC
+    IAToken collateralAToken; // e.g. aWETH
     NonTransferrableToken debtToken; // e.g. szDebt
-    IPool variablePool; // Size Variable Pool (Aave v3 fork)
+    IPool variablePool; // Variable Pool (Aave v3)
     Vault vaultImplementation; // Vault implementation
 }
 

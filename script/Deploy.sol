@@ -73,7 +73,7 @@ abstract contract Deploy {
         d = InitializeDataParams({
             underlyingCollateralToken: address(weth),
             underlyingBorrowToken: address(usdc),
-            variablePool: address(variablePool) // Aave v3 fork
+            variablePool: address(variablePool) // Aave v3
         });
 
         proxy = new ERC1967Proxy(address(new SizeMock()), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
@@ -111,7 +111,7 @@ abstract contract Deploy {
         d = InitializeDataParams({
             underlyingCollateralToken: address(_weth),
             underlyingBorrowToken: address(_usdc),
-            variablePool: address(variablePool) // Aave v3 fork
+            variablePool: address(variablePool) // Aave v3
         });
         size = SizeMock(address(new Size()));
         proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
@@ -148,7 +148,7 @@ abstract contract Deploy {
         d = InitializeDataParams({
             underlyingCollateralToken: address(_weth),
             underlyingBorrowToken: address(_usdc),
-            variablePool: address(variablePool) // Aave v3 fork
+            variablePool: address(variablePool) // Aave v3
         });
         size = SizeMock(address(new Size()));
         proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));

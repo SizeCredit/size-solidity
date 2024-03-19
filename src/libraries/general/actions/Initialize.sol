@@ -54,7 +54,7 @@ struct InitializeDataParams {
 /// @title Initialize
 /// @notice Contains the logic to initialize the protocol
 /// @dev The collateralToken (e.g. szETH) and debtToken (e.g. szDebt) are created in the `executeInitialize` function
-///      The borrowAToken (e.g. aszUSDC) is deployed on the Size Variable Pool (Aave v3 fork)
+///      The borrowAToken (e.g. aUSDC) is deployed on the Variable Pool (Aave v3)
 library Initialize {
     function validateOwner(address owner) internal pure {
         if (owner == address(0)) {

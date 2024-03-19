@@ -30,7 +30,6 @@ library UserLibrary {
         emit Events.CreateVault(user, address(vault), false);
         vault.initialize(address(this));
         state.data.users[user].vaultFixed = vault;
-        state.data.variablePoolAllowlisted[address(vault)] = true;
         return vault;
     }
 
@@ -48,7 +47,6 @@ library UserLibrary {
         emit Events.CreateVault(user, address(vault), true);
         vault.initialize(address(this));
         state.data.users[user].vaultVariable = vault;
-        state.data.variablePoolAllowlisted[address(vault)] = true;
         return vault;
     }
 }

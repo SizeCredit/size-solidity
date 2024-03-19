@@ -20,7 +20,7 @@ import {UserLibrary} from "@src/libraries/fixed/UserLibrary.sol";
 import {Vault} from "@src/proxy/Vault.sol";
 
 /// @title VariableLibrary
-/// @dev Contains functions for interacting with the Size Variable Pool (Aave v3 fork)
+/// @dev Contains functions for interacting with the Variable Pool (Aave v3)
 library VariableLibrary {
     using SafeERC20 for IERC20Metadata;
     using CollateralLibrary for State;
@@ -155,46 +155,6 @@ library VariableLibrary {
         );
     }
 
-    /// @notice Liquidate a variable loan from the variable pool
-    /// @dev    The caller must have underlying collateral tokens on their vault
-    /// @param state The state struct
-    /// @param from The address of the liquidator
-    /// @param borrower The address of the liquidated borrower
-    /// @param amount The amount of debt to cover
-    function liquidateVariableLoan(State storage state, address from, address borrower, uint256 amount) external {
-        // @audit Validate if we can use `liquidationCall` without reaching any caps
-        Vault vaultFrom = state.getVaultVariable(from);
-        Vault vaultTo = state.getVaultVariable(borrower);
-
-        address[] memory targets = new address[](3);
-        bytes[] memory data = new bytes[](3);
-
-        // unwrap borrow aTokens (e.g. aszUSDC) to underlying borrow tokens (e.g. USDC)
-        targets[0] = address(state.data.variablePool);
-        data[0] =
-            abi.encodeCall(IPool.withdraw, (address(state.data.underlyingBorrowToken), amount, address(vaultFrom)));
-
-        // approve underlying borrow tokens
-        targets[1] = address(state.data.underlyingBorrowToken);
-        data[1] = abi.encodeCall(IERC20.approve, (address(state.data.variablePool), amount));
-
-        // liquidate
-        targets[2] = address(state.data.variablePool);
-        data[2] = abi.encodeCall(
-            IPool.liquidationCall,
-            (
-                address(state.data.underlyingCollateralToken),
-                address(state.data.underlyingBorrowToken),
-                address(vaultTo),
-                amount,
-                true
-            )
-        );
-
-        // slither-disable-next-line unused-return
-        vaultFrom.proxy(targets, data);
-    }
-
     /// @notice Transfer aTokens from one user to another, from the vault destined to fixed-rate loans
     /// @dev Assumes `from` has enough aTokens to transfer
     ///      The transfer is made from the vault of `from` to the vault of `to`
@@ -242,7 +202,7 @@ library VariableLibrary {
         return token.balanceOf(address(vault));
     }
 
-    /// @notice Get the liquidity index of Size Variable Pool (Aave v3 fork)
+    /// @notice Get the liquidity index of the Variable Pool (Aave v3)
     /// @param state The state struct
     /// @return The liquidity index
     function borrowATokenLiquidityIndex(State storage state) public view returns (uint256) {

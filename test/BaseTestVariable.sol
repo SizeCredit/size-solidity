@@ -7,7 +7,6 @@ import {Test} from "forge-std/Test.sol";
 
 import {BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
 
-import {LiquidateVariableParams} from "@src/libraries/variable/actions/LiquidateVariable.sol";
 import {RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
@@ -32,6 +31,6 @@ abstract contract BaseTestVariable is Test, BaseTestGeneral {
 
     function _liquidateVariable(address user, address borrower, uint256 amount) internal {
         vm.prank(user);
-        size.liquidateVariable(LiquidateVariableParams({borrower: borrower, amount: amount}));
+        variablePool.liquidationCall(address(weth), address(usdc), address(borrower), amount, true);
     }
 }
