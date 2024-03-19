@@ -23,6 +23,7 @@ contract MarketBorrowRateFeed is IMarketBorrowRateFeed, Ownable2Step {
         }
 
         staleRateInterval = _staleRateInterval;
+        emit StaleRateIntervalUpdated(0, _staleRateInterval);
     }
 
     function setStaleRateInterval(uint64 _staleRateInterval) external onlyOwner {
