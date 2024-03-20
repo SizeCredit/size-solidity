@@ -62,7 +62,7 @@ library Events {
     );
     event BorrowerExit(uint256 indexed debtPositionId, address indexed borrowerExitedTo);
     event Repay(uint256 indexed debtPositionId);
-    event Claim(uint256 indexed creditPositionId);
+    event Claim(uint256 indexed creditPositionId, uint256 indexed debtPositionId);
     event Liquidate(
         uint256 indexed debtPositionId,
         uint256 indexed minimumCollateralProfit,
