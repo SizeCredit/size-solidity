@@ -125,9 +125,10 @@ interface ISize {
     function claim(ClaimParams calldata params) external;
 
     /// @notice Liquidate a debt position
-    ///         In case of protifable liquidation, part of the collateral remainder is split between the protocol and the liquidator
-    ///         The protocol repayment fee is charged from the borrower
+    ///         In case of a protifable liquidation, part of the collateral remainder is split between the protocol and the liquidator
+    ///         The split is capped by the crLiquidation parameter (otherwise, the split for overdue loans could be too much)
     ///         If the loan is overdue, a fixed fee is charged from the borrower
+    ///         The protocol repayment fee is charged from the borrower
     /// @param params LiquidateParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
