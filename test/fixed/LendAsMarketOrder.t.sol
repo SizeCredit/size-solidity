@@ -39,9 +39,9 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed + amountIn);
-        assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - amountIn);
-        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed + faceValue + repayFee);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebt(debtPositionId), faceValue + repayFee);
@@ -68,9 +68,9 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed + amountIn);
-        assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - amountIn);
-        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed + faceValue + repayFee);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
@@ -82,13 +82,13 @@ contract LendAsMarketOrderTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _setMarketBorrowRate(0);
+        _setVariableBorrowRate(0);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
         _borrowAsLimitOrder(alice, curve);
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.maturities[0] + curve.maturities[1]) / 2;
-        uint256 rate = YieldCurveLibrary.getRatePerMaturityByDueDate(curve, marketBorrowRateFeed, dueDate);
+        uint256 rate = YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, dueDate);
         uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + rate, PERCENT);
 
         Vars memory _before = _state();
@@ -100,9 +100,9 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowATokenBalanceFixed, _before.alice.borrowATokenBalanceFixed + amountIn);
-        assertEq(_after.bob.borrowATokenBalanceFixed, _before.bob.borrowATokenBalanceFixed - amountIn);
-        assertEq(_after.alice.debtBalanceFixed, _before.alice.debtBalanceFixed + faceValue + repayFee);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);

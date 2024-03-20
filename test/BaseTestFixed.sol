@@ -10,6 +10,9 @@ import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
+import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
@@ -29,6 +32,26 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 import {BaseTestGeneral} from "@test/BaseTestGeneral.sol";
 
 abstract contract BaseTestFixed is Test, BaseTestGeneral {
+    function _deposit(address user, IERC20Metadata token, uint256 amount) internal {
+        _deposit(user, address(token), amount, user);
+    }
+
+    function _deposit(address user, address token, uint256 amount, address to) internal {
+        _mint(token, user, amount);
+        _approve(user, token, address(size), amount);
+        vm.prank(user);
+        size.deposit(DepositParams({token: token, amount: amount, to: to}));
+    }
+
+    function _withdraw(address user, IERC20Metadata token, uint256 amount) internal {
+        _withdraw(user, address(token), amount, user);
+    }
+
+    function _withdraw(address user, address token, uint256 amount, address to) internal {
+        vm.prank(user);
+        size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
+    }
+
     function _lendAsLimitOrder(
         address lender,
         uint256 maxDueDate,

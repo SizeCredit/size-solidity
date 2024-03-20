@@ -24,7 +24,7 @@ contract DepositWETHScript is Script {
 
         Size sizeContract = Size(sizeContractAddress);
 
-        DepositParams memory params = DepositParams({token: wethAddress, amount: amount, to: borrower, variable: false});
+        DepositParams memory params = DepositParams({token: wethAddress, amount: amount, to: borrower});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.deposit(params);

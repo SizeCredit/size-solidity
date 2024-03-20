@@ -7,7 +7,7 @@ import {Logger} from "@script/Logger.sol";
 
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
+import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 import {console2 as console} from "forge-std/console2.sol";
@@ -46,7 +46,9 @@ contract GetUserViewScript is Script, Logger {
             LoanOffer({maxDueDate: block.timestamp + 30 days, curveRelativeTime: curveRelativeTime});
 
         console.log(
-            offer.getRatePerMaturityByDueDate(IMarketBorrowRateFeed(size.oracle().marketBorrowRateFeed), dueDate)
+            offer.getRatePerMaturityByDueDate(
+                IVariablePoolBorrowRateFeed(size.oracle().variablePoolBorrowRateFeed), dueDate
+            )
         );
         console.log(size.getLoanOfferAPR(lender, block.timestamp + 86400));
         vm.stopBroadcast();

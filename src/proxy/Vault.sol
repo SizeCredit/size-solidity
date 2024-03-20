@@ -27,6 +27,7 @@ contract Vault is Initializable, OwnableUpgradeable {
         }
         bool success;
         (success, returnData) = target.call(data);
+        // slither-disable-next-line unused-return
         Address.verifyCallResult(success, returnData);
     }
 
@@ -40,6 +41,7 @@ contract Vault is Initializable, OwnableUpgradeable {
         }
         bool success;
         (success, returnData) = target.call{value: value}(data);
+        // slither-disable-next-line unused-return
         Address.verifyCallResult(success, returnData);
     }
 
@@ -60,6 +62,7 @@ contract Vault is Initializable, OwnableUpgradeable {
             }
             // slither-disable-next-line calls-loop
             (success, returnDatas[i]) = targets[i].call(datas[i]);
+            // slither-disable-next-line unused-return
             Address.verifyCallResult(success, returnDatas[i]);
         }
     }

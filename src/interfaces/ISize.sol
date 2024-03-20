@@ -19,10 +19,6 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
-import {BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
-import {LiquidateVariableParams} from "@src/libraries/variable/actions/LiquidateVariable.sol";
-import {RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
-
 /// @title ISize
 /// @author Size Lending
 /// @notice This interface is the main interface for all user-facing methods of the Size v2 protocol
@@ -129,23 +125,10 @@ interface ISize {
     function claim(ClaimParams calldata params) external;
 
     /// @notice Liquidate a debt position
-    ///         In case of protifable liquiadtion, part of the collateral remainder is split between the protocol and the liquidator
+    ///         In case of a protifable liquidation, part of the collateral remainder is split between the protocol and the liquidator
+    ///         The split is capped by the crLiquidation parameter (otherwise, the split for overdue loans could be too much)
+    ///         If the loan is overdue, a fixed fee is charged from the borrower
     ///         The protocol repayment fee is charged from the borrower
-    ///         If the loan is overdue, a move transfer fee is charged from the borrower
-    ///
-    ///         The liquidation logic contains the following specification:
-    ///             if 100% <= CR < CRL:
-    ///                 liquidate loan and split the collateral remainder
-    ///             else if 0% <= CR < 100%:
-    ///                 liquidate unprofitably depending on minCR parameter
-    ///             else: // CR >= CRL
-    ///                 if loan is overdue:
-    ///                     if loan can be moved to the variable pool:
-    ///                         move loan to the variable pool, charge move transfer fee in collateral from the borrower
-    ///                     else:
-    ///                         liquidate loan, do not split the collateral remainder, charge move transfer fee in collateral from the borrower
-    ///                 else:
-    ///                     loan cannot be liquidated
     /// @param params LiquidateParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
@@ -183,27 +166,4 @@ interface ISize {
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
     function compensate(CompensateParams calldata params) external;
-
-    /// @notice Check if an account is allowlisted to interact with the Variable Pool
-    /// @dev Only vaults should be allowlisted. See `UserLibrary`
-    /// @param account The address of the account to check
-    /// @return Whether the account is allowlisted
-    function variablePoolAllowlisted(address account) external returns (bool);
-
-    /// @notice Borrow a variable loan by forwarding a call from the user proxy to the Variable Pool `borrow`
-    /// @param params BorrowVariableParams struct containing the following fields:
-    ///     - address to: The recipient address
-    ///     - uint256 amount: The amount to borrow
-    function borrowVariable(BorrowVariableParams calldata params) external;
-
-    /// @notice Repay a variable loan by forwarding a call from the user proxy to the Variable Pool `repayWithATokens`
-    /// @param params RepayVariableParams struct containing the following fields:
-    ///     - uint256 amount: The amount to repay
-    function repayVariable(RepayVariableParams calldata params) external;
-
-    /// @notice Liquidate a variable loan by forwarding a call from the user proxy to the Variable Pool `liquidationCall`
-    /// @param params RepayVariableParams struct containing the following fields:
-    ///     - address borrower: The liquidated address
-    ///     - uint256 amount: The debt amount to cover
-    function liquidateVariable(LiquidateVariableParams calldata params) external;
 }

@@ -8,8 +8,8 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {PERCENT} from "@src/libraries/Math.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {IMarketBorrowRateFeed} from "@src/oracle/IMarketBorrowRateFeed.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {Vault} from "@src/proxy/Vault.sol";
@@ -23,7 +23,12 @@ struct InitializeFeeConfigParams {
     uint256 repayFeeAPR;
     uint256 earlyLenderExitFee;
     uint256 earlyBorrowerExitFee;
-    uint256 collateralOverdueTransferFee;
+    uint256 collateralLiquidatorFixed;
+    uint256 collateralLiquidatorPercent;
+    uint256 collateralProtocolPercent;
+    uint256 overdueColLiquidatorFixed;
+    uint256 overdueColLiquidatorPercent;
+    uint256 overdueColProtocolPercent;
     address feeRecipient;
 }
 
@@ -31,18 +36,15 @@ struct InitializeRiskConfigParams {
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 minimumCreditBorrowAToken;
-    uint256 collateralSplitLiquidatorPercent;
-    uint256 collateralSplitProtocolPercent;
     uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
-    uint256 moveToVariablePoolHFThreshold;
     uint256 minimumMaturity;
 }
 
 struct InitializeOracleParams {
     address priceFeed;
-    address marketBorrowRateFeed;
+    address variablePoolBorrowRateFeed;
 }
 
 struct InitializeDataParams {
@@ -54,7 +56,7 @@ struct InitializeDataParams {
 /// @title Initialize
 /// @notice Contains the logic to initialize the protocol
 /// @dev The collateralToken (e.g. szETH) and debtToken (e.g. szDebt) are created in the `executeInitialize` function
-///      The borrowAToken (e.g. aszUSDC) is deployed on the Size Variable Pool (Aave v3 fork)
+///      The borrowAToken (e.g. aUSDC) is deployed on the Variable Pool (Aave v3)
 library Initialize {
     function validateOwner(address owner) internal pure {
         if (owner == address(0)) {
@@ -72,8 +74,41 @@ library Initialize {
         // validate earlyBorrowerExitFee
         // N/A
 
-        // validate collateralOverdueTransferFee
+        // validate collateralLiquidatorFixed
         // N/A
+
+        // validate collateralLiquidatorPercent
+        if (f.collateralLiquidatorPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralLiquidatorPercent);
+        }
+
+        // validate collateralProtocolPercent
+        if (f.collateralProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralProtocolPercent);
+        }
+        if (f.collateralLiquidatorPercent + f.collateralProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
+                f.collateralLiquidatorPercent + f.collateralProtocolPercent
+            );
+        }
+
+        // validate overdueColLiquidatorFixed
+        // N/A
+
+        // validate overdueColLiquidatorPercent
+        if (f.overdueColLiquidatorPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueColLiquidatorPercent);
+        }
+
+        // validate overdueColProtocolPercent
+        if (f.overdueColProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueColProtocolPercent);
+        }
+        if (f.overdueColLiquidatorPercent + f.overdueColProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
+                f.overdueColLiquidatorPercent + f.overdueColProtocolPercent
+            );
+        }
 
         // validate feeRecipient
         if (f.feeRecipient == address(0)) {
@@ -100,21 +135,6 @@ library Initialize {
             revert Errors.NULL_AMOUNT();
         }
 
-        // validate collateralSplitLiquidatorPercent
-        if (r.collateralSplitLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(r.collateralSplitLiquidatorPercent);
-        }
-
-        // validate collateralSplitProtocolPercent
-        if (r.collateralSplitProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(r.collateralSplitProtocolPercent);
-        }
-        if (r.collateralSplitLiquidatorPercent + r.collateralSplitProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                r.collateralSplitLiquidatorPercent + r.collateralSplitProtocolPercent
-            );
-        }
-
         // validate underlyingCollateralTokenCap
         // N/A
 
@@ -123,11 +143,6 @@ library Initialize {
 
         // validate debtTokenCap
         // N/A
-
-        // validate moveToVariablePoolHFThreshold
-        if (r.moveToVariablePoolHFThreshold < PERCENT) {
-            revert Errors.INVALID_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(r.moveToVariablePoolHFThreshold);
-        }
 
         // validate minimumMaturity
         if (r.minimumMaturity == 0) {
@@ -140,13 +155,15 @@ library Initialize {
         if (o.priceFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+        // slither-disable-next-line unused-return
         IPriceFeed(o.priceFeed).getPrice();
 
-        // validate marketBorrowRateFeed
-        if (o.marketBorrowRateFeed == address(0)) {
+        // validate variablePoolBorrowRateFeed
+        if (o.variablePoolBorrowRateFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        IMarketBorrowRateFeed(o.marketBorrowRateFeed).getMarketBorrowRate();
+        // slither-disable-next-line unused-return
+        IVariablePoolBorrowRateFeed(o.variablePoolBorrowRateFeed).getVariableBorrowRate();
     }
 
     function validateInitializeDataParams(InitializeDataParams memory d) internal pure {
@@ -187,7 +204,13 @@ library Initialize {
         state.feeConfig.earlyLenderExitFee = f.earlyLenderExitFee;
         state.feeConfig.earlyBorrowerExitFee = f.earlyBorrowerExitFee;
 
-        state.feeConfig.collateralOverdueTransferFee = f.collateralOverdueTransferFee;
+        state.feeConfig.collateralLiquidatorFixed = f.collateralLiquidatorFixed;
+        state.feeConfig.collateralLiquidatorPercent = f.collateralLiquidatorPercent;
+        state.feeConfig.collateralProtocolPercent = f.collateralProtocolPercent;
+
+        state.feeConfig.overdueColLiquidatorFixed = f.overdueColLiquidatorFixed;
+        state.feeConfig.overdueColLiquidatorPercent = f.overdueColLiquidatorPercent;
+        state.feeConfig.overdueColProtocolPercent = f.overdueColProtocolPercent;
 
         state.feeConfig.feeRecipient = f.feeRecipient;
     }
@@ -198,20 +221,16 @@ library Initialize {
 
         state.riskConfig.minimumCreditBorrowAToken = r.minimumCreditBorrowAToken;
 
-        state.riskConfig.collateralSplitLiquidatorPercent = r.collateralSplitLiquidatorPercent;
-        state.riskConfig.collateralSplitProtocolPercent = r.collateralSplitProtocolPercent;
-
         state.riskConfig.collateralTokenCap = r.collateralTokenCap;
         state.riskConfig.borrowATokenCap = r.borrowATokenCap;
         state.riskConfig.debtTokenCap = r.debtTokenCap;
 
-        state.riskConfig.moveToVariablePoolHFThreshold = r.moveToVariablePoolHFThreshold;
         state.riskConfig.minimumMaturity = r.minimumMaturity;
     }
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {
         state.oracle.priceFeed = IPriceFeed(o.priceFeed);
-        state.oracle.marketBorrowRateFeed = IMarketBorrowRateFeed(o.marketBorrowRateFeed);
+        state.oracle.variablePoolBorrowRateFeed = IVariablePoolBorrowRateFeed(o.variablePoolBorrowRateFeed);
     }
 
     function executeInitializeData(State storage state, InitializeDataParams memory d) internal {

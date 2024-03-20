@@ -36,12 +36,9 @@ import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 struct UserView {
     User user;
     address account;
-    uint256 collateralTokenBalanceFixed;
-    uint256 collateralATokenBalanceVariable;
-    uint256 borrowATokenBalanceFixed;
-    uint256 borrowATokenBalanceVariable;
-    uint256 debtBalanceFixed;
-    uint256 debtBalanceVariable;
+    uint256 collateralTokenBalance;
+    uint256 borrowATokenBalance;
+    uint256 debtBalance;
 }
 
 struct DataView {
@@ -126,12 +123,9 @@ abstract contract SizeView is SizeStorage {
         return UserView({
             user: state.data.users[user],
             account: user,
-            collateralTokenBalanceFixed: state.data.collateralToken.balanceOf(user),
-            collateralATokenBalanceVariable: state.aTokenBalanceOf(state.data.collateralAToken, user, true),
-            borrowATokenBalanceFixed: state.aTokenBalanceOf(state.data.borrowAToken, user, false),
-            borrowATokenBalanceVariable: state.aTokenBalanceOf(state.data.borrowAToken, user, true),
-            debtBalanceFixed: state.data.debtToken.balanceOf(user),
-            debtBalanceVariable: state.variableDebtTokenBalanceOf(user)
+            collateralTokenBalance: state.data.collateralToken.balanceOf(user),
+            borrowATokenBalance: state.borrowATokenBalanceOf(user),
+            debtBalance: state.data.debtToken.balanceOf(user)
         });
     }
 
@@ -178,7 +172,7 @@ abstract contract SizeView is SizeStorage {
         if (dueDate < block.timestamp) {
             revert Errors.PAST_DUE_DATE(dueDate);
         }
-        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
     }
@@ -191,7 +185,7 @@ abstract contract SizeView is SizeStorage {
         if (dueDate < block.timestamp) {
             revert Errors.PAST_DUE_DATE(dueDate);
         }
-        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
         uint256 maturity = dueDate - block.timestamp;
         return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
     }

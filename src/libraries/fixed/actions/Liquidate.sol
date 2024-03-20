@@ -28,6 +28,13 @@ library Liquidate {
     using RiskLibrary for State;
     using AccountingLibrary for State;
 
+    struct LiquidatePathVars {
+        // fees are different for overdue loans
+        uint256 collateralLiquidatorFixed;
+        uint256 collateralLiquidatorPercent;
+        uint256 collateralProtocolPercent;
+    }
+
     function validateLiquidate(State storage state, LiquidateParams calldata params) external view {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
@@ -59,35 +66,33 @@ library Liquidate {
         }
     }
 
-    function _executeLiquidateTakeCollateral(
-        State storage state,
-        DebtPosition memory debtPositionCopy,
-        bool splitCollateralRemainder
-    ) private returns (uint256 liquidatorProfitCollateralToken) {
+    function _executeLiquidate(State storage state, DebtPosition memory debtPositionCopy, LiquidatePathVars memory vars)
+        private
+        returns (uint256 liquidatorProfitCollateralToken)
+    {
         uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPositionCopy);
         uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPositionCopy.faceValue);
 
-        // CR > 100%
-        if (assignedCollateral > debtInCollateralToken) {
-            liquidatorProfitCollateralToken = debtInCollateralToken;
+        if (assignedCollateral > debtInCollateralToken + vars.collateralLiquidatorFixed) {
+            liquidatorProfitCollateralToken = debtInCollateralToken + vars.collateralLiquidatorFixed;
 
-            if (splitCollateralRemainder) {
-                // split remaining collateral between liquidator and protocol
-                uint256 collateralRemainder = assignedCollateral - debtInCollateralToken;
+            // split remaining collateral between liquidator and protocol
+            uint256 collateralRemainder = assignedCollateral - (debtInCollateralToken + vars.collateralLiquidatorFixed);
+            // cap the collateral remainder to the liquidation ratio (otherwise, the split for overdue loans could be too much)
+            uint256 collateralRemainderCap =
+                Math.mulDivDown(debtInCollateralToken, state.riskConfig.crLiquidation, PERCENT);
+            collateralRemainder = Math.min(collateralRemainder, collateralRemainderCap);
 
-                uint256 collateralRemainderToLiquidator =
-                    Math.mulDivDown(collateralRemainder, state.riskConfig.collateralSplitLiquidatorPercent, PERCENT);
-                uint256 collateralRemainderToProtocol =
-                    Math.mulDivDown(collateralRemainder, state.riskConfig.collateralSplitProtocolPercent, PERCENT);
+            uint256 collateralRemainderToLiquidator =
+                Math.mulDivDown(collateralRemainder, vars.collateralLiquidatorPercent, PERCENT);
+            uint256 collateralRemainderToProtocol =
+                Math.mulDivDown(collateralRemainder, vars.collateralProtocolPercent, PERCENT);
 
-                liquidatorProfitCollateralToken += collateralRemainderToLiquidator;
-                state.data.collateralToken.transferFrom(
-                    debtPositionCopy.borrower, state.feeConfig.feeRecipient, collateralRemainderToProtocol
-                );
-            }
-            // CR <= 100%
+            liquidatorProfitCollateralToken += collateralRemainderToLiquidator;
+            state.data.collateralToken.transferFrom(
+                debtPositionCopy.borrower, state.feeConfig.feeRecipient, collateralRemainderToProtocol
+            );
         } else {
-            // unprofitable liquidation
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 
@@ -95,27 +100,6 @@ library Liquidate {
         state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
     }
 
-    function _executeLiquidateOverdue(
-        State storage state,
-        LiquidateParams calldata params,
-        DebtPosition memory debtPositionCopy
-    ) private returns (uint256 liquidatorProfitCollateralToken) {
-        // case 2a: the loan is overdue and can be moved to the variable pool
-        try state.moveDebtPositionToVariablePool(debtPositionCopy) returns (uint256 _liquidatorProfitCollateralToken) {
-            emit Events.LiquidateOverdueMoveToVariablePool(params.debtPositionId);
-            liquidatorProfitCollateralToken = _liquidatorProfitCollateralToken;
-            // case 2b: the loan is overdue and cannot be moved to the variable pool
-        } catch {
-            emit Events.LiquidateOverdueNoSplitRemainder(params.debtPositionId);
-            liquidatorProfitCollateralToken = _executeLiquidateTakeCollateral(state, debtPositionCopy, false)
-                + state.feeConfig.collateralOverdueTransferFee;
-            state.data.collateralToken.transferFrom(
-                debtPositionCopy.borrower, msg.sender, state.feeConfig.collateralOverdueTransferFee
-            );
-        }
-    }
-
-    // @audit Check corner cases where liquidate reverts even if the loan is liquidatable
     function executeLiquidate(State storage state, LiquidateParams calldata params)
         external
         returns (uint256 liquidatorProfitCollateralToken)
@@ -130,26 +114,19 @@ library Liquidate {
         uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, debtPosition.faceValue);
         debtPosition.updateRepayFee(debtPosition.faceValue, repayFee);
 
-        // case 1a: the user is liquidatable profitably
-        if (PERCENT <= collateralRatio && collateralRatio < state.riskConfig.crLiquidation) {
-            emit Events.LiquidateUserLiquidatableProfitably(params.debtPositionId);
-            liquidatorProfitCollateralToken = _executeLiquidateTakeCollateral(state, debtPositionCopy, true);
-            // case 1b: the user is liquidatable unprofitably
-        } else if (collateralRatio < PERCENT) {
-            emit Events.LiquidateUserLiquidatableUnprofitably(params.debtPositionId);
-            liquidatorProfitCollateralToken =
-                _executeLiquidateTakeCollateral(state, debtPositionCopy, false /* this parameter should not matter */ );
-            // case 2: the loan is overdue
-        } else {
-            // collateralRatio > state.riskConfig.crLiquidation
-            if (loanStatus == LoanStatus.OVERDUE) {
-                liquidatorProfitCollateralToken = _executeLiquidateOverdue(state, params, debtPositionCopy);
-                // loan is ACTIVE
-            } else {
-                // @audit unreachable code, check if the validation function is correct and not making this branch possible
-                revert Errors.LOAN_NOT_LIQUIDATABLE(params.debtPositionId, collateralRatio, loanStatus);
-            }
-        }
+        LiquidatePathVars memory vars = state.isUserLiquidatable(debtPosition.borrower)
+            ? LiquidatePathVars({
+                collateralLiquidatorFixed: state.feeConfig.collateralLiquidatorFixed,
+                collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,
+                collateralProtocolPercent: state.feeConfig.collateralProtocolPercent
+            })
+            : LiquidatePathVars({
+                collateralLiquidatorFixed: state.feeConfig.overdueColLiquidatorFixed,
+                collateralLiquidatorPercent: state.feeConfig.overdueColLiquidatorPercent,
+                collateralProtocolPercent: state.feeConfig.overdueColProtocolPercent
+            });
+
+        liquidatorProfitCollateralToken = _executeLiquidate(state, debtPositionCopy, vars);
 
         state.data.debtToken.burn(debtPosition.borrower, debtPositionCopy.faceValue);
         debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();

@@ -13,7 +13,7 @@ contract ForkTest is BaseTest, BaseScript {
         _labels();
         vm.createSelectFork("sepolia");
         vm.rollFork(5395350);
-        (size, marketBorrowRateFeed, priceFeed, variablePool, usdc, weth, owner) = importDeployments();
+        (size, variablePoolBorrowRateFeed, priceFeed, variablePool, usdc, weth, owner) = importDeployments();
         aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
     }
 }

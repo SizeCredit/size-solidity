@@ -11,44 +11,23 @@ import {Vault} from "@src/proxy/Vault.sol";
 struct User {
     LoanOffer loanOffer;
     BorrowOffer borrowOffer;
-    Vault vaultFixed;
-    Vault vaultVariable;
+    Vault vault;
 }
 
 library UserLibrary {
     /// @notice Get the vault for a user destined for fixed-rate lending
     /// @dev If the user does not have a vault, create one
-    ///      Allowlists the vault to interact with the variable pool
     /// @param state The state struct
     /// @param user The user's address
     /// @return vault The user's vault
-    function getVaultFixed(State storage state, address user) public returns (Vault) {
-        if (address(state.data.users[user].vaultFixed) != address(0)) {
-            return state.data.users[user].vaultFixed;
+    function getVault(State storage state, address user) public returns (Vault) {
+        if (address(state.data.users[user].vault) != address(0)) {
+            return state.data.users[user].vault;
         }
         Vault vault = Vault(payable(Clones.clone(address(state.data.vaultImplementation))));
         emit Events.CreateVault(user, address(vault), false);
         vault.initialize(address(this));
-        state.data.users[user].vaultFixed = vault;
-        state.data.variablePoolAllowlisted[address(vault)] = true;
-        return vault;
-    }
-
-    /// @notice Get the vault for a user destined for variable-rate lending
-    /// @dev If the user does not have a vault, create one
-    ///      Allowlists the vault to interact with the variable pool
-    /// @param state The state struct
-    /// @param user The user's address
-    /// @return vault The user's vault
-    function getVaultVariable(State storage state, address user) public returns (Vault) {
-        if (address(state.data.users[user].vaultVariable) != address(0)) {
-            return state.data.users[user].vaultVariable;
-        }
-        Vault vault = Vault(payable(Clones.clone(address(state.data.vaultImplementation))));
-        emit Events.CreateVault(user, address(vault), true);
-        vault.initialize(address(this));
-        state.data.users[user].vaultVariable = vault;
-        state.data.variablePoolAllowlisted[address(vault)] = true;
+        state.data.users[user].vault = vault;
         return vault;
     }
 }

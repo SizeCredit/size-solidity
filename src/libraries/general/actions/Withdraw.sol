@@ -14,7 +14,6 @@ import {Events} from "@src/libraries/Events.sol";
 struct WithdrawParams {
     address token;
     uint256 amount;
-    bool variable;
     address to;
 }
 
@@ -43,21 +42,14 @@ library Withdraw {
         if (params.to == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-
-        // validate variable
-        // N/A
     }
 
     function executeWithdraw(State storage state, WithdrawParams calldata params) public {
         uint256 amount;
-        if (params.variable || params.token == address(state.data.underlyingBorrowToken)) {
-            IAToken aToken = params.token == address(state.data.underlyingBorrowToken)
-                ? state.data.borrowAToken
-                : state.data.collateralAToken;
-
-            amount = Math.min(params.amount, state.aTokenBalanceOf(aToken, msg.sender, params.variable));
+        if (params.token == address(state.data.underlyingBorrowToken)) {
+            amount = Math.min(params.amount, state.borrowATokenBalanceOf(msg.sender));
             if (amount > 0) {
-                state.withdrawUnderlyingTokenFromVariablePool(aToken, msg.sender, params.to, amount, params.variable);
+                state.withdrawUnderlyingTokenFromVariablePool(msg.sender, params.to, amount);
             }
         } else {
             amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));
@@ -66,6 +58,6 @@ library Withdraw {
             }
         }
 
-        emit Events.Withdraw(params.token, params.to, params.variable, amount);
+        emit Events.Withdraw(params.token, params.to, amount);
     }
 }

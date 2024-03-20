@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {IMarketBorrowRateFeed} from "./IMarketBorrowRateFeed.sol";
+import {IVariablePoolBorrowRateFeed} from "./IVariablePoolBorrowRateFeed.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
-/// @title MarketBorrowRateFeed
+/// @title VariablePoolBorrowRateFeed
 /// @notice A feed that returns the market borrow rate of an asset with 18 decimals
 /// @dev Aave v3 is used to get the market borrow rate
-contract MarketBorrowRateFeed is IMarketBorrowRateFeed, Ownable2Step {
-    uint128 internal marketBorrowRate;
-    uint64 internal marketBorrowRateUpdatedAt;
+contract VariablePoolBorrowRateFeed is IVariablePoolBorrowRateFeed, Ownable2Step {
+    uint128 internal borrowRate;
+    uint64 internal borrowRateUpdatedAt;
     uint64 internal staleRateInterval;
 
-    event MarketBorrowRateUpdated(uint128 indexed oldMarketBorrowRate, uint128 indexed newMarketBorrowRate);
+    event BorrowRateUpdated(uint128 indexed oldBorrowRate, uint128 indexed newBorrowRate);
     event StaleRateIntervalUpdated(uint64 indexed oldStaleRateInterval, uint64 indexed newStaleRateInterval);
 
     constructor(address _owner, uint64 _staleRateInterval) Ownable(_owner) {
@@ -32,17 +32,17 @@ contract MarketBorrowRateFeed is IMarketBorrowRateFeed, Ownable2Step {
         emit StaleRateIntervalUpdated(oldStaleRateInterval, _staleRateInterval);
     }
 
-    function setMarketBorrowRate(uint128 _marketBorrowRate) external onlyOwner {
-        uint128 oldMarketBorrowRate = marketBorrowRate;
-        marketBorrowRate = _marketBorrowRate;
-        marketBorrowRateUpdatedAt = uint64(block.timestamp);
-        emit MarketBorrowRateUpdated(oldMarketBorrowRate, _marketBorrowRate);
+    function setVariableBorrowRate(uint128 _borrowRate) external onlyOwner {
+        uint128 oldBorrowRate = borrowRate;
+        borrowRate = _borrowRate;
+        borrowRateUpdatedAt = uint64(block.timestamp);
+        emit BorrowRateUpdated(oldBorrowRate, _borrowRate);
     }
 
-    function getMarketBorrowRate() external view override returns (uint128) {
-        if (block.timestamp - marketBorrowRateUpdatedAt > staleRateInterval) {
-            revert Errors.STALE_RATE(marketBorrowRateUpdatedAt);
+    function getVariableBorrowRate() external view override returns (uint128) {
+        if (block.timestamp - borrowRateUpdatedAt > staleRateInterval) {
+            revert Errors.STALE_RATE(borrowRateUpdatedAt);
         }
-        return marketBorrowRate;
+        return borrowRate;
     }
 }

@@ -70,7 +70,7 @@ library BorrowAsMarketOrder {
 
         // validate params.maxAPR
         uint256 ratePerMaturity =
-            loanOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, params.dueDate);
+            loanOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
         uint256 maturity = params.dueDate - block.timestamp;
         if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) > params.maxAPR) {
             revert Errors.APR_GREATER_THAN_MAX_APR(
@@ -120,7 +120,7 @@ library BorrowAsMarketOrder {
         LoanOffer storage loanOffer = lenderUser.loanOffer;
 
         uint256 ratePerMaturity =
-            loanOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, params.dueDate);
+            loanOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
 
         amountOutLeft =
             params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, PERCENT + ratePerMaturity) : params.amount;
@@ -171,7 +171,7 @@ library BorrowAsMarketOrder {
         LoanOffer storage loanOffer = lenderUser.loanOffer;
 
         uint256 ratePerMaturity =
-            loanOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, params.dueDate);
+            loanOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
         uint256 issuanceValue = params.amount;
         uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + ratePerMaturity, PERCENT);
 

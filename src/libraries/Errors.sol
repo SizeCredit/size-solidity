@@ -42,7 +42,7 @@ library Errors {
     error EXITER_IS_NOT_BORROWER(address exiter, address borrower);
     error REPAYER_IS_NOT_BORROWER(address repayer, address borrower);
 
-    error NOT_ENOUGH_ATOKEN_BALANCE(address token, address account, bool variable, uint256 balance, uint256 required);
+    error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(address account, uint256 balance, uint256 required);
     error NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(uint256 liquidity, uint256 required);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAToken);
@@ -76,11 +76,6 @@ library Errors {
     error NULL_STALE_PRICE();
     error NULL_STALE_RATE();
     error STALE_RATE(uint128 updatedAt);
-
-    error INVALID_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(uint256 moveToVariablePoolHFThreshold);
-    error HEALTH_FACTOR_BELOW_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(
-        address account, uint256 healthFactor, uint256 moveToVariablePoolHFThreshold
-    );
 
     error COLLATERAL_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
     error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);

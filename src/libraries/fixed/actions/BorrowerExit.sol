@@ -45,22 +45,18 @@ library BorrowerExit {
             revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(maturity, state.riskConfig.minimumMaturity);
         }
 
-        uint256 ratePerMaturity = borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, dueDate);
+        uint256 ratePerMaturity =
+            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
         uint256 issuanceValue = Math.mulDivUp(debtPosition.faceValue, PERCENT, PERCENT + ratePerMaturity);
 
         // validate msg.sender
         if (msg.sender != debtPosition.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
-        if (
-            state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false)
-                < issuanceValue + state.feeConfig.earlyBorrowerExitFee
-        ) {
-            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
-                address(state.data.borrowAToken),
+        if (state.borrowATokenBalanceOf(msg.sender) < issuanceValue + state.feeConfig.earlyBorrowerExitFee) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
                 msg.sender,
-                false,
-                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),
+                state.borrowATokenBalanceOf(msg.sender),
                 issuanceValue + state.feeConfig.earlyBorrowerExitFee
             );
         }
@@ -88,7 +84,7 @@ library BorrowerExit {
         DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
 
         uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.marketBorrowRateFeed, debtPosition.dueDate);
+            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
 
         uint256 faceValue = debtPosition.faceValue;
         uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + ratePerMaturity);

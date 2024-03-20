@@ -22,16 +22,11 @@ library Events {
     );
     event UpdateConfig(bytes32 indexed key, uint256 value);
     event CreateVault(address indexed user, address indexed vault, bool indexed variable);
-    event Deposit(address indexed token, address indexed to, bool indexed variable, uint256 amount);
-    event Withdraw(address indexed token, address indexed to, bool indexed variable, uint256 amount);
-
-    // variable
-
-    event BorrowVariable(address indexed to, uint256 indexed amount);
-    event RepayVariable(uint256 indexed amount);
-    event LiquidateVariable(address indexed borrower, uint256 indexed amount);
 
     // fixed
+
+    event Deposit(address indexed token, address indexed to, uint256 indexed amount);
+    event Withdraw(address indexed token, address indexed to, uint256 indexed amount);
 
     event BorrowAsMarketOrder(
         address indexed lender,
@@ -62,7 +57,7 @@ library Events {
     );
     event BorrowerExit(uint256 indexed debtPositionId, address indexed borrowerExitedTo);
     event Repay(uint256 indexed debtPositionId);
-    event Claim(uint256 indexed creditPositionId);
+    event Claim(uint256 indexed creditPositionId, uint256 indexed debtPositionId);
     event Liquidate(
         uint256 indexed debtPositionId,
         uint256 indexed minimumCollateralProfit,
@@ -73,10 +68,6 @@ library Events {
     event LiquidateWithReplacement(
         uint256 indexed debtPositionId, address indexed borrower, uint256 indexed minimumCollateralProfit
     );
-    event LiquidateUserLiquidatableProfitably(uint256 indexed debtPositionId);
-    event LiquidateUserLiquidatableUnprofitably(uint256 indexed debtPositionId);
-    event LiquidateOverdueMoveToVariablePool(uint256 indexed debtPositionId);
-    event LiquidateOverdueNoSplitRemainder(uint256 indexed debtPositionId);
     event Compensate(
         uint256 indexed creditPositionWithDebtToRepayId,
         uint256 indexed creditPositionToCompensateId,
