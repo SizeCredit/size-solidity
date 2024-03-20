@@ -155,12 +155,14 @@ library Initialize {
         if (o.priceFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+        // slither-disable-next-line unused-return
         IPriceFeed(o.priceFeed).getPrice();
 
         // validate variablePoolBorrowRateFeed
         if (o.variablePoolBorrowRateFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+        // slither-disable-next-line unused-return
         IVariablePoolBorrowRateFeed(o.variablePoolBorrowRateFeed).getVariableBorrowRate();
     }
 
