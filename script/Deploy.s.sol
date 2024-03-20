@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {IPool} from "@aave/interfaces/IPool.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {console2 as console} from "forge-std/Script.sol";
 
@@ -14,8 +15,8 @@ contract DeployScript is BaseScript, Addresses, Deploy {
     bool mockContracts;
     address deployer;
     address owner;
-    address sizeVariablePoolPool;
-    address sizeVariablePoolAaveOracle;
+    address wethAggregator;
+    address usdcAggregator;
     string chainName;
 
     function setUp() public {}
@@ -24,8 +25,9 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         mockContracts = vm.envOr("MOCK_CONTRACTS", true);
         deployer = vm.addr(vm.envOr("DEPLOYER_PRIVATE_KEY", vm.deriveKey(TEST_MNEMONIC, 0)));
         owner = vm.envOr("OWNER", address(0));
-        sizeVariablePoolPool = vm.envOr("SIZE_VARIABLE_POOL_POOL", address(0));
-        sizeVariablePoolAaveOracle = vm.envOr("SIZE_VARIABLE_POOL_AAVE_ORACLE", address(0));
+        variablePool = IPool(vm.envOr("VARIABLE_POOL", address(0))); // TODO hardcode
+        wethAggregator = vm.envOr("WETH_AGGREGATOR", address(0)); // TODO hardcode
+        usdcAggregator = vm.envOr("USDC_AGGREGATOR", address(0)); // TODO hardcode
         chainName = vm.envOr("CHAIN_NAME", TEST_CHAIN_NAME);
         _;
     }
@@ -43,7 +45,7 @@ contract DeployScript is BaseScript, Addresses, Deploy {
             setupChainWithMocks(deployer, weth, usdc);
             console.log("[Size v2] using MOCK contracts");
         } else {
-            setupChain(owner, weth, usdc, sizeVariablePoolPool, sizeVariablePoolAaveOracle);
+            setupChain(owner, weth, usdc, address(variablePool), wethAggregator, usdcAggregator);
             console.log("[Size v2] using REAL contracts");
         }
 
@@ -55,10 +57,8 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         parameters.push(Parameter({key: "owner", value: Strings.toHexString(deployer)}));
         parameters.push(Parameter({key: "usdc", value: Strings.toHexString(usdc)}));
         parameters.push(Parameter({key: "weth", value: Strings.toHexString(weth)}));
-        parameters.push(Parameter({key: "sizeVariablePoolPool", value: Strings.toHexString(sizeVariablePoolPool)}));
-        parameters.push(
-            Parameter({key: "sizeVariablePoolAaveOracle", value: Strings.toHexString(sizeVariablePoolAaveOracle)})
-        );
+        parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(wethAggregator)}));
+        parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(usdcAggregator)}));
 
         console.log("[Size v2] deployed\n");
 

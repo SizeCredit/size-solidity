@@ -86,11 +86,16 @@ abstract contract Deploy {
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
 
-    function setupChain(address _owner, address _weth, address _usdc, address _variablePool, address _aaveOracle)
-        internal
-    {
+    function setupChain(
+        address _owner,
+        address _weth,
+        address _usdc,
+        address _variablePool,
+        address _wethAggregator,
+        address _usdcAggregator
+    ) internal {
         variablePool = IPool(_variablePool);
-        priceFeed = new PriceFeed(_weth, _usdc, 18, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
+        priceFeed = new PriceFeed(_wethAggregator, _usdcAggregator, 18, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
         variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeed(_owner, 6 hours);
         f = InitializeFeeConfigParams({
             repayFeeAPR: 0.005e18,
