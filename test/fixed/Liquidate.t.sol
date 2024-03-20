@@ -30,11 +30,7 @@ contract LiquidateTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtWad = ConversionLibrary.amountToWad(debt, usdc.decimals());
-        uint256 debtOpening = Math.mulDivUp(debtWad, size.riskConfig().crOpening, PERCENT);
-        uint256 lock = Math.mulDivUp(debtOpening, 10 ** priceFeed.decimals(), priceFeed.getPrice());
-        // nothing is locked anymore on v2
-        lock = 0;
-        uint256 assigned = 100e18 - lock;
+        uint256 assigned = 100e18;
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), assigned);
         assertEq(size.getDebt(debtPositionId), debt);
@@ -181,7 +177,7 @@ contract LiquidateTest is BaseTest {
         assertEq(size.getUserView(bob).collateralTokenBalance, 0);
     }
 
-    function test_Liquidate_liquidate_overdue_high_CR() public {
+    function test_Liquidate_liquidate_overdue_well_collateralized() public {
         _updateConfig("minimumMaturity", 1);
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
@@ -212,6 +208,70 @@ contract LiquidateTest is BaseTest {
             * size.feeConfig().overdueColProtocolPercent / PERCENT;
         uint256 liquidatorSplit = (assignedCollateralAfterFee - liquidatorProfitCollateralTokenFixed)
             * size.feeConfig().overdueColLiquidatorPercent / PERCENT;
+
+        _liquidate(liquidator, debtPositionId);
+
+        Vars memory _after = _state();
+        (uint256 loansAfter,) = size.getPositionsCount();
+
+        assertEq(_after.alice, _before.alice);
+        assertEq(loansBefore, loansAfter);
+        assertEq(
+            _after.bob.collateralTokenBalance,
+            _before.bob.collateralTokenBalance - liquidatorProfitCollateralTokenFixed
+                - (protocolSplit + liquidatorSplit) - repayFeeCollateral
+        );
+        assertEq(
+            _after.feeRecipient.collateralTokenBalance,
+            _before.feeRecipient.collateralTokenBalance + repayFeeCollateral + protocolSplit
+        );
+        assertEq(
+            _after.liquidator.collateralTokenBalance,
+            _before.liquidator.collateralTokenBalance + liquidatorProfitCollateralTokenFixed + liquidatorSplit
+        );
+        assertEq(size.getDebt(debtPositionId), 0);
+        assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
+        assertEq(_after.bob.debtBalance, 0);
+    }
+
+    function test_Liquidate_liquidate_overdue_very_high_CR() public {
+        _updateConfig("minimumMaturity", 1);
+        _setPrice(1e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 1000e18);
+        _deposit(candy, usdc, 100e6);
+        _deposit(liquidator, usdc, 1_000e6);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
+
+        vm.warp(block.timestamp + 365 days + 1);
+
+        Vars memory _before = _state();
+        (uint256 loansBefore,) = size.getPositionsCount();
+        assertGt(size.getDebt(debtPositionId), 0);
+
+        uint256 assignedCollateralAfterFee = _before.bob.collateralTokenBalance
+            - size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).repayFee);
+
+        uint256 liquidatorProfitCollateralTokenFixed = size.debtTokenAmountToCollateralTokenAmount(
+            size.getDebtPosition(debtPositionId).faceValue
+        ) + size.feeConfig().overdueColLiquidatorFixed;
+
+        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
+        uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
+
+        uint256 collateralRemainder = Math.min(
+            assignedCollateralAfterFee - liquidatorProfitCollateralTokenFixed,
+            Math.mulDivDown(
+                size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).faceValue),
+                size.riskConfig().crLiquidation,
+                PERCENT
+            )
+        );
+
+        uint256 protocolSplit = collateralRemainder * size.feeConfig().overdueColProtocolPercent / PERCENT;
+        uint256 liquidatorSplit = collateralRemainder * size.feeConfig().overdueColLiquidatorPercent / PERCENT;
 
         _liquidate(liquidator, debtPositionId);
 

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-/* slither-disable unused-return */
-
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -29,6 +27,7 @@ contract Vault is Initializable, OwnableUpgradeable {
         }
         bool success;
         (success, returnData) = target.call(data);
+        // slither-disable-next-line unused-return
         Address.verifyCallResult(success, returnData);
     }
 
@@ -42,6 +41,7 @@ contract Vault is Initializable, OwnableUpgradeable {
         }
         bool success;
         (success, returnData) = target.call{value: value}(data);
+        // slither-disable-next-line unused-return
         Address.verifyCallResult(success, returnData);
     }
 
@@ -62,6 +62,7 @@ contract Vault is Initializable, OwnableUpgradeable {
             }
             // slither-disable-next-line calls-loop
             (success, returnDatas[i]) = targets[i].call(datas[i]);
+            // slither-disable-next-line unused-return
             Address.verifyCallResult(success, returnDatas[i]);
         }
     }

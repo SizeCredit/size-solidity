@@ -78,6 +78,10 @@ library Liquidate {
 
             // split remaining collateral between liquidator and protocol
             uint256 collateralRemainder = assignedCollateral - (debtInCollateralToken + vars.collateralLiquidatorFixed);
+            // cap the collateral remainder to the liquidation ratio (otherwise, the split for overdue loans could be too much)
+            uint256 collateralRemainderCap =
+                Math.mulDivDown(debtInCollateralToken, state.riskConfig.crLiquidation, PERCENT);
+            collateralRemainder = Math.min(collateralRemainder, collateralRemainderCap);
 
             uint256 collateralRemainderToLiquidator =
                 Math.mulDivDown(collateralRemainder, vars.collateralLiquidatorPercent, PERCENT);
