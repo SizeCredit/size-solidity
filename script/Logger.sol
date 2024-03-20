@@ -45,8 +45,8 @@ abstract contract Logger {
                 );
             }
         }
-        console.log("collateralBalance", userView.collateralTokenBalanceFixed);
-        console.log("borrowATokenBalance", userView.borrowATokenBalanceFixed);
-        console.log("debtBalanceFixed", userView.debtBalanceFixed);
+        console.log("collateralBalance", userView.collateralTokenBalance);
+        console.log("borrowATokenBalance", userView.borrowATokenBalance);
+        console.log("debtBalance", userView.debtBalance);
     }
 }

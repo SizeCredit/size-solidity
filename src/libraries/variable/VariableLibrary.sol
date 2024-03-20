@@ -38,7 +38,7 @@ library VariableLibrary {
     {
         state.data.underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
 
-        Vault vaultTo = state.getVaultFixed(to);
+        Vault vaultTo = state.getVault(to);
 
         state.data.underlyingBorrowToken.forceApprove(address(state.data.variablePool), amount);
         state.data.variablePool.supply(address(state.data.underlyingBorrowToken), amount, address(vaultTo), 0);
@@ -58,7 +58,7 @@ library VariableLibrary {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
         }
 
-        Vault vaultFrom = state.getVaultFixed(from);
+        Vault vaultFrom = state.getVault(from);
 
         // slither-disable-next-line unused-return
         vaultFrom.proxy(
@@ -79,8 +79,8 @@ library VariableLibrary {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
         }
 
-        Vault vaultFrom = state.getVaultFixed(from);
-        Vault vaultTo = state.getVaultFixed(to);
+        Vault vaultFrom = state.getVault(from);
+        Vault vaultTo = state.getVault(to);
 
         // slither-disable-next-line unused-return
         vaultFrom.proxy(address(state.data.borrowAToken), abi.encodeCall(IERC20.transfer, (address(vaultTo), amount)));
@@ -91,7 +91,7 @@ library VariableLibrary {
     /// @param account The user's address
     /// @return The balance of aTokens
     function borrowATokenBalanceOf(State storage state, address account) public view returns (uint256) {
-        return state.data.borrowAToken.balanceOf(address(state.data.users[account].vaultFixed));
+        return state.data.borrowAToken.balanceOf(address(state.data.users[account].vault));
     }
 
     /// @notice Get the liquidity index of the Variable Pool (Aave v3)

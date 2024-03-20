@@ -26,7 +26,7 @@ contract MulticallTest is BaseTest {
         deal(token, alice, amount);
         IERC20Metadata(token).approve(address(size), amount);
 
-        assertEq(size.getUserView(alice).borrowATokenBalanceFixed, 0);
+        assertEq(size.getUserView(alice).borrowATokenBalance, 0);
 
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
@@ -39,7 +39,7 @@ contract MulticallTest is BaseTest {
         );
         size.multicall(data);
 
-        assertEq(size.getUserView(alice).borrowATokenBalanceFixed, amount);
+        assertEq(size.getUserView(alice).borrowATokenBalance, amount);
     }
 
     function test_Multicall_multicall_cannot_execute_unauthorized_actions() public {
@@ -108,12 +108,12 @@ contract MulticallTest is BaseTest {
         uint256 afterLiquidatorUSDC = usdc.balanceOf(liquidator);
         uint256 afterLiquidatorWETH = weth.balanceOf(liquidator);
 
-        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed - debt, 0);
-        assertEq(_after.liquidator.borrowATokenBalanceFixed, _before.liquidator.borrowATokenBalanceFixed, 0);
-        assertEq(_after.liquidator.collateralTokenBalanceFixed, _before.liquidator.collateralTokenBalanceFixed, 0);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - debt, 0);
+        assertEq(_after.liquidator.borrowATokenBalance, _before.liquidator.borrowATokenBalance, 0);
+        assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance, 0);
         assertGt(
-            _after.feeRecipient.collateralTokenBalanceFixed,
-            _before.feeRecipient.collateralTokenBalanceFixed + repayFeeCollateral,
+            _after.feeRecipient.collateralTokenBalance,
+            _before.feeRecipient.collateralTokenBalance + repayFeeCollateral,
             "feeRecipient has repayFee and liquidation split"
         );
         assertEq(beforeLiquidatorWETH, 0);

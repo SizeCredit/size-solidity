@@ -43,9 +43,9 @@ contract SelfLiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed - 150e18, 0);
-        assertEq(_after.alice.collateralTokenBalanceFixed, _before.alice.collateralTokenBalanceFixed + 150e18);
-        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed - 100e6);
+        assertEq(_after.bob.collateralTokenBalance, _before.bob.collateralTokenBalance - 150e18, 0);
+        assertEq(_after.alice.collateralTokenBalance, _before.alice.collateralTokenBalance + 150e18);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
     }
 
     function test_SelfLiquidate_selfliquidate_CreditPosition_keeps_accounting_in_check() public {
@@ -91,10 +91,10 @@ contract SelfLiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed - 150e18, 0);
-        assertEq(_after.candy.collateralTokenBalanceFixed, _before.candy.collateralTokenBalanceFixed + 150e18, "x");
-        assertEq(_after.feeRecipient.borrowATokenBalanceFixed, _before.feeRecipient.borrowATokenBalanceFixed);
-        assertEq(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed - 100e6);
+        assertEq(_after.bob.collateralTokenBalance, _before.bob.collateralTokenBalance - 150e18, 0);
+        assertEq(_after.candy.collateralTokenBalance, _before.candy.collateralTokenBalance + 150e18, "x");
+        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
     }
 
     function test_SelfLiquidate_selfliquidate_DebtPosition_should_not_leave_dust_loan_when_no_exits() public {
@@ -310,23 +310,23 @@ contract SelfLiquidateTest is BaseTest {
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
         _setPrice(0.5e18);
 
-        assertEq(size.getUserView(alice).debtBalanceFixed, 100.5e6);
+        assertEq(size.getUserView(alice).debtBalance, 100.5e6);
         assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.5e6);
 
         _selfLiquidate(candy, creditPositionId1);
 
-        assertEq(size.getUserView(alice).debtBalanceFixed, 5.025002e6);
+        assertEq(size.getUserView(alice).debtBalance, 5.025002e6);
         assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.025001e6);
         assertEq(size.getCreditPosition(creditPositionId2).credit, 5.000001e6);
         assertEq(
-            size.getUserView(alice).debtBalanceFixed,
+            size.getUserView(alice).debtBalance,
             size.getDebtPosition(debtPositionId1).repayFee + size.getCreditPosition(creditPositionId2).credit
         );
 
         assertTrue(size.isUserLiquidatable(alice));
         _selfLiquidate(james, creditPositionId2);
 
-        assertEq(size.getUserView(alice).debtBalanceFixed, 0);
+        assertEq(size.getUserView(alice).debtBalance, 0);
     }
 
     function testFuzz_SelfLiquidate_selfliquidateLoan_borrowerExit(uint256 exitAmount) public {
@@ -382,16 +382,16 @@ contract SelfLiquidateTest is BaseTest {
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
         _setPrice(0.5e18);
 
-        assertEq(size.getUserView(alice).debtBalanceFixed, 100.5e6);
+        assertEq(size.getUserView(alice).debtBalance, 100.5e6);
         assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.5e6);
 
         _selfLiquidate(candy, creditPositionId1);
 
-        assertEq(size.getUserView(alice).debtBalanceFixed, 5.025002e6);
+        assertEq(size.getUserView(alice).debtBalance, 5.025002e6);
         assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.025001e6);
         assertEq(size.getCreditPosition(creditPositionId2).credit, 5.000001e6);
         assertEq(
-            size.getUserView(alice).debtBalanceFixed,
+            size.getUserView(alice).debtBalance,
             size.getDebtPosition(debtPositionId1).repayFee + size.getCreditPosition(creditPositionId2).credit
         );
 
@@ -453,16 +453,16 @@ contract SelfLiquidateTest is BaseTest {
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
         _setPrice(0.5e18);
 
-        assertEq(size.getUserView(alice).debtBalanceFixed, 100.5e6);
+        assertEq(size.getUserView(alice).debtBalance, 100.5e6);
         assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.5e6);
 
         _selfLiquidate(candy, creditPositionId1);
 
-        assertEq(size.getUserView(alice).debtBalanceFixed, 5.025002e6);
+        assertEq(size.getUserView(alice).debtBalance, 5.025002e6);
         assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.025001e6);
         assertEq(size.getCreditPosition(creditPositionId2).credit, 5.000001e6);
         assertEq(
-            size.getUserView(alice).debtBalanceFixed,
+            size.getUserView(alice).debtBalance,
             size.getDebtPosition(debtPositionId1).repayFee + size.getCreditPosition(creditPositionId2).credit
         );
 
@@ -523,16 +523,16 @@ contract SelfLiquidateTest is BaseTest {
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
         _setPrice(0.5e18);
 
-        assertEq(size.getUserView(alice).debtBalanceFixed, 100.5e6);
+        assertEq(size.getUserView(alice).debtBalance, 100.5e6);
         assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.5e6);
 
         _selfLiquidate(candy, creditPositionId1);
 
-        assertEq(size.getUserView(alice).debtBalanceFixed, 5.025002e6);
+        assertEq(size.getUserView(alice).debtBalance, 5.025002e6);
         assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.025001e6);
         assertEq(size.getCreditPosition(creditPositionId2).credit, 5.000001e6);
         assertEq(
-            size.getUserView(alice).debtBalanceFixed,
+            size.getUserView(alice).debtBalance,
             size.getDebtPosition(debtPositionId1).repayFee + size.getCreditPosition(creditPositionId2).credit
         );
 

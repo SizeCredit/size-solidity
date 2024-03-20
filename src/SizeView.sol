@@ -36,9 +36,9 @@ import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 struct UserView {
     User user;
     address account;
-    uint256 collateralTokenBalanceFixed;
-    uint256 borrowATokenBalanceFixed;
-    uint256 debtBalanceFixed;
+    uint256 collateralTokenBalance;
+    uint256 borrowATokenBalance;
+    uint256 debtBalance;
 }
 
 struct DataView {
@@ -123,9 +123,9 @@ abstract contract SizeView is SizeStorage {
         return UserView({
             user: state.data.users[user],
             account: user,
-            collateralTokenBalanceFixed: state.data.collateralToken.balanceOf(user),
-            borrowATokenBalanceFixed: state.borrowATokenBalanceOf(user),
-            debtBalanceFixed: state.data.debtToken.balanceOf(user)
+            collateralTokenBalance: state.data.collateralToken.balanceOf(user),
+            borrowATokenBalance: state.borrowATokenBalanceOf(user),
+            debtBalance: state.data.debtToken.balanceOf(user)
         });
     }
 

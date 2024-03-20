@@ -63,14 +63,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
 
         if (token == address(weth)) {
-            eq(
-                _after.sender.collateralTokenBalanceFixed,
-                _before.sender.collateralTokenBalanceFixed + amount,
-                DEPOSIT_01
-            );
+            eq(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance + amount, DEPOSIT_01);
             eq(_after.senderCollateralAmount, _before.senderCollateralAmount - amount, DEPOSIT_01);
         } else {
-            eq(_after.sender.borrowATokenBalanceFixed, _before.sender.borrowATokenBalanceFixed + amount, DEPOSIT_01);
+            eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance + amount, DEPOSIT_01);
             eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
         }
     }
@@ -88,14 +84,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
 
         if (token == address(weth)) {
-            eq(
-                _after.sender.collateralTokenBalanceFixed,
-                _before.sender.collateralTokenBalanceFixed - amount,
-                WITHDRAW_01
-            );
+            eq(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance - amount, WITHDRAW_01);
             eq(_after.senderCollateralAmount, _before.senderCollateralAmount + amount, WITHDRAW_01);
         } else {
-            eq(_after.sender.borrowATokenBalanceFixed, _before.sender.borrowATokenBalanceFixed - amount, WITHDRAW_01);
+            eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance - amount, WITHDRAW_01);
             eq(_after.senderBorrowAmount, _before.senderBorrowAmount + amount, WITHDRAW_01);
         }
     }
@@ -137,9 +129,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         if (amount > size.riskConfig().minimumCreditBorrowAToken) {
             if (lender == sender) {
-                lte(_after.sender.borrowATokenBalanceFixed, _before.sender.borrowATokenBalanceFixed, BORROW_03);
+                lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_03);
             } else {
-                gt(_after.sender.borrowATokenBalanceFixed, _before.sender.borrowATokenBalanceFixed, BORROW_01);
+                gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
 
             if (receivableCreditPositionIds.length > 0) {
@@ -172,7 +164,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         borrower = _getRandomUser(borrower);
         dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
-        amount = between(amount, 0, _before.sender.borrowATokenBalanceFixed / 10);
+        amount = between(amount, 0, _before.sender.borrowATokenBalance / 10);
 
         hevm.prank(sender);
         size.lendAsMarketOrder(
@@ -189,9 +181,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
 
         if (sender == borrower) {
-            eq(_after.sender.borrowATokenBalanceFixed, _before.sender.borrowATokenBalanceFixed, BORROW_03);
+            eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_03);
         } else {
-            lt(_after.sender.borrowATokenBalanceFixed, _before.sender.borrowATokenBalanceFixed, BORROW_01);
+            lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
         }
         eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
     }
@@ -199,8 +191,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     function lendAsLimitOrder(uint256 maxAmount, uint256 maxDueDate, uint256 yieldCurveSeed) public getSender {
         __before();
 
-        maxAmount =
-            between(maxAmount, _before.sender.borrowATokenBalanceFixed / 2, _before.sender.borrowATokenBalanceFixed);
+        maxAmount = between(maxAmount, _before.sender.borrowATokenBalance / 2, _before.sender.borrowATokenBalance);
         maxDueDate = between(maxDueDate, block.timestamp, block.timestamp + MAX_DURATION);
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
@@ -231,9 +222,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after(debtPositionId);
 
         if (borrowerToExitTo == sender) {
-            eq(_after.sender.debtBalanceFixed, _before.sender.debtBalanceFixed, BORROWER_EXIT_01);
+            eq(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
         } else {
-            lt(_after.sender.debtBalanceFixed, _before.sender.debtBalanceFixed, BORROWER_EXIT_01);
+            lt(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
         }
     }
 
@@ -248,9 +239,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after(debtPositionId);
 
-        lte(_after.sender.borrowATokenBalanceFixed, _before.sender.borrowATokenBalanceFixed, REPAY_01);
+        lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, REPAY_01);
         gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
-        lt(_after.sender.debtBalanceFixed, _before.sender.debtBalanceFixed, REPAY_02);
+        lt(_after.sender.debtBalance, _before.sender.debtBalance, REPAY_02);
     }
 
     function claim(uint256 creditPositionId) public getSender {
@@ -264,7 +255,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after(creditPositionId);
 
-        gte(_after.sender.borrowATokenBalanceFixed, _before.sender.borrowATokenBalanceFixed, BORROW_01);
+        gte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
         t(size.isCreditPositionId(creditPositionId), CLAIM_02);
     }
 
@@ -285,15 +276,15 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         if (sender != _before.borrower.account) {
             gte(
-                _after.sender.collateralTokenBalanceFixed,
-                _before.sender.collateralTokenBalanceFixed + liquidatorProfitCollateralToken,
+                _after.sender.collateralTokenBalance,
+                _before.sender.collateralTokenBalance + liquidatorProfitCollateralToken,
                 LIQUIDATE_01
             );
         }
         if (_before.loanStatus != LoanStatus.OVERDUE) {
-            lt(_after.sender.borrowATokenBalanceFixed, _before.sender.borrowATokenBalanceFixed, LIQUIDATE_02);
+            lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, LIQUIDATE_02);
         }
-        lt(_after.borrower.debtBalanceFixed, _before.borrower.debtBalanceFixed, LIQUIDATE_02);
+        lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
         t(_before.isSenderLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
     }
 
@@ -308,8 +299,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after(creditPositionId);
 
-        lt(_after.sender.collateralTokenBalanceFixed, _before.sender.collateralTokenBalanceFixed, LIQUIDATE_01);
-        lt(_after.sender.debtBalanceFixed, _before.sender.debtBalanceFixed, LIQUIDATE_02);
+        lt(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance, LIQUIDATE_01);
+        lt(_after.sender.debtBalance, _before.sender.debtBalance, LIQUIDATE_02);
     }
 
     function liquidateWithReplacement(uint256 debtPositionId, uint256 minimumCollateralProfit, address borrower)
@@ -339,11 +330,11 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after(debtPositionId);
 
         gte(
-            _after.sender.collateralTokenBalanceFixed,
-            _before.sender.collateralTokenBalanceFixed + liquidatorProfitCollateralToken,
+            _after.sender.collateralTokenBalance,
+            _before.sender.collateralTokenBalance + liquidatorProfitCollateralToken,
             LIQUIDATE_01
         );
-        lt(_after.borrower.debtBalanceFixed, _before.borrower.debtBalanceFixed, LIQUIDATE_02);
+        lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
         eq(_after.totalDebtAmount, _before.totalDebtAmount, LIQUIDATION_02);
     }
 
@@ -370,7 +361,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
         __after(creditPositionWithDebtToRepayId);
 
-        lt(_after.sender.debtBalanceFixed, _before.sender.debtBalanceFixed, COMPENSATE_01);
+        lt(_after.sender.debtBalance, _before.sender.debtBalance, COMPENSATE_01);
     }
 
     function setPrice(uint256 price) public {

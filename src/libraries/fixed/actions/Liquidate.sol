@@ -79,8 +79,6 @@ library Liquidate {
             // split remaining collateral between liquidator and protocol
             uint256 collateralRemainder = assignedCollateral - (debtInCollateralToken + vars.collateralLiquidatorFixed);
 
-            // cap the collateral remainder to
-
             uint256 collateralRemainderToLiquidator =
                 Math.mulDivDown(collateralRemainder, vars.collateralLiquidatorPercent, PERCENT);
             uint256 collateralRemainderToProtocol =
@@ -98,7 +96,6 @@ library Liquidate {
         state.data.collateralToken.transferFrom(debtPositionCopy.borrower, msg.sender, liquidatorProfitCollateralToken);
     }
 
-    // @audit Check corner cases where liquidate reverts even if the loan is liquidatable
     function executeLiquidate(State storage state, LiquidateParams calldata params)
         external
         returns (uint256 liquidatorProfitCollateralToken)
@@ -113,17 +110,17 @@ library Liquidate {
         uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, debtPosition.faceValue);
         debtPosition.updateRepayFee(debtPosition.faceValue, repayFee);
 
-        LiquidatePathVars memory vars = LiquidatePathVars({
-            collateralLiquidatorFixed: loanStatus == LoanStatus.OVERDUE
-                ? state.feeConfig.overdueColLiquidatorFixed
-                : state.feeConfig.collateralLiquidatorFixed,
-            collateralLiquidatorPercent: loanStatus == LoanStatus.OVERDUE
-                ? state.feeConfig.overdueColLiquidatorPercent
-                : state.feeConfig.collateralLiquidatorPercent,
-            collateralProtocolPercent: loanStatus == LoanStatus.OVERDUE
-                ? state.feeConfig.overdueColProtocolPercent
-                : state.feeConfig.collateralProtocolPercent
-        });
+        LiquidatePathVars memory vars = state.isUserLiquidatable(debtPosition.borrower)
+            ? LiquidatePathVars({
+                collateralLiquidatorFixed: state.feeConfig.collateralLiquidatorFixed,
+                collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,
+                collateralProtocolPercent: state.feeConfig.collateralProtocolPercent
+            })
+            : LiquidatePathVars({
+                collateralLiquidatorFixed: state.feeConfig.overdueColLiquidatorFixed,
+                collateralLiquidatorPercent: state.feeConfig.overdueColLiquidatorPercent,
+                collateralProtocolPercent: state.feeConfig.overdueColProtocolPercent
+            });
 
         liquidatorProfitCollateralToken = _executeLiquidate(state, debtPositionCopy, vars);
 

@@ -16,32 +16,28 @@ abstract contract AssertsHelper is Test {
         assertEq(a.james, b.james);
         assertEq(a.liquidator, b.liquidator);
         assertEq(
-            a.variablePool.collateralTokenBalanceFixed,
-            b.variablePool.collateralTokenBalanceFixed,
-            "variablePool.collateralTokenBalanceFixed"
+            a.variablePool.collateralTokenBalance,
+            b.variablePool.collateralTokenBalance,
+            "variablePool.collateralTokenBalance"
         );
         assertEq(
-            a.variablePool.borrowATokenBalanceFixed,
-            b.variablePool.borrowATokenBalanceFixed,
-            "variablePool.borrowATokenBalanceFixed"
+            a.variablePool.borrowATokenBalance, b.variablePool.borrowATokenBalance, "variablePool.borrowATokenBalance"
         );
         assertEq(
-            a.feeRecipient.collateralTokenBalanceFixed,
-            b.feeRecipient.collateralTokenBalanceFixed,
-            "feeRecipient.collateralTokenBalanceFixed"
+            a.feeRecipient.collateralTokenBalance,
+            b.feeRecipient.collateralTokenBalance,
+            "feeRecipient.collateralTokenBalance"
         );
         assertEq(
-            a.feeRecipient.borrowATokenBalanceFixed,
-            b.feeRecipient.borrowATokenBalanceFixed,
-            "feeRecipient.borrowATokenBalanceFixed"
+            a.feeRecipient.borrowATokenBalance, b.feeRecipient.borrowATokenBalance, "feeRecipient.borrowATokenBalance"
         );
     }
 
     function assertEq(UserView memory a, UserView memory b) internal {
         assertEq(a.account, b.account, "account");
-        assertEq(a.collateralTokenBalanceFixed, b.collateralTokenBalanceFixed, "collateralTokenBalanceFixed");
-        assertEq(a.borrowATokenBalanceFixed, b.borrowATokenBalanceFixed, "borrowATokenBalanceFixed");
-        assertEq(a.debtBalanceFixed, b.debtBalanceFixed, "debtBalanceFixed");
+        assertEq(a.collateralTokenBalance, b.collateralTokenBalance, "collateralTokenBalance");
+        assertEq(a.borrowATokenBalance, b.borrowATokenBalance, "borrowATokenBalance");
+        assertEq(a.debtBalance, b.debtBalance, "debtBalance");
     }
 
     function assertIn(bytes4 a, bytes4[3] memory array) internal {

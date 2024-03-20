@@ -11,7 +11,7 @@ import {Vault} from "@src/proxy/Vault.sol";
 struct User {
     LoanOffer loanOffer;
     BorrowOffer borrowOffer;
-    Vault vaultFixed;
+    Vault vault;
 }
 
 library UserLibrary {
@@ -20,14 +20,14 @@ library UserLibrary {
     /// @param state The state struct
     /// @param user The user's address
     /// @return vault The user's vault
-    function getVaultFixed(State storage state, address user) public returns (Vault) {
-        if (address(state.data.users[user].vaultFixed) != address(0)) {
-            return state.data.users[user].vaultFixed;
+    function getVault(State storage state, address user) public returns (Vault) {
+        if (address(state.data.users[user].vault) != address(0)) {
+            return state.data.users[user].vault;
         }
         Vault vault = Vault(payable(Clones.clone(address(state.data.vaultImplementation))));
         emit Events.CreateVault(user, address(vault), false);
         vault.initialize(address(this));
-        state.data.users[user].vaultFixed = vault;
+        state.data.users[user].vault = vault;
         return vault;
     }
 }
