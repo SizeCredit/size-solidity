@@ -1,0 +1,18 @@
+{
+  "commit": "90a934c",
+  "deployments": {
+    "PriceFeed": "0x4F14B2B867916dcd9935BaB8ebfC584159A70E31",
+    "Size-implementation": "0x8319EF9B59Ad51c09166e45Eb4C9dC877880B5A9",
+    "Size-proxy": "0x92CAb540DB88AC4CA34E1682843d57e3F87a54d2",
+    "VariablePool": "0x9E447A0183DC62Fb4c9B69BC654bb0B69fBEa1F2",
+    "VariablePoolBorrowRateFeed": "0x1503355a1EcC970f477c974484F33c5e5A761174"
+  },
+  "networkName": "Sepolia",
+  "parameters": {
+    "owner": "0xf0c7f57f5f889d546f032e50fba953bd7c026350",
+    "usdc": "0x94a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8",
+    "usdcAggregator": "0x0000000000000000000000000000000000000000",
+    "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
+    "wethAggregator": "0x0000000000000000000000000000000000000000"
+  }
+}
