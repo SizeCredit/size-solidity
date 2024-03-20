@@ -77,11 +77,6 @@ library Errors {
     error NULL_STALE_RATE();
     error STALE_RATE(uint128 updatedAt);
 
-    error INVALID_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(uint256 moveToVariablePoolHFThreshold);
-    error HEALTH_FACTOR_BELOW_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(
-        address account, uint256 healthFactor, uint256 moveToVariablePoolHFThreshold
-    );
-
     error COLLATERAL_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
     error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
     error DEBT_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);

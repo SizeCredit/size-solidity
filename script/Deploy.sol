@@ -55,19 +55,21 @@ abstract contract Deploy {
             repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
             earlyBorrowerExitFee: 1e6,
-            collateralOverdueTransferFee: 0.1e18,
+            collateralLiquidatorFixed: 0,
+            collateralLiquidatorPercent: 0.3e18,
+            collateralProtocolPercent: 0.1e18,
+            overdueColLiquidatorFixed: 0.005e18,
+            overdueColLiquidatorPercent: 0.01e18,
+            overdueColProtocolPercent: 0.005e18,
             feeRecipient: feeRecipient
         });
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            collateralSplitLiquidatorPercent: 0.3e18,
-            collateralSplitProtocolPercent: 0.1e18,
             minimumCreditBorrowAToken: 5e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            moveToVariablePoolHFThreshold: 1.1e18,
             minimumMaturity: 1 days
         });
         o = InitializeOracleParams({
@@ -101,19 +103,21 @@ abstract contract Deploy {
             repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
             earlyBorrowerExitFee: 1e6,
-            collateralOverdueTransferFee: 0.1e18,
+            collateralLiquidatorFixed: 0,
+            collateralLiquidatorPercent: 0.3e18,
+            collateralProtocolPercent: 0.1e18,
+            overdueColLiquidatorFixed: 0.005e18,
+            overdueColLiquidatorPercent: 0.01e18,
+            overdueColProtocolPercent: 0.01e18,
             feeRecipient: _owner
         });
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            collateralSplitLiquidatorPercent: 0.3e18,
-            collateralSplitProtocolPercent: 0.1e18,
             minimumCreditBorrowAToken: 5e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            moveToVariablePoolHFThreshold: 1.1e18,
             minimumMaturity: 1 days
         });
         o = InitializeOracleParams({
@@ -141,19 +145,21 @@ abstract contract Deploy {
             repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
             earlyBorrowerExitFee: 1e6,
-            collateralOverdueTransferFee: 0.1e18,
+            collateralLiquidatorFixed: 0,
+            collateralLiquidatorPercent: 0.3e18,
+            collateralProtocolPercent: 0.1e18,
+            overdueColLiquidatorFixed: 0.005e18,
+            overdueColLiquidatorPercent: 0.01e18,
+            overdueColProtocolPercent: 0.01e18,
             feeRecipient: _owner
         });
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            collateralSplitLiquidatorPercent: 0.3e18,
-            collateralSplitProtocolPercent: 0.1e18,
             minimumCreditBorrowAToken: 5e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            moveToVariablePoolHFThreshold: 1.1e18,
             minimumMaturity: 1 days
         });
         o = InitializeOracleParams({

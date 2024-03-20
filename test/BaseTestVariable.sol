@@ -19,6 +19,7 @@ abstract contract BaseTestVariable is Test, BaseTestGeneral {
     function _depositVariable(address user, IERC20Metadata token, uint256 amount) internal {
         _mint(address(token), user, amount);
         _approve(user, address(token), address(variablePool), amount);
+        vm.prank(user);
         variablePool.supply(address(token), amount, address(user), 0);
     }
 

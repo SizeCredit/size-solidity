@@ -68,10 +68,6 @@ library Events {
     event LiquidateWithReplacement(
         uint256 indexed debtPositionId, address indexed borrower, uint256 indexed minimumCollateralProfit
     );
-    event LiquidateUserLiquidatableProfitably(uint256 indexed debtPositionId);
-    event LiquidateUserLiquidatableUnprofitably(uint256 indexed debtPositionId);
-    event LiquidateOverdueMoveToVariablePool(uint256 indexed debtPositionId);
-    event LiquidateOverdueNoSplitRemainder(uint256 indexed debtPositionId);
     event Compensate(
         uint256 indexed creditPositionWithDebtToRepayId,
         uint256 indexed creditPositionToCompensateId,

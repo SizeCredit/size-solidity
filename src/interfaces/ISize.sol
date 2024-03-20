@@ -125,23 +125,9 @@ interface ISize {
     function claim(ClaimParams calldata params) external;
 
     /// @notice Liquidate a debt position
-    ///         In case of protifable liquiadtion, part of the collateral remainder is split between the protocol and the liquidator
+    ///         In case of protifable liquidation, part of the collateral remainder is split between the protocol and the liquidator
     ///         The protocol repayment fee is charged from the borrower
-    ///         If the loan is overdue, a move transfer fee is charged from the borrower
-    ///
-    ///         The liquidation logic contains the following specification:
-    ///             if 100% <= CR < CRL:
-    ///                 liquidate loan and split the collateral remainder
-    ///             else if 0% <= CR < 100%:
-    ///                 liquidate unprofitably depending on minCR parameter
-    ///             else: // CR >= CRL
-    ///                 if loan is overdue:
-    ///                     if loan can be moved to the variable pool:
-    ///                         move loan to the variable pool, charge move transfer fee in collateral from the borrower
-    ///                     else:
-    ///                         liquidate loan, do not split the collateral remainder, charge move transfer fee in collateral from the borrower
-    ///                 else:
-    ///                     loan cannot be liquidated
+    ///         If the loan is overdue, a fixed fee is charged from the borrower
     /// @param params LiquidateParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)

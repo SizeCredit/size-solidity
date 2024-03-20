@@ -233,17 +233,21 @@ contract ExperimentsTest is Test, BaseTest {
         uint256 aliceCollateralBefore = _state().alice.collateralTokenBalanceFixed;
         assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
 
-        // add funds to the VP
-        _depositVariable(liquidator, usdc, 1_000e6);
+        // add funds
+        _deposit(liquidator, usdc, 1_000e6);
 
         // Liquidate Overdue
         _liquidate(liquidator, 0);
 
         uint256 aliceCollateralAfter = _state().alice.collateralTokenBalanceFixed;
 
-        // Assert post-move conditions
+        // Assert post-overdue liquidation conditions
         assertEq(size.getDebt(0), 0, "Loan should be repaid by moving into the variable pool");
-        assertEq(aliceCollateralAfter, 0, "Alice should have locked ETH after moving to variable pool");
+        assertLt(
+            aliceCollateralAfter,
+            aliceCollateralBefore,
+            "Alice should have lost some collateral after the overdue liquidation"
+        );
     }
 
     function test_Experiments_testSL1() public {
@@ -583,6 +587,8 @@ contract ExperimentsTest is Test, BaseTest {
     }
 
     function testFork_Experiments_transferBorrowAToken_reverts_if_low_liquidity() public {
+        if (block.chainid == 31337) return;
+
         IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
 
         _setPrice(2468e18);

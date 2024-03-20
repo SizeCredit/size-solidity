@@ -34,7 +34,12 @@ library UpdateConfig {
             repayFeeAPR: state.feeConfig.repayFeeAPR,
             earlyLenderExitFee: state.feeConfig.earlyLenderExitFee,
             earlyBorrowerExitFee: state.feeConfig.earlyBorrowerExitFee,
-            collateralOverdueTransferFee: state.feeConfig.collateralOverdueTransferFee,
+            collateralLiquidatorFixed: state.feeConfig.collateralLiquidatorFixed,
+            collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,
+            collateralProtocolPercent: state.feeConfig.collateralProtocolPercent,
+            overdueColLiquidatorFixed: state.feeConfig.overdueColLiquidatorFixed,
+            overdueColLiquidatorPercent: state.feeConfig.overdueColLiquidatorPercent,
+            overdueColProtocolPercent: state.feeConfig.overdueColProtocolPercent,
             feeRecipient: state.feeConfig.feeRecipient
         });
     }
@@ -44,12 +49,9 @@ library UpdateConfig {
             crOpening: state.riskConfig.crOpening,
             crLiquidation: state.riskConfig.crLiquidation,
             minimumCreditBorrowAToken: state.riskConfig.minimumCreditBorrowAToken,
-            collateralSplitLiquidatorPercent: state.riskConfig.collateralSplitLiquidatorPercent,
-            collateralSplitProtocolPercent: state.riskConfig.collateralSplitProtocolPercent,
             collateralTokenCap: state.riskConfig.collateralTokenCap,
             borrowATokenCap: state.riskConfig.borrowATokenCap,
             debtTokenCap: state.riskConfig.debtTokenCap,
-            moveToVariablePoolHFThreshold: state.riskConfig.moveToVariablePoolHFThreshold,
             minimumMaturity: state.riskConfig.minimumMaturity
         });
     }
@@ -80,18 +82,12 @@ library UpdateConfig {
             state.riskConfig.crLiquidation = params.value;
         } else if (params.key == "minimumCreditBorrowAToken") {
             state.riskConfig.minimumCreditBorrowAToken = params.value;
-        } else if (params.key == "collateralSplitLiquidatorPercent") {
-            state.riskConfig.collateralSplitLiquidatorPercent = params.value;
-        } else if (params.key == "collateralSplitProtocolPercent") {
-            state.riskConfig.collateralSplitProtocolPercent = params.value;
         } else if (params.key == "collateralTokenCap") {
             state.riskConfig.collateralTokenCap = params.value;
         } else if (params.key == "borrowATokenCap") {
             state.riskConfig.borrowATokenCap = params.value;
         } else if (params.key == "debtTokenCap") {
             state.riskConfig.debtTokenCap = params.value;
-        } else if (params.key == "moveToVariablePoolHFThreshold") {
-            state.riskConfig.moveToVariablePoolHFThreshold = params.value;
         } else if (params.key == "minimumMaturity") {
             state.riskConfig.minimumMaturity = params.value;
         } else if (params.key == "repayFeeAPR") {
@@ -100,8 +96,18 @@ library UpdateConfig {
             state.feeConfig.earlyLenderExitFee = params.value;
         } else if (params.key == "earlyBorrowerExitFee") {
             state.feeConfig.earlyBorrowerExitFee = params.value;
-        } else if (params.key == "collateralOverdueTransferFee") {
-            state.feeConfig.collateralOverdueTransferFee = params.value;
+        } else if (params.key == "collateralLiquidatorFixed") {
+            state.feeConfig.collateralLiquidatorFixed = params.value;
+        } else if (params.key == "collateralLiquidatorPercent") {
+            state.feeConfig.collateralLiquidatorPercent = params.value;
+        } else if (params.key == "collateralProtocolPercent") {
+            state.feeConfig.collateralProtocolPercent = params.value;
+        } else if (params.key == "overdueColLiquidatorFixed") {
+            state.feeConfig.overdueColLiquidatorFixed = params.value;
+        } else if (params.key == "overdueColLiquidatorPercent") {
+            state.feeConfig.overdueColLiquidatorPercent = params.value;
+        } else if (params.key == "overdueColProtocolPercent") {
+            state.feeConfig.overdueColProtocolPercent = params.value;
         } else if (params.key == "feeRecipient") {
             state.feeConfig.feeRecipient = address(uint160(params.value));
         } else if (params.key == "priceFeed") {

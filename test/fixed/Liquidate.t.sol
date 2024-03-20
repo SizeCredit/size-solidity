@@ -64,23 +64,23 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.feeRecipient.collateralTokenBalanceFixed,
             _before.feeRecipient.collateralTokenBalanceFixed
-                + Math.mulDivDown(collateralRemainder, size.riskConfig().collateralSplitProtocolPercent, PERCENT)
+                + Math.mulDivDown(collateralRemainder, size.feeConfig().collateralProtocolPercent, PERCENT)
         );
-        uint256 collateralPremiumToBorrower = PERCENT - size.riskConfig().collateralSplitProtocolPercent
-            - size.riskConfig().collateralSplitLiquidatorPercent;
+        uint256 collateralPremiumToBorrower =
+            PERCENT - size.feeConfig().collateralProtocolPercent - size.feeConfig().collateralLiquidatorPercent;
         assertEq(
             _after.bob.collateralTokenBalanceFixed,
             _before.bob.collateralTokenBalanceFixed - (debtWad * 5)
                 - Math.mulDivDown(
                     collateralRemainder,
-                    (size.riskConfig().collateralSplitProtocolPercent + size.riskConfig().collateralSplitLiquidatorPercent),
+                    (size.feeConfig().collateralProtocolPercent + size.feeConfig().collateralLiquidatorPercent),
                     PERCENT
                 ),
             _before.bob.collateralTokenBalanceFixed - (debtWad * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
-        uint256 liquidatorProfitAmount = (debtWad * 5)
-            + Math.mulDivDown(collateralRemainder, size.riskConfig().collateralSplitLiquidatorPercent, PERCENT);
+        uint256 liquidatorProfitAmount =
+            (debtWad * 5) + Math.mulDivDown(collateralRemainder, size.feeConfig().collateralLiquidatorPercent, PERCENT);
         assertEq(
             _after.liquidator.collateralTokenBalanceFixed,
             _before.liquidator.collateralTokenBalanceFixed + liquidatorProfitAmount
@@ -189,7 +189,7 @@ contract LiquidateTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
         _deposit(candy, usdc, 100e6);
-        _depositVariable(alice, usdc, 100e6);
+        _deposit(liquidator, usdc, 1_000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
@@ -199,7 +199,6 @@ contract LiquidateTest is BaseTest {
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
         assertGt(size.getDebt(debtPositionId), 0);
-        uint256 variablePoolWETHBefore = weth.balanceOf(address(size.data().variablePool));
 
         uint256 assignedCollateralAfterFee = Math.mulDivDown(
             _before.bob.collateralTokenBalanceFixed,
@@ -211,28 +210,31 @@ contract LiquidateTest is BaseTest {
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
-        revert("TODO");
+        uint256 protocolSplit;
+        uint256 liquidatorSplit;
 
         _liquidate(liquidator, debtPositionId);
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
-        uint256 variablePoolWETHAfter = weth.balanceOf(address(size.data().variablePool));
 
         assertEq(_after.alice, _before.alice);
         assertEq(loansBefore, loansAfter);
         assertEq(
-            _after.bob.collateralTokenBalanceFixed, _before.bob.collateralTokenBalanceFixed - assignedCollateralAfterFee
+            _after.bob.collateralTokenBalanceFixed,
+            _before.bob.collateralTokenBalanceFixed - assignedCollateralAfterFee - (protocolSplit + liquidatorSplit),
+            "z"
         );
-        assertGt(size.feeConfig().collateralOverdueTransferFee, 0);
         assertEq(
             _after.feeRecipient.collateralTokenBalanceFixed,
-            _before.feeRecipient.collateralTokenBalanceFixed + repayFeeCollateral
+            _before.feeRecipient.collateralTokenBalanceFixed + repayFeeCollateral + protocolSplit,
+            "y"
         );
         assertEq(
-            variablePoolWETHAfter,
-            variablePoolWETHBefore + assignedCollateralAfterFee - size.feeConfig().collateralOverdueTransferFee
-                - repayFeeCollateral
+            _after.liquidator.collateralTokenBalanceFixed,
+            _before.liquidator.collateralTokenBalanceFixed + assignedCollateralAfterFee
+                + size.feeConfig().overdueColLiquidatorFixed + liquidatorSplit - repayFeeCollateral,
+            "x"
         );
         assertEq(size.getDebt(debtPositionId), 0);
         assertLt(_after.bob.debtBalanceFixed, _before.bob.debtBalanceFixed);
@@ -243,6 +245,7 @@ contract LiquidateTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
+        _deposit(liquidator, usdc, 1_000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
@@ -250,11 +253,7 @@ contract LiquidateTest is BaseTest {
 
         vm.warp(block.timestamp + 365 days + 1);
 
-        revert("TODO");
-
         _liquidate(liquidator, debtPositionId);
-
-        _deposit(liquidator, usdc, 1_000e6);
 
         Vars memory _before = _state();
 
@@ -270,40 +269,6 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.alice.borrowATokenBalanceFixed, _interest.alice.borrowATokenBalanceFixed + faceValue * 1.1e27 / 1e27
         );
-    }
-
-    function test_Liquidate_liquidate_overdue_borrower_should_repay_and_withdraw_collateral() public {
-        _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
-        _updateConfig("collateralOverdueTransferFee", 0);
-        _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 150e18);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
-
-        vm.warp(block.timestamp + 365 days + 1);
-
-        _liquidate(liquidator, debtPositionId);
-
-        _depositVariable(bob, usdc, 100e6);
-
-        Vars memory _before = _state();
-
-        _repayVariable(bob, type(uint256).max);
-
-        Vars memory _after = _state();
-
-        revert("TODO");
-
-        // assertEq(_after.bob.borrowATokenBalanceVariable, _before.bob.borrowATokenBalanceVariable - 100e6);
-
-        // uint256 weth1 = weth.balanceOf(address(bob));
-
-        // _withdrawVariable(bob, weth, type(uint256).max);
-
-        // uint256 weth2 = weth.balanceOf(address(bob));
-
-        // assertEq(weth2, weth1 + 150e18);
     }
 
     function testFuzz_Liquidate_liquidate_minimumCollateralProfit(
@@ -340,26 +305,6 @@ contract LiquidateTest is BaseTest {
             assertGe(_after.liquidator.collateralTokenBalanceFixed, _before.liquidator.collateralTokenBalanceFixed);
         } catch {}
     }
-
-    function test_Liquidate_liquidate_move_to_VP_fails_if_variable_loan_health_factor_is_below_threshold() public {
-        _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
-        _updateConfig("collateralOverdueTransferFee", 0);
-        _updateConfig("moveToVariablePoolHFThreshold", 1.6e18);
-        _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 150e18);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
-
-        vm.warp(block.timestamp + 365 days + 1);
-
-        _deposit(liquidator, usdc, 100e6);
-        _liquidate(liquidator, debtPositionId);
-
-        assertEq(weth.balanceOf(address(variablePool)), 0);
-    }
-
-    function test_Liquidate_liquidate_move_to_VP_fails_if_VP_does_not_have_enough_liquidity() internal {}
 
     function test_Liquidate_liquidate_charge_repayFee() internal {}
 

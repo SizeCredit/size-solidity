@@ -21,11 +21,6 @@ contract InitializeValidationTest is Test, BaseTest {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         owner = address(this);
 
-        r.moveToVariablePoolHFThreshold = 1e18 - 1;
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD.selector, 1e18 - 1));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        r.moveToVariablePoolHFThreshold = 1.1e18;
-
         f.feeRecipient = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
@@ -48,22 +43,22 @@ contract InitializeValidationTest is Test, BaseTest {
         r.crLiquidation = 1.3e18;
         r.crOpening = 1.5e18;
 
-        r.collateralSplitLiquidatorPercent = 1.1e18;
+        f.collateralLiquidatorPercent = 1.1e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        r.collateralSplitLiquidatorPercent = 0.3e18;
+        f.collateralLiquidatorPercent = 0.3e18;
 
-        r.collateralSplitProtocolPercent = 1.2e18;
+        f.collateralProtocolPercent = 1.2e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        r.collateralSplitProtocolPercent = 0.1e18;
+        f.collateralProtocolPercent = 0.1e18;
 
-        r.collateralSplitLiquidatorPercent = 0.6e18;
-        r.collateralSplitProtocolPercent = 0.6e18;
+        f.collateralLiquidatorPercent = 0.6e18;
+        f.collateralProtocolPercent = 0.6e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        r.collateralSplitLiquidatorPercent = 0.3e18;
-        r.collateralSplitProtocolPercent = 0.1e18;
+        f.collateralLiquidatorPercent = 0.3e18;
+        f.collateralProtocolPercent = 0.1e18;
 
         r.minimumCreditBorrowAToken = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));

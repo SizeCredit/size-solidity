@@ -23,7 +23,12 @@ struct InitializeFeeConfigParams {
     uint256 repayFeeAPR;
     uint256 earlyLenderExitFee;
     uint256 earlyBorrowerExitFee;
-    uint256 collateralOverdueTransferFee;
+    uint256 collateralLiquidatorFixed;
+    uint256 collateralLiquidatorPercent;
+    uint256 collateralProtocolPercent;
+    uint256 overdueColLiquidatorFixed;
+    uint256 overdueColLiquidatorPercent;
+    uint256 overdueColProtocolPercent;
     address feeRecipient;
 }
 
@@ -31,12 +36,9 @@ struct InitializeRiskConfigParams {
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 minimumCreditBorrowAToken;
-    uint256 collateralSplitLiquidatorPercent;
-    uint256 collateralSplitProtocolPercent;
     uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
-    uint256 moveToVariablePoolHFThreshold;
     uint256 minimumMaturity;
 }
 
@@ -72,8 +74,41 @@ library Initialize {
         // validate earlyBorrowerExitFee
         // N/A
 
-        // validate collateralOverdueTransferFee
+        // validate collateralLiquidatorFixed
         // N/A
+
+        // validate collateralLiquidatorPercent
+        if (f.collateralLiquidatorPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralLiquidatorPercent);
+        }
+
+        // validate collateralProtocolPercent
+        if (f.collateralProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralProtocolPercent);
+        }
+        if (f.collateralLiquidatorPercent + f.collateralProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
+                f.collateralLiquidatorPercent + f.collateralProtocolPercent
+            );
+        }
+
+        // validate overdueColLiquidatorFixed
+        // N/A
+
+        // validate overdueColLiquidatorPercent
+        if (f.overdueColLiquidatorPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueColLiquidatorPercent);
+        }
+
+        // validate overdueColProtocolPercent
+        if (f.overdueColProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueColProtocolPercent);
+        }
+        if (f.overdueColLiquidatorPercent + f.overdueColProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
+                f.overdueColLiquidatorPercent + f.overdueColProtocolPercent
+            );
+        }
 
         // validate feeRecipient
         if (f.feeRecipient == address(0)) {
@@ -100,21 +135,6 @@ library Initialize {
             revert Errors.NULL_AMOUNT();
         }
 
-        // validate collateralSplitLiquidatorPercent
-        if (r.collateralSplitLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(r.collateralSplitLiquidatorPercent);
-        }
-
-        // validate collateralSplitProtocolPercent
-        if (r.collateralSplitProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(r.collateralSplitProtocolPercent);
-        }
-        if (r.collateralSplitLiquidatorPercent + r.collateralSplitProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                r.collateralSplitLiquidatorPercent + r.collateralSplitProtocolPercent
-            );
-        }
-
         // validate underlyingCollateralTokenCap
         // N/A
 
@@ -123,11 +143,6 @@ library Initialize {
 
         // validate debtTokenCap
         // N/A
-
-        // validate moveToVariablePoolHFThreshold
-        if (r.moveToVariablePoolHFThreshold < PERCENT) {
-            revert Errors.INVALID_MOVE_TO_VARIABLE_POOL_HF_THRESHOLD(r.moveToVariablePoolHFThreshold);
-        }
 
         // validate minimumMaturity
         if (r.minimumMaturity == 0) {
@@ -187,7 +202,13 @@ library Initialize {
         state.feeConfig.earlyLenderExitFee = f.earlyLenderExitFee;
         state.feeConfig.earlyBorrowerExitFee = f.earlyBorrowerExitFee;
 
-        state.feeConfig.collateralOverdueTransferFee = f.collateralOverdueTransferFee;
+        state.feeConfig.collateralLiquidatorFixed = f.collateralLiquidatorFixed;
+        state.feeConfig.collateralLiquidatorPercent = f.collateralLiquidatorPercent;
+        state.feeConfig.collateralProtocolPercent = f.collateralProtocolPercent;
+
+        state.feeConfig.overdueColLiquidatorFixed = f.overdueColLiquidatorFixed;
+        state.feeConfig.overdueColLiquidatorPercent = f.overdueColLiquidatorPercent;
+        state.feeConfig.overdueColProtocolPercent = f.overdueColProtocolPercent;
 
         state.feeConfig.feeRecipient = f.feeRecipient;
     }
@@ -198,14 +219,10 @@ library Initialize {
 
         state.riskConfig.minimumCreditBorrowAToken = r.minimumCreditBorrowAToken;
 
-        state.riskConfig.collateralSplitLiquidatorPercent = r.collateralSplitLiquidatorPercent;
-        state.riskConfig.collateralSplitProtocolPercent = r.collateralSplitProtocolPercent;
-
         state.riskConfig.collateralTokenCap = r.collateralTokenCap;
         state.riskConfig.borrowATokenCap = r.borrowATokenCap;
         state.riskConfig.debtTokenCap = r.debtTokenCap;
 
-        state.riskConfig.moveToVariablePoolHFThreshold = r.moveToVariablePoolHFThreshold;
         state.riskConfig.minimumMaturity = r.minimumMaturity;
     }
 
