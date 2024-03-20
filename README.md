@@ -94,82 +94,75 @@ forge test
 <!-- BEGIN_COVERAGE -->
 ### FIles
 
-| File                                                     | % Lines            | % Statements       | % Branches       | % Funcs          |
-|----------------------------------------------------------|--------------------|--------------------|------------------|------------------|
-| src/Size.sol                                             | 96.77% (60/62)     | 96.77% (60/62)     | 100.00% (0/0)    | 90.91% (20/22)   |
-| src/SizeView.sol                                         | 43.90% (18/41)     | 48.61% (35/72)     | 0.00% (0/8)      | 77.27% (17/22)   |
-| src/libraries/ConversionLibrary.sol                      | 100.00% (1/1)      | 100.00% (3/3)      | 100.00% (0/0)    | 100.00% (1/1)    |
-| src/libraries/Math.sol                                   | 86.96% (20/23)     | 87.18% (34/39)     | 83.33% (5/6)     | 83.33% (10/12)   |
-| src/libraries/fixed/AccountingLibrary.sol                | 100.00% (31/31)    | 100.00% (37/37)    | 100.00% (2/2)    | 83.33% (5/6)     |
-| src/libraries/fixed/CapsLibrary.sol                      | 100.00% (10/10)    | 100.00% (15/15)    | 62.50% (5/8)     | 100.00% (4/4)    |
-| src/libraries/fixed/CollateralLibrary.sol                | 100.00% (6/6)      | 100.00% (8/8)      | 100.00% (0/0)    | 100.00% (2/2)    |
-| src/libraries/fixed/LoanLibrary.sol                      | 91.11% (41/45)     | 89.71% (61/68)     | 93.75% (15/16)   | 92.31% (12/13)   |
-| src/libraries/fixed/OfferLibrary.sol                     | 0.00% (0/4)        | 0.00% (0/12)       | 100.00% (0/0)    | 0.00% (0/4)      |
-| src/libraries/fixed/RiskLibrary.sol                      | 91.67% (22/24)     | 95.12% (39/41)     | 80.00% (8/10)    | 100.00% (8/8)    |
-| src/libraries/fixed/UserLibrary.sol                      | 100.00% (16/16)    | 100.00% (22/22)    | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/libraries/fixed/YieldCurveLibrary.sol                | 100.00% (33/33)    | 100.00% (62/62)    | 88.89% (16/18)   | 100.00% (4/4)    |
-| src/libraries/fixed/actions/BorrowAsLimitOrder.sol       | 100.00% (5/5)      | 100.00% (6/6)      | 100.00% (2/2)    | 100.00% (2/2)    |
-| src/libraries/fixed/actions/BorrowAsMarketOrder.sol      | 98.33% (59/60)     | 98.59% (70/71)     | 95.83% (23/24)   | 100.00% (4/4)    |
-| src/libraries/fixed/actions/BorrowerExit.sol             | 97.30% (36/37)     | 97.78% (44/45)     | 83.33% (10/12)   | 100.00% (2/2)    |
-| src/libraries/fixed/actions/Claim.sol                    | 100.00% (11/11)    | 100.00% (16/16)    | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/libraries/fixed/actions/Compensate.sol               | 100.00% (35/35)    | 100.00% (40/40)    | 100.00% (14/14)  | 100.00% (2/2)    |
-| src/libraries/fixed/actions/LendAsLimitOrder.sol         | 90.00% (9/10)      | 90.00% (9/10)      | 83.33% (5/6)     | 100.00% (2/2)    |
-| src/libraries/fixed/actions/LendAsMarketOrder.sol        | 100.00% (30/30)    | 100.00% (33/33)    | 92.86% (13/14)   | 100.00% (2/2)    |
-| src/libraries/fixed/actions/Liquidate.sol                | 97.44% (38/39)     | 97.92% (47/48)     | 71.43% (10/14)   | 100.00% (5/5)    |
-| src/libraries/fixed/actions/LiquidateWithReplacement.sol | 91.67% (33/36)     | 93.18% (41/44)     | 70.00% (7/10)    | 100.00% (3/3)    |
-| src/libraries/fixed/actions/Repay.sol                    | 100.00% (15/15)    | 100.00% (20/20)    | 83.33% (5/6)     | 100.00% (2/2)    |
-| src/libraries/fixed/actions/SelfLiquidate.sol            | 100.00% (20/20)    | 100.00% (27/27)    | 83.33% (5/6)     | 100.00% (2/2)    |
-| src/libraries/general/actions/Deposit.sol                | 91.67% (11/12)     | 95.00% (19/20)     | 75.00% (6/8)     | 100.00% (2/2)    |
-| src/libraries/general/actions/Initialize.sol             | 98.59% (70/71)     | 98.73% (78/79)     | 96.88% (31/32)   | 100.00% (11/11)  |
-| src/libraries/general/actions/UpdateConfig.sol           | 86.05% (37/43)     | 85.11% (40/47)     | 85.29% (29/34)   | 66.67% (4/6)     |
-| src/libraries/general/actions/Withdraw.sol               | 100.00% (17/17)    | 100.00% (24/24)    | 75.00% (9/12)    | 100.00% (2/2)    |
-| src/libraries/variable/VariableLibrary.sol               | 98.65% (73/74)     | 99.03% (102/103)   | 75.00% (6/8)     | 100.00% (10/10)  |
-| src/libraries/variable/actions/BorrowVariable.sol        | 100.00% (6/6)      | 100.00% (7/7)      | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/libraries/variable/actions/LiquidateVariable.sol     | 100.00% (6/6)      | 100.00% (7/7)      | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/libraries/variable/actions/RepayVariable.sol         | 100.00% (4/4)      | 100.00% (4/4)      | 100.00% (2/2)    | 100.00% (2/2)    |
-| src/oracle/MarketBorrowRateFeed.sol                      | 100.00% (10/10)    | 100.00% (11/11)    | 100.00% (2/2)    | 100.00% (3/3)    |
-| src/oracle/VariablePoolPriceFeed.sol                     | 100.00% (8/8)      | 100.00% (13/13)    | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/proxy/Vault.sol                                      | 100.00% (20/20)    | 100.00% (25/25)    | 100.00% (8/8)    | 100.00% (4/4)    |
-| src/token/NonTransferrableToken.sol                      | 100.00% (9/9)      | 100.00% (10/10)    | 100.00% (0/0)    | 100.00% (7/7)    |
+| File                                                     | % Lines           | % Statements       | % Branches       | % Funcs          |
+|----------------------------------------------------------|-------------------|--------------------|------------------|------------------|
+| src/Size.sol                                             | 98.18% (54/55)    | 98.18% (54/55)     | 100.00% (0/0)    | 94.44% (17/18)   |
+| src/SizeView.sol                                         | 43.90% (18/41)    | 48.61% (35/72)     | 0.00% (0/8)      | 77.27% (17/22)   |
+| src/libraries/ConversionLibrary.sol                      | 100.00% (1/1)     | 100.00% (3/3)      | 100.00% (0/0)    | 100.00% (1/1)    |
+| src/libraries/Math.sol                                   | 91.30% (21/23)    | 92.31% (36/39)     | 83.33% (5/6)     | 91.67% (11/12)   |
+| src/libraries/fixed/AccountingLibrary.sol                | 100.00% (31/31)   | 100.00% (37/37)    | 100.00% (2/2)    | 83.33% (5/6)     |
+| src/libraries/fixed/CapsLibrary.sol                      | 90.00% (9/10)     | 93.33% (14/15)     | 50.00% (4/8)     | 100.00% (4/4)    |
+| src/libraries/fixed/CollateralLibrary.sol                | 100.00% (6/6)     | 100.00% (8/8)      | 100.00% (0/0)    | 100.00% (2/2)    |
+| src/libraries/fixed/LoanLibrary.sol                      | 91.11% (41/45)    | 89.71% (61/68)     | 93.75% (15/16)   | 92.31% (12/13)   |
+| src/libraries/fixed/OfferLibrary.sol                     | 0.00% (0/6)       | 0.00% (0/12)       | 100.00% (0/0)    | 0.00% (0/4)      |
+| src/libraries/fixed/RiskLibrary.sol                      | 91.67% (22/24)    | 95.12% (39/41)     | 80.00% (8/10)    | 100.00% (8/8)    |
+| src/libraries/fixed/UserLibrary.sol                      | 100.00% (7/7)     | 100.00% (10/10)    | 100.00% (2/2)    | 100.00% (1/1)    |
+| src/libraries/fixed/YieldCurveLibrary.sol                | 100.00% (33/33)   | 100.00% (62/62)    | 88.89% (16/18)   | 100.00% (4/4)    |
+| src/libraries/fixed/actions/BorrowAsLimitOrder.sol       | 100.00% (5/5)     | 100.00% (6/6)      | 100.00% (2/2)    | 100.00% (2/2)    |
+| src/libraries/fixed/actions/BorrowAsMarketOrder.sol      | 98.33% (59/60)    | 98.59% (70/71)     | 95.83% (23/24)   | 100.00% (4/4)    |
+| src/libraries/fixed/actions/BorrowerExit.sol             | 97.30% (36/37)    | 97.78% (44/45)     | 83.33% (10/12)   | 100.00% (2/2)    |
+| src/libraries/fixed/actions/Claim.sol                    | 100.00% (11/11)   | 100.00% (16/16)    | 100.00% (4/4)    | 100.00% (2/2)    |
+| src/libraries/fixed/actions/Compensate.sol               | 100.00% (35/35)   | 100.00% (40/40)    | 100.00% (14/14)  | 100.00% (2/2)    |
+| src/libraries/fixed/actions/LendAsLimitOrder.sol         | 90.00% (9/10)     | 90.00% (9/10)      | 83.33% (5/6)     | 100.00% (2/2)    |
+| src/libraries/fixed/actions/LendAsMarketOrder.sol        | 100.00% (30/30)   | 100.00% (33/33)    | 92.86% (13/14)   | 100.00% (2/2)    |
+| src/libraries/fixed/actions/Liquidate.sol                | 100.00% (33/33)   | 100.00% (43/43)    | 66.67% (4/6)     | 100.00% (4/4)    |
+| src/libraries/fixed/actions/LiquidateWithReplacement.sol | 91.67% (33/36)    | 93.18% (41/44)     | 70.00% (7/10)    | 100.00% (3/3)    |
+| src/libraries/fixed/actions/Repay.sol                    | 100.00% (15/15)   | 100.00% (20/20)    | 83.33% (5/6)     | 100.00% (2/2)    |
+| src/libraries/fixed/actions/SelfLiquidate.sol            | 100.00% (20/20)   | 100.00% (27/27)    | 83.33% (5/6)     | 100.00% (2/2)    |
+| src/libraries/general/actions/Deposit.sol                | 90.91% (10/11)    | 93.75% (15/16)     | 75.00% (6/8)     | 100.00% (2/2)    |
+| src/libraries/general/actions/Initialize.sol             | 94.81% (73/77)    | 95.35% (82/86)     | 88.89% (32/36)   | 100.00% (11/11)  |
+| src/libraries/general/actions/UpdateConfig.sol           | 78.72% (37/47)    | 78.43% (40/51)     | 76.32% (29/38)   | 66.67% (4/6)     |
+| src/libraries/general/actions/Withdraw.sol               | 100.00% (16/16)   | 100.00% (21/21)    | 75.00% (9/12)    | 100.00% (2/2)    |
+| src/libraries/variable/VariableLibrary.sol               | 93.33% (14/15)    | 95.65% (22/23)     | 75.00% (3/4)     | 100.00% (5/5)    |
+| src/oracle/PriceFeed.sol                                 | 100.00% (12/12)   | 100.00% (21/21)    | 100.00% (8/8)    | 100.00% (3/3)    |
+| src/oracle/VariablePoolBorrowRateFeed.sol                | 100.00% (10/10)   | 100.00% (11/11)    | 100.00% (2/2)    | 100.00% (3/3)    |
+| src/proxy/Vault.sol                                      | 100.00% (20/20)   | 100.00% (25/25)    | 100.00% (8/8)    | 100.00% (4/4)    |
+| src/token/NonTransferrableToken.sol                      | 100.00% (9/9)     | 100.00% (10/10)    | 100.00% (0/0)    | 100.00% (7/7)    |
 
 ### Scenarios
 
 ```markdown
-┌──────────────────────────┬────────┐
-│         (index)          │ Values │
-├──────────────────────────┼────────┤
-│    BorrowAsLimitOrder    │   4    │
-│   BorrowAsMarketOrder    │   13   │
-│      BorrowVariable      │   2    │
-│       BorrowerExit       │   6    │
-│          Claim           │   9    │
-│        Compensate        │   6    │
-│    ConversionLibrary     │   3    │
-│     CryticToFoundry      │   1    │
-│         Deposit          │   3    │
-│       Experiments        │   13   │
-│        Initialize        │   4    │
-│     LendAsLimitOrder     │   3    │
-│    LendAsMarketOrder     │   6    │
-│    LiquidateVariable     │   2    │
-│ LiquidateWithReplacement │   5    │
-│        Liquidate         │   9    │
-│   MarketBorrowRateFeed   │   2    │
-│           Math           │   9    │
-│        Multicall         │   3    │
-│  NonTransferrableToken   │   7    │
-│          Pause           │   2    │
-│        PriceFeed         │   1    │
-│      RepayVariable       │   2    │
-│          Repay           │   4    │
-│      SelfLiquidate       │   12   │
-│       UpdateConfig       │   4    │
-│         Upgrade          │   2    │
-│  VariablePoolPriceFeed   │   8    │
-│          Vault           │   4    │
-│         Withdraw         │   8    │
-│        YieldCurve        │   13   │
-└──────────────────────────┴────────┘
+┌────────────────────────────┬────────┐
+│          (index)           │ Values │
+├────────────────────────────┼────────┤
+│     BorrowAsLimitOrder     │   4    │
+│    BorrowAsMarketOrder     │   13   │
+│        BorrowerExit        │   6    │
+│           Claim            │   9    │
+│         Compensate         │   6    │
+│     ConversionLibrary      │   3    │
+│      CryticToFoundry       │   1    │
+│          Deposit           │   3    │
+│        Experiments         │   13   │
+│         Initialize         │   4    │
+│      LendAsLimitOrder      │   3    │
+│     LendAsMarketOrder      │   6    │
+│  LiquidateWithReplacement  │   5    │
+│         Liquidate          │   8    │
+│            Math            │   9    │
+│         Multicall          │   3    │
+│   NonTransferrableToken    │   7    │
+│           Pause            │   2    │
+│         PriceFeed          │   9    │
+│           Repay            │   4    │
+│       SelfLiquidate        │   12   │
+│        UpdateConfig        │   4    │
+│          Upgrade           │   2    │
+│ VariablePoolBorrowRateFeed │   2    │
+│           Vault            │   4    │
+│          Withdraw          │   8    │
+│         YieldCurve         │   13   │
+└────────────────────────────┴────────┘
 ```
 <!-- END_COVERAGE -->
 
