@@ -48,9 +48,8 @@ abstract contract Deploy {
         variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
-        variablePool = IPool(address(new PoolMock(priceFeed)));
+        variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
-        PoolMock(address(variablePool)).setLiquidityIndex(address(weth), WadRayMath.RAY, true);
         f = InitializeFeeConfigParams({
             repayFeeAPR: 0.005e18,
             earlyLenderExitFee: 5e6,
@@ -135,9 +134,8 @@ abstract contract Deploy {
 
     function setupChainWithMocks(address _owner, address _weth, address _usdc) internal {
         priceFeed = new PriceFeedMock(_owner);
-        variablePool = IPool(address(new PoolMock(priceFeed)));
+        variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(_usdc), WadRayMath.RAY);
-        PoolMock(address(variablePool)).setLiquidityIndex(address(_weth), WadRayMath.RAY, true);
         PriceFeedMock(address(priceFeed)).setPrice(2468e18);
         variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(_owner);
         VariablePoolBorrowRateFeedMock(address(variablePoolBorrowRateFeed)).setVariableBorrowRate(0.0724e18);
