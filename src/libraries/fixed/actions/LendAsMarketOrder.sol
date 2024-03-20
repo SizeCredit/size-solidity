@@ -59,13 +59,9 @@ library LendAsMarketOrder {
         } else {
             amountIn = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
         }
-        if (state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false) < amountIn) {
-            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
-                address(state.data.borrowAToken),
-                msg.sender,
-                false,
-                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),
-                amountIn
+        if (state.borrowATokenBalanceOf(msg.sender) < amountIn) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
+                msg.sender, state.borrowATokenBalanceOf(msg.sender), amountIn
             );
         }
 

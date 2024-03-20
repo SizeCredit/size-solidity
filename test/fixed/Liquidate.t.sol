@@ -183,7 +183,7 @@ contract LiquidateTest is BaseTest {
         assertEq(size.getUserView(bob).collateralTokenBalanceFixed, 0);
     }
 
-    function test_Liquidate_liquidate_move_to_VP_if_overdue_and_high_CR_borrows_from_VP() public {
+    function test_Liquidate_liquidate_overdue_high_CR() public {
         _updateConfig("minimumMaturity", 1);
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
@@ -211,6 +211,8 @@ contract LiquidateTest is BaseTest {
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
 
+        revert("TODO");
+
         _liquidate(liquidator, debtPositionId);
 
         Vars memory _after = _state();
@@ -237,7 +239,7 @@ contract LiquidateTest is BaseTest {
         assertEq(_after.bob.debtBalanceFixed, 0);
     }
 
-    function test_Liquidate_liquidate_move_to_VP_should_claim_later_with_interest() public {
+    function test_Liquidate_liquidate_overdue_should_claim_later_with_interest() public {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
@@ -247,6 +249,8 @@ contract LiquidateTest is BaseTest {
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         vm.warp(block.timestamp + 365 days + 1);
+
+        revert("TODO");
 
         _liquidate(liquidator, debtPositionId);
 
@@ -268,7 +272,7 @@ contract LiquidateTest is BaseTest {
         );
     }
 
-    function test_Liquidate_liquidate_move_to_VP_borrower_should_repay_and_withdraw_collateral() public {
+    function test_Liquidate_liquidate_overdue_borrower_should_repay_and_withdraw_collateral() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
         _updateConfig("collateralOverdueTransferFee", 0);
@@ -289,15 +293,17 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.borrowATokenBalanceVariable, _before.bob.borrowATokenBalanceVariable - 100e6);
+        revert("TODO");
 
-        uint256 weth1 = weth.balanceOf(address(bob));
+        // assertEq(_after.bob.borrowATokenBalanceVariable, _before.bob.borrowATokenBalanceVariable - 100e6);
 
-        _withdrawVariable(bob, weth, type(uint256).max);
+        // uint256 weth1 = weth.balanceOf(address(bob));
 
-        uint256 weth2 = weth.balanceOf(address(bob));
+        // _withdrawVariable(bob, weth, type(uint256).max);
 
-        assertEq(weth2, weth1 + 150e18);
+        // uint256 weth2 = weth.balanceOf(address(bob));
+
+        // assertEq(weth2, weth1 + 150e18);
     }
 
     function testFuzz_Liquidate_liquidate_minimumCollateralProfit(

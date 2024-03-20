@@ -204,7 +204,7 @@ contract ExperimentsTest is Test, BaseTest {
         assertEq(loan_James_Bob.credit, Math.mulDivUp(35e6, PERCENT + rate2, PERCENT), "Check james credit");
     }
 
-    function test_Experiments_testLoanMove1() public {
+    function test_Experiments_testLoanOverdue() public {
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowATokenBalanceFixed, 100e6);
@@ -236,7 +236,7 @@ contract ExperimentsTest is Test, BaseTest {
         // add funds to the VP
         _depositVariable(liquidator, usdc, 1_000e6);
 
-        // Move to variable pool
+        // Liquidate Overdue
         _liquidate(liquidator, 0);
 
         uint256 aliceCollateralAfter = _state().alice.collateralTokenBalanceFixed;

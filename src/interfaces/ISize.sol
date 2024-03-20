@@ -19,9 +19,6 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
-import {BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
-import {RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
-
 /// @title ISize
 /// @author Size Lending
 /// @notice This interface is the main interface for all user-facing methods of the Size v2 protocol
@@ -182,15 +179,4 @@ interface ISize {
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
     function compensate(CompensateParams calldata params) external;
-
-    /// @notice Borrow a variable loan by forwarding a call from the user proxy to the Variable Pool `borrow`
-    /// @param params BorrowVariableParams struct containing the following fields:
-    ///     - address to: The recipient address
-    ///     - uint256 amount: The amount to borrow
-    function borrowVariable(BorrowVariableParams calldata params) external;
-
-    /// @notice Repay a variable loan by forwarding a call from the user proxy to the Variable Pool `repayWithATokens`
-    /// @param params RepayVariableParams struct containing the following fields:
-    ///     - uint256 amount: The amount to repay
-    function repayVariable(RepayVariableParams calldata params) external;
 }

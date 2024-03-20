@@ -12,13 +12,11 @@ struct User {
     LoanOffer loanOffer;
     BorrowOffer borrowOffer;
     Vault vaultFixed;
-    Vault vaultVariable;
 }
 
 library UserLibrary {
     /// @notice Get the vault for a user destined for fixed-rate lending
     /// @dev If the user does not have a vault, create one
-    ///      Allowlists the vault to interact with the variable pool
     /// @param state The state struct
     /// @param user The user's address
     /// @return vault The user's vault
@@ -30,23 +28,6 @@ library UserLibrary {
         emit Events.CreateVault(user, address(vault), false);
         vault.initialize(address(this));
         state.data.users[user].vaultFixed = vault;
-        return vault;
-    }
-
-    /// @notice Get the vault for a user destined for variable-rate lending
-    /// @dev If the user does not have a vault, create one
-    ///      Allowlists the vault to interact with the variable pool
-    /// @param state The state struct
-    /// @param user The user's address
-    /// @return vault The user's vault
-    function getVaultVariable(State storage state, address user) public returns (Vault) {
-        if (address(state.data.users[user].vaultVariable) != address(0)) {
-            return state.data.users[user].vaultVariable;
-        }
-        Vault vault = Vault(payable(Clones.clone(address(state.data.vaultImplementation))));
-        emit Events.CreateVault(user, address(vault), true);
-        vault.initialize(address(this));
-        state.data.users[user].vaultVariable = vault;
         return vault;
     }
 }

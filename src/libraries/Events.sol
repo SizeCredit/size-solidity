@@ -22,16 +22,11 @@ library Events {
     );
     event UpdateConfig(bytes32 indexed key, uint256 value);
     event CreateVault(address indexed user, address indexed vault, bool indexed variable);
-    event Deposit(address indexed token, address indexed to, bool indexed variable, uint256 amount);
-    event Withdraw(address indexed token, address indexed to, bool indexed variable, uint256 amount);
-
-    // variable
-
-    event BorrowVariable(address indexed to, uint256 indexed amount);
-    event RepayVariable(uint256 indexed amount);
-    event LiquidateVariable(address indexed borrower, uint256 indexed amount);
 
     // fixed
+
+    event Deposit(address indexed token, address indexed to, uint256 indexed amount);
+    event Withdraw(address indexed token, address indexed to, uint256 indexed amount);
 
     event BorrowAsMarketOrder(
         address indexed lender,

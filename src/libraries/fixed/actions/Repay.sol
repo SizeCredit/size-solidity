@@ -34,13 +34,9 @@ library Repay {
         if (msg.sender != debtPosition.borrower) {
             revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
-        if (state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false) < debtPosition.faceValue) {
-            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
-                address(state.data.borrowAToken),
-                msg.sender,
-                false,
-                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),
-                debtPosition.faceValue
+        if (state.borrowATokenBalanceOf(msg.sender) < debtPosition.faceValue) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
+                msg.sender, state.borrowATokenBalanceOf(msg.sender), debtPosition.faceValue
             );
         }
     }

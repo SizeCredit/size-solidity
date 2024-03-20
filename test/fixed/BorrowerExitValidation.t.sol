@@ -42,10 +42,8 @@ contract BorrowerExitValidationTest is BaseTest {
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.NOT_ENOUGH_ATOKEN_BALANCE.selector,
-                address(size.data().borrowAToken),
+                Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
                 bob,
-                false,
                 100e6,
                 200e6 + size.feeConfig().earlyBorrowerExitFee
             )

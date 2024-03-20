@@ -100,19 +100,19 @@ library Liquidate {
         LiquidateParams calldata params,
         DebtPosition memory debtPositionCopy
     ) private returns (uint256 liquidatorProfitCollateralToken) {
-        // case 2a: the loan is overdue and can be moved to the variable pool
-        try state.moveDebtPositionToVariablePool(debtPositionCopy) returns (uint256 _liquidatorProfitCollateralToken) {
-            emit Events.LiquidateOverdueMoveToVariablePool(params.debtPositionId);
-            liquidatorProfitCollateralToken = _liquidatorProfitCollateralToken;
-            // case 2b: the loan is overdue and cannot be moved to the variable pool
-        } catch {
-            emit Events.LiquidateOverdueNoSplitRemainder(params.debtPositionId);
-            liquidatorProfitCollateralToken = _executeLiquidateTakeCollateral(state, debtPositionCopy, false)
-                + state.feeConfig.collateralOverdueTransferFee;
-            state.data.collateralToken.transferFrom(
-                debtPositionCopy.borrower, msg.sender, state.feeConfig.collateralOverdueTransferFee
-            );
-        }
+        // // case 2a: the loan is overdue and can be moved to the variable pool
+        // try state.moveDebtPositionToVariablePool(debtPositionCopy) returns (uint256 _liquidatorProfitCollateralToken) {
+        //     emit Events.LiquidateOverdueMoveToVariablePool(params.debtPositionId);
+        //     liquidatorProfitCollateralToken = _liquidatorProfitCollateralToken;
+        //     // case 2b: the loan is overdue and cannot be moved to the variable pool
+        // } catch {
+        //     emit Events.LiquidateOverdueNoSplitRemainder(params.debtPositionId);
+        //     liquidatorProfitCollateralToken = _executeLiquidateTakeCollateral(state, debtPositionCopy, false)
+        //         + state.feeConfig.collateralOverdueTransferFee;
+        //     state.data.collateralToken.transferFrom(
+        //         debtPositionCopy.borrower, msg.sender, state.feeConfig.collateralOverdueTransferFee
+        //     );
+        // }
     }
 
     // @audit Check corner cases where liquidate reverts even if the loan is liquidatable

@@ -58,7 +58,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         hevm.prank(sender);
         IERC20Metadata(token).approve(address(size), amount);
         hevm.prank(sender);
-        size.deposit(DepositParams({token: token, amount: amount, to: sender, variable: false}));
+        size.deposit(DepositParams({token: token, amount: amount, to: sender}));
 
         __after();
 
@@ -83,7 +83,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
         amount = between(amount, 0, maxAmount);
         hevm.prank(sender);
-        size.withdraw(WithdrawParams({token: token, amount: amount, to: sender, variable: false}));
+        size.withdraw(WithdrawParams({token: token, amount: amount, to: sender}));
 
         __after();
 

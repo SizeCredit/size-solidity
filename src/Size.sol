@@ -42,10 +42,6 @@ import {State} from "@src/SizeStorage.sol";
 import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
-import {BorrowVariable, BorrowVariableParams} from "@src/libraries/variable/actions/BorrowVariable.sol";
-
-import {RepayVariable, RepayVariableParams} from "@src/libraries/variable/actions/RepayVariable.sol";
-
 import {SizeView} from "@src/SizeView.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
@@ -82,8 +78,6 @@ contract Size is
     using Compensate for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
-    using BorrowVariable for State;
-    using RepayVariable for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -228,17 +222,5 @@ contract Size is
         state.validateCompensate(params);
         state.executeCompensate(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
-    }
-
-    /// @inheritdoc ISize
-    function borrowVariable(BorrowVariableParams calldata params) external override(ISize) whenNotPaused {
-        state.validateBorrowVariable(params);
-        state.executeBorrowVariable(params);
-    }
-
-    /// @inheritdoc ISize
-    function repayVariable(RepayVariableParams calldata params) external override(ISize) whenNotPaused {
-        state.validateRepayVariable(params);
-        state.executeRepayVariable(params);
     }
 }

@@ -67,14 +67,14 @@ contract WithdrawTest is BaseTest {
         assertEq(usdc.balanceOf(address(alice)), valueUSDC);
         assertEq(weth.balanceOf(address(alice)), valueWETH);
 
-        size.deposit(DepositParams({token: address(usdc), amount: valueUSDC, to: alice, variable: false}));
-        size.deposit(DepositParams({token: address(weth), amount: valueWETH, to: alice, variable: false}));
+        size.deposit(DepositParams({token: address(usdc), amount: valueUSDC, to: alice}));
+        size.deposit(DepositParams({token: address(weth), amount: valueWETH, to: alice}));
 
         assertEq(usdc.balanceOf(address(variablePool)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), valueWETH);
 
-        size.withdraw(WithdrawParams({token: address(usdc), amount: valueUSDC, to: bob, variable: false}));
-        size.withdraw(WithdrawParams({token: address(weth), amount: valueWETH, to: bob, variable: false}));
+        size.withdraw(WithdrawParams({token: address(usdc), amount: valueUSDC, to: bob}));
+        size.withdraw(WithdrawParams({token: address(weth), amount: valueWETH, to: bob}));
 
         assertEq(usdc.balanceOf(address(variablePool)), 0);
         assertEq(usdc.balanceOf(address(bob)), valueUSDC);
@@ -92,11 +92,11 @@ contract WithdrawTest is BaseTest {
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
-        size.withdraw(WithdrawParams({token: address(weth), amount: 150e18, to: bob, variable: false}));
+        size.withdraw(WithdrawParams({token: address(weth), amount: 150e18, to: bob}));
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0.01e18, 1.5e18));
-        size.withdraw(WithdrawParams({token: address(weth), amount: 149e18, to: bob, variable: false}));
+        size.withdraw(WithdrawParams({token: address(weth), amount: 149e18, to: bob}));
     }
 
     function test_Withdraw_withdraw_everythingeneralConfig() public {
@@ -146,7 +146,7 @@ contract WithdrawTest is BaseTest {
         assertEq(weth.balanceOf(address(alice)), 0);
     }
 
-    function test_Withdraw_withdraw_everything_does_not_leave_dust_in_vp_due_to_wad_conversion() public {
+    function test_Withdraw_withdraw_everything_does_not_leave_dust() public {
         _setPrice(1e18);
         uint256 liquidatorAmount = 10_000e6;
         _deposit(alice, usdc, 100e6);

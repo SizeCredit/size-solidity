@@ -53,15 +53,10 @@ library BorrowerExit {
         if (msg.sender != debtPosition.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
-        if (
-            state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false)
-                < issuanceValue + state.feeConfig.earlyBorrowerExitFee
-        ) {
-            revert Errors.NOT_ENOUGH_ATOKEN_BALANCE(
-                address(state.data.borrowAToken),
+        if (state.borrowATokenBalanceOf(msg.sender) < issuanceValue + state.feeConfig.earlyBorrowerExitFee) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
                 msg.sender,
-                false,
-                state.aTokenBalanceOf(state.data.borrowAToken, msg.sender, false),
+                state.borrowATokenBalanceOf(msg.sender),
                 issuanceValue + state.feeConfig.earlyBorrowerExitFee
             );
         }

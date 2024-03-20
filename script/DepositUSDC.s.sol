@@ -25,7 +25,7 @@ contract DepositUSDCScript is Script {
         Size sizeContract = Size(sizeContractAddress);
 
         /// DepositParams struct
-        DepositParams memory params = DepositParams({token: usdcAddress, amount: amount, to: lender, variable: false});
+        DepositParams memory params = DepositParams({token: usdcAddress, amount: amount, to: lender});
 
         vm.startBroadcast(deployerPrivateKey);
         sizeContract.deposit(params);
