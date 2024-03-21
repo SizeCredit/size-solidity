@@ -232,7 +232,7 @@ contract Size is
         state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
     }
 
-    receive() external payable whenNotPaused {
+    receive() external payable override(ISize) whenNotPaused {
         uint256 amount = msg.value;
         state.data.weth.deposit{value: amount}();
         state.data.weth.forceApprove(address(this), amount);

@@ -23,7 +23,7 @@ library Deposit {
     using VariableLibrary for State;
     using CollateralLibrary for State;
 
-    function validateDeposit(State storage state, DepositParams calldata params, address from) external view {
+    function validateDeposit(State storage state, DepositParams calldata params, address) external view {
         // validte msg.sender
         // N/A
 
