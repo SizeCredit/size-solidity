@@ -4,10 +4,10 @@
 
 Size is an order book based fixed rate lending protocol with an integrated variable pool (Aave v3).
 
-Initial pairs supported:
+Initial pairs supported (each pair is a new deployment of the Size protocol):
 
-- ETH: Collateral token
-- USDC: Borrow/Lend token
+- WETH/USDC: Collateral/Borrow token (regular market)
+- USDC/WETH: Collateral/Borrow token (reverse market)
 
 Target networks:
 
