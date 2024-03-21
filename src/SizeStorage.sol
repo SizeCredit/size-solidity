@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
@@ -48,6 +49,7 @@ struct Data {
     mapping(uint256 => CreditPosition) creditPositions; // mapping of CreditPosition structs
     uint256 nextDebtPositionId; // next debt position id
     uint256 nextCreditPositionId; // next credit position id
+    IWETH weth; // Wrapped Ether (this is not necessarily the same as the underlyingCollateralToken)
     IERC20Metadata underlyingCollateralToken; // e.g. WETH
     IERC20Metadata underlyingBorrowToken; // e.g. USDC
     NonTransferrableToken collateralToken; // e.g. szWETH

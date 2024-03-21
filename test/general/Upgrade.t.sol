@@ -19,7 +19,7 @@ contract UpgradeTest is Test, BaseTest {
         Size v2 = new SizeMock();
 
         UUPSUpgradeable(address(proxy)).upgradeToAndCall(address(v2), "");
-        assertEq(SizeMock(address(proxy)).version(), 2);
+        assertEq(SizeMock(payable(proxy)).version(), 2);
     }
 
     function test_Upgrade_proxy_can_be_upgraded_directly() public {
@@ -28,7 +28,7 @@ contract UpgradeTest is Test, BaseTest {
         ERC1967Proxy proxy = new ERC1967Proxy(address(v1), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         Size v2 = new SizeMock();
 
-        Size(address(proxy)).upgradeToAndCall(address(v2), "");
-        assertEq(SizeMock(address(proxy)).version(), 2);
+        Size(payable(proxy)).upgradeToAndCall(address(v2), "");
+        assertEq(SizeMock(payable(proxy)).version(), 2);
     }
 }

@@ -7,6 +7,8 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {
     Initialize,
@@ -61,6 +63,7 @@ contract Size is
     UUPSUpgradeable
 {
     // @audit Check if borrower == lender == liquidator may cause any issues
+    using SafeERC20 for IWETH;
     using Initialize for State;
     using UpdateConfig for State;
     using Deposit for State;
@@ -120,9 +123,13 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function deposit(DepositParams calldata params) external override(ISize) whenNotPaused {
-        state.validateDeposit(params);
-        state.executeDeposit(params);
+    function deposit(DepositParams calldata params) public override(ISize) whenNotPaused {
+        _deposit(params, msg.sender);
+    }
+
+    function _deposit(DepositParams memory params, address from) internal {
+        state.validateDeposit(params, from);
+        state.executeDeposit(params, from);
         state.validateCollateralTokenCap();
         state.validateBorrowATokenCap();
     }
@@ -223,5 +230,12 @@ contract Size is
         state.validateCompensate(params);
         state.executeCompensate(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
+    }
+
+    receive() external payable whenNotPaused {
+        uint256 amount = msg.value;
+        state.data.weth.deposit{value: amount}();
+        state.data.weth.forceApprove(address(this), amount);
+        _deposit(DepositParams({token: address(state.data.weth), amount: amount, to: msg.sender}), address(this));
     }
 }

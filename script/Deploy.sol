@@ -31,6 +31,7 @@ import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 
 abstract contract Deploy {
+    address internal implementation;
     ERC1967Proxy internal proxy;
     SizeMock internal size;
     IPriceFeed internal priceFeed;
@@ -76,13 +77,15 @@ abstract contract Deploy {
             variablePoolBorrowRateFeed: address(variablePoolBorrowRateFeed)
         });
         d = InitializeDataParams({
+            weth: address(weth),
             underlyingCollateralToken: address(weth),
             underlyingBorrowToken: address(usdc),
             variablePool: address(variablePool) // Aave v3
         });
 
-        proxy = new ERC1967Proxy(address(new SizeMock()), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        size = SizeMock(address(proxy));
+        implementation = address(new SizeMock());
+        proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        size = SizeMock(payable(proxy));
 
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
@@ -124,12 +127,14 @@ abstract contract Deploy {
             variablePoolBorrowRateFeed: address(variablePoolBorrowRateFeed)
         });
         d = InitializeDataParams({
+            weth: address(_weth),
             underlyingCollateralToken: address(_weth),
             underlyingBorrowToken: address(_usdc),
             variablePool: address(variablePool) // Aave v3
         });
-        size = SizeMock(address(new Size()));
-        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
+        implementation = address(new Size());
+        proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
+        size = SizeMock(payable(proxy));
     }
 
     function setupChainWithMocks(address _owner, address _weth, address _usdc) internal {
@@ -165,11 +170,13 @@ abstract contract Deploy {
             variablePoolBorrowRateFeed: address(variablePoolBorrowRateFeed)
         });
         d = InitializeDataParams({
+            weth: address(_weth),
             underlyingCollateralToken: address(_weth),
             underlyingBorrowToken: address(_usdc),
             variablePool: address(variablePool) // Aave v3
         });
-        size = SizeMock(address(new Size()));
-        proxy = new ERC1967Proxy(address(size), abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
+        implementation = address(new Size());
+        proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
+        size = SizeMock(payable(proxy));
     }
 }

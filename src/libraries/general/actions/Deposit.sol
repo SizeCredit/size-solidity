@@ -23,7 +23,7 @@ library Deposit {
     using VariableLibrary for State;
     using CollateralLibrary for State;
 
-    function validateDeposit(State storage state, DepositParams calldata params) external view {
+    function validateDeposit(State storage state, DepositParams calldata params, address from) external view {
         // validte msg.sender
         // N/A
 
@@ -44,13 +44,16 @@ library Deposit {
         if (params.to == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+
+        // validate from
+        // N/A
     }
 
-    function executeDeposit(State storage state, DepositParams calldata params) public {
+    function executeDeposit(State storage state, DepositParams calldata params, address from) public {
         if (params.token == address(state.data.underlyingBorrowToken)) {
-            state.depositUnderlyingBorrowTokenToVariablePool(msg.sender, params.to, params.amount);
+            state.depositUnderlyingBorrowTokenToVariablePool(from, params.to, params.amount);
         } else {
-            state.depositUnderlyingCollateralToken(msg.sender, params.to, params.amount);
+            state.depositUnderlyingCollateralToken(from, params.to, params.amount);
         }
 
         emit Events.Deposit(params.token, params.to, params.amount);

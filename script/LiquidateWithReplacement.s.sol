@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
-import {SizeView} from "@src/SizeView.sol";
 
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
@@ -23,8 +22,7 @@ contract LiquidateWithReplacementScript is Script, Logger {
         console.log("lender", lender);
         console.log("borrower", borrower);
 
-        Size sizeContract = Size(sizeContractAddress);
-        SizeView size = SizeView(sizeContractAddress);
+        Size size = Size(payable(sizeContractAddress));
         uint256 debtPositionId = 0;
 
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
@@ -40,7 +38,7 @@ contract LiquidateWithReplacementScript is Script, Logger {
         });
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.liquidateWithReplacement(params);
+        size.liquidateWithReplacement(params);
         vm.stopBroadcast();
     }
 }

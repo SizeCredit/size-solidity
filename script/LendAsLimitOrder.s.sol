@@ -12,7 +12,7 @@ contract LendAsLimitOrderScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
-        Size sizeContract = Size(sizeContractAddress);
+        Size size = Size(payable(sizeContractAddress));
 
         console.log("Current Timestamp:", block.timestamp);
 
@@ -37,7 +37,7 @@ contract LendAsLimitOrderScript is Script {
             LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.lendAsLimitOrder(params);
+        size.lendAsLimitOrder(params);
         vm.stopBroadcast();
     }
 }

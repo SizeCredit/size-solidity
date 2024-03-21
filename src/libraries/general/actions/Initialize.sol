@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -48,6 +49,7 @@ struct InitializeOracleParams {
 }
 
 struct InitializeDataParams {
+    address weth;
     address underlyingCollateralToken;
     address underlyingBorrowToken;
     address variablePool;
@@ -237,6 +239,7 @@ library Initialize {
         state.data.nextDebtPositionId = DEBT_POSITION_ID_START;
         state.data.nextCreditPositionId = CREDIT_POSITION_ID_START;
 
+        state.data.weth = IWETH(d.weth);
         state.data.underlyingCollateralToken = IERC20Metadata(d.underlyingCollateralToken);
         state.data.underlyingBorrowToken = IERC20Metadata(d.underlyingBorrowToken);
         state.data.variablePool = IPool(d.variablePool);

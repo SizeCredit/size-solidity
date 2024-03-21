@@ -22,12 +22,12 @@ contract DepositWETHScript is Script {
         console.log("lender", lender);
         console.log("borrower", borrower);
 
-        Size sizeContract = Size(sizeContractAddress);
+        Size size = Size(payable(sizeContractAddress));
 
         DepositParams memory params = DepositParams({token: wethAddress, amount: amount, to: borrower});
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.deposit(params);
+        size.deposit(params);
         vm.stopBroadcast();
     }
 }

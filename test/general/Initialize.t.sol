@@ -24,7 +24,7 @@ contract InitializeTest is BaseTest {
             address(implementation), abi.encodeWithSelector(Size.initialize.selector, owner, f, r, o, d)
         );
 
-        assertEq(Size(address(proxy)).riskConfig().crLiquidation, 1.3e18);
+        assertEq(Size(payable(proxy)).riskConfig().crLiquidation, 1.3e18);
     }
 
     function test_Initialize_wrong_initialization_reverts() public {

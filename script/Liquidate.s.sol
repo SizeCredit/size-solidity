@@ -14,12 +14,12 @@ contract LiquidateScript is Script, Logger {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
 
-        Size sizeContract = Size(sizeContractAddress);
+        Size size = Size(payable(sizeContractAddress));
 
         LiquidateParams memory params = LiquidateParams({debtPositionId: 0, minimumCollateralProfit: 0});
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.liquidate(params);
+        size.liquidate(params);
         vm.stopBroadcast();
     }
 }

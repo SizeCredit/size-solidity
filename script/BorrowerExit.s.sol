@@ -18,9 +18,9 @@ contract BorrowerExitScript is Script {
 
         console.log("borrower", borrower);
 
-        Size sizeContract = Size(sizeContractAddress);
-        uint256 dueDate = sizeContract.getDebtPosition(debtPositionId).dueDate;
-        uint256 apr = sizeContract.getBorrowOfferAPR(borrower, dueDate);
+        Size size = Size(payable(sizeContractAddress));
+        uint256 dueDate = size.getDebtPosition(debtPositionId).dueDate;
+        uint256 apr = size.getBorrowOfferAPR(borrower, dueDate);
         BorrowerExitParams memory params = BorrowerExitParams({
             debtPositionId: debtPositionId,
             borrowerToExitTo: borrower,
@@ -29,7 +29,7 @@ contract BorrowerExitScript is Script {
         });
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.borrowerExit(params);
+        size.borrowerExit(params);
         vm.stopBroadcast();
     }
 }
