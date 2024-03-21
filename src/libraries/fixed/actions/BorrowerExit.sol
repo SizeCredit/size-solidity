@@ -78,7 +78,7 @@ library BorrowerExit {
         }
     }
 
-    function executeBorrowerExit(State storage state, BorrowerExitParams calldata params) external {
+    function executeBorrowerExit(State storage state, BorrowerExitParams calldata params) external returns(uint256 issuanceValue){
         emit Events.BorrowerExit(params.loanId, params.borrowerToExitTo);
 
         BorrowOffer storage borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
@@ -86,7 +86,7 @@ library BorrowerExit {
 
         uint256 rate = borrowOffer.getRate(state.oracle.marketBorrowRateFeed.getMarketBorrowRate(), fol.fol.dueDate);
         uint256 faceValue = fol.fol.faceValue;
-        uint256 issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
+        issuanceValue = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
 
         state.chargeEarlyRepayFeeInCollateral(fol);
         state.transferBorrowATokenFixed(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyBorrowerExitFee);

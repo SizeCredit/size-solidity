@@ -158,27 +158,28 @@ contract Size is
     /// @inheritdoc ISize
     function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external override(ISize) whenNotPaused {
         state.validateLendAsMarketOrder(params);
-        state.executeLendAsMarketOrder(params);
+        uint256 amount = state.executeLendAsMarketOrder(params);
         state.validateUserIsNotBelowRiskCR(params.borrower);
         state.validateDebtTokenCap();
-        state.validateVariablePoolHasEnoughLiquidity();
+        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
     function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external override(ISize) whenNotPaused {
+        uint256 amount = params.amount;
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotBelowRiskCR(msg.sender);
         state.validateDebtTokenCap();
-        state.validateVariablePoolHasEnoughLiquidity();
+        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
     function borrowerExit(BorrowerExitParams calldata params) external override(ISize) whenNotPaused {
         state.validateBorrowerExit(params);
-        state.executeBorrowerExit(params);
+        uint256 amount = state.executeBorrowerExit(params);
         state.validateUserIsNotBelowRiskCR(params.borrowerToExitTo);
-        state.validateVariablePoolHasEnoughLiquidity();
+        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
