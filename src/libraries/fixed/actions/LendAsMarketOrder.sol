@@ -82,14 +82,16 @@ library LendAsMarketOrder {
         // N/A
     }
 
-    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params) external {
+    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params)
+        external
+        returns (uint256 issuanceValue)
+    {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
         uint256 ratePerMaturity =
             borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
-        uint256 issuanceValue;
         if (params.exactAmountIn) {
             issuanceValue = params.amount;
         } else {

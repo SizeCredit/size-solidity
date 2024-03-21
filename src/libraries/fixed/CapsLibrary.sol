@@ -29,11 +29,10 @@ library CapsLibrary {
         }
     }
 
-    function validateVariablePoolHasEnoughLiquidity(State storage state) public view {
-        uint256 redeemable = state.data.borrowAToken.totalSupply();
+    function validateVariablePoolHasEnoughLiquidity(State storage state, uint256 amount) public view {
         uint256 liquidity = state.data.underlyingBorrowToken.balanceOf(address(state.data.variablePool));
-        if (liquidity < redeemable) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(liquidity, redeemable);
+        if (liquidity < amount) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(liquidity, amount);
         }
     }
 }
