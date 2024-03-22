@@ -22,6 +22,8 @@ import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 /// @title ISize
 /// @author Size Lending
 /// @notice This interface is the main interface for all user-facing methods of the Size v2 protocol
+/// @dev All functions are `payable` to allow for ETH deposits in a `multicall` pattern.
+///      See `Multicall.sol`
 interface ISize {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always deposited into the Variable Pool,
@@ -33,7 +35,7 @@ interface ISize {
     ///     - uint256 amount: The amount of tokens to deposit
     ///     - uint256 to: The recipient of the deposit
     ///     - bool variable: Whether the deposit is destined for variable-rate lending or fixed-rate lending
-    function deposit(DepositParams calldata params) external;
+    function deposit(DepositParams calldata params) external payable;
 
     /// @notice Withdraw underlying borrow/collateral tokens from the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always withdrawn from the Variable Pool
@@ -44,7 +46,7 @@ interface ISize {
     ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)
     ///     - uint256 to: The recipient of the withdrawal
     ///     - bool variable: Whether the deposit is destined for variable-rate lending or fixed-rate lending
-    function withdraw(WithdrawParams calldata params) external;
+    function withdraw(WithdrawParams calldata params) external payable;
 
     /// @notice Picks a lender offer and borrow tokens from the orderbook
     ///         When using receivable credit positions as credit, the early exit lender fee is applied to the borrower
@@ -56,7 +58,7 @@ interface ISize {
     ///     - uint256 dueDate: The due date of the loan
     ///     - bool exactAmountIn: When passing an array of receivable credit position ids, this flag indicates if the amount is value to be returned at due date
     ///     - uint256[] receivableCreditPositionIds: The ids of receivable credit positions that can be used as credit to borrow without assigining new collateral
-    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external;
+    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external payable;
 
     /// @notice Places a new borrow offer in the orderbook
     /// @param params BorrowAsLimitOrderParams struct containing the following fields:
@@ -65,7 +67,7 @@ interface ISize {
     ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
     ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
-    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) external;
+    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) external payable;
 
     /// @notice Places a new lend offer in the orderbook
     /// @param params LendAsMarketOrderParams struct containing the following fields:
@@ -73,7 +75,7 @@ interface ISize {
     ///     - uint256 amount: The amount of tokens to lend (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
     ///     - uint256 dueDate: The due date of the loan
     ///     - bool exactAmountIn: This flag indicates if the amount is the value to be transferred to the borrower or if it should be used to calculate the amount to be transferred
-    function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external;
+    function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external payable;
 
     /// @notice Places a new lend offer in the orderbook
     /// @param params LendAsLimitOrderParams struct containing the following fields:
@@ -82,7 +84,7 @@ interface ISize {
     ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
     ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
-    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external;
+    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external payable;
 
     /// @notice Exits a debt position to a new borrower by picking the new borrower offer from the orderbook
     ///         When exiting a debt position to a new borrower, the early exit borrower fee is applied to the current borrower
@@ -97,7 +99,7 @@ interface ISize {
     /// @param params BorrowerExitParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to exit
     ///     - address borrowerToExitTo: The address of the borrower to exit to
-    function borrowerExit(BorrowerExitParams calldata params) external;
+    function borrowerExit(BorrowerExitParams calldata params) external payable;
 
     /// @notice Repay a debt position by transferring the amount due of borrow tokens to the protocol, which are deposited to the Variable Pool for the lenders to claim
     ///         Partial repayment are currently unsupported
@@ -105,14 +107,14 @@ interface ISize {
     /// @dev The Variable Pool liquidity index is snapshotted at the time of the repayment in order to calculate the accrued interest for lenders to claim
     /// @param params RepayParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to repay
-    function repay(RepayParams calldata params) external;
+    function repay(RepayParams calldata params) external payable;
 
     /// @notice Claim the repayment of a loan with accrued interest from the Variable Pool
     /// @dev Both ACTIVE and OVERDUE loans can't be claimed because the money is not in the protocol yet.
     ///      CLAIMED loans can't be claimed either because its credit has already been consumed entirely either by a previous claim or by exiting before
     /// @param params ClaimParams struct containing the following fields:
     ///     - uint256 creditPositionId: The id of the credit position to claim
-    function claim(ClaimParams calldata params) external;
+    function claim(ClaimParams calldata params) external payable;
 
     /// @notice Liquidate a debt position
     ///         In case of a protifable liquidation, part of the collateral remainder is split between the protocol and the liquidator
@@ -122,7 +124,7 @@ interface ISize {
     /// @param params LiquidateParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
-    function liquidate(LiquidateParams calldata params) external returns (uint256);
+    function liquidate(LiquidateParams calldata params) external payable returns (uint256);
 
     /// @notice Self liquidate a credit position that is undercollateralized
     ///         The lender cancels an amount of debt equivalent to their credit and a percentage of the protocol fees
@@ -135,7 +137,7 @@ interface ISize {
     ///               Then, on the second lender self liquidation, the pro-rata repay fee will be $0.025001 due to rounding up, and the borrower's debt would underflow due to the reduction of $5.000001 + $0.025001 = $5.025002.
     /// @param params SelfLiquidateParams struct containing the following fields:
     ///     - uint256 creditPositionId: The id of the credit position to self-liquidate
-    function selfLiquidate(SelfLiquidateParams calldata params) external;
+    function selfLiquidate(SelfLiquidateParams calldata params) external payable;
 
     /// @notice Liquidate a debt position with a replacement borrower
     /// @dev This function works exactly like `liquidate`, with an added logic of replacing the borrower on the storage
@@ -147,6 +149,7 @@ interface ISize {
     ///     - address borrower: The address of the replacement borrower
     function liquidateWithReplacement(LiquidateWithReplacementParams calldata params)
         external
+        payable
         returns (uint256, uint256);
 
     /// @notice Compensate a borrower's debt with his credit in another loan
@@ -155,9 +158,5 @@ interface ISize {
     ///     - uint256 debtPositionToRepayId: The id of the debt position to repay
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
-    function compensate(CompensateParams calldata params) external;
-
-    /// @notice Deposit ETH directly to the protocol
-    /// @dev Calls `deposit` with `token` parameter set to the address of WETH
-    receive() external payable;
+    function compensate(CompensateParams calldata params) external payable;
 }

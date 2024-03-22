@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -20,12 +21,18 @@ struct DepositParams {
 
 library Deposit {
     using SafeERC20 for IERC20Metadata;
+    using SafeERC20 for IWETH;
     using VariableLibrary for State;
     using CollateralLibrary for State;
 
-    function validateDeposit(State storage state, DepositParams calldata params, address) external view {
-        // validte msg.sender
+    function validateDeposit(State storage state, DepositParams calldata params) external view {
+        // validate msg.sender
         // N/A
+
+        // validate msg.value
+        if (msg.value != 0 && (msg.value != params.amount || params.token != address(state.data.weth))) {
+            revert Errors.INVALID_MSG_VALUE(msg.value);
+        }
 
         // validate token
         if (
@@ -44,12 +51,18 @@ library Deposit {
         if (params.to == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-
-        // validate from
-        // N/A
     }
 
-    function executeDeposit(State storage state, DepositParams calldata params, address from) public {
+    function executeDeposit(State storage state, DepositParams calldata params) public {
+        address from = msg.sender;
+        if (msg.value > 0) {
+            // do not trust msg.value (see `Multicall.sol`)
+            uint256 amount = address(this).balance;
+            state.data.weth.deposit{value: amount}();
+            state.data.weth.forceApprove(address(this), amount);
+            from = address(this);
+        }
+
         if (params.token == address(state.data.underlyingBorrowToken)) {
             state.depositUnderlyingBorrowTokenToVariablePool(from, params.to, params.amount);
         } else {

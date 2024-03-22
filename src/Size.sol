@@ -5,10 +5,7 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {
     Initialize,
@@ -45,6 +42,7 @@ import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
+import {Multicall} from "@src/proxy/Multicall.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
@@ -56,14 +54,13 @@ bytes32 constant PAUSER_ROLE = "PAUSER_ROLE";
 contract Size is
     ISize,
     SizeView,
+    Multicall,
     Initializable,
     AccessControlUpgradeable,
     PausableUpgradeable,
-    MulticallUpgradeable,
     UUPSUpgradeable
 {
     // @audit Check if borrower == lender == liquidator may cause any issues
-    using SafeERC20 for IWETH;
     using Initialize for State;
     using UpdateConfig for State;
     using Deposit for State;
@@ -98,7 +95,6 @@ contract Size is
 
         __AccessControl_init();
         __Pausable_init();
-        __Multicall_init();
         __UUPSUpgradeable_init();
 
         state.executeInitialize(f, r, o, d);
@@ -123,38 +119,44 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function deposit(DepositParams calldata params) public override(ISize) whenNotPaused {
-        _deposit(params, msg.sender);
-    }
-
-    function _deposit(DepositParams memory params, address from) internal {
-        state.validateDeposit(params, from);
-        state.executeDeposit(params, from);
+    function deposit(DepositParams calldata params) public payable override(ISize) whenNotPaused {
+        state.validateDeposit(params);
+        state.executeDeposit(params);
         state.validateCollateralTokenCap();
         state.validateBorrowATokenCap();
     }
 
     /// @inheritdoc ISize
-    function withdraw(WithdrawParams calldata params) external override(ISize) whenNotPaused {
+    function withdraw(WithdrawParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateWithdraw(params);
         state.executeWithdraw(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
     }
 
     /// @inheritdoc ISize
-    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external override(ISize) whenNotPaused {
+    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateLendAsLimitOrder(params);
         state.executeLendAsLimitOrder(params);
     }
 
     /// @inheritdoc ISize
-    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) external override(ISize) whenNotPaused {
+    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params)
+        external
+        payable
+        override(ISize)
+        whenNotPaused
+    {
         state.validateBorrowAsLimitOrder(params);
         state.executeBorrowAsLimitOrder(params);
     }
 
     /// @inheritdoc ISize
-    function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external override(ISize) whenNotPaused {
+    function lendAsMarketOrder(LendAsMarketOrderParams calldata params)
+        external
+        payable
+        override(ISize)
+        whenNotPaused
+    {
         state.validateLendAsMarketOrder(params);
         uint256 amount = state.executeLendAsMarketOrder(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrower);
@@ -163,7 +165,12 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external override(ISize) whenNotPaused {
+    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params)
+        external
+        payable
+        override(ISize)
+        whenNotPaused
+    {
         uint256 amount = params.amount;
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
@@ -173,7 +180,7 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function borrowerExit(BorrowerExitParams calldata params) external override(ISize) whenNotPaused {
+    function borrowerExit(BorrowerExitParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateBorrowerExit(params);
         uint256 amount = state.executeBorrowerExit(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrowerToExitTo);
@@ -181,14 +188,14 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function repay(RepayParams calldata params) external override(ISize) whenNotPaused {
+    function repay(RepayParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateRepay(params);
         state.executeRepay(params);
         state.validateUserIsNotLiquidatable(msg.sender);
     }
 
     /// @inheritdoc ISize
-    function claim(ClaimParams calldata params) external override(ISize) whenNotPaused {
+    function claim(ClaimParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateClaim(params);
         state.executeClaim(params);
     }
@@ -196,6 +203,7 @@ contract Size is
     /// @inheritdoc ISize
     function liquidate(LiquidateParams calldata params)
         external
+        payable
         override(ISize)
         whenNotPaused
         returns (uint256 liquidatorProfitCollateralAsset)
@@ -206,7 +214,7 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function selfLiquidate(SelfLiquidateParams calldata params) external override(ISize) whenNotPaused {
+    function selfLiquidate(SelfLiquidateParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateSelfLiquidate(params);
         state.executeSelfLiquidate(params);
     }
@@ -214,6 +222,7 @@ contract Size is
     /// @inheritdoc ISize
     function liquidateWithReplacement(LiquidateWithReplacementParams calldata params)
         external
+        payable
         override(ISize)
         whenNotPaused
         onlyRole(KEEPER_ROLE)
@@ -226,16 +235,9 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function compensate(CompensateParams calldata params) external override(ISize) whenNotPaused {
+    function compensate(CompensateParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateCompensate(params);
         state.executeCompensate(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
-    }
-
-    receive() external payable override(ISize) whenNotPaused {
-        uint256 amount = msg.value;
-        state.data.weth.deposit{value: amount}();
-        state.data.weth.forceApprove(address(this), amount);
-        _deposit(DepositParams({token: address(state.data.weth), amount: amount, to: msg.sender}), address(this));
     }
 }

@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
 import {UserView} from "@src/SizeView.sol";
+import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract DepositTest is BaseTest {
@@ -19,15 +22,14 @@ contract DepositTest is BaseTest {
         assertEq(weth.balanceOf(address(size)), 2e18);
     }
 
-    function test_Deposit_deposit_eth_directly_through_receive() public {
+    function test_Deposit_deposit_eth() public {
         vm.deal(alice, 1 ether);
 
         assertEq(address(alice).balance, 1 ether);
         assertEq(_state().alice.collateralTokenBalance, 0);
 
         vm.prank(alice);
-        (bool success,) = address(size).call{value: 1 ether}("");
-        require(success);
+        size.deposit{value: 1 ether}(DepositParams({token: address(weth), amount: 1 ether, to: alice}));
 
         assertEq(address(alice).balance, 0);
         assertEq(_state().alice.collateralTokenBalance, 1 ether);
