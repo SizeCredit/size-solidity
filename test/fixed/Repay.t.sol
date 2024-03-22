@@ -32,7 +32,10 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue - repayFee);
+        assertEq(
+            _after.bob.debtBalance,
+            _before.bob.debtBalance - faceValue - repayFee - size.feeConfig().overdueLiquidatorReward
+        );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
         assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
@@ -70,7 +73,10 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue - repayFee);
+        assertEq(
+            _after.bob.debtBalance,
+            _before.bob.debtBalance - faceValue - repayFee - size.feeConfig().overdueLiquidatorReward
+        );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);

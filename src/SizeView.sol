@@ -69,8 +69,8 @@ abstract contract SizeView is SizeStorage {
         return state.collateralRatio(user);
     }
 
-    function isUserLiquidatable(address user) external view returns (bool) {
-        return state.isUserLiquidatable(user);
+    function isUserUnderwater(address user) external view returns (bool) {
+        return state.isUserUnderwater(user);
     }
 
     function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool) {

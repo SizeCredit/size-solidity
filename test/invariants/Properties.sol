@@ -47,7 +47,7 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     string internal constant TOKENS_01 = "TOKENS_01: The sum of all tokens is constant";
 
     string internal constant LIQUIDATION_01 =
-        "LIQUIDATION_01: A user cannot make an operation that leaves them liquidatable";
+        "LIQUIDATION_01: A user cannot make an operation that leaves them underwater";
     string internal constant LIQUIDATION_02 =
         "LIQUIDATION_02: Liquidation with replacement does not change the total system debt";
 

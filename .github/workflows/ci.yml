@@ -166,7 +166,8 @@ jobs:
           path: |
             out/Size.sol/Size.json
             out/PriceFeed.sol/PriceFeed.json
-            out/MarketBorrowRateFeed.sol/MarketBorrowRateFeed.json
+            out/VariablePoolBorrowRateFeed.sol/VariablePoolBorrowRateFeed.json
+            out/PoolMock.sol/PoolMock.json
             out/WETH.sol/WETH.json
             out/USDC.sol/USDC.json
             out/Errors.sol/Errors.json

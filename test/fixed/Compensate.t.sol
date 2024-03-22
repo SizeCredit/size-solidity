@@ -38,10 +38,12 @@ contract CompensateTest is BaseTest {
         uint256 repaidLoanDebtAfter = size.getDebt(loanId3);
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionId).credit;
 
-        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e6 - repayFee);
+        assertEq(
+            repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e6 - repayFee - size.feeConfig().overdueLiquidatorReward
+        );
         assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 2 * 20e6);
         assertEq(
-            repaidLoanDebtBefore - repaidLoanDebtAfter - repayFee,
+            repaidLoanDebtBefore - repaidLoanDebtAfter - repayFee - size.feeConfig().overdueLiquidatorReward,
             compensatedLoanCreditBefore - compensatedLoanCreditAfter
         );
     }
@@ -176,6 +178,7 @@ contract CompensateTest is BaseTest {
     function test_Compensate_compensate_full_claim() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _deposit(candy, weth, 150e18);
@@ -231,10 +234,12 @@ contract CompensateTest is BaseTest {
         uint256 repaidLoanDebtAfter = size.getDebt(loanToRepay);
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionToCompensateId).credit;
 
-        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e6 - repayFee);
+        assertEq(
+            repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e6 - repayFee - size.feeConfig().overdueLiquidatorReward
+        );
         assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 2 * 20e6);
         assertEq(
-            repaidLoanDebtBefore - repaidLoanDebtAfter - repayFee,
+            repaidLoanDebtBefore - repaidLoanDebtAfter - repayFee - size.feeConfig().overdueLiquidatorReward,
             compensatedLoanCreditBefore - compensatedLoanCreditAfter
         );
         assertEq(repaidLoanDebtAfter, 0);
@@ -245,7 +250,7 @@ contract CompensateTest is BaseTest {
         _claim(james, creditPositionWithDebtToRepayId);
 
         _setPrice(0.1e18);
-        assertTrue(size.isUserLiquidatable(bob));
+        assertTrue(size.isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(loanToCompensateId));
 
         uint256 newCreditPositionId = size.getCreditPositionIdsByDebtPositionId(loanToCompensateId)[1];

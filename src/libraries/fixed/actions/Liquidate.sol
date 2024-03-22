@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Math} from "@src/libraries/Math.sol";
+import {console} from "forge-std/console.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
@@ -81,6 +82,7 @@ library Liquidate {
             // cap the collateral remainder to the liquidation ratio (otherwise, the split for overdue loans could be too much)
             uint256 collateralRemainderCap =
                 Math.mulDivDown(debtInCollateralToken, state.riskConfig.crLiquidation, PERCENT);
+
             collateralRemainder = Math.min(collateralRemainder, collateralRemainderCap);
 
             uint256 collateralRemainderToLiquidator =
@@ -112,7 +114,7 @@ library Liquidate {
 
         uint256 debt = debtPosition.getDebt();
 
-        LiquidatePathVars memory vars = state.isUserLiquidatable(debtPosition.borrower)
+        LiquidatePathVars memory vars = state.isUserUnderwater(debtPosition.borrower)
             ? LiquidatePathVars({
                 collateralLiquidatorFixed: 0,
                 collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,

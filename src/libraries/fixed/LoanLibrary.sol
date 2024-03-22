@@ -57,9 +57,10 @@ library LoanLibrary {
     function getDebtProRata(DebtPosition memory self, uint256 repayAmount, uint256 repayFeeProRata)
         internal
         pure
-        returns (uint256)
+        returns (uint256 debtProRata, bool isFullRepayment)
     {
-        return repayAmount + repayFeeProRata + self.faceValue == repayAmount ? self.overdueLiquidatorReward : 0;
+        isFullRepayment = self.faceValue == repayAmount;
+        debtProRata = repayAmount + repayFeeProRata + (isFullRepayment ? self.overdueLiquidatorReward : 0);
     }
 
     /// @notice Get the total debt of a DebtPosition
@@ -137,7 +138,8 @@ library LoanLibrary {
     }
 
     /// @notice Get the amount of collateral assigned to a DebtPosition
-    /// @dev Takes into account the total debt of the user, which includes the repayment fee and the overdue collateral reward
+    /// @dev Takes into account the total debt of the loan and the user,
+    ///      which includes the repayment fee and the overdue collateral reward
     /// @param state The state struct
     /// @param debtPosition The DebtPosition
     /// @return The amount of collateral assigned to the DebtPosition
@@ -150,7 +152,7 @@ library LoanLibrary {
         uint256 collateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
 
         if (debt != 0) {
-            return Math.mulDivDown(collateral, debtPosition.faceValue, debt);
+            return Math.mulDivDown(collateral, getDebt(debtPosition), debt);
         } else {
             return 0;
         }
@@ -168,8 +170,8 @@ library LoanLibrary {
     {
         DebtPosition storage debtPosition = getDebtPosition(state, creditPosition.debtPositionId);
 
-        uint256 creditPositionCredit = creditPosition.credit;
         uint256 debtPositionCollateral = getDebtPositionAssignedCollateral(state, debtPosition);
+        uint256 creditPositionCredit = creditPosition.credit;
         uint256 debtPositionFaceValue = debtPosition.faceValue;
 
         if (debtPositionFaceValue != 0) {

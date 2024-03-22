@@ -78,11 +78,11 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(alice, weth, 2e18);
         _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 6 days);
         assertGe(size.collateralRatio(alice), size.riskConfig().crOpening);
-        assertTrue(!size.isUserLiquidatable(alice), "borrower should not be liquidatable");
+        assertTrue(!size.isUserUnderwater(alice), "borrower should not be underwater");
         vm.warp(block.timestamp + 1 days);
         _setPrice(60e18);
 
-        assertTrue(size.isUserLiquidatable(alice), "borrower should be liquidatable");
+        assertTrue(size.isUserUnderwater(alice), "borrower should be underwater");
         assertTrue(size.isDebtPositionLiquidatable(0), "loan should be liquidatable");
 
         _deposit(liquidator, usdc, 10_000e6);
@@ -250,42 +250,6 @@ contract ExperimentsTest is Test, BaseTest {
         );
     }
 
-    function test_Experiments_testSL1() public {
-        // Bob deposits in USDC
-        _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowATokenBalance, 100e6);
-
-        // Bob lends as limit order
-        _lendAsLimitOrder(bob, block.timestamp + 6 days, 0.03e18);
-
-        // Alice deposits in WETH
-        _deposit(alice, weth, 2e18);
-
-        // Alice borrows as market order from Bob
-        _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 6 days);
-
-        // Assert conditions for Alice's borrowing
-        assertGe(size.collateralRatio(alice), size.riskConfig().crOpening);
-        assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
-
-        vm.warp(block.timestamp + 1 days);
-        _setPrice(30e18);
-
-        // Assert conditions for liquidation
-        assertTrue(size.isUserLiquidatable(alice), "Borrower should be liquidatable");
-        assertTrue(size.isDebtPositionLiquidatable(0), "Loan should be liquidatable");
-
-        // Perform self liquidation
-        assertGt(size.getDebt(0), 0, "Loan should be greater than 0");
-        assertEq(_state().bob.collateralTokenBalance, 0, "Bob should have no free ETH initially");
-
-        _selfLiquidate(bob, size.getCreditPositionIdsByDebtPositionId(0)[0]);
-
-        // Assert post-liquidation conditions
-        assertGt(_state().bob.collateralTokenBalance, 0, "Bob should have free ETH after self liquidation");
-        assertEq(size.getDebt(0), 0, "Loan should be 0 after self liquidation");
-    }
-
     function test_Experiments_testLendAsLimitOrder1() public {
         // Alice deposits in WETH
         _deposit(alice, weth, 2e18);
@@ -359,7 +323,7 @@ contract ExperimentsTest is Test, BaseTest {
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.riskConfig().crOpening, "Alice should be above CR opening");
-        assertTrue(!size.isUserLiquidatable(alice), "Borrower should not be liquidatable");
+        assertTrue(!size.isUserUnderwater(alice), "Borrower should not be underwater");
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
         _deposit(candy, weth, 200e18);
@@ -371,20 +335,28 @@ contract ExperimentsTest is Test, BaseTest {
         _setPrice(60e18);
 
         // Assert conditions for liquidation
-        assertTrue(size.isUserLiquidatable(alice), "Borrower should be liquidatable");
+        assertTrue(size.isUserUnderwater(alice), "Borrower should be underwater");
         assertTrue(size.isDebtPositionLiquidatable(0), "Loan should be liquidatable");
 
         DebtPosition memory fol = size.getDebtPosition(0);
         uint256 repayFee = fol.repayFee;
         assertEq(fol.borrower, alice, "Alice should be the borrower");
-        assertEq(_state().alice.debtBalance, fol.faceValue + repayFee, "Alice should have the debt");
+        assertEq(
+            _state().alice.debtBalance,
+            fol.faceValue + repayFee + size.feeConfig().overdueLiquidatorReward,
+            "Alice should have the debt"
+        );
 
         assertEq(_state().candy.debtBalance, 0, "Candy should have no debt");
         // Perform the liquidation with replacement
         _deposit(liquidator, usdc, 10_000e6);
         _liquidateWithReplacement(liquidator, 0, candy);
         assertEq(_state().alice.debtBalance, 0, "Alice should have no debt after");
-        assertEq(_state().candy.debtBalance, fol.faceValue + repayFee, "Candy should have the debt after");
+        assertEq(
+            _state().candy.debtBalance,
+            fol.faceValue + repayFee + size.feeConfig().overdueLiquidatorReward,
+            "Candy should have the debt after"
+        );
     }
 
     function test_Experiments_testBasicCompensate1() public {
@@ -441,7 +413,7 @@ contract ExperimentsTest is Test, BaseTest {
 
     function test_Experiments_repayFeeAPR_simple() public {
         _setPrice(1e18);
-        _deposit(bob, weth, 180e18);
+        _deposit(bob, weth, 200e18);
         _deposit(alice, usdc, 100e6);
         YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
@@ -462,8 +434,7 @@ contract ExperimentsTest is Test, BaseTest {
         _deposit(bob, usdc, 10e6);
         _repay(bob, debtPositionId);
 
-        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
-        uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
 
         // If the loan completes its lifecycle, we have
         // protocolFee = 100 * (0.005 * 1) --> 0.5

@@ -51,7 +51,10 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
-        assertEq(_after.candy.debtBalance, _before.candy.debtBalance + faceValue + repayFee);
+        assertEq(
+            _after.candy.debtBalance,
+            _before.candy.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
+        );
         assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + amount);
         assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
@@ -93,7 +96,10 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
-        assertEq(_after.candy.debtBalance, _before.candy.debtBalance + faceValue + repayFee);
+        assertEq(
+            _after.candy.debtBalance,
+            _before.candy.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
+        );
         assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + newAmount);
         assertEq(_before.variablePool.borrowATokenBalance, 0);
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);

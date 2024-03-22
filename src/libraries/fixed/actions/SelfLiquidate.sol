@@ -29,7 +29,7 @@ library SelfLiquidate {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
-        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.faceValue);
+        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.getDebt());
 
         // validate creditPositionId
         if (!state.isCreditPositionSelfLiquidatable(params.creditPositionId)) {
@@ -52,19 +52,23 @@ library SelfLiquidate {
     function executeSelfLiquidate(State storage state, SelfLiquidateParams calldata params) external {
         emit Events.SelfLiquidate(params.creditPositionId);
 
-        CreditPosition storage creditPosition = state.data.creditPositions[params.creditPositionId];
+        CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 credit = creditPosition.credit;
 
         uint256 repayFeeProRata = state.chargeRepayFeeInCollateral(debtPosition, credit);
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
-        uint256 debtProRata = debtPosition.getDebtProRata(credit, repayFeeProRata);
+        (uint256 debtProRata, bool isFullRepayment) = debtPosition.getDebtProRata(credit, repayFeeProRata);
+        state.data.debtToken.burn(debtPosition.borrower, debtProRata);
         debtPosition.updateRepayFee(credit, repayFeeProRata);
+        if (isFullRepayment) {
+            debtPosition.overdueLiquidatorReward = 0;
+            debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+        }
 
         creditPosition.credit = 0;
 
-        state.data.debtToken.burn(debtPosition.borrower, debtProRata);
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, assignedCollateral);
     }
 }
