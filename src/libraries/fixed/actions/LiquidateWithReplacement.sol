@@ -122,8 +122,8 @@ library LiquidateWithReplacement {
             LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
 
         state.data.debtToken.mint(params.borrower, debtPositionCopy.getDebt());
-        state.transferBorrowATokenFixed(address(this), params.borrower, issuanceValue);
-        state.transferBorrowATokenFixed(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
+        state.transferBorrowAToken(address(this), params.borrower, issuanceValue);
+        state.transferBorrowAToken(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
 
         return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

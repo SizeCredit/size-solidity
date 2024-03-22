@@ -151,10 +151,8 @@ library BorrowAsMarketOrder {
                 lender: params.lender,
                 credit: deltaAmountIn
             });
-            state.transferBorrowATokenFixed(params.lender, msg.sender, deltaAmountOut);
-            state.transferBorrowATokenFixed(
-                msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee
-            );
+            state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
+            state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee);
             amountOutLeft -= deltaAmountOut;
         }
     }
@@ -175,8 +173,7 @@ library BorrowAsMarketOrder {
         uint256 issuanceValue = params.amount;
         uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + ratePerMaturity, PERCENT);
 
-        // slither-disable-next-line unused-return
-        (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({
+        DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
             lender: params.lender,
             borrower: msg.sender,
             issuanceValue: issuanceValue,
@@ -185,6 +182,6 @@ library BorrowAsMarketOrder {
         });
 
         state.data.debtToken.mint(msg.sender, debtPosition.getDebt());
-        state.transferBorrowATokenFixed(params.lender, msg.sender, issuanceValue);
+        state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
     }
 }

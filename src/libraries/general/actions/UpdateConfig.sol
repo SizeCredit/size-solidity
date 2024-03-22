@@ -34,10 +34,9 @@ library UpdateConfig {
             repayFeeAPR: state.feeConfig.repayFeeAPR,
             earlyLenderExitFee: state.feeConfig.earlyLenderExitFee,
             earlyBorrowerExitFee: state.feeConfig.earlyBorrowerExitFee,
-            collateralLiquidatorFixed: state.feeConfig.collateralLiquidatorFixed,
             collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,
             collateralProtocolPercent: state.feeConfig.collateralProtocolPercent,
-            overdueColLiquidatorFixed: state.feeConfig.overdueColLiquidatorFixed,
+            overdueLiquidatorReward: state.feeConfig.overdueLiquidatorReward,
             overdueColLiquidatorPercent: state.feeConfig.overdueColLiquidatorPercent,
             overdueColProtocolPercent: state.feeConfig.overdueColProtocolPercent,
             feeRecipient: state.feeConfig.feeRecipient
@@ -96,14 +95,12 @@ library UpdateConfig {
             state.feeConfig.earlyLenderExitFee = params.value;
         } else if (params.key == "earlyBorrowerExitFee") {
             state.feeConfig.earlyBorrowerExitFee = params.value;
-        } else if (params.key == "collateralLiquidatorFixed") {
-            state.feeConfig.collateralLiquidatorFixed = params.value;
         } else if (params.key == "collateralLiquidatorPercent") {
             state.feeConfig.collateralLiquidatorPercent = params.value;
         } else if (params.key == "collateralProtocolPercent") {
             state.feeConfig.collateralProtocolPercent = params.value;
-        } else if (params.key == "overdueColLiquidatorFixed") {
-            state.feeConfig.overdueColLiquidatorFixed = params.value;
+        } else if (params.key == "overdueLiquidatorReward") {
+            state.feeConfig.overdueLiquidatorReward = params.value;
         } else if (params.key == "overdueColLiquidatorPercent") {
             state.feeConfig.overdueColLiquidatorPercent = params.value;
         } else if (params.key == "overdueColProtocolPercent") {

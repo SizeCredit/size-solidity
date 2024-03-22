@@ -85,6 +85,7 @@ contract WithdrawTest is BaseTest {
     function test_Withdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);

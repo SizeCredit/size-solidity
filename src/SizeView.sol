@@ -48,7 +48,6 @@ struct DataView {
     IERC20Metadata underlyingBorrowToken;
     IPool variablePool;
     NonTransferrableToken collateralToken;
-    IAToken collateralAToken;
     IAToken borrowAToken;
     NonTransferrableToken debtToken;
 }
@@ -113,7 +112,6 @@ abstract contract SizeView is SizeStorage {
             underlyingBorrowToken: state.data.underlyingBorrowToken,
             variablePool: state.data.variablePool,
             collateralToken: state.data.collateralToken,
-            collateralAToken: state.data.collateralAToken,
             borrowAToken: state.data.borrowAToken,
             debtToken: state.data.debtToken
         });

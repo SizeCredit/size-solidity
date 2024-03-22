@@ -136,8 +136,7 @@ interface ISize {
 
     /// @notice Self liquidate a credit position that is undercollateralized
     ///         The lender cancels an amount of debt equivalent to their credit and a percentage of the protocol fees
-    /// @dev Due to always rounding fees up, it is possible that fees become greater than the debt balance after a partial repayment
-    ///      This can be mitigated by either rounding fees down, which is not ideal, or by capping the burned/transferred amount to the user balance
+    /// @dev The user is prevented to self liquidate if a regular liquidation would be profitable
     ///      Example:
     ///               Alice borrows $100 due 1 year with a 0.5% APR repay fee. Her debt is $100.50.
     ///               The first lender exits to another lender, and now there are two credit positions, $94.999999 and $5.000001.

@@ -23,10 +23,9 @@ struct InitializeFeeConfigParams {
     uint256 repayFeeAPR;
     uint256 earlyLenderExitFee;
     uint256 earlyBorrowerExitFee;
-    uint256 collateralLiquidatorFixed;
     uint256 collateralLiquidatorPercent;
     uint256 collateralProtocolPercent;
-    uint256 overdueColLiquidatorFixed;
+    uint256 overdueLiquidatorReward;
     uint256 overdueColLiquidatorPercent;
     uint256 overdueColProtocolPercent;
     address feeRecipient;
@@ -74,9 +73,6 @@ library Initialize {
         // validate earlyBorrowerExitFee
         // N/A
 
-        // validate collateralLiquidatorFixed
-        // N/A
-
         // validate collateralLiquidatorPercent
         if (f.collateralLiquidatorPercent > PERCENT) {
             revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralLiquidatorPercent);
@@ -92,7 +88,7 @@ library Initialize {
             );
         }
 
-        // validate overdueColLiquidatorFixed
+        // validate overdueLiquidatorReward
         // N/A
 
         // validate overdueColLiquidatorPercent
@@ -204,11 +200,10 @@ library Initialize {
         state.feeConfig.earlyLenderExitFee = f.earlyLenderExitFee;
         state.feeConfig.earlyBorrowerExitFee = f.earlyBorrowerExitFee;
 
-        state.feeConfig.collateralLiquidatorFixed = f.collateralLiquidatorFixed;
         state.feeConfig.collateralLiquidatorPercent = f.collateralLiquidatorPercent;
         state.feeConfig.collateralProtocolPercent = f.collateralProtocolPercent;
 
-        state.feeConfig.overdueColLiquidatorFixed = f.overdueColLiquidatorFixed;
+        state.feeConfig.overdueLiquidatorReward = f.overdueLiquidatorReward;
         state.feeConfig.overdueColLiquidatorPercent = f.overdueColLiquidatorPercent;
         state.feeConfig.overdueColProtocolPercent = f.overdueColProtocolPercent;
 
@@ -249,8 +244,6 @@ library Initialize {
         );
         state.data.borrowAToken =
             IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
-        state.data.collateralAToken =
-            IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingCollateralToken)).aTokenAddress);
         state.data.debtToken = new NonTransferrableToken(
             address(this), "Size Fixed Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );

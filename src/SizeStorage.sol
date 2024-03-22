@@ -18,10 +18,9 @@ struct FeeConfig {
     uint256 repayFeeAPR; // annual percentage rate of the protocol repay fee
     uint256 earlyLenderExitFee; // fee for early lender exits
     uint256 earlyBorrowerExitFee; // fee for early borrower exits
-    uint256 collateralLiquidatorFixed; // fixed reward for liquidators in collateral tokens
     uint256 collateralLiquidatorPercent; // percent of collateral remainder to be split with liquidator on profitable liquidations
     uint256 collateralProtocolPercent; // percent of collateral to be split with protocol on profitable liquidations
-    uint256 overdueColLiquidatorFixed; // fixed reward for liquidators in collateral tokens during overdue liquidations
+    uint256 overdueLiquidatorReward; // fixed reward for liquidators during overdue liquidations
     uint256 overdueColLiquidatorPercent; // percent of collateral remainder to be split with liquidator on overdue liquidations
     uint256 overdueColProtocolPercent; // percent of collateral to be split with protocol on overdue liquidations
     address feeRecipient; // address to receive protocol fees
@@ -52,7 +51,6 @@ struct Data {
     IERC20Metadata underlyingBorrowToken; // e.g. USDC
     NonTransferrableToken collateralToken; // e.g. szWETH
     IAToken borrowAToken; // e.g. aUSDC
-    IAToken collateralAToken; // e.g. aWETH
     NonTransferrableToken debtToken; // e.g. szDebt
     IPool variablePool; // Variable Pool (Aave v3)
     Vault vaultImplementation; // Vault implementation

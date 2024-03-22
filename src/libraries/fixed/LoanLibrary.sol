@@ -17,6 +17,7 @@ struct DebtPosition {
     uint256 issuanceValue; // updated on debt reduction
     uint256 faceValue; // updated on debt reduction
     uint256 repayFee; // updated on debt reduction
+    uint256 overdueLiquidatorReward; // only paid in case of overdue liquidation
     uint256 startDate; // updated on borrower replacement
     uint256 dueDate;
     uint256 liquidityIndexAtRepayment; // set on full repayment
@@ -50,8 +51,27 @@ library LoanLibrary {
         return positionId >= CREDIT_POSITION_ID_START && positionId < state.data.nextCreditPositionId;
     }
 
+    /// @notice Get the pro-rata debt amount for a partial repayment
+    /// @dev This function should only be used to calculate the amount to clear from the borrower debt tracker
+    ///      The overdueCollateralReward is not cleared be zero if the loan has not been fully repaid
+    function getDebtProRata(DebtPosition memory self, uint256 repayAmount, uint256 repayFeeProRata)
+        internal
+        pure
+        returns (uint256)
+    {
+        return repayAmount + repayFeeProRata + self.faceValue == repayAmount ? self.overdueLiquidatorReward : 0;
+    }
+
+    /// @notice Get the total debt of a DebtPosition
+    ///         The total loan debt is the face value (debt to the lender)
+    ///        + the repay fee (protocol fee)
+    ///        + the overdue liquidator reward (in case of overdue liquidation).
+    /// @dev   The overdue liquidatorreward is only paid in case of overdue liquidation, but
+    ///        it is included in the total debt so that it is properly collateralized.
+    ///        In case of a repayment before the due date, the reward is deducted from borrower debt tracker.
+    /// @param self The DebtPosition
     function getDebt(DebtPosition memory self) internal pure returns (uint256) {
-        return self.faceValue + self.repayFee;
+        return self.faceValue + self.repayFee + self.overdueLiquidatorReward;
     }
 
     function getDebtPositionIdByCreditPositionId(State storage state, uint256 creditPositionId)
@@ -117,8 +137,7 @@ library LoanLibrary {
     }
 
     /// @notice Get the amount of collateral assigned to a DebtPosition
-    /// @dev Takes into account the total debt of the user, which includes the repayment fee
-    ///      When used to calculate the amount of collateral on liquidations, the repayment fee must be excluded first from the user debt
+    /// @dev Takes into account the total debt of the user, which includes the repayment fee and the overdue collateral reward
     /// @param state The state struct
     /// @param debtPosition The DebtPosition
     /// @return The amount of collateral assigned to the DebtPosition
@@ -139,7 +158,6 @@ library LoanLibrary {
 
     /// @notice Get the amount of collateral assigned to a CreditPosition, pro-rata to the DebtPosition's faceValue
     /// @dev Takes into account the total debt of the user, which includes the repayment fee
-    ///      When used to calculate the amount of collateral on self liquidation, the repayment fee must be excluded first from the user debt
     /// @param state The state struct
     /// @param creditPosition The CreditPosition
     /// @return The amount of collateral assigned to the CreditPosition
@@ -179,6 +197,10 @@ library LoanLibrary {
         return fee;
     }
 
+    /// @notice Calculate the early repayment fee for a DebtPosition
+    /// @dev The fee is calculated as a fraction of the total repayment fee, based on the time elapsed since the loan start date
+    ///      The early repay fee applies to a borrower exit only
+    /// @param self The DebtPosition
     function earlyRepayFee(DebtPosition memory self) internal view returns (uint256) {
         uint256 elapsed = block.timestamp - self.startDate;
         uint256 maturity = self.dueDate - self.startDate;

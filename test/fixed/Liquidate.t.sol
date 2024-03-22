@@ -198,8 +198,8 @@ contract LiquidateTest is BaseTest {
             - size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).repayFee);
 
         uint256 liquidatorProfitCollateralTokenFixed = size.debtTokenAmountToCollateralTokenAmount(
-            size.getDebtPosition(debtPositionId).faceValue
-        ) + size.feeConfig().overdueColLiquidatorFixed;
+            size.getDebtPosition(debtPositionId).faceValue + size.feeConfig().overdueLiquidatorReward
+        );
 
         uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
@@ -255,8 +255,8 @@ contract LiquidateTest is BaseTest {
             - size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).repayFee);
 
         uint256 liquidatorProfitCollateralTokenFixed = size.debtTokenAmountToCollateralTokenAmount(
-            size.getDebtPosition(debtPositionId).faceValue
-        ) + size.feeConfig().overdueColLiquidatorFixed;
+            size.getDebtPosition(debtPositionId).faceValue + size.feeConfig().overdueLiquidatorReward
+        );
 
         uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
