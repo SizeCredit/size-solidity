@@ -73,7 +73,7 @@ library Liquidate {
         uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPosition);
         uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.getDebt());
         liquidatorProfitCollateralToken =
-            state.debtTokenAmountToCollateralTokenAmount(debtPosition.getDebt() - vars.collateralLiquidatorFixed);
+            state.debtTokenAmountToCollateralTokenAmount(debtPosition.faceValue + vars.collateralLiquidatorFixed);
 
         if (assignedCollateral > liquidatorProfitCollateralToken) {
             // split remaining collateral between liquidator, protocol, and borrower, capped by the crLiquidation
@@ -129,6 +129,7 @@ library Liquidate {
         uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, debtPosition.faceValue);
         debtPosition.updateRepayFee(debtPosition.faceValue, repayFee);
         state.data.debtToken.burn(debtPosition.borrower, debt);
+        debtPosition.overdueLiquidatorReward = 0;
         debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
     }
 }

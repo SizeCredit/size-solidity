@@ -94,6 +94,7 @@ contract BorrowerExitTest is BaseTest {
     function test_BorrowerExit_borrowerExit_cannot_leave_borrower_liquidatable() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
         _deposit(bob, usdc, 100e6 + size.feeConfig().earlyBorrowerExitFee);
@@ -121,6 +122,7 @@ contract BorrowerExitTest is BaseTest {
         vm.warp(block.timestamp + 12345 days);
         _updateConfig("collateralTokenCap", type(uint256).max);
         _updateConfig("borrowATokenCap", type(uint256).max);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1000e6);
         _deposit(candy, weth, 2000e18);
@@ -201,6 +203,7 @@ contract BorrowerExitTest is BaseTest {
         _updateConfig("borrowATokenCap", type(uint256).max);
         _updateConfig("earlyBorrowerExitFee", 0);
         _updateConfig("repayFeeAPR", 0.1e18);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1000e6);
         _deposit(candy, weth, 2000e18);

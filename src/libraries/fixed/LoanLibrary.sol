@@ -53,7 +53,7 @@ library LoanLibrary {
 
     /// @notice Get the pro-rata debt amount for a partial repayment
     /// @dev This function should only be used to calculate the amount to clear from the borrower debt tracker
-    ///      The overdueCollateralReward is not cleared be zero if the loan has not been fully repaid
+    ///      The overdueCollateralReward is not cleared if the loan has not been fully repaid
     function getDebtProRata(DebtPosition memory self, uint256 repayAmount, uint256 repayFeeProRata)
         internal
         pure

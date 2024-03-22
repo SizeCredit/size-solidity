@@ -50,6 +50,7 @@ library Repay {
         uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, faceValue);
         debtPosition.updateRepayFee(faceValue, repayFee);
         state.data.debtToken.burn(debtPosition.borrower, debt);
+        debtPosition.overdueLiquidatorReward = 0;
         debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 
         emit Events.Repay(params.debtPositionId);

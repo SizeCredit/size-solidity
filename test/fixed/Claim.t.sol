@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
@@ -173,6 +172,7 @@ contract ClaimTest is BaseTest {
 
     function test_Claim_claim_at_different_times_may_have_different_interest() public {
         _setPrice(1e18);
+        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 160e18);
         _deposit(bob, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);

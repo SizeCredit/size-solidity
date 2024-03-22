@@ -117,6 +117,7 @@ library LiquidateWithReplacement {
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
         debtPosition.faceValue = debtPositionCopy.faceValue;
+        debtPosition.overdueLiquidatorReward = state.feeConfig.overdueLiquidatorReward;
         debtPosition.liquidityIndexAtRepayment = 0;
         debtPosition.repayFee =
             LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);

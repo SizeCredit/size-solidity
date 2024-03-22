@@ -11,6 +11,7 @@ contract BorrowerExitValidationTest is BaseTest {
     function test_BorrowerExit_validation() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);

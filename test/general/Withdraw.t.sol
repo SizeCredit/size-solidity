@@ -171,6 +171,7 @@ contract WithdrawTest is BaseTest {
 
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_self_borrow() public {
         _setPrice(1e18);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(alice, weth, 160e18);
         _borrowAsLimitOrder(alice, 1e18, block.timestamp + 12 days);
@@ -182,6 +183,7 @@ contract WithdrawTest is BaseTest {
     function test_Withdraw_withdraw_can_leave_borrow_tokens_lower_than_debt_tokens_in_case_of_borrow_followed_by_withdraw(
     ) public {
         _setPrice(1e18);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
         _borrowAsLimitOrder(bob, 1e18, block.timestamp + 12 days);

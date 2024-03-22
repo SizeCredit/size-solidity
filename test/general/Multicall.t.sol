@@ -72,7 +72,7 @@ contract MulticallTest is BaseTest {
         uint256 faceValue = debtPosition.faceValue;
         uint256 repayFee = debtPosition.repayFee;
         uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
-        uint256 debt = faceValue + repayFee;
+        uint256 debt = faceValue + repayFee + size.feeConfig().overdueLiquidatorReward;
 
         _setPrice(0.2e18);
 

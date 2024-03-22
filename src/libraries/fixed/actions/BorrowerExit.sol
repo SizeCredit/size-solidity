@@ -103,6 +103,7 @@ library BorrowerExit {
         debtPosition.startDate = block.timestamp;
         debtPosition.issuanceValue = issuanceValue;
         debtPosition.faceValue = faceValue;
+        debtPosition.overdueLiquidatorReward = state.feeConfig.overdueLiquidatorReward;
         debtPosition.repayFee =
             LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
 
