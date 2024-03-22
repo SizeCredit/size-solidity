@@ -9,7 +9,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
-import {CreditPosition} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
@@ -543,6 +543,62 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 maxAPR: type(uint256).max,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
+        );
+    }
+
+    function test_BorrowAsMarketOrder_borrowAsMarketOrder_lender_exit() public {
+        // Deposit by bob in USDC
+        _deposit(bob, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
+        assertEq(_state().bob.borrowATokenBalance, 100e6 + size.feeConfig().earlyLenderExitFee);
+
+        // Bob lending as limit order
+        _lendAsLimitOrder(bob, block.timestamp + 10 days, 0.03e18);
+
+        // Deposit by candy in USDC
+        _deposit(candy, usdc, 100e6);
+        assertEq(_state().candy.borrowATokenBalance, 100e6);
+
+        // Candy lending as limit order
+        _lendAsLimitOrder(candy, block.timestamp + 10 days, 0.05e18);
+
+        // Deposit by alice in WETH
+        _deposit(alice, weth, 50e18);
+
+        // Alice borrowing as market order
+        uint256 dueDate = block.timestamp + 10 days;
+        _borrowAsMarketOrder(alice, bob, 50e6, dueDate);
+
+        // Assertions and operations for loans
+        (uint256 debtPositions,) = size.getPositionsCount();
+        assertEq(debtPositions, 1, "Expected one active loan");
+        DebtPosition memory loan = size.getDebtPosition(0);
+        assertTrue(size.isDebtPositionId(0), "The first loan should be DebtPosition");
+
+        // Calculate amount to exit
+        uint256 amountToExit = loan.faceValue;
+
+        // Lender exiting using borrow as market order
+        _borrowAsMarketOrder(
+            bob,
+            candy,
+            amountToExit,
+            dueDate,
+            block.timestamp,
+            type(uint256).max,
+            true,
+            size.getCreditPositionIdsByDebtPositionId(0)
+        );
+
+        (, uint256 creditPositionsCount) = size.getPositionsCount();
+
+        assertEq(creditPositionsCount, 2, "Expected two active loans after lender exit");
+        uint256[] memory creditPositionIds = size.getCreditPositionIdsByDebtPositionId(0);
+        assertTrue(!size.isDebtPositionId(creditPositionIds[1]), "The second loan should be CreditPosition");
+        assertEq(size.getCreditPosition(creditPositionIds[1]).credit, amountToExit, "Amount to Exit should match");
+        assertEq(
+            size.getCreditPosition(creditPositionIds[0]).credit,
+            loan.faceValue - amountToExit,
+            "Should be able to exit the full amount"
         );
     }
 }

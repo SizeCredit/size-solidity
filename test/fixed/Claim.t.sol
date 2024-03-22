@@ -7,7 +7,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
-import {CreditPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
@@ -290,5 +290,43 @@ contract ClaimTest is BaseTest {
         assertTrue(isClaimable);
 
         _claim(bob, creditPositionId);
+    }
+
+    function test_Claim_test_borrow_repay_claim() public {
+        _setPrice(1e18);
+        _updateConfig("collateralTokenCap", type(uint256).max);
+        _updateConfig("borrowATokenCap", type(uint256).max);
+
+        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
+        assertEq(_state().alice.borrowATokenBalance, 100e6 + size.feeConfig().earlyLenderExitFee);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        _deposit(james, weth, 5000e18);
+
+        uint256 debtPositionId = _borrowAsMarketOrder(james, alice, 100e6, block.timestamp + 365 days);
+        (uint256 debtPositions,) = size.getPositionsCount();
+        assertGt(debtPositions, 0);
+        DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
+        CreditPosition memory creditPosition = size.getCreditPositions(size.getCreditPositionIdsByDebtPositionId(0))[0];
+        assertEq(debtPosition.faceValue, 100e6 * 1.03e18 / 1e18);
+        assertEq(creditPosition.credit, debtPosition.faceValue);
+
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0.02e18);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        _borrowAsMarketOrder(alice, bob, 50e6, block.timestamp + 365 days, [creditPositionId]);
+
+        vm.expectRevert();
+        _claim(alice, creditPositionId);
+
+        _deposit(james, usdc, debtPosition.faceValue);
+
+        _repay(james, 0);
+        assertEq(size.getDebt(debtPositionId), 0);
+
+        _claim(alice, creditPositionId);
+
+        vm.expectRevert();
+        _claim(alice, creditPositionId);
     }
 }

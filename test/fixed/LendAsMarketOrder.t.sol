@@ -209,4 +209,29 @@ contract LendAsMarketOrderTest is BaseTest {
             })
         );
     }
+
+    function test_LendAsMarketOrder_lendAsMarketOrder_experiment() public {
+        _setPrice(1e18);
+        // Alice deposits in WETH
+        _deposit(alice, weth, 200e18);
+
+        // Alice places a borrow limit order
+        _borrowAsLimitOrder(alice, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
+
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
+
+        // Assert there are no active loans initially
+        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
+        assertEq(debtPositionsCount, 0, "There should be no active loans initially");
+
+        // Bob lends to Alice's offer in the market order
+        _lendAsMarketOrder(bob, alice, 70e6, block.timestamp + 5 days);
+
+        // Assert a loan is active after lending
+        (debtPositionsCount, creditPositionsCount) = size.getPositionsCount();
+        assertEq(debtPositionsCount, 1, "There should be one active loan after lending");
+        assertEq(creditPositionsCount, 1, "There should be one active loan after lending");
+    }
 }

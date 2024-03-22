@@ -375,6 +375,71 @@ contract LiquidateTest is BaseTest {
         } catch {}
     }
 
+    function test_Liquidate_example() public {
+        _setPrice(1e18);
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
+        _lendAsLimitOrder(bob, block.timestamp + 6 days, 0.03e18);
+        _deposit(alice, weth, 200e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 6 days);
+        assertGe(size.collateralRatio(alice), size.riskConfig().crOpening);
+        assertTrue(!size.isUserUnderwater(alice), "borrower should not be underwater");
+        vm.warp(block.timestamp + 1 days);
+        _setPrice(0.6e18);
+
+        assertTrue(size.isUserUnderwater(alice), "borrower should be underwater");
+        assertTrue(size.isDebtPositionLiquidatable(debtPositionId), "loan should be liquidatable");
+
+        _deposit(liquidator, usdc, 10_000e6);
+        _liquidate(liquidator, debtPositionId);
+    }
+
+    function test_Liquidate_overdue_experiment() public {
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
+
+        // Bob lends as limit order
+        _lendAsLimitOrder(
+            bob, block.timestamp + 5 days, [int256(0.03e18), int256(0.03e18)], [uint256(3 days), uint256(8 days)]
+        );
+
+        // Alice deposits in WETH
+        _deposit(alice, weth, 50e18);
+
+        // Alice borrows as market order from Bob
+        _borrowAsMarketOrder(alice, bob, 70e6, block.timestamp + 5 days);
+
+        // Move forward the clock as the loan is overdue
+        vm.warp(block.timestamp + 6 days);
+
+        // Assert loan conditions
+        assertEq(size.getLoanStatus(0), LoanStatus.OVERDUE, "Loan should be overdue");
+        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
+        assertEq(debtPositionsCount, 1, "Expect one active loan");
+        assertEq(creditPositionsCount, 1, "Expect one active loan");
+
+        assertGt(size.getDebt(0), 0, "Loan should not be repaid before moving to the variable pool");
+        uint256 aliceCollateralBefore = _state().alice.collateralTokenBalance;
+        assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
+
+        // add funds
+        _deposit(liquidator, usdc, 1_000e6);
+
+        // Liquidate Overdue
+        _liquidate(liquidator, 0);
+
+        uint256 aliceCollateralAfter = _state().alice.collateralTokenBalance;
+
+        // Assert post-overdue liquidation conditions
+        assertEq(size.getDebt(0), 0, "Loan should be repaid by moving into the variable pool");
+        assertLt(
+            aliceCollateralAfter,
+            aliceCollateralBefore,
+            "Alice should have lost some collateral after the overdue liquidation"
+        );
+    }
+
     function test_Liquidate_liquidate_charge_repayFee() internal {}
 
     function test_Liquidate_unprofitable_may_not_award_repayFee() internal {}
