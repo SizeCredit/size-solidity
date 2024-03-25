@@ -5,7 +5,7 @@ import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 /// @title Errors
 library Errors {
-    error USER_IS_LIQUIDATABLE(address account, uint256 cr);
+    error USER_IS_UNDERWATER(address account, uint256 cr);
     error NULL_ADDRESS();
     error NULL_AMOUNT();
     error NULL_MAX_DUE_DATE();
@@ -62,7 +62,6 @@ library Errors {
     error LOAN_NOT_REPAID(uint256 positionId);
     error LOAN_NOT_ACTIVE(uint256 positionId);
 
-    error NOT_LIQUIDATABLE(address account);
     error LOAN_NOT_LIQUIDATABLE(uint256 debtPositionId, uint256 cr, LoanStatus status);
     error LOAN_NOT_SELF_LIQUIDATABLE(uint256 creditPositionId, uint256 cr, LoanStatus status);
     error LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT(

@@ -46,6 +46,8 @@ library Events {
         address indexed borrower,
         uint256 issuanceValue,
         uint256 faceValue,
+        uint256 repayFee,
+        uint256 overdueLiquidatorReward,
         uint256 dueDate
     );
     event CreateCreditPosition(

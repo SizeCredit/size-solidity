@@ -96,12 +96,12 @@ forge test
 
 | File                                                     | % Lines           | % Statements       | % Branches       | % Funcs          |
 |----------------------------------------------------------|-------------------|--------------------|------------------|------------------|
-| src/Size.sol                                             | 98.18% (54/55)    | 98.18% (54/55)     | 100.00% (0/0)    | 94.44% (17/18)   |
+| src/Size.sol                                             | 98.21% (55/56)    | 98.28% (57/58)     | 100.00% (0/0)    | 94.44% (17/18)   |
 | src/SizeView.sol                                         | 43.90% (18/41)    | 48.61% (35/72)     | 0.00% (0/8)      | 77.27% (17/22)   |
 | src/libraries/ConversionLibrary.sol                      | 100.00% (1/1)     | 100.00% (3/3)      | 100.00% (0/0)    | 100.00% (1/1)    |
 | src/libraries/Math.sol                                   | 91.30% (21/23)    | 92.31% (36/39)     | 83.33% (5/6)     | 91.67% (11/12)   |
 | src/libraries/fixed/AccountingLibrary.sol                | 100.00% (31/31)   | 100.00% (37/37)    | 100.00% (2/2)    | 83.33% (5/6)     |
-| src/libraries/fixed/CapsLibrary.sol                      | 90.00% (9/10)     | 93.33% (14/15)     | 50.00% (4/8)     | 100.00% (4/4)    |
+| src/libraries/fixed/CapsLibrary.sol                      | 88.89% (8/9)      | 92.31% (12/13)     | 50.00% (4/8)     | 100.00% (4/4)    |
 | src/libraries/fixed/CollateralLibrary.sol                | 100.00% (6/6)     | 100.00% (8/8)      | 100.00% (0/0)    | 100.00% (2/2)    |
 | src/libraries/fixed/LoanLibrary.sol                      | 91.11% (41/45)    | 89.71% (61/68)     | 93.75% (15/16)   | 92.31% (12/13)   |
 | src/libraries/fixed/OfferLibrary.sol                     | 0.00% (0/6)       | 0.00% (0/12)       | 100.00% (0/0)    | 0.00% (0/4)      |
@@ -110,11 +110,11 @@ forge test
 | src/libraries/fixed/YieldCurveLibrary.sol                | 100.00% (33/33)   | 100.00% (62/62)    | 88.89% (16/18)   | 100.00% (4/4)    |
 | src/libraries/fixed/actions/BorrowAsLimitOrder.sol       | 100.00% (5/5)     | 100.00% (6/6)      | 100.00% (2/2)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/BorrowAsMarketOrder.sol      | 98.33% (59/60)    | 98.59% (70/71)     | 95.83% (23/24)   | 100.00% (4/4)    |
-| src/libraries/fixed/actions/BorrowerExit.sol             | 97.30% (36/37)    | 97.78% (44/45)     | 83.33% (10/12)   | 100.00% (2/2)    |
+| src/libraries/fixed/actions/BorrowerExit.sol             | 97.30% (36/37)    | 97.73% (43/44)     | 83.33% (10/12)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Claim.sol                    | 100.00% (11/11)   | 100.00% (16/16)    | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Compensate.sol               | 100.00% (35/35)   | 100.00% (40/40)    | 100.00% (14/14)  | 100.00% (2/2)    |
 | src/libraries/fixed/actions/LendAsLimitOrder.sol         | 90.00% (9/10)     | 90.00% (9/10)      | 83.33% (5/6)     | 100.00% (2/2)    |
-| src/libraries/fixed/actions/LendAsMarketOrder.sol        | 100.00% (30/30)   | 100.00% (33/33)    | 92.86% (13/14)   | 100.00% (2/2)    |
+| src/libraries/fixed/actions/LendAsMarketOrder.sol        | 100.00% (29/29)   | 100.00% (32/32)    | 92.86% (13/14)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Liquidate.sol                | 100.00% (33/33)   | 100.00% (43/43)    | 66.67% (4/6)     | 100.00% (4/4)    |
 | src/libraries/fixed/actions/LiquidateWithReplacement.sol | 91.67% (33/36)    | 93.18% (41/44)     | 70.00% (7/10)    | 100.00% (3/3)    |
 | src/libraries/fixed/actions/Repay.sol                    | 100.00% (15/15)   | 100.00% (20/20)    | 83.33% (5/6)     | 100.00% (2/2)    |

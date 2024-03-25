@@ -48,7 +48,6 @@ struct DataView {
     IERC20Metadata underlyingBorrowToken;
     IPool variablePool;
     NonTransferrableToken collateralToken;
-    IAToken collateralAToken;
     IAToken borrowAToken;
     NonTransferrableToken debtToken;
 }
@@ -70,16 +69,20 @@ abstract contract SizeView is SizeStorage {
         return state.collateralRatio(user);
     }
 
-    function isUserLiquidatable(address user) external view returns (bool) {
-        return state.isUserLiquidatable(user);
+    function isUserUnderwater(address user) external view returns (bool) {
+        return state.isUserUnderwater(user);
     }
 
     function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool) {
         return state.isDebtPositionLiquidatable(debtPositionId);
     }
 
-    function getDebt(uint256 debtPositionId) external view returns (uint256) {
-        return state.getDebtPosition(debtPositionId).getDebt();
+    function getOverdueDebt(uint256 debtPositionId) external view returns (uint256) {
+        return state.getDebtPosition(debtPositionId).getTotalDebt();
+    }
+
+    function getDueDateDebt(uint256 debtPositionId) external view returns (uint256) {
+        return state.getDebtPosition(debtPositionId).getDueDateDebt();
     }
 
     function getAPR(uint256 debtPositionId) external view returns (uint256) {
@@ -113,7 +116,6 @@ abstract contract SizeView is SizeStorage {
             underlyingBorrowToken: state.data.underlyingBorrowToken,
             variablePool: state.data.variablePool,
             collateralToken: state.data.collateralToken,
-            collateralAToken: state.data.collateralAToken,
             borrowAToken: state.data.borrowAToken,
             debtToken: state.data.debtToken
         });

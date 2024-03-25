@@ -50,7 +50,7 @@ library RiskLibrary {
         LoanStatus status = state.getLoanStatus(creditPositionId);
         // Only CreditPositions can be self liquidated
         return state.isCreditPositionId(creditPositionId)
-            && (isUserLiquidatable(state, debtPosition.borrower) && status != LoanStatus.REPAID);
+            && (isUserUnderwater(state, debtPosition.borrower) && status != LoanStatus.REPAID);
     }
 
     function isDebtPositionLiquidatable(State storage state, uint256 debtPositionId) public view returns (bool) {
@@ -58,21 +58,21 @@ library RiskLibrary {
         LoanStatus status = state.getLoanStatus(debtPositionId);
         // only DebtPositions can be liquidated
         return state.isDebtPositionId(debtPositionId)
-        // case 1: if the user is liquidatable, only ACTIVE/OVERDUE DebtPositions can be liquidated
+        // case 1: if the user is underwater, only ACTIVE/OVERDUE DebtPositions can be liquidated
         && (
-            (isUserLiquidatable(state, debtPosition.borrower) && status != LoanStatus.REPAID)
+            (isUserUnderwater(state, debtPosition.borrower) && status != LoanStatus.REPAID)
             // case 2: overdue loans can always be liquidated regardless of the user's CR
             || status == LoanStatus.OVERDUE
         );
     }
 
-    function isUserLiquidatable(State storage state, address account) public view returns (bool) {
+    function isUserUnderwater(State storage state, address account) public view returns (bool) {
         return collateralRatio(state, account) < state.riskConfig.crLiquidation;
     }
 
-    function validateUserIsNotLiquidatable(State storage state, address account) external view {
-        if (isUserLiquidatable(state, account)) {
-            revert Errors.USER_IS_LIQUIDATABLE(account, collateralRatio(state, account));
+    function validateUserIsNotUnderwater(State storage state, address account) external view {
+        if (isUserUnderwater(state, account)) {
+            revert Errors.USER_IS_UNDERWATER(account, collateralRatio(state, account));
         }
     }
 

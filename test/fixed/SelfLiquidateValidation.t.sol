@@ -3,17 +3,16 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {Math} from "@src/libraries/Math.sol";
 
 contract SelfLiquidateValidationTest is BaseTest {
     function test_SelfLiquidate_validation() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
@@ -36,7 +35,7 @@ contract SelfLiquidateValidationTest is BaseTest {
         _setPrice(0.75e18);
 
         uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(debtPositionId);
-        uint256 debtCollateral = size.debtTokenAmountToCollateralTokenAmount(size.getDebt(debtPositionId));
+        uint256 debtCollateral = size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId));
 
         vm.startPrank(alice);
         vm.expectRevert(

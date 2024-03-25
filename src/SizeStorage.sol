@@ -19,10 +19,9 @@ struct FeeConfig {
     uint256 repayFeeAPR; // annual percentage rate of the protocol repay fee
     uint256 earlyLenderExitFee; // fee for early lender exits
     uint256 earlyBorrowerExitFee; // fee for early borrower exits
-    uint256 collateralLiquidatorFixed; // fixed reward for liquidators in collateral tokens
     uint256 collateralLiquidatorPercent; // percent of collateral remainder to be split with liquidator on profitable liquidations
     uint256 collateralProtocolPercent; // percent of collateral to be split with protocol on profitable liquidations
-    uint256 overdueColLiquidatorFixed; // fixed reward for liquidators in collateral tokens during overdue liquidations
+    uint256 overdueLiquidatorReward; // fixed reward for liquidators during overdue liquidations
     uint256 overdueColLiquidatorPercent; // percent of collateral remainder to be split with liquidator on overdue liquidations
     uint256 overdueColProtocolPercent; // percent of collateral to be split with protocol on overdue liquidations
     address feeRecipient; // address to receive protocol fees
@@ -50,12 +49,11 @@ struct Data {
     uint256 nextDebtPositionId; // next debt position id
     uint256 nextCreditPositionId; // next credit position id
     IWETH weth; // Wrapped Ether contract address
-    IERC20Metadata underlyingCollateralToken; // the token used by borrowers to collateralize their loans
+    IERC20Metadata underlyingCollateralToken; // // the token used by borrowers to collateralize their loans
     IERC20Metadata underlyingBorrowToken; // the token lent from lenders to borrowers
-    NonTransferrableToken collateralToken; // e.g. Size tokenized underlying collateral token
-    IAToken borrowAToken; // e.g. Variable Pool's rebasing AToken from the underlying borrow token
-    IAToken collateralAToken; // e.g. Variable Pool's rebasing AToken from the underlying collateral token
-    NonTransferrableToken debtToken; // e.g. Size tokenized debt
+    NonTransferrableToken collateralToken; // // Size tokenized underlying collateral token
+    IAToken borrowAToken; // Variable Pool's rebasing AToken from the underlying borrow token
+    NonTransferrableToken debtToken; // Size tokenized debt
     IPool variablePool; // Variable Pool (Aave v3)
     Vault vaultImplementation; // Vault implementation
 }

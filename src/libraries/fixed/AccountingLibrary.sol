@@ -38,9 +38,11 @@ library AccountingLibrary {
     }
 
     /// @notice Charges the repay fee and updates the debt position
+    ///         If the fees are greater than the collateral balance, they are capped to the borrower balance
     /// @dev The repay fee is charged in collateral tokens
     ///      Rounds fees down during partial repayment
-    ///      During early repayment, the full repayFee is deducted from the borrower debt, as it had been provisioned during the loan creation
+    ///      During early repayment, the full repayFee should be deducted from the borrower debt, as it had been provisioned during the loan creation
+    ///      The calculation of the earlyRepayFee assumes the full faceValue is repaid early (repayAmount == debtPosition.faceValue)
     /// @param state The state object
     /// @param debtPosition The debt position
     /// @param repayAmount The amount to repay
@@ -50,22 +52,26 @@ library AccountingLibrary {
         DebtPosition storage debtPosition,
         uint256 repayAmount,
         bool isEarlyRepay
-    ) public returns (uint256 repayFee) {
-        repayFee = Math.mulDivDown(debtPosition.repayFee, repayAmount, debtPosition.faceValue);
-        uint256 repayFeeCollateral;
+    ) public returns (uint256 repayFeeProRata) {
+        repayFeeProRata = Math.mulDivDown(debtPosition.repayFee, repayAmount, debtPosition.faceValue);
 
+        uint256 repayFeeCollateral;
         if (isEarlyRepay) {
             uint256 earlyRepayFee = debtPosition.earlyRepayFee();
             repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
         } else {
-            repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFee);
+            repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFeeProRata);
+        }
+
+        if (state.data.collateralToken.balanceOf(debtPosition.borrower) < repayFeeCollateral) {
+            repayFeeCollateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
         }
 
         state.data.collateralToken.transferFrom(debtPosition.borrower, state.feeConfig.feeRecipient, repayFeeCollateral);
-
-        state.data.debtToken.burn(debtPosition.borrower, repayFee);
     }
 
+    /// @notice Charges the repay fee and updates the debt position during early repayment
+    /// @dev The calculation of the earlyRepayFee assumes the full faceValue is repaid early (repayAmount == debtPosition.faceValue)
     function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition)
         external
         returns (uint256)
@@ -87,13 +93,14 @@ library AccountingLibrary {
         uint256 issuanceValue,
         uint256 faceValue,
         uint256 dueDate
-    ) external returns (DebtPosition memory debtPosition, CreditPosition memory creditPosition) {
+    ) external returns (DebtPosition memory debtPosition) {
         debtPosition = DebtPosition({
             lender: lender,
             borrower: borrower,
             issuanceValue: issuanceValue,
             faceValue: faceValue,
             repayFee: LoanLibrary.repayFee(issuanceValue, block.timestamp, dueDate, state.feeConfig.repayFeeAPR),
+            overdueLiquidatorReward: state.feeConfig.overdueLiquidatorReward,
             startDate: block.timestamp,
             dueDate: dueDate,
             liquidityIndexAtRepayment: 0
@@ -102,9 +109,18 @@ library AccountingLibrary {
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;
 
-        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, issuanceValue, faceValue, dueDate);
+        emit Events.CreateDebtPosition(
+            debtPositionId,
+            lender,
+            borrower,
+            issuanceValue,
+            faceValue,
+            debtPosition.repayFee,
+            debtPosition.overdueLiquidatorReward,
+            dueDate
+        );
 
-        creditPosition =
+        CreditPosition memory creditPosition =
             CreditPosition({lender: lender, credit: debtPosition.faceValue, debtPositionId: debtPositionId});
 
         uint256 creditPositionId = state.data.nextCreditPositionId++;

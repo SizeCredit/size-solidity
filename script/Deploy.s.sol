@@ -53,12 +53,12 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         deployments.push(Deployment({name: "Size-proxy", addr: address(proxy)}));
         deployments.push(Deployment({name: "PriceFeed", addr: address(priceFeed)}));
         deployments.push(Deployment({name: "VariablePoolBorrowRateFeed", addr: address(variablePoolBorrowRateFeed)}));
-        deployments.push(Deployment({name: "VariablePool", addr: address(variablePool)}));
         parameters.push(Parameter({key: "owner", value: Strings.toHexString(deployer)}));
         parameters.push(Parameter({key: "usdc", value: Strings.toHexString(usdc)}));
         parameters.push(Parameter({key: "weth", value: Strings.toHexString(weth)}));
         parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(wethAggregator)}));
         parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(usdcAggregator)}));
+        parameters.push(Parameter({key: "variablePool", value: Strings.toHexString(address(variablePool))}));
 
         console.log("[Size v2] deployed\n");
 

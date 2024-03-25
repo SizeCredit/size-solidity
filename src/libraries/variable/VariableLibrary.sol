@@ -74,7 +74,7 @@ library VariableLibrary {
     /// @param from The address of the sender
     /// @param to The address of the recipient
     /// @param amount The amount of aTokens to transfer
-    function transferBorrowATokenFixed(State storage state, address from, address to, uint256 amount) public {
+    function transferBorrowAToken(State storage state, address from, address to, uint256 amount) public {
         if (borrowATokenBalanceOf(state, from) < amount) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
         }
