@@ -114,7 +114,7 @@ jobs:
 
       - name: Install Echidna
         run: |
-          wget https://github.com/crytic/echidna/releases/download/v2.2.2/echidna-2.2.2-x86_64-linux.tar.gz -O echidna.tar.gz
+          wget https://github.com/crytic/echidna/releases/download/v2.2.3/echidna-2.2.3-x86_64-linux.tar.gz -O echidna.tar.gz
           tar -xvkf echidna.tar.gz
           rm echidna.tar.gz
           ./echidna --version

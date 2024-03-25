@@ -2,7 +2,6 @@
 pragma solidity 0.8.23;
 
 import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
-import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
@@ -35,11 +34,20 @@ library Events {
         bool exactAmountIn,
         uint256[] receivableCreditPositionIds
     );
-    event BorrowAsLimitOrder(YieldCurve indexed curveRelativeTime);
+    event BorrowAsLimitOrder(
+        uint256[] indexed curveRelativeTimeMaturities,
+        int256[] indexed curveRelativeTimeAprs,
+        uint256[] indexed curveRelativeTimeMarketRateMultipliers
+    );
     event LendAsMarketOrder(
         address indexed borrower, uint256 indexed dueDate, uint256 indexed amount, bool exactAmountIn
     );
-    event LendAsLimitOrder(uint256 indexed maxDueDate, YieldCurve indexed curveRelativeTime);
+    event LendAsLimitOrder(
+        uint256[] indexed curveRelativeTimeMaturities,
+        int256[] indexed curveRelativeTimeAprs,
+        uint256[] indexed curveRelativeTimeMarketRateMultipliers,
+        uint256 maxDueDate
+    );
     event CreateDebtPosition(
         uint256 indexed debtPositionId,
         address indexed lender,
