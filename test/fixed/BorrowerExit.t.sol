@@ -94,6 +94,7 @@ contract BorrowerExitTest is BaseTest {
     function test_BorrowerExit_borrowerExit_cannot_leave_borrower_liquidatable() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
         _deposit(bob, usdc, 100e6 + size.feeConfig().earlyBorrowerExitFee);
@@ -121,6 +122,7 @@ contract BorrowerExitTest is BaseTest {
         vm.warp(block.timestamp + 12345 days);
         _updateConfig("collateralTokenCap", type(uint256).max);
         _updateConfig("borrowATokenCap", type(uint256).max);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1000e6);
         _deposit(candy, weth, 2000e18);
@@ -201,6 +203,7 @@ contract BorrowerExitTest is BaseTest {
         _updateConfig("borrowATokenCap", type(uint256).max);
         _updateConfig("earlyBorrowerExitFee", 0);
         _updateConfig("repayFeeAPR", 0.1e18);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1000e6);
         _deposit(candy, weth, 2000e18);
@@ -210,7 +213,7 @@ contract BorrowerExitTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 365 days);
 
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 110e6);
-        assertEq(size.getDebt(debtPositionId), 120e6);
+        assertEq(size.getOverdueDebt(debtPositionId), 120e6);
         vm.warp(block.timestamp + (365 days) / 2);
 
         _deposit(alice, usdc, 1000e6);
@@ -220,6 +223,37 @@ contract BorrowerExitTest is BaseTest {
 
         assertEqApprox(_after.candy.borrowATokenBalance, 104.76e6, 0.01e6);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 110e6);
-        assertLt(size.getDebt(debtPositionId), 120e6);
+        assertLt(size.getOverdueDebt(debtPositionId), 120e6);
+    }
+
+    function test_BorrowerExit_borrowerExit_experiment() public {
+        _setPrice(1e18);
+        _updateConfig("collateralTokenCap", type(uint256).max);
+        _updateConfig("borrowATokenCap", type(uint256).max);
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
+
+        // Bob lends as limit order
+        _lendAsLimitOrder(
+            bob, block.timestamp + 10 days, [int256(0.03e18), int256(0.03e18)], [uint256(3 days), uint256(8 days)]
+        );
+
+        // Candy deposits in WETH
+        _deposit(candy, weth, 200e18);
+
+        // Candy places a borrow limit order
+        _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
+
+        // Alice deposits in WETH and USDC
+        _deposit(alice, weth, 5000e18);
+        _deposit(alice, usdc, 200e6);
+        assertEq(_state().alice.borrowATokenBalance, 200e6);
+
+        // Alice borrows from Bob's offer
+        _borrowAsMarketOrder(alice, bob, 70e6, block.timestamp + 5 days);
+
+        // Borrower (Alice) exits the loan to the offer made by Candy
+        _borrowerExit(alice, 0, candy);
     }
 }

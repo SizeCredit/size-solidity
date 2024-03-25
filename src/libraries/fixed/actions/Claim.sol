@@ -44,7 +44,7 @@ library Claim {
             creditPosition.credit, state.borrowATokenLiquidityIndex(), debtPosition.liquidityIndexAtRepayment
         );
         creditPosition.credit = 0;
-        state.transferBorrowATokenFixed(address(this), creditPosition.lender, claimAmount);
+        state.transferBorrowAToken(address(this), creditPosition.lender, claimAmount);
 
         emit Events.Claim(params.creditPositionId, creditPosition.debtPositionId);
     }

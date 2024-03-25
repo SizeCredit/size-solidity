@@ -41,10 +41,13 @@ contract LendAsMarketOrderTest is BaseTest {
 
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
+        assertEq(
+            _after.alice.debtBalance,
+            _before.alice.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
+        );
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
-        assertEq(size.getDebt(debtPositionId), faceValue + repayFee);
+        assertEq(size.getOverdueDebt(debtPositionId), faceValue + repayFee + size.feeConfig().overdueLiquidatorReward);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
@@ -70,7 +73,10 @@ contract LendAsMarketOrderTest is BaseTest {
 
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
+        assertEq(
+            _after.alice.debtBalance,
+            _before.alice.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
+        );
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
@@ -102,7 +108,10 @@ contract LendAsMarketOrderTest is BaseTest {
 
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
-        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
+        assertEq(
+            _after.alice.debtBalance,
+            _before.alice.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
+        );
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
@@ -111,6 +120,7 @@ contract LendAsMarketOrderTest is BaseTest {
     function test_LendAsMarketOrder_lendAsMarketOrder_cannot_leave_borrower_liquidatable() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
         _borrowAsLimitOrder(alice, 0, block.timestamp + 365 days);
@@ -135,6 +145,7 @@ contract LendAsMarketOrderTest is BaseTest {
         _setPrice(1e18);
         _updateConfig("debtTokenCap", 5e6);
         _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
         _borrowAsLimitOrder(alice, 0, block.timestamp + 365 days);
@@ -197,5 +208,30 @@ contract LendAsMarketOrderTest is BaseTest {
                 exactAmountIn: false
             })
         );
+    }
+
+    function test_LendAsMarketOrder_lendAsMarketOrder_experiment() public {
+        _setPrice(1e18);
+        // Alice deposits in WETH
+        _deposit(alice, weth, 200e18);
+
+        // Alice places a borrow limit order
+        _borrowAsLimitOrder(alice, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
+
+        // Bob deposits in USDC
+        _deposit(bob, usdc, 100e6);
+        assertEq(_state().bob.borrowATokenBalance, 100e6);
+
+        // Assert there are no active loans initially
+        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
+        assertEq(debtPositionsCount, 0, "There should be no active loans initially");
+
+        // Bob lends to Alice's offer in the market order
+        _lendAsMarketOrder(bob, alice, 70e6, block.timestamp + 5 days);
+
+        // Assert a loan is active after lending
+        (debtPositionsCount, creditPositionsCount) = size.getPositionsCount();
+        assertEq(debtPositionsCount, 1, "There should be one active loan after lending");
+        assertEq(creditPositionsCount, 1, "There should be one active loan after lending");
     }
 }

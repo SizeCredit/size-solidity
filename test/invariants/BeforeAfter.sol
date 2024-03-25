@@ -42,18 +42,18 @@ abstract contract BeforeAfter is Deploy {
             if (size.isCreditPositionId(positionId)) {
                 c = size.getCreditPosition(positionId);
                 vars.borrower = size.getUserView(size.getDebtPosition(c.debtPositionId).borrower);
-                vars.isBorrowerLiquidatable = size.isUserLiquidatable(vars.borrower.account);
+                vars.isBorrowerLiquidatable = size.isUserUnderwater(vars.borrower.account);
                 vars.lender = size.getUserView(c.lender);
             } else {
                 d = size.getDebtPosition(positionId);
                 vars.borrower = size.getUserView(d.borrower);
-                vars.isBorrowerLiquidatable = size.isUserLiquidatable(d.borrower);
+                vars.isBorrowerLiquidatable = size.isUserUnderwater(d.borrower);
                 vars.lender = size.getUserView(d.lender);
             }
             vars.loanStatus = size.getLoanStatus(positionId);
         }
         vars.sender = size.getUserView(sender);
-        vars.isSenderLiquidatable = size.isUserLiquidatable(sender);
+        vars.isSenderLiquidatable = size.isUserUnderwater(sender);
         vars.senderCollateralAmount = weth.balanceOf(sender);
         vars.senderBorrowAmount = usdc.balanceOf(sender);
         (vars.debtPositionsCount, vars.creditPositionsCount) = size.getPositionsCount();
