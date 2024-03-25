@@ -35,7 +35,7 @@ contract SelfLiquidateValidationTest is BaseTest {
         _setPrice(0.75e18);
 
         uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(debtPositionId);
-        uint256 debtCollateral = size.debtTokenAmountToCollateralTokenAmount(size.getDebt(debtPositionId));
+        uint256 debtCollateral = size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId));
 
         vm.startPrank(alice);
         vm.expectRevert(

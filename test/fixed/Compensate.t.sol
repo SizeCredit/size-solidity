@@ -34,12 +34,12 @@ contract CompensateTest is BaseTest {
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[0];
         uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
-        uint256 repaidLoanDebtBefore = size.getDebt(loanId3);
+        uint256 repaidLoanDebtBefore = size.getOverdueDebt(loanId3);
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionId).credit;
 
         _compensate(alice, creditPositionId3, creditPositionId);
 
-        uint256 repaidLoanDebtAfter = size.getDebt(loanId3);
+        uint256 repaidLoanDebtAfter = size.getOverdueDebt(loanId3);
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionId).credit;
 
         assertEq(
@@ -74,13 +74,13 @@ contract CompensateTest is BaseTest {
         _borrowAsMarketOrder(bob, alice, 10e6, block.timestamp + 365 days, [creditPositionId]);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
-        uint256 repaidLoanDebtBefore = size.getDebt(debtPositionId);
+        uint256 repaidLoanDebtBefore = size.getOverdueDebt(debtPositionId);
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionId2).credit;
         uint256 creditFromRepaidPositionBefore = size.getCreditPosition(creditPositionId).credit;
 
         _compensate(alice, creditPositionId, creditPositionId2);
 
-        uint256 repaidLoanDebtAfter = size.getDebt(debtPositionId);
+        uint256 repaidLoanDebtAfter = size.getOverdueDebt(debtPositionId);
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionId2).credit;
         uint256 creditFromRepaidPositionAfter = size.getCreditPosition(creditPositionId).credit;
 
@@ -230,12 +230,12 @@ contract CompensateTest is BaseTest {
         uint256 creditPositionWithDebtToRepayId = size.getCreditPositionIdsByDebtPositionId(loanToRepay)[0];
         uint256 repayFee = size.getDebtPosition(loanToCompensateId).repayFee;
 
-        uint256 repaidLoanDebtBefore = size.getDebt(loanToRepay);
+        uint256 repaidLoanDebtBefore = size.getOverdueDebt(loanToRepay);
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionToCompensateId).credit;
 
         _compensate(alice, creditPositionWithDebtToRepayId, creditPositionToCompensateId);
 
-        uint256 repaidLoanDebtAfter = size.getDebt(loanToRepay);
+        uint256 repaidLoanDebtAfter = size.getOverdueDebt(loanToRepay);
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionToCompensateId).credit;
 
         assertEq(

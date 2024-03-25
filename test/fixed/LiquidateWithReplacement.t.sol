@@ -44,7 +44,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _before = _state();
 
         assertEq(size.getDebtPosition(debtPositionId).borrower, bob);
-        assertGt(size.getDebt(debtPositionId), 0);
+        assertGt(size.getOverdueDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
 
         _liquidateWithReplacement(liquidator, debtPositionId, candy);
@@ -59,7 +59,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + amount);
         assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
-        assertGt(size.getDebt(debtPositionId), 0);
+        assertGt(size.getOverdueDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
     }
 
@@ -89,7 +89,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _before = _state();
 
         assertEq(size.getDebtPosition(debtPositionId).borrower, bob);
-        assertGt(size.getDebt(debtPositionId), 0);
+        assertGt(size.getOverdueDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
 
         _liquidateWithReplacement(liquidator, debtPositionId, candy);
@@ -106,7 +106,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
         assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
-        assertGt(size.getDebt(debtPositionId), 0);
+        assertGt(size.getOverdueDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
     }
 

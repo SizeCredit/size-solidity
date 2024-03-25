@@ -34,7 +34,7 @@ contract LiquidateTest is BaseTest {
         uint256 assigned = 100e18;
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), assigned);
-        assertEq(size.getDebt(debtPositionId), faceValue);
+        assertEq(size.getOverdueDebt(debtPositionId), faceValue);
         assertEq(size.collateralRatio(bob), Math.mulDivDown(assigned, PERCENT, (debtWad * 1)));
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
@@ -42,7 +42,7 @@ contract LiquidateTest is BaseTest {
         _setPrice(0.2e18);
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), assigned);
-        assertEq(size.getDebt(debtPositionId), faceValue);
+        assertEq(size.getOverdueDebt(debtPositionId), faceValue);
         assertEq(size.collateralRatio(bob), Math.mulDivDown(assigned, PERCENT, (debtWad * 5)));
         assertTrue(size.isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
@@ -198,7 +198,7 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
-        assertGt(size.getDebt(debtPositionId), 0);
+        assertGt(size.getOverdueDebt(debtPositionId), 0);
 
         uint256 assignedCollateral = _before.bob.collateralTokenBalance;
         assertEq(assignedCollateral, 180e18);
@@ -244,7 +244,7 @@ contract LiquidateTest is BaseTest {
             _after.liquidator.collateralTokenBalance,
             _before.liquidator.collateralTokenBalance + liquidatorProfitCollateralTokenFixed + liquidatorSplit
         );
-        assertEq(size.getDebt(debtPositionId), 0);
+        assertEq(size.getOverdueDebt(debtPositionId), 0);
         assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
         assertEq(_after.bob.debtBalance, 0);
     }
@@ -264,7 +264,7 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
-        assertGt(size.getDebt(debtPositionId), 0);
+        assertGt(size.getOverdueDebt(debtPositionId), 0);
 
         uint256 assignedCollateral = _before.bob.collateralTokenBalance;
 
@@ -278,7 +278,7 @@ contract LiquidateTest is BaseTest {
         uint256 collateralRemainder = Math.min(
             assignedCollateral - liquidatorProfitCollateralTokenFixed,
             Math.mulDivDown(
-                size.debtTokenAmountToCollateralTokenAmount(size.getDebt(debtPositionId)),
+                size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId)),
                 size.riskConfig().crLiquidation,
                 PERCENT
             )
@@ -307,7 +307,7 @@ contract LiquidateTest is BaseTest {
             _after.liquidator.collateralTokenBalance,
             _before.liquidator.collateralTokenBalance + liquidatorProfitCollateralTokenFixed + liquidatorSplit
         );
-        assertEq(size.getDebt(debtPositionId), 0);
+        assertEq(size.getOverdueDebt(debtPositionId), 0);
         assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
         assertEq(_after.bob.debtBalance, 0);
     }
@@ -419,7 +419,7 @@ contract LiquidateTest is BaseTest {
         assertEq(debtPositionsCount, 1, "Expect one active loan");
         assertEq(creditPositionsCount, 1, "Expect one active loan");
 
-        assertGt(size.getDebt(0), 0, "Loan should not be repaid before moving to the variable pool");
+        assertGt(size.getOverdueDebt(0), 0, "Loan should not be repaid before moving to the variable pool");
         uint256 aliceCollateralBefore = _state().alice.collateralTokenBalance;
         assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
 
@@ -432,7 +432,7 @@ contract LiquidateTest is BaseTest {
         uint256 aliceCollateralAfter = _state().alice.collateralTokenBalance;
 
         // Assert post-overdue liquidation conditions
-        assertEq(size.getDebt(0), 0, "Loan should be repaid by moving into the variable pool");
+        assertEq(size.getOverdueDebt(0), 0, "Loan should be repaid by moving into the variable pool");
         assertLt(
             aliceCollateralAfter,
             aliceCollateralBefore,

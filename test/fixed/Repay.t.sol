@@ -42,7 +42,7 @@ contract RepayTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
         assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertEq(size.getDebt(debtPositionId), 0);
+        assertEq(size.getOverdueDebt(debtPositionId), 0);
     }
 
     function test_Repay_overdue_does_not_increase_debt() public {
@@ -68,7 +68,7 @@ contract RepayTest is BaseTest {
         assertEq(_overdue.bob.debtBalance, _before.bob.debtBalance);
         assertEq(_overdue.bob.borrowATokenBalance, _before.bob.borrowATokenBalance);
         assertEq(_overdue.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertGt(size.getDebt(debtPositionId), 0);
+        assertGt(size.getOverdueDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.OVERDUE);
 
         _repay(bob, debtPositionId);
@@ -83,7 +83,7 @@ contract RepayTest is BaseTest {
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
         assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
-        assertEq(size.getDebt(debtPositionId), 0);
+        assertEq(size.getOverdueDebt(debtPositionId), 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
     }
 

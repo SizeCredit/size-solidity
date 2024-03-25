@@ -2,7 +2,6 @@
 pragma solidity 0.8.23;
 
 import {Math} from "@src/libraries/Math.sol";
-import {console} from "forge-std/console.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
@@ -72,7 +71,7 @@ library Liquidate {
         returns (uint256 liquidatorProfitCollateralToken)
     {
         uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPosition);
-        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.getDebt());
+        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.getTotalDebt());
         liquidatorProfitCollateralToken =
             state.debtTokenAmountToCollateralTokenAmount(debtPosition.faceValue + vars.collateralLiquidatorFixed);
 
@@ -112,7 +111,7 @@ library Liquidate {
 
         emit Events.Liquidate(params.debtPositionId, params.minimumCollateralProfit, collateralRatio, loanStatus);
 
-        uint256 debt = debtPosition.getDebt();
+        uint256 debt = debtPosition.getTotalDebt();
 
         LiquidatePathVars memory vars = state.isUserUnderwater(debtPosition.borrower)
             ? LiquidatePathVars({

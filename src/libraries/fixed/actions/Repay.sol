@@ -43,7 +43,7 @@ library Repay {
 
     function executeRepay(State storage state, RepayParams calldata params) external {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
-        uint256 debt = debtPosition.getDebt();
+        uint256 debt = debtPosition.getTotalDebt();
         uint256 faceValue = debtPosition.faceValue;
 
         state.transferBorrowAToken(msg.sender, address(this), faceValue);

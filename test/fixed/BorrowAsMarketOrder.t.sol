@@ -219,7 +219,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         );
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isDebtPositionId(loanId2));
-        assertEq(size.getDebt(loanId2), faceValue + repayFee + size.feeConfig().overdueLiquidatorReward);
+        assertEq(size.getOverdueDebt(loanId2), faceValue + repayFee + size.feeConfig().overdueLiquidatorReward);
     }
 
     function testFuzz_BorrowAsMarketOrder_borrowAsMarketOrder_with_credit_and_real_collateral(
@@ -273,7 +273,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue + repayFee);
         assertEq(_after.bob, _before.bob);
         assertTrue(size.isDebtPositionId(loanId2));
-        assertEq(size.getDebt(loanId2), faceValue + repayFee);
+        assertEq(size.getOverdueDebt(loanId2), faceValue + repayFee);
     }
 
     function test_BorrowAsMarketOrder_borrowAsMarketOrder_with_credit_properties() public {

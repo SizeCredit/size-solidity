@@ -77,8 +77,12 @@ abstract contract SizeView is SizeStorage {
         return state.isDebtPositionLiquidatable(debtPositionId);
     }
 
-    function getDebt(uint256 debtPositionId) external view returns (uint256) {
-        return state.getDebtPosition(debtPositionId).getDebt();
+    function getOverdueDebt(uint256 debtPositionId) external view returns (uint256) {
+        return state.getDebtPosition(debtPositionId).getTotalDebt();
+    }
+
+    function getDueDateDebt(uint256 debtPositionId) external view returns (uint256) {
+        return state.getDebtPosition(debtPositionId).getDueDateDebt();
     }
 
     function getAPR(uint256 debtPositionId) external view returns (uint256) {

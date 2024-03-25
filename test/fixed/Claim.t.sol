@@ -322,7 +322,7 @@ contract ClaimTest is BaseTest {
         _deposit(james, usdc, debtPosition.faceValue);
 
         _repay(james, 0);
-        assertEq(size.getDebt(debtPositionId), 0);
+        assertEq(size.getOverdueDebt(debtPositionId), 0);
 
         _claim(alice, creditPositionId);
 

@@ -47,7 +47,7 @@ contract LendAsMarketOrderTest is BaseTest {
         );
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
-        assertEq(size.getDebt(debtPositionId), faceValue + repayFee + size.feeConfig().overdueLiquidatorReward);
+        assertEq(size.getOverdueDebt(debtPositionId), faceValue + repayFee + size.feeConfig().overdueLiquidatorReward);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 

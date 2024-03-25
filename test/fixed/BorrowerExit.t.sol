@@ -213,7 +213,7 @@ contract BorrowerExitTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 365 days);
 
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 110e6);
-        assertEq(size.getDebt(debtPositionId), 120e6);
+        assertEq(size.getOverdueDebt(debtPositionId), 120e6);
         vm.warp(block.timestamp + (365 days) / 2);
 
         _deposit(alice, usdc, 1000e6);
@@ -223,7 +223,7 @@ contract BorrowerExitTest is BaseTest {
 
         assertEqApprox(_after.candy.borrowATokenBalance, 104.76e6, 0.01e6);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 110e6);
-        assertLt(size.getDebt(debtPositionId), 120e6);
+        assertLt(size.getOverdueDebt(debtPositionId), 120e6);
     }
 
     function test_BorrowerExit_borrowerExit_experiment() public {

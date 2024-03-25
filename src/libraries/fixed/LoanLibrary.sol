@@ -67,12 +67,20 @@ library LoanLibrary {
     ///         The total loan debt is the face value (debt to the lender)
     ///        + the repay fee (protocol fee)
     ///        + the overdue liquidator reward (in case of overdue liquidation).
-    /// @dev   The overdue liquidatorreward is only paid in case of overdue liquidation, but
-    ///        it is included in the total debt so that it is properly collateralized.
-    ///        In case of a repayment before the due date, the reward is deducted from borrower debt tracker.
+    /// @dev The overdue liquidator reward is only paid in case of overdue liquidation, but
+    ///      it is included in the total debt so that it is properly collateralized.
+    ///      In case of a repayment before the due date, the reward is deducted from borrower's total debt tracker.
     /// @param self The DebtPosition
-    function getDebt(DebtPosition memory self) internal pure returns (uint256) {
+    function getTotalDebt(DebtPosition memory self) internal pure returns (uint256) {
         return self.faceValue + self.repayFee + self.overdueLiquidatorReward;
+    }
+
+    /// @notice Get the debt of a DebtPosition assuming it is repaid before due date
+    /// @dev If a DebtPosition is paid before the due date, the borrower, the overdue liquidator
+    ///      reward is deducted from borrower's total total debt tracker.
+    /// @param self The DebtPosition
+    function getDueDateDebt(DebtPosition memory self) internal pure returns (uint256) {
+        return self.faceValue + self.repayFee;
     }
 
     function getDebtPositionIdByCreditPositionId(State storage state, uint256 creditPositionId)
@@ -128,7 +136,7 @@ library LoanLibrary {
         }
 
         // slither-disable-next-line incorrect-equality
-        if (getDebt(debtPosition) == 0) {
+        if (getTotalDebt(debtPosition) == 0) {
             return LoanStatus.REPAID;
         } else if (block.timestamp > debtPosition.dueDate) {
             return LoanStatus.OVERDUE;
@@ -152,7 +160,7 @@ library LoanLibrary {
         uint256 collateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
 
         if (debt != 0) {
-            return Math.mulDivDown(collateral, getDebt(debtPosition), debt);
+            return Math.mulDivDown(collateral, getTotalDebt(debtPosition), debt);
         } else {
             return 0;
         }

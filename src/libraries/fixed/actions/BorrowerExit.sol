@@ -85,7 +85,7 @@ library BorrowerExit {
 
         BorrowOffer storage borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
         DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
-        uint256 debt = debtPosition.getDebt();
+        uint256 debt = debtPosition.getTotalDebt();
 
         uint256 ratePerMaturity =
             borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
@@ -107,6 +107,6 @@ library BorrowerExit {
         debtPosition.repayFee =
             LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
 
-        state.data.debtToken.mint(params.borrowerToExitTo, debtPosition.getDebt());
+        state.data.debtToken.mint(params.borrowerToExitTo, debtPosition.getTotalDebt());
     }
 }
