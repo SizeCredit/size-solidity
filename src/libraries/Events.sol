@@ -37,7 +37,8 @@ library Events {
     event BorrowAsLimitOrder(
         uint256[] indexed curveRelativeTimeMaturities,
         int256[] indexed curveRelativeTimeAprs,
-        uint256[] indexed curveRelativeTimeMarketRateMultipliers
+        uint256[] indexed curveRelativeTimeMarketRateMultipliers,
+        uint256 openingLimitBorrowCR
     );
     event LendAsMarketOrder(
         address indexed borrower, uint256 indexed dueDate, uint256 indexed amount, bool exactAmountIn
