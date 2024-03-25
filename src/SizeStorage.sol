@@ -49,13 +49,13 @@ struct Data {
     mapping(uint256 => CreditPosition) creditPositions; // mapping of CreditPosition structs
     uint256 nextDebtPositionId; // next debt position id
     uint256 nextCreditPositionId; // next credit position id
-    IWETH weth; // Wrapped Ether (this is not necessarily the same as the underlyingCollateralToken)
-    IERC20Metadata underlyingCollateralToken; // e.g. WETH
-    IERC20Metadata underlyingBorrowToken; // e.g. USDC
-    NonTransferrableToken collateralToken; // e.g. szWETH
-    IAToken borrowAToken; // e.g. aUSDC
-    IAToken collateralAToken; // e.g. aWETH
-    NonTransferrableToken debtToken; // e.g. szDebt
+    IWETH weth; // Wrapped Ether contract address
+    IERC20Metadata underlyingCollateralToken; // the token used by borrowers to collateralize their loans
+    IERC20Metadata underlyingBorrowToken; // the token lent from lenders to borrowers
+    NonTransferrableToken collateralToken; // e.g. Size tokenized underlying collateral token
+    IAToken borrowAToken; // e.g. Variable Pool's rebasing AToken from the underlying borrow token
+    IAToken collateralAToken; // e.g. Variable Pool's rebasing AToken from the underlying collateral token
+    NonTransferrableToken debtToken; // e.g. Size tokenized debt
     IPool variablePool; // Variable Pool (Aave v3)
     Vault vaultImplementation; // Vault implementation
 }

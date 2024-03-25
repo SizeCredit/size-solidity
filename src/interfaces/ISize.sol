@@ -29,7 +29,7 @@ interface ISize {
     ///         Borrow tokens are always deposited into the Variable Pool,
     ///         Collateral tokens are deposited into the Size contract through the CollateralLibrary
     /// @dev The caller must approve the transfer of the token to the protocol.
-    ///      This function mints 1:1 szTokens (e.g. aszUSDC, szETH) in exchange of the deposited tokens
+    ///      This function mints 1:1 Size Tokens (e.g. aUSDC, szETH) in exchange of the deposited tokens
     /// @param params DepositParams struct containing the following fields:
     ///     - address token: The address of the token to deposit
     ///     - uint256 amount: The amount of tokens to deposit
@@ -40,7 +40,7 @@ interface ISize {
     /// @notice Withdraw underlying borrow/collateral tokens from the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always withdrawn from the Variable Pool
     ///         Collateral tokens are withdrawn from the Size contract through the CollateralLibrary
-    /// @dev This function burns 1:1 szTokens (e.g. aszUSDC, szETH) in exchange of the withdrawn tokens
+    /// @dev This function burns 1:1 Size Tokens (e.g. aUSDC, szETH) in exchange of the withdrawn tokens
     /// @param params WithdrawParams struct containing the following fields:
     ///     - address token: The address of the token to withdraw
     ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)
@@ -54,7 +54,7 @@ interface ISize {
     ///      Order "takers" are the ones who pay the rounding, since "makers" are the ones passively waiting for an order to be matched
     /// @param params BorrowAsMarketOrderParams struct containing the following fields:
     ///     - address lender: The address of the lender
-    ///     - uint256 amount: The amount of tokens to borrow (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
+    ///     - uint256 amount: The amount of tokens to borrow (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     ///     - uint256 dueDate: The due date of the loan
     ///     - bool exactAmountIn: When passing an array of receivable credit position ids, this flag indicates if the amount is value to be returned at due date
     ///     - uint256[] receivableCreditPositionIds: The ids of receivable credit positions that can be used as credit to borrow without assigining new collateral
@@ -72,7 +72,7 @@ interface ISize {
     /// @notice Places a new lend offer in the orderbook
     /// @param params LendAsMarketOrderParams struct containing the following fields:
     ///     - address borrower: The address of the borrower
-    ///     - uint256 amount: The amount of tokens to lend (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
+    ///     - uint256 amount: The amount of tokens to lend (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     ///     - uint256 dueDate: The due date of the loan
     ///     - bool exactAmountIn: This flag indicates if the amount is the value to be transferred to the borrower or if it should be used to calculate the amount to be transferred
     function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external payable;
@@ -157,6 +157,6 @@ interface ISize {
     /// @param params CompensateParams struct containing the following fields:
     ///     - uint256 debtPositionToRepayId: The id of the debt position to repay
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
-    ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aszUSDC)
+    ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     function compensate(CompensateParams calldata params) external payable;
 }
