@@ -11,6 +11,7 @@ library Errors {
     error NULL_MAX_DUE_DATE();
     error NULL_ARRAY();
     error NULL_OFFER();
+    error INVALID_MSG_VALUE(uint256 value);
     error MATURITIES_NOT_STRICTLY_INCREASING();
     error MATURITY_BELOW_MINIMUM_MATURITY(uint256 maturity, uint256 minimumMaturity);
     error ARRAY_LENGTHS_MISMATCH();

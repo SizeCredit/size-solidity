@@ -23,10 +23,10 @@ contract MulticallScript is Script, Logger {
         address lender = vm.envAddress("LENDER");
         address borrower = vm.envAddress("BORROWER");
 
-        Size sizeContract = Size(sizeContractAddress);
+        Size size = Size(payable(sizeContractAddress));
 
         uint256 dueDate = block.timestamp + 2 days;
-        uint256 apr = sizeContract.getLoanOfferAPR(lender, dueDate);
+        uint256 apr = size.getLoanOfferAPR(lender, dueDate);
 
         bytes memory depositCall =
             abi.encodeCall(Size.deposit, DepositParams({token: wethAddress, amount: 0.04e18, to: borrower}));
@@ -56,7 +56,7 @@ contract MulticallScript is Script, Logger {
         calls[2] = lendLimitOrderCall;
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.multicall(calls);
+        size.multicall(calls);
         vm.stopBroadcast();
     }
 

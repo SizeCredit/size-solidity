@@ -13,12 +13,12 @@ contract RepayScript is Script, Logger {
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
-        Size sizeContract = Size(sizeContractAddress);
+        Size size = Size(payable(sizeContractAddress));
 
         RepayParams memory params = RepayParams({debtPositionId: 0});
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.repay(params);
+        size.repay(params);
         vm.stopBroadcast();
     }
 }

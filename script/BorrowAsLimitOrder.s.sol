@@ -15,7 +15,7 @@ contract BorrowAsLimitOrder is Script, Logger {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
 
-        Size sizeContract = Size(sizeContractAddress);
+        Size size = Size(payable(sizeContractAddress));
 
         uint256[] memory maturities = new uint256[](2);
         maturities[0] = 1 days;
@@ -36,7 +36,7 @@ contract BorrowAsLimitOrder is Script, Logger {
             BorrowAsLimitOrderParams({openingLimitBorrowCR: 0, curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.borrowAsLimitOrder(params);
+        size.borrowAsLimitOrder(params);
         vm.stopBroadcast();
     }
 }

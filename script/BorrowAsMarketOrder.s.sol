@@ -23,8 +23,8 @@ contract BorrowAsMarketOrder is Script, Logger {
 
         uint256 dueDate = block.timestamp + 4 days;
 
-        Size sizeContract = Size(sizeContractAddress);
-        uint256 apr = sizeContract.getLoanOfferAPR(lender, dueDate);
+        Size size = Size(payable(sizeContractAddress));
+        uint256 apr = size.getLoanOfferAPR(lender, dueDate);
 
         BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
             lender: lender,
@@ -36,7 +36,7 @@ contract BorrowAsMarketOrder is Script, Logger {
             receivableCreditPositionIds: new uint256[](0)
         });
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.borrowAsMarketOrder(params);
+        size.borrowAsMarketOrder(params);
         vm.stopBroadcast();
     }
 }

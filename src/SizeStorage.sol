@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
@@ -47,11 +48,12 @@ struct Data {
     mapping(uint256 => CreditPosition) creditPositions; // mapping of CreditPosition structs
     uint256 nextDebtPositionId; // next debt position id
     uint256 nextCreditPositionId; // next credit position id
-    IERC20Metadata underlyingCollateralToken; // e.g. WETH
-    IERC20Metadata underlyingBorrowToken; // e.g. USDC
-    NonTransferrableToken collateralToken; // e.g. szWETH
-    IAToken borrowAToken; // e.g. aUSDC
-    NonTransferrableToken debtToken; // e.g. szDebt
+    IWETH weth; // Wrapped Ether contract address
+    IERC20Metadata underlyingCollateralToken; // // the token used by borrowers to collateralize their loans
+    IERC20Metadata underlyingBorrowToken; // the token lent from lenders to borrowers
+    NonTransferrableToken collateralToken; // // Size tokenized underlying collateral token
+    IAToken borrowAToken; // Variable Pool's rebasing AToken from the underlying borrow token
+    NonTransferrableToken debtToken; // Size tokenized debt
     IPool variablePool; // Variable Pool (Aave v3)
     Vault vaultImplementation; // Vault implementation
 }

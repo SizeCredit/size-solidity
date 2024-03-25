@@ -5,12 +5,16 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
 
+import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
@@ -40,6 +44,54 @@ contract MulticallTest is BaseTest {
         size.multicall(data);
 
         assertEq(size.getUserView(alice).borrowATokenBalance, amount);
+    }
+
+    function test_Multicall_multicall_can_deposit_ether_and_create_borrowOffer() public {
+        vm.startPrank(alice);
+        uint256 amount = 1.23 ether;
+        vm.deal(alice, amount);
+
+        assertEq(size.getUserView(alice).collateralTokenBalance, 0);
+
+        bytes[] memory data = new bytes[](2);
+        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
+        data[1] = abi.encodeCall(
+            size.borrowAsLimitOrder,
+            BorrowAsLimitOrderParams({openingLimitBorrowCR: 0, curveRelativeTime: YieldCurveHelper.flatCurve()})
+        );
+        size.multicall{value: amount}(data);
+
+        assertEq(size.getUserView(alice).collateralTokenBalance, amount);
+    }
+
+    function test_Multicall_multicall_cannot_credit_more_ether_due_to_payable() public {
+        vm.startPrank(alice);
+        uint256 amount = 1 wei;
+        vm.deal(alice, amount);
+
+        assertEq(size.getUserView(alice).collateralTokenBalance, 0);
+
+        bytes[] memory data = new bytes[](2);
+        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
+        data[1] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, address(size), 0, amount)
+        );
+        size.multicall{value: amount}(data);
+    }
+
+    function test_Multicall_multicall_cannot_deposit_twice() public {
+        vm.startPrank(alice);
+        uint256 amount = 1 wei;
+        vm.deal(alice, 2 * amount);
+
+        assertEq(size.getUserView(alice).collateralTokenBalance, 0);
+
+        bytes[] memory data = new bytes[](2);
+        data[0] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
+        data[1] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MSG_VALUE.selector, 2 * amount));
+        size.multicall{value: 2 * amount}(data);
     }
 
     function test_Multicall_multicall_cannot_execute_unauthorized_actions() public {

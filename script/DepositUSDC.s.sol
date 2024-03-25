@@ -22,13 +22,13 @@ contract DepositUSDCScript is Script {
 
         uint256 amount = 100e6; // USDC has 6 decimals
 
-        Size sizeContract = Size(sizeContractAddress);
+        Size size = Size(payable(sizeContractAddress));
 
         /// DepositParams struct
         DepositParams memory params = DepositParams({token: usdcAddress, amount: amount, to: lender});
 
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.deposit(params);
+        size.deposit(params);
         vm.stopBroadcast();
     }
 }

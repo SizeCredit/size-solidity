@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
-import {SizeView} from "@src/SizeView.sol";
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
@@ -19,13 +18,12 @@ contract CompensateScript is Script, Logger {
         console.log("borrower", borrower);
 
         address currentAddress = vm.addr(deployerPrivateKey);
-        Size size = Size(sizeContractAddress);
-        SizeView sizeView = SizeView(sizeContractAddress);
+        Size size = Size(payable(sizeContractAddress));
 
         console.log(currentAddress);
 
-        uint256 balance = sizeView.getUserView(currentAddress).collateralTokenBalance;
-        uint256 debt = sizeView.getUserView(currentAddress).debtBalance;
+        uint256 balance = size.getUserView(currentAddress).collateralTokenBalance;
+        uint256 debt = size.getUserView(currentAddress).debtBalance;
 
         console.log("balance", balance);
         console.log("debt", debt);

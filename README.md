@@ -4,10 +4,10 @@
 
 Size is an order book based fixed rate lending protocol with an integrated variable pool (Aave v3).
 
-Initial pairs supported:
+Initial pairs (each pair will be a new deployment of the whole Size protocol):
 
-- ETH: Collateral token
-- USDC: Borrow/Lend token
+- (W)ETH/USDC: Collateral/Borrow token (regular ETH market)
+- USDC/(W)ETH: Collateral/Borrow token (reverse ETH market)
 
 Target networks:
 
@@ -43,7 +43,7 @@ state.executeFunction(params);
 state.validateInvariant(params);
 ```
 
-The `Multicall` pattern is also available to allow users to perform a sequence of multiple actions, such as depositing borrow tokens, liquidating an underwater borrower, and withdrawing all liquidated collateral.
+The `Multicall` pattern is also available to allow users to perform a sequence of multiple actions, such as depositing borrow tokens, liquidating an underwater borrower, and withdrawing all liquidated collateral. Note: in order to accept ether deposits through multicalls, all user-facing functions have the [`payable`](https://github.com/sherlock-audit/2023-06-tokemak-judging/issues/215) modifier, and `deposit` always uses `address(this).balance` to wrap ether, meaning that leftover amounts, possibly sent by mistake, are always credited to the depositor.
 
 Additional safety features were employed, such as different levels of Access Control (ADMIN, PAUSER_ROLE, KEEPER_ROLE), and Pause.
 
@@ -51,7 +51,7 @@ Additional safety features were employed, such as different levels of Access Con
 
 In order to address donation and reentrancy attacks, the following measures were adopted:
 
-- No usage of native ether, only wrapped ether (WETH)
+- No withdraws of native ether, only wrapped ether (WETH)
 - Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into protocol tokens via `deposit`, which mints `aUSDC` and `szWETH`, and received back via `withdraw`, which burns protocol tokens 1:1 in exchange of the underlying tokens.
 
 #### Maths
@@ -61,10 +61,10 @@ All mathematical operations are implemented with explicit rounding (`mulDivUp` o
 Decimal amounts are preserved until a conversion is necessary, and performed via the `ConversionLibrary`:
 
 - USDC/aUSDC: 6 decimals
-- szDebt: 6 decimals (same as borrow token)
 - WETH/szETH: 18 decimals
-- VariablePoolPriceFeed (ETH/USDC): 18 decimals
-- MarketBorrowRateFeed (USDC): 18 decimals
+- szDebt: same as borrow token
+- VariablePoolPriceFeed (ETH/USDC or USDC/ETH): 18 decimals
+- MarketBorrowRateFeed (USDC or ETH): 18 decimals
 
 All percentages are expressed in 18 decimals. For example, a 150% liquidation collateral ratio is represented as 1500000000000000000.
 

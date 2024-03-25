@@ -11,7 +11,7 @@ contract LendAsMarketOrderScript is Script, Logger {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
-        Size sizeContract = Size(sizeContractAddress);
+        Size size = Size(payable(sizeContractAddress));
 
         uint256 dueDate = block.timestamp + 30 days; // 30 days from now
 
@@ -23,7 +23,7 @@ contract LendAsMarketOrderScript is Script, Logger {
 
         uint256 amount = 6e6;
 
-        uint256 apr = sizeContract.getBorrowOfferAPR(borrower, dueDate);
+        uint256 apr = size.getBorrowOfferAPR(borrower, dueDate);
 
         LendAsMarketOrderParams memory params = LendAsMarketOrderParams({
             borrower: borrower,
@@ -33,9 +33,9 @@ contract LendAsMarketOrderScript is Script, Logger {
             minAPR: apr,
             exactAmountIn: false
         });
-        console.log("lender USDC", sizeContract.getUserView(lender).borrowATokenBalance);
+        console.log("lender USDC", size.getUserView(lender).borrowATokenBalance);
         vm.startBroadcast(deployerPrivateKey);
-        sizeContract.lendAsMarketOrder(params);
+        size.lendAsMarketOrder(params);
         vm.stopBroadcast();
     }
 }
