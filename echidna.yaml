@@ -1,6 +1,7 @@
 testMode: "assertion"
 prefix: "invariant_"
 coverage: true
+stopOnFail: true
 corpusDir: "echidna"
 codeSize: 0xffffff
 balanceAddr: 0x1043561a8829300000

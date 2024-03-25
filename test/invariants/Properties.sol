@@ -6,16 +6,13 @@ import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 
 import {UserView} from "@src/SizeView.sol";
-import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
 abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
     event L1(uint256 a);
     event L2(uint256 a, uint256 b);
     event L3(uint256 a, uint256 b, uint256 c);
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
-
-    using LoanLibrary for DebtPosition;
-    using LoanLibrary for CreditPosition;
 
     string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender";
 
