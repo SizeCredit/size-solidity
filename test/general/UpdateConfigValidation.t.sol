@@ -8,7 +8,7 @@ import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.so
 
 contract UpdateConfigValidationTest is BaseTest {
     function test_UpdateConfig_validation() public {
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_KEY.selector, bytes32("invalid")));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_KEY.selector, "invalid"));
         size.updateConfig(UpdateConfigParams({key: "invalid", value: 1e18}));
     }
 }

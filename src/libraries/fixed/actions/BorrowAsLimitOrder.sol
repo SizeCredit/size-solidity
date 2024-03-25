@@ -39,6 +39,11 @@ library BorrowAsLimitOrder {
             openingLimitBorrowCR: params.openingLimitBorrowCR,
             curveRelativeTime: params.curveRelativeTime
         });
-        emit Events.BorrowAsLimitOrder(params.curveRelativeTime);
+        emit Events.BorrowAsLimitOrder(
+            params.curveRelativeTime.maturities,
+            params.curveRelativeTime.aprs,
+            params.curveRelativeTime.marketRateMultipliers,
+            params.openingLimitBorrowCR
+        );
     }
 }

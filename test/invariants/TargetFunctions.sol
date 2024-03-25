@@ -43,6 +43,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             address user = users[i];
             usdc.mint(user, MAX_AMOUNT_USDC / 3);
 
+            hevm.deal(user, MAX_AMOUNT_WETH / 3);
             hevm.prank(user);
             weth.deposit{value: MAX_AMOUNT_WETH / 3}();
         }

@@ -44,6 +44,11 @@ library LendAsLimitOrder {
     function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external {
         state.data.users[msg.sender].loanOffer =
             LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
-        emit Events.LendAsLimitOrder(params.maxDueDate, params.curveRelativeTime);
+        emit Events.LendAsLimitOrder(
+            params.curveRelativeTime.maturities,
+            params.curveRelativeTime.aprs,
+            params.curveRelativeTime.marketRateMultipliers,
+            params.maxDueDate
+        );
     }
 }
