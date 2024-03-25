@@ -58,6 +58,7 @@ library Deposit {
         if (msg.value > 0) {
             // do not trust msg.value (see `Multicall.sol`)
             uint256 amount = address(this).balance;
+            // slither-disable-next-line arbitrary-send-eth
             state.data.weth.deposit{value: amount}();
             state.data.weth.forceApprove(address(this), amount);
             from = address(this);
