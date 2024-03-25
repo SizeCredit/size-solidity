@@ -85,7 +85,7 @@ abstract contract BaseTestGeneral is Test, Deploy {
         VariablePoolBorrowRateFeedMock(address(variablePoolBorrowRateFeed)).setVariableBorrowRate(rate);
     }
 
-    function _updateConfig(bytes32 key, uint256 value) internal {
+    function _updateConfig(string memory key, uint256 value) internal {
         vm.prank(address(this));
         size.updateConfig(UpdateConfigParams({key: key, value: value}));
     }

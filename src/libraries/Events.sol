@@ -19,7 +19,7 @@ library Events {
         InitializeOracleParams indexed o,
         InitializeDataParams d
     );
-    event UpdateConfig(bytes32 indexed key, uint256 value);
+    event UpdateConfig(string indexed key, uint256 value);
     event CreateVault(address indexed user, address indexed vault, bool indexed variable);
 
     // fixed

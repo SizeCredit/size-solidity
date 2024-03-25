@@ -11,7 +11,7 @@ contract UpdateConfig is Script {
         console.log("UpdateConfig...");
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
-        bytes32 key = vm.envBytes32("KEY");
+        string memory key = vm.envString("KEY");
         uint256 value = vm.envUint("VALUE");
 
         Size size = Size(payable(sizeContractAddress));

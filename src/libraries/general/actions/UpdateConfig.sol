@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -17,14 +18,14 @@ import {
 } from "@src/libraries/general/actions/Initialize.sol";
 
 struct UpdateConfigParams {
-    bytes32 key;
+    string key;
     uint256 value;
 }
 
 /// @title UpdateConfig
 /// @notice Contains the logic to update the configuration of the protocol
 /// @dev The input validation is performed using the Initialize library
-///      A `key` bytes32 string is used to identify the configuration parameter to update and a `value` uint256 is used to set the new value
+///      A `key` string is used to identify the configuration parameter to update and a `value` uint256 is used to set the new value
 ///      In case where an address is being updated, the `value` is converted to `uint160` and then to `address`
 library UpdateConfig {
     using Initialize for State;
@@ -76,41 +77,41 @@ library UpdateConfig {
     }
 
     function executeUpdateConfig(State storage state, UpdateConfigParams calldata params) external {
-        if (params.key == "crOpening") {
+        if (Strings.equal(params.key, "crOpening")) {
             state.riskConfig.crOpening = params.value;
-        } else if (params.key == "crLiquidation") {
+        } else if (Strings.equal(params.key, "crLiquidation")) {
             state.riskConfig.crLiquidation = params.value;
-        } else if (params.key == "minimumCreditBorrowAToken") {
+        } else if (Strings.equal(params.key, "minimumCreditBorrowAToken")) {
             state.riskConfig.minimumCreditBorrowAToken = params.value;
-        } else if (params.key == "collateralTokenCap") {
+        } else if (Strings.equal(params.key, "collateralTokenCap")) {
             state.riskConfig.collateralTokenCap = params.value;
-        } else if (params.key == "borrowATokenCap") {
+        } else if (Strings.equal(params.key, "borrowATokenCap")) {
             state.riskConfig.borrowATokenCap = params.value;
-        } else if (params.key == "debtTokenCap") {
+        } else if (Strings.equal(params.key, "debtTokenCap")) {
             state.riskConfig.debtTokenCap = params.value;
-        } else if (params.key == "minimumMaturity") {
+        } else if (Strings.equal(params.key, "minimumMaturity")) {
             state.riskConfig.minimumMaturity = params.value;
-        } else if (params.key == "repayFeeAPR") {
+        } else if (Strings.equal(params.key, "repayFeeAPR")) {
             state.feeConfig.repayFeeAPR = params.value;
-        } else if (params.key == "earlyLenderExitFee") {
+        } else if (Strings.equal(params.key, "earlyLenderExitFee")) {
             state.feeConfig.earlyLenderExitFee = params.value;
-        } else if (params.key == "earlyBorrowerExitFee") {
+        } else if (Strings.equal(params.key, "earlyBorrowerExitFee")) {
             state.feeConfig.earlyBorrowerExitFee = params.value;
-        } else if (params.key == "collateralLiquidatorPercent") {
+        } else if (Strings.equal(params.key, "collateralLiquidatorPercent")) {
             state.feeConfig.collateralLiquidatorPercent = params.value;
-        } else if (params.key == "collateralProtocolPercent") {
+        } else if (Strings.equal(params.key, "collateralProtocolPercent")) {
             state.feeConfig.collateralProtocolPercent = params.value;
-        } else if (params.key == "overdueLiquidatorReward") {
+        } else if (Strings.equal(params.key, "overdueLiquidatorReward")) {
             state.feeConfig.overdueLiquidatorReward = params.value;
-        } else if (params.key == "overdueColLiquidatorPercent") {
+        } else if (Strings.equal(params.key, "overdueColLiquidatorPercent")) {
             state.feeConfig.overdueColLiquidatorPercent = params.value;
-        } else if (params.key == "overdueColProtocolPercent") {
+        } else if (Strings.equal(params.key, "overdueColProtocolPercent")) {
             state.feeConfig.overdueColProtocolPercent = params.value;
-        } else if (params.key == "feeRecipient") {
+        } else if (Strings.equal(params.key, "feeRecipient")) {
             state.feeConfig.feeRecipient = address(uint160(params.value));
-        } else if (params.key == "priceFeed") {
+        } else if (Strings.equal(params.key, "priceFeed")) {
             state.oracle.priceFeed = IPriceFeed(address(uint160(params.value)));
-        } else if (params.key == "variablePoolBorrowRateFeed") {
+        } else if (Strings.equal(params.key, "variablePoolBorrowRateFeed")) {
             state.oracle.variablePoolBorrowRateFeed = IVariablePoolBorrowRateFeed(address(uint160(params.value)));
         } else {
             revert Errors.INVALID_KEY(params.key);
