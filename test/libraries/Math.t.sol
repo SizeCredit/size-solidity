@@ -119,4 +119,50 @@ contract MathTest is Test, AssertsHelper {
         // 7% APY (compound interest) is 0.5576% (linear interest) over the period of 30 days
         assertEqApprox(Math.compoundAPRToRatePerMaturity(0.07e18, 30 days), 0.0055764757837924e18, toleranceWAD);
     }
+
+    function test_Math_amountToWad_18_decimals() public {
+        uint256 amount = 1e6;
+        uint8 decimals = 18;
+
+        uint256 wad = Math.amountToWad(amount, decimals);
+        assertEq(wad, amount);
+    }
+
+    function testFuzz_Math_amountToWad_18_decimals(uint256 amount) public {
+        uint8 decimals = 18;
+
+        uint256 wad = Math.amountToWad(amount, decimals);
+        assertEq(wad, amount);
+    }
+
+    function test_Math_amountToWad_lt_18() public {
+        uint256 amount = 1e6;
+        uint8 decimals = 6;
+
+        uint256 wad = Math.amountToWad(amount, decimals);
+        assertEq(wad, 1e18);
+    }
+
+    function testFuzz_Math_amountToWad_lt_18(uint256 amount) public {
+        amount = bound(amount, 0, type(uint256).max / 1e18);
+        uint8 decimals = 6;
+
+        uint256 wad = Math.amountToWad(amount, decimals);
+        assertEq(wad, amount * 1e12);
+    }
+
+    function test_Math_amountToWad_gt_18() public {
+        uint256 amount = 1e24;
+        uint8 decimals = 24;
+
+        vm.expectRevert();
+        Math.amountToWad(amount, decimals);
+    }
+
+    function testFuzz_Math_amountToWad_gt_18(uint256 amount) public {
+        uint8 decimals = 24;
+
+        vm.expectRevert();
+        Math.amountToWad(amount, decimals);
+    }
 }

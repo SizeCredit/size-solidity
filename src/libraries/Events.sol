@@ -84,4 +84,5 @@ library Events {
         uint256 indexed creditPositionToCompensateId,
         uint256 indexed amount
     );
+    event BuyMarketCredit(uint256 indexed creditPositionId, uint256 indexed amount, bool indexed exactAmountIn);
 }

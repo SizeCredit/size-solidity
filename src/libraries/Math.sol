@@ -6,6 +6,7 @@ import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 
 uint256 constant PERCENT = 1e18;
 
+// @audit-info The protocol does not support tokens with more than 18 decimals
 // @audit Check rounding direction of all `FixedPointMath.mulDiv{Up,Down}`
 
 /// @title Math
@@ -36,6 +37,10 @@ library Math {
 
     function powWadWad(uint256 wad1, uint256 wad2) internal pure returns (uint256) {
         return SafeCast.toUint256(FixedPointMathLib.powWad(SafeCast.toInt256(wad1), SafeCast.toInt256(wad2)));
+    }
+
+    function amountToWad(uint256 amount, uint8 decimals) internal pure returns (uint256) {
+        return amount * 10 ** (18 - decimals);
     }
 
     function ratePerMaturityToLinearAPR(int256 rate, uint256 maturity) internal pure returns (int256) {

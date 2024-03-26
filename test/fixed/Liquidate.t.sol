@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";

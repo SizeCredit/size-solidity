@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {console2 as console} from "forge-std/console2.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -41,8 +40,8 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 faceValueOpening = Math.mulDivUp(faceValue, size.riskConfig().crOpening, PERCENT);
         uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
-        uint256 debtOpeningWad = ConversionLibrary.amountToWad(faceValueOpening, usdc.decimals());
-        uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(faceValueOpening);
+
         Vars memory _after = _state();
 
         assertGt(_before.bob.collateralTokenBalance, minimumCollateral);
@@ -76,8 +75,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 rate = uint256(Math.linearAPRToRatePerMaturity(int256(apr), dueDate - block.timestamp));
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
         uint256 debtOpening = Math.mulDivUp(debt, size.riskConfig().crOpening, PERCENT);
-        uint256 debtOpeningWad = ConversionLibrary.amountToWad(debtOpening, usdc.decimals());
-        uint256 minimumCollateral = Math.mulDivUp(debtOpeningWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(debtOpening);
         uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         Vars memory _after = _state();
 

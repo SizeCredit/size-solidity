@@ -16,6 +16,7 @@ import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/Liqui
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
+import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
@@ -159,4 +160,11 @@ interface ISize {
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     function compensate(CompensateParams calldata params) external payable;
+
+    /// @notice Buy a lender's credit with cash
+    /// @param params BuyMarketCredit struct containing the following fields:
+    ///     - uint256 creditPositionId: The id of the credit position to buy
+    ///     - uint256 amount: The amont of credit to buy from the credit position
+    ///     - bool exactAmountIn: This flag indicates if the amount is the present value cash used to buy credit
+    function buyMarketCredit(BuyMarketCreditParams calldata params) external payable;
 }

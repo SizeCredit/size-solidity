@@ -56,7 +56,7 @@ In order to address donation and reentrancy attacks, the following measures were
 
 #### Maths
 
-All mathematical operations are implemented with explicit rounding (`mulDivUp` or `mulDivDown`) using Solady's [FixedPointMathLib](https://github.com/Vectorized/solady/blob/main/src/utils/FixedPointMathLib.sol).
+All mathematical operations are implemented with explicit rounding (`mulDivUp` or `mulDivDown`) using Solady's [FixedPointMathLib](https://github.com/Vectorized/solady/blob/main/src/utils/FixedPointMathLib.sol). Whenever a taker-maker operation occurs, all rounding tries to favor the maker, who is the passive party except in yield curve calculations, which always round down.
 
 Decimal amounts are preserved until a conversion is necessary, and performed via the `ConversionLibrary`:
 

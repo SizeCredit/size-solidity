@@ -145,7 +145,6 @@ library BorrowAsMarketOrder {
                 break;
             }
 
-            // slither-disable-next-line unused-return
             state.createCreditPosition({
                 exitCreditPositionId: creditPositionId,
                 lender: params.lender,
