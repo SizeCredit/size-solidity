@@ -25,6 +25,7 @@ struct DebtPosition {
 
 struct CreditPosition {
     address lender;
+    bool forSale;
     uint256 credit;
     uint256 debtPositionId;
 }

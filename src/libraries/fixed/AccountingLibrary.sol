@@ -118,7 +118,7 @@ library AccountingLibrary {
         );
 
         CreditPosition memory creditPosition =
-            CreditPosition({lender: lender, credit: debtPosition.faceValue, debtPositionId: debtPositionId});
+            CreditPosition({lender: lender, credit: debtPosition.faceValue, debtPositionId: debtPositionId, forSale: true});
 
         uint256 creditPositionId = state.data.nextCreditPositionId++;
         state.data.creditPositions[creditPositionId] = creditPosition;
@@ -134,7 +134,7 @@ library AccountingLibrary {
         CreditPosition storage exitPosition = state.data.creditPositions[exitCreditPositionId];
 
         CreditPosition memory creditPosition =
-            CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId});
+            CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: true});
 
         uint256 creditPositionId = state.data.nextCreditPositionId++;
         state.data.creditPositions[creditPositionId] = creditPosition;

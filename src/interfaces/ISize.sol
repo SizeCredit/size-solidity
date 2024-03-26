@@ -10,15 +10,18 @@ import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
-import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
-import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+
+import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
+import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
 
 /// @title ISize
 /// @author Size Lending
@@ -167,4 +170,11 @@ interface ISize {
     ///     - uint256 amount: The amont of credit to buy from the credit position
     ///     - bool exactAmountIn: This flag indicates if the amount is the present value cash used to buy credit
     function buyMarketCredit(BuyMarketCreditParams calldata params) external payable;
+
+    /// @notice Set the credits of a credit position for sale
+    /// @param params SetCreditForSaleParams struct containing the following fields:
+    ///     - uint256[] creditPositionIds: The id of the credit positions
+    ///     - bool forSale: This flag indicates if the creditPositionIds array should be set for sale or not
+    ///     - bool allCreditPositionsForSale: This global flag indicates if all credit positions should be set for sale or not
+    function setCreditForSale(SetCreditForSaleParams calldata params) external payable;
 }

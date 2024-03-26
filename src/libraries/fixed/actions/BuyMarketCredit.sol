@@ -7,6 +7,7 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -36,9 +37,13 @@ library BuyMarketCredit {
         if (creditPosition.credit == 0) {
             revert Errors.CREDIT_POSITION_ALREADY_CLAIMED(params.creditPositionId);
         }
-        BorrowOffer memory borrowOffer = state.data.users[creditPosition.lender].borrowOffer;
+        User storage user = state.data.users[creditPosition.lender];
+        BorrowOffer storage borrowOffer = user.borrowOffer;
         if (borrowOffer.isNull()) {
             revert Errors.NULL_OFFER();
+        }
+        if (!user.allCreditPositionsForSale || !creditPosition.forSale) {
+            revert Errors.CREDIT_NOT_FOR_SALE(params.creditPositionId);
         }
 
         // validate amount
