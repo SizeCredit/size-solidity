@@ -38,6 +38,7 @@ library Errors {
     error INVALID_BORROW_OFFER(address borrower);
 
     error CREDIT_NOT_FOR_SALE(uint256 creditPositionId);
+    error NOT_ENOUGH_CREDIT(uint256 exitCreditPositionId, uint256 credit);
 
     error BORROWER_IS_NOT_LENDER(address borrower, address lender);
     error COMPENSATOR_IS_NOT_BORROWER(address compensator, address borrower);

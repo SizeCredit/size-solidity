@@ -72,6 +72,10 @@ library BuyMarketCredit {
             amountIn = Math.mulDivUp(amountOut, PERCENT, PERCENT + ratePerMaturity);
         }
 
+        if (amountOut > creditPosition.credit) {
+            revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, amountOut);
+        }
+
         state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn);
         state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee);
         state.createCreditPosition({

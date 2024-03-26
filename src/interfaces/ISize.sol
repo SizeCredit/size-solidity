@@ -172,7 +172,7 @@ interface ISize {
     function buyMarketCredit(BuyMarketCreditParams calldata params) external payable;
 
     /// @notice Set the credit positions for sale
-    /// @dev By default, all created creadit positions are for sale. 
+    /// @dev By default, all created creadit positions are for sale.
     ///      Users who want to disable the sale of all or specific credit positions can do so by calling this function.
     /// @param params SetCreditForSaleParams struct containing the following fields:
     ///     - uint256[] creditPositionIds: The id of the credit positions
