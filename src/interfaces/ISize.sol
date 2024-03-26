@@ -171,7 +171,9 @@ interface ISize {
     ///     - bool exactAmountIn: This flag indicates if the amount is the present value cash used to buy credit
     function buyMarketCredit(BuyMarketCreditParams calldata params) external payable;
 
-    /// @notice Set the credits of a credit position for sale
+    /// @notice Set the credit positions for sale
+    /// @dev By default, all created creadit positions are for sale. 
+    ///      Users who want to disable the sale of all or specific credit positions can do so by calling this function.
     /// @param params SetCreditForSaleParams struct containing the following fields:
     ///     - uint256[] creditPositionIds: The id of the credit positions
     ///     - bool forSale: This flag indicates if the creditPositionIds array should be set for sale or not
