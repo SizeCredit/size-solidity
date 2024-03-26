@@ -12,7 +12,7 @@ import {Events} from "@src/libraries/Events.sol";
 struct SetCreditForSaleParams {
     uint256[] creditPositionIds;
     bool forSale;
-    bool allCreditPositionsNotForSale;
+    bool creditPositionsForSaleDisabled;
 }
 
 library SetCreditForSale {
@@ -52,8 +52,8 @@ library SetCreditForSale {
             creditPosition.forSale = params.forSale;
         }
 
-        user.allCreditPositionsNotForSale = params.allCreditPositionsNotForSale;
+        user.creditPositionsForSaleDisabled = params.creditPositionsForSaleDisabled;
 
-        emit Events.SetCreditForSale(params.creditPositionIds, params.forSale, params.allCreditPositionsNotForSale);
+        emit Events.SetCreditForSale(params.creditPositionIds, params.forSale, params.creditPositionsForSaleDisabled);
     }
 }

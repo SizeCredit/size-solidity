@@ -12,7 +12,7 @@ struct User {
     LoanOffer loanOffer;
     BorrowOffer borrowOffer;
     Vault vault;
-    bool allCreditPositionsNotForSale;
+    bool creditPositionsForSaleDisabled;
 }
 
 library UserLibrary {
