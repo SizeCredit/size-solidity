@@ -86,6 +86,6 @@ library Events {
     );
     event BuyMarketCredit(uint256 indexed creditPositionId, uint256 indexed amount, bool indexed exactAmountIn);
     event SetCreditForSale(
-        uint256[] indexed creditPositionIds, bool indexed forSale, bool indexed allCreditPositionsForSale
+        uint256[] indexed creditPositionIds, bool indexed forSale, bool indexed creditPositionsNotForSale
     );
 }

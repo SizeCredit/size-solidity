@@ -117,8 +117,12 @@ library AccountingLibrary {
             dueDate
         );
 
-        CreditPosition memory creditPosition =
-            CreditPosition({lender: lender, credit: debtPosition.faceValue, debtPositionId: debtPositionId, forSale: true});
+        CreditPosition memory creditPosition = CreditPosition({
+            lender: lender,
+            credit: debtPosition.faceValue,
+            debtPositionId: debtPositionId,
+            forSale: true
+        });
 
         uint256 creditPositionId = state.data.nextCreditPositionId++;
         state.data.creditPositions[creditPositionId] = creditPosition;

@@ -42,7 +42,7 @@ library BuyMarketCredit {
         if (borrowOffer.isNull()) {
             revert Errors.NULL_OFFER();
         }
-        if (!user.allCreditPositionsForSale || !creditPosition.forSale) {
+        if (user.allCreditPositionsNotForSale || !creditPosition.forSale) {
             revert Errors.CREDIT_NOT_FOR_SALE(params.creditPositionId);
         }
 
