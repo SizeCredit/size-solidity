@@ -20,7 +20,6 @@ library Events {
         InitializeDataParams d
     );
     event UpdateConfig(string indexed key, uint256 value);
-    event CreateVault(address indexed user, address indexed vault, bool indexed variable);
 
     // fixed
 

@@ -95,8 +95,6 @@ contract DeployScriptTest is ForkTest {
         assertEq(usdc.balanceOf(address(variablePool)), 500e6);
         assertEq(usdc.balanceOf(candy), 2_000e6);
         assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
-        assertEq(aToken.balanceOf(address(size.getUserView(alice).user.vault)), 2_500e6);
-        assertEq(aToken.scaledBalanceOf(address(size.getUserView(alice).user.vault)), 2_500e6);
 
         _deposit(bob, weth, 1e18);
         _borrowAsMarketOrder(bob, alice, 1_000e6, block.timestamp + 60 days);
@@ -122,8 +120,6 @@ contract DeployScriptTest is ForkTest {
         assertEq(usdc.balanceOf(address(variablePool)), 500e6);
         assertEq(usdc.balanceOf(candy), 2_000e6);
         assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
-        assertEq(aToken.balanceOf(address(size.getUserView(alice).user.vault)), 2_500e6);
-        assertEq(aToken.scaledBalanceOf(address(size.getUserView(alice).user.vault)), 2_500e6);
 
         _deposit(bob, weth, 1e18);
         vm.prank(bob);

@@ -16,9 +16,9 @@ library CapsLibrary {
     }
 
     function validateBorrowATokenCap(State storage state) external view {
-        if (state.data.borrowAToken.totalSupply() > state.riskConfig.borrowATokenCap) {
+        if (state.data.borrowAToken.balanceOf(address(this)) > state.riskConfig.borrowATokenCap) {
             revert Errors.BORROW_ATOKEN_CAP_EXCEEDED(
-                state.riskConfig.borrowATokenCap, state.data.borrowAToken.totalSupply()
+                state.riskConfig.borrowATokenCap, state.data.borrowAToken.balanceOf(address(this))
             );
         }
     }
