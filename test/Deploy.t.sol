@@ -103,8 +103,6 @@ contract DeployScriptTest is ForkTest {
     }
 
     function testFork_Deploy_transferBorrowAToken_reverts_if_low_liquidity() public {
-        IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
-
         _setPrice(2468e18);
         _deposit(alice, usdc, 2_500e6);
         assertEq(usdc.balanceOf(address(variablePool)), 2_500e6);

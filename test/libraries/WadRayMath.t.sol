@@ -12,10 +12,6 @@ contract WadRayMathTest is Test {
 
         uint256 x_div_y = WadRayMath.rayDiv(x, y);
         uint256 x_div_y_mul_y = WadRayMath.rayMul(x_div_y, y);
-        assertLe(
-            x_div_y_mul_y,
-            x,
-            "rayMul(rayDiv(x, y), y) should equal x"
-        );
+        assertLe(x_div_y_mul_y, x, "rayMul(rayDiv(x, y), y) should equal x");
     }
 }

@@ -40,10 +40,10 @@ library BorrowAsLimitOrder {
             curveRelativeTime: params.curveRelativeTime
         });
         emit Events.BorrowAsLimitOrder(
+            params.openingLimitBorrowCR,
             params.curveRelativeTime.maturities,
             params.curveRelativeTime.aprs,
-            params.curveRelativeTime.marketRateMultipliers,
-            params.openingLimitBorrowCR
+            params.curveRelativeTime.marketRateMultipliers
         );
     }
 }
