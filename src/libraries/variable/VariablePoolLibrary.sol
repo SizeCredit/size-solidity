@@ -66,6 +66,9 @@ library VariablePoolLibrary {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
         }
 
+        // @audit WadRayMath is not consistent in the rounding direction, so this can be greater than the initial deposits
+        // TODO
+        // FIXME
         uint256 scaledAmount = WadRayMath.rayDiv(amount, borrowATokenLiquidityIndex(state));
 
         state.data.users[from].scaledBorrowATokenBalance -= scaledAmount;
