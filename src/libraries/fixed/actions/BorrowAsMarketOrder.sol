@@ -69,13 +69,9 @@ library BorrowAsMarketOrder {
         }
 
         // validate params.maxAPR
-        uint256 ratePerMaturity =
-            loanOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
-        uint256 maturity = params.dueDate - block.timestamp;
-        if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) > params.maxAPR) {
-            revert Errors.APR_GREATER_THAN_MAX_APR(
-                Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.maxAPR
-            );
+        uint256 apr = loanOffer.getAPR(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
+        if (apr > params.maxAPR) {
+            revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
         }
 
         // validate params.exactAmountIn

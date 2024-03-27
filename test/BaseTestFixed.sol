@@ -369,7 +369,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     function _buyMarketCredit(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn) internal {
         vm.prank(user);
         size.buyMarketCredit(
-            BuyMarketCreditParams({creditPositionId: creditPositionId, amount: amount, exactAmountIn: exactAmountIn})
+            BuyMarketCreditParams({creditPositionId: creditPositionId, amount: amount, exactAmountIn: exactAmountIn, deadline: block.timestamp, maxAPR: type(uint256).max})
         );
     }
 

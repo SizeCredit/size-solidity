@@ -51,19 +51,7 @@ library LendAsMarketOrder {
         }
 
         // validate amount
-        uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
-        uint256 amountIn;
-        if (params.exactAmountIn) {
-            amountIn = params.amount;
-        } else {
-            amountIn = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
-        }
-        if (state.borrowATokenBalanceOf(msg.sender) < amountIn) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                msg.sender, state.borrowATokenBalanceOf(msg.sender), amountIn
-            );
-        }
+        // N/A
 
         // validate deadline
         if (params.deadline < block.timestamp) {
@@ -71,11 +59,9 @@ library LendAsMarketOrder {
         }
 
         // validate minAPR
-        uint256 maturity = params.dueDate - block.timestamp;
-        if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) < params.minAPR) {
-            revert Errors.APR_LOWER_THAN_MIN_APR(
-                Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.minAPR
-            );
+        uint256 apr = borrowOffer.getAPR(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
+        if (apr < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
 
         // validate exactAmountIn

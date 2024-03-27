@@ -38,7 +38,6 @@ interface ISize {
     ///     - address token: The address of the token to deposit
     ///     - uint256 amount: The amount of tokens to deposit
     ///     - uint256 to: The recipient of the deposit
-    ///     - bool variable: Whether the deposit is destined for variable-rate lending or fixed-rate lending
     function deposit(DepositParams calldata params) external payable;
 
     /// @notice Withdraw underlying borrow/collateral tokens from the protocol (e.g. USDC, WETH)
@@ -49,7 +48,6 @@ interface ISize {
     ///     - address token: The address of the token to withdraw
     ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)
     ///     - uint256 to: The recipient of the withdrawal
-    ///     - bool variable: Whether the deposit is destined for variable-rate lending or fixed-rate lending
     function withdraw(WithdrawParams calldata params) external payable;
 
     /// @notice Picks a lender offer and borrow tokens from the orderbook

@@ -38,8 +38,6 @@ library LiquidateWithReplacement {
     {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
-        uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
 
         // validate liquidate
         state.validateLiquidate(
@@ -69,10 +67,9 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) < params.minAPR) {
-            revert Errors.APR_LOWER_THAN_MIN_APR(
-                Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.minAPR
-            );
+        uint256 apr = borrowOffer.getAPR(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
+        if (apr < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
     }
 

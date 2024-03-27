@@ -161,7 +161,7 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         vm.warp(block.timestamp + 365 days + 1);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp - 1));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, debtPositionId));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,

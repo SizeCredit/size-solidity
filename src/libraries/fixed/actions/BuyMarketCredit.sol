@@ -16,6 +16,8 @@ import {Events} from "@src/libraries/Events.sol";
 struct BuyMarketCreditParams {
     uint256 creditPositionId;
     uint256 amount;
+    uint256 deadline;
+    uint256 maxAPR;
     bool exactAmountIn;
 }
 
@@ -27,6 +29,8 @@ library BuyMarketCredit {
 
     function validateBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params) external view {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
+        DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
+
         // validate msg.sender
         // N/A
 
@@ -48,6 +52,17 @@ library BuyMarketCredit {
 
         // validate amount
         // N/A
+
+        // validate deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
+
+        // validate maxAPR
+        uint256 apr = borrowOffer.getAPR(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
+        if (apr > params.maxAPR) {
+            revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
+        }
 
         // validate exactAmountIn
         // N/A
