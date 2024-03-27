@@ -16,7 +16,8 @@ Target networks:
 
 ## Audits
 
-- [LightChaserV3](./audits/LightChaserV3_SizeV2.md)
+- [LightChaserV3](./audits/2024-03-19-LightChaserV3_SizeV2.md)
+- [Solidified](./audits/2024-03-26-Solidified.pdf)
 
 ## Documentation
 
