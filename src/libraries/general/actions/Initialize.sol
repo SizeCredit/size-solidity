@@ -13,8 +13,6 @@ import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
-import {Vault} from "@src/proxy/Vault.sol";
-
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -250,8 +248,6 @@ library Initialize {
         state.data.debtToken = new NonTransferrableToken(
             address(this), "Size Fixed Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
-
-        state.data.vaultImplementation = new Vault();
     }
 
     function executeInitialize(

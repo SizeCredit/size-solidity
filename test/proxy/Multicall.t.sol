@@ -11,7 +11,6 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {Math} from "@src/libraries/Math.sol";
 
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";

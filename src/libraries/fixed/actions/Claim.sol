@@ -7,7 +7,7 @@ import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/librar
 import {State} from "@src/SizeStorage.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -17,7 +17,7 @@ struct ClaimParams {
 }
 
 library Claim {
-    using VariableLibrary for State;
+    using VariablePoolLibrary for State;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using AccountingLibrary for State;

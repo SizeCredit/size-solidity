@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
@@ -28,7 +28,7 @@ library BorrowerExit {
     using OfferLibrary for BorrowOffer;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
-    using VariableLibrary for State;
+    using VariablePoolLibrary for State;
     using AccountingLibrary for State;
 
     function validateBorrowerExit(State storage state, BorrowerExitParams calldata params) external view {

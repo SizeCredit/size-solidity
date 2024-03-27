@@ -9,7 +9,6 @@ import {IWETH} from "@src/interfaces/IWETH.sol";
 import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
-import {Vault} from "@src/proxy/Vault.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
@@ -55,7 +54,6 @@ struct Data {
     IAToken borrowAToken; // Variable Pool's rebasing AToken from the underlying borrow token
     NonTransferrableToken debtToken; // Size tokenized debt
     IPool variablePool; // Variable Pool (Aave v3)
-    Vault vaultImplementation; // Vault implementation
 }
 
 struct State {

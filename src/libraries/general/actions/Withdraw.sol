@@ -6,7 +6,7 @@ import {State} from "@src/SizeStorage.sol";
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -18,7 +18,7 @@ struct WithdrawParams {
 }
 
 library Withdraw {
-    using VariableLibrary for State;
+    using VariablePoolLibrary for State;
     using CollateralLibrary for State;
 
     function validateWithdraw(State storage state, WithdrawParams calldata params) external view {

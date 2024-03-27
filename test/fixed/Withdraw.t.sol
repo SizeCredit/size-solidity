@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
@@ -82,6 +83,43 @@ contract WithdrawTest is BaseTest {
         assertEq(weth.balanceOf(address(bob)), valueWETH);
     }
 
+    function testFuzz_Withdraw_deposit_withdraw_setLiquidityIndex_identity(
+        uint256 valueUSDC,
+        uint256 valueWETH,
+        uint256 index
+    ) public {
+        _updateConfig("collateralTokenCap", type(uint256).max);
+        _updateConfig("borrowATokenCap", type(uint256).max);
+        index = bound(index, WadRayMath.RAY, WadRayMath.RAY * 2);
+        _setLiquidityIndex(index);
+
+        valueUSDC = bound(valueUSDC, 1, type(uint96).max);
+        valueWETH = bound(valueWETH, 1, type(uint256).max);
+        deal(address(usdc), alice, valueUSDC);
+        deal(address(weth), alice, valueWETH);
+
+        vm.startPrank(alice);
+        IERC20Metadata(usdc).approve(address(size), valueUSDC);
+        IERC20Metadata(weth).approve(address(size), valueWETH);
+
+        assertEq(usdc.balanceOf(address(alice)), valueUSDC);
+        assertEq(weth.balanceOf(address(alice)), valueWETH);
+
+        size.deposit(DepositParams({token: address(usdc), amount: valueUSDC, to: alice}));
+        size.deposit(DepositParams({token: address(weth), amount: valueWETH, to: alice}));
+
+        assertEq(usdc.balanceOf(address(variablePool)), valueUSDC);
+        assertEq(weth.balanceOf(address(size)), valueWETH);
+
+        size.withdraw(WithdrawParams({token: address(usdc), amount: valueUSDC, to: bob}));
+        size.withdraw(WithdrawParams({token: address(weth), amount: valueWETH, to: bob}));
+
+        assertEqApprox(usdc.balanceOf(address(variablePool)), 0, 1);
+        assertEqApprox(usdc.balanceOf(address(bob)), valueUSDC, 1);
+        assertEq(weth.balanceOf(address(size)), 0);
+        assertEq(weth.balanceOf(address(bob)), valueWETH);
+    }
+
     function test_Withdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
@@ -100,7 +138,7 @@ contract WithdrawTest is BaseTest {
         size.withdraw(WithdrawParams({token: address(weth), amount: 149e18, to: bob}));
     }
 
-    function test_Withdraw_withdraw_everythingeneralConfig() public {
+    function test_Withdraw_withdraw_everything_general() public {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
@@ -120,7 +158,7 @@ contract WithdrawTest is BaseTest {
         assertEq(afterWETH, 150e18);
     }
 
-    function test_Withdraw_withdraw_everything_without_depositingeneralConfig() public {
+    function test_Withdraw_withdraw_everything_without_deposit_general() public {
         uint256 beforeUSDC = usdc.balanceOf(address(alice));
         uint256 beforeWETH = weth.balanceOf(address(alice));
 

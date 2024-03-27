@@ -10,9 +10,9 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct SetCreditForSaleParams {
-    uint256[] creditPositionIds;
-    bool forSale;
     bool creditPositionsForSaleDisabled;
+    bool forSale;
+    uint256[] creditPositionIds;
 }
 
 library SetCreditForSale {
@@ -47,13 +47,13 @@ library SetCreditForSale {
     function executeSetCreditForSale(State storage state, SetCreditForSaleParams calldata params) external {
         User storage user = state.data.users[msg.sender];
 
+        user.creditPositionsForSaleDisabled = params.creditPositionsForSaleDisabled;
+
         for (uint256 i = 0; i < params.creditPositionIds.length; i++) {
             CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionIds[i]);
             creditPosition.forSale = params.forSale;
         }
 
-        user.creditPositionsForSaleDisabled = params.creditPositionsForSaleDisabled;
-
-        emit Events.SetCreditForSale(params.creditPositionIds, params.forSale, params.creditPositionsForSaleDisabled);
+        emit Events.SetCreditForSale(params.creditPositionsForSaleDisabled, params.forSale, params.creditPositionIds);
     }
 }

@@ -7,7 +7,7 @@ import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
@@ -31,7 +31,7 @@ library LendAsMarketOrder {
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
-    using VariableLibrary for State;
+    using VariablePoolLibrary for State;
     using AccountingLibrary for State;
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {

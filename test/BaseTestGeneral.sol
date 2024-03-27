@@ -47,6 +47,8 @@ abstract contract BaseTestGeneral is Test, Deploy {
         vm.label(liquidator, "liquidator");
         vm.label(feeRecipient, "feeRecipient");
 
+        vm.label(address(proxy), "size-proxy");
+        vm.label(address(implementation), "size-implementation");
         vm.label(address(size), "size");
         vm.label(address(priceFeed), "priceFeed");
         vm.label(address(variablePoolBorrowRateFeed), "variablePoolBorrowRateFeed");

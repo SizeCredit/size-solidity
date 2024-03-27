@@ -8,7 +8,7 @@ import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -24,7 +24,7 @@ struct BuyMarketCreditParams {
 library BuyMarketCredit {
     using LoanLibrary for State;
     using AccountingLibrary for State;
-    using VariableLibrary for State;
+    using VariablePoolLibrary for State;
     using OfferLibrary for BorrowOffer;
 
     function validateBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params) external view {

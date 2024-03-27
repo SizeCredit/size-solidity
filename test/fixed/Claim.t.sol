@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
-
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
@@ -184,7 +182,6 @@ contract ClaimTest is BaseTest {
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _borrowAsMarketOrder(bob, candy, 10e6, block.timestamp + 12 days, [creditId]);
         uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        IAToken borrowAToken = size.data().borrowAToken;
 
         Vars memory _s1 = _state();
 
@@ -202,16 +199,6 @@ contract ClaimTest is BaseTest {
             100e6,
             "Alice repaid amount is now on Size for claiming for DebtPosition/CreditPosition"
         );
-        assertEq(
-            borrowAToken.scaledBalanceOf(address(size.getUserView(alice).user.vault)),
-            50e6,
-            "Alice has 50e6 Scaled aTokens"
-        );
-        assertEq(
-            borrowAToken.scaledBalanceOf(address(size.getUserView(address(size)).user.vault)),
-            50e6,
-            "Size has 50e6 Scaled aTokens for claiming"
-        );
 
         _setLiquidityIndex(8e27);
         _claim(candy, creditId2);
@@ -223,16 +210,6 @@ contract ClaimTest is BaseTest {
             _s3.size.borrowATokenBalance,
             360e6,
             "Size had 100e6 for claiming, it 4x to 400e6, and Candy claimed 40e6, now there's 360e6 left for claiming"
-        );
-        assertEq(
-            borrowAToken.scaledBalanceOf(address(size.getUserView(candy).user.vault)),
-            5e6,
-            "Alice has 5e6 Scaled aTokens"
-        );
-        assertEq(
-            borrowAToken.scaledBalanceOf(address(size.getUserView(address(size)).user.vault)),
-            45e6,
-            "Size has 45e6 Scaled aTokens for claiming"
         );
 
         _setLiquidityIndex(16e27);
@@ -247,16 +224,6 @@ contract ClaimTest is BaseTest {
         );
         assertEq(_s4.candy.borrowATokenBalance, 80e6, "Candy borrowed 40e6 2x, so it is now 80e6");
         assertEq(_s4.size.borrowATokenBalance, 0, "Size has 0 because everything was claimed");
-        assertEq(
-            borrowAToken.scaledBalanceOf(address(size.getUserView(candy).user.vault)),
-            5e6,
-            "Alice has 5e6 Scaled aTokens"
-        );
-        assertEq(
-            borrowAToken.scaledBalanceOf(address(size.getUserView(address(size)).user.vault)),
-            0,
-            "Size has 0 Scaled aTokens for claiming"
-        );
     }
 
     function test_Claim_isClaimable() public {

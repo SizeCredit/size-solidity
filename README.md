@@ -44,7 +44,7 @@ state.executeFunction(params);
 state.validateInvariant(params);
 ```
 
-The `Multicall` pattern is also available to allow users to perform a sequence of multiple actions, such as depositing borrow tokens, liquidating an underwater borrower, and withdrawing all liquidated collateral. Note: in order to accept ether deposits through multicalls, all user-facing functions have the [`payable`](https://github.com/sherlock-audit/2023-06-tokemak-judging/issues/215) modifier, and `deposit` always uses `address(this).balance` to wrap ether, meaning that leftover amounts, possibly sent by mistake, are always credited to the depositor.
+The `Multicall` pattern is also available to allow users to perform a sequence of multiple actions, such as depositing borrow tokens, liquidating an underwater borrower, and withdrawing all liquidated collateral. Note: in order to accept ether deposits through multicalls, all user-facing functions have the [`payable`](https://github.com/sherlock-audit/2023-06-tokemak-judging/issues/215) modifier, and `deposit` always uses `address(this).balance` to wrap ether, meaning that leftover amounts, if [sent forcibly](https://consensys.github.io/smart-contract-best-practices/development-recommendations/general/force-feeding/), are always credited to the depositor.
 
 Additional safety features were employed, such as different levels of Access Control (ADMIN, PAUSER_ROLE, KEEPER_ROLE), and Pause.
 
@@ -71,7 +71,7 @@ All percentages are expressed in 18 decimals. For example, a 150% liquidation co
 
 #### Variable Pool
 
-In order to interact with Aave v3, a proxy pattern is employed, which creates user Vault proxies using OpenZeppelin Clone's library to deploy copies on demand. This way, each address can have an individual health factor on Aave v3. The `Vault` contract is owned by the `Size` contract, which can perform arbitrary calls on behalf of the user. For example, when a `deposit` is performed on `Size`, it creates a `Vault`, if needed, which then executes a `supply` on Aave v3. This way, all deposited `USDC` can be lent out through variable rates until a fixed-rate loan is matched and created on the orderbook.
+In order to interact with Aave v3, a library is used to track scaled deposits of users, which represent the deposits of underlying borrow tokens divided by the liquidity index at each time.
 
 #### Oracles
 

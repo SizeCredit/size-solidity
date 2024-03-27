@@ -135,7 +135,7 @@ contract Size is
     function withdraw(WithdrawParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateWithdraw(params);
         state.executeWithdraw(params);
-        state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
     }
 
     /// @inheritdoc ISize
@@ -164,7 +164,7 @@ contract Size is
     {
         state.validateLendAsMarketOrder(params);
         uint256 amount = state.executeLendAsMarketOrder(params);
-        state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrower);
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
         state.validateDebtTokenCap();
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
@@ -179,7 +179,7 @@ contract Size is
         uint256 amount = params.amount;
         state.validateBorrowAsMarketOrder(params);
         state.executeBorrowAsMarketOrder(params);
-        state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
         state.validateDebtTokenCap();
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
@@ -188,7 +188,7 @@ contract Size is
     function borrowerExit(BorrowerExitParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateBorrowerExit(params);
         uint256 amount = state.executeBorrowerExit(params);
-        state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrowerToExitTo);
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrowerToExitTo);
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
@@ -235,7 +235,7 @@ contract Size is
     {
         state.validateLiquidateWithReplacement(params);
         (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) = state.executeLiquidateWithReplacement(params);
-        state.validateUserIsNotBelowopeningLimitBorrowCR(params.borrower);
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
         state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralAsset);
     }
 
@@ -243,7 +243,7 @@ contract Size is
     function compensate(CompensateParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateCompensate(params);
         state.executeCompensate(params);
-        state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
     }
 
     /// @inheritdoc ISize

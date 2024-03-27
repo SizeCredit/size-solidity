@@ -31,7 +31,7 @@ import {
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 struct UserView {
     User user;
@@ -61,7 +61,7 @@ abstract contract SizeView is SizeStorage {
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using RiskLibrary for State;
-    using VariableLibrary for State;
+    using VariablePoolLibrary for State;
     using AccountingLibrary for State;
     using UpdateConfig for State;
 

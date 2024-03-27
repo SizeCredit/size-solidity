@@ -8,7 +8,7 @@ import {Math} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 /// @title AccountingLibrary
 library AccountingLibrary {
@@ -16,7 +16,7 @@ library AccountingLibrary {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
-    using VariableLibrary for State;
+    using VariablePoolLibrary for State;
 
     /// @notice Converts debt token amount to a value in collateral tokens
     /// @dev Rounds up the debt token amount
