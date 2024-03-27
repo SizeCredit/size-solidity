@@ -55,8 +55,9 @@ abstract contract AssertsHelper is Test {
         assertTrue(a == array[0] || a == array[1] || a == array[2], reason);
     }
 
-    function assertEqApprox(uint256 a, uint256 b, uint256 tolerance) internal {
-        string memory reason = string.concat(
+    function assertEqApprox(uint256 a, uint256 b, uint256 tolerance, string memory reason) internal {
+        reason = string.concat(
+            bytes(reason).length > 0 ? string.concat(reason, "\n") : "",
             "Expected ",
             Strings.toString(a),
             " to be equal to ",
@@ -71,6 +72,10 @@ abstract contract AssertsHelper is Test {
         }
     }
 
+    function assertEqApprox(uint256 a, uint256 b, uint256 tolerance) internal {
+        assertEqApprox(a, b, tolerance, "");
+    }
+
     function assertEq(uint256 a, uint256 b, uint256 c) internal {
         string memory reason = string.concat(
             "Expected ", Strings.toString(a), " to be equal to ", Strings.toString(b), " and ", Strings.toString(c)
@@ -80,7 +85,7 @@ abstract contract AssertsHelper is Test {
 
     function assertEq(LoanStatus a, LoanStatus b) internal {
         string memory reason = string.concat("Expected ", str(a), " to be equal to ", str(b));
-        return assertEq(a, b, reason);
+        assertEq(a, b, reason);
     }
 
     function assertEq(LoanStatus a, LoanStatus b, string memory reason) internal {
