@@ -171,6 +171,7 @@ jobs:
             out/WETH.sol/WETH.json
             out/USDC.sol/USDC.json
             out/Errors.sol/Errors.json
+            out/Events.sol/Events.json
 
       - name: Push
         run: |

@@ -29,6 +29,9 @@ import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/Liqui
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
+import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
+import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
+
 import {BaseTestGeneral} from "@test/BaseTestGeneral.sol";
 
 abstract contract BaseTestFixed is Test, BaseTestGeneral {
@@ -359,6 +362,35 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 creditPositionWithDebtToRepayId: creditPositionWithDebtToRepayId,
                 creditPositionToCompensateId: creditPositionToCompensateId,
                 amount: amount
+            })
+        );
+    }
+
+    function _buyMarketCredit(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn) internal {
+        vm.prank(user);
+        size.buyMarketCredit(
+            BuyMarketCreditParams({
+                creditPositionId: creditPositionId,
+                amount: amount,
+                exactAmountIn: exactAmountIn,
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max
+            })
+        );
+    }
+
+    function _setCreditForSale(
+        address user,
+        uint256[] memory creditPositionIds,
+        bool forSale,
+        bool creditPositionsForSaleDisabled
+    ) internal {
+        vm.prank(user);
+        size.setCreditForSale(
+            SetCreditForSaleParams({
+                creditPositionIds: creditPositionIds,
+                forSale: forSale,
+                creditPositionsForSaleDisabled: creditPositionsForSaleDisabled
             })
         );
     }

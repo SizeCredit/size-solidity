@@ -32,8 +32,8 @@ library BorrowerExit {
     using AccountingLibrary for State;
 
     function validateBorrowerExit(State storage state, BorrowerExitParams calldata params) external view {
-        BorrowOffer memory borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
-        DebtPosition memory debtPosition = state.getDebtPosition(params.debtPositionId);
+        BorrowOffer storage borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
+        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
         // validate debtPositionId
         uint256 dueDate = debtPosition.dueDate;
@@ -45,20 +45,9 @@ library BorrowerExit {
             revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(maturity, state.riskConfig.minimumMaturity);
         }
 
-        uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
-        uint256 issuanceValue = Math.mulDivUp(debtPosition.faceValue, PERCENT, PERCENT + ratePerMaturity);
-
         // validate msg.sender
         if (msg.sender != debtPosition.borrower) {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
-        }
-        if (state.borrowATokenBalanceOf(msg.sender) < issuanceValue + state.feeConfig.earlyBorrowerExitFee) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                msg.sender,
-                state.borrowATokenBalanceOf(msg.sender),
-                issuanceValue + state.feeConfig.earlyBorrowerExitFee
-            );
         }
 
         // validate deadline
@@ -67,10 +56,9 @@ library BorrowerExit {
         }
 
         // validate minAPR
-        if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) < params.minAPR) {
-            revert Errors.APR_LOWER_THAN_MIN_APR(
-                Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.minAPR
-            );
+        uint256 apr = borrowOffer.getAPR(state.oracle.variablePoolBorrowRateFeed, dueDate);
+        if (apr < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
 
         // validate borrowerToExitTo
@@ -84,7 +72,7 @@ library BorrowerExit {
         emit Events.BorrowerExit(params.debtPositionId, params.borrowerToExitTo);
 
         BorrowOffer storage borrowOffer = state.data.users[params.borrowerToExitTo].borrowOffer;
-        DebtPosition storage debtPosition = state.data.debtPositions[params.debtPositionId];
+        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         uint256 debt = debtPosition.getTotalDebt();
 
         uint256 ratePerMaturity =

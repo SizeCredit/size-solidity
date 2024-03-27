@@ -69,13 +69,9 @@ library BorrowAsMarketOrder {
         }
 
         // validate params.maxAPR
-        uint256 ratePerMaturity =
-            loanOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
-        uint256 maturity = params.dueDate - block.timestamp;
-        if (Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity) > params.maxAPR) {
-            revert Errors.APR_GREATER_THAN_MAX_APR(
-                Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity), params.maxAPR
-            );
+        uint256 apr = loanOffer.getAPR(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
+        if (apr > params.maxAPR) {
+            revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
         }
 
         // validate params.exactAmountIn
@@ -85,8 +81,8 @@ library BorrowAsMarketOrder {
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
             uint256 creditPositionId = params.receivableCreditPositionIds[i];
 
-            CreditPosition memory creditPosition = state.getCreditPosition(creditPositionId);
-            DebtPosition memory debtPosition = state.getDebtPositionByCreditPositionId(creditPositionId);
+            CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
+            DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(creditPositionId);
 
             if (msg.sender != creditPosition.lender) {
                 revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, creditPosition.lender);
@@ -127,7 +123,7 @@ library BorrowAsMarketOrder {
 
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
             uint256 creditPositionId = params.receivableCreditPositionIds[i];
-            CreditPosition memory creditPosition = state.data.creditPositions[creditPositionId];
+            CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, PERCENT + ratePerMaturity, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
@@ -145,7 +141,6 @@ library BorrowAsMarketOrder {
                 break;
             }
 
-            // slither-disable-next-line unused-return
             state.createCreditPosition({
                 exitCreditPositionId: creditPositionId,
                 lender: params.lender,

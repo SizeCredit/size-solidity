@@ -3,8 +3,6 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
-
 import {Events} from "@src/libraries/Events.sol";
 import {Math} from "@src/libraries/Math.sol";
 
@@ -30,8 +28,7 @@ library AccountingLibrary {
         view
         returns (uint256 collateralTokenAmount)
     {
-        uint256 debtTokenAmountWad =
-            ConversionLibrary.amountToWad(debtTokenAmount, state.data.underlyingBorrowToken.decimals());
+        uint256 debtTokenAmountWad = Math.amountToWad(debtTokenAmount, state.data.underlyingBorrowToken.decimals());
         collateralTokenAmount = Math.mulDivUp(
             debtTokenAmountWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice()
         );
@@ -120,8 +117,12 @@ library AccountingLibrary {
             dueDate
         );
 
-        CreditPosition memory creditPosition =
-            CreditPosition({lender: lender, credit: debtPosition.faceValue, debtPositionId: debtPositionId});
+        CreditPosition memory creditPosition = CreditPosition({
+            lender: lender,
+            credit: debtPosition.faceValue,
+            debtPositionId: debtPositionId,
+            forSale: true
+        });
 
         uint256 creditPositionId = state.data.nextCreditPositionId++;
         state.data.creditPositions[creditPositionId] = creditPosition;
@@ -132,12 +133,12 @@ library AccountingLibrary {
 
     function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)
         external
-        returns (CreditPosition memory creditPosition)
     {
         uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
         CreditPosition storage exitPosition = state.data.creditPositions[exitCreditPositionId];
 
-        creditPosition = CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId});
+        CreditPosition memory creditPosition =
+            CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: true});
 
         uint256 creditPositionId = state.data.nextCreditPositionId++;
         state.data.creditPositions[creditPositionId] = creditPosition;

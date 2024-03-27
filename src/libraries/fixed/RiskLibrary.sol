@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {Math} from "@src/libraries/Math.sol";
@@ -30,7 +29,7 @@ library RiskLibrary {
     function collateralRatio(State storage state, address account) public view returns (uint256) {
         uint256 collateral = state.data.collateralToken.balanceOf(account);
         uint256 debt = state.data.debtToken.balanceOf(account);
-        uint256 debtWad = ConversionLibrary.amountToWad(debt, state.data.underlyingBorrowToken.decimals());
+        uint256 debtWad = Math.amountToWad(debt, state.data.underlyingBorrowToken.decimals());
         uint256 price = state.oracle.priceFeed.getPrice();
 
         if (debt != 0) {

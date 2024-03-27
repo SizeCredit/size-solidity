@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import {UserView} from "@src/SizeView.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {BaseTest} from "@test/BaseTest.sol";

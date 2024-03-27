@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {Math} from "@src/libraries/Math.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 
@@ -42,5 +43,25 @@ library OfferLibrary {
     ) internal view returns (uint256) {
         return
             YieldCurveLibrary.getRatePerMaturityByDueDate(self.curveRelativeTime, variablePoolBorrowRateFeed, dueDate);
+    }
+
+    function getAPR(LoanOffer memory self, IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed, uint256 dueDate)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 ratePerMaturity = getRatePerMaturityByDueDate(self, variablePoolBorrowRateFeed, dueDate);
+        uint256 maturity = dueDate - block.timestamp;
+        return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
+    }
+
+    function getAPR(BorrowOffer memory self, IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed, uint256 dueDate)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 ratePerMaturity = getRatePerMaturityByDueDate(self, variablePoolBorrowRateFeed, dueDate);
+        uint256 maturity = dueDate - block.timestamp;
+        return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
     }
 }

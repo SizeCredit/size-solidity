@@ -23,6 +23,9 @@ import {BorrowerExit, BorrowerExitParams} from "@src/libraries/fixed/actions/Bor
 import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
+import {BuyMarketCredit, BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
+import {SetCreditForSale, SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
+
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {Liquidate, LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
@@ -76,6 +79,8 @@ contract Size is
     using SelfLiquidate for State;
     using LiquidateWithReplacement for State;
     using Compensate for State;
+    using BuyMarketCredit for State;
+    using SetCreditForSale for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
 
@@ -239,5 +244,17 @@ contract Size is
         state.validateCompensate(params);
         state.executeCompensate(params);
         state.validateUserIsNotBelowopeningLimitBorrowCR(msg.sender);
+    }
+
+    /// @inheritdoc ISize
+    function buyMarketCredit(BuyMarketCreditParams calldata params) external payable override(ISize) whenNotPaused {
+        state.validateBuyMarketCredit(params);
+        state.executeBuyMarketCredit(params);
+    }
+
+    /// @inheritdoc ISize
+    function setCreditForSale(SetCreditForSaleParams calldata params) external payable override(ISize) whenNotPaused {
+        state.validateSetCreditForSale(params);
+        state.executeSetCreditForSale(params);
     }
 }

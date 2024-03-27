@@ -10,14 +10,18 @@ import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
-import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+
+import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
+import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
 
 /// @title ISize
 /// @author Size Lending
@@ -34,7 +38,6 @@ interface ISize {
     ///     - address token: The address of the token to deposit
     ///     - uint256 amount: The amount of tokens to deposit
     ///     - uint256 to: The recipient of the deposit
-    ///     - bool variable: Whether the deposit is destined for variable-rate lending or fixed-rate lending
     function deposit(DepositParams calldata params) external payable;
 
     /// @notice Withdraw underlying borrow/collateral tokens from the protocol (e.g. USDC, WETH)
@@ -45,7 +48,6 @@ interface ISize {
     ///     - address token: The address of the token to withdraw
     ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)
     ///     - uint256 to: The recipient of the withdrawal
-    ///     - bool variable: Whether the deposit is destined for variable-rate lending or fixed-rate lending
     function withdraw(WithdrawParams calldata params) external payable;
 
     /// @notice Picks a lender offer and borrow tokens from the orderbook
@@ -159,4 +161,20 @@ interface ISize {
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     function compensate(CompensateParams calldata params) external payable;
+
+    /// @notice Buy a lender's credit with cash
+    /// @param params BuyMarketCredit struct containing the following fields:
+    ///     - uint256 creditPositionId: The id of the credit position to buy
+    ///     - uint256 amount: The amont of credit to buy from the credit position
+    ///     - bool exactAmountIn: This flag indicates if the amount is the present value cash used to buy credit
+    function buyMarketCredit(BuyMarketCreditParams calldata params) external payable;
+
+    /// @notice Set the credit positions for sale
+    /// @dev By default, all created creadit positions are for sale.
+    ///      Users who want to disable the sale of all or specific credit positions can do so by calling this function.
+    /// @param params SetCreditForSaleParams struct containing the following fields:
+    ///     - uint256[] creditPositionIds: The id of the credit positions
+    ///     - bool forSale: This flag indicates if the creditPositionIds array should be set for sale or not
+    ///     - bool allCreditPositionsForSale: This global flag indicates if all credit positions should be set for sale or not
+    function setCreditForSale(SetCreditForSaleParams calldata params) external payable;
 }

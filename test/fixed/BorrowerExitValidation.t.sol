@@ -45,8 +45,8 @@ contract BorrowerExitValidationTest is BaseTest {
             abi.encodeWithSelector(
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
                 bob,
-                100e6,
-                200e6 + size.feeConfig().earlyBorrowerExitFee
+                100e6 - size.feeConfig().earlyBorrowerExitFee,
+                200e6
             )
         );
         size.borrowerExit(

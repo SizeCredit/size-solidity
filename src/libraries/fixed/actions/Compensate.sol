@@ -104,7 +104,6 @@ library Compensate {
         state.validateMinimumCredit(creditPositionWithDebtToRepay.credit);
 
         // credit emission
-        // slither-disable-next-line unused-return
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionToCompensateId,
             lender: debtPositionToRepay.lender,

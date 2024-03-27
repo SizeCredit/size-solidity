@@ -8,7 +8,6 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {ConversionLibrary} from "@src/libraries/ConversionLibrary.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -123,12 +122,11 @@ contract MulticallTest is BaseTest {
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
         uint256 repayFee = debtPosition.repayFee;
-        uint256 repayFeeWad = ConversionLibrary.amountToWad(repayFee, usdc.decimals());
         uint256 debt = faceValue + repayFee + size.feeConfig().overdueLiquidatorReward;
 
         _setPrice(0.31e18);
 
-        uint256 repayFeeCollateral = Math.mulDivUp(repayFeeWad, 10 ** priceFeed.decimals(), priceFeed.getPrice());
+        uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
