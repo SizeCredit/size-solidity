@@ -9,7 +9,7 @@ import {DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLi
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -22,7 +22,7 @@ struct LiquidateParams {
 }
 
 library Liquidate {
-    using VariableLibrary for State;
+    using VariablePoolLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
     using RiskLibrary for State;

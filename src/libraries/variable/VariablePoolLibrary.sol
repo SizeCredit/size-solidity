@@ -16,9 +16,9 @@ import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/Lo
 import {UserLibrary} from "@src/libraries/fixed/UserLibrary.sol";
 import {Vault} from "@src/proxy/Vault.sol";
 
-/// @title VariableLibrary
+/// @title VariablePoolLibrary
 /// @dev Contains functions for interacting with the Variable Pool (Aave v3)
-library VariableLibrary {
+library VariablePoolLibrary {
     using SafeERC20 for IERC20Metadata;
     using CollateralLibrary for State;
     using LoanLibrary for State;
@@ -74,7 +74,7 @@ library VariableLibrary {
     /// @param from The address of the sender
     /// @param to The address of the recipient
     /// @param amount The amount of aTokens to transfer
-    function transferBorrowAToken(State storage state, address from, address to, uint256 amount) public {
+    function transferBorrowAToken(State storage state, address from, address to, uint256 amount) external {
         if (borrowATokenBalanceOf(state, from) < amount) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
         }
@@ -97,7 +97,7 @@ library VariableLibrary {
     /// @notice Get the liquidity index of the Variable Pool (Aave v3)
     /// @param state The state struct
     /// @return The liquidity index
-    function borrowATokenLiquidityIndex(State storage state) public view returns (uint256) {
+    function borrowATokenLiquidityIndex(State storage state) external view returns (uint256) {
         return state.data.variablePool.getReserveNormalizedIncome(address(state.data.underlyingBorrowToken));
     }
 }

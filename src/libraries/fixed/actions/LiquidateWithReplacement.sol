@@ -7,7 +7,7 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -27,7 +27,7 @@ struct LiquidateWithReplacementParams {
 library LiquidateWithReplacement {
     using LoanLibrary for CreditPosition;
     using OfferLibrary for BorrowOffer;
-    using VariableLibrary for State;
+    using VariablePoolLibrary for State;
     using LoanLibrary for State;
     using Liquidate for State;
     using LoanLibrary for DebtPosition;

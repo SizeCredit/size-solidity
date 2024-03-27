@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {VariableLibrary} from "@src/libraries/variable/VariableLibrary.sol";
+import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -16,7 +16,7 @@ struct LendAsLimitOrderParams {
 }
 
 library LendAsLimitOrder {
-    using VariableLibrary for State;
+    using VariablePoolLibrary for State;
     using OfferLibrary for LoanOffer;
 
     function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external view {
