@@ -81,8 +81,8 @@ library BorrowAsMarketOrder {
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
             uint256 creditPositionId = params.receivableCreditPositionIds[i];
 
-            CreditPosition memory creditPosition = state.getCreditPosition(creditPositionId);
-            DebtPosition memory debtPosition = state.getDebtPositionByCreditPositionId(creditPositionId);
+            CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
+            DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(creditPositionId);
 
             if (msg.sender != creditPosition.lender) {
                 revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, creditPosition.lender);
@@ -123,7 +123,7 @@ library BorrowAsMarketOrder {
 
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
             uint256 creditPositionId = params.receivableCreditPositionIds[i];
-            CreditPosition memory creditPosition = state.data.creditPositions[creditPositionId];
+            CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, PERCENT + ratePerMaturity, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
