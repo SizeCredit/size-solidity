@@ -7,7 +7,7 @@ import {console2 as console} from "forge-std/console2.sol";
 
 contract OwnableScript is Script {
     function run() external {
-        console.log("Deposit WETH...");
+        console.log("Ownable...");
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address contractAddress = vm.envAddress("CONTRACT_ADDRESS");
         address newOwner = vm.envAddress("NEW_OWNER");
