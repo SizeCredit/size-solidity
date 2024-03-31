@@ -43,20 +43,20 @@ library Math {
         return amount * 10 ** (18 - decimals);
     }
 
-    function ratePerMaturityToLinearAPR(int256 rate, uint256 maturity) internal pure returns (int256) {
-        return mulDiv(rate, 365 days, SafeCast.toInt256(maturity));
+    function ratePerMaturityToLinearAPR(int256 ratePerMaturity, uint256 maturity) internal pure returns (int256) {
+        return mulDiv(ratePerMaturity, 365 days, SafeCast.toInt256(maturity));
     }
 
-    function ratePerMaturityToLinearAPR(uint256 rate, uint256 maturity) internal pure returns (uint256) {
-        return mulDivDown(rate, 365 days, maturity);
+    function ratePerMaturityToLinearAPR(uint256 ratePerMaturity, uint256 maturity) internal pure returns (uint256) {
+        return mulDivDown(ratePerMaturity, 365 days, maturity);
     }
 
-    function linearAPRToRatePerMaturity(int256 rate, uint256 maturity) internal pure returns (int256) {
-        return mulDiv(rate, SafeCast.toInt256(maturity), 365 days);
+    function linearAPRToRatePerMaturity(int256 linearAPR, uint256 maturity) internal pure returns (int256) {
+        return mulDiv(linearAPR, SafeCast.toInt256(maturity), 365 days);
     }
 
-    function compoundAPRToRatePerMaturity(uint256 rate, uint256 maturity) internal pure returns (uint256) {
-        return powWadWad(PERCENT + rate, mulDivDown(PERCENT, maturity, 365 days)) - PERCENT;
+    function compoundAPRToRatePerMaturity(uint256 compoundAPR, uint256 maturity) internal pure returns (uint256) {
+        return powWadWad(PERCENT + compoundAPR, mulDivDown(PERCENT, maturity, 365 days)) - PERCENT;
     }
 
     function binarySearch(uint256[] memory array, uint256 value) internal pure returns (uint256 low, uint256 high) {

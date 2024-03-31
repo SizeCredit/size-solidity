@@ -31,10 +31,10 @@ library YieldCurveLibrary {
             revert Errors.ARRAY_LENGTHS_MISMATCH();
         }
 
-        // validate curveRelativeTime.aprs
+        // validate aprs
         // N/A
 
-        // validate curveRelativeTime.maturities
+        // validate maturities
         uint256 lastMaturity = type(uint256).max;
         for (uint256 i = self.maturities.length; i != 0; i--) {
             if (self.maturities[i - 1] > lastMaturity) {
@@ -46,7 +46,7 @@ library YieldCurveLibrary {
             revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(self.maturities[0], minimumMaturity);
         }
 
-        // validate curveRelativeTime.marketRateMultipliers
+        // validate marketRateMultipliers
         // N/A
     }
 
@@ -58,7 +58,7 @@ library YieldCurveLibrary {
     /// @param apr The annual percentage rate from the yield curve (linear interest)
     /// @param variablePoolBorrowRateFeed The market borrow rate feed
     /// @param marketRateMultiplier The market rate multiplier
-    /// @return Returns rate + (marketRate * marketRateMultiplier) / PERCENT for the given maturity
+    /// @return Returns ratePerMaturity + marketRate * marketRateMultiplier for the given maturity
     function getRatePerMaturityByDueDate(
         uint256 maturity,
         int256 apr,
@@ -116,7 +116,6 @@ library YieldCurveLibrary {
                 variablePoolBorrowRateFeed
             );
 
-            // @audit Check the rounding direction, as this may lead to debt rounding down
             if (x1 != x0) {
                 if (y1 >= y0) {
                     return y0 + Math.mulDivDown(y1 - y0, maturity - x0, x1 - x0);

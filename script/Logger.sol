@@ -49,4 +49,16 @@ abstract contract Logger {
         console.log("borrowATokenBalance", userView.borrowATokenBalance);
         console.log("debtBalance", userView.debtBalance);
     }
+
+    function log(DebtPosition memory debtPosition) internal pure {
+        console.log("lender", debtPosition.lender);
+        console.log("borrower", debtPosition.borrower);
+        console.log("issuanceValue", debtPosition.issuanceValue);
+        console.log("faceValue", debtPosition.faceValue);
+        console.log("repayFee", debtPosition.repayFee);
+        console.log("overdueLiquidatorReward", debtPosition.overdueLiquidatorReward);
+        console.log("startDate", debtPosition.startDate);
+        console.log("dueDate", debtPosition.dueDate);
+        console.log("liquidityIndexAtRepayment", debtPosition.liquidityIndexAtRepayment);
+    }
 }
