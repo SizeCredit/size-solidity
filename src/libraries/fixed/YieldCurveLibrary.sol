@@ -50,32 +50,27 @@ library YieldCurveLibrary {
         // N/A
     }
 
-    /// @notice Get the rate from the yield curve adjusted by the market rate
+    /// @notice Get the APR from the yield curve adjusted by the variable pool borrow rate
     /// @dev Reverts if the final result is negative
     ///      Only query the market borrow rate feed oracle if the market rate multiplier is not 0
-    ///      Converts the market borrow rate from compound to linear interest
-    /// @param maturity The maturity
-    /// @param apr The annual percentage rate from the yield curve (linear interest)
-    /// @param variablePoolBorrowRateFeed The market borrow rate feed
+    /// @param apr The annual percentage rate from the yield curve
     /// @param marketRateMultiplier The market rate multiplier
-    /// @return Returns ratePerMaturity + marketRate * marketRateMultiplier for the given maturity
-    function getRatePerMaturityByDueDate(
-        uint256 maturity,
+    /// @param variablePoolBorrowRateFeed The market borrow rate feed
+    /// @return Returns ratePerMaturity + marketRate * marketRateMultiplier
+    function getAdjustedAPR(
         int256 apr,
         uint256 marketRateMultiplier,
         IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed
     ) internal view returns (uint256) {
         // @audit Check if the result should be capped to 0 instead of reverting
-
-        int256 ratePerMaturity = Math.linearAPRToRatePerMaturity(apr, maturity);
-
         if (marketRateMultiplier == 0) {
-            return SafeCast.toUint256(ratePerMaturity);
+            return SafeCast.toUint256(apr);
         } else {
-            uint128 marketRateCompound = variablePoolBorrowRateFeed.getVariableBorrowRate();
-            uint256 marketRateLinear = Math.compoundAPRToRatePerMaturity(marketRateCompound, maturity);
             return SafeCast.toUint256(
-                ratePerMaturity + SafeCast.toInt256(Math.mulDivDown(marketRateLinear, marketRateMultiplier, PERCENT))
+                apr
+                    + SafeCast.toInt256(
+                        Math.mulDivDown(variablePoolBorrowRateFeed.getVariableBorrowRate(), marketRateMultiplier, PERCENT)
+                    )
             );
         }
     }
@@ -83,17 +78,14 @@ library YieldCurveLibrary {
     /// @notice Get the rate from the yield curve by performing a linear interpolation between two time buckets
     /// @dev Reverts if the due date is in the past or out of range
     /// @param curveRelativeTime The yield curve
-    /// @param variablePoolBorrowRateFeed The market borrow rate feed
-    /// @param dueDate The due date
+    /// @param variablePoolBorrowRateFeed The variable pool borrow rate feed
+    /// @param maturity The maturity
     /// @return The rate from the yield curve per given maturity
-    function getRatePerMaturityByDueDate(
+    function getAPR(
         YieldCurve memory curveRelativeTime,
         IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
-        uint256 dueDate
+        uint256 maturity
     ) external view returns (uint256) {
-        // @audit Check the correctness of this function
-        if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
-        uint256 maturity = dueDate - block.timestamp;
         uint256 length = curveRelativeTime.maturities.length;
         if (maturity < curveRelativeTime.maturities[0] || maturity > curveRelativeTime.maturities[length - 1]) {
             revert Errors.MATURITY_OUT_OF_RANGE(
@@ -102,18 +94,12 @@ library YieldCurveLibrary {
         } else {
             (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.maturities, maturity);
             uint256 x0 = curveRelativeTime.maturities[low];
-            uint256 y0 = getRatePerMaturityByDueDate(
-                curveRelativeTime.maturities[low],
-                curveRelativeTime.aprs[low],
-                curveRelativeTime.marketRateMultipliers[low],
-                variablePoolBorrowRateFeed
+            uint256 y0 = getAdjustedAPR(
+                curveRelativeTime.aprs[low], curveRelativeTime.marketRateMultipliers[low], variablePoolBorrowRateFeed
             );
             uint256 x1 = curveRelativeTime.maturities[high];
-            uint256 y1 = getRatePerMaturityByDueDate(
-                curveRelativeTime.maturities[high],
-                curveRelativeTime.aprs[high],
-                curveRelativeTime.marketRateMultipliers[high],
-                variablePoolBorrowRateFeed
+            uint256 y1 = getAdjustedAPR(
+                curveRelativeTime.aprs[high], curveRelativeTime.marketRateMultipliers[high], variablePoolBorrowRateFeed
             );
 
             if (x1 != x0) {

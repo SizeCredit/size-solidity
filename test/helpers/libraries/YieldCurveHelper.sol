@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 library YieldCurveHelper {
@@ -171,6 +172,10 @@ library YieldCurveHelper {
         maturities[1] = m2;
 
         return YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
+    }
+
+    function customCurve(uint256 m1, uint256 r1, uint256 m2, uint256 r2) public pure returns (YieldCurve memory) {
+        return customCurve(m1, SafeCast.toInt256(r1), m2, SafeCast.toInt256(r2));
     }
 
     function pointCurve(uint256 m1, int256 r1) public pure returns (YieldCurve memory) {

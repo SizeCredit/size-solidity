@@ -16,17 +16,23 @@ import {Test} from "forge-std/Test.sol";
 
 contract YieldCurveTest is Test, AssertsHelper {
     VariablePoolBorrowRateFeedMock variablePoolBorrowRateFeed;
-    uint256 public constant TOLERANCE_WAD = 10_000;
 
     function setUp() public {
         variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(address(this));
         variablePoolBorrowRateFeed.setVariableBorrowRate(0);
     }
 
-    function test_YieldCurve_getRate_below_timestamp() public {
+    function test_YieldCurve_getRate_zero_maturity() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 0));
-        YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, 0);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.MATURITY_OUT_OF_RANGE.selector,
+                0,
+                curve.maturities[0],
+                curve.maturities[curve.maturities.length - 1]
+            )
+        );
+        YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, 0);
     }
 
     function test_YieldCurve_getRate_below_bounds() public {
@@ -40,7 +46,7 @@ contract YieldCurveTest is Test, AssertsHelper {
                 curve.maturities[curve.maturities.length - 1]
             )
         );
-        YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + interval);
+        YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
     }
 
     function test_YieldCurve_getRate_after_bounds() public {
@@ -54,59 +60,42 @@ contract YieldCurveTest is Test, AssertsHelper {
                 curve.maturities[curve.maturities.length - 1]
             )
         );
-        YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + interval);
+        YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
     }
 
     function test_YieldCurve_getRate_first_point() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         uint256 interval = curve.maturities[0];
-        uint256 rate =
-            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + interval);
-        assertEqApprox(
-            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.aprs[0], interval)), TOLERANCE_WAD
-        );
+        uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
+        assertEq(apr, SafeCast.toUint256(curve.aprs[0]));
     }
 
     function test_YieldCurve_getRate_last_point() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         uint256 interval = curve.maturities[curve.maturities.length - 1];
-        uint256 rate =
-            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + interval);
-        assertEqApprox(
-            rate,
-            SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.aprs[curve.aprs.length - 1], interval)),
-            TOLERANCE_WAD
-        );
+        uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
+        assertEq(apr, SafeCast.toUint256(curve.aprs[curve.aprs.length - 1]));
     }
 
     function test_YieldCurve_getRate_middle_point() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         uint256 interval = curve.maturities[2];
-        uint256 rate =
-            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + interval);
-        assertEqApprox(
-            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.aprs[2], interval)), TOLERANCE_WAD
-        );
+        uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
+        assertEq(apr, SafeCast.toUint256(curve.aprs[2]));
     }
 
     function test_YieldCurve_getRate_point_2_out_of_5() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         uint256 interval = curve.maturities[1];
-        uint256 rate =
-            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + interval);
-        assertEqApprox(
-            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.aprs[1], interval)), TOLERANCE_WAD
-        );
+        uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
+        assertEq(apr, SafeCast.toUint256(curve.aprs[1]));
     }
 
     function test_YieldCurve_getRate_point_4_out_of_5() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         uint256 interval = curve.maturities[3];
-        uint256 rate =
-            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + interval);
-        assertEqApprox(
-            rate, SafeCast.toUint256(Math.linearAPRToRatePerMaturity(curve.aprs[3], interval)), TOLERANCE_WAD
-        );
+        uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
+        assertEq(apr, SafeCast.toUint256(curve.aprs[3]));
     }
 
     function testFuzz_YieldCurve_getRate_point_interpolated_slope_eq_0(
@@ -121,16 +110,12 @@ contract YieldCurveTest is Test, AssertsHelper {
         p0 = bound(p0, 0, curve.maturities.length - 1);
         p1 = bound(p1, p0, curve.maturities.length - 1);
         maturityA = bound(maturityA, curve.maturities[p0], curve.maturities[p1]);
-        uint256 rate0 = YieldCurveLibrary.getRatePerMaturityByDueDate(
-            curve, variablePoolBorrowRateFeed, block.timestamp + maturityA
-        );
+        uint256 rate0 = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, maturityA);
 
         q0 = bound(q0, p1, curve.maturities.length - 1);
         q1 = bound(q1, q0, curve.maturities.length - 1);
         maturityB = bound(maturityB, curve.maturities[q0], curve.maturities[q1]);
-        uint256 rate1 = YieldCurveLibrary.getRatePerMaturityByDueDate(
-            curve, variablePoolBorrowRateFeed, block.timestamp + maturityB
-        );
+        uint256 rate1 = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, maturityB);
         assertLe(rate0, rate1);
     }
 
@@ -146,16 +131,12 @@ contract YieldCurveTest is Test, AssertsHelper {
         p0 = bound(p0, 0, curve.maturities.length - 1);
         p1 = bound(p1, p0, curve.maturities.length - 1);
         maturityA = bound(maturityA, curve.maturities[p0], curve.maturities[p1]);
-        uint256 rate0 = YieldCurveLibrary.getRatePerMaturityByDueDate(
-            curve, variablePoolBorrowRateFeed, block.timestamp + maturityA
-        );
+        uint256 rate0 = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, maturityA);
 
         q0 = bound(q0, p1, curve.maturities.length - 1);
         q1 = bound(q1, q0, curve.maturities.length - 1);
         maturityB = bound(maturityB, curve.maturities[q0], curve.maturities[q1]);
-        uint256 rate1 = YieldCurveLibrary.getRatePerMaturityByDueDate(
-            curve, variablePoolBorrowRateFeed, block.timestamp + maturityB
-        );
+        uint256 rate1 = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, maturityB);
         assertLe(rate0, rate1);
     }
 
@@ -180,22 +161,16 @@ contract YieldCurveTest is Test, AssertsHelper {
                 max = rate;
             }
         }
-        uint256 r =
-            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + interval);
-        uint256 apy = SafeCast.toUint256(Math.ratePerMaturityToLinearAPR(SafeCast.toInt256(r), interval));
-        assertGe(apy + TOLERANCE_WAD, min);
-        assertLe(apy, max + TOLERANCE_WAD);
+        uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
+        assertGe(apr, min);
+        assertLe(apr, max);
     }
 
     function test_YieldCurve_getRate_with_non_null_borrowRate() public {
         YieldCurve memory curve = YieldCurveHelper.marketCurve();
         variablePoolBorrowRateFeed.setVariableBorrowRate(0.31415e18);
 
-        assertEq(
-            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + 60 days),
-            SafeCast.toUint256(Math.linearAPRToRatePerMaturity(0.02e18, 60 days))
-                + Math.compoundAPRToRatePerMaturity(0.31415e18, 60 days)
-        );
+        assertEq(YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, 60 days), 0.02e18 + 0.31415e18);
     }
 
     function test_YieldCurve_getRate_with_negative_rate() public {
@@ -204,14 +179,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         curve.marketRateMultipliers[0] = 1e18;
         curve.marketRateMultipliers[1] = 1e18;
 
-        assertEqApprox(
-            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + 30 days),
-            Math.compoundAPRToRatePerMaturity(0.07e18, 30 days)
-                - SafeCast.toUint256(
-                    Math.linearAPRToRatePerMaturity(0.001e18, 20 days) + Math.linearAPRToRatePerMaturity(0.002e18, 40 days)
-                ) / 2,
-            1e13
-        );
+        assertEq(YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, 30 days), 0.07e18 - 0.0015e18);
     }
 
     function test_YieldCurve_getRate_with_negative_rate_double_multiplier() public {
@@ -220,25 +188,11 @@ contract YieldCurveTest is Test, AssertsHelper {
         curve.marketRateMultipliers[0] = 2e18;
         curve.marketRateMultipliers[1] = 2e18;
 
-        assertEqApprox(
-            YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, block.timestamp + 30 days),
-            2 * Math.compoundAPRToRatePerMaturity(0.07e18, 30 days)
-                - SafeCast.toUint256(
-                    Math.linearAPRToRatePerMaturity(0.001e18, 20 days) + Math.linearAPRToRatePerMaturity(0.002e18, 40 days)
-                ) / 2,
-            1e13
-        );
+        assertEq(YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, 30 days), 2 * 0.07e18 - 0.0015e18);
     }
 
     function test_YieldCurve_getRate_null_multiplier_does_not_fetch_oracle() public {
-        YieldCurve memory curve = YieldCurveHelper.customCurve(30 days, 0.01e18, 60 days, 0.02e18);
-        assertEq(
-            YieldCurveLibrary.getRatePerMaturityByDueDate(
-                curve, IVariablePoolBorrowRateFeed(address(0)), block.timestamp + 45 days
-            ),
-            SafeCast.toUint256(
-                Math.linearAPRToRatePerMaturity(0.01e18, 30 days) + Math.linearAPRToRatePerMaturity(0.02e18, 60 days)
-            ) / 2
-        );
+        YieldCurve memory curve = YieldCurveHelper.customCurve(30 days, uint256(0.01e18), 60 days, uint256(0.02e18));
+        assertEq(YieldCurveLibrary.getAPR(curve, IVariablePoolBorrowRateFeed(address(0)), 45 days), 0.015e18);
     }
 }

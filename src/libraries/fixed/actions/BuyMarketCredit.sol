@@ -59,7 +59,7 @@ library BuyMarketCredit {
         }
 
         // validate maxAPR
-        uint256 apr = borrowOffer.getAPR(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
+        uint256 apr = borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
         if (apr > params.maxAPR) {
             revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
         }
