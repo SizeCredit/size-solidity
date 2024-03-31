@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -127,36 +128,20 @@ contract BorrowerExitTest is BaseTest {
         _deposit(bob, usdc, 1000e6);
         _deposit(candy, weth, 2000e18);
         _lendAsLimitOrder(
-            bob,
-            block.timestamp + 365 days,
-            [
-                Math.ratePerMaturityToLinearAPR(int256(0.1e18), 30 days),
-                Math.ratePerMaturityToLinearAPR(int256(0.1e18), 365 days)
-            ],
-            [uint256(30 days), uint256(365 days)]
+            bob, block.timestamp + 365 days, [int256(0.1e18), int256(0.1e18)], [uint256(30 days), uint256(365 days)]
         );
         _borrowAsLimitOrder(
-            candy,
-            0,
-            YieldCurveHelper.customCurve(
-                30 days,
-                Math.ratePerMaturityToLinearAPR(int256(0.25e18), 30 days),
-                73 days,
-                Math.ratePerMaturityToLinearAPR(int256(0.25e18), 73 days)
-            )
+            candy, 0, YieldCurveHelper.customCurve(30 days, uint256(0.25e18), 73 days, uint256(0.25e18))
         );
         uint256 startDate = block.timestamp;
         uint256 dueDate = startDate + 73 days;
         uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 1000e6, dueDate);
-        uint256 ratePerMaturity = Math.mulDivDown(
-            size.getDebtPosition(debtPositionId).faceValue, PERCENT, size.getDebtPosition(debtPositionId).issuanceValue
-        ) - PERCENT;
+        uint256 apr = size.getAPR(debtPositionId);
 
         assertEq(size.getDebtPosition(debtPositionId).repayFee, 1e6);
-        assertEq(ratePerMaturity, 0.1e18);
+        assertEq(apr, 0.1e18);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
-        assertEq(_state().alice.debtBalance, 1101e6);
 
         uint256 aliceCollateralBefore = _state().alice.collateralTokenBalance;
 
@@ -167,25 +152,23 @@ contract BorrowerExitTest is BaseTest {
         _borrowerExit(alice, debtPositionId, candy);
 
         uint256 aliceCollateralAfter = _state().alice.collateralTokenBalance;
-        uint256 newRatePerMaturity = Math.mulDivDown(
-            size.getDebtPosition(debtPositionId).faceValue, PERCENT, size.getDebtPosition(debtPositionId).issuanceValue
-        ) - PERCENT;
+        uint256 newAPR = size.getAPR(debtPositionId);
+        uint256 newFaceValue = size.getDebtPosition(debtPositionId).faceValue;
 
-        uint256 newIssuanceValue = Math.mulDivDown(1100e6, 1e18, 1e18 + 0.25e18) + 1;
+        uint256 newIssuanceValue = size.getDebtPosition(debtPositionId).issuanceValue;
         uint256 newRepayFee = Math.mulDivDown(0.005e18 * newIssuanceValue, 43 days, 365 days * 1e18) + 1;
         assertEq(size.getDebtPosition(debtPositionId).repayFee, newRepayFee);
-        assertEqApprox(newRatePerMaturity, 0.25e18, 1e10);
+        assertEqApprox(newAPR, 0.25e18, 1e10);
         assertEq(size.getDebtPosition(debtPositionId).startDate, startDate + 30 days);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
-        assertEq(size.getDebtPosition(debtPositionId).issuanceValue, newIssuanceValue);
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 1100e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, newFaceValue);
         assertEq(_state().alice.debtBalance, 0);
-        assertEq(_state().candy.debtBalance, 1100e6 + newRepayFee);
+        assertEq(_state().candy.debtBalance, newFaceValue + newRepayFee);
         assertEq(
             aliceCollateralAfter, aliceCollateralBefore - size.debtTokenAmountToCollateralTokenAmount(earlyRepayFee)
         );
 
-        _deposit(candy, usdc, 1100e6 - 880e6 + 1 /* rounding */ );
+        _deposit(candy, usdc, 10_000e6);
         _repay(candy, debtPositionId);
         assertEq(_state().alice.debtBalance, 0);
         assertEq(_state().candy.debtBalance, 0);

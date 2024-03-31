@@ -72,7 +72,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         Vars memory _before = _state();
 
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, dueDate);
-        uint256 rate = uint256(Math.linearAPRToRatePerMaturity(int256(apr), dueDate - block.timestamp));
+        uint256 rate = uint256(Math.aprToRatePerMaturity(apr, dueDate - block.timestamp));
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
         uint256 debtOpening = Math.mulDivUp(debt, size.riskConfig().crOpening, PERCENT);
         uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(debtOpening);

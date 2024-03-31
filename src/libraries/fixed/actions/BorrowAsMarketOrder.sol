@@ -69,7 +69,7 @@ library BorrowAsMarketOrder {
         }
 
         // validate params.maxAPR
-        uint256 apr = loanOffer.getAPR(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
+        uint256 apr = loanOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
         if (apr > params.maxAPR) {
             revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
         }

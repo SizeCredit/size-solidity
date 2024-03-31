@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 
 uint256 constant PERCENT = 1e18;
@@ -31,32 +30,16 @@ library Math {
         return FixedPointMathLib.mulDiv(x, y, z);
     }
 
-    function mulDiv(int256 x, int256 y, int256 z) internal pure returns (int256) {
-        return x * y / z;
-    }
-
-    function powWadWad(uint256 wad1, uint256 wad2) internal pure returns (uint256) {
-        return SafeCast.toUint256(FixedPointMathLib.powWad(SafeCast.toInt256(wad1), SafeCast.toInt256(wad2)));
-    }
-
     function amountToWad(uint256 amount, uint8 decimals) internal pure returns (uint256) {
         return amount * 10 ** (18 - decimals);
     }
 
-    function ratePerMaturityToLinearAPR(int256 rate, uint256 maturity) internal pure returns (int256) {
-        return mulDiv(rate, 365 days, SafeCast.toInt256(maturity));
+    function ratePerMaturityToAPR(uint256 ratePerMaturity, uint256 maturity) internal pure returns (uint256) {
+        return mulDivDown(ratePerMaturity, 365 days, maturity);
     }
 
-    function ratePerMaturityToLinearAPR(uint256 rate, uint256 maturity) internal pure returns (uint256) {
-        return mulDivDown(rate, 365 days, maturity);
-    }
-
-    function linearAPRToRatePerMaturity(int256 rate, uint256 maturity) internal pure returns (int256) {
-        return mulDiv(rate, SafeCast.toInt256(maturity), 365 days);
-    }
-
-    function compoundAPRToRatePerMaturity(uint256 rate, uint256 maturity) internal pure returns (uint256) {
-        return powWadWad(PERCENT + rate, mulDivDown(PERCENT, maturity, 365 days)) - PERCENT;
+    function aprToRatePerMaturity(uint256 apr, uint256 maturity) internal pure returns (uint256) {
+        return mulDivDown(apr, maturity, 365 days);
     }
 
     function binarySearch(uint256[] memory array, uint256 value) internal pure returns (uint256 low, uint256 high) {

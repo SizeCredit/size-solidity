@@ -94,7 +94,9 @@ contract LendAsMarketOrderTest is BaseTest {
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.maturities[0] + curve.maturities[1]) / 2;
-        uint256 rate = YieldCurveLibrary.getRatePerMaturityByDueDate(curve, variablePoolBorrowRateFeed, dueDate);
+        uint256 maturity = dueDate - block.timestamp;
+        uint256 apr = size.getBorrowOfferAPR(alice, dueDate);
+        uint256 rate = Math.aprToRatePerMaturity(apr, maturity);
         uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + rate, PERCENT);
 
         Vars memory _before = _state();

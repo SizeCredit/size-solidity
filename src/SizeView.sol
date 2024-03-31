@@ -89,7 +89,7 @@ abstract contract SizeView is SizeStorage {
         DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
         uint256 maturity = debtPosition.dueDate - debtPosition.startDate;
         uint256 ratePerMaturity = Math.mulDivDown(debtPosition.faceValue, PERCENT, debtPosition.issuanceValue) - PERCENT;
-        return Math.ratePerMaturityToLinearAPR(ratePerMaturity, maturity);
+        return Math.ratePerMaturityToAPR(ratePerMaturity, maturity);
     }
 
     function debtTokenAmountToCollateralTokenAmount(uint256 borrowATokenAmount) external view returns (uint256) {
@@ -174,7 +174,7 @@ abstract contract SizeView is SizeStorage {
         if (dueDate < block.timestamp) {
             revert Errors.PAST_DUE_DATE(dueDate);
         }
-        return offer.getAPR(state.oracle.variablePoolBorrowRateFeed, dueDate);
+        return offer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
     }
 
     function getLoanOfferAPR(address lender, uint256 dueDate) external view returns (uint256) {
@@ -185,7 +185,7 @@ abstract contract SizeView is SizeStorage {
         if (dueDate < block.timestamp) {
             revert Errors.PAST_DUE_DATE(dueDate);
         }
-        return offer.getAPR(state.oracle.variablePoolBorrowRateFeed, dueDate);
+        return offer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
     }
 
     function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {

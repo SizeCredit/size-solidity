@@ -67,7 +67,7 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        uint256 apr = borrowOffer.getAPR(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
+        uint256 apr = borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
