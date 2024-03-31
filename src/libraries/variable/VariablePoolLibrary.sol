@@ -49,6 +49,7 @@ library VariablePoolLibrary {
 
         uint256 scaledBalanceBefore = state.data.borrowAToken.scaledBalanceOf(address(this));
 
+        // slither-disable-next-line unused-return
         state.data.variablePool.withdraw(address(state.data.underlyingBorrowToken), amount, to);
 
         uint256 scaledAmount = scaledBalanceBefore - state.data.borrowAToken.scaledBalanceOf(address(this));
