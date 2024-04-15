@@ -22,6 +22,3 @@
 [submodule "lib/aave-v3-core"]
 	path = lib/aave-v3-core
 	url = https://github.com/aave/aave-v3-core
-[submodule "lib/casper"]
-	path = lib/casper
-	url = https://github.com/aviggiano/casper

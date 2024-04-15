@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {BeforeAfter} from "./BeforeAfter.sol";
+import {Ghosts} from "./Ghosts.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 
 import {UserView} from "@src/SizeView.sol";
 import {CreditPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
-abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
+abstract contract Properties is Ghosts, Asserts, PropertiesConstants {
     event L1(uint256 a);
     event L2(uint256 a, uint256 b);
     event L3(uint256 a, uint256 b, uint256 c);
@@ -49,6 +49,8 @@ abstract contract Properties is BeforeAfter, Asserts, PropertiesConstants {
         "LIQUIDATION_02: Liquidation with replacement does not change the total system debt";
 
     string internal constant COMPENSATE_01 = "COMPENSATE_01: Compensate reduces the borrower debt";
+
+    string internal constant DOS = "DOS: Denial of Service";
 
     function invariant_LOAN() public returns (bool) {
         uint256 minimumCreditBorrowAToken = size.riskConfig().minimumCreditBorrowAToken;

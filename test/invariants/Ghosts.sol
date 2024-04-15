@@ -7,7 +7,7 @@ import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/fixed/Loa
 
 import {Deploy} from "@script/Deploy.sol";
 
-abstract contract BeforeAfter is Deploy {
+abstract contract Ghosts is Deploy {
     struct Vars {
         UserView sender;
         UserView borrower;

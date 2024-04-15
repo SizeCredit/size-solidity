@@ -9,3 +9,5 @@ struct User {
     uint256 scaledBorrowATokenBalance;
     bool creditPositionsForSaleDisabled;
 }
+
+library UserLibrary {}
