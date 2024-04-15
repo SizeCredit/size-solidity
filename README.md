@@ -161,7 +161,7 @@ forge test
 │          Upgrade           │   2    │
 │ VariablePoolBorrowRateFeed │   2    │
 │          Withdraw          │   8    │
-│         YieldCurve         │   13   │
+│         YieldCurve         │   14   │
 └────────────────────────────┴────────┘
 ```
 <!-- END_COVERAGE -->
