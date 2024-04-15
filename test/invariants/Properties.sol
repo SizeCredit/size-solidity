@@ -14,6 +14,8 @@ abstract contract Properties is Ghosts, Asserts, PropertiesConstants {
     event L3(uint256 a, uint256 b, uint256 c);
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
+    bytes4 internal err;
+
     string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender";
 
     string internal constant WITHDRAW_01 = "WITHDRAW_01: Withdraw deducts from the sender";
@@ -99,45 +101,5 @@ abstract contract Properties is Ghosts, Asserts, PropertiesConstants {
             return false;
         }
         return true;
-    }
-
-    function _assertErrorNotIn(bytes4[] memory errors, bytes memory err) internal {
-        for (uint256 i = 0; i < errors.length; i++) {
-            if (errors[i] == bytes4(err)) {
-                t(false, DOS);
-            }
-        }
-    }
-
-    function _assertErrorNotIn(bytes4[1] memory errors, bytes memory err) internal {
-        return _assertErrorNotIn(errors, err);
-    }
-
-    function _assertErrorNotIn(bytes4[2] memory errors, bytes memory err) internal {
-        return _assertErrorNotIn(errors, err);
-    }
-
-    function _assertErrorNotIn(bytes4[3] memory errors, bytes memory err) internal {
-        return _assertErrorNotIn(errors, err);
-    }
-
-    function _assertErrorNotIn(bytes4[4] memory errors, bytes memory err) internal {
-        return _assertErrorNotIn(errors, err);
-    }
-
-    function _assertErrorNotIn(bytes4[5] memory errors, bytes memory err) internal {
-        return _assertErrorNotIn(errors, err);
-    }
-
-    function _assertErrorNotIn(bytes4[6] memory errors, bytes memory err) internal {
-        return _assertErrorNotIn(errors, err);
-    }
-
-    function _assertErrorNotIn(bytes4[7] memory errors, bytes memory err) internal {
-        return _assertErrorNotIn(errors, err);
-    }
-
-    function _assertErrorNotIn(bytes4[8] memory errors, bytes memory err) internal {
-        return _assertErrorNotIn(errors, err);
     }
 }

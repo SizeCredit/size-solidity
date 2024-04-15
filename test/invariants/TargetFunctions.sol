@@ -5,8 +5,11 @@ import {Helper} from "./Helper.sol";
 import {Properties} from "./Properties.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 import "@crytic/properties/contracts/util/Hevm.sol";
+
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Deploy} from "@script/Deploy.sol";
+import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
@@ -49,6 +52,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             hevm.prank(user);
             weth.deposit{value: MAX_AMOUNT_WETH / 3}();
         }
+        size.updateConfig(UpdateConfigParams({key: "minimumMaturity", value: 1}));
     }
 
     function deposit(address token, uint256 amount) public getSender {
@@ -72,15 +76,20 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
             }
         } catch (bytes memory err) {
-            _assertErrorNotIn(
-                [
-                    Errors.INVALID_MSG_VALUE.selector,
-                    Errors.INVALID_TOKEN.selector,
-                    Errors.NULL_AMOUNT.selector,
-                    Errors.NULL_ADDRESS.selector
-                ],
-                err
-            );
+            bytes4[5] memory errors = [
+                IERC20Errors.ERC20InsufficientBalance.selector,
+                Errors.INVALID_MSG_VALUE.selector,
+                Errors.INVALID_TOKEN.selector,
+                Errors.NULL_AMOUNT.selector,
+                Errors.NULL_ADDRESS.selector
+            ];
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
         }
     }
 
@@ -103,9 +112,12 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount + amount, WITHDRAW_01);
             }
         } catch (bytes memory err) {
-            _assertErrorNotIn(
-                [Errors.INVALID_TOKEN.selector, Errors.NULL_AMOUNT.selector, Errors.NULL_ADDRESS.selector], err
-            );
+            bytes4[1] memory errors = [Errors.NULL_AMOUNT.selector];
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    t(false, DOS);
+                }
+            }
         }
     }
 
@@ -157,19 +169,22 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
         } catch (bytes memory err) {
-            _assertErrorNotIn(
-                [
-                    Errors.INVALID_LOAN_OFFER.selector,
-                    Errors.NULL_AMOUNT.selector,
-                    Errors.PAST_DUE_DATE.selector,
-                    Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector,
-                    Errors.PAST_DEADLINE.selector,
-                    Errors.APR_GREATER_THAN_MAX_APR.selector,
-                    Errors.BORROWER_IS_NOT_LENDER.selector,
-                    Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector
-                ],
-                err
-            );
+            bytes4[6] memory errors = [
+                Errors.INVALID_LOAN_OFFER.selector,
+                Errors.NULL_AMOUNT.selector,
+                Errors.PAST_DUE_DATE.selector,
+                Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector,
+                Errors.BORROWER_IS_NOT_LENDER.selector,
+                Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector
+            ];
+
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
         }
     }
 
@@ -219,15 +234,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             }
             eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
         } catch (bytes memory err) {
-            _assertErrorNotIn(
-                [
-                    Errors.INVALID_BORROW_OFFER.selector,
-                    Errors.PAST_DUE_DATE.selector,
-                    Errors.PAST_DEADLINE.selector,
-                    Errors.APR_LOWER_THAN_MIN_APR.selector
-                ],
-                err
-            );
+            bytes4[2] memory errors = [Errors.INVALID_BORROW_OFFER.selector, Errors.PAST_DUE_DATE.selector];
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
         }
     }
 
@@ -244,7 +258,12 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         ) {
             __after();
         } catch (bytes memory err) {
-            _assertErrorNotIn([Errors.NULL_MAX_DUE_DATE.selector, Errors.PAST_MAX_DUE_DATE.selector], err);
+            bytes4[1] memory errors = [Errors.PAST_MAX_DUE_DATE.selector];
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    t(false, DOS);
+                }
+            }
         }
     }
 
@@ -273,16 +292,19 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 lt(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
             }
         } catch (bytes memory err) {
-            _assertErrorNotIn(
-                [
-                    Errors.PAST_DUE_DATE.selector,
-                    Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
-                    Errors.EXITER_IS_NOT_BORROWER.selector,
-                    Errors.PAST_DEADLINE.selector,
-                    Errors.APR_LOWER_THAN_MIN_APR.selector
-                ],
-                err
-            );
+            bytes4[3] memory errors = [
+                Errors.PAST_DUE_DATE.selector,
+                Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
+                Errors.EXITER_IS_NOT_BORROWER.selector
+            ];
+
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
         }
     }
 
@@ -300,14 +322,17 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
             lt(_after.sender.debtBalance, _before.sender.debtBalance, REPAY_02);
         } catch (bytes memory err) {
-            _assertErrorNotIn(
-                [
-                    Errors.LOAN_ALREADY_REPAID.selector,
-                    Errors.REPAYER_IS_NOT_BORROWER.selector,
-                    Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector
-                ],
-                err
-            );
+            bytes4[3] memory errors = [
+                Errors.LOAN_ALREADY_REPAID.selector,
+                Errors.REPAYER_IS_NOT_BORROWER.selector,
+                Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector
+            ];
+
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    t(false, DOS);
+                }
+            }
         }
     }
 
@@ -324,7 +349,15 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             gte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             t(size.isCreditPositionId(creditPositionId), CLAIM_02);
         } catch (bytes memory err) {
-            _assertErrorNotIn([Errors.LOAN_NOT_REPAID.selector, Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector], err);
+            bytes4[2] memory errors = [Errors.LOAN_NOT_REPAID.selector, Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector];
+
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
         }
     }
 
@@ -355,13 +388,18 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
             t(_before.isSenderLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
         } catch (bytes memory err) {
-            _assertErrorNotIn(
-                [
-                    Errors.LOAN_NOT_LIQUIDATABLE.selector,
-                    Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector
-                ],
-                err
-            );
+            bytes4[2] memory errors = [
+                Errors.LOAN_NOT_LIQUIDATABLE.selector,
+                Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector
+            ];
+
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
         }
     }
 
@@ -378,14 +416,18 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             lt(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance, LIQUIDATE_01);
             lt(_after.sender.debtBalance, _before.sender.debtBalance, LIQUIDATE_02);
         } catch (bytes memory err) {
-            _assertErrorNotIn(
-                [
-                    Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector,
-                    Errors.LIQUIDATION_NOT_AT_LOSS.selector,
-                    Errors.LIQUIDATOR_IS_NOT_LENDER.selector
-                ],
-                err
-            );
+            bytes4[3] memory errors = [
+                Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector,
+                Errors.LIQUIDATION_NOT_AT_LOSS.selector,
+                Errors.LIQUIDATOR_IS_NOT_LENDER.selector
+            ];
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
         }
     }
 
@@ -422,16 +464,19 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
             eq(_after.totalDebtAmount, _before.totalDebtAmount, LIQUIDATION_02);
         } catch (bytes memory err) {
-            _assertErrorNotIn(
-                [
-                    Errors.LOAN_NOT_ACTIVE.selector,
-                    Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
-                    Errors.INVALID_BORROW_OFFER.selector,
-                    Errors.PAST_DEADLINE.selector,
-                    Errors.APR_LOWER_THAN_MIN_APR.selector
-                ],
-                err
-            );
+            bytes4[3] memory errors = [
+                Errors.LOAN_NOT_ACTIVE.selector,
+                Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
+                Errors.INVALID_BORROW_OFFER.selector
+            ];
+
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
         }
     }
 
@@ -459,18 +504,23 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
             lt(_after.sender.debtBalance, _before.sender.debtBalance, COMPENSATE_01);
         } catch (bytes memory err) {
-            _assertErrorNotIn(
-                [
-                    Errors.LOAN_ALREADY_REPAID.selector,
-                    Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE.selector,
-                    Errors.LOAN_ALREADY_REPAID.selector,
-                    Errors.DUE_DATE_NOT_COMPATIBLE.selector,
-                    Errors.INVALID_LENDER.selector,
-                    Errors.COMPENSATOR_IS_NOT_BORROWER.selector,
-                    Errors.NULL_AMOUNT.selector
-                ],
-                err
-            );
+            bytes4[7] memory errors = [
+                Errors.LOAN_ALREADY_REPAID.selector,
+                Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE.selector,
+                Errors.LOAN_ALREADY_REPAID.selector,
+                Errors.DUE_DATE_NOT_COMPATIBLE.selector,
+                Errors.INVALID_LENDER.selector,
+                Errors.COMPENSATOR_IS_NOT_BORROWER.selector,
+                Errors.NULL_AMOUNT.selector
+            ];
+
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
         }
     }
 
