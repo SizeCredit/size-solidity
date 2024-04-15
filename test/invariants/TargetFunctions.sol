@@ -52,7 +52,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             hevm.prank(user);
             weth.deposit{value: MAX_AMOUNT_WETH / 3}();
         }
-        size.updateConfig(UpdateConfigParams({key: "minimumMaturity", value: 1}));
     }
 
     function deposit(address token, uint256 amount) public getSender {
@@ -202,7 +201,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         ) {
             __after();
         } catch {
-            t(false, DOS);
+            bytes4[1] memory errors = [Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector];
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
         }
     }
 
@@ -260,7 +266,15 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         ) {
             __after();
         } catch (bytes memory err) {
-            bytes4[1] memory errors = [Errors.PAST_MAX_DUE_DATE.selector];
+            bytes4[2] memory errors =
+                [Errors.PAST_MAX_DUE_DATE.selector, Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector];
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                }
+            }
+            t(expected, DOS);
             bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
