@@ -113,11 +113,13 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             }
         } catch (bytes memory err) {
             bytes4[1] memory errors = [Errors.NULL_AMOUNT.selector];
+            bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
-                    t(false, DOS);
+                    expected = true;
                 }
             }
+            t(expected, DOS);
         }
     }
 
@@ -259,11 +261,13 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             __after();
         } catch (bytes memory err) {
             bytes4[1] memory errors = [Errors.PAST_MAX_DUE_DATE.selector];
+            bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
-                    t(false, DOS);
+                    expected = true;
                 }
             }
+            t(expected, DOS);
         }
     }
 
@@ -328,11 +332,13 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector
             ];
 
+            bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
-                    t(false, DOS);
+                    expected = true;
                 }
             }
+            t(expected, DOS);
         }
     }
 

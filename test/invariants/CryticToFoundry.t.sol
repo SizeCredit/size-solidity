@@ -76,4 +76,18 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         );
         borrowAsLimitOrder(180162341724336367199684346413142812353046585660579162165980144773714726, 0);
     }
+
+    function test_CryticToFoundry_borrowAsLimitOrder_revert_3() public {
+        borrowAsLimitOrder(
+            24308093517875210217889766066926010728765383378644, 230442545350020334106876856871538932405620326042951713
+        );
+    }
+
+    function test_CryticToFoundry_lendAsLimitOrder_revert_1() public {
+        lendAsLimitOrder(
+            2292945695796549592164450490820804018997432253918124766999817995806,
+            89958496982046217950265821879046247224794714169404241497294527541030,
+            4
+        );
+    }
 }
