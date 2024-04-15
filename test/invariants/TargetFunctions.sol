@@ -30,6 +30,8 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
+
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
@@ -69,8 +71,16 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance + amount, DEPOSIT_01);
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
             }
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn(
+                [
+                    Errors.INVALID_MSG_VALUE.selector,
+                    Errors.INVALID_TOKEN.selector,
+                    Errors.NULL_AMOUNT.selector,
+                    Errors.NULL_ADDRESS.selector
+                ],
+                err
+            );
         }
     }
 
@@ -92,8 +102,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance - amount, WITHDRAW_01);
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount + amount, WITHDRAW_01);
             }
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn(
+                [Errors.INVALID_TOKEN.selector, Errors.NULL_AMOUNT.selector, Errors.NULL_ADDRESS.selector], err
+            );
         }
     }
 
@@ -144,8 +156,20 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                     eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
                 }
             }
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn(
+                [
+                    Errors.INVALID_LOAN_OFFER.selector,
+                    Errors.NULL_AMOUNT.selector,
+                    Errors.PAST_DUE_DATE.selector,
+                    Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector,
+                    Errors.PAST_DEADLINE.selector,
+                    Errors.APR_GREATER_THAN_MAX_APR.selector,
+                    Errors.BORROWER_IS_NOT_LENDER.selector,
+                    Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector
+                ],
+                err
+            );
         }
     }
 
@@ -194,8 +218,16 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
             eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn(
+                [
+                    Errors.INVALID_BORROW_OFFER.selector,
+                    Errors.PAST_DUE_DATE.selector,
+                    Errors.PAST_DEADLINE.selector,
+                    Errors.APR_LOWER_THAN_MIN_APR.selector
+                ],
+                err
+            );
         }
     }
 
@@ -211,8 +243,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
         ) {
             __after();
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn([Errors.NULL_MAX_DUE_DATE.selector, Errors.PAST_MAX_DUE_DATE.selector], err);
         }
     }
 
@@ -240,8 +272,17 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             } else {
                 lt(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
             }
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn(
+                [
+                    Errors.PAST_DUE_DATE.selector,
+                    Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
+                    Errors.EXITER_IS_NOT_BORROWER.selector,
+                    Errors.PAST_DEADLINE.selector,
+                    Errors.APR_LOWER_THAN_MIN_APR.selector
+                ],
+                err
+            );
         }
     }
 
@@ -258,8 +299,15 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, REPAY_01);
             gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
             lt(_after.sender.debtBalance, _before.sender.debtBalance, REPAY_02);
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn(
+                [
+                    Errors.LOAN_ALREADY_REPAID.selector,
+                    Errors.REPAYER_IS_NOT_BORROWER.selector,
+                    Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector
+                ],
+                err
+            );
         }
     }
 
@@ -275,8 +323,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
             gte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             t(size.isCreditPositionId(creditPositionId), CLAIM_02);
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn([Errors.LOAN_NOT_REPAID.selector, Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector], err);
         }
     }
 
@@ -306,8 +354,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             }
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
             t(_before.isSenderLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn(
+                [
+                    Errors.LOAN_NOT_LIQUIDATABLE.selector,
+                    Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector
+                ],
+                err
+            );
         }
     }
 
@@ -323,8 +377,15 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
             lt(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance, LIQUIDATE_01);
             lt(_after.sender.debtBalance, _before.sender.debtBalance, LIQUIDATE_02);
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn(
+                [
+                    Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector,
+                    Errors.LIQUIDATION_NOT_AT_LOSS.selector,
+                    Errors.LIQUIDATOR_IS_NOT_LENDER.selector
+                ],
+                err
+            );
         }
     }
 
@@ -350,7 +411,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 borrower: borrower,
                 minimumCollateralProfit: minimumCollateralProfit
             })
-        ) returns (uint256 liquidatorProfitCollateralToken,uint256) {
+        ) returns (uint256 liquidatorProfitCollateralToken, uint256) {
             __after(debtPositionId);
 
             gte(
@@ -360,8 +421,17 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             );
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
             eq(_after.totalDebtAmount, _before.totalDebtAmount, LIQUIDATION_02);
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn(
+                [
+                    Errors.LOAN_NOT_ACTIVE.selector,
+                    Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
+                    Errors.INVALID_BORROW_OFFER.selector,
+                    Errors.PAST_DEADLINE.selector,
+                    Errors.APR_LOWER_THAN_MIN_APR.selector
+                ],
+                err
+            );
         }
     }
 
@@ -388,8 +458,19 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             __after(creditPositionWithDebtToRepayId);
 
             lt(_after.sender.debtBalance, _before.sender.debtBalance, COMPENSATE_01);
-        } catch {
-            t(false, DOS);
+        } catch (bytes memory err) {
+            _assertErrorNotIn(
+                [
+                    Errors.LOAN_ALREADY_REPAID.selector,
+                    Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE.selector,
+                    Errors.LOAN_ALREADY_REPAID.selector,
+                    Errors.DUE_DATE_NOT_COMPATIBLE.selector,
+                    Errors.INVALID_LENDER.selector,
+                    Errors.COMPENSATOR_IS_NOT_BORROWER.selector,
+                    Errors.NULL_AMOUNT.selector
+                ],
+                err
+            );
         }
     }
 

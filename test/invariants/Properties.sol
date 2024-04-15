@@ -100,4 +100,44 @@ abstract contract Properties is Ghosts, Asserts, PropertiesConstants {
         }
         return true;
     }
+
+    function _assertErrorNotIn(bytes4[] memory errors, bytes memory err) internal {
+        for (uint256 i = 0; i < errors.length; i++) {
+            if (errors[i] == bytes4(err)) {
+                t(false, DOS);
+            }
+        }
+    }
+
+    function _assertErrorNotIn(bytes4[1] memory errors, bytes memory err) internal {
+        return _assertErrorNotIn(errors, err);
+    }
+
+    function _assertErrorNotIn(bytes4[2] memory errors, bytes memory err) internal {
+        return _assertErrorNotIn(errors, err);
+    }
+
+    function _assertErrorNotIn(bytes4[3] memory errors, bytes memory err) internal {
+        return _assertErrorNotIn(errors, err);
+    }
+
+    function _assertErrorNotIn(bytes4[4] memory errors, bytes memory err) internal {
+        return _assertErrorNotIn(errors, err);
+    }
+
+    function _assertErrorNotIn(bytes4[5] memory errors, bytes memory err) internal {
+        return _assertErrorNotIn(errors, err);
+    }
+
+    function _assertErrorNotIn(bytes4[6] memory errors, bytes memory err) internal {
+        return _assertErrorNotIn(errors, err);
+    }
+
+    function _assertErrorNotIn(bytes4[7] memory errors, bytes memory err) internal {
+        return _assertErrorNotIn(errors, err);
+    }
+
+    function _assertErrorNotIn(bytes4[8] memory errors, bytes memory err) internal {
+        return _assertErrorNotIn(errors, err);
+    }
 }
