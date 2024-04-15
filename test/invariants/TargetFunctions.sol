@@ -275,13 +275,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
-            bool expected = false;
-            for (uint256 i = 0; i < errors.length; i++) {
-                if (errors[i] == bytes4(err)) {
-                    expected = true;
-                }
-            }
-            t(expected, DOS);
         }
     }
 
