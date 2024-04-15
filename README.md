@@ -1,6 +1,6 @@
-# size-v2-solidity
+# size-solidity
 
-![Size](./size.jpeg)
+![Size](./size.png)
 
 Size is an order book based fixed rate lending protocol with an integrated variable pool (Aave v3).
 
