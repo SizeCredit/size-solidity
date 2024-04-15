@@ -25,7 +25,12 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         deposit(address(0x1fffffffe), 4);
     }
 
-    function test_CryticToFoundry_borrowAsMarketOrder_revert() public {
+    function test_CryticToFoundry_deposit_simple_2() public {
+        deposit(address(0x0), 11701887785524418192436486535520000692412245628316686449426120092118080);
+        deposit(address(0x0), 12228996115925641958936242891964123591486200466968002393568456449);
+    }
+
+    function test_CryticToFoundry_borrowAsMarketOrder_revert_1() public {
         borrowAsMarketOrder(
             address(0x0),
             7258293203459773444856724049963184653257961299884193721136437814788,
@@ -33,6 +38,17 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
             false,
             366345095952906084925779668485935966503026202637968315265487852519,
             1145273
+        );
+    }
+
+    function test_CryticToFoundry_borrowAsMarketOrder_revert_2() public {
+        borrowAsMarketOrder(
+            address(0x0),
+            7725202679692877996630485343462647570718153008153086620608757346988788,
+            141760344479030461194536569386544780250122102251231854580611460569,
+            false,
+            10060723714931171830825181432363087768917778531200809253315136315564,
+            72448558944738478103423002238565484783696853285582469408223276149
         );
     }
 
@@ -45,7 +61,19 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         );
     }
 
-    function test_CryticToFoundry_borrowAsLimitOrder_revert() public {
+    function test_CryticToFoundry_borrowAsLimitOrder_revert_1() public {
         borrowAsLimitOrder(0, 0);
+    }
+
+    function test_CryticToFoundry_borrowAsLimitOrder_2() public {
+        borrowAsMarketOrder(
+            address(0x0),
+            44106062112278176550259072435469268645208185786593270360777223910980113835938,
+            665971502731129591318029932448963520627354561605072206193122862285929223052,
+            false,
+            172,
+            11320309198371681170909016785101780121611655682407309252677041083814250665058
+        );
+        borrowAsLimitOrder(180162341724336367199684346413142812353046585660579162165980144773714726, 0);
     }
 }
