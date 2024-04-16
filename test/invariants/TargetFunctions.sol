@@ -9,7 +9,6 @@ import "@crytic/properties/contracts/util/Hevm.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Deploy} from "@script/Deploy.sol";
-import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
@@ -111,7 +110,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount + amount, WITHDRAW_01);
             }
         } catch (bytes memory err) {
-            bytes4[1] memory errors = [Errors.NULL_AMOUNT.selector];
+            bytes4[2] memory errors = [Errors.NULL_AMOUNT.selector, Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector];
             bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
@@ -170,13 +169,17 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
         } catch (bytes memory err) {
-            bytes4[6] memory errors = [
+            bytes4[10] memory errors = [
                 Errors.INVALID_LOAN_OFFER.selector,
                 Errors.NULL_AMOUNT.selector,
                 Errors.PAST_DUE_DATE.selector,
                 Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector,
                 Errors.BORROWER_IS_NOT_LENDER.selector,
-                Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector
+                Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector,
+                Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
+                Errors.MATURITY_OUT_OF_RANGE.selector,
+                Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
             ];
 
             bool expected = false;
@@ -200,7 +203,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             BorrowAsLimitOrderParams({openingLimitBorrowCR: 0, curveRelativeTime: curveRelativeTime})
         ) {
             __after();
-        } catch {
+        } catch (bytes memory err) {
             bytes4[1] memory errors = [Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector];
             bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
@@ -242,7 +245,13 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             }
             eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
         } catch (bytes memory err) {
-            bytes4[2] memory errors = [Errors.INVALID_BORROW_OFFER.selector, Errors.PAST_DUE_DATE.selector];
+            bytes4[5] memory errors = [
+                Errors.INVALID_BORROW_OFFER.selector,
+                Errors.PAST_DUE_DATE.selector,
+                Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
+                Errors.MATURITY_OUT_OF_RANGE.selector,
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
+            ];
             bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
@@ -517,14 +526,16 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
             lt(_after.sender.debtBalance, _before.sender.debtBalance, COMPENSATE_01);
         } catch (bytes memory err) {
-            bytes4[7] memory errors = [
+            bytes4[9] memory errors = [
                 Errors.LOAN_ALREADY_REPAID.selector,
                 Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE.selector,
                 Errors.LOAN_ALREADY_REPAID.selector,
                 Errors.DUE_DATE_NOT_COMPATIBLE.selector,
                 Errors.INVALID_LENDER.selector,
                 Errors.COMPENSATOR_IS_NOT_BORROWER.selector,
-                Errors.NULL_AMOUNT.selector
+                Errors.NULL_AMOUNT.selector,
+                Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
             ];
 
             bool expected = false;

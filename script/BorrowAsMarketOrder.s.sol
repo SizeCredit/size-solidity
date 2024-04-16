@@ -9,7 +9,7 @@ import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMa
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-contract BorrowAsMarketOrder is Script, Logger {
+contract BorrowAsMarketOrderScript is Script, Logger {
     using OfferLibrary for LoanOffer;
 
     function run() external {
