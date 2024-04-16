@@ -89,6 +89,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -120,6 +121,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -192,6 +194,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -216,6 +219,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -264,6 +268,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -290,6 +295,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -312,17 +318,16 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         ) {
             __after(debtPositionId);
 
-            if (borrowerToExitTo == sender) {
-                gte(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
-            } else {
+            if (borrowerToExitTo != sender) {
                 lt(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
             }
         } catch (bytes memory err) {
-            bytes4[4] memory errors = [
+            bytes4[5] memory errors = [
                 Errors.PAST_DUE_DATE.selector,
                 Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
                 Errors.EXITER_IS_NOT_BORROWER.selector,
-                Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector
+                Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
+                Errors.MATURITY_OUT_OF_RANGE.selector
             ];
 
             bool expected = false;
@@ -333,6 +338,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -364,6 +370,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -390,6 +397,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -433,6 +441,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -462,6 +471,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -512,6 +522,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 
@@ -559,6 +570,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
             t(expected, DOS);
+            precondition(false);
         }
     }
 

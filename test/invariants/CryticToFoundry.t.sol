@@ -100,4 +100,16 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         borrowAsLimitOrder(0, 0);
         borrowerExit(0, address(0x0));
     }
+
+    function test_CryticToFoundry_11() public {
+        deposit(address(0xdeadbeef), 704166518704863933589202765415473518729895105787909426323098);
+        deposit(address(0x0), 0);
+        borrowAsLimitOrder(
+            602109783645243895630345667291691265661983649350748518031541306080282,
+            12207171703823816968514535352312088909180397068180298888786707269
+        );
+        lendAsMarketOrder(address(0x0), 1983347430666951499131913749622318018341, 5001671, false);
+        vm.warp(block.timestamp + 250);
+        borrowerExit(0, address(0x0));
+    }
 }
