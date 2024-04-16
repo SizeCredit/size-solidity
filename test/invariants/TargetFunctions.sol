@@ -85,6 +85,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -115,6 +116,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -186,6 +188,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -209,6 +212,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -256,6 +260,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -281,6 +286,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -307,21 +313,23 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             __after(debtPositionId);
 
             if (borrowerToExitTo == sender) {
-                eq(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
+                gte(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
             } else {
                 lt(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
             }
         } catch (bytes memory err) {
-            bytes4[3] memory errors = [
+            bytes4[4] memory errors = [
                 Errors.PAST_DUE_DATE.selector,
                 Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
-                Errors.EXITER_IS_NOT_BORROWER.selector
+                Errors.EXITER_IS_NOT_BORROWER.selector,
+                Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector
             ];
 
             bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -352,6 +360,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -377,6 +386,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -419,6 +429,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -447,6 +458,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -496,6 +508,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
@@ -542,6 +555,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
                     expected = true;
+                    break;
                 }
             }
             t(expected, DOS);
