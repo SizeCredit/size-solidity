@@ -322,13 +322,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 lt(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
             }
         } catch (bytes memory err) {
-            bytes4[6] memory errors = [
+            bytes4[7] memory errors = [
                 Errors.PAST_DUE_DATE.selector,
                 Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
                 Errors.EXITER_IS_NOT_BORROWER.selector,
                 Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
                 Errors.MATURITY_OUT_OF_RANGE.selector,
-                Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector
+                Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
+                Errors.LOAN_NOT_ACTIVE.selector
             ];
 
             bool expected = false;
