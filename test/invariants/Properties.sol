@@ -6,7 +6,14 @@ import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 
 import {UserView} from "@src/SizeView.sol";
-import {CreditPosition} from "@src/libraries/fixed/LoanLibrary.sol";
+import {
+    CREDIT_POSITION_ID_START,
+    CreditPosition,
+    DEBT_POSITION_ID_START,
+    DebtPosition,
+    LoanStatus
+} from "@src/libraries/fixed/LoanLibrary.sol";
+import {console2 as console} from "forge-std/console2.sol";
 
 abstract contract Properties is Ghosts, Asserts, PropertiesConstants {
     event L1(uint256 a);
@@ -50,9 +57,11 @@ abstract contract Properties is Ghosts, Asserts, PropertiesConstants {
 
     string internal constant COMPENSATE_01 = "COMPENSATE_01: Compensate reduces the borrower debt";
 
+    string internal constant SOLVENCY_01 = "SOLVENCY_01: SUM(outstanding credit) = SUM(outstanding debt)";
+
     string internal constant DOS = "DOS: Denial of Service";
 
-    function invariant_LOAN() public returns (bool) {
+    function invariant_LOAN_01() public returns (bool) {
         uint256 minimumCreditBorrowAToken = size.riskConfig().minimumCreditBorrowAToken;
         CreditPosition[] memory creditPositions = size.getCreditPositions();
 
@@ -96,6 +105,32 @@ abstract contract Properties is Ghosts, Asserts, PropertiesConstants {
                 || (weth.balanceOf(address(size)) != collateralBalance)
         ) {
             t(false, TOKENS_01);
+            return false;
+        }
+        return true;
+    }
+
+    function invariant_SOLVENCY_01() public returns (bool) {
+        uint256 totalDebt;
+        uint256 totalCredit;
+
+        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
+        for (uint256 i = 0; i < creditPositionsCount; ++i) {
+            uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
+            LoanStatus status = size.getLoanStatus(creditPositionId);
+            if (status != LoanStatus.REPAID) {
+                totalCredit += size.getCreditPosition(creditPositionId).credit;
+            }
+        }
+
+        for (uint256 i = 0; i < debtPositionsCount; ++i) {
+            uint256 debtPositionId = DEBT_POSITION_ID_START + i;
+            totalDebt += size.getDebtPosition(debtPositionId).faceValue;
+        }
+
+        if (totalDebt != totalCredit) {
+            console.log(totalDebt, totalCredit);
+            t(false, SOLVENCY_01);
             return false;
         }
         return true;

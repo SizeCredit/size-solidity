@@ -31,8 +31,9 @@ contract FoundryTester is Test {
     }
 
     function invariant() public {
-        assertTrue(handler.invariant_LOAN(), "LOAN");
+        assertTrue(handler.invariant_LOAN_01(), "LOAN_01");
         assertTrue(handler.invariant_LIQUIDATION_01(), "LIQUIDATION_01");
         assertTrue(handler.invariant_TOKENS_01(), "TOKENS_01");
+        assertTrue(handler.invariant_SOLVENCY_01(), "SOLVENCY_01");
     }
 }

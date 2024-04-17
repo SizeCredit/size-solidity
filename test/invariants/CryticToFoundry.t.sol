@@ -78,4 +78,19 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         sender = USER2;
         liquidate(0, 500);
     }
+
+    function test_CryticToFoundry_04() public {
+        // CryticTester.deposit(0xdeadbeef,0)
+        // CryticTester.deposit(0x0,0)
+        // CryticTester.borrowAsLimitOrder(0,0)
+        // CryticTester.lendAsMarketOrder(0x0,762433799931065407245075044326762306,5003750,false)
+        // CryticTester.repay(0)
+        deposit(address(0xdeadbeef), 0);
+        deposit(address(0x0), 0);
+        borrowAsLimitOrder(0, 0);
+        lendAsMarketOrder(address(0x0), 762433799931065407245075044326762306, 5003750, false);
+        repay(0);
+
+        t(invariant_SOLVENCY_01(), SOLVENCY_01);
+    }
 }
