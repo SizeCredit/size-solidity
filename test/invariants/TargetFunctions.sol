@@ -427,7 +427,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, LIQUIDATE_02);
             }
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
-            t(_before.isSenderLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
+            t(_before.isBorrowerLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
         } catch (bytes memory err) {
             bytes4[3] memory errors = [
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,

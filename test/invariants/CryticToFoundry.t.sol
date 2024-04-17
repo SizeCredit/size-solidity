@@ -3,7 +3,9 @@ pragma solidity 0.8.23;
 
 import {TargetFunctions} from "./TargetFunctions.sol";
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
+import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {Test} from "forge-std/Test.sol";
+import {console2 as console} from "forge-std/console2.sol";
 
 contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
     function setUp() public {
