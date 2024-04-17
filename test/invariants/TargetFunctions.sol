@@ -74,9 +74,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
             }
         } catch (bytes memory err) {
-            bytes4[5] memory errors = [
+            bytes4[4] memory errors = [
                 IERC20Errors.ERC20InsufficientBalance.selector,
-                Errors.INVALID_MSG_VALUE.selector,
                 Errors.INVALID_TOKEN.selector,
                 Errors.NULL_AMOUNT.selector,
                 Errors.NULL_ADDRESS.selector
@@ -430,7 +429,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
             t(_before.isSenderLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
         } catch (bytes memory err) {
-            bytes4[2] memory errors = [
+            bytes4[3] memory errors = [
+                Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
                 Errors.LOAN_NOT_LIQUIDATABLE.selector,
                 Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector
             ];
