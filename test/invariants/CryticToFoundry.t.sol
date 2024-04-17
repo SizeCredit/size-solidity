@@ -14,6 +14,8 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         vm.deal(address(USER3), 100e18);
 
         setup();
+
+        sender = USER1;
     }
 
     modifier getSender() override {

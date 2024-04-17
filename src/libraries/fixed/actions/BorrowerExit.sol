@@ -53,6 +53,11 @@ library BorrowerExit {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
 
+        // validate borrowerToExitTo
+        if (borrowOffer.isNull()) {
+            revert Errors.INVALID_BORROW_OFFER(params.borrowerToExitTo);
+        }
+
         // validate deadline
         if (params.deadline < block.timestamp) {
             revert Errors.PAST_DEADLINE(params.deadline);
@@ -63,9 +68,6 @@ library BorrowerExit {
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
-
-        // validate borrowerToExitTo
-        // N/A
     }
 
     function executeBorrowerExit(State storage state, BorrowerExitParams calldata params)
