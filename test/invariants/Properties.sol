@@ -61,7 +61,6 @@ abstract contract Properties is Ghosts, PropertiesConstants {
     string internal constant DOS = "DOS: Denial of Service";
 
     function invariant_LOAN_01() public returns (bool) {
-        return true;
         uint256 minimumCreditBorrowAToken = size.riskConfig().minimumCreditBorrowAToken;
         CreditPosition[] memory creditPositions = size.getCreditPositions();
 
@@ -83,7 +82,6 @@ abstract contract Properties is Ghosts, PropertiesConstants {
     }
 
     function invariant_TOKENS_01() public returns (bool) {
-        return true;
         address[] memory users = new address[](6);
         users[0] = USER1;
         users[1] = USER2;
