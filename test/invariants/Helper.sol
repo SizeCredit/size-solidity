@@ -16,7 +16,7 @@ abstract contract Helper is Deploy, PropertiesConstants {
     uint256 internal constant MAX_TIME_BUCKETS = 24;
     uint256 internal constant MIN_PRICE = 0.01e18;
     uint256 internal constant MAX_PRICE = 10_000e18;
-    uint256 internal constant MAX_LIQUIDITY_INDEX_INCREASE_PERCENT = 2e18;
+    uint256 internal constant MAX_LIQUIDITY_INDEX_INCREASE_PERCENT = 1.05e18;
 
     function _getRandomUser(address user) internal pure returns (address) {
         return uint160(user) % 3 == 0 ? USER1 : uint160(user) % 3 == 1 ? USER2 : USER3;

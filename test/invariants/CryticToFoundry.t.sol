@@ -142,7 +142,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         // CryticTester.withdraw(0xdeadbeef,36435084)
 
         deposit(address(0xdeadbeef), 11904803604958988569572617684222248);
-        setLiquidityIndex(5010010177153568);
+        setLiquidityIndex(5010010177153568, 0);
         console.log(variablePool.getReserveNormalizedIncome(address(usdc)));
         withdraw(address(0xdeadbeef), 36435084);
     }
@@ -151,7 +151,23 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         // CryticTester.setLiquidityIndex(39230582154854410937060535)
         // CryticTester.deposit(0xdeadbeef,12706084137082100291738998232343986780437457837920)
 
-        setLiquidityIndex(39230582154854410937060535);
+        setLiquidityIndex(39230582154854410937060535, 0);
         deposit(address(0xdeadbeef), 12706084137082100291738998232343986780437457837920);
+    }
+
+    function test_CryticToFoundry_09() public {
+        // CryticTester.deposit(0xdeadbeef,49473334019751321612960642903970974588602648394551);
+        // CryticTester.setLiquidityIndex(6861548694834691393073179238244092896040981781979822920618654793442930690)
+        // CryticTester.setLiquidityIndex(1115954840427265828061058214517677221630329833090451996059356350670104)
+        // CryticTester.setLiquidityIndexC9797321557023269259201900311052377384770852882561934633352)
+        // CryticTester.setLiquidityIndex100091368808502191030772197116316725877531905)
+        // CryticTester.deposit(0x0,0)
+
+        deposit(address(0xdeadbeef), 49473334019751321612960642903970974588602648394551);
+        setLiquidityIndex(6861548694834691393073179238244092896040981781979822920618654793442930690, 0);
+        setLiquidityIndex(1115954840427265828061058214517677221630329833090451996059356350670104, 0);
+        setLiquidityIndex(9797321557023269259201900311052377384770852882561934633352, 0);
+        setLiquidityIndex(100091368808502191030772197116316725877531905, 0);
+        deposit(address(0x0), 0);
     }
 }

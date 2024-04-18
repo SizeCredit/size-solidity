@@ -33,15 +33,9 @@ abstract contract Ghosts is Deploy, Asserts {
         _;
     }
 
-    modifier hasDebtPositions() {
+    modifier hasLoans() {
         (_before.debtPositionsCount, _before.creditPositionsCount) = size.getPositionsCount();
         precondition(_before.debtPositionsCount > 0);
-        _;
-    }
-
-    modifier hasCreditPositions() {
-        (_before.debtPositionsCount, _before.creditPositionsCount) = size.getPositionsCount();
-        precondition(_before.creditPositionsCount > 0);
         _;
     }
 

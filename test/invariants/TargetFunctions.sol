@@ -52,6 +52,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         users[0] = USER1;
         users[1] = USER2;
         users[2] = USER3;
+        usdc.mint(address(this), MAX_AMOUNT_USDC);
         for (uint256 i = 0; i < users.length; i++) {
             address user = users[i];
             usdc.mint(user, MAX_AMOUNT_USDC / 3);
@@ -324,7 +325,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function borrowerExit(uint256 debtPositionId, address borrowerToExitTo) public getSender hasDebtPositions {
+    function borrowerExit(uint256 debtPositionId, address borrowerToExitTo) public getSender hasLoans {
         debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
         __before(debtPositionId);
 
@@ -369,7 +370,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function repay(uint256 debtPositionId) public getSender hasDebtPositions {
+    function repay(uint256 debtPositionId) public getSender hasLoans {
         debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
         __before(debtPositionId);
 
@@ -399,7 +400,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function claim(uint256 creditPositionId) public getSender hasCreditPositions {
+    function claim(uint256 creditPositionId) public getSender hasLoans {
         creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
         __before(creditPositionId);
 
@@ -424,7 +425,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function liquidate(uint256 debtPositionId, uint256 minimumCollateralProfit) public getSender hasDebtPositions {
+    function liquidate(uint256 debtPositionId, uint256 minimumCollateralProfit) public getSender hasLoans {
         debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
         __before(debtPositionId);
 
@@ -467,7 +468,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function selfLiquidate(uint256 creditPositionId) internal getSender hasCreditPositions {
+    function selfLiquidate(uint256 creditPositionId) internal getSender hasLoans {
         creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
         __before(creditPositionId);
 
@@ -498,7 +499,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     function liquidateWithReplacement(uint256 debtPositionId, uint256 minimumCollateralProfit, address borrower)
         internal
         getSender
-        hasDebtPositions
     {
         debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
         __before(debtPositionId);
@@ -548,7 +548,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     function compensate(uint256 creditPositionWithDebtToRepayId, uint256 creditPositionToCompensateId, uint256 amount)
         public
         getSender
-        hasCreditPositions
     {
         creditPositionWithDebtToRepayId =
             between(creditPositionWithDebtToRepayId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
@@ -593,11 +592,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function buyMarketCredit(uint256 creditPositionId, uint256 amount, bool exactAmountIn)
-        public
-        getSender
-        hasCreditPositions
-    {
+    function buyMarketCredit(uint256 creditPositionId, uint256 amount, bool exactAmountIn) public getSender {
         creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
         __before(creditPositionId);
 
@@ -653,11 +648,17 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         PriceFeedMock(address(priceFeed)).setPrice(price);
     }
 
-    function setLiquidityIndex(uint256 liquidityIndex) public {
+    function setLiquidityIndex(uint256 liquidityIndex, uint256 supplyAmount) public {
         uint256 currentLiquidityIndex = variablePool.getReserveNormalizedIncome(address(usdc));
         liquidityIndex = between(
             liquidityIndex, currentLiquidityIndex, currentLiquidityIndex * MAX_LIQUIDITY_INDEX_INCREASE_PERCENT / 1e18
         );
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), liquidityIndex);
+
+        supplyAmount = between(supplyAmount, 0, MAX_AMOUNT_USDC);
+        if (supplyAmount > 0) {
+            usdc.approve(address(variablePool), supplyAmount);
+            variablePool.supply(address(usdc), supplyAmount, address(this), 0);
+        }
     }
 }
