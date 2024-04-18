@@ -31,6 +31,7 @@ import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/Liqui
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+// import {console2 as console} from "forge-std/console2.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
@@ -298,11 +299,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function borrowerExit(uint256 debtPositionId, address borrowerToExitTo) public getSender {
-        __before(debtPositionId);
-
-        precondition(_before.debtPositionsCount > 0);
+    function borrowerExit(uint256 debtPositionId, address borrowerToExitTo) public getSender hasDebtPositions {
         debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
+        __before(debtPositionId);
 
         borrowerToExitTo = _getRandomUser(borrowerToExitTo);
 
@@ -344,11 +343,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function repay(uint256 debtPositionId) public getSender {
-        __before(debtPositionId);
-
-        precondition(_before.debtPositionsCount > 0);
+    function repay(uint256 debtPositionId) public getSender hasDebtPositions {
         debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
+        __before(debtPositionId);
 
         hevm.prank(sender);
         try size.repay(RepayParams({debtPositionId: debtPositionId})) {
@@ -376,11 +373,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function claim(uint256 creditPositionId) public getSender {
-        __before(creditPositionId);
-
-        precondition(_before.creditPositionsCount > 0);
+    function claim(uint256 creditPositionId) public getSender hasCreditPositions {
         creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+        __before(creditPositionId);
 
         hevm.prank(sender);
         try size.claim(ClaimParams({creditPositionId: creditPositionId})) {
@@ -403,11 +398,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function liquidate(uint256 debtPositionId, uint256 minimumCollateralProfit) public getSender {
-        __before(debtPositionId);
-
-        precondition(_before.debtPositionsCount > 0);
+    function liquidate(uint256 debtPositionId, uint256 minimumCollateralProfit) public getSender hasDebtPositions {
         debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
+        __before(debtPositionId);
 
         minimumCollateralProfit = between(minimumCollateralProfit, 0, MAX_AMOUNT_WETH);
 
@@ -448,11 +441,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function selfLiquidate(uint256 creditPositionId) internal getSender {
-        __before(creditPositionId);
-
-        precondition(_before.creditPositionsCount > 0);
+    function selfLiquidate(uint256 creditPositionId) internal getSender hasCreditPositions {
         creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+        __before(creditPositionId);
 
         hevm.prank(sender);
         try size.selfLiquidate(SelfLiquidateParams({creditPositionId: creditPositionId})) {
@@ -481,11 +472,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     function liquidateWithReplacement(uint256 debtPositionId, uint256 minimumCollateralProfit, address borrower)
         internal
         getSender
+        hasDebtPositions
     {
-        __before(debtPositionId);
-
-        precondition(_before.debtPositionsCount > 0);
         debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
+        __before(debtPositionId);
 
         minimumCollateralProfit = between(minimumCollateralProfit, 0, MAX_AMOUNT_WETH);
 
@@ -532,14 +522,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     function compensate(uint256 creditPositionWithDebtToRepayId, uint256 creditPositionToCompensateId, uint256 amount)
         public
         getSender
+        hasCreditPositions
     {
-        __before(creditPositionWithDebtToRepayId);
-
-        precondition(_before.debtPositionsCount > 0);
         creditPositionWithDebtToRepayId =
             between(creditPositionWithDebtToRepayId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
         creditPositionToCompensateId =
             between(creditPositionToCompensateId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+
+        __before(creditPositionWithDebtToRepayId);
 
         hevm.prank(sender);
         try size.compensate(

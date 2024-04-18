@@ -93,4 +93,24 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
 
         t(invariant_SOLVENCY_01(), SOLVENCY_01);
     }
+
+    function test_CryticToFoundry_05() public {
+        // CryticTester.deposit(0x0,212133831549)
+        // CryticTester.deposit(0xdeadbeef,0)
+        // CryticTester.borrowAsLimitOrder(102813898223605900483909,77570742887577467430810329579079414851392708576767)
+        // CryticTester.lendAsMarketOrder(0x0,606338,420030534754023700037381865,false)
+        // *wait* Time delay: 437811 seconds Block delay: 1584
+        // *wait* Time delay: 174779 seconds Block delay: 5
+        // CryticTester.liquidate(115792089237316195423570985008687907853269984665640564039457584007913129639935,0)
+
+        deposit(address(0x0), 212133831549);
+        deposit(address(0xdeadbeef), 0);
+        borrowAsLimitOrder(102813898223605900483909, 77570742887577467430810329579079414851392708576767);
+        lendAsMarketOrder(address(0x0), 606338, 420030534754023700037381865, false);
+
+        vm.warp(block.timestamp + 437811);
+        vm.warp(block.timestamp + 174779);
+
+        liquidate(115792089237316195423570985008687907853269984665640564039457584007913129639935, 0);
+    }
 }

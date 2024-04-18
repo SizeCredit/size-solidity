@@ -1,7 +1,6 @@
 testMode: "assertion"
 prefix: "invariant_"
 coverage: true
-stopOnFail: true
 corpusDir: "echidna"
 codeSize: 0xffffff
 cryticArgs: ["--compile-libraries=(Errors,0x10),(VariablePoolLibrary,0x11),(UpdateConfig,0x12),(Deposit,0x13),(Withdraw,0x14),(Initialize,0x15),(Events,0x16),(OfferLibrary,0x17),(CapsLibrary,0x18),(LoanLibrary,0x19),(RiskLibrary,0x1a),(CollateralLibrary,0x1b),(LiquidateWithReplacement,0x1c),(Claim,0x1d),(Compensate,0x1e),(BorrowAsMarketOrder,0x1f),(Liquidate,0x20),(Repay,0x21),(SelfLiquidate,0x22),(BuyMarketCredit,0x23),(SetCreditForSale,0x24),(BorrowerExit,0x25),(LendAsLimitOrder,0x26),(LendAsMarketOrder,0x27),(BorrowAsLimitOrder,0x28),(UserLibrary,0x29),(YieldCurveLibrary,0x2a),(AccountingLibrary,0x2b),(Math,0x2c),(YieldCurveHelper,0x2d)","--foundry-compile-all"]
