@@ -51,7 +51,7 @@
 				]
 			},
 			"optimizationTesting": {
-				"enabled": true,
+				"enabled": false,
 				"testPrefixes": [
 					"optimize_"
 				]

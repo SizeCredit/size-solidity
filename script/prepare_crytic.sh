@@ -24,5 +24,9 @@ sed -i "s/cryticArgs.*/cryticArgs: [\"--compile-libraries=$COMPILE_LIBRARIES\",\
 sed -i "s/\"args\".*/\"args\": [\"--compile-libraries=$COMPILE_LIBRARIES\",\"--foundry-compile-all\"]/" medusa.json
 sed -i "s/deployContracts.*/deployContracts: [$DEPLOY_CONTRACTS]/g" echidna.yaml
 
+# find src/libraries/ -type f -exec sed -i 's/\spublic\s/ internal /g' {} \;
+# find src/libraries/ -type f -exec sed -i 's/\sexternal\s/ internal /g' {} \;
+# find src/libraries/ -type f -exec sed -i 's/\scalldata\s/ memory /g' {} \;
+
 rm -r COMPILE_LIBRARIES.txt
 rm -r DEPLOY_CONTRACTS.txt
