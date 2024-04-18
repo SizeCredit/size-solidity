@@ -6,6 +6,9 @@ import {Properties} from "./Properties.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 import "@crytic/properties/contracts/util/Hevm.sol";
 
+import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
+import {PoolMock} from "@test/mocks/PoolMock.sol";
+
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Deploy} from "@script/Deploy.sol";
@@ -31,6 +34,9 @@ import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/Liqui
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+
+import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
+import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
 // import {console2 as console} from "forge-std/console2.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -567,8 +573,71 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
+    function buyMarketCredit(uint256 creditPositionId, uint256 amount, bool exactAmountIn)
+        public
+        getSender
+        hasCreditPositions
+    {
+        creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+        __before(creditPositionId);
+
+        hevm.prank(sender);
+        try size.buyMarketCredit(
+            BuyMarketCreditParams({
+                creditPositionId: creditPositionId,
+                amount: amount,
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max,
+                exactAmountIn: exactAmountIn
+            })
+        ) {
+            __after(creditPositionId);
+        } catch (bytes memory err) {
+            bytes4[4] memory errors = [
+                Errors.LOAN_NOT_ACTIVE.selector,
+                Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector,
+                Errors.NULL_OFFER.selector,
+                Errors.CREDIT_NOT_FOR_SALE.selector
+            ];
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(err)) {
+                    expected = true;
+                    break;
+                }
+            }
+            t(expected, DOS);
+            precondition(false);
+        }
+    }
+
+    function setCreditForSale(bool creditPositionsForSaleDisabled) public {
+        __before();
+
+        hevm.prank(sender);
+        try size.setCreditForSale(
+            SetCreditForSaleParams({
+                creditPositionsForSaleDisabled: creditPositionsForSaleDisabled,
+                forSale: creditPositionsForSaleDisabled,
+                creditPositionIds: new uint256[](0)
+            })
+        ) {
+            __after();
+        } catch {
+            t(false, DOS);
+        }
+    }
+
     function setPrice(uint256 price) public {
         price = between(price, MIN_PRICE, MAX_PRICE);
         PriceFeedMock(address(priceFeed)).setPrice(price);
+    }
+
+    function setLiquidityIndex(uint256 liquidityIndex) public {
+        uint256 currentLiquidityIndex = variablePool.getReserveNormalizedIncome(address(usdc));
+        liquidityIndex = between(
+            liquidityIndex, currentLiquidityIndex, currentLiquidityIndex * MAX_LIQUIDITY_INDEX_INCREASE_PERCENT / 1e18
+        );
+        PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), liquidityIndex);
     }
 }
