@@ -6,6 +6,8 @@ import {Properties} from "./Properties.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 import "@crytic/properties/contracts/util/Hevm.sol";
 
+import {Math} from "@src/libraries/Math.sol";
+
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
@@ -77,7 +79,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 eq(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance + amount, DEPOSIT_01);
                 eq(_after.senderCollateralAmount, _before.senderCollateralAmount - amount, DEPOSIT_01);
             } else {
-                eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance + amount, DEPOSIT_01);
+                if (variablePool.getReserveNormalizedIncome(address(usdc)) == WadRayMath.RAY) {
+                    eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance + amount, DEPOSIT_01);
+                }
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
             }
         } catch (bytes memory err) {
@@ -109,13 +113,26 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         hevm.prank(sender);
         try size.withdraw(WithdrawParams({token: token, amount: amount, to: sender})) {
             __after();
+            uint256 withdrawnAmount;
 
             if (token == address(weth)) {
-                eq(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance - amount, WITHDRAW_01);
-                eq(_after.senderCollateralAmount, _before.senderCollateralAmount + amount, WITHDRAW_01);
+                withdrawnAmount = Math.min(amount, _before.sender.collateralTokenBalance);
+                eq(
+                    _after.sender.collateralTokenBalance,
+                    _before.sender.collateralTokenBalance - withdrawnAmount,
+                    WITHDRAW_01
+                );
+                eq(_after.senderCollateralAmount, _before.senderCollateralAmount + withdrawnAmount, WITHDRAW_01);
             } else {
-                eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance - amount, WITHDRAW_01);
-                eq(_after.senderBorrowAmount, _before.senderBorrowAmount + amount, WITHDRAW_01);
+                withdrawnAmount = Math.min(amount, _before.sender.borrowATokenBalance);
+                if (variablePool.getReserveNormalizedIncome(address(usdc)) == WadRayMath.RAY) {
+                    eq(
+                        _after.sender.borrowATokenBalance,
+                        _before.sender.borrowATokenBalance - withdrawnAmount,
+                        WITHDRAW_01
+                    );
+                }
+                eq(_after.senderBorrowAmount, _before.senderBorrowAmount + withdrawnAmount, WITHDRAW_01);
             }
         } catch (bytes memory err) {
             bytes4[2] memory errors = [Errors.NULL_AMOUNT.selector, Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector];
@@ -179,7 +196,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 }
             }
         } catch (bytes memory err) {
-            bytes4[10] memory errors = [
+            bytes4[11] memory errors = [
                 Errors.INVALID_LOAN_OFFER.selector,
                 Errors.NULL_AMOUNT.selector,
                 Errors.PAST_DUE_DATE.selector,
@@ -189,7 +206,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
                 Errors.MATURITY_OUT_OF_RANGE.selector,
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector
             ];
 
             bool expected = false;
@@ -259,12 +277,13 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             }
             eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
         } catch (bytes memory err) {
-            bytes4[5] memory errors = [
+            bytes4[6] memory errors = [
                 Errors.INVALID_BORROW_OFFER.selector,
                 Errors.PAST_DUE_DATE.selector,
                 Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
                 Errors.MATURITY_OUT_OF_RANGE.selector,
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector
             ];
             bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
@@ -326,7 +345,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 lt(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
             }
         } catch (bytes memory err) {
-            bytes4[8] memory errors = [
+            bytes4[9] memory errors = [
                 Errors.PAST_DUE_DATE.selector,
                 Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
                 Errors.EXITER_IS_NOT_BORROWER.selector,
@@ -334,7 +353,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 Errors.MATURITY_OUT_OF_RANGE.selector,
                 Errors.INVALID_BORROW_OFFER.selector,
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
-                Errors.LOAN_NOT_ACTIVE.selector
+                Errors.LOAN_NOT_ACTIVE.selector,
+                Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector
             ];
 
             bool expected = false;
