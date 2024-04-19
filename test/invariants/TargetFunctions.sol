@@ -6,7 +6,7 @@ import {Properties} from "./Properties.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 import "@crytic/properties/contracts/util/Hevm.sol";
 
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
@@ -677,9 +677,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
     function setLiquidityIndex(uint256 liquidityIndex, uint256 supplyAmount) public {
         uint256 currentLiquidityIndex = variablePool.getReserveNormalizedIncome(address(usdc));
-        liquidityIndex = between(
-            liquidityIndex, currentLiquidityIndex, currentLiquidityIndex * MAX_LIQUIDITY_INDEX_INCREASE_PERCENT / 1e18
-        );
+        liquidityIndex =
+            (between(liquidityIndex, PERCENT, MAX_LIQUIDITY_INDEX_INCREASE_PERCENT)) * currentLiquidityIndex / PERCENT;
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), liquidityIndex);
 
         supplyAmount = between(supplyAmount, 0, MAX_AMOUNT_USDC);

@@ -225,4 +225,8 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         // console.log(size.getCreditPosition(creditPositionId).credit);
         claim(279943048586376757723470176774759);
     }
+
+    function test_CryticToFoundry_11() public {
+        setLiquidityIndex(2, 4948339867029964465);
+    }
 }
