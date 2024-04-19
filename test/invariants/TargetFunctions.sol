@@ -199,7 +199,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
             }
         } catch (bytes memory err) {
-            bytes4[11] memory errors = [
+            bytes4[12] memory errors = [
                 Errors.INVALID_LOAN_OFFER.selector,
                 Errors.NULL_AMOUNT.selector,
                 Errors.PAST_DUE_DATE.selector,
@@ -210,6 +210,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 Errors.MATURITY_OUT_OF_RANGE.selector,
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
                 Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector,
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector
             ];
 
@@ -508,6 +509,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     function liquidateWithReplacement(uint256 debtPositionId, uint256 minimumCollateralProfit, address borrower)
         internal
         getSender
+        hasLoans
     {
         debtPositionId =
             between(debtPositionId, DEBT_POSITION_ID_START, DEBT_POSITION_ID_START + _before.debtPositionsCount - 1);
@@ -558,6 +560,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     function compensate(uint256 creditPositionWithDebtToRepayId, uint256 creditPositionToCompensateId, uint256 amount)
         public
         getSender
+        hasLoans
     {
         creditPositionWithDebtToRepayId = between(
             creditPositionWithDebtToRepayId,
@@ -582,9 +585,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         ) {
             __after(creditPositionWithDebtToRepayId);
 
-            lt(_after.sender.debtBalance, _before.sender.debtBalance, COMPENSATE_01);
+            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, COMPENSATE_01);
         } catch (bytes memory err) {
-            bytes4[9] memory errors = [
+            bytes4[11] memory errors = [
                 Errors.LOAN_ALREADY_REPAID.selector,
                 Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE.selector,
                 Errors.LOAN_ALREADY_REPAID.selector,
@@ -593,7 +596,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 Errors.COMPENSATOR_IS_NOT_BORROWER.selector,
                 Errors.NULL_AMOUNT.selector,
                 Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector,
+                Errors.INVALID_CREDIT_POSITION_ID.selector
             ];
 
             bool expected = false;
@@ -608,7 +613,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function buyMarketCredit(uint256 creditPositionId, uint256 amount, bool exactAmountIn) public getSender {
+    function buyMarketCredit(uint256 creditPositionId, uint256 amount, bool exactAmountIn) public getSender hasLoans {
         creditPositionId = between(
             creditPositionId, CREDIT_POSITION_ID_START, CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
         );
@@ -626,11 +631,12 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         ) {
             __after(creditPositionId);
         } catch (bytes memory err) {
-            bytes4[4] memory errors = [
+            bytes4[5] memory errors = [
                 Errors.LOAN_NOT_ACTIVE.selector,
                 Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector,
                 Errors.NULL_OFFER.selector,
-                Errors.CREDIT_NOT_FOR_SALE.selector
+                Errors.CREDIT_NOT_FOR_SALE.selector,
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
             ];
             bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {

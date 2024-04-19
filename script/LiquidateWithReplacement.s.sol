@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
+import {Logger} from "@test/Logger.sol";
 
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";

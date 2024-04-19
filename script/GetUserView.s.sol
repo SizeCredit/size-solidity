@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {SizeView} from "@src/SizeView.sol";
 
-import {Logger} from "@script/Logger.sol";
+import {Logger} from "@test/Logger.sol";
 
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
@@ -24,7 +24,7 @@ contract GetUserViewScript is Script, Logger {
         SizeView size = SizeView(sizeContractAddress);
 
         vm.startBroadcast();
-        log(size.getUserView(lender));
+        _log(size.getUserView(lender));
         uint256 dueDate = block.timestamp + 2 days;
         console.log(block.timestamp);
 

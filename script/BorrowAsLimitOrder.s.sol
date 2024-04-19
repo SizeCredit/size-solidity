@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
+import {Logger} from "@test/Logger.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 

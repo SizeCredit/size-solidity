@@ -63,6 +63,12 @@ library Compensate {
         if (creditPositionToCompensate.lender != debtPositionToRepay.borrower) {
             revert Errors.INVALID_LENDER(creditPositionToCompensate.lender);
         }
+        if (creditPositionToCompensate.credit < amountToCompensate) {
+            revert Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE(creditPositionToCompensate.credit, amountToCompensate);
+        }
+        if (params.creditPositionToCompensateId == params.creditPositionWithDebtToRepayId) {
+            revert Errors.INVALID_CREDIT_POSITION_ID(params.creditPositionToCompensateId);
+        }
 
         // validate msg.sender
         if (msg.sender != debtPositionToRepay.borrower) {
