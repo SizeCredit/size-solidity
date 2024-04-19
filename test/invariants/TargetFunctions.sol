@@ -633,13 +633,14 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         ) {
             __after(creditPositionId);
         } catch (bytes memory err) {
-            bytes4[7] memory errors = [
+            bytes4[8] memory errors = [
                 Errors.LOAN_NOT_ACTIVE.selector,
                 Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector,
                 Errors.NULL_OFFER.selector,
                 Errors.CREDIT_NOT_FOR_SALE.selector,
                 Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
                 Errors.MATURITY_OUT_OF_RANGE.selector,
+                Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
                 Errors.NOT_ENOUGH_CREDIT.selector
             ];
             bool expected = false;
