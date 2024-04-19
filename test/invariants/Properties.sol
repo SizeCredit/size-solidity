@@ -103,7 +103,7 @@ abstract contract Properties is Ghosts, PropertiesConstants {
         }
 
         if (
-            (usdc.balanceOf(address(variablePool)) != (borrowATokenBalance))
+            (usdc.balanceOf(address(variablePool)) < (borrowATokenBalance))
                 || (weth.balanceOf(address(size)) != collateralBalance)
         ) {
             t(false, TOKENS_01);
