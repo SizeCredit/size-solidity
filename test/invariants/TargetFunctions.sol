@@ -619,6 +619,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         );
         __before(creditPositionId);
 
+        amount = between(amount, 0, MAX_AMOUNT_USDC);
+
         hevm.prank(sender);
         try size.buyMarketCredit(
             BuyMarketCreditParams({
@@ -631,12 +633,13 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         ) {
             __after(creditPositionId);
         } catch (bytes memory err) {
-            bytes4[5] memory errors = [
+            bytes4[6] memory errors = [
                 Errors.LOAN_NOT_ACTIVE.selector,
                 Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector,
                 Errors.NULL_OFFER.selector,
                 Errors.CREDIT_NOT_FOR_SALE.selector,
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                Errors.NOT_ENOUGH_CREDIT.selector
             ];
             bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
