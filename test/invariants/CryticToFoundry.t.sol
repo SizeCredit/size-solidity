@@ -241,4 +241,21 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
     function test_CryticToFoundry_13() public {
         deposit(0x0000000000000000000000000001fffFfFFFFfff, 131072);
     }
+
+    function test_CryticToFoundry_14() public {
+        // CryticTester.lendAsLimitOrder(10,114762746766,79874596910302579418862)
+        // CryticTester.setLiquidityIndex(0,1)
+        // CryticTester.borrowAsMarketOrder(0x0,1,589409308681606279781810712172535458094106706679465473122930952139,true,165256663999467890109544576293682135738344976,5390597141900226156148737254356943010322353040676)
+
+        lendAsLimitOrder(10, 114762746766, 79874596910302579418862);
+        setLiquidityIndex(0, 1);
+        borrowAsMarketOrder(
+            address(0x0),
+            1,
+            589409308681606279781810712172535458094106706679465473122930952139,
+            true,
+            165256663999467890109544576293682135738344976,
+            5390597141900226156148737254356943010322353040676
+        );
+    }
 }
