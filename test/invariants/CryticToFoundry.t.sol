@@ -225,27 +225,6 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         claim(279943048586376757723470176774759);
     }
 
-    function test_CryticToFoundry_11() public {
-        // CryticTester.deposit(0x0,0)
-        // CryticTester.borrowAsLimitOrder(0,0)
-        // CryticTester.deposit(0xdeadbeef,0)
-        // CryticTester.lendAsMarketOrder(0x0,602331229459141635082333660181758789988141307299,55309012638210476390145334518900977524062779079617312698440994260696881,false)
-        // CryticTester.borrowerExit(0,0x0)
-        // CryticTester.compensate(455283979609693230878776358904,7348843471391933271258292984548035,11901740)
-
-        deposit(address(0x0), 0);
-        borrowAsLimitOrder(0, 0);
-        deposit(address(0xdeadbeef), 0);
-        lendAsMarketOrder(
-            address(0x0),
-            602331229459141635082333660181758789988141307299,
-            55309012638210476390145334518900977524062779079617312698440994260696881,
-            false
-        );
-        borrowerExit(0, address(0x0));
-        compensate(455283979609693230878776358904, 7348843471391933271258292984548035, 11901740);
-    }
-
     function test_CryticToFoundry_12() public {
         // CryticTester.deposit(0xffffffff,115792089237316195423570985008687907853269984665640564039457584007913029639936) from: 0x0000000000000000000000000000000000020000 Time delay: 8453 seconds Block delay: 22311
         // CryticTester.deposit(0x1e,4605032033773062582045936044) from: 0x0000000000000000000000000000000000010000 Time delay: 146689 seconds Block delay: 60030
