@@ -229,4 +229,16 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
     function test_CryticToFoundry_11() public {
         setLiquidityIndex(2, 4948339867029964465);
     }
+
+    function test_CryticToFoundry_12() public {
+        deposit(0x470c8B323b89c05bbB0F2a85d733Cc7004883d14, 45);
+        withdraw(
+            0x00000000000000000000000000000000002FEF7C,
+            70880928519027259232681487313122362188527844215780522898084047764600190669520
+        );
+    }
+
+    function test_CryticToFoundry_13() public {
+        deposit(0x0000000000000000000000000001fffFfFFFFfff, 131072);
+    }
 }
