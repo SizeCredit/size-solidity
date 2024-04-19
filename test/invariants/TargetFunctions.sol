@@ -136,7 +136,11 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount + withdrawnAmount, WITHDRAW_01);
             }
         } catch (bytes memory err) {
-            bytes4[2] memory errors = [Errors.NULL_AMOUNT.selector, Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector];
+            bytes4[3] memory errors = [
+                Errors.NULL_AMOUNT.selector,
+                Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
+                IERC20Errors.ERC20InsufficientBalance.selector
+            ];
             bool expected = false;
             for (uint256 i = 0; i < errors.length; i++) {
                 if (errors[i] == bytes4(err)) {
@@ -183,18 +187,16 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         ) {
             __after();
 
-            if (amount > size.riskConfig().minimumCreditBorrowAToken) {
-                if (lender == sender) {
-                    lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_03);
-                } else {
-                    gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
-                }
+            if (lender == sender) {
+                lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_03);
+            } else {
+                gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
+            }
 
-                if (receivableCreditPositionIds.length > 0) {
-                    gte(_after.creditPositionsCount, _before.creditPositionsCount + 1, BORROW_02);
-                } else {
-                    eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
-                }
+            if (receivableCreditPositionIds.length > 0) {
+                gte(_after.creditPositionsCount, _before.creditPositionsCount + 1, BORROW_02);
+            } else {
+                eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
             }
         } catch (bytes memory err) {
             bytes4[11] memory errors = [
@@ -326,7 +328,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     }
 
     function borrowerExit(uint256 debtPositionId, address borrowerToExitTo) public getSender hasLoans {
-        debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
+        debtPositionId =
+            between(debtPositionId, DEBT_POSITION_ID_START, DEBT_POSITION_ID_START + _before.debtPositionsCount - 1);
         __before(debtPositionId);
 
         borrowerToExitTo = _getRandomUser(borrowerToExitTo);
@@ -371,7 +374,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     }
 
     function repay(uint256 debtPositionId) public getSender hasLoans {
-        debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
+        debtPositionId =
+            between(debtPositionId, DEBT_POSITION_ID_START, DEBT_POSITION_ID_START + _before.debtPositionsCount - 1);
         __before(debtPositionId);
 
         hevm.prank(sender);
@@ -401,7 +405,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     }
 
     function claim(uint256 creditPositionId) public getSender hasLoans {
-        creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+        creditPositionId = between(
+            creditPositionId, CREDIT_POSITION_ID_START, CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
+        );
         __before(creditPositionId);
 
         hevm.prank(sender);
@@ -426,7 +432,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     }
 
     function liquidate(uint256 debtPositionId, uint256 minimumCollateralProfit) public getSender hasLoans {
-        debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
+        debtPositionId =
+            between(debtPositionId, DEBT_POSITION_ID_START, DEBT_POSITION_ID_START + _before.debtPositionsCount - 1);
         __before(debtPositionId);
 
         minimumCollateralProfit = between(minimumCollateralProfit, 0, MAX_AMOUNT_WETH);
@@ -469,7 +476,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     }
 
     function selfLiquidate(uint256 creditPositionId) internal getSender hasLoans {
-        creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+        creditPositionId = between(
+            creditPositionId, CREDIT_POSITION_ID_START, CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
+        );
         __before(creditPositionId);
 
         hevm.prank(sender);
@@ -500,7 +509,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         internal
         getSender
     {
-        debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
+        debtPositionId =
+            between(debtPositionId, DEBT_POSITION_ID_START, DEBT_POSITION_ID_START + _before.debtPositionsCount - 1);
         __before(debtPositionId);
 
         minimumCollateralProfit = between(minimumCollateralProfit, 0, MAX_AMOUNT_WETH);
@@ -549,10 +559,16 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         public
         getSender
     {
-        creditPositionWithDebtToRepayId =
-            between(creditPositionWithDebtToRepayId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
-        creditPositionToCompensateId =
-            between(creditPositionToCompensateId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+        creditPositionWithDebtToRepayId = between(
+            creditPositionWithDebtToRepayId,
+            CREDIT_POSITION_ID_START,
+            CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
+        );
+        creditPositionToCompensateId = between(
+            creditPositionToCompensateId,
+            CREDIT_POSITION_ID_START,
+            CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
+        );
 
         __before(creditPositionWithDebtToRepayId);
 
@@ -593,7 +609,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     }
 
     function buyMarketCredit(uint256 creditPositionId, uint256 amount, bool exactAmountIn) public getSender {
-        creditPositionId = between(creditPositionId, CREDIT_POSITION_ID_START, _before.creditPositionsCount - 1);
+        creditPositionId = between(
+            creditPositionId, CREDIT_POSITION_ID_START, CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
+        );
         __before(creditPositionId);
 
         hevm.prank(sender);
