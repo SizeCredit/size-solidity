@@ -63,7 +63,7 @@ library VariablePoolLibrary {
     /// @param to The address of the recipient
     /// @param amount The amount of aTokens to transfer
     function transferBorrowAToken(State storage state, address from, address to, uint256 amount) external {
-        uint256 scaledAmount = WadRayMath.rayDiv(amount, borrowATokenLiquidityIndex(state));
+        uint256 scaledAmount = amount * WadRayMath.RAY / borrowATokenLiquidityIndex(state);
 
         if (state.data.users[from].scaledBorrowATokenBalance < scaledAmount) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
@@ -78,7 +78,7 @@ library VariablePoolLibrary {
     /// @param account The user's address
     /// @return The balance of aTokens
     function borrowATokenBalanceOf(State storage state, address account) public view returns (uint256) {
-        return WadRayMath.rayMul(state.data.users[account].scaledBorrowATokenBalance, borrowATokenLiquidityIndex(state));
+        return state.data.users[account].scaledBorrowATokenBalance * borrowATokenLiquidityIndex(state) / WadRayMath.RAY;
     }
 
     /// @notice Get the liquidity index of the Variable Pool (Aave v3)
