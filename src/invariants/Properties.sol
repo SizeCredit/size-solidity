@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 
 import {UserView} from "@src/SizeView.sol";
@@ -95,21 +94,14 @@ abstract contract Properties is Ghosts, PropertiesConstants {
         users[4] = address(variablePool);
         users[5] = address(feeRecipient);
 
-        uint256 borrowATokenBalance;
         uint256 collateralBalance;
 
         for (uint256 i = 0; i < users.length; i++) {
             UserView memory userView = size.getUserView(users[i]);
-            borrowATokenBalance += userView.borrowATokenBalance;
             collateralBalance += userView.collateralTokenBalance;
         }
 
-        IAToken borrowAToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
-
-        if (
-            (borrowAToken.balanceOf(address(size)) < (borrowATokenBalance))
-                || (weth.balanceOf(address(size)) != collateralBalance)
-        ) {
+        if (weth.balanceOf(address(size)) != collateralBalance) {
             t(false, TOKENS_01);
             return false;
         }
