@@ -19,6 +19,8 @@ Target networks:
 - [LightChaserV3](./audits/2024-03-19-LightChaserV3_SizeV2.md)
 - [Solidified](./audits/2024-03-26-Solidified.pdf)
 
+Scope: `src/**/*.sol` except `src/invariants`
+
 ## Documentation
 
 ### Overview, Accounting and Protocol Design

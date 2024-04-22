@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {TargetFunctions} from "./TargetFunctions.sol";
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
+import {TargetFunctions} from "@src/invariants/TargetFunctions.sol";
 import {CREDIT_POSITION_ID_START, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {Logger} from "@test/Logger.sol";
 import {Test} from "forge-std/Test.sol";

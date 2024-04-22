@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {TargetFunctions} from "./TargetFunctions.sol";
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
+import {TargetFunctions} from "@src/invariants/TargetFunctions.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract Handler is TargetFunctions, FoundryAsserts {
@@ -22,7 +22,7 @@ contract Handler is TargetFunctions, FoundryAsserts {
     }
 }
 
-contract FoundryTester is Test {
+contract FoundryInvariantTester is Test {
     Handler public handler;
 
     function setUp() public {
