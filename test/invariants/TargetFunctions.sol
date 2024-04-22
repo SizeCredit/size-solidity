@@ -281,12 +281,13 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             }
             eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
         } catch (bytes memory err) {
-            bytes4[6] memory errors = [
+            bytes4[7] memory errors = [
                 Errors.INVALID_BORROW_OFFER.selector,
                 Errors.PAST_DUE_DATE.selector,
                 Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
                 Errors.MATURITY_OUT_OF_RANGE.selector,
                 Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector,
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector
             ];
             bool expected = false;
@@ -633,12 +634,13 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         ) {
             __after(creditPositionId);
         } catch (bytes memory err) {
-            bytes4[8] memory errors = [
+            bytes4[9] memory errors = [
                 Errors.LOAN_NOT_ACTIVE.selector,
                 Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector,
                 Errors.NULL_OFFER.selector,
                 Errors.CREDIT_NOT_FOR_SALE.selector,
                 Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector,
                 Errors.MATURITY_OUT_OF_RANGE.selector,
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
                 Errors.NOT_ENOUGH_CREDIT.selector
