@@ -172,60 +172,6 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         deposit(address(0x0), 0);
     }
 
-    // TODO bugfix rounding error
-    function test_CryticToFoundry_10() private {
-        // CryticTester.deposit(0xdeadbeef,113680786737462912338912465563297266107301244833404303)
-        // CryticTester.deposit(0x0,0)
-        // CryticTester.borrowAsLimitOrder(5856832905118,225734778189543465656102)
-        // CryticTester.lendAsMarketOrder(0x0,264173997228170077397519492265,37104270728597146513675163395629171,false)
-        // CryticTester.borrowAsLimitOrder(0,0)
-        // CryticTester.compensate(14405790837018714327610173806498523938968180158131876682776,123857332336367638642830340610755645792169220541104799,5000001)
-        // CryticTester.setLiquidityIndex(1059945858020571930439976381937671714231792927469806781811004409,386402407776879216123846137155162121311901364690283)
-        // CryticTester.repay(59195286609)
-        // CryticTester.claim(55322991763090949257182976690)
-        // CryticTester.claim(279943048586376757723470176774759)
-
-        deposit(address(0xdeadbeef), 113680786737462912338912465563297266107301244833404303);
-        deposit(address(0x0), 0);
-        borrowAsLimitOrder(5856832905118, 225734778189543465656102);
-        console.log("borrows");
-        lendAsMarketOrder(address(0x0), 264173997228170077397519492265, 37104270728597146513675163395629171, false);
-        _log(size);
-        console.log("U   ", size.getUserView(address(size)).borrowATokenBalance);
-        // borrowAsLimitOrder(0, 0);
-        console.log("compensate");
-        compensate(
-            14405790837018714327610173806498523938968180158131876682776,
-            123857332336367638642830340610755645792169220541104799,
-            5000001
-        );
-        console.log("setLiquidityIndex");
-        _log(size);
-        console.log("U   ", size.getUserView(address(size)).borrowATokenBalance);
-        setLiquidityIndex(
-            1059945858020571930439976381937671714231792927469806781811004409,
-            386402407776879216123846137155162121311901364690283
-        );
-        console.log("index", variablePool.getReserveNormalizedIncome(address(usdc)));
-        console.log("repay");
-        repay(59195286609);
-        _log(size);
-        console.log("U   ", size.getUserView(address(size)).borrowATokenBalance);
-        console.log("claim");
-        claim(55322991763090949257182976690);
-        _log(size);
-        console.log("U   ", size.getUserView(address(size)).borrowATokenBalance);
-        // console.log(size.getUserView(address(size)).borrowATokenBalance);
-        // console.log(size.getUserView(USER1).borrowATokenBalance);
-        // console.log(usdc.balanceOf(address(variablePool)));
-        console.log("");
-        // uint256 creditPositionId = between(
-        //     279943048586376757723470176774759, CREDIT_POSITION_ID_START, CREDIT_POSITION_ID_START + _after.creditPositionsCount - 1
-        // );
-        // console.log(size.getCreditPosition(creditPositionId).credit);
-        claim(279943048586376757723470176774759);
-    }
-
     function test_CryticToFoundry_11() public {
         deposit(0xe4866b585C63116092e5d0569757207D035016B7, 3);
         setLiquidityIndex(115792089237316195423570985008687907853269984665640564039457584007913129639935, 0);
@@ -242,5 +188,25 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
     function test_CryticToFoundry_13() public {
         deposit(0x0000000000000000000000000001fffFfFFFFfff, 131072);
+    }
+
+    function test_CryticToFoundry_14() public {
+        // CryticTester.deposit(0x0,0)
+        // CryticTester.borrowAsLimitOrder(0,0)
+        // CryticTester.deposit(0xdeadbeef,0)
+        // CryticTester.lendAsMarketOrder(0x0,2592121,11143629335882188948651649360494736035151267490671837874019124983,false)
+        // CryticTester.setLiquidityIndex(277630701152545447322873122819513599548980,0)
+        // CryticTester.repay(0)
+        // CryticTester.claim(0)
+
+        deposit(address(0x0), 0);
+        borrowAsLimitOrder(0, 0);
+        deposit(address(0xdeadbeef), 0);
+        lendAsMarketOrder(
+            address(0x0), 2592121, 11143629335882188948651649360494736035151267490671837874019124983, false
+        );
+        setLiquidityIndex(277630701152545447322873122819513599548980, 0);
+        repay(0);
+        claim(0);
     }
 }

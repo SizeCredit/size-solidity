@@ -63,11 +63,11 @@ library VariablePoolLibrary {
     /// @param to The address of the recipient
     /// @param amount The amount of aTokens to transfer
     function transferBorrowAToken(State storage state, address from, address to, uint256 amount) external {
-        if (borrowATokenBalanceOf(state, from) < amount) {
+        uint256 scaledAmount = WadRayMath.rayDiv(amount, borrowATokenLiquidityIndex(state));
+
+        if (state.data.users[from].scaledBorrowATokenBalance < scaledAmount) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
         }
-
-        uint256 scaledAmount = WadRayMath.rayDiv(amount, borrowATokenLiquidityIndex(state));
 
         state.data.users[from].scaledBorrowATokenBalance -= scaledAmount;
         state.data.users[to].scaledBorrowATokenBalance += scaledAmount;
