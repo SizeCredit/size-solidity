@@ -1,8 +1,12 @@
 [profile.default]
   src = "src"
   out = "out"
+  ffi = true
+  ast = true
+  build_info = true
   libs = ["lib"]
-  fs_permissions = [{access = "read-write", path = "./deployments"}]
+  extra_output = ["storageLayout"]
+  fs_permissions = [{access = "read-write", path = "./deployments"}, {access = "read", path = "./out"}]
   no_match_contract = 'CryticTester|Handler|Deploy'
 
 [invariant]

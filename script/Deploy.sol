@@ -2,9 +2,9 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
@@ -32,7 +32,7 @@ import {WETH} from "@test/mocks/WETH.sol";
 
 abstract contract Deploy {
     address internal implementation;
-    ERC1967Proxy internal proxy;
+    address internal proxy;
     SizeMock internal size;
     IPriceFeed internal priceFeed;
     IVariablePoolBorrowRateFeed internal variablePoolBorrowRateFeed;
@@ -44,11 +44,11 @@ abstract contract Deploy {
     InitializeDataParams internal d;
     IPool internal variablePool;
 
-    function setup(address owner, address feeRecipient) internal {
-        priceFeed = new PriceFeedMock(owner);
-        variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(owner);
+    function setupLocal(address _owner, address _feeRecipient) internal {
+        priceFeed = new PriceFeedMock(_owner);
+        variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(_owner);
         weth = new WETH();
-        usdc = new USDC(owner);
+        usdc = new USDC(_owner);
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         f = InitializeFeeConfigParams({
@@ -60,7 +60,7 @@ abstract contract Deploy {
             overdueLiquidatorReward: 10e6,
             overdueColLiquidatorPercent: 0.01e18,
             overdueColProtocolPercent: 0.005e18,
-            feeRecipient: feeRecipient
+            feeRecipient: _feeRecipient
         });
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
@@ -82,14 +82,14 @@ abstract contract Deploy {
             variablePool: address(variablePool) // Aave v3
         });
 
-        implementation = address(new SizeMock());
-        proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        proxy = Upgrades.deployUUPSProxy("SizeMock.sol", abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
+        implementation = Upgrades.getImplementationAddress(proxy);
         size = SizeMock(payable(proxy));
 
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
 
-    function setupChain(
+    function setupProduction(
         address _owner,
         address _weth,
         address _usdc,
@@ -130,12 +130,12 @@ abstract contract Deploy {
             underlyingBorrowToken: address(_usdc),
             variablePool: address(variablePool) // Aave v3
         });
-        implementation = address(new Size());
-        proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
+        proxy = Upgrades.deployUUPSProxy("Size.sol", abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
+        implementation = Upgrades.getImplementationAddress(proxy);
         size = SizeMock(payable(proxy));
     }
 
-    function setupChainWithMocks(address _owner, address _weth, address _usdc) internal {
+    function setupTestnet(address _owner, address _weth, address _usdc) internal {
         priceFeed = new PriceFeedMock(_owner);
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(_usdc), WadRayMath.RAY);
@@ -172,8 +172,8 @@ abstract contract Deploy {
             underlyingBorrowToken: address(_usdc),
             variablePool: address(variablePool) // Aave v3
         });
-        implementation = address(new Size());
-        proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
+        proxy = Upgrades.deployUUPSProxy("Size.sol", abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
+        implementation = Upgrades.getImplementationAddress(proxy);
         size = SizeMock(payable(proxy));
     }
 }

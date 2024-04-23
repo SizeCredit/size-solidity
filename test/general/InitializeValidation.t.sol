@@ -15,6 +15,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract InitializeValidationTest is Test, BaseTest {
     function test_Initialize_validation() public {
         Size implementation = new Size();
+        ERC1967Proxy proxy;
 
         address owner = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
