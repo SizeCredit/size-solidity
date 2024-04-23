@@ -22,6 +22,67 @@ contract YieldCurveTest is Test, AssertsHelper {
         variablePoolBorrowRateFeed.setVariableBorrowRate(0);
     }
 
+    function validate(YieldCurve memory curve, uint256 minimumMaturity) external view {
+        YieldCurveLibrary.validateYieldCurve(curve, minimumMaturity);
+    }
+
+    function test_YieldCurve_validateYieldCurve() public {
+        uint256[] memory maturities = new uint256[](0);
+        int256[] memory aprs = new int256[](0);
+        uint256[] memory marketRateMultipliers = new uint256[](0);
+        uint256 minimumMaturity = 90 days;
+
+        YieldCurve memory curve =
+            YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
+
+        try this.validate(curve, minimumMaturity) {}
+        catch (bytes memory err) {
+            assertEq(bytes4(err), Errors.NULL_ARRAY.selector);
+        }
+
+        curve.aprs = new int256[](2);
+        curve.marketRateMultipliers = new uint256[](2);
+        curve.maturities = new uint256[](1);
+        try this.validate(curve, minimumMaturity) {}
+        catch (bytes memory err) {
+            assertEq(bytes4(err), Errors.ARRAY_LENGTHS_MISMATCH.selector);
+        }
+
+        curve.aprs = new int256[](2);
+        curve.marketRateMultipliers = new uint256[](2);
+        curve.maturities = new uint256[](2);
+
+        curve.maturities[0] = 30 days;
+        curve.maturities[1] = 20 days;
+
+        curve.aprs[0] = 0.1e18;
+        curve.aprs[1] = 0.2e18;
+
+        curve.marketRateMultipliers[0] = 1e18;
+        curve.marketRateMultipliers[1] = 2e18;
+
+        try this.validate(curve, minimumMaturity) {}
+        catch (bytes memory err) {
+            assertEq(bytes4(err), Errors.MATURITIES_NOT_STRICTLY_INCREASING.selector);
+        }
+
+        curve.maturities[1] = 30 days;
+        try this.validate(curve, minimumMaturity) {}
+        catch (bytes memory err) {
+            assertEq(bytes4(err), Errors.MATURITIES_NOT_STRICTLY_INCREASING.selector);
+        }
+
+        curve.maturities[1] = 40 days;
+        try this.validate(curve, minimumMaturity) {}
+        catch (bytes memory err) {
+            assertEq(bytes4(err), Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector);
+        }
+
+        curve.maturities[0] = 150 days;
+        curve.maturities[1] = 180 days;
+        YieldCurveLibrary.validateYieldCurve(curve, minimumMaturity);
+    }
+
     function test_YieldCurve_getRate_zero_maturity() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         vm.expectRevert(

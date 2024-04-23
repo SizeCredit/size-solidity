@@ -33,20 +33,20 @@ contract DeployScript is BaseScript, Addresses, Deploy {
     }
 
     function run() public parseEnv broadcast returns (Deployment[] memory, Parameter[] memory) {
-        console.log("[Size v2] deploying...");
+        console.log("[Size v1] deploying...");
 
-        console.log("[Size v2] chain\t", chainName);
-        console.log("[Size v2] owner\t", deployer);
+        console.log("[Size v1] chain\t", chainName);
+        console.log("[Size v1] owner\t", deployer);
 
         address weth = addresses(chainName).weth;
         address usdc = addresses(chainName).usdc;
 
         if (mockContracts) {
             setupChainWithMocks(deployer, weth, usdc);
-            console.log("[Size v2] using MOCK contracts");
+            console.log("[Size v1] using MOCK contracts");
         } else {
             setupChain(owner, weth, usdc, address(variablePool), wethAggregator, usdcAggregator);
-            console.log("[Size v2] using REAL contracts");
+            console.log("[Size v1] using REAL contracts");
         }
 
         deployments.push(Deployment({name: "Size-implementation", addr: address(size)}));
@@ -60,18 +60,18 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(usdcAggregator)}));
         parameters.push(Parameter({key: "variablePool", value: Strings.toHexString(address(variablePool))}));
 
-        console.log("[Size v2] deployed\n");
+        console.log("[Size v1] deployed\n");
 
         for (uint256 i = 0; i < deployments.length; i++) {
-            console.log("[Size v2] Deployment: ", deployments[i].name, "\t", address(deployments[i].addr));
+            console.log("[Size v1] Deployment: ", deployments[i].name, "\t", address(deployments[i].addr));
         }
         for (uint256 i = 0; i < parameters.length; i++) {
-            console.log("[Size v2] Parameter:  ", parameters[i].key, "\t", parameters[i].value);
+            console.log("[Size v1] Parameter:  ", parameters[i].key, "\t", parameters[i].value);
         }
 
         exportDeployments();
 
-        console.log("[Size v2] done");
+        console.log("[Size v1] done");
 
         return (deployments, parameters);
     }

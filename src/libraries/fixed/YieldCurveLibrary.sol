@@ -37,7 +37,7 @@ library YieldCurveLibrary {
         // validate maturities
         uint256 lastMaturity = type(uint256).max;
         for (uint256 i = self.maturities.length; i != 0; i--) {
-            if (self.maturities[i - 1] > lastMaturity) {
+            if (self.maturities[i - 1] >= lastMaturity) {
                 revert Errors.MATURITIES_NOT_STRICTLY_INCREASING();
             }
             lastMaturity = self.maturities[i - 1];

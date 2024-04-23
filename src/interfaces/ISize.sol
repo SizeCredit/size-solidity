@@ -25,7 +25,7 @@ import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForS
 
 /// @title ISize
 /// @author Size Lending
-/// @notice This interface is the main interface for all user-facing methods of the Size v2 protocol
+/// @notice This interface is the main interface for all user-facing methods of the Size protocol
 /// @dev All functions are `payable` to allow for ETH deposits in a `multicall` pattern.
 ///      See `Multicall.sol`
 interface ISize {
