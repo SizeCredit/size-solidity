@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -63,7 +64,7 @@ library VariablePoolLibrary {
     /// @param to The address of the recipient
     /// @param amount The amount of aTokens to transfer
     function transferBorrowAToken(State storage state, address from, address to, uint256 amount) external {
-        uint256 scaledAmount = amount * WadRayMath.RAY / borrowATokenLiquidityIndex(state);
+        uint256 scaledAmount = Math.mulDivDown(amount, WadRayMath.RAY, borrowATokenLiquidityIndex(state));
 
         if (state.data.users[from].scaledBorrowATokenBalance < scaledAmount) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
@@ -78,7 +79,9 @@ library VariablePoolLibrary {
     /// @param account The user's address
     /// @return The balance of aTokens
     function borrowATokenBalanceOf(State storage state, address account) public view returns (uint256) {
-        return state.data.users[account].scaledBorrowATokenBalance * borrowATokenLiquidityIndex(state) / WadRayMath.RAY;
+        return Math.mulDivDown(
+            state.data.users[account].scaledBorrowATokenBalance, borrowATokenLiquidityIndex(state), WadRayMath.RAY
+        );
     }
 
     /// @notice Get the liquidity index of the Variable Pool (Aave v3)
