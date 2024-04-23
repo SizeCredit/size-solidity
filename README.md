@@ -1,6 +1,6 @@
-# size-v2-solidity
+# size-solidity
 
-![Size](./size.jpeg)
+<a href="https://raw.githubusercontent.com/SizeLending/size-solidity/main/size.jpeg"><img src="https://raw.githubusercontent.com/SizeLending/size-solidity/main/size.jpeg" width="300" alt="Size"/></a>
 
 Size is an order book based fixed rate lending protocol with an integrated variable pool (Aave v3).
 
