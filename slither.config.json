@@ -1,5 +1,6 @@
 {
-  "filter_paths": "(lib/|test/)",
+  "filter_paths": "(lib/|test/|script/|src/invariants/)",
   "exclude_informational": true,
+  "ignore_compile": true,
   "detectors_to_exclude": "arbitrary-send-erc20,unchecked-transfer,reentrancy-events,timestamp"
 }

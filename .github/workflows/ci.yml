@@ -70,7 +70,6 @@ jobs:
         id: slither
         with:
           fail-on: low
-          ignore-compile: true
 
 
   solhint:
