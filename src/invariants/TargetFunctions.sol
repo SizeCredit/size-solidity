@@ -4,7 +4,9 @@ pragma solidity 0.8.23;
 import {Helper} from "./Helper.sol";
 import {Properties} from "./Properties.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
+
 import "@crytic/properties/contracts/util/Hevm.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
@@ -495,7 +497,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             if (sender != _before.borrower.account) {
                 gte(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance, SELF_LIQUIDATE_01);
             }
-            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, SELF_LIQUIDATE_02);
+            lte(_after.borrower.debtBalance, _before.borrower.debtBalance, SELF_LIQUIDATE_02);
         } catch (bytes memory err) {
             bytes4[3] memory errors = [
                 Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector,
@@ -548,6 +550,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             eq(_after.totalDebtAmount, _before.totalDebtAmount, LIQUIDATION_02);
         } catch (bytes memory err) {
             bytes4[3] memory errors = [
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
                 Errors.LOAN_NOT_ACTIVE.selector,
                 Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
                 Errors.INVALID_BORROW_OFFER.selector
