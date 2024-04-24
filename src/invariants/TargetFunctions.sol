@@ -39,6 +39,9 @@ import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
 import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
 import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
+
+import {KEEPER_ROLE} from "@src/Size.sol";
+
 // import {console2 as console} from "forge-std/console2.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -48,6 +51,8 @@ import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/f
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
     function setup() internal override {
         setup(address(this), address(this));
+        size.grantRole(KEEPER_ROLE, USER2);
+
         address[] memory users = new address[](3);
         users[0] = USER1;
         users[1] = USER2;
@@ -477,7 +482,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function selfLiquidate(uint256 creditPositionId) internal getSender hasLoans {
+    function selfLiquidate(uint256 creditPositionId) external getSender hasLoans {
         creditPositionId = between(
             creditPositionId, CREDIT_POSITION_ID_START, CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
         );
