@@ -482,7 +482,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function selfLiquidate(uint256 creditPositionId) external getSender hasLoans {
+    function selfLiquidate(uint256 creditPositionId) public getSender hasLoans {
         creditPositionId = between(
             creditPositionId, CREDIT_POSITION_ID_START, CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
         );
@@ -492,7 +492,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         try size.selfLiquidate(SelfLiquidateParams({creditPositionId: creditPositionId})) {
             __after(creditPositionId);
 
-            gt(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance, SELF_LIQUIDATE_01);
+            if (sender != _before.borrower.account) {
+                gte(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance, SELF_LIQUIDATE_01);
+            }
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, SELF_LIQUIDATE_02);
         } catch (bytes memory err) {
             bytes4[3] memory errors = [
@@ -513,7 +515,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
     }
 
     function liquidateWithReplacement(uint256 debtPositionId, uint256 minimumCollateralProfit, address borrower)
-        internal
+        public
         getSender
         hasLoans
     {

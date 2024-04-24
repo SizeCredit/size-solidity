@@ -252,4 +252,13 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         claim(1);
         claim(0);
     }
+
+    function test_CryticToFoundry_16() public {
+        deposit(address(0x0), 0);
+        deposit(address(0xdeadbeef), 17556450);
+        borrowAsLimitOrder(0, 0);
+        lendAsMarketOrder(address(0x0), 34586724, 340702833386891, false);
+        setPrice(0);
+        selfLiquidate(0);
+    }
 }
