@@ -492,8 +492,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         try size.selfLiquidate(SelfLiquidateParams({creditPositionId: creditPositionId})) {
             __after(creditPositionId);
 
-            lt(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance, LIQUIDATE_01);
-            lt(_after.sender.debtBalance, _before.sender.debtBalance, LIQUIDATE_02);
+            gt(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance, SELF_LIQUIDATE_01);
+            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, SELF_LIQUIDATE_02);
         } catch (bytes memory err) {
             bytes4[3] memory errors = [
                 Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector,
