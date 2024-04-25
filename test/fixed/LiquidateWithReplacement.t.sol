@@ -96,10 +96,13 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         Vars memory _after = _state();
 
+        uint256 newRepayFee = size.getDebtPosition(debtPositionId).repayFee;
+
+        assertTrue(newRepayFee != repayFee);
         assertEq(_after.alice, _before.alice);
         assertEq(
             _after.candy.debtBalance,
-            _before.candy.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
+            _before.candy.debtBalance + faceValue + newRepayFee + size.feeConfig().overdueLiquidatorReward
         );
         assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + newAmount);
         assertEq(_before.variablePool.borrowATokenBalance, 0);
@@ -226,9 +229,12 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(liquidator, usdc, 10_000e6);
         _liquidateWithReplacement(liquidator, 0, candy);
         assertEq(_state().alice.debtBalance, 0, "Alice should have no debt after");
+        loan = size.getDebtPosition(0);
+        uint256 newRepayFee = loan.repayFee;
+        assertTrue(newRepayFee != repayFee, "repay fee may have changed");
         assertEq(
             _state().candy.debtBalance,
-            loan.faceValue + repayFee + size.feeConfig().overdueLiquidatorReward,
+            loan.faceValue + newRepayFee + size.feeConfig().overdueLiquidatorReward,
             "Candy should have the debt after"
         );
     }

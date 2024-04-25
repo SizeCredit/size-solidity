@@ -92,7 +92,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         lendAsMarketOrder(address(0x0), 762433799931065407245075044326762306, 5003750, false);
         repay(0);
 
-        t(invariant_SOLVENCY_01(), SOLVENCY_01);
+        t(invariant_SOLVENCY(), SOLVENCY_01);
     }
 
     function test_CryticToFoundry_05() public {
@@ -134,7 +134,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
         liquidate(13634972797739814676263703624190704207393075217923416096395985069656, 0);
 
-        assertTrue(invariant_SOLVENCY_02(), SOLVENCY_02);
+        assertTrue(invariant_SOLVENCY(), SOLVENCY_02);
     }
 
     function test_CryticToFoundry_07() public {
