@@ -36,7 +36,7 @@ jobs:
       - name: Contract sizes
         run: |
           forge --version
-          forge build --sizes
+          forge build --sizes --skip src/invariants
         id: build
 
       - name: Test
