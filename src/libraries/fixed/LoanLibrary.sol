@@ -77,7 +77,7 @@ library LoanLibrary {
     }
 
     /// @notice Get the debt of a DebtPosition assuming it is repaid before due date
-    /// @dev If a DebtPosition is paid before the due date, the borrower, the overdue liquidator
+    /// @dev If a DebtPosition is paid before the due date, the overdue liquidator
     ///      reward is deducted from borrower's total total debt tracker.
     /// @param self The DebtPosition
     function getDueDateDebt(DebtPosition memory self) internal pure returns (uint256) {

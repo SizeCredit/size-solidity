@@ -12,11 +12,14 @@ import {
     CreditPosition,
     DEBT_POSITION_ID_START,
     DebtPosition,
+    LoanLibrary,
     LoanStatus
 } from "@src/libraries/fixed/LoanLibrary.sol";
 // import {console2 as console} from "forge-std/console2.sol";
 
 abstract contract Properties is Ghosts, PropertiesConstants {
+    using LoanLibrary for DebtPosition;
+
     event L1(uint256 a);
     event L2(uint256 a, uint256 b);
     event L3(uint256 a, uint256 b, uint256 c);
@@ -58,8 +61,10 @@ abstract contract Properties is Ghosts, PropertiesConstants {
 
     string internal constant COMPENSATE_01 = "COMPENSATE_01: Compensate reduces the borrower debt";
 
-    string internal constant SOLVENCY_01 = "SOLVENCY_01: SUM(outstanding credit) = SUM(outstanding debt)";
+    string internal constant SOLVENCY_01 = "SOLVENCY_01: SUM(outstanding credit) == SUM(outstanding debt)";
     string internal constant SOLVENCY_02 = "SOLVENCY_02: SUM(credit) <= SUM(debt)";
+    string internal constant SOLVENCY_03 = "SOLVENCY_03: SUM(positions debt) == user total debt, for each user";
+    string internal constant SOLVENCY_04 = "SOLVENCY_04: SUM(positions debt) == SUM(debt)";
 
     string internal constant DOS = "DOS: Denial of Service";
 
@@ -86,13 +91,7 @@ abstract contract Properties is Ghosts, PropertiesConstants {
 
     function invariant_TOKENS_01() public returns (bool) {
         (, address feeRecipient) = size.getCryticVariables();
-        address[] memory users = new address[](6);
-        users[0] = USER1;
-        users[1] = USER2;
-        users[2] = USER3;
-        users[3] = address(size);
-        users[4] = address(variablePool);
-        users[5] = address(feeRecipient);
+        address[6] memory users = [USER1, USER2, USER3, address(size), address(variablePool), address(feeRecipient)];
 
         uint256 collateralBalance;
 
@@ -108,47 +107,58 @@ abstract contract Properties is Ghosts, PropertiesConstants {
         return true;
     }
 
-    function invariant_SOLVENCY_01() public returns (bool) {
+    function invariant_SOLVENCY() public returns (bool) {
+        uint256 outstandingDebt;
+        uint256 outstandingCredit;
+
         uint256 totalDebt;
-        uint256 totalCredit;
+        address[3] memory users = [USER1, USER2, USER3];
+        uint256[3] memory positionsDebt;
 
         (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
         for (uint256 i = 0; i < creditPositionsCount; ++i) {
             uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
             LoanStatus status = size.getLoanStatus(creditPositionId);
             if (status != LoanStatus.REPAID) {
-                totalCredit += size.getCreditPosition(creditPositionId).credit;
+                outstandingCredit += size.getCreditPosition(creditPositionId).credit;
             }
         }
 
         for (uint256 i = 0; i < debtPositionsCount; ++i) {
             uint256 debtPositionId = DEBT_POSITION_ID_START + i;
-            totalDebt += size.getDebtPosition(debtPositionId).faceValue;
+            DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
+            outstandingDebt += debtPosition.faceValue;
+
+            uint256 userIndex = debtPosition.borrower == USER1
+                ? 0
+                : debtPosition.borrower == USER2 ? 1 : debtPosition.borrower == USER3 ? 2 : type(uint256).max;
+
+            positionsDebt[userIndex] += debtPosition.getTotalDebt();
         }
 
-        if (totalDebt != totalCredit) {
+        if (outstandingDebt != outstandingCredit) {
             t(false, SOLVENCY_01);
             return false;
         }
-        return true;
-    }
 
-    function invariant_SOLVENCY_02() public returns (bool) {
-        uint256 totalCredit;
-
-        (, uint256 creditPositionsCount) = size.getPositionsCount();
-        for (uint256 i = 0; i < creditPositionsCount; ++i) {
-            uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
-            LoanStatus status = size.getLoanStatus(creditPositionId);
-            if (status != LoanStatus.REPAID) {
-                totalCredit += size.getCreditPosition(creditPositionId).credit;
-            }
-        }
-
-        if (size.data().debtToken.totalSupply() < totalCredit) {
+        if (size.data().debtToken.totalSupply() < outstandingCredit) {
             t(false, SOLVENCY_02);
             return false;
         }
+
+        for (uint256 i = 0; i < positionsDebt.length; ++i) {
+            totalDebt += positionsDebt[i];
+            if (size.data().debtToken.balanceOf(users[i]) != positionsDebt[i]) {
+                t(false, SOLVENCY_03);
+                return false;
+            }
+        }
+
+        if (totalDebt != size.data().debtToken.totalSupply()) {
+            t(false, SOLVENCY_04);
+            return false;
+        }
+
         return true;
     }
 }

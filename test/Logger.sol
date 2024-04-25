@@ -71,6 +71,13 @@ abstract contract Logger {
         console.log("liquidityIndexAtRepayment", debtPosition.liquidityIndexAtRepayment);
     }
 
+    function _log(CreditPosition memory creditPosition) internal pure {
+        console.log("lender", creditPosition.lender);
+        console.log("forSale", creditPosition.forSale);
+        console.log("credit", creditPosition.credit);
+        console.log("debtPositionId", creditPosition.debtPositionId);
+    }
+
     function _log(Size size) internal view {
         (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
         uint256 totalDebt;
