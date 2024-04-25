@@ -36,7 +36,7 @@ jobs:
       - name: Contract sizes
         run: |
           forge --version
-          forge build --sizes --skip src/invariants
+          forge build --sizes --skip CryticTester
         id: build
 
       - name: Test
