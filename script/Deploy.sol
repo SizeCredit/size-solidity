@@ -44,7 +44,7 @@ abstract contract Deploy {
     InitializeDataParams internal d;
     IPool internal variablePool;
 
-    function setup(address owner, address feeRecipient) internal {
+    function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
         variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(owner);
         weth = new WETH();
@@ -89,7 +89,7 @@ abstract contract Deploy {
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
 
-    function setupChain(
+    function setupProduction(
         address _owner,
         address _weth,
         address _usdc,
@@ -135,7 +135,7 @@ abstract contract Deploy {
         size = SizeMock(payable(proxy));
     }
 
-    function setupChainWithMocks(address _owner, address _weth, address _usdc) internal {
+    function setupTestnet(address _owner, address _weth, address _usdc) internal {
         priceFeed = new PriceFeedMock(_owner);
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(_usdc), WadRayMath.RAY);

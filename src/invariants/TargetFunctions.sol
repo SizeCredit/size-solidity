@@ -52,7 +52,7 @@ import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/f
 
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
     function setup() internal override {
-        setup(address(this), address(this));
+        setupLocal(address(this), address(this));
         size.grantRole(KEEPER_ROLE, USER2);
 
         address[] memory users = new address[](3);

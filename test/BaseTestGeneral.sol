@@ -36,7 +36,7 @@ abstract contract BaseTestGeneral is Test, Deploy {
 
     function setUp() public virtual {
         _labels();
-        setup(address(this), feeRecipient);
+        setupLocal(address(this), feeRecipient);
     }
 
     function _labels() internal {

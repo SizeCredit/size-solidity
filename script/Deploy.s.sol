@@ -42,10 +42,10 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         address usdc = addresses(chainName).usdc;
 
         if (mockContracts) {
-            setupChainWithMocks(deployer, weth, usdc);
+            setupTestnet(deployer, weth, usdc);
             console.log("[Size v1] using MOCK contracts");
         } else {
-            setupChain(owner, weth, usdc, address(variablePool), wethAggregator, usdcAggregator);
+            setupProduction(owner, weth, usdc, address(variablePool), wethAggregator, usdcAggregator);
             console.log("[Size v1] using REAL contracts");
         }
 
