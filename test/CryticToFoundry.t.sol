@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
 import {TargetFunctions} from "@src/invariants/TargetFunctions.sol";
-import {CREDIT_POSITION_ID_START, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {Logger} from "@test/Logger.sol";
 import {Test} from "forge-std/Test.sol";
 import {console2 as console} from "forge-std/console2.sol";
@@ -14,13 +13,23 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         vm.deal(address(USER2), 100e18);
         vm.deal(address(USER3), 100e18);
 
+        vm.warp(1524785992);
+
         setup();
 
         sender = USER1;
     }
 
+    function _checkInvariants() internal {
+        assertTrue(invariant_LOAN_01(), LOAN_01);
+        assertTrue(invariant_UNDERWATER_01(), UNDERWATER_01);
+        assertTrue(invariant_TOKENS_01(), TOKENS_01);
+        assertTrue(invariant_SOLVENCY(), SOLVENCY);
+    }
+
     modifier getSender() override {
         _;
+        _checkInvariants();
     }
 
     function test_CryticToFoundry_01() public {
@@ -287,5 +296,99 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         );
         setPrice(0);
         selfLiquidate(0);
+    }
+
+    function test_CryticToFoundry_18() public {
+        sender = USER1;
+        deposit(address(0xdeadbeef), 2935337554604700731427626315539083483);
+
+        sender = USER1;
+        borrowAsLimitOrder(
+            600801365854545262038368835759703530272930, 71715183861415162426834894233833466605129944132695151891617
+        );
+
+        sender = USER1;
+        deposit(address(0x0), 61);
+
+        sender = USER1;
+        lendAsMarketOrder(address(0x0), 613427, 3740013724833968908524843401169700782215646, false);
+
+        sender = USER1;
+        borrowAsLimitOrder(346391, 0);
+
+        sender = USER3;
+        vm.warp(block.timestamp + 332369 seconds);
+        setPrice(0);
+
+        sender = USER1;
+        vm.warp(block.timestamp + 575483 seconds);
+        liquidate(86400, 77222825025516552538440714183514879332399149171856728123139307574037976970171);
+
+        sender = USER2;
+        vm.warp(block.timestamp + 3600 seconds);
+        setPrice(57605707327929105118522827675926741876259617330440577803681432669616885965533);
+
+        sender = USER1;
+        vm.warp(block.timestamp + 360624 seconds);
+        lendAsLimitOrder(
+            846166317695718274319437225806,
+            17947932366099712616195411385067699814449504,
+            735980923715527194406029760064559151
+        );
+
+        sender = USER1;
+        vm.warp(block.timestamp + 172101 seconds);
+        borrowAsMarketOrder(
+            address(0x0),
+            115792089237316195423570985008687907853269984665640564039457584007913129639933,
+            29182267078413308077842556818450179317634321662124225112379110204766240,
+            true,
+            1030087923344035061059586578722591404763257725749975456512525,
+            782873993691306723341871558552861832515519839995635503299601608118073
+        );
+
+        sender = USER2;
+        vm.warp(block.timestamp + 437838 seconds);
+        deposit(address(0xdeadbeef), 3679354064733996);
+
+        sender = USER3;
+        vm.warp(block.timestamp + 436727 seconds);
+        deposit(address(0x1fffffffe), 115792089237316195423570985008687907853269984665640564039457584007913129639935);
+
+        sender = USER1;
+        vm.warp(block.timestamp + 136394 seconds);
+        withdraw(address(0x1fffffffe), 35361702490146584512578889246347611238187798515245402027433625968893384971688);
+
+        sender = USER2;
+        vm.warp(block.timestamp + 396451 seconds);
+        lendAsMarketOrder(
+            address(0x1fffffffe),
+            12501419888180256890749326851545346432071337754739229842004716702614102161586,
+            50614988952009275764445948245886721906463958678436170056919645596780531291221,
+            false
+        );
+
+        sender = USER2;
+        vm.warp(block.timestamp + 440097 seconds);
+        lendAsMarketOrder(
+            address(0x1fffffffe),
+            4369999,
+            13395766943307160502121754907333510946796129068323131376008007759690239854153,
+            false
+        );
+
+        sender = USER3;
+        vm.warp(block.timestamp + 318197 seconds);
+        borrowAsLimitOrder(8407473379090115020622155800712631285733011043173029588388563961295109829298, 4370000);
+
+        sender = USER1;
+        vm.warp(block.timestamp + 440141 seconds);
+        setPrice(90768678622447573195807500409923988669401059004945670404249545528012466095060);
+
+        sender = USER2;
+        vm.warp(block.timestamp + 463587 seconds);
+        liquidateWithReplacement(
+            19116748911187275452518526318539152083828456420285086657569829250132385460347, 0, address(0x17)
+        );
     }
 }

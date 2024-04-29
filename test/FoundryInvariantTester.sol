@@ -32,7 +32,7 @@ contract FoundryInvariantTester is Test {
 
     function invariant() public {
         assertTrue(handler.invariant_LOAN_01(), "LOAN_01");
-        assertTrue(handler.invariant_LIQUIDATION_01(), "LIQUIDATION_01");
+        assertTrue(handler.invariant_UNDERWATER_01(), "UNDERWATER_01");
         assertTrue(handler.invariant_TOKENS_01(), "TOKENS_01");
         assertTrue(handler.invariant_SOLVENCY(), "SOLVENCY");
     }

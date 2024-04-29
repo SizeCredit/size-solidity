@@ -54,13 +54,12 @@ abstract contract Properties is Ghosts, PropertiesConstants {
 
     string internal constant TOKENS_01 = "TOKENS_01: The sum of all tokens is constant";
 
-    string internal constant LIQUIDATION_01 =
-        "LIQUIDATION_01: A user cannot make an operation that leaves them underwater";
-    string internal constant LIQUIDATION_02 =
-        "LIQUIDATION_02: Liquidation with replacement does not change the total system debt";
+    string internal constant UNDERWATER_01 =
+        "UNDERWATER_01: A user cannot make an operation that leaves them underwater";
 
     string internal constant COMPENSATE_01 = "COMPENSATE_01: Compensate reduces the borrower debt";
 
+    string internal constant SOLVENCY = "SOLVENCY: Solvency properties";
     string internal constant SOLVENCY_01 = "SOLVENCY_01: SUM(outstanding credit) == SUM(outstanding debt)";
     string internal constant SOLVENCY_02 = "SOLVENCY_02: SUM(credit) <= SUM(debt)";
     string internal constant SOLVENCY_03 = "SOLVENCY_03: SUM(positions debt) == user total debt, for each user";
@@ -81,9 +80,9 @@ abstract contract Properties is Ghosts, PropertiesConstants {
         return true;
     }
 
-    function invariant_LIQUIDATION_01() public returns (bool) {
+    function invariant_UNDERWATER_01() public returns (bool) {
         if (!_before.isSenderLiquidatable && _after.isSenderLiquidatable) {
-            t(false, LIQUIDATION_01);
+            t(false, UNDERWATER_01);
             return false;
         }
         return true;

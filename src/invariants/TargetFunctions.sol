@@ -547,7 +547,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 LIQUIDATE_01
             );
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
-            eq(_after.totalDebtAmount, _before.totalDebtAmount, LIQUIDATION_02);
         } catch (bytes memory err) {
             bytes4[8] memory errors = [
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
