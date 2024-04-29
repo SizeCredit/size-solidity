@@ -22,7 +22,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         variablePoolBorrowRateFeed.setVariableBorrowRate(0);
     }
 
-    function validate(YieldCurve memory curve, uint256 minimumMaturity) external view {
+    function validate(YieldCurve memory curve, uint256 minimumMaturity) external pure {
         YieldCurveLibrary.validateYieldCurve(curve, minimumMaturity);
     }
 

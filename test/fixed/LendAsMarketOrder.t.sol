@@ -8,7 +8,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -108,6 +108,7 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
+        assertEq(size.getDueDateDebt(debtPositionId), repayFee + faceValue);
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(

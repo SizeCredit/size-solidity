@@ -39,8 +39,9 @@ contract MulticallTest is BaseTest {
                 curveRelativeTime: YieldCurveHelper.flatCurve()
             })
         );
-        size.multicall(data);
+        bytes[] memory results = size.multicall(data);
 
+        assertEq(results.length, 2);
         assertEq(size.getUserView(alice).borrowATokenBalance, amount);
     }
 

@@ -25,6 +25,7 @@ contract InitializeTest is BaseTest {
         );
 
         assertEq(Size(payable(proxy)).riskConfig().crLiquidation, 1.3e18);
+        assertEq(Size(payable(proxy)).oracle().priceFeed, address(priceFeed));
     }
 
     function test_Initialize_wrong_initialization_reverts() public {

@@ -22,5 +22,6 @@ contract PauseTest is BaseTest {
         size.pause();
         size.updateConfig(UpdateConfigParams({key: "repayFeeAPR", value: 0}));
         assertEq(size.feeConfig().repayFeeAPR, 0);
+        size.unpause();
     }
 }

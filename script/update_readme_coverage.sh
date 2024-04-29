@@ -26,7 +26,7 @@ PART_1=$(head -n $((BEGIN)) README.md)
 PART_3=$(tail -n +$((END)) README.md)
 
 COVERAGE_BEGIN=$(grep -n '\bFile\b' COVERAGE.txt | cut -d : -f 1)
-COVERAGE=$(tail -n +$((COVERAGE_BEGIN)) COVERAGE.txt | grep -v 'test/' | grep -v 'script/' | grep -v '\bTotal\b')
+COVERAGE=$(tail -n +$((COVERAGE_BEGIN)) COVERAGE.txt | grep -v 'src/invariants/' | grep -v 'test/' | grep -v 'script/' | grep -v '\bTotal\b')
 
 echo "$PART_1" > README.md
 echo "### FIles" >> README.md
