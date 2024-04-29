@@ -37,6 +37,7 @@ library VariablePoolLibrary {
     }
 
     /// @notice Withdraw underlying borrow tokens from the variable pool
+    /// @dev `amount` should be capped to the user's borrow aToken balance
     /// @param state The state struct
     /// @param from The address of the withdrawer
     /// @param to The address of the recipient
@@ -44,10 +45,6 @@ library VariablePoolLibrary {
     function withdrawUnderlyingTokenFromVariablePool(State storage state, address from, address to, uint256 amount)
         external
     {
-        if (borrowATokenBalanceOf(state, from) < amount) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
-        }
-
         uint256 scaledBalanceBefore = state.data.borrowAToken.scaledBalanceOf(address(this));
 
         // slither-disable-next-line unused-return
