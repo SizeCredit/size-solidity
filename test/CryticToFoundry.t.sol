@@ -20,16 +20,12 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         sender = USER1;
     }
 
-    function _checkInvariants() internal {
+    modifier getSender() override {
+        _;
         assertTrue(invariant_LOAN_01(), LOAN_01);
         assertTrue(invariant_UNDERWATER_01(), UNDERWATER_01);
         assertTrue(invariant_TOKENS_01(), TOKENS_01);
         assertTrue(invariant_SOLVENCY(), SOLVENCY);
-    }
-
-    modifier getSender() override {
-        _;
-        _checkInvariants();
     }
 
     function test_CryticToFoundry_01() public {
