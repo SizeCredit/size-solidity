@@ -229,4 +229,15 @@ contract WithdrawTest is BaseTest {
         _withdraw(bob, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
     }
+
+    function testFuzz_Withdraw_withdraw_more_than_balance(uint256 index, uint256 delta) public {
+        index = bound(index, 1e27, 2e27);
+        delta = bound(delta, 0, 1e6);
+        _setPrice(1e18);
+        _deposit(bob, usdc, 1_000e6);
+        _setLiquidityIndex(index);
+        _deposit(alice, usdc, 100e6);
+        _withdraw(alice, usdc, 100e6 + delta);
+        assertTrue(usdc.balanceOf(address(alice)) == 100e6 || usdc.balanceOf(address(alice)) == 100e6 - 1);
+    }
 }
