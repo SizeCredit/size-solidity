@@ -7,6 +7,7 @@ import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
+import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
@@ -24,6 +25,7 @@ library Deposit {
     using SafeERC20 for IWETH;
     using VariablePoolLibrary for State;
     using CollateralLibrary for State;
+    using CapsLibrary for State;
 
     function validateDeposit(State storage state, DepositParams calldata params) external view {
         // validate msg.sender
@@ -66,6 +68,9 @@ library Deposit {
 
         if (params.token == address(state.data.underlyingBorrowToken)) {
             state.depositUnderlyingBorrowTokenToVariablePool(from, params.to, params.amount);
+            if (!state.data.isMulticall) {
+                state.validateBorrowATokenCap();
+            }
         } else {
             state.depositUnderlyingCollateralToken(from, params.to, params.amount);
         }

@@ -121,7 +121,7 @@ contract BorrowerExitTest is BaseTest {
     function test_BorrowerExit_borrowerExit_before_maturity_1() public {
         _setPrice(1e18);
         vm.warp(block.timestamp + 12345 days);
-        _updateConfig("collateralTokenCap", type(uint256).max);
+
         _updateConfig("borrowATokenCap", type(uint256).max);
         _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 2000e18);
@@ -182,7 +182,7 @@ contract BorrowerExitTest is BaseTest {
     function test_BorrowerExit_borrowerExit_before_maturity_does_not_overcharge_new_borrower() public {
         _setPrice(1e18);
         vm.warp(block.timestamp + 12345 days);
-        _updateConfig("collateralTokenCap", type(uint256).max);
+
         _updateConfig("borrowATokenCap", type(uint256).max);
         _updateConfig("earlyBorrowerExitFee", 0);
         _updateConfig("repayFeeAPR", 0.1e18);
@@ -211,7 +211,7 @@ contract BorrowerExitTest is BaseTest {
 
     function test_BorrowerExit_borrowerExit_experiment() public {
         _setPrice(1e18);
-        _updateConfig("collateralTokenCap", type(uint256).max);
+
         _updateConfig("borrowATokenCap", type(uint256).max);
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);

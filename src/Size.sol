@@ -123,12 +123,28 @@ contract Size is
         _unpause();
     }
 
+    function multicall(bytes[] calldata data) public payable override(Multicall) returns (bytes[] memory results) {
+        state.data.isMulticall = true;
+
+        uint256 borrowATokenSupplyBefore = state.data.borrowAToken.balanceOf(address(this));
+        uint256 debtTokenSupplyBefore = state.data.debtToken.totalSupply();
+
+        results = super.multicall(data);
+
+        uint256 borrowATokenSupplyAfter = state.data.borrowAToken.balanceOf(address(this));
+        uint256 debtTokenSupplyAfter = state.data.debtToken.totalSupply();
+
+        state.validateBorrowATokenIncreaseLowerThanDebtTokenDecrease(
+            borrowATokenSupplyBefore, debtTokenSupplyBefore, borrowATokenSupplyAfter, debtTokenSupplyAfter
+        );
+
+        state.data.isMulticall = false;
+    }
+
     /// @inheritdoc ISize
     function deposit(DepositParams calldata params) public payable override(ISize) whenNotPaused {
         state.validateDeposit(params);
         state.executeDeposit(params);
-        state.validateCollateralTokenCap();
-        state.validateBorrowATokenCap();
     }
 
     /// @inheritdoc ISize

@@ -34,7 +34,6 @@ struct InitializeRiskConfigParams {
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 minimumCreditBorrowAToken;
-    uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
     uint256 minimumMaturity;
@@ -131,9 +130,6 @@ library Initialize {
             revert Errors.NULL_AMOUNT();
         }
 
-        // validate underlyingCollateralTokenCap
-        // N/A
-
         // validate underlyingBorrowTokenCap
         // N/A
 
@@ -216,7 +212,6 @@ library Initialize {
 
         state.riskConfig.minimumCreditBorrowAToken = r.minimumCreditBorrowAToken;
 
-        state.riskConfig.collateralTokenCap = r.collateralTokenCap;
         state.riskConfig.borrowATokenCap = r.borrowATokenCap;
         state.riskConfig.debtTokenCap = r.debtTokenCap;
 

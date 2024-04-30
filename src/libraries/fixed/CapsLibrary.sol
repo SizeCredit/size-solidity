@@ -7,12 +7,30 @@ import {Errors} from "@src/libraries/Errors.sol";
 /// @title CapsLibrary
 /// @notice Contains functions for validating the cap of minted protocol-controlled tokens
 library CapsLibrary {
-    function validateCollateralTokenCap(State storage state) external view {
-        if (state.data.collateralToken.totalSupply() > state.riskConfig.collateralTokenCap) {
-            revert Errors.COLLATERAL_TOKEN_CAP_EXCEEDED(
-                state.riskConfig.collateralTokenCap, state.data.collateralToken.totalSupply()
-            );
+    function validateBorrowATokenIncreaseLowerThanDebtTokenDecrease(
+        State storage state,
+        uint256 borrowATokenSupplyBefore,
+        uint256 debtTokenSupplyBefore,
+        uint256 borrowATokenSupplyAfter,
+        uint256 debtTokenSupplyAfter
+    ) external view {
+        uint256 borrowATokenSupplyIncrease =
+            borrowATokenSupplyAfter > borrowATokenSupplyBefore ? borrowATokenSupplyAfter - borrowATokenSupplyBefore : 0;
+        uint256 debtATokenSupplyDecrease =
+            debtTokenSupplyBefore > debtTokenSupplyAfter ? debtTokenSupplyBefore - debtTokenSupplyAfter : 0;
+
+        // If the borrow aToken supply was already above the cap
+        if (borrowATokenSupplyBefore > state.riskConfig.borrowATokenCap) {
+            // and the increase is greater than the debt reduction
+            if (borrowATokenSupplyIncrease > debtATokenSupplyDecrease) {
+                // revert
+                revert Errors.BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE(
+                    borrowATokenSupplyIncrease, debtATokenSupplyDecrease
+                );
+            }
+            // otherwise, it means the debt reduction was greater than the inflow of cash: do not revert
         }
+        // otherwise, the borrow aToken was previously below the cap: do not revert
     }
 
     function validateBorrowATokenCap(State storage state) external view {

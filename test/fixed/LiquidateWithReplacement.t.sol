@@ -178,7 +178,7 @@ contract LiquidateWithReplacementTest is BaseTest {
 
     function test_LiquidateWithReplacement_liquidateWithReplacement_experiment() public {
         _setPrice(1e18);
-        _updateConfig("collateralTokenCap", type(uint256).max);
+
         _updateConfig("borrowATokenCap", type(uint256).max);
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);

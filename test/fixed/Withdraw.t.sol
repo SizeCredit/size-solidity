@@ -28,7 +28,6 @@ contract WithdrawTest is BaseTest {
     }
 
     function testFuzz_Withdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
-        _updateConfig("collateralTokenCap", type(uint256).max);
         _updateConfig("borrowATokenCap", type(uint256).max);
 
         x = bound(x, 1, type(uint96).max);
@@ -53,7 +52,6 @@ contract WithdrawTest is BaseTest {
     }
 
     function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
-        _updateConfig("collateralTokenCap", type(uint256).max);
         _updateConfig("borrowATokenCap", type(uint256).max);
 
         valueUSDC = bound(valueUSDC, 1, type(uint96).max);
@@ -88,7 +86,6 @@ contract WithdrawTest is BaseTest {
         uint256 valueWETH,
         uint256 index
     ) public {
-        _updateConfig("collateralTokenCap", type(uint256).max);
         _updateConfig("borrowATokenCap", type(uint256).max);
         index = bound(index, WadRayMath.RAY, WadRayMath.RAY * 2);
         _setLiquidityIndex(index);

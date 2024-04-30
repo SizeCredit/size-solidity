@@ -66,7 +66,6 @@ abstract contract Deploy {
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: 5e6,
-            collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
             minimumMaturity: 1 days
@@ -115,7 +114,6 @@ abstract contract Deploy {
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: 5e6,
-            collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
             minimumMaturity: 1 days
@@ -157,7 +155,6 @@ abstract contract Deploy {
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: 5e6,
-            collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
             minimumMaturity: 1 days
