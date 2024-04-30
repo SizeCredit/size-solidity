@@ -466,10 +466,9 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
             t(_before.isBorrowerLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
         } catch (bytes memory err) {
-            bytes4[4] memory errors = [
+            bytes4[3] memory errors = [
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
                 Errors.LOAN_NOT_LIQUIDATABLE.selector,
-                Errors.MATURITY_OUT_OF_RANGE.selector,
                 Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector
             ];
 
@@ -549,7 +548,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             );
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
         } catch (bytes memory err) {
-            bytes4[8] memory errors = [
+            bytes4[9] memory errors = [
                 IAccessControl.AccessControlUnauthorizedAccount.selector,
                 Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector,
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
@@ -557,6 +556,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector,
                 Errors.LOAN_NOT_ACTIVE.selector,
                 Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector,
+                Errors.MATURITY_OUT_OF_RANGE.selector,
                 Errors.INVALID_BORROW_OFFER.selector
             ];
 
