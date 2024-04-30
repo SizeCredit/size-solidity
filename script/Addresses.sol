@@ -31,11 +31,19 @@ abstract contract Addresses {
                 wethAggregator: address(0),
                 usdcAggregator: address(0)
             });
-        } else if (Strings.equal(chain, "tenderly")) {
+        } else if (Strings.equal(chain, "tenderly-mainnet-fork")) {
             return Contracts({
                 weth: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,
                 usdc: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,
                 variablePool: 0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2,
+                wethAggregator: address(0),
+                usdcAggregator: address(0)
+            });
+        } else if (Strings.equal(chain, "tenderly-base-fork")) {
+            return Contracts({
+                weth: 0x4200000000000000000000000000000000000006,
+                usdc: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913,
+                variablePool: 0xA238Dd80C259a72e81d7e4664a9801593F98d1c5,
                 wethAggregator: address(0),
                 usdcAggregator: address(0)
             });
