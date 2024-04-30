@@ -11,10 +11,12 @@
 
 [rpc_endpoints]
   sepolia = "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+  tenderly = { key = "${TENDERLY_ACCESS_KEY}", chain = 44735088912073095, url = "https://virtual.mainnet.rpc.tenderly.co/${API_KEY_TENDERLY}" }
   anvil = "http://127.0.0.1:8545"
 
 [etherscan]
   sepolia = { key = "${API_KEY_ETHERSCAN}" }
+  tenderly = { key = "${TENDERLY_ACCESS_KEY}", chain = 44735088912073095, url = "${TENDERLY_VIRTUAL_TESTNET_RPC_URL}/verify/etherscan" }
 
 [fmt]
   sort_imports = true

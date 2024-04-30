@@ -1,0 +1,18 @@
+{
+  "commit": 7249720,
+  "deployments": {
+    "PriceFeed": "0x607C42BB1b5a757DaF5F2aF1fc66Bf16cE55A25C",
+    "Size-implementation": "0xE1E05472c4a8e4703a2c112b03faf2fcfCDB6beE",
+    "Size-proxy": "0xE1E05472c4a8e4703a2c112b03faf2fcfCDB6beE",
+    "VariablePoolBorrowRateFeed": "0xB743bA4900b2195f06F85c36851A0EF078387E6A"
+  },
+  "networkName": "tenderly",
+  "parameters": {
+    "owner": "0xf0c7f57f5f889d546f032e50fba953bd7c026350",
+    "usdc": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    "usdcAggregator": "0x0000000000000000000000000000000000000000",
+    "variablePool": "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+    "weth": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+    "wethAggregator": "0x0000000000000000000000000000000000000000"
+  }
+}
