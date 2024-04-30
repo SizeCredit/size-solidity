@@ -466,9 +466,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
             t(_before.isBorrowerLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
         } catch (bytes memory err) {
-            bytes4[3] memory errors = [
+            bytes4[4] memory errors = [
                 Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector,
                 Errors.LOAN_NOT_LIQUIDATABLE.selector,
+                Errors.MATURITY_OUT_OF_RANGE.selector,
                 Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector
             ];
 
