@@ -15,6 +15,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
@@ -170,5 +171,42 @@ contract MulticallTest is BaseTest {
         assertGt(afterLiquidatorWETH, beforeLiquidatorWETH);
         assertEq(beforeLiquidatorUSDC, faceValue);
         assertEq(afterLiquidatorUSDC, 0);
+    }
+
+    function test_Multicall_multicall_bypasses_cap_if_it_is_to_reduce_debt() public {
+        _setPrice(1e18);
+        _updateConfig("borrowATokenCap", 100e6);
+        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
+
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 200e18);
+
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.1e18);
+        uint256 amount = 100e6;
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+
+        vm.warp(block.timestamp + 365 days);
+
+        assertEq(_state().bob.debtBalance, 110e6);
+
+        _mint(address(usdc), bob, 10e6);
+        _approve(bob, address(usdc), address(size), 10e6);
+
+        // attempt to deposit to repay, but it reverts due to cap
+        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, 100e6, 110e6));
+        vm.prank(bob);
+        size.deposit(DepositParams({token: address(usdc), amount: 10e6, to: bob}));
+
+        assertEq(_state().bob.debtBalance, 110e6);
+
+        // debt reduction is allowed to go over cap
+        bytes[] memory data = new bytes[](2);
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: 10e6, to: bob}));
+        data[1] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId}));
+        vm.prank(bob);
+        size.multicall(data);
+
+        assertEq(_state().bob.debtBalance, 0);
     }
 }
