@@ -33,6 +33,8 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
     }
 
     function test_CryticToFoundry_02() public {
+        MAX_DURATION = 180 days;
+        MAX_PRICE = 10_000e18;
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
         borrowAsLimitOrder(285, 806924974754);
@@ -43,6 +45,9 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
     }
 
     function test_CryticToFoundry_03() public {
+        MAX_DURATION = 180 days;
+        MAX_PRICE = 10_000e18;
+
         // CryticTester.deposit(0x0,0) from: 0x0000000000000000000000000000000000010000 Time delay: 322253 seconds Block delay: 97
         // CryticTester.deposit(0x19,259200) from: 0x0000000000000000000000000000000000030000 Time delay: 43114 seconds Block delay: 34720
         // CryticTester.borrowAsLimitOrder(24,24844501279188594811050686) from: 0x0000000000000000000000000000000000010000 Time delay: 103251 seconds Block delay: 8452
@@ -149,7 +154,6 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
         deposit(address(0xdeadbeef), 11904803604958988569572617684222248);
         setLiquidityIndex(5010010177153568, 0);
-        console.log(variablePool.getReserveNormalizedIncome(address(usdc)));
         withdraw(address(0xdeadbeef), 36435084);
     }
 
@@ -216,6 +220,9 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
     }
 
     function test_CryticToFoundry_15() public {
+        MAX_DURATION = 180 days;
+        MAX_PRICE = 10_000e18;
+
         // CryticTester.deposit(0x0,0)
         // CryticTester.deposit(0xdeadbeef,0)
         // CryticTester.borrowAsLimitOrder(0,0)
@@ -259,6 +266,9 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
     }
 
     function test_CryticToFoundry_16() public {
+        MAX_DURATION = 180 days;
+        MAX_PRICE = 10_000e18;
+
         deposit(address(0x0), 0);
         deposit(address(0xdeadbeef), 17556450);
         borrowAsLimitOrder(0, 0);
@@ -268,6 +278,9 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
     }
 
     function test_CryticToFoundry_17() public {
+        MAX_DURATION = 180 days;
+        MAX_PRICE = 10_000e18;
+
         borrowAsLimitOrder(3923, 33980107616196410778387867456);
         deposit(address(0x0), 732122825199537941462422018675423646);
         deposit(address(0xdeadbeef), 9806867186794323686842530376938788560849587239728099175751784669);
@@ -295,6 +308,9 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
     }
 
     function test_CryticToFoundry_18() public {
+        MAX_DURATION = 180 days;
+        MAX_PRICE = 10_000e18;
+
         sender = USER1;
         deposit(address(0xdeadbeef), 2935337554604700731427626315539083483);
 
