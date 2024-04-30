@@ -69,12 +69,6 @@ library RiskLibrary {
         return collateralRatio(state, account) < state.riskConfig.crLiquidation;
     }
 
-    function validateUserIsNotUnderwater(State storage state, address account) external view {
-        if (isUserUnderwater(state, account)) {
-            revert Errors.USER_IS_UNDERWATER(account, collateralRatio(state, account));
-        }
-    }
-
     function validateUserIsNotBelowOpeningLimitBorrowCR(State storage state, address account) external view {
         uint256 openingLimitBorrowCR = Math.max(
             state.riskConfig.crOpening,

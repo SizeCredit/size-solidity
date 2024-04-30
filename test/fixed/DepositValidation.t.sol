@@ -21,6 +21,9 @@ contract DepositValidationTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MSG_VALUE.selector, 1 wei));
         size.deposit{value: 1 wei}(DepositParams({token: address(usdc), amount: 1 wei, to: alice}));
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        size.deposit(DepositParams({token: address(weth), amount: 1, to: address(0)}));
     }
 
     function test_Deposit_validation_collateralTokenCap_borrowATokenCap() public {
