@@ -88,7 +88,7 @@ library BuyMarketCredit {
         }
 
         if (amountOut > creditPosition.credit) {
-            revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, amountOut);
+            revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, creditPosition.credit, amountOut);
         }
 
         state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn);
