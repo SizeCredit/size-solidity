@@ -7,7 +7,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 /// @title CapsLibrary
 /// @notice Contains functions for validating the cap of minted protocol-controlled tokens
 library CapsLibrary {
-    function validateBorrowATokenIncreaseLowerThanDebtTokenDecrease(
+    function validateBorrowATokenIncreaseLteDebtTokenDecrease(
         State storage state,
         uint256 borrowATokenSupplyBefore,
         uint256 debtTokenSupplyBefore,

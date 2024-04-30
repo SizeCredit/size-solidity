@@ -134,7 +134,7 @@ contract Size is
         uint256 borrowATokenSupplyAfter = state.data.borrowAToken.balanceOf(address(this));
         uint256 debtTokenSupplyAfter = state.data.debtToken.totalSupply();
 
-        state.validateBorrowATokenIncreaseLowerThanDebtTokenDecrease(
+        state.validateBorrowATokenIncreaseLteDebtTokenDecrease(
             borrowATokenSupplyBefore, debtTokenSupplyBefore, borrowATokenSupplyAfter, debtTokenSupplyAfter
         );
 
