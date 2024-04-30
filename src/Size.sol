@@ -123,13 +123,13 @@ contract Size is
         _unpause();
     }
 
-    function multicall(bytes[] calldata data) public payable override(Multicall) returns (bytes[] memory results) {
+    function multicall(bytes[] calldata _data) public payable override(Multicall) returns (bytes[] memory results) {
         state.data.isMulticall = true;
 
         uint256 borrowATokenSupplyBefore = state.data.borrowAToken.balanceOf(address(this));
         uint256 debtTokenSupplyBefore = state.data.debtToken.totalSupply();
 
-        results = super.multicall(data);
+        results = super.multicall(_data);
 
         uint256 borrowATokenSupplyAfter = state.data.borrowAToken.balanceOf(address(this));
         uint256 debtTokenSupplyAfter = state.data.debtToken.totalSupply();
