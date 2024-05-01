@@ -42,6 +42,8 @@ contract MulticallTest is BaseTest {
         bytes[] memory results = size.multicall(data);
 
         assertEq(results.length, 2);
+        assertEq(results[0], bytes(""));
+        assertEq(results[1], bytes(""));
         assertEq(size.getUserView(alice).borrowATokenBalance, amount);
     }
 

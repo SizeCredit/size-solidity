@@ -52,6 +52,7 @@ library SetCreditForSale {
         for (uint256 i = 0; i < params.creditPositionIds.length; i++) {
             CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionIds[i]);
             creditPosition.forSale = params.forSale;
+            emit Events.UpdateCreditPosition(params.creditPositionIds[i], creditPosition.credit, creditPosition.forSale);
         }
 
         emit Events.SetCreditForSale(params.creditPositionsForSaleDisabled, params.forSale, params.creditPositionIds);

@@ -14,7 +14,7 @@ contract BorrowerExitValidationTest is BaseTest {
         _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 2 * 150e18);
+        _deposit(bob, weth, 3 * 150e18);
         _deposit(candy, usdc, 100e6);
         _deposit(candy, weth, 150e18);
         _deposit(james, usdc, 100e6);
@@ -29,6 +29,22 @@ contract BorrowerExitValidationTest is BaseTest {
         _borrowAsMarketOrder(james, candy, 10e6, block.timestamp + 365 days, [creditId2]);
 
         address borrowerToExitTo = candy;
+
+        _deposit(bob, usdc, 5e6);
+        uint256 debtPositionId2 = _borrowAsMarketOrder(bob, candy, 5e6, block.timestamp + 365 days);
+        _repay(bob, debtPositionId2);
+
+        vm.startPrank(james);
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, debtPositionId2));
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId2,
+                deadline: block.timestamp,
+                minAPR: 0,
+                borrowerToExitTo: borrowerToExitTo
+            })
+        );
+        vm.stopPrank();
 
         vm.expectRevert(abi.encodeWithSelector(Errors.EXITER_IS_NOT_BORROWER.selector, address(this), bob));
         size.borrowerExit(
@@ -108,7 +124,22 @@ contract BorrowerExitValidationTest is BaseTest {
             })
         );
 
-        vm.warp(block.timestamp + 365 days + 1);
+        vm.warp(block.timestamp + 365 days);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector, 0, size.riskConfig().minimumMaturity
+            )
+        );
+        size.borrowerExit(
+            BorrowerExitParams({
+                debtPositionId: debtPositionId,
+                deadline: block.timestamp,
+                minAPR: 0,
+                borrowerToExitTo: bob
+            })
+        );
+
+        vm.warp(block.timestamp + 1);
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp - 1));
         size.borrowerExit(
             BorrowerExitParams({

@@ -237,4 +237,33 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(debtPositionsCount, 1, "There should be one active loan after lending");
         assertEq(creditPositionsCount, 1, "There should be one active loan after lending");
     }
+
+    function test_LendAsMarketOrder_lendAsMarketOrder_reverts_if_pool_has_no_liquidity() public {
+        _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
+
+        _deposit(bob, weth, 2 * 300e18);
+        _deposit(alice, usdc, 100e6);
+
+        _borrowAsLimitOrder(bob, [int256(1e18)], [uint256(365 days)]);
+
+        _setLiquidityIndex(2e27);
+
+        uint256 liquidity = 100e6;
+        uint256 required = 150e6;
+
+        vm.startPrank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector, liquidity, required));
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({
+                borrower: bob,
+                dueDate: block.timestamp + 365 days,
+                amount: 150e6,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: true
+            })
+        );
+    }
 }

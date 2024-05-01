@@ -105,14 +105,25 @@ library Compensate {
             debtPositionToRepay.overdueLiquidatorReward = 0;
             debtPositionToRepay.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
+        emit Events.UpdateDebtPosition(
+            creditPositionWithDebtToRepay.debtPositionId,
+            debtPositionToRepay.borrower,
+            debtPositionToRepay.issuanceValue,
+            debtPositionToRepay.faceValue,
+            debtPositionToRepay.repayFee,
+            debtPositionToRepay.overdueLiquidatorReward,
+            debtPositionToRepay.startDate,
+            debtPositionToRepay.dueDate,
+            debtPositionToRepay.liquidityIndexAtRepayment
+        );
 
-        creditPositionWithDebtToRepay.credit -= amountToCompensate;
-        state.validateMinimumCredit(creditPositionWithDebtToRepay.credit);
+        // credit reduction
+        state.reduceCredit(params.creditPositionWithDebtToRepayId, amountToCompensate);
 
         // credit emission
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionToCompensateId,
-            lender: debtPositionToRepay.lender,
+            lender: creditPositionWithDebtToRepay.lender,
             credit: amountToCompensate
         });
     }

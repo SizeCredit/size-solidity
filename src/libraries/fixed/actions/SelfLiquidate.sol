@@ -67,8 +67,19 @@ library SelfLiquidate {
             debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
 
-        creditPosition.credit = 0;
+        emit Events.UpdateDebtPosition(
+            creditPosition.debtPositionId,
+            debtPosition.borrower,
+            debtPosition.issuanceValue,
+            debtPosition.faceValue,
+            debtPosition.repayFee,
+            debtPosition.overdueLiquidatorReward,
+            debtPosition.startDate,
+            debtPosition.dueDate,
+            debtPosition.liquidityIndexAtRepayment
+        );
 
+        state.reduceCredit(params.creditPositionId, credit);
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, assignedCollateral);
     }
 }
