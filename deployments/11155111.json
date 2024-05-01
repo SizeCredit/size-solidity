@@ -1,10 +1,10 @@
 {
-  "commit": 7249720,
+  "commit": "b0846eb",
   "deployments": {
-    "PriceFeed": "0x27d02Ce9acDbc3B0bAE3e9FAD485e6490A318886",
-    "Size-implementation": "0x2291E2e89BC50e68C2C44177089B0C7fDb1Cc46A",
-    "Size-proxy": "0x2291E2e89BC50e68C2C44177089B0C7fDb1Cc46A",
-    "VariablePoolBorrowRateFeed": "0x598Ca1bD66BEb18D4A97Cc6bB86B631b62882268"
+    "PriceFeed": "0xF1538111823a7eE05174c3D09Ec10CCaD9Bd2f67",
+    "Size-implementation": "0xBa4Eb5533C57b1641d982706c20e71aBe5d5a0EB",
+    "Size-proxy": "0xBa4Eb5533C57b1641d982706c20e71aBe5d5a0EB",
+    "VariablePoolBorrowRateFeed": "0x3C25aC8A5a5fDc5335AE2c0Bb2B6b510c7917ac6"
   },
   "networkName": "sepolia-mocks",
   "parameters": {
