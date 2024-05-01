@@ -92,7 +92,6 @@ library AccountingLibrary {
         uint256 dueDate
     ) external returns (DebtPosition memory debtPosition) {
         debtPosition = DebtPosition({
-            lender: lender,
             borrower: borrower,
             issuanceValue: issuanceValue,
             faceValue: faceValue,

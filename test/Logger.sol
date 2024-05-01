@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Size} from "@src/Size.sol";
-import {SizeView, UserView} from "@src/SizeView.sol";
+import {UserView} from "@src/SizeView.sol";
 import {
     CREDIT_POSITION_ID_START,
     CreditPosition,
@@ -60,7 +60,6 @@ abstract contract Logger {
     }
 
     function _log(DebtPosition memory debtPosition) internal pure {
-        console.log("lender", debtPosition.lender);
         console.log("borrower", debtPosition.borrower);
         console.log("issuanceValue", debtPosition.issuanceValue);
         console.log("faceValue", debtPosition.faceValue);
