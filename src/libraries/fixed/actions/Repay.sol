@@ -53,6 +53,18 @@ library Repay {
         debtPosition.overdueLiquidatorReward = 0;
         debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
 
+        emit Events.UpdateDebtPosition(
+            params.debtPositionId,
+            debtPosition.borrower,
+            debtPosition.issuanceValue,
+            debtPosition.faceValue,
+            debtPosition.repayFee,
+            debtPosition.overdueLiquidatorReward,
+            debtPosition.startDate,
+            debtPosition.dueDate,
+            debtPosition.liquidityIndexAtRepayment
+        );
+
         emit Events.Repay(params.debtPositionId);
     }
 }
