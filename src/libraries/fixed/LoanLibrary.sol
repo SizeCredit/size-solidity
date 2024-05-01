@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {Events} from "@src/libraries/Events.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
@@ -13,7 +12,6 @@ uint256 constant CREDIT_POSITION_ID_START = type(uint256).max / 2;
 uint256 constant RESERVED_ID = type(uint256).max;
 
 struct DebtPosition {
-    address lender;
     address borrower;
     uint256 issuanceValue; // updated on debt reduction
     uint256 faceValue; // updated on debt reduction

@@ -123,7 +123,7 @@ library Compensate {
         // credit emission
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionToCompensateId,
-            lender: debtPositionToRepay.lender,
+            lender: creditPositionWithDebtToRepay.lender,
             credit: amountToCompensate
         });
     }
