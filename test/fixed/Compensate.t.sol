@@ -399,4 +399,45 @@ contract CompensateTest is BaseTest {
         // collateral[borrower] -= DebtPosition1.protocolFees(t=7) / Oracle.CurrentPrice
         assertEq(_state().bob.collateralTokenBalance, 500e18 - (0.5e6 - 0.409091e6) * 1e12);
     }
+
+    function test_Compensate_compensate_with_chain_of_exits() public {
+        _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
+
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, usdc, 100e6);
+
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 0);
+
+        _deposit(bob, weth, 150e18);
+
+        uint256 debtPositionId_bob = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 creditPositionId_alice = size.getCreditPositionIdsByDebtPositionId(debtPositionId_bob)[0];
+
+        _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 365 days, [creditPositionId_alice]);
+        uint256 creditPositionId_bob = size.getCreditPositionIdsByDebtPositionId(debtPositionId_bob)[1];
+
+        _borrowAsMarketOrder(bob, candy, 70e6, block.timestamp + 365 days, [creditPositionId_bob]);
+        uint256 creditPositionId_candy = size.getCreditPositionIdsByDebtPositionId(debtPositionId_bob)[2];
+
+        assertEq(size.getDebtPosition(debtPositionId_bob).faceValue, 100e6);
+        assertEq(size.getCreditPosition(creditPositionId_alice).credit, 0);
+        assertEq(size.getCreditPosition(creditPositionId_bob).credit, 30e6);
+        assertEq(size.getCreditPosition(creditPositionId_candy).credit, 70e6);
+
+        _compensate(bob, creditPositionId_candy, creditPositionId_bob);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId_bob)[3];
+
+        assertEq(size.getDebtPosition(debtPositionId_bob).faceValue, 70e6);
+        assertEq(size.getCreditPosition(creditPositionId_alice).credit, 0);
+        assertEq(size.getCreditPosition(creditPositionId_bob).credit, 0);
+        assertEq(size.getCreditPosition(creditPositionId_candy).credit, 40e6);
+
+        assertEq(size.getCreditPosition(creditPositionId).credit, 30e6);
+        assertEq(size.getCreditPosition(creditPositionId).lender, candy);
+    }
 }

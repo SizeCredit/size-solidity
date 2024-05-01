@@ -56,7 +56,6 @@ abstract contract Ghosts is Deploy, Asserts {
                 d = size.getDebtPosition(positionId);
                 vars.borrower = size.getUserView(d.borrower);
                 vars.isBorrowerLiquidatable = size.isUserUnderwater(d.borrower);
-                vars.lender = size.getUserView(d.lender);
             }
             vars.loanStatus = size.getLoanStatus(positionId);
         }

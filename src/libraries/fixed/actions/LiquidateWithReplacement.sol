@@ -119,6 +119,18 @@ library LiquidateWithReplacement {
         debtPosition.repayFee =
             LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
 
+        emit Events.UpdateDebtPosition(
+            params.debtPositionId,
+            debtPosition.borrower,
+            debtPosition.issuanceValue,
+            debtPosition.faceValue,
+            debtPosition.repayFee,
+            debtPosition.overdueLiquidatorReward,
+            debtPosition.startDate,
+            debtPosition.dueDate,
+            debtPosition.liquidityIndexAtRepayment
+        );
+
         state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
         state.transferBorrowAToken(address(this), params.borrower, issuanceValue);
         state.transferBorrowAToken(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);

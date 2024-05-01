@@ -100,6 +100,18 @@ library BorrowerExit {
         debtPosition.repayFee =
             LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
 
+        emit Events.UpdateDebtPosition(
+            params.debtPositionId,
+            debtPosition.borrower,
+            debtPosition.issuanceValue,
+            debtPosition.faceValue,
+            debtPosition.repayFee,
+            debtPosition.overdueLiquidatorReward,
+            debtPosition.startDate,
+            debtPosition.dueDate,
+            debtPosition.liquidityIndexAtRepayment
+        );
+
         state.data.debtToken.mint(params.borrowerToExitTo, debtPosition.getTotalDebt());
     }
 }

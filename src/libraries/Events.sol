@@ -85,4 +85,19 @@ library Events {
     );
     event BuyMarketCredit(uint256 indexed creditPositionId, uint256 indexed amount, bool indexed exactAmountIn);
     event SetCreditForSale(bool indexed forSale, bool indexed creditPositionsNotForSale, uint256[] creditPositionIds);
+
+    // updates
+    event UpdateDebtPosition(
+        uint256 indexed debtPositionId,
+        address indexed borrower,
+        uint256 issuanceValue,
+        uint256 faceValue,
+        uint256 repayFee,
+        uint256 overdueLiquidatorReward,
+        uint256 startDate,
+        uint256 dueDate,
+        uint256 liquidityIndexAtRepayment
+    );
+
+    event UpdateCreditPosition(uint256 indexed creditPositionId, uint256 credit, bool forSale);
 }

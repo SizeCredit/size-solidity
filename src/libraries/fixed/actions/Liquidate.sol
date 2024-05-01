@@ -132,5 +132,17 @@ library Liquidate {
         state.data.debtToken.burn(debtPosition.borrower, debt);
         debtPosition.overdueLiquidatorReward = 0;
         debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+
+        emit Events.UpdateDebtPosition(
+            params.debtPositionId,
+            debtPosition.borrower,
+            debtPosition.issuanceValue,
+            debtPosition.faceValue,
+            debtPosition.repayFee,
+            debtPosition.overdueLiquidatorReward,
+            debtPosition.startDate,
+            debtPosition.dueDate,
+            debtPosition.liquidityIndexAtRepayment
+        );
     }
 }
