@@ -62,6 +62,33 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
             })
         );
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, james));
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
+                borrower: james,
+                minAPR: 0,
+                deadline: block.timestamp,
+                minimumCollateralProfit: minimumCollateralProfit
+            })
+        );
+
+        vm.warp(block.timestamp + 365 days);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector, 0, size.riskConfig().minimumMaturity
+            )
+        );
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
+                borrower: candy,
+                minAPR: 0,
+                deadline: block.timestamp,
+                minimumCollateralProfit: minimumCollateralProfit
+            })
+        );
+
         vm.warp(block.timestamp + 365 days * 2);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, debtPositionId));
