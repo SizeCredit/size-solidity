@@ -34,12 +34,15 @@ contract SelfLiquidateTest is BaseTest {
         vm.expectRevert();
         _liquidate(liquidator, debtPositionId, debtInCollateralToken);
 
+        uint256 assignedCollateral = size.getCreditPositionProRataAssignedCollateral(creditPositionId);
+
         Vars memory _before = _state();
 
         _selfLiquidate(alice, creditPositionId);
 
         Vars memory _after = _state();
 
+        assertEq(assignedCollateral, 150e18);
         assertEq(_after.bob.collateralTokenBalance, _before.bob.collateralTokenBalance - 150e18, 0);
         assertEq(_after.alice.collateralTokenBalance, _before.alice.collateralTokenBalance + 150e18);
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);

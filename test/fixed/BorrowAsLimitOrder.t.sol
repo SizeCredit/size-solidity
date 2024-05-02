@@ -108,6 +108,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
             openingLimitBorrowCR,
             YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers})
         );
+        uint256 apr = size.getBorrowOfferAPR(alice, block.timestamp + 1 days);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.4e18, 1.5e18));
         vm.prank(bob);
@@ -117,7 +118,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
                 amount: 100e6,
                 dueDate: block.timestamp + 1 days,
                 deadline: block.timestamp,
-                minAPR: 0,
+                minAPR: apr,
                 exactAmountIn: true
             })
         );

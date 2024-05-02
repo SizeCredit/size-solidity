@@ -309,6 +309,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = block.timestamp + 12 days;
         vm.startPrank(bob);
         uint256[] memory receivableCreditPositionIds;
+        uint256 apr = size.getLoanOfferAPR(alice, dueDate);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
