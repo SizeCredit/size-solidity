@@ -317,7 +317,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 deadline: block.timestamp,
-                maxAPR: type(uint256).max,
+                maxAPR: apr,
                 exactAmountIn: false,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
