@@ -25,4 +25,9 @@ contract SizeViewTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp - 1));
         size.getLoanOfferAPR(alice, block.timestamp - 1);
     }
+
+    function test_SizeView_getLoanStatus() public {
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_POSITION_ID.selector, 0));
+        size.getLoanStatus(0);
+    }
 }
