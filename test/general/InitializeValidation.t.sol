@@ -60,10 +60,32 @@ contract InitializeValidationTest is Test, BaseTest {
         f.collateralLiquidatorPercent = 0.3e18;
         f.collateralProtocolPercent = 0.1e18;
 
+        f.overdueColLiquidatorPercent = 1.1e18;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e18));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        f.overdueColLiquidatorPercent = 0.3e18;
+
+        f.overdueColProtocolPercent = 1.2e18;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e18));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        f.overdueColProtocolPercent = 0.1e18;
+
+        f.overdueColLiquidatorPercent = 0.6e18;
+        f.overdueColProtocolPercent = 0.6e18;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e18));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        f.overdueColLiquidatorPercent = 0.3e18;
+        f.overdueColProtocolPercent = 0.1e18;
+
         r.minimumCreditBorrowAToken = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         r.minimumCreditBorrowAToken = 5e6;
+
+        r.minimumMaturity = 0;
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        r.minimumMaturity = 1 days;
 
         o.priceFeed = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));

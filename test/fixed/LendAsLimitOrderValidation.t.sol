@@ -84,6 +84,18 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         maturities[0] = 1 days;
         maturities[1] = 2 days;
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_MAX_DUE_DATE.selector));
+        size.lendAsLimitOrder(
+            LendAsLimitOrderParams({
+                maxDueDate: 0,
+                curveRelativeTime: YieldCurve({
+                    maturities: maturities,
+                    marketRateMultipliers: marketRateMultipliers,
+                    aprs: aprs
+                })
+            })
+        );
+
         vm.warp(3);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_MAX_DUE_DATE.selector, 2));
