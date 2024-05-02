@@ -145,4 +145,34 @@ contract MathTest is Test, AssertsHelper {
         vm.expectRevert();
         Math.amountToWad(amount, decimals);
     }
+
+    function check_Math_binarySearch(uint256[] memory array, uint256 value) public {
+        // array is strictly increasing
+        for (uint256 i = 0; i < array.length - 1; i++) {
+            vm.assume(array[i] < array[i + 1]);
+        }
+        uint256 low;
+        uint256 high;
+        (low, high) = Math.binarySearch(array, value);
+        if (value < array[0] || value > array[array.length - 1]) {
+            // not found
+            assertEq(low, type(uint256).max);
+            assertEq(high, type(uint256).max);
+        } else {
+            // low is within bounds
+            assertGe(low, 0);
+            assertLe(low, array.length - 1);
+
+            // high is within bounds
+            assertGe(high, 0);
+            assertLe(high, array.length - 1);
+
+            // low <= high
+            assertLe(low, high);
+
+            // array[low] <= value <= array[high]
+            assertLe(array[low], value);
+            assertLe(value, array[high]);
+        }
+    }
 }

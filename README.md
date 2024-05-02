@@ -174,6 +174,23 @@ forge test
 
 - Check [`Properties.sol`](./test/invariants/Properties.sol)
 
+Run Echidna with
+
+```bash
+echidna . --contract CryticTester --config echidna.yaml --test-mode property
+echidna . --contract CryticTester --config echidna.yaml --test-mode assertion
+```
+
+## Formal Verification
+
+- [`Math.binarySearch`](./test/libraries/Math.t.sol)
+
+Run Halmos with
+
+```bash
+halmos --loop 7
+```
+
 ## Known limitations
 
 - The protocol does not support rebasing tokens
