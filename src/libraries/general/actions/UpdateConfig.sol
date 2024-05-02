@@ -63,15 +63,6 @@ library UpdateConfig {
         });
     }
 
-    function dataParams(State storage state) external view returns (InitializeDataParams memory) {
-        return InitializeDataParams({
-            weth: address(state.data.weth),
-            underlyingCollateralToken: address(state.data.underlyingCollateralToken),
-            underlyingBorrowToken: address(state.data.underlyingBorrowToken),
-            variablePool: address(state.data.variablePool)
-        });
-    }
-
     function validateUpdateConfig(State storage, UpdateConfigParams calldata) external pure {
         // validation is done at execution
     }
