@@ -602,9 +602,8 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
 
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, COMPENSATE_01);
         } catch (bytes memory err) {
-            bytes4[11] memory errors = [
+            bytes4[10] memory errors = [
                 Errors.LOAN_ALREADY_REPAID.selector,
-                Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE.selector,
                 Errors.LOAN_ALREADY_REPAID.selector,
                 Errors.DUE_DATE_NOT_COMPATIBLE.selector,
                 Errors.INVALID_LENDER.selector,

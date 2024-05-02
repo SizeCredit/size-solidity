@@ -80,5 +80,21 @@ contract LendAsMarketOrderValidationTest is BaseTest {
                 exactAmountIn: false
             })
         );
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 1e6, size.riskConfig().minimumCreditBorrowAToken
+            )
+        );
+        size.lendAsMarketOrder(
+            LendAsMarketOrderParams({
+                borrower: alice,
+                dueDate: block.timestamp + 365 days,
+                amount: 1e6,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: false
+            })
+        );
     }
 }

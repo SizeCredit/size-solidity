@@ -50,7 +50,6 @@ library Errors {
     error NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(uint256 liquidity, uint256 required);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAToken);
-    error CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE(uint256 credit, uint256 amountToCompensate);
 
     error ONLY_DEBT_POSITION_CAN_BE_REPAID(uint256 positionId);
     error ONLY_DEBT_POSITION_CAN_BE_EXITED(uint256 positionId);

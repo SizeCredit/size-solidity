@@ -137,5 +137,19 @@ contract CompensateValidationTest is BaseTest {
             })
         );
         vm.stopPrank();
+
+        uint256 l3 = _borrowAsMarketOrder(bob, bob, 20e6, block.timestamp + 12 days);
+        uint256 creditPositionIdL3 = size.getCreditPositionIdsByDebtPositionId(l3)[0];
+
+        vm.startPrank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_CREDIT_POSITION_ID.selector, creditPositionIdL3));
+        size.compensate(
+            CompensateParams({
+                creditPositionWithDebtToRepayId: creditPositionIdL3,
+                creditPositionToCompensateId: creditPositionIdL3,
+                amount: type(uint256).max
+            })
+        );
+        vm.stopPrank();
     }
 }

@@ -147,7 +147,7 @@ contract CompensateTest is BaseTest {
                 assertIn(
                     bytes4(err),
                     [
-                        Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE.selector,
+                        Errors.NULL_AMOUNT.selector,
                         Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector,
                         Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector
                     ]
