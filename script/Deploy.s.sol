@@ -51,11 +51,11 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         deployments.push(Deployment({name: "PriceFeed", addr: address(priceFeed)}));
         deployments.push(Deployment({name: "VariablePoolBorrowRateFeed", addr: address(variablePoolBorrowRateFeed)}));
         parameters.push(Parameter({key: "owner", value: Strings.toHexString(owner)}));
-        parameters.push(Parameter({key: "usdc", value: Strings.toHexString(contracts.usdc)}));
-        parameters.push(Parameter({key: "weth", value: Strings.toHexString(contracts.weth)}));
+        parameters.push(Parameter({key: "usdc", value: Strings.toHexString(address(usdc))}));
+        parameters.push(Parameter({key: "weth", value: Strings.toHexString(address(weth))}));
         parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(contracts.wethAggregator)}));
         parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(contracts.usdcAggregator)}));
-        parameters.push(Parameter({key: "variablePool", value: Strings.toHexString(contracts.variablePool)}));
+        parameters.push(Parameter({key: "variablePool", value: Strings.toHexString(address(variablePool))}));
 
         console.log("[Size v1] deployed\n");
 
