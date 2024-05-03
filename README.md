@@ -188,7 +188,6 @@ echidna . --contract CryticTester --config echidna.yaml --test-mode assertion
 Run Halmos with
 
 ```bash
-halmos --loop 6
 halmos --loop 7
 ```
 
