@@ -188,7 +188,7 @@ echidna . --contract CryticTester --config echidna.yaml --test-mode assertion
 Run Halmos with
 
 ```bash
-halmos --loop 7
+for i in {0..5}; do halmos --loop $i; done
 ```
 
 ## Known limitations

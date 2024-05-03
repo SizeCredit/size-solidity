@@ -173,7 +173,7 @@ contract MathTest is Test, AssertsHelper {
             assertLe(value, array[high]);
 
             // value is in the array
-            if(value == array[low]) {
+            if (value == array[low]) {
                 assertEq(low, high);
             }
         }
