@@ -79,4 +79,46 @@ contract LendAsLimitOrderTest is BaseTest {
             })
         );
     }
+
+    function test_LendAsLimitOrder_lendAsLimitOrder_experiment_strategy_speculator() public {
+        // The speculator hopes to profit off of interest rate movements, by either:
+        // 1. Lending at a high interest rate and exit to other lenders when interest rates drop
+        // 2. Borrowing at low interest rate and exit to other borrowers when interest rates rise
+        // #### Case 1: Betting on Rates Dropping
+        // Lenny the Lender lends 10,000 at 6% interest for 6 months, with a face value of 10,300.
+        // Two weeks after Lenny lends, the interest rate to borrow for 5.5 months is 4.5%.
+        // Lenny exits to another lender, who pays 10300/(1+0.045*11/24) = 10,091 to Lenny in return for the 10300 from the borrower in 5.5 months.
+        // Lenny has now made 91 over the course of 2 weeks. While only around 1%, it’s 26% annualized without compounding, and he may compound his profits by repeating this strategy.
+
+        _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
+        _updateConfig("collateralTokenCap", type(uint256).max);
+
+        _deposit(alice, usdc, 10_000e6);
+        _lendAsLimitOrder(alice, block.timestamp + 180 days, 0.06e18);
+
+        _deposit(bob, weth, 20_000e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 10_000e6, block.timestamp + 180 days);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        assertEqApprox(faceValue, 10_300e6, 10e6);
+
+        vm.warp(block.timestamp + 14 days);
+        _deposit(candy, usdc, faceValue);
+        _lendAsLimitOrder(candy, block.timestamp + 180 days - 14 days, 0.045e18);
+        _borrowAsMarketOrder(
+            alice,
+            candy,
+            faceValue,
+            size.getDebtPosition(debtPositionId).dueDate,
+            block.timestamp,
+            type(uint256).max,
+            true,
+            [creditPositionId]
+        );
+
+        assertEqApprox(_state().alice.borrowATokenBalance, 10_091e6, 10e6);
+        assertEq(_state().alice.debtBalance, 0);
+    }
 }

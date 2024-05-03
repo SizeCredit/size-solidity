@@ -7,7 +7,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract BuyMarketCreditTest is BaseTest {
-    function test_BuyMarketCredit_buyMarketCredit_experiment() public {
+    function test_BuyMarketCredit_buyMarketCredit_experiment_strategy_credit_dealer() public {
         _setPrice(1e18);
         _updateConfig("earlyLenderExitFee", 0);
         _updateConfig("repayFeeAPR", 0);
