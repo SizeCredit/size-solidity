@@ -151,9 +151,7 @@ contract MathTest is Test, AssertsHelper {
         for (uint256 i = 0; i < array.length - 1; i++) {
             vm.assume(array[i] < array[i + 1]);
         }
-        uint256 low;
-        uint256 high;
-        (low, high) = Math.binarySearch(array, value);
+        (uint256 low, uint256 high) = Math.binarySearch(array, value);
         if (value < array[0] || value > array[array.length - 1]) {
             // not found
             assertEq(low, type(uint256).max);
