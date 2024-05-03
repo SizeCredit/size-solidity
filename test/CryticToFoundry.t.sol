@@ -37,7 +37,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         MAX_PRICE = 10_000e18;
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
-        borrowAsLimitOrder(285, 806924974754);
+        borrowAsLimitOrder(806924974754);
         lendAsMarketOrder(address(0x0), 1374976, 5079504, false);
         lendAsMarketOrder(address(0x0), 4555056874391068022, 5001671, false);
         setPrice(0);
@@ -66,7 +66,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
         vm.warp(block.timestamp + 103251);
         sender = USER1;
-        borrowAsLimitOrder(24, 24844501279188594811050686);
+        borrowAsLimitOrder(24844501279188594811050686);
 
         vm.warp(block.timestamp + 531976);
         sender = USER3;
@@ -98,7 +98,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         // CryticTester.repay(0)
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
-        borrowAsLimitOrder(0, 0);
+        borrowAsLimitOrder(0);
         lendAsMarketOrder(address(0x0), 762433799931065407245075044326762306, 5003750, false);
         repay(0);
 
@@ -116,7 +116,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
         deposit(address(0x0), 212133831549);
         deposit(address(0xdeadbeef), 0);
-        borrowAsLimitOrder(102813898223605900483909, 77570742887577467430810329579079414851392708576767);
+        borrowAsLimitOrder(77570742887577467430810329579079414851392708576767);
         lendAsMarketOrder(address(0x0), 606338, 420030534754023700037381865, false);
 
         vm.warp(block.timestamp + 437811);
@@ -136,7 +136,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
         deposit(address(0x0), 0);
         deposit(address(0xdeadbeef), 0);
-        borrowAsLimitOrder(126916350406155650612, 113930643638645882964219268883550108643297450389);
+        borrowAsLimitOrder(113930643638645882964219268883550108643297450389);
         lendAsMarketOrder(address(0x0), 606338, 5144481794334966487245181, false);
 
         vm.warp(block.timestamp + 437683);
@@ -209,7 +209,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         // CryticTester.claim(0)
 
         deposit(address(0x0), 0);
-        borrowAsLimitOrder(0, 0);
+        borrowAsLimitOrder(0);
         deposit(address(0xdeadbeef), 0);
         lendAsMarketOrder(
             address(0x0), 2592121, 11143629335882188948651649360494736035151267490671837874019124983, false
@@ -236,7 +236,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
         deposit(address(0x0), 0);
         deposit(address(0xdeadbeef), 0);
-        borrowAsLimitOrder(0, 0);
+        borrowAsLimitOrder(0);
         lendAsMarketOrder(
             address(0x0),
             9806895064332224580019607489522738393543497761842171770419912728544585,
@@ -248,7 +248,6 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
             1687617916531946288552279744779149023221334453635590351
         );
         lendAsLimitOrder(
-            0,
             4658037204486198634009478739560699702150171958228383770907791,
             19964779482548510850982438244306504693449912630871743221673749602
         );
@@ -271,7 +270,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
         deposit(address(0x0), 0);
         deposit(address(0xdeadbeef), 17556450);
-        borrowAsLimitOrder(0, 0);
+        borrowAsLimitOrder(0);
         lendAsMarketOrder(address(0x0), 34586724, 340702833386891, false);
         setPrice(0);
         selfLiquidate(0);
@@ -281,11 +280,10 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         MAX_DURATION = 180 days;
         MAX_PRICE = 10_000e18;
 
-        borrowAsLimitOrder(3923, 33980107616196410778387867456);
+        borrowAsLimitOrder(33980107616196410778387867456);
         deposit(address(0x0), 732122825199537941462422018675423646);
         deposit(address(0xdeadbeef), 9806867186794323686842530376938788560849587239728099175751784669);
         lendAsLimitOrder(
-            79447781549944810699113766833870584964788566797165739036889,
             5361412931164146216273388061701247256400065886226598602770977361532664,
             2591415989370944547845963224582462361440156463250152112695726304
         );
@@ -315,9 +313,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         deposit(address(0xdeadbeef), 2935337554604700731427626315539083483);
 
         sender = USER1;
-        borrowAsLimitOrder(
-            600801365854545262038368835759703530272930, 71715183861415162426834894233833466605129944132695151891617
-        );
+        borrowAsLimitOrder(71715183861415162426834894233833466605129944132695151891617);
 
         sender = USER1;
         deposit(address(0x0), 61);
@@ -326,7 +322,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         lendAsMarketOrder(address(0x0), 613427, 3740013724833968908524843401169700782215646, false);
 
         sender = USER1;
-        borrowAsLimitOrder(346391, 0);
+        borrowAsLimitOrder(0);
 
         sender = USER3;
         vm.warp(block.timestamp + 332369 seconds);
@@ -342,11 +338,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
         sender = USER1;
         vm.warp(block.timestamp + 360624 seconds);
-        lendAsLimitOrder(
-            846166317695718274319437225806,
-            17947932366099712616195411385067699814449504,
-            735980923715527194406029760064559151
-        );
+        lendAsLimitOrder(17947932366099712616195411385067699814449504, 735980923715527194406029760064559151);
 
         sender = USER1;
         vm.warp(block.timestamp + 172101 seconds);
@@ -391,7 +383,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
         sender = USER3;
         vm.warp(block.timestamp + 318197 seconds);
-        borrowAsLimitOrder(8407473379090115020622155800712631285733011043173029588388563961295109829298, 4370000);
+        borrowAsLimitOrder(4370000);
 
         sender = USER1;
         vm.warp(block.timestamp + 440141 seconds);

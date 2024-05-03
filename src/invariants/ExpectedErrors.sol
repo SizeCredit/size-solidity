@@ -9,6 +9,9 @@ import {Properties} from "@src/invariants/Properties.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 abstract contract ExpectedErrors is Deploy, Properties {
+    bool internal success;
+    bytes internal returnData;
+
     bytes4[] internal DEPOSIT_ERRORS;
     bytes4[] internal WITHDRAW_ERRORS;
     bytes4[] internal BORROW_AS_MARKET_ORDER_ERRORS;
@@ -134,15 +137,22 @@ abstract contract ExpectedErrors is Deploy, Properties {
         // SET_MARKET_FOR_SALE_ERRORS N/A
     }
 
-    function _checkExpectedErrors(bytes4[] storage errors, bytes memory err) internal {
-        bool expected = false;
-        for (uint256 i = 0; i < errors.length; i++) {
-            if (errors[i] == bytes4(err)) {
-                expected = true;
-                break;
+    modifier checkExpectedErrors(bytes4[] storage errors) {
+        success = false;
+        returnData = bytes("");
+
+        _;
+
+        if (!success) {
+            bool expected = false;
+            for (uint256 i = 0; i < errors.length; i++) {
+                if (errors[i] == bytes4(returnData)) {
+                    expected = true;
+                    break;
+                }
             }
+            t(expected, DOS);
+            precondition(false);
         }
-        t(expected, DOS);
-        precondition(false);
     }
 }
