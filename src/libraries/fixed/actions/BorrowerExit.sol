@@ -7,7 +7,7 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
-import {DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
@@ -43,6 +43,9 @@ library BorrowerExit {
         uint256 maturity = dueDate - block.timestamp;
         if (maturity < state.riskConfig.minimumMaturity) {
             revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(maturity, state.riskConfig.minimumMaturity);
+        }
+        if (state.getLoanStatus(params.debtPositionId) != LoanStatus.ACTIVE) {
+           revert Errors.LOAN_NOT_ACTIVE(params.debtPositionId);
         }
 
         // validate msg.sender
