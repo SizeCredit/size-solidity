@@ -25,11 +25,6 @@ contract RepayValidationTest is BaseTest {
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _borrowAsMarketOrder(alice, candy, 10e6, block.timestamp + 12 days, [creditId]);
 
-        vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.REPAYER_IS_NOT_BORROWER.selector, alice, bob));
-        size.repay(RepayParams({debtPositionId: debtPositionId}));
-        vm.stopPrank();
-
         vm.startPrank(bob);
         size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, bob, 20e6, faceValue));

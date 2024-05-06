@@ -44,7 +44,6 @@ library Errors {
     error COMPENSATOR_IS_NOT_BORROWER(address compensator, address borrower);
     error LIQUIDATOR_IS_NOT_LENDER(address liquidator, address lender);
     error EXITER_IS_NOT_BORROWER(address exiter, address borrower);
-    error REPAYER_IS_NOT_BORROWER(address repayer, address borrower);
 
     error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(address account, uint256 balance, uint256 required);
     error NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(uint256 liquidity, uint256 required);
