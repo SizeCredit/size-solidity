@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
+import {Math} from "@src/libraries/Math.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -36,6 +37,7 @@ library VariablePoolLibrary {
     }
 
     /// @notice Withdraw underlying borrow tokens from the variable pool
+    /// @dev `amount` should be capped to the user's borrow aToken balance
     /// @param state The state struct
     /// @param from The address of the withdrawer
     /// @param to The address of the recipient
@@ -43,10 +45,6 @@ library VariablePoolLibrary {
     function withdrawUnderlyingTokenFromVariablePool(State storage state, address from, address to, uint256 amount)
         external
     {
-        if (borrowATokenBalanceOf(state, from) < amount) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
-        }
-
         uint256 scaledBalanceBefore = state.data.borrowAToken.scaledBalanceOf(address(this));
 
         // slither-disable-next-line unused-return
@@ -63,11 +61,11 @@ library VariablePoolLibrary {
     /// @param to The address of the recipient
     /// @param amount The amount of aTokens to transfer
     function transferBorrowAToken(State storage state, address from, address to, uint256 amount) external {
-        if (borrowATokenBalanceOf(state, from) < amount) {
+        uint256 scaledAmount = Math.mulDivDown(amount, WadRayMath.RAY, borrowATokenLiquidityIndex(state));
+
+        if (state.data.users[from].scaledBorrowATokenBalance < scaledAmount) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, borrowATokenBalanceOf(state, from), amount);
         }
-
-        uint256 scaledAmount = WadRayMath.rayDiv(amount, borrowATokenLiquidityIndex(state));
 
         state.data.users[from].scaledBorrowATokenBalance -= scaledAmount;
         state.data.users[to].scaledBorrowATokenBalance += scaledAmount;
@@ -78,7 +76,9 @@ library VariablePoolLibrary {
     /// @param account The user's address
     /// @return The balance of aTokens
     function borrowATokenBalanceOf(State storage state, address account) public view returns (uint256) {
-        return WadRayMath.rayMul(state.data.users[account].scaledBorrowATokenBalance, borrowATokenLiquidityIndex(state));
+        return Math.mulDivDown(
+            state.data.users[account].scaledBorrowATokenBalance, borrowATokenLiquidityIndex(state), WadRayMath.RAY
+        );
     }
 
     /// @notice Get the liquidity index of the Variable Pool (Aave v3)

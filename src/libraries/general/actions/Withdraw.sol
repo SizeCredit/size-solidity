@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
 import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
