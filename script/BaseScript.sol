@@ -43,7 +43,7 @@ abstract contract BaseScript is Script {
         vm.stopBroadcast();
     }
 
-    function exportDeployments() internal {
+    function exportDeployments(string memory networkName) internal {
         // fetch already existing contracts
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
@@ -62,7 +62,6 @@ abstract contract BaseScript is Script {
         finalObject = vm.serializeString(".", "deployments", deploymentsObject);
         finalObject = vm.serializeString(".", "parameters", parametersObject);
 
-        string memory networkName = getNetworkName();
         finalObject = vm.serializeString(".", "networkName", networkName);
 
         string memory commit = getCommitHash();
@@ -98,18 +97,6 @@ abstract contract BaseScript is Script {
         usdc = USDC(abi.decode(json.parseRaw(".parameters.usdc"), (address)));
         weth = WETH(abi.decode(json.parseRaw(".parameters.weth"), (address)));
         owner = address(abi.decode(json.parseRaw(".parameters.owner"), (address)));
-    }
-
-    function getChain() public returns (Chain memory) {
-        return getChain(block.chainid);
-    }
-
-    function getNetworkName() public returns (string memory) {
-        try this.getChain() returns (Chain memory chain) {
-            return chain.name;
-        } catch {
-            return findChainName();
-        }
     }
 
     function getCommitHash() public returns (string memory) {

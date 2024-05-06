@@ -13,15 +13,15 @@ contract VariablePoolBorrowRateFeedTest is Test, AssertsHelper {
     VariablePoolBorrowRateFeed public variablePoolBorrowRateFeed;
 
     function setUp() public {
-        variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeed(address(this), 1 hours);
+        variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeed(address(this), 1 hours, 0.0456e18);
     }
 
     function test_VariablePoolBorrowRateFeed_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
-        new VariablePoolBorrowRateFeed(address(0), 1 hours);
+        new VariablePoolBorrowRateFeed(address(0), 1 hours, 0.08e18);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_STALE_RATE.selector));
-        new VariablePoolBorrowRateFeed(address(this), 0);
+        new VariablePoolBorrowRateFeed(address(this), 0, 0.05e18);
     }
 
     function testFuzz_VariablePoolBorrowRateFeed_setVariableBorrowRate(uint128 rate) public {

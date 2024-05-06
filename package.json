@@ -4,8 +4,9 @@
   "scripts": {
     "solhint": "solhint \"src/**/*.sol\"  --max-warnings 0",
     "get-libraries": "(j=$((0x10)); find src/libraries test/helpers/libraries -type f | sed 's/.*\\///' | sed 's/.sol//' | while read i; do echo -n \"($i,$(printf \"0x%x\" $j))\\n\";j=$((j+1));done) | paste -sd, -",
-    "deploy": "forge script script/Deploy.s.sol --rpc-url $CHAIN_NAME --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account size-testnet-4 --ffi",
-    "coverage": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*' 'script/*' && genhtml lcov.info -o report --branch-coverage && open report/index.html"
+    "deploy-sepolia-mocks": "forge script script/Deploy.s.sol --rpc-url sepolia --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account size-testnet-4 --ffi",
+    "deploy-tenderly": "forge script script/Deploy.s.sol --rpc-url tenderly --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account size-testnet-4 --verify --etherscan-api-key $TENDERLY_ACCESS_KEY --verifier-url $TENDERLY_VERIFIER_URL --ffi",
+    "coverage": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'src/invariants/*' 'test/*' 'script/*' && genhtml lcov.info -o report --branch-coverage && open report/index.html"
   },
   "devDependencies": {
     "@typechain/ethers-v5": "^11.1.2",
