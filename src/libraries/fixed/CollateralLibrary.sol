@@ -14,7 +14,7 @@ library CollateralLibrary {
 
     function depositUnderlyingCollateralToken(State storage state, address from, address to, uint256 amount) external {
         IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
-        underlyingCollateralToken.transferFrom(from, address(this), amount);
+        underlyingCollateralToken.safeTransferFrom(from, address(this), amount);
         state.data.collateralToken.mint(to, amount);
     }
 
