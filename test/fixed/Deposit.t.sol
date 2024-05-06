@@ -33,6 +33,20 @@ contract DepositTest is BaseTest {
         assertEq(_state().alice.collateralTokenBalance, 1 ether);
     }
 
+    function test_Deposit_deposit_eth_leftovers() public {
+        vm.deal(alice, 1 ether);
+        vm.deal(address(size), 42 wei);
+
+        assertEq(address(alice).balance, 1 ether);
+        assertEq(_state().alice.collateralTokenBalance, 0);
+
+        vm.prank(alice);
+        size.deposit{value: 1 ether}(DepositParams({token: address(weth), amount: 1 ether, to: alice}));
+
+        assertEq(address(alice).balance, 0);
+        assertEq(_state().alice.collateralTokenBalance, 1 ether + 42 wei);
+    }
+
     function testFuzz_Deposit_deposit_increases_user_balance(uint256 x, uint256 y) public {
         _updateConfig("collateralTokenCap", type(uint256).max);
         _updateConfig("borrowATokenCap", type(uint256).max);
