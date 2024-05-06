@@ -60,6 +60,8 @@ interface ISize is IMulticall {
     ///     - address lender: The address of the lender
     ///     - uint256 amount: The amount of tokens to borrow (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     ///     - uint256 dueDate: The due date of the loan
+    ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
+    ///     - uint256 maxAPR: The maximum APR the caller is willing to accept
     ///     - bool exactAmountIn: When passing an array of receivable credit position ids, this flag indicates if the amount is value to be returned at due date
     ///     - uint256[] receivableCreditPositionIds: The ids of receivable credit positions that can be used as credit to borrow without assigining new collateral
     function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external payable;
@@ -73,17 +75,19 @@ interface ISize is IMulticall {
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
     function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params) external payable;
 
-    /// @notice Places a new lend offer in the orderbook
+    /// @notice Picks a borrow offer from the order book and lends tokens
     /// @param params LendAsMarketOrderParams struct containing the following fields:
     ///     - address borrower: The address of the borrower
     ///     - uint256 amount: The amount of tokens to lend (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     ///     - uint256 dueDate: The due date of the loan
     ///     - bool exactAmountIn: This flag indicates if the amount is the value to be transferred to the borrower or if it should be used to calculate the amount to be transferred
+    ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
+    ///     - uint256 minAPR: The minimum APR the caller is willing to accept
     function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external payable;
 
     /// @notice Places a new lend offer in the orderbook
     /// @param params LendAsLimitOrderParams struct containing the following fields:
-    ///     - uint256 maxDueDate: The maximum timestamp the limit order can be picked by a borrower (e.g., 1712188800 for April 4th, 2024)
+    ///     - uint256 maxDueDate: The maximum due date of the loan (e.g., 1712188800 for April 4th, 2024)
     ///     - YieldCurve curveRelativeTime: The yield curve for the lend offer, a struct containing the following fields:
     ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
     ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
@@ -103,6 +107,8 @@ interface ISize is IMulticall {
     /// @param params BorrowerExitParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to exit
     ///     - address borrowerToExitTo: The address of the borrower to exit to
+    ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
+    ///     - uint256 minAPR: The minimum APR the caller is willing to accept
     function borrowerExit(BorrowerExitParams calldata params) external payable;
 
     /// @notice Repay a debt position by transferring the amount due of borrow tokens to the protocol, which are deposited to the Variable Pool for the lenders to claim
@@ -151,6 +157,8 @@ interface ISize is IMulticall {
     ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
     ///     - address borrower: The address of the replacement borrower
+    ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
+    ///     - uint256 minAPR: The minimum APR the caller is willing to accept
     function liquidateWithReplacement(LiquidateWithReplacementParams calldata params)
         external
         payable
@@ -169,14 +177,16 @@ interface ISize is IMulticall {
     ///     - uint256 creditPositionId: The id of the credit position to buy
     ///     - uint256 amount: The amont of credit to buy from the credit position
     ///     - bool exactAmountIn: This flag indicates if the amount is the present value cash used to buy credit
+    ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
+    ///     - uint256 minAPR: The minimum APR the caller is willing to accept
     function buyMarketCredit(BuyMarketCreditParams calldata params) external payable;
 
     /// @notice Set the credit positions for sale
     /// @dev By default, all created creadit positions are for sale.
     ///      Users who want to disable the sale of all or specific credit positions can do so by calling this function.
     /// @param params SetCreditForSaleParams struct containing the following fields:
-    ///     - uint256[] creditPositionIds: The id of the credit positions
+    ///     - bool creditPositionsForSaleDisabled: This global flag indicates if all credit positions should be set for sale or not
     ///     - bool forSale: This flag indicates if the creditPositionIds array should be set for sale or not
-    ///     - bool allCreditPositionsForSale: This global flag indicates if all credit positions should be set for sale or not
+    ///     - uint256[] creditPositionIds: The id of the credit positions
     function setCreditForSale(SetCreditForSaleParams calldata params) external payable;
 }

@@ -21,7 +21,7 @@ library BorrowAsLimitOrder {
             curveRelativeTime: params.curveRelativeTime
         });
 
-        // a null offer mean clearning their limit orders
+        // a null offer mean clearing their limit orders
         if (!borrowOffer.isNull()) {
             // validate msg.sender
             // N/A

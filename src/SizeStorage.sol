@@ -28,7 +28,7 @@ struct FeeConfig {
 
 struct RiskConfig {
     uint256 crOpening; // minimum collateral ratio for opening a loan
-    uint256 crLiquidation; // minimum collateral ratio for liquidation
+    uint256 crLiquidation; // maximum collateral ratio for liquidation
     uint256 minimumCreditBorrowAToken; // minimum credit value of loans
     uint256 collateralTokenCap; // maximum amount of deposited collateral tokens
     uint256 borrowATokenCap; // maximum amount of deposited borrowed aTokens

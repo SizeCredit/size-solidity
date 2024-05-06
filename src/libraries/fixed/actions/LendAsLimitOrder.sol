@@ -23,7 +23,7 @@ library LendAsLimitOrder {
         LoanOffer memory loanOffer =
             LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
-        // a null offer mean clearning their limit orders
+        // a null offer mean clearing their limit orders
         if (!loanOffer.isNull()) {
             // validate msg.sender
             // N/A
