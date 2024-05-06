@@ -14,14 +14,15 @@ library CapsLibrary {
         uint256 borrowATokenSupplyAfter,
         uint256 debtTokenSupplyAfter
     ) external view {
-        uint256 borrowATokenSupplyIncrease =
-            borrowATokenSupplyAfter > borrowATokenSupplyBefore ? borrowATokenSupplyAfter - borrowATokenSupplyBefore : 0;
-        uint256 debtATokenSupplyDecrease =
-            debtTokenSupplyBefore > debtTokenSupplyAfter ? debtTokenSupplyBefore - debtTokenSupplyAfter : 0;
+        // If the supply is above the cap
+        if (borrowATokenSupplyAfter > state.riskConfig.borrowATokenCap) {
+            uint256 borrowATokenSupplyIncrease = borrowATokenSupplyAfter > borrowATokenSupplyBefore
+                ? borrowATokenSupplyAfter - borrowATokenSupplyBefore
+                : 0;
+            uint256 debtATokenSupplyDecrease =
+                debtTokenSupplyBefore > debtTokenSupplyAfter ? debtTokenSupplyBefore - debtTokenSupplyAfter : 0;
 
-        // If the borrow aToken supply was already above the cap
-        if (borrowATokenSupplyBefore > state.riskConfig.borrowATokenCap) {
-            // and the increase is greater than the debt reduction
+            // and the supply increase is greater than the debt reduction
             if (borrowATokenSupplyIncrease > debtATokenSupplyDecrease) {
                 // revert
                 revert Errors.BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE(
@@ -30,7 +31,7 @@ library CapsLibrary {
             }
             // otherwise, it means the debt reduction was greater than the inflow of cash: do not revert
         }
-        // otherwise, the borrow aToken was previously below the cap: do not revert
+        // otherwise, the supply is below the cap: do not revert
     }
 
     function validateBorrowATokenCap(State storage state) external view {
