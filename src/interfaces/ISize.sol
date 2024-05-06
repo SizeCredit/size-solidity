@@ -23,12 +23,14 @@ import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
 import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
 
+import {IMulticall} from "@src/proxy/IMulticall.sol";
+
 /// @title ISize
 /// @author Size Lending
 /// @notice This interface is the main interface for all user-facing methods of the Size protocol
 /// @dev All functions are `payable` to allow for ETH deposits in a `multicall` pattern.
 ///      See `Multicall.sol`
-interface ISize {
+interface ISize is IMulticall {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always deposited into the Variable Pool,
     ///         Collateral tokens are deposited into the Size contract through the CollateralLibrary
