@@ -36,16 +36,11 @@ library Compensate {
         CreditPosition storage creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
 
         uint256 amountToCompensate =
-            Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue);
+            Math.min(params.amount, creditPositionToCompensate.credit, creditPositionWithDebtToRepay.credit);
 
         // validate creditPositionWithDebtToRepayId
         if (state.getLoanStatus(params.creditPositionWithDebtToRepayId) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.creditPositionWithDebtToRepayId);
-        }
-        if (creditPositionWithDebtToRepay.credit < amountToCompensate) {
-            revert Errors.CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE(
-                creditPositionWithDebtToRepay.credit, amountToCompensate
-            );
         }
 
         // validate creditPositionToCompensateId
@@ -63,6 +58,9 @@ library Compensate {
         if (creditPositionToCompensate.lender != debtPositionToRepay.borrower) {
             revert Errors.INVALID_LENDER(creditPositionToCompensate.lender);
         }
+        if (params.creditPositionToCompensateId == params.creditPositionWithDebtToRepayId) {
+            revert Errors.INVALID_CREDIT_POSITION_ID(params.creditPositionToCompensateId);
+        }
 
         // validate msg.sender
         if (msg.sender != debtPositionToRepay.borrower) {
@@ -70,7 +68,7 @@ library Compensate {
         }
 
         // validate amount
-        if (params.amount == 0) {
+        if (amountToCompensate == 0) {
             revert Errors.NULL_AMOUNT();
         }
     }
@@ -87,7 +85,7 @@ library Compensate {
         CreditPosition storage creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
 
         uint256 amountToCompensate =
-            Math.min(params.amount, creditPositionToCompensate.credit, debtPositionToRepay.faceValue);
+            Math.min(params.amount, creditPositionToCompensate.credit, creditPositionWithDebtToRepay.credit);
 
         // debt reduction
         uint256 repayFeeProRata = state.chargeRepayFeeInCollateral(debtPositionToRepay, amountToCompensate);
@@ -99,14 +97,25 @@ library Compensate {
             debtPositionToRepay.overdueLiquidatorReward = 0;
             debtPositionToRepay.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
+        emit Events.UpdateDebtPosition(
+            creditPositionWithDebtToRepay.debtPositionId,
+            debtPositionToRepay.borrower,
+            debtPositionToRepay.issuanceValue,
+            debtPositionToRepay.faceValue,
+            debtPositionToRepay.repayFee,
+            debtPositionToRepay.overdueLiquidatorReward,
+            debtPositionToRepay.startDate,
+            debtPositionToRepay.dueDate,
+            debtPositionToRepay.liquidityIndexAtRepayment
+        );
 
-        creditPositionWithDebtToRepay.credit -= amountToCompensate;
-        state.validateMinimumCredit(creditPositionWithDebtToRepay.credit);
+        // credit reduction
+        state.reduceCredit(params.creditPositionWithDebtToRepayId, amountToCompensate);
 
         // credit emission
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionToCompensateId,
-            lender: debtPositionToRepay.lender,
+            lender: creditPositionWithDebtToRepay.lender,
             credit: amountToCompensate
         });
     }

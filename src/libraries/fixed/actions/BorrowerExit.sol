@@ -53,6 +53,11 @@ library BorrowerExit {
             revert Errors.EXITER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
         }
 
+        // validate borrowerToExitTo
+        if (borrowOffer.isNull()) {
+            revert Errors.INVALID_BORROW_OFFER(params.borrowerToExitTo);
+        }
+
         // validate deadline
         if (params.deadline < block.timestamp) {
             revert Errors.PAST_DEADLINE(params.deadline);
@@ -62,12 +67,6 @@ library BorrowerExit {
         uint256 apr = borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
-        }
-
-        // validate borrowerToExitTo
-        // N/A
-        if (borrowOffer.isNull()) {
-            revert Errors.NULL_OFFER();
         }
     }
 
@@ -100,6 +99,18 @@ library BorrowerExit {
         debtPosition.overdueLiquidatorReward = state.feeConfig.overdueLiquidatorReward;
         debtPosition.repayFee =
             LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
+
+        emit Events.UpdateDebtPosition(
+            params.debtPositionId,
+            debtPosition.borrower,
+            debtPosition.issuanceValue,
+            debtPosition.faceValue,
+            debtPosition.repayFee,
+            debtPosition.overdueLiquidatorReward,
+            debtPosition.startDate,
+            debtPosition.dueDate,
+            debtPosition.liquidityIndexAtRepayment
+        );
 
         state.data.debtToken.mint(params.borrowerToExitTo, debtPosition.getTotalDebt());
     }

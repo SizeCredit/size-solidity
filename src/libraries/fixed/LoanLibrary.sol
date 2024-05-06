@@ -12,7 +12,6 @@ uint256 constant CREDIT_POSITION_ID_START = type(uint256).max / 2;
 uint256 constant RESERVED_ID = type(uint256).max;
 
 struct DebtPosition {
-    address lender;
     address borrower;
     uint256 issuanceValue; // updated on debt reduction
     uint256 faceValue; // updated on debt reduction

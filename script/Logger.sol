@@ -51,7 +51,6 @@ abstract contract Logger {
     }
 
     function log(DebtPosition memory debtPosition) internal pure {
-        console.log("lender", debtPosition.lender);
         console.log("borrower", debtPosition.borrower);
         console.log("issuanceValue", debtPosition.issuanceValue);
         console.log("faceValue", debtPosition.faceValue);

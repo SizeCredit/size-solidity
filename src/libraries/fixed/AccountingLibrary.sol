@@ -92,7 +92,6 @@ library AccountingLibrary {
         uint256 dueDate
     ) external returns (DebtPosition memory debtPosition) {
         debtPosition = DebtPosition({
-            lender: lender,
             borrower: borrower,
             issuanceValue: issuanceValue,
             faceValue: faceValue,
@@ -135,18 +134,23 @@ library AccountingLibrary {
         external
     {
         uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
-        CreditPosition storage exitPosition = state.data.creditPositions[exitCreditPositionId];
+        reduceCredit(state, exitCreditPositionId, credit);
 
         CreditPosition memory creditPosition =
             CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: true});
 
         uint256 creditPositionId = state.data.nextCreditPositionId++;
         state.data.creditPositions[creditPositionId] = creditPosition;
-
-        exitPosition.credit -= credit;
-        state.validateMinimumCredit(exitPosition.credit);
         state.validateMinimumCreditOpening(creditPosition.credit);
 
         emit Events.CreateCreditPosition(creditPositionId, lender, exitCreditPositionId, debtPositionId, credit);
+    }
+
+    function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount) public {
+        CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
+        creditPosition.credit -= amount;
+        state.validateMinimumCredit(creditPosition.credit);
+
+        emit Events.UpdateCreditPosition(creditPositionId, creditPosition.credit, creditPosition.forSale);
     }
 }

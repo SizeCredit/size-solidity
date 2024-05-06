@@ -54,6 +54,9 @@ library BorrowAsMarketOrder {
         if (params.amount == 0) {
             revert Errors.NULL_AMOUNT();
         }
+        if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+        }
 
         // validate params.dueDate
         if (params.dueDate < block.timestamp) {

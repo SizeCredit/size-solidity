@@ -93,9 +93,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
-                1.03e6,
-                size.riskConfig().minimumCreditBorrowAToken
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 1e6, size.riskConfig().minimumCreditBorrowAToken
             )
         );
         size.borrowAsMarketOrder(

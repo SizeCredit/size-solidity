@@ -309,6 +309,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 dueDate = block.timestamp + 12 days;
         vm.startPrank(bob);
         uint256[] memory receivableCreditPositionIds;
+        uint256 apr = size.getLoanOfferAPR(alice, dueDate);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
@@ -316,7 +317,7 @@ contract BorrowAsMarketOrderTest is BaseTest {
                 amount: amount,
                 dueDate: dueDate,
                 deadline: block.timestamp,
-                maxAPR: type(uint256).max,
+                maxAPR: apr,
                 exactAmountIn: false,
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
@@ -500,7 +501,22 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 amount = 1;
         uint256 dueDate = block.timestamp + 12 days;
 
-        _borrowAsMarketOrder(bob, alice, amount, dueDate, true);
+        BorrowAsMarketOrderParams memory params = BorrowAsMarketOrderParams({
+            lender: alice,
+            amount: amount,
+            dueDate: dueDate,
+            deadline: block.timestamp,
+            maxAPR: type(uint256).max,
+            exactAmountIn: true,
+            receivableCreditPositionIds: new uint256[](0)
+        });
+        vm.startPrank(bob);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 1, size.riskConfig().minimumCreditBorrowAToken
+            )
+        );
+        size.borrowAsMarketOrder(params);
 
         Vars memory _after = _state();
 
