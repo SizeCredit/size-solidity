@@ -17,7 +17,7 @@ struct BuyMarketCreditParams {
     uint256 creditPositionId;
     uint256 amount;
     uint256 deadline;
-    uint256 maxAPR;
+    uint256 minAPR;
     bool exactAmountIn;
 }
 
@@ -60,8 +60,8 @@ library BuyMarketCredit {
 
         // validate maxAPR
         uint256 apr = borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
-        if (apr > params.maxAPR) {
-            revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
+        if (apr < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
 
         // validate exactAmountIn

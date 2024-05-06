@@ -374,7 +374,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 amount: amount,
                 exactAmountIn: exactAmountIn,
                 deadline: block.timestamp,
-                maxAPR: type(uint256).max
+                minAPR: 0
             })
         );
     }
