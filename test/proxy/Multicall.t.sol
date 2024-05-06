@@ -72,10 +72,9 @@ contract MulticallTest is BaseTest {
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
         data[1] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
-        vm.expectRevert(
-            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientAllowance.selector, address(size), 0, amount)
-        );
         size.multicall{value: amount}(data);
+
+        assertEq(size.getUserView(alice).collateralTokenBalance, amount);
     }
 
     function test_Multicall_multicall_cannot_deposit_twice() public {
