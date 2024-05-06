@@ -196,7 +196,6 @@ contract Size is
     function repay(RepayParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateRepay(params);
         state.executeRepay(params);
-        state.validateUserIsNotUnderwater(msg.sender);
     }
 
     /// @inheritdoc ISize
