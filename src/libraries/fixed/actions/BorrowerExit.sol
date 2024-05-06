@@ -45,7 +45,7 @@ library BorrowerExit {
             revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(maturity, state.riskConfig.minimumMaturity);
         }
         if (state.getLoanStatus(params.debtPositionId) != LoanStatus.ACTIVE) {
-           revert Errors.LOAN_NOT_ACTIVE(params.debtPositionId);
+            revert Errors.LOAN_NOT_ACTIVE(params.debtPositionId);
         }
 
         // validate msg.sender
