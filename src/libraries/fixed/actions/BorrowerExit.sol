@@ -66,6 +66,9 @@ library BorrowerExit {
 
         // validate borrowerToExitTo
         // N/A
+        if (borrowOffer.isNull()) {
+            revert Errors.NULL_OFFER();
+        }
     }
 
     function executeBorrowerExit(State storage state, BorrowerExitParams calldata params)
