@@ -8,7 +8,6 @@ import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -24,7 +23,6 @@ struct BuyMarketCreditParams {
 library BuyMarketCredit {
     using LoanLibrary for State;
     using AccountingLibrary for State;
-    using VariablePoolLibrary for State;
     using OfferLibrary for BorrowOffer;
 
     function validateBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params) external view {
@@ -58,7 +56,7 @@ library BuyMarketCredit {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate minAPR 
+        // validate minAPR
         uint256 apr = borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
@@ -91,8 +89,10 @@ library BuyMarketCredit {
             revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, amountOut);
         }
 
-        state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn);
-        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee);
+        state.data.borrowAToken.transferFrom(msg.sender, creditPosition.lender, amountIn);
+        state.data.borrowAToken.transferFrom(
+            msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee
+        );
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionId,
             lender: msg.sender,

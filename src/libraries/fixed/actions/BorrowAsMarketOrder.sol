@@ -13,7 +13,6 @@ import {State} from "@src/SizeStorage.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -35,7 +34,6 @@ library BorrowAsMarketOrder {
     using LoanLibrary for State;
     using RiskLibrary for State;
     using AccountingLibrary for State;
-    using VariablePoolLibrary for State;
     using AccountingLibrary for State;
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
@@ -149,8 +147,10 @@ library BorrowAsMarketOrder {
                 lender: params.lender,
                 credit: deltaAmountIn
             });
-            state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
-            state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee);
+            state.data.borrowAToken.transferFrom(params.lender, msg.sender, deltaAmountOut);
+            state.data.borrowAToken.transferFrom(
+                msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee
+            );
             amountOutLeft -= deltaAmountOut;
         }
     }
@@ -180,6 +180,6 @@ library BorrowAsMarketOrder {
         });
 
         state.data.debtToken.mint(msg.sender, debtPosition.getTotalDebt());
-        state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
+        state.data.borrowAToken.transferFrom(params.lender, msg.sender, issuanceValue);
     }
 }

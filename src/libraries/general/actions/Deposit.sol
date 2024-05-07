@@ -7,8 +7,7 @@ import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
+import {TokenLibrary} from "@src/libraries/fixed/TokenLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -22,8 +21,7 @@ struct DepositParams {
 library Deposit {
     using SafeERC20 for IERC20Metadata;
     using SafeERC20 for IWETH;
-    using VariablePoolLibrary for State;
-    using CollateralLibrary for State;
+    using TokenLibrary for State;
 
     function validateDeposit(State storage state, DepositParams calldata params) external view {
         // validate msg.sender
@@ -66,7 +64,7 @@ library Deposit {
         }
 
         if (params.token == address(state.data.underlyingBorrowToken)) {
-            state.depositUnderlyingBorrowTokenToVariablePool(from, params.to, amount);
+            state.depositUnderlyingBorrowToken(from, params.to, amount);
         } else {
             state.depositUnderlyingCollateralToken(from, params.to, amount);
         }

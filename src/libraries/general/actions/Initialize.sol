@@ -12,6 +12,7 @@ import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/f
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
+import {WrappedAToken} from "@src/token/WrappedAToken.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -239,12 +240,18 @@ library Initialize {
 
         state.data.collateralToken = new NonTransferrableToken(
             address(this),
-            string.concat("Size Fixed ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
-            string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
-            IERC20Metadata(state.data.underlyingCollateralToken).decimals()
+            string.concat("Size Fixed ", state.data.underlyingCollateralToken.name()),
+            string.concat("sz", state.data.underlyingCollateralToken.symbol()),
+            state.data.underlyingCollateralToken.decimals()
         );
-        state.data.borrowAToken =
-            IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
+        state.data.borrowAToken = new WrappedAToken(
+            state.data.variablePool,
+            address(state.data.underlyingBorrowToken),
+            address(this),
+            string.concat("Size Fixed ", state.data.underlyingBorrowToken.name()),
+            string.concat("sza", state.data.underlyingBorrowToken.symbol()),
+            state.data.underlyingBorrowToken.decimals()
+        );
         state.data.debtToken = new NonTransferrableToken(
             address(this), "Size Fixed Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );

@@ -15,9 +15,9 @@ import {
 } from "@src/libraries/fixed/LoanLibrary.sol";
 import {UpdateConfig} from "@src/libraries/general/actions/UpdateConfig.sol";
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
+import {WrappedAToken} from "@src/token/WrappedAToken.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
@@ -31,7 +31,6 @@ import {
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 struct UserView {
     User user;
@@ -48,7 +47,7 @@ struct DataView {
     IERC20Metadata underlyingBorrowToken;
     IPool variablePool;
     NonTransferrableToken collateralToken;
-    IAToken borrowAToken;
+    WrappedAToken borrowAToken;
     NonTransferrableToken debtToken;
 }
 
@@ -61,7 +60,6 @@ abstract contract SizeView is SizeStorage {
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using RiskLibrary for State;
-    using VariablePoolLibrary for State;
     using AccountingLibrary for State;
     using UpdateConfig for State;
 
@@ -126,7 +124,7 @@ abstract contract SizeView is SizeStorage {
             user: state.data.users[user],
             account: user,
             collateralTokenBalance: state.data.collateralToken.balanceOf(user),
-            borrowATokenBalance: state.borrowATokenBalanceOf(user),
+            borrowATokenBalance: state.data.borrowAToken.balanceOf(user),
             debtBalance: state.data.debtToken.balanceOf(user)
         });
     }

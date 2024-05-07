@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
@@ -13,6 +12,7 @@ import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
+import {WrappedAToken} from "@src/token/WrappedAToken.sol";
 
 struct FeeConfig {
     uint256 repayFeeAPR; // annual percentage rate of the protocol repay fee
@@ -51,7 +51,7 @@ struct Data {
     IERC20Metadata underlyingCollateralToken; // // the token used by borrowers to collateralize their loans
     IERC20Metadata underlyingBorrowToken; // the token lent from lenders to borrowers
     NonTransferrableToken collateralToken; // // Size tokenized underlying collateral token
-    IAToken borrowAToken; // Variable Pool's rebasing AToken from the underlying borrow token
+    WrappedAToken borrowAToken; // // Size tokenized borrow aToken
     NonTransferrableToken debtToken; // Size tokenized debt
     IPool variablePool; // Variable Pool (Aave v3)
 }

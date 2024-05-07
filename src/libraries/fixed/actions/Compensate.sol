@@ -12,7 +12,6 @@ import {Events} from "@src/libraries/Events.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 struct CompensateParams {
     uint256 creditPositionWithDebtToRepayId;
@@ -25,7 +24,7 @@ library Compensate {
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
-    using VariablePoolLibrary for State;
+
     using RiskLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
@@ -95,7 +94,7 @@ library Compensate {
         state.data.debtToken.burn(debtPositionToRepay.borrower, debtProRata);
         if (isFullRepayment) {
             debtPositionToRepay.overdueLiquidatorReward = 0;
-            debtPositionToRepay.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+            debtPositionToRepay.liquidityIndexAtRepayment = state.data.borrowAToken.liquidityIndex();
         }
         emit Events.UpdateDebtPosition(
             creditPositionWithDebtToRepay.debtPositionId,
