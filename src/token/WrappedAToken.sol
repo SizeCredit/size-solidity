@@ -109,16 +109,11 @@ contract WrappedAToken is NonTransferrableToken {
         return true;
     }
 
-    /// @notice Returns the balance of an account
-    function unscaledBalanceOf(address account) public view returns (uint256) {
-        return Math.mulDivDown(_scaledBalances[account], liquidityIndex(), WadRayMath.RAY);
-    }
-
     /// @notice Returns the total balance of an account, including both underlying and aToken balances
     /// @param account The account to check the balance of
     /// @return The total balance of the account
     function balanceOf(address account) public view override returns (uint256) {
-        return super.balanceOf(account) + unscaledBalanceOf(account);
+        return super.balanceOf(account) + Math.mulDivDown(_scaledBalances[account], liquidityIndex(), WadRayMath.RAY);
     }
 
     /// @notice Returns the total supply of the token, including aToken balances
