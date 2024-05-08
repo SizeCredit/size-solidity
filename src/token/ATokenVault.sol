@@ -13,10 +13,9 @@ import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-/// @title WrappedAToken
-/// @notice An ERC-20 that wraps an AToken and handles supply/withdraw reverts from the Variable Pool
-/// @dev The contract owner (e.g. the Size contract) can still mint, burn, and transfer tokens
-contract WrappedAToken is NonTransferrableToken {
+/// @title ATokenVault
+/// @notice A token vault that accepts underlying token deposits, attempts to supply/withdraw on a Variable Pool to get aTokens, and handles reverts
+contract ATokenVault is NonTransferrableToken {
     using SafeERC20 for IERC20Metadata;
 
     mapping(address => uint256) internal _scaledBalances;
@@ -100,7 +99,7 @@ contract WrappedAToken is NonTransferrableToken {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(from, balanceOf(from), value);
         }
 
-        uint256 scaledValue = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
+        uint256 scaledValue = _scaledValue(value);
 
         (value, scaledValue) = _capToScaledBalance(from, value, scaledValue);
 
@@ -110,35 +109,88 @@ contract WrappedAToken is NonTransferrableToken {
         return true;
     }
 
+    function rebalance(address account, uint256 value, bool fromUnderlyingTokenToAToken) external onlyOwner {
+        if (balanceOf(account) < value) {
+            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(account, balanceOf(account), value);
+        }
+
+        uint256 scaledValue = _scaledValue(value);
+
+        if (fromUnderlyingTokenToAToken) {
+            (value, scaledValue) = _capToUnderlyingBalance(account, value, scaledValue);
+            _burn(account, value);
+            _mintScaled(account, scaledValue);
+        } else {
+            (value, scaledValue) = _capToScaledBalance(account, value, scaledValue);
+            _burnScaled(account, scaledValue);
+            _mint(account, value);
+        }
+    }
+
+    function underlyingTokenBalanceOf(address account) public view returns (uint256) {
+        return super.balanceOf(account);
+    }
+
+    function aTokenBalanceOf(address account) public view returns (uint256) {
+        return Math.mulDivDown(_scaledBalances[account], liquidityIndex(), WadRayMath.RAY);
+    }
+
     /// @notice Returns the total balance of an account, including both underlying and aToken balances
     /// @param account The account to check the balance of
     /// @return The total balance of the account
     function balanceOf(address account) public view override returns (uint256) {
-        return super.balanceOf(account) + Math.mulDivDown(_scaledBalances[account], liquidityIndex(), WadRayMath.RAY);
+        return underlyingTokenBalanceOf(account) + aTokenBalanceOf(account);
     }
 
-    /// @notice Returns the total supply of the token, including aToken balances
+    function underlyingTokenTotalSupply() public view returns (uint256) {
+        return super.balanceOf(address(this));
+    }
+
+    function aTokenTotalSupply() public view returns (uint256) {
+        return aToken.scaledBalanceOf(address(this));
+    }
+
+    /// @notice Returns the total supply of the token, including both underlying aToken balances
     /// @return The total supply of the token
     function totalSupply() public view override returns (uint256) {
-        return super.totalSupply() + aToken.balanceOf(address(this));
+        return underlyingTokenTotalSupply() + aTokenTotalSupply();
     }
 
     function liquidityIndex() public view returns (uint256) {
         return variablePool.getReserveNormalizedIncome(address(underlyingToken));
     }
 
+    function _scaledValue(uint256 value) internal view returns (uint256) {
+        return Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
+    }
+
     /// @notice Cap the scaledValue to the scaled balance of the account, and updates the value accordingly
-    function _capToScaledBalance(address _from, uint256 _value, uint256 _scaledValue)
+    function _capToScaledBalance(address from_, uint256 value_, uint256 scaledValue_)
         internal
         view
         returns (uint256 value, uint256 scaledValue)
     {
-        if (_scaledBalances[_from] < scaledValue) {
-            value = _value - Math.mulDivDown(_scaledBalances[_from], WadRayMath.RAY, _scaledValue);
-            scaledValue = _scaledBalances[_from];
+        if (_scaledBalances[from_] < scaledValue) {
+            value = value_ - Math.mulDivDown(_scaledBalances[from_], WadRayMath.RAY, scaledValue_);
+            scaledValue = _scaledBalances[from_];
         } else {
             value = 0;
-            scaledValue = _scaledValue;
+            scaledValue = scaledValue_;
+        }
+    }
+
+    function _capToUnderlyingBalance(address from_, uint256 value_, uint256 scaledValue_)
+        internal
+        view
+        returns (uint256 value, uint256 scaledValue)
+    {
+        uint256 underlyingBalance_ = underlyingTokenBalanceOf(from_);
+        if (underlyingBalance_ < value_) {
+            scaledValue = scaledValue_ - Math.mulDivDown(underlyingBalance_, WadRayMath.RAY, value_);
+            value = underlyingBalance_;
+        } else {
+            scaledValue = 0;
+            value = value_;
         }
     }
 

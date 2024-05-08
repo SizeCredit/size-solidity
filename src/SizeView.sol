@@ -16,8 +16,9 @@ import {
 import {UpdateConfig} from "@src/libraries/general/actions/UpdateConfig.sol";
 
 import {IPool} from "@aave/interfaces/IPool.sol";
+
+import {ATokenVault} from "@src/token/ATokenVault.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
-import {WrappedAToken} from "@src/token/WrappedAToken.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
@@ -47,7 +48,7 @@ struct DataView {
     IERC20Metadata underlyingBorrowToken;
     IPool variablePool;
     NonTransferrableToken collateralToken;
-    WrappedAToken borrowAToken;
+    ATokenVault borrowAToken;
     NonTransferrableToken debtToken;
 }
 

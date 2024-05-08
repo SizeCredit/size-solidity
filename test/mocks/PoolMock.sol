@@ -26,9 +26,15 @@ contract PoolMock is Ownable {
 
     PoolAddressesProvider private immutable addressesProvider;
     mapping(address asset => Data data) private datas;
+    mapping(bytes4 sig => bool shouldRevert) private reverts;
 
     constructor() Ownable(msg.sender) {
         addressesProvider = new PoolAddressesProvider("", address(this));
+    }
+
+    modifier revertIfNecessary() {
+        require(!reverts[msg.sig], "PoolMock: REVERTED");
+        _;
     }
 
     function setLiquidityIndex(address asset, uint256 index) public onlyOwner {
@@ -64,24 +70,33 @@ contract PoolMock is Ownable {
         data.reserveIndex = index;
     }
 
-    function supply(address asset, uint256 amount, address onBehalfOf, uint16) external {
+    function setRevert(bytes4 sig, bool shouldRevert) public onlyOwner {
+        reverts[sig] = shouldRevert;
+    }
+
+    function supply(address asset, uint256 amount, address onBehalfOf, uint16) external revertIfNecessary {
         Data memory data = datas[asset];
         IERC20Metadata(asset).transferFrom(msg.sender, address(this), amount);
         data.aToken.mint(address(this), onBehalfOf, amount, data.reserveIndex);
     }
 
-    function withdraw(address asset, uint256 amount, address to) external returns (uint256) {
+    function withdraw(address asset, uint256 amount, address to) external revertIfNecessary returns (uint256) {
         Data memory data = datas[asset];
         data.aToken.burn(msg.sender, address(data.aToken), amount, data.reserveIndex);
         IERC20Metadata(asset).safeTransfer(to, amount);
         return amount;
     }
 
-    function getReserveNormalizedIncome(address asset) external view returns (uint256) {
+    function getReserveNormalizedIncome(address asset) external view revertIfNecessary returns (uint256) {
         return datas[asset].reserveIndex;
     }
 
-    function getReserveData(address asset) external view returns (DataTypes.ReserveData memory reserveData) {
+    function getReserveData(address asset)
+        external
+        view
+        revertIfNecessary
+        returns (DataTypes.ReserveData memory reserveData)
+    {
         reserveData.aTokenAddress = address(datas[asset].aToken);
     }
 
@@ -89,5 +104,5 @@ contract PoolMock is Ownable {
         return addressesProvider;
     }
 
-    function finalizeTransfer(address, address, address, uint256, uint256, uint256) external pure {}
+    function finalizeTransfer(address, address, address, uint256, uint256, uint256) external view revertIfNecessary {}
 }

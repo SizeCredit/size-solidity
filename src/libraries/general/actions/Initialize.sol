@@ -11,8 +11,9 @@ import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/f
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
+
+import {ATokenVault} from "@src/token/ATokenVault.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
-import {WrappedAToken} from "@src/token/WrappedAToken.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -244,7 +245,7 @@ library Initialize {
             string.concat("sz", state.data.underlyingCollateralToken.symbol()),
             state.data.underlyingCollateralToken.decimals()
         );
-        state.data.borrowAToken = new WrappedAToken(
+        state.data.borrowAToken = new ATokenVault(
             state.data.variablePool,
             address(state.data.underlyingBorrowToken),
             address(this),
