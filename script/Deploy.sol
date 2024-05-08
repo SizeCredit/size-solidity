@@ -133,7 +133,7 @@ abstract contract Deploy {
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            minimumCreditBorrowAToken: 5e6,
+            minimumCreditBorrowAToken: 50e6,
             collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
