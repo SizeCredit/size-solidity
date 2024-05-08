@@ -77,6 +77,7 @@ contract WrappedAToken is NonTransferrableToken {
         uint256 scaledBalanceBefore = aToken.scaledBalanceOf(address(this));
         uint256 scaledValue = 0;
 
+        // slither-disable-next-line unused-return
         try variablePool.withdraw(address(underlyingToken), value, msg.sender) {
             scaledValue = scaledBalanceBefore - aToken.scaledBalanceOf(address(this));
             (value, scaledValue) = _capToScaledBalance(from, value, scaledValue);
