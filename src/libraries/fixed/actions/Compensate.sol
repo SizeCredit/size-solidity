@@ -95,7 +95,6 @@ library Compensate {
         state.data.debtToken.burn(debtPositionToRepay.borrower, debtProRata);
         if (isFullRepayment) {
             debtPositionToRepay.overdueLiquidatorReward = 0;
-            debtPositionToRepay.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
         emit Events.UpdateDebtPosition(
             creditPositionWithDebtToRepay.debtPositionId,

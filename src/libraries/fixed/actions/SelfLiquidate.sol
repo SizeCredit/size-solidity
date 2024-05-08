@@ -64,7 +64,6 @@ library SelfLiquidate {
         debtPosition.updateRepayFee(credit, repayFeeProRata);
         if (isFullRepayment) {
             debtPosition.overdueLiquidatorReward = 0;
-            debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
         }
 
         creditPosition.credit = 0;
