@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
+import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -24,6 +25,7 @@ library Deposit {
     using SafeERC20 for IWETH;
     using VariablePoolLibrary for State;
     using CollateralLibrary for State;
+    using CapsLibrary for State;
 
     function validateDeposit(State storage state, DepositParams calldata params) external view {
         // validate msg.sender
@@ -67,6 +69,9 @@ library Deposit {
 
         if (params.token == address(state.data.underlyingBorrowToken)) {
             state.depositUnderlyingBorrowTokenToVariablePool(from, params.to, amount);
+            if (!state.data.isMulticall) {
+                state.validateBorrowATokenCap();
+            }
         } else {
             state.depositUnderlyingCollateralToken(from, params.to, amount);
         }

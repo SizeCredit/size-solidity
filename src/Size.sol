@@ -30,6 +30,7 @@ import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/act
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {Liquidate, LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
+import {Multicall} from "@src/libraries/Multicall.sol";
 import {Compensate, CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {
     LiquidateWithReplacement,
@@ -45,7 +46,6 @@ import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
-import {Multicall} from "@src/proxy/Multicall.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
@@ -54,15 +54,7 @@ bytes32 constant PAUSER_ROLE = "PAUSER_ROLE";
 
 /// @title Size
 /// @notice See the documentation in {ISize}.
-contract Size is
-    ISize,
-    SizeView,
-    Multicall,
-    Initializable,
-    AccessControlUpgradeable,
-    PausableUpgradeable,
-    UUPSUpgradeable
-{
+contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     // @audit Check if borrower == lender == liquidator may cause any issues
     using Initialize for State;
     using UpdateConfig for State;
@@ -83,6 +75,7 @@ contract Size is
     using SetCreditForSale for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
+    using Multicall for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -123,12 +116,20 @@ contract Size is
         _unpause();
     }
 
+    function multicall(bytes[] calldata _data)
+        public
+        payable
+        override(ISize)
+        whenNotPaused
+        returns (bytes[] memory results)
+    {
+        results = state.multicall(_data);
+    }
+
     /// @inheritdoc ISize
     function deposit(DepositParams calldata params) public payable override(ISize) whenNotPaused {
         state.validateDeposit(params);
         state.executeDeposit(params);
-        state.validateCollateralTokenCap();
-        state.validateBorrowATokenCap();
     }
 
     /// @inheritdoc ISize

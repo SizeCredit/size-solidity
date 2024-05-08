@@ -79,7 +79,7 @@ library Errors {
     error NULL_STALE_RATE();
     error STALE_RATE(uint128 updatedAt);
 
-    error COLLATERAL_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
+    error BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE(uint256 borrowATokenIncrease, uint256 debtTokenDecrease);
     error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
     error DEBT_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
 

@@ -268,7 +268,7 @@ contract CompensateTest is BaseTest {
 
     function test_Compensate_compensate_experiment() public {
         _setPrice(1e18);
-        _updateConfig("collateralTokenCap", type(uint256).max);
+
         _updateConfig("borrowATokenCap", type(uint256).max);
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
@@ -324,7 +324,7 @@ contract CompensateTest is BaseTest {
     function test_Compensate_compensate_pays_repayFeeAPR_pro_rata() public {
         // OK so let's make an example of the approach here
         _setPrice(1e18);
-        _updateConfig("collateralTokenCap", type(uint256).max);
+
         address[] memory users = new address[](4);
         users[0] = alice;
         users[1] = bob;

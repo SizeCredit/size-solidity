@@ -11,7 +11,7 @@ contract SetCreditForSaleTest is BaseTest {
         _updateConfig("earlyLenderExitFee", 0);
         _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
-        _updateConfig("collateralTokenCap", type(uint256).max);
+
         _updateConfig("borrowATokenCap", type(uint256).max);
 
         _deposit(alice, usdc, 1000e6);
@@ -38,7 +38,7 @@ contract SetCreditForSaleTest is BaseTest {
         _updateConfig("earlyLenderExitFee", 0);
         _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
-        _updateConfig("collateralTokenCap", type(uint256).max);
+
         _updateConfig("borrowATokenCap", type(uint256).max);
 
         _deposit(alice, usdc, 2 * 1000e6);

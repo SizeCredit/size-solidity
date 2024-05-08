@@ -23,14 +23,12 @@ import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
 import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
 
-import {IMulticall} from "@src/proxy/IMulticall.sol";
-
 /// @title ISize
 /// @author Size Lending
 /// @notice This interface is the main interface for all user-facing methods of the Size protocol
 /// @dev All functions are `payable` to allow for ETH deposits in a `multicall` pattern.
 ///      See `Multicall.sol`
-interface ISize is IMulticall {
+interface ISize {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always deposited into the Variable Pool,
     ///         Collateral tokens are deposited into the Size contract through the CollateralLibrary
@@ -189,4 +187,10 @@ interface ISize is IMulticall {
     ///     - bool forSale: This flag indicates if the creditPositionIds array should be set for sale or not
     ///     - uint256[] creditPositionIds: The id of the credit positions
     function setCreditForSale(SetCreditForSaleParams calldata params) external payable;
+
+    /// @notice Receives and executes a batch of function calls on this contract.
+    /// @dev Reverts if any of the calls fails.
+    /// @param data The encoded data for all the function calls to execute.
+    /// @return results The results of all the function calls.
+    function multicall(bytes[] calldata data) external payable returns (bytes[] memory results);
 }
