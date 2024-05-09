@@ -79,6 +79,9 @@ library UpdateConfig {
         if (Strings.equal(params.key, "crOpening")) {
             state.riskConfig.crOpening = params.value;
         } else if (Strings.equal(params.key, "crLiquidation")) {
+            if (params.value >= state.riskConfig.crLiquidation) {
+                revert Errors.INVALID_COLLATERAL_RATIO(params.value);
+            }
             state.riskConfig.crLiquidation = params.value;
         } else if (Strings.equal(params.key, "minimumCreditBorrowAToken")) {
             state.riskConfig.minimumCreditBorrowAToken = params.value;
