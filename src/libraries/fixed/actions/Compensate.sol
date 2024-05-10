@@ -34,18 +34,24 @@ library Compensate {
         DebtPosition storage debtPositionToRepay =
             state.getDebtPositionByCreditPositionId(params.creditPositionWithDebtToRepayId);
         CreditPosition storage creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
+        DebtPosition storage debtPositionToCompensate =
+            state.getDebtPositionByCreditPositionId(params.creditPositionToCompensateId);
 
         uint256 amountToCompensate =
             Math.min(params.amount, creditPositionToCompensate.credit, creditPositionWithDebtToRepay.credit);
 
         // validate creditPositionWithDebtToRepayId
-        if (state.getLoanStatus(params.creditPositionWithDebtToRepayId) == LoanStatus.REPAID) {
-            revert Errors.LOAN_ALREADY_REPAID(params.creditPositionWithDebtToRepayId);
+        if (state.getLoanStatus(params.creditPositionWithDebtToRepayId) != LoanStatus.ACTIVE) {
+            revert Errors.LOAN_NOT_ACTIVE(params.creditPositionWithDebtToRepayId);
         }
 
         // validate creditPositionToCompensateId
-        if (state.getLoanStatus(params.creditPositionToCompensateId) == LoanStatus.REPAID) {
-            revert Errors.LOAN_ALREADY_REPAID(params.creditPositionToCompensateId);
+        if (!state.isCreditPositionTransferrable(params.creditPositionToCompensateId)) {
+            revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
+                params.creditPositionToCompensateId,
+                state.getLoanStatus(params.creditPositionToCompensateId),
+                state.collateralRatio(debtPositionToCompensate.borrower)
+            );
         }
         if (
             debtPositionToRepay.dueDate

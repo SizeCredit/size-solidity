@@ -7,6 +7,8 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
@@ -26,6 +28,7 @@ library BuyMarketCredit {
     using AccountingLibrary for State;
     using VariablePoolLibrary for State;
     using OfferLibrary for BorrowOffer;
+    using RiskLibrary for State;
 
     function validateBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params) external view {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
@@ -35,8 +38,12 @@ library BuyMarketCredit {
         // N/A
 
         // validate creditPositionId
-        if (state.getLoanStatus(params.creditPositionId) != LoanStatus.ACTIVE) {
-            revert Errors.LOAN_NOT_ACTIVE(params.creditPositionId);
+        if (!state.isCreditPositionTransferrable(params.creditPositionId)) {
+            revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
+                params.creditPositionId,
+                state.getLoanStatus(params.creditPositionId),
+                state.collateralRatio(debtPosition.borrower)
+            );
         }
         if (creditPosition.credit == 0) {
             revert Errors.CREDIT_POSITION_ALREADY_CLAIMED(params.creditPositionId);

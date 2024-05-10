@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -34,7 +35,12 @@ contract BuyMarketCreditValidationTest is BaseTest {
 
         _repay(bob, debtPositionId1);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, creditPositionId1_1));
+        uint256 cr = size.collateralRatio(bob);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector, creditPositionId1_1, LoanStatus.REPAID, cr
+            )
+        );
         _buyMarketCredit(james, creditPositionId1_1, 500e6, false);
     }
 }

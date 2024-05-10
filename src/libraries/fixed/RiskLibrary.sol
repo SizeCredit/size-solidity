@@ -52,6 +52,15 @@ library RiskLibrary {
             && (isUserUnderwater(state, debtPosition.borrower) && status != LoanStatus.REPAID);
     }
 
+    function isCreditPositionTransferrable(State storage state, uint256 creditPositionId)
+        internal
+        view
+        returns (bool)
+    {
+        return state.getLoanStatus(creditPositionId) == LoanStatus.ACTIVE
+            && !isUserUnderwater(state, state.getDebtPositionByCreditPositionId(creditPositionId).borrower);
+    }
+
     function isDebtPositionLiquidatable(State storage state, uint256 debtPositionId) public view returns (bool) {
         DebtPosition storage debtPosition = state.data.debtPositions[debtPositionId];
         LoanStatus status = state.getLoanStatus(debtPositionId);

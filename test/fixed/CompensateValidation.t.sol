@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
@@ -76,7 +77,12 @@ contract CompensateValidationTest is BaseTest {
         _repay(bob, debtPositionId);
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditPositionId));
+        uint256 cr = size.collateralRatio(bob);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector, creditPositionId, LoanStatus.REPAID, cr
+            )
+        );
         size.compensate(
             CompensateParams({
                 creditPositionWithDebtToRepayId: creditPositionId3,
@@ -89,7 +95,7 @@ contract CompensateValidationTest is BaseTest {
         _repay(alice, loanId3);
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditPositionId3));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, creditPositionId3));
         size.compensate(
             CompensateParams({
                 creditPositionWithDebtToRepayId: creditPositionId3,

@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {User} from "@src/libraries/fixed/UserLibrary.sol";
 
@@ -92,6 +92,13 @@ library BorrowAsMarketOrder {
             }
             if (params.dueDate < debtPosition.dueDate) {
                 revert Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(params.dueDate, debtPosition.dueDate);
+            }
+            if (!state.isCreditPositionTransferrable(creditPositionId)) {
+                revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
+                    creditPositionId,
+                    state.getLoanStatus(creditPositionId),
+                    state.collateralRatio(debtPosition.borrower)
+                );
             }
         }
     }

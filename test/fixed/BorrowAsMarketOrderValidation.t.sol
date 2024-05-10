@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -166,6 +167,33 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
                 amount: 100e6,
                 dueDate: block.timestamp + 365 days,
                 deadline: deadline - 1,
+                maxAPR: type(uint256).max,
+                exactAmountIn: exactAmountIn,
+                receivableCreditPositionIds: receivableCreditPositionIds
+            })
+        );
+        vm.stopPrank();
+
+        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 0);
+        uint256 debtPositionId2 = _borrowAsMarketOrder(alice, candy, 10e6, block.timestamp + 365 days);
+        receivableCreditPositionIds = size.getCreditPositionIdsByDebtPositionId(debtPositionId2);
+        _repay(alice, debtPositionId2);
+
+        uint256 cr = size.collateralRatio(alice);
+
+        vm.startPrank(candy);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector, receivableCreditPositionIds[0], LoanStatus.REPAID, cr
+            )
+        );
+        size.borrowAsMarketOrder(
+            BorrowAsMarketOrderParams({
+                lender: bob,
+                amount: 10e6,
+                dueDate: block.timestamp + 365 days,
+                deadline: block.timestamp,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn,
                 receivableCreditPositionIds: receivableCreditPositionIds

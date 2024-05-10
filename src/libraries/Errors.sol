@@ -60,6 +60,8 @@ library Errors {
 
     error CREDIT_POSITION_ALREADY_CLAIMED(uint256 positionId);
 
+    error CREDIT_POSITION_NOT_TRANSFERRABLE(uint256 creditPositionId, LoanStatus status, uint256 borrowerCR);
+
     error LOAN_ALREADY_REPAID(uint256 positionId);
     error LOAN_NOT_REPAID(uint256 positionId);
     error LOAN_NOT_ACTIVE(uint256 positionId);
