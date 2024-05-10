@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {SizeStorage, State} from "@src/SizeStorage.sol";
+import {SizeStorage, State, User} from "@src/SizeStorage.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {
@@ -24,7 +24,6 @@ import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,

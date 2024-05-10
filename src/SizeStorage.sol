@@ -7,12 +7,19 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
-
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
+import {BorrowOffer, LoanOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
+
+struct User {
+    LoanOffer loanOffer;
+    BorrowOffer borrowOffer;
+    uint256 scaledBorrowATokenBalance;
+    uint256 openingLimitBorrowCR;
+    bool allCreditPositionsForSaleDisabled;
+}
 
 struct FeeConfig {
     uint256 repayFeeAPR; // annual percentage rate of the protocol repay fee

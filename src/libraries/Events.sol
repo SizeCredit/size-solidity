@@ -34,7 +34,6 @@ library Events {
         uint256[] receivableCreditPositionIds
     );
     event BorrowAsLimitOrder(
-        uint256 indexed openingLimitBorrowCR,
         uint256[] curveRelativeTimeMaturities,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
@@ -84,7 +83,12 @@ library Events {
         uint256 indexed amount
     );
     event BuyMarketCredit(uint256 indexed creditPositionId, uint256 indexed amount, bool indexed exactAmountIn);
-    event SetCreditForSale(bool indexed forSale, bool indexed creditPositionsNotForSale, uint256[] creditPositionIds);
+    event SetUserConfiguration(
+        uint256 indexed openingLimitBorrowCR,
+        bool indexed allCreditPositionsForSaleDisabled,
+        bool indexed creditPositionIdsForSale,
+        uint256[] creditPositionIds
+    );
 
     // updates
     event UpdateDebtPosition(

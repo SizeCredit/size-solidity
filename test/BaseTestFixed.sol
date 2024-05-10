@@ -30,7 +30,7 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
-import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
+import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
 import {BaseTestGeneral} from "@test/BaseTestGeneral.sol";
 
@@ -190,9 +190,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _borrowAsLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {
         vm.prank(borrower);
-        size.borrowAsLimitOrder(
-            BorrowAsLimitOrderParams({openingLimitBorrowCR: 0, curveRelativeTime: curveRelativeTime})
-        );
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
     }
 
     function _borrowAsLimitOrder(address borrower, int256[1] memory ratesArray, uint256[1] memory maturitiesArray)
@@ -225,16 +223,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _borrowAsLimitOrder(address borrower, int256 rate, uint256 dueDate) internal {
         YieldCurve memory curveRelativeTime = YieldCurveHelper.pointCurve(dueDate - block.timestamp, rate);
-        return _borrowAsLimitOrder(borrower, 0, curveRelativeTime);
-    }
-
-    function _borrowAsLimitOrder(address borrower, uint256 openingLimitBorrowCR, YieldCurve memory curveRelativeTime)
-        internal
-    {
-        vm.prank(borrower);
-        size.borrowAsLimitOrder(
-            BorrowAsLimitOrderParams({openingLimitBorrowCR: openingLimitBorrowCR, curveRelativeTime: curveRelativeTime})
-        );
+        return _borrowAsLimitOrder(borrower, curveRelativeTime);
     }
 
     function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate)
@@ -379,18 +368,20 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         );
     }
 
-    function _setCreditForSale(
+    function _setUserConfiguration(
         address user,
-        uint256[] memory creditPositionIds,
-        bool forSale,
-        bool creditPositionsForSaleDisabled
+        uint256 openingLimitBorrowCR,
+        bool allCreditPositionsForSaleDisabled,
+        bool creditPositionIdsForSale,
+        uint256[] memory creditPositionIds
     ) internal {
         vm.prank(user);
-        size.setCreditForSale(
-            SetCreditForSaleParams({
-                creditPositionIds: creditPositionIds,
-                forSale: forSale,
-                creditPositionsForSaleDisabled: creditPositionsForSaleDisabled
+        size.setUserConfiguration(
+            SetUserConfigurationParams({
+                openingLimitBorrowCR: openingLimitBorrowCR,
+                allCreditPositionsForSaleDisabled: allCreditPositionsForSaleDisabled,
+                creditPositionIdsForSale: creditPositionIdsForSale,
+                creditPositionIds: creditPositionIds
             })
         );
     }

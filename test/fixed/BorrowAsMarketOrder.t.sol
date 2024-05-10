@@ -10,7 +10,6 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
 import {Math} from "@src/libraries/Math.sol";

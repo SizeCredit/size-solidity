@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
+import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-contract SetCreditForSaleValidationTest is BaseTest {
-    function test_SetCreditForSale_validation() public {
+contract SetUserConfigurationValidationTest is BaseTest {
+    function test_SetUserConfiguration_validation() public {
         _setPrice(1e18);
         _updateConfig("earlyLenderExitFee", 0);
         _updateConfig("repayFeeAPR", 0);
@@ -25,11 +25,12 @@ contract SetCreditForSaleValidationTest is BaseTest {
 
         vm.prank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_CREDIT_POSITION_ID.selector, creditPositionId));
-        size.setCreditForSale(
-            SetCreditForSaleParams({
-                creditPositionIds: creditPositionIds,
-                forSale: true,
-                creditPositionsForSaleDisabled: false
+        size.setUserConfiguration(
+            SetUserConfigurationParams({
+                openingLimitBorrowCR: 0,
+                allCreditPositionsForSaleDisabled: false,
+                creditPositionIdsForSale: true,
+                creditPositionIds: creditPositionIds
             })
         );
 
@@ -39,11 +40,12 @@ contract SetCreditForSaleValidationTest is BaseTest {
 
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, creditPositionId));
-        size.setCreditForSale(
-            SetCreditForSaleParams({
-                creditPositionIds: creditPositionIds,
-                forSale: true,
-                creditPositionsForSaleDisabled: false
+        size.setUserConfiguration(
+            SetUserConfigurationParams({
+                openingLimitBorrowCR: 0,
+                allCreditPositionsForSaleDisabled: false,
+                creditPositionIdsForSale: true,
+                creditPositionIds: creditPositionIds
             })
         );
     }

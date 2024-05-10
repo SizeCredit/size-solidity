@@ -21,7 +21,7 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 
 import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
-import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
+import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
 /// @title ISize
 /// @author Size Lending
@@ -66,7 +66,6 @@ interface ISize {
 
     /// @notice Places a new borrow offer in the orderbook
     /// @param params BorrowAsLimitOrderParams struct containing the following fields:
-    ///     - uint256 openingLimitBorrowCR: The opening limit borrow collateral ratio, which indicates the maximum CR the borrower is willing to accept after their offer is picked by a lender
     ///     - YieldCurve curveRelativeTime: The yield curve for the borrow offer, a struct containing the following fields:
     ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
     ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
@@ -182,11 +181,13 @@ interface ISize {
     /// @notice Set the credit positions for sale
     /// @dev By default, all created creadit positions are for sale.
     ///      Users who want to disable the sale of all or specific credit positions can do so by calling this function.
-    /// @param params SetCreditForSaleParams struct containing the following fields:
-    ///     - bool creditPositionsForSaleDisabled: This global flag indicates if all credit positions should be set for sale or not
-    ///     - bool forSale: This flag indicates if the creditPositionIds array should be set for sale or not
+    ///      By default, all users CR to open a position is crOpening. Users who want to increase their CR opening limit can do so by calling this function.
+    /// @param params SetUserConfigurationParams struct containing the following fields:
+    ///     - uint256 openingLimitBorrowCR: The opening limit borrow collateral ratio, which indicates the maximum CR the borrower is willing to accept after their offer is picked by a lender
+    ///     - bool allCreditPositionsForSaleDisabled: This global flag indicates if all credit positions should be set for sale or not
+    ///     - bool creditPositionIdsForSale: This flag indicates if the creditPositionIds array should be set for sale or not
     ///     - uint256[] creditPositionIds: The id of the credit positions
-    function setCreditForSale(SetCreditForSaleParams calldata params) external payable;
+    function setUserConfiguration(SetUserConfigurationParams calldata params) external payable;
 
     /// @notice Receives and executes a batch of function calls on this contract.
     /// @dev Reverts if any of the calls fails.

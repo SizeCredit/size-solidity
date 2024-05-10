@@ -30,7 +30,6 @@ abstract contract Logger {
             }
         }
         if (!userView.user.borrowOffer.isNull()) {
-            console.log("user.borrowOffer.openingLimitBorrowCR", userView.user.borrowOffer.openingLimitBorrowCR);
             for (uint256 i = 0; i < userView.user.borrowOffer.curveRelativeTime.aprs.length; i++) {
                 console.log(
                     "user.borrowOffer.curveRelativeTime.maturities[]",

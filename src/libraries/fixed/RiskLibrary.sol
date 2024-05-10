@@ -87,7 +87,7 @@ library RiskLibrary {
     function validateUserIsNotBelowOpeningLimitBorrowCR(State storage state, address account) external view {
         uint256 openingLimitBorrowCR = Math.max(
             state.riskConfig.crOpening,
-            state.data.users[account].borrowOffer.openingLimitBorrowCR // 0 by default, or user-defined if BorrowAsLimitOrder has been placed
+            state.data.users[account].openingLimitBorrowCR // 0 by default, or user-defined if SetUserConfiguration has been used
         );
         if (collateralRatio(state, account) < openingLimitBorrowCR) {
             revert Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR(

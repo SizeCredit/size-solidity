@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {State} from "@src/SizeStorage.sol";
+import {State, User} from "@src/SizeStorage.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -53,7 +52,7 @@ library BuyMarketCredit {
         if (borrowOffer.isNull()) {
             revert Errors.NULL_OFFER();
         }
-        if (user.creditPositionsForSaleDisabled || !creditPosition.forSale) {
+        if (user.allCreditPositionsForSaleDisabled || !creditPosition.forSale) {
             revert Errors.CREDIT_NOT_FOR_SALE(params.creditPositionId);
         }
 

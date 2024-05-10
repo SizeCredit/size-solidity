@@ -24,7 +24,7 @@ import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
 import {BuyMarketCredit, BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
-import {SetCreditForSale, SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
+import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
@@ -72,7 +72,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using LiquidateWithReplacement for State;
     using Compensate for State;
     using BuyMarketCredit for State;
-    using SetCreditForSale for State;
+    using SetUserConfiguration for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
     using Multicall for State;
@@ -253,8 +253,13 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function setCreditForSale(SetCreditForSaleParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateSetCreditForSale(params);
-        state.executeSetCreditForSale(params);
+    function setUserConfiguration(SetUserConfigurationParams calldata params)
+        external
+        payable
+        override(ISize)
+        whenNotPaused
+    {
+        state.validateSetUserConfiguration(params);
+        state.executeSetUserConfiguration(params);
     }
 }

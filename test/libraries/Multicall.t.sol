@@ -54,8 +54,7 @@ contract MulticallTest is BaseTest {
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
         data[1] = abi.encodeCall(
-            size.borrowAsLimitOrder,
-            BorrowAsLimitOrderParams({openingLimitBorrowCR: 0, curveRelativeTime: YieldCurveHelper.flatCurve()})
+            size.borrowAsLimitOrder, BorrowAsLimitOrderParams({curveRelativeTime: YieldCurveHelper.flatCurve()})
         );
         size.multicall{value: amount}(data);
 
