@@ -243,7 +243,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     function compensate(CompensateParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateCompensate(params);
         state.executeCompensate(params);
-        state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
+        state.validateUserIsNotUnderwater(msg.sender);
     }
 
     /// @inheritdoc ISize
