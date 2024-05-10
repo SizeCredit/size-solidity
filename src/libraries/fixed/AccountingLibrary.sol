@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {State} from "@src/SizeStorage.sol";
 
 import {Events} from "@src/libraries/Events.sol";
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
@@ -34,53 +34,69 @@ library AccountingLibrary {
         );
     }
 
-    /// @notice Charges the repay fee and updates the debt position
+    /// @notice Repays a debt position. Charges the repay fee and updates the debt position in place.
     ///         If the fees are greater than the collateral balance, they are capped to the borrower balance
     /// @dev The repay fee is charged in collateral tokens
     ///      Rounds fees down during partial repayment
-    ///      During early repayment, the full repayFee should be deducted from the borrower debt, as it had been provisioned during the loan creation
-    ///      The calculation of the earlyRepayFee assumes the full faceValue is repaid early (repayAmount == debtPosition.faceValue)
     /// @param state The state object
-    /// @param debtPosition The debt position
+    /// @param debtPositionId The debt position id
     /// @param repayAmount The amount to repay
-    /// @param isEarlyRepay Whether the repayment is early. In this case, the fee is charged pro-rata to the time elapsed
-    function chargeRepayFeeInCollateral(
+    /// @param cashReceived Whether this is a cash operation
+    /// @param chargeRepayFee Whether we should charge the repay fee
+    function repayDebt(
         State storage state,
-        DebtPosition storage debtPosition,
+        uint256 debtPositionId,
         uint256 repayAmount,
-        bool isEarlyRepay
-    ) public returns (uint256 repayFeeProRata) {
-        repayFeeProRata = Math.mulDivDown(debtPosition.repayFee, repayAmount, debtPosition.faceValue);
+        bool cashReceived,
+        bool chargeRepayFee
+    ) public {
+        DebtPosition storage debtPosition = state.getDebtPosition(debtPositionId);
 
-        uint256 repayFeeCollateral;
-        if (isEarlyRepay) {
-            uint256 earlyRepayFee = debtPosition.earlyRepayFee();
-            repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, earlyRepayFee);
+        bool isFullRepay = repayAmount == debtPosition.faceValue;
+        uint256 repayFeeProRata = isFullRepay
+            ? debtPosition.repayFee
+            : Math.mulDivDown(debtPosition.repayFee, repayAmount, debtPosition.faceValue);
+
+        if (chargeRepayFee) {
+            uint256 repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFeeProRata);
+
+            if (state.data.collateralToken.balanceOf(debtPosition.borrower) < repayFeeCollateral) {
+                repayFeeCollateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
+            }
+
+            state.data.collateralToken.transferFrom(
+                debtPosition.borrower, state.feeConfig.feeRecipient, repayFeeCollateral
+            );
+        }
+
+        if (isFullRepay) {
+            state.data.debtToken.burn(debtPosition.borrower, debtPosition.getTotalDebt());
+            debtPosition.faceValue = 0;
+            debtPosition.repayFee = 0;
+            debtPosition.overdueLiquidatorReward = 0;
+            if (cashReceived) {
+                debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+            }
         } else {
-            repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFeeProRata);
+            // The overdueCollateralReward is not cleared if the loan has not been fully repaid
+            state.data.debtToken.burn(debtPosition.borrower, repayAmount + repayFeeProRata);
+            uint256 r = Math.mulDivDown(PERCENT, debtPosition.faceValue, debtPosition.issuanceValue);
+            debtPosition.faceValue -= repayAmount;
+            debtPosition.repayFee -= repayFeeProRata;
+            debtPosition.issuanceValue = Math.mulDivDown(debtPosition.faceValue, PERCENT, r);
         }
 
-        if (state.data.collateralToken.balanceOf(debtPosition.borrower) < repayFeeCollateral) {
-            repayFeeCollateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
-        }
-
-        state.data.collateralToken.transferFrom(debtPosition.borrower, state.feeConfig.feeRecipient, repayFeeCollateral);
-    }
-
-    /// @notice Charges the repay fee and updates the debt position during early repayment
-    /// @dev The calculation of the earlyRepayFee assumes the full faceValue is repaid early (repayAmount == debtPosition.faceValue)
-    function chargeEarlyRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition)
-        external
-        returns (uint256)
-    {
-        return chargeRepayFeeInCollateral(state, debtPosition, debtPosition.faceValue, true);
-    }
-
-    function chargeRepayFeeInCollateral(State storage state, DebtPosition storage debtPosition, uint256 repayAmount)
-        external
-        returns (uint256)
-    {
-        return chargeRepayFeeInCollateral(state, debtPosition, repayAmount, false);
+        emit Events.UpdateDebtPosition(
+            debtPositionId,
+            debtPosition.borrower,
+            debtPosition.issuanceValue,
+            debtPosition.faceValue,
+            debtPosition.repayFee,
+            debtPosition.overdueLiquidatorReward,
+            debtPosition.startDate,
+            debtPosition.dueDate,
+            debtPosition.liquidityIndexAtRepayment
+        );
     }
 
     function createDebtAndCreditPositions(

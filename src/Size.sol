@@ -19,7 +19,6 @@ import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/U
 import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
-import {BorrowerExit, BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
@@ -64,7 +63,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using BorrowAsLimitOrder for State;
     using LendAsMarketOrder for State;
     using LendAsLimitOrder for State;
-    using BorrowerExit for State;
     using Repay for State;
     using Claim for State;
     using Liquidate for State;
@@ -182,14 +180,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
         state.validateDebtTokenCap();
-        state.validateVariablePoolHasEnoughLiquidity(amount);
-    }
-
-    /// @inheritdoc ISize
-    function borrowerExit(BorrowerExitParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateBorrowerExit(params);
-        uint256 amount = state.executeBorrowerExit(params);
-        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrowerToExitTo);
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 

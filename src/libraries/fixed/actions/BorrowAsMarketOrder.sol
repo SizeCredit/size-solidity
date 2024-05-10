@@ -156,7 +156,7 @@ library BorrowAsMarketOrder {
                 credit: deltaAmountIn
             });
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
-            state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee);
+            state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyExitFee);
             amountOutLeft -= deltaAmountOut;
         }
     }

@@ -15,7 +15,6 @@ import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
-import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
@@ -198,33 +197,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         size.lendAsLimitOrder(LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
 
         __after();
-    }
-
-    function borrowerExit(uint256 debtPositionId, address borrowerToExitTo) public getSender {
-        __before(debtPositionId);
-
-        precondition(_before.debtPositionsCount > 0);
-        debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
-
-        borrowerToExitTo = _getRandomUser(borrowerToExitTo);
-
-        hevm.prank(sender);
-        size.borrowerExit(
-            BorrowerExitParams({
-                debtPositionId: debtPositionId,
-                minAPR: 0,
-                deadline: block.timestamp,
-                borrowerToExitTo: borrowerToExitTo
-            })
-        );
-
-        __after(debtPositionId);
-
-        if (borrowerToExitTo == sender) {
-            eq(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
-        } else {
-            lt(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
-        }
     }
 
     function repay(uint256 debtPositionId) public getSender {

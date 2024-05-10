@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
-import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
@@ -90,23 +89,6 @@ interface ISize {
     ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
     function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external payable;
-
-    /// @notice Exits a debt position to a new borrower by picking the new borrower offer from the orderbook
-    ///         When exiting a debt position to a new borrower, the early exit borrower fee is applied to the current borrower
-    ///         Protocol repayment fees are paid pro rata
-    ///         1. Previous borrower pays an "early" protocol repay fee pro rata to the block.timestamp, and their debt is reduced by the full protocol repay fee amount
-    ///         2. previous borrower also pays to the protocol the early borrower exit fee
-    ///         3. previous borrower transfers to the new borrower FV/(1+r), which is the present value of faceValue adjusted by the rate the new borrower has specified
-    ///         4. previous borrower debt referring to faceValue is transferred to the new borrower
-    ///         5. issuanceValue is updated, which in turn updates the protocol repay fees for that loan
-    ///         6. new borrower debt increases by the updated protocol repay fees
-    /// @dev The current borrower debt is transferred to the new borrower, together with the borrow tokens according to the new borrower yield curve
-    /// @param params BorrowerExitParams struct containing the following fields:
-    ///     - uint256 debtPositionId: The id of the debt position to exit
-    ///     - address borrowerToExitTo: The address of the borrower to exit to
-    ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
-    ///     - uint256 minAPR: The minimum APR the caller is willing to accept
-    function borrowerExit(BorrowerExitParams calldata params) external payable;
 
     /// @notice Repay a debt position by transferring the amount due of borrow tokens to the protocol, which are deposited to the Variable Pool for the lenders to claim
     ///         Partial repayment are currently unsupported

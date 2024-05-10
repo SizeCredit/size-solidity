@@ -8,7 +8,7 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 contract SetUserConfigurationTest is BaseTest {
     function test_SetUserConfiguration_setCreditForSale_disable_all() public {
         _setPrice(1e18);
-        _updateConfig("earlyLenderExitFee", 0);
+        _updateConfig("earlyExitFee", 0);
         _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
 
@@ -35,7 +35,7 @@ contract SetUserConfigurationTest is BaseTest {
 
     function test_SetUserConfiguration_setCreditForSale_disable_single() public {
         _setPrice(1e18);
-        _updateConfig("earlyLenderExitFee", 0);
+        _updateConfig("earlyExitFee", 0);
         _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
 

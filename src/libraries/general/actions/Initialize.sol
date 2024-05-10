@@ -20,8 +20,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct InitializeFeeConfigParams {
     uint256 repayFeeAPR;
-    uint256 earlyLenderExitFee;
-    uint256 earlyBorrowerExitFee;
+    uint256 earlyExitFee;
     uint256 collateralLiquidatorPercent;
     uint256 collateralProtocolPercent;
     uint256 overdueLiquidatorReward;
@@ -66,10 +65,7 @@ library Initialize {
         // validate repayFeeAPR
         // N/A
 
-        // validate earlyLenderExitFee
-        // N/A
-
-        // validate earlyBorrowerExitFee
+        // validate earlyExitFee
         // N/A
 
         // validate collateralLiquidatorPercent
@@ -193,8 +189,7 @@ library Initialize {
     function executeInitializeFeeConfig(State storage state, InitializeFeeConfigParams memory f) internal {
         state.feeConfig.repayFeeAPR = f.repayFeeAPR;
 
-        state.feeConfig.earlyLenderExitFee = f.earlyLenderExitFee;
-        state.feeConfig.earlyBorrowerExitFee = f.earlyBorrowerExitFee;
+        state.feeConfig.earlyExitFee = f.earlyExitFee;
 
         state.feeConfig.collateralLiquidatorPercent = f.collateralLiquidatorPercent;
         state.feeConfig.collateralProtocolPercent = f.collateralProtocolPercent;

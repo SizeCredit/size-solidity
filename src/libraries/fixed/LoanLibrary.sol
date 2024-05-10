@@ -51,18 +51,6 @@ library LoanLibrary {
         return positionId >= CREDIT_POSITION_ID_START && positionId < state.data.nextCreditPositionId;
     }
 
-    /// @notice Get the pro-rata debt amount for a partial repayment
-    /// @dev This function should only be used to calculate the amount to clear from the borrower debt tracker
-    ///      The overdueCollateralReward is not cleared if the loan has not been fully repaid
-    function getDebtProRata(DebtPosition memory self, uint256 repayAmount, uint256 repayFeeProRata)
-        internal
-        pure
-        returns (uint256 debtProRata, bool isFullRepayment)
-    {
-        isFullRepayment = self.faceValue == repayAmount;
-        debtProRata = repayAmount + repayFeeProRata + (isFullRepayment ? self.overdueLiquidatorReward : 0);
-    }
-
     /// @notice Get the total debt of a DebtPosition
     ///         The total loan debt is the face value (debt to the lender)
     ///        + the repay fee (protocol fee)
@@ -187,13 +175,6 @@ library LoanLibrary {
         } else {
             return 0;
         }
-    }
-
-    function updateRepayFee(DebtPosition storage self, uint256 _repayAmount, uint256 _repayFee) external {
-        uint256 r = Math.mulDivDown(PERCENT, self.faceValue, self.issuanceValue);
-        self.faceValue -= _repayAmount;
-        self.repayFee -= _repayFee;
-        self.issuanceValue = Math.mulDivDown(self.faceValue, PERCENT, r);
     }
 
     function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)

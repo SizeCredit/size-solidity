@@ -55,18 +55,11 @@ library SelfLiquidate {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
-        uint256 credit = creditPosition.credit;
-
-        uint256 repayFeeProRata = state.chargeRepayFeeInCollateral(debtPosition, credit);
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
-        (uint256 debtProRata, bool isFullRepayment) = debtPosition.getDebtProRata(credit, repayFeeProRata);
-        state.data.debtToken.burn(debtPosition.borrower, debtProRata);
-        debtPosition.updateRepayFee(credit, repayFeeProRata);
-        if (isFullRepayment) {
-            debtPosition.overdueLiquidatorReward = 0;
-        }
 
-        creditPosition.credit = 0;
+        state.repayDebt(creditPosition.debtPositionId, creditPosition.credit, false, false);
+
+        state.reduceCredit(params.creditPositionId, creditPosition.credit);
 
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, assignedCollateral);
     }

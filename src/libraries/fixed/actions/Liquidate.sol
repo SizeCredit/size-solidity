@@ -111,8 +111,6 @@ library Liquidate {
 
         emit Events.Liquidate(params.debtPositionId, params.minimumCollateralProfit, collateralRatio, loanStatus);
 
-        uint256 debt = debtPosition.getTotalDebt();
-
         LiquidatePathVars memory vars = state.isUserUnderwater(debtPosition.borrower)
             ? LiquidatePathVars({
                 collateralLiquidatorFixed: 0,
@@ -127,10 +125,6 @@ library Liquidate {
 
         liquidatorProfitCollateralToken = _executeLiquidate(state, debtPosition, vars);
 
-        uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, debtPosition.faceValue);
-        debtPosition.updateRepayFee(debtPosition.faceValue, repayFee);
-        state.data.debtToken.burn(debtPosition.borrower, debt);
-        debtPosition.overdueLiquidatorReward = 0;
-        debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+        state.repayDebt(params.debtPositionId, debtPosition.faceValue, true, true);
     }
 }

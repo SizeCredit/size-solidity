@@ -98,7 +98,7 @@ library BuyMarketCredit {
         }
 
         state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn);
-        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee);
+        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyExitFee);
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionId,
             lender: msg.sender,

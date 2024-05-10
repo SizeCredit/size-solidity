@@ -85,6 +85,9 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getAPR(uint256 debtPositionId) external view returns (uint256) {
+        if (state.getLoanStatus(debtPositionId) == LoanStatus.REPAID) {
+            revert Errors.LOAN_ALREADY_REPAID(debtPositionId);
+        }
         DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
         uint256 maturity = debtPosition.dueDate - debtPosition.startDate;
         uint256 ratePerMaturity = Math.mulDivDown(debtPosition.faceValue, PERCENT, debtPosition.issuanceValue) - PERCENT;

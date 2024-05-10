@@ -23,8 +23,7 @@ struct User {
 
 struct FeeConfig {
     uint256 repayFeeAPR; // annual percentage rate of the protocol repay fee
-    uint256 earlyLenderExitFee; // fee for early lender exits
-    uint256 earlyBorrowerExitFee; // fee for early borrower exits
+    uint256 earlyExitFee; // fee for early lender exits
     uint256 collateralLiquidatorPercent; // percent of collateral remainder to be split with liquidator on profitable liquidations
     uint256 collateralProtocolPercent; // percent of collateral to be split with protocol on profitable liquidations
     uint256 overdueLiquidatorReward; // fixed reward for liquidators during overdue liquidations

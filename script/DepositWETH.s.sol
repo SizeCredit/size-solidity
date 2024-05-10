@@ -7,7 +7,6 @@ import "forge-std/Script.sol";
 contract DepositWETHScript is Script {
     function run() external {
         console.log("Deposit WETH...");
-        //TODO approve on script
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         address wethAddress = vm.envAddress("WETH_ADDRESS");
@@ -16,8 +15,6 @@ contract DepositWETHScript is Script {
         address borrower = vm.envAddress("BORROWER");
 
         uint256 amount = 0.01e18;
-
-        /// WETH has 18 decimals
 
         console.log("lender", lender);
         console.log("borrower", borrower);

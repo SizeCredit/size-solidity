@@ -18,7 +18,6 @@ import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMa
 
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
@@ -267,18 +266,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         } else {
             return debtPositionIdAfter - 1;
         }
-    }
-
-    function _borrowerExit(address user, uint256 debtPositionId, address borrowerToExitTo) internal {
-        vm.prank(user);
-        size.borrowerExit(
-            BorrowerExitParams({
-                debtPositionId: debtPositionId,
-                borrowerToExitTo: borrowerToExitTo,
-                deadline: block.timestamp,
-                minAPR: 0
-            })
-        );
     }
 
     function _repay(address user, uint256 debtPositionId) internal {

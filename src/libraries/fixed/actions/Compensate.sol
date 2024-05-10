@@ -86,33 +86,13 @@ library Compensate {
 
         CreditPosition storage creditPositionWithDebtToRepay =
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);
-        DebtPosition storage debtPositionToRepay =
-            state.getDebtPositionByCreditPositionId(params.creditPositionWithDebtToRepayId);
         CreditPosition storage creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
 
         uint256 amountToCompensate =
             Math.min(params.amount, creditPositionToCompensate.credit, creditPositionWithDebtToRepay.credit);
 
         // debt reduction
-        uint256 repayFeeProRata = state.chargeRepayFeeInCollateral(debtPositionToRepay, amountToCompensate);
-        (uint256 debtProRata, bool isFullRepayment) =
-            debtPositionToRepay.getDebtProRata(amountToCompensate, repayFeeProRata);
-        debtPositionToRepay.updateRepayFee(amountToCompensate, repayFeeProRata);
-        state.data.debtToken.burn(debtPositionToRepay.borrower, debtProRata);
-        if (isFullRepayment) {
-            debtPositionToRepay.overdueLiquidatorReward = 0;
-        }
-        emit Events.UpdateDebtPosition(
-            creditPositionWithDebtToRepay.debtPositionId,
-            debtPositionToRepay.borrower,
-            debtPositionToRepay.issuanceValue,
-            debtPositionToRepay.faceValue,
-            debtPositionToRepay.repayFee,
-            debtPositionToRepay.overdueLiquidatorReward,
-            debtPositionToRepay.startDate,
-            debtPositionToRepay.dueDate,
-            debtPositionToRepay.liquidityIndexAtRepayment
-        );
+        state.repayDebt(creditPositionWithDebtToRepay.debtPositionId, amountToCompensate, false, true);
 
         // credit reduction
         state.reduceCredit(params.creditPositionWithDebtToRepayId, amountToCompensate);

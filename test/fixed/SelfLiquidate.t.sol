@@ -51,7 +51,7 @@ contract SelfLiquidateTest is BaseTest {
         _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyExitFee);
         _deposit(bob, weth, 150e18);
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 100e6);
@@ -156,11 +156,11 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyExitFee);
         _deposit(bob, weth, 300e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
-        _deposit(candy, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
+        _deposit(candy, usdc, 100e6 + size.feeConfig().earlyExitFee);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
@@ -190,7 +190,7 @@ contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidate_selfliquidateLoan_creditPosition_should_work() public {
         _setPrice(1e18);
         _updateConfig("repayFeeAPR", 0);
-        _updateConfig("earlyLenderExitFee", 0);
+        _updateConfig("earlyExitFee", 0);
         _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
@@ -227,10 +227,10 @@ contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidate_selfliquidateLoan_creditPosition_insufficient_debt_token_repay_fee() public {
         _setPrice(1e18);
         _deposit(alice, weth, 200e18);
-        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyExitFee);
         _deposit(bob, weth, 200e18);
         _deposit(candy, weth, 200e18);
-        _deposit(candy, usdc, 100e6 + size.feeConfig().earlyLenderExitFee);
+        _deposit(candy, usdc, 100e6 + size.feeConfig().earlyExitFee);
         _deposit(james, usdc, 100e6);
         _deposit(liquidator, usdc, 10_000e6);
 
@@ -257,7 +257,7 @@ contract SelfLiquidateTest is BaseTest {
     function testFuzz_SelfLiquidate_selfliquidateLoan_creditPosition_insufficient_debt_token_repay_fee_no_fees(
         uint256 exitAmount
     ) public {
-        _updateConfig("earlyLenderExitFee", 0);
+        _updateConfig("earlyExitFee", 0);
         _updateConfig("repayFeeAPR", 0);
         _setPrice(1e18);
         _deposit(alice, weth, 200e18);
@@ -331,12 +331,12 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(size.getUserView(alice).debtBalance, 0);
     }
 
-    function testFuzz_SelfLiquidate_selfliquidateLoan_borrowerExit(uint256 exitAmount) public {
+    function testFuzz_SelfLiquidate_selfliquidateLoan_compensate_used_to_borrower_exit(uint256 exitAmount) public {
         _setPrice(1e18);
         _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 100e6);
-        _deposit(james, weth, 300e18);
+        _deposit(james, weth, 400e18);
         _deposit(james, usdc, 100e6);
 
         uint256 borrowAmount = 100e6;
@@ -354,14 +354,17 @@ contract SelfLiquidateTest is BaseTest {
         uint256 debtPositionId1 = _borrowAsMarketOrder(alice, candy, borrowAmount, block.timestamp + 365 days);
         uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         _borrowAsMarketOrder(candy, james, exitAmount, block.timestamp + 365 days, [creditPositionId1]);
+        uint256 creditPositionId12 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
 
         _setPrice(0.5e18);
 
         _selfLiquidate(candy, creditPositionId1);
-        _borrowerExit(alice, debtPositionId1, james);
+        uint256 debtPositionId2 = _lendAsMarketOrder(alice, james, borrowAmount, block.timestamp + 365 days);
+        uint256 creditPositionId21 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
+        _compensate(alice, creditPositionId12, creditPositionId21);
     }
 
-    function test_SelfLiquidate_selfliquidateLoan_borrowerExit_round_fees_down() public {
+    function test_SelfLiquidate_selfliquidateLoan_compensate_used_to_borrower_exit_round_fees_down() public {
         _setPrice(1e18);
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 100e6);
@@ -399,7 +402,10 @@ contract SelfLiquidateTest is BaseTest {
                 + size.feeConfig().overdueLiquidatorReward
         );
 
-        _borrowerExit(alice, debtPositionId1, james);
+        _deposit(james, weth, 200e18);
+        uint256 debtPositionId2 = _lendAsMarketOrder(alice, james, borrowAmount, block.timestamp + 365 days);
+        uint256 creditPositionId21 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
+        _compensate(alice, creditPositionId2, creditPositionId21);
     }
 
     function testFuzz_SelfLiquidate_selfliquidateLoan_repay(uint256 exitAmount) public {

@@ -40,15 +40,10 @@ library Repay {
 
     function executeRepay(State storage state, RepayParams calldata params) external {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
-        uint256 debt = debtPosition.getTotalDebt();
         uint256 faceValue = debtPosition.faceValue;
 
         state.transferBorrowAToken(msg.sender, address(this), faceValue);
-        uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, faceValue);
-        debtPosition.updateRepayFee(faceValue, repayFee);
-        state.data.debtToken.burn(debtPosition.borrower, debt);
-        debtPosition.overdueLiquidatorReward = 0;
-        debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+        state.repayDebt(params.debtPositionId, faceValue, true, true);
 
         emit Events.Repay(params.debtPositionId);
     }
