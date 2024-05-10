@@ -32,7 +32,7 @@ library LendAsLimitOrder {
             if (params.maxDueDate == 0) {
                 revert Errors.NULL_MAX_DUE_DATE();
             }
-            if (params.maxDueDate < block.timestamp) {
+            if (params.maxDueDate < block.timestamp + state.riskConfig.minimumMaturity) {
                 revert Errors.PAST_MAX_DUE_DATE(params.maxDueDate);
             }
 

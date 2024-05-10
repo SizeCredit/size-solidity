@@ -46,7 +46,7 @@ library LendAsMarketOrder {
         }
 
         // validate dueDate
-        if (params.dueDate < block.timestamp) {
+        if (params.dueDate < block.timestamp + state.riskConfig.minimumMaturity) {
             revert Errors.PAST_DUE_DATE(params.dueDate);
         }
 
