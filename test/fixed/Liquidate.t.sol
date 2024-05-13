@@ -210,13 +210,13 @@ contract LiquidateTest is BaseTest {
             size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).repayFee);
         assertEq(repayFeeCollateral, 0.25e18);
 
-        uint256 protocolSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed)
+        uint256 protocolSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed - repayFeeCollateral)
             * size.feeConfig().overdueColProtocolPercent / PERCENT;
-        uint256 liquidatorSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed)
+        uint256 liquidatorSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed - repayFeeCollateral)
             * size.feeConfig().overdueColLiquidatorPercent / PERCENT;
 
-        assertEq(protocolSplit, (180e18 - 110e18) * 0.005e18 / 1e18, 0.35e18);
-        assertEq(liquidatorSplit, (180e18 - 110e18) * 0.01e18 / 1e18, 0.7e18);
+        assertEq(protocolSplit, (180e18 - 110e18 - 0.25e18) * 0.005e18 / 1e18, 0.34875e18);
+        assertEq(liquidatorSplit, (180e18 - 110e18 - 0.25e18) * 0.01e18 / 1e18, 0.6975e18);
 
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
@@ -231,8 +231,7 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.bob.collateralTokenBalance,
             _before.bob.collateralTokenBalance - liquidatorProfitCollateralTokenFixed
-                - (protocolSplit + liquidatorSplit) - repayFeeCollateral,
-            "x"
+                - (protocolSplit + liquidatorSplit) - repayFeeCollateral
         );
         assertEq(
             _after.feeRecipient.collateralTokenBalance,
@@ -274,9 +273,9 @@ contract LiquidateTest is BaseTest {
         uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
 
         uint256 collateralRemainder = Math.min(
-            assignedCollateral - liquidatorProfitCollateralTokenFixed,
+            assignedCollateral - liquidatorProfitCollateralTokenFixed - repayFeeCollateral,
             Math.mulDivDown(
-                size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId)),
+                size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId) - repayFee),
                 size.riskConfig().crLiquidation,
                 PERCENT
             )

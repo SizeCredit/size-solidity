@@ -225,7 +225,8 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     {
         state.validateLiquidateWithReplacement(params);
         uint256 amount;
-        (amount, liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) = state.executeLiquidateWithReplacement(params);
+        (amount, liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
+            state.executeLiquidateWithReplacement(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
         state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralAsset);
         state.validateVariablePoolHasEnoughLiquidity(amount);
