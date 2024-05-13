@@ -111,22 +111,15 @@ library LiquidateWithReplacement {
         uint256 liquidatorProfitBorrowAsset = debtPositionCopy.faceValue - issuanceValue;
 
         debtPosition.borrower = params.borrower;
-        debtPosition.startDate = block.timestamp;
-        debtPosition.issuanceValue = issuanceValue;
         debtPosition.faceValue = debtPositionCopy.faceValue;
         debtPosition.overdueLiquidatorReward = state.feeConfig.overdueLiquidatorReward;
         debtPosition.liquidityIndexAtRepayment = 0;
-        debtPosition.repayFee =
-            LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
 
         emit Events.UpdateDebtPosition(
             params.debtPositionId,
             debtPosition.borrower,
-            debtPosition.issuanceValue,
             debtPosition.faceValue,
-            debtPosition.repayFee,
             debtPosition.overdueLiquidatorReward,
-            debtPosition.startDate,
             debtPosition.dueDate,
             debtPosition.liquidityIndexAtRepayment
         );

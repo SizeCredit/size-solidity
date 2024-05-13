@@ -155,7 +155,7 @@ library BorrowAsMarketOrder {
                 credit: deltaAmountIn
             });
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
-            state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyExitFee);
+            state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.fragmentationFee);
             amountOutLeft -= deltaAmountOut;
         }
     }
@@ -179,7 +179,6 @@ library BorrowAsMarketOrder {
         DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
             lender: params.lender,
             borrower: msg.sender,
-            issuanceValue: issuanceValue,
             faceValue: faceValue,
             dueDate: params.dueDate
         });

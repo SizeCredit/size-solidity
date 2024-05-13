@@ -57,7 +57,7 @@ library SelfLiquidate {
 
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
 
-        state.repayDebt(creditPosition.debtPositionId, creditPosition.credit, false, false);
+        state.repayDebt(creditPosition.debtPositionId, creditPosition.credit, false);
 
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
 

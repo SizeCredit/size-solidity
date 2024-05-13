@@ -80,20 +80,6 @@ abstract contract SizeView is SizeStorage {
         return state.getDebtPosition(debtPositionId).getTotalDebt();
     }
 
-    function getDueDateDebt(uint256 debtPositionId) external view returns (uint256) {
-        return state.getDebtPosition(debtPositionId).getDueDateDebt();
-    }
-
-    function getAPR(uint256 debtPositionId) external view returns (uint256) {
-        if (state.getLoanStatus(debtPositionId) == LoanStatus.REPAID) {
-            revert Errors.LOAN_ALREADY_REPAID(debtPositionId);
-        }
-        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
-        uint256 maturity = debtPosition.dueDate - debtPosition.startDate;
-        uint256 ratePerMaturity = Math.mulDivDown(debtPosition.faceValue, PERCENT, debtPosition.issuanceValue) - PERCENT;
-        return Math.ratePerMaturityToAPR(ratePerMaturity, maturity);
-    }
-
     function debtTokenAmountToCollateralTokenAmount(uint256 borrowATokenAmount) external view returns (uint256) {
         return state.debtTokenAmountToCollateralTokenAmount(borrowATokenAmount);
     }
@@ -151,14 +137,6 @@ abstract contract SizeView is SizeStorage {
 
     function getLoanStatus(uint256 positionId) external view returns (LoanStatus) {
         return state.getLoanStatus(positionId);
-    }
-
-    function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
-        external
-        pure
-        returns (uint256)
-    {
-        return LoanLibrary.repayFee(issuanceValue, startDate, dueDate, repayFeeAPR);
     }
 
     function getPositionsCount() external view returns (uint256, uint256) {

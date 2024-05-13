@@ -34,7 +34,6 @@ contract LendAsMarketOrderTest is BaseTest {
         (uint256 loansBefore,) = size.getPositionsCount();
 
         uint256 debtPositionId = _lendAsMarketOrder(bob, alice, faceValue, dueDate);
-        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -42,12 +41,11 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(
-            _after.alice.debtBalance,
-            _before.alice.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
+            _after.alice.debtBalance, _before.alice.debtBalance + faceValue + size.feeConfig().overdueLiquidatorReward
         );
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
-        assertEq(size.getOverdueDebt(debtPositionId), faceValue + repayFee + size.feeConfig().overdueLiquidatorReward);
+        assertEq(size.getOverdueDebt(debtPositionId), faceValue + size.feeConfig().overdueLiquidatorReward);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
@@ -66,7 +64,6 @@ contract LendAsMarketOrderTest is BaseTest {
         (uint256 loansBefore,) = size.getPositionsCount();
 
         uint256 debtPositionId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
-        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -74,8 +71,7 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(
-            _after.alice.debtBalance,
-            _before.alice.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
+            _after.alice.debtBalance, _before.alice.debtBalance + faceValue + size.feeConfig().overdueLiquidatorReward
         );
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
@@ -103,7 +99,6 @@ contract LendAsMarketOrderTest is BaseTest {
         (uint256 loansBefore,) = size.getPositionsCount();
 
         uint256 debtPositionId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
-        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -111,8 +106,7 @@ contract LendAsMarketOrderTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(
-            _after.alice.debtBalance,
-            _before.alice.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
+            _after.alice.debtBalance, _before.alice.debtBalance + faceValue + size.feeConfig().overdueLiquidatorReward
         );
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
@@ -121,7 +115,6 @@ contract LendAsMarketOrderTest is BaseTest {
 
     function test_LendAsMarketOrder_lendAsMarketOrder_cannot_leave_borrower_liquidatable() public {
         _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
@@ -146,7 +139,6 @@ contract LendAsMarketOrderTest is BaseTest {
     function test_LendAsMarketOrder_lendAsMarketOrder_cannot_surpass_debtTokenCap() public {
         _setPrice(1e18);
         _updateConfig("debtTokenCap", 5e6);
-        _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);

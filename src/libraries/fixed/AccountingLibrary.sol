@@ -41,58 +41,28 @@ library AccountingLibrary {
     /// @param debtPositionId The debt position id
     /// @param repayAmount The amount to repay
     /// @param cashReceived Whether this is a cash operation
-    /// @param chargeRepayFee Whether we should charge the repay fee
-    function repayDebt(
-        State storage state,
-        uint256 debtPositionId,
-        uint256 repayAmount,
-        bool cashReceived,
-        bool chargeRepayFee
-    ) public {
+    function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount, bool cashReceived) public {
         DebtPosition storage debtPosition = state.getDebtPosition(debtPositionId);
 
-        bool isFullRepay = repayAmount == debtPosition.faceValue;
-        uint256 repayFeeProRata = isFullRepay
-            ? debtPosition.repayFee
-            : Math.mulDivDown(debtPosition.repayFee, repayAmount, debtPosition.faceValue);
-
-        if (chargeRepayFee) {
-            uint256 repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFeeProRata);
-
-            if (state.data.collateralToken.balanceOf(debtPosition.borrower) < repayFeeCollateral) {
-                repayFeeCollateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
-            }
-
-            state.data.collateralToken.transferFrom(
-                debtPosition.borrower, state.feeConfig.feeRecipient, repayFeeCollateral
-            );
-        }
-
-        if (isFullRepay) {
+        if (repayAmount == debtPosition.faceValue) {
+            // full repayment
             state.data.debtToken.burn(debtPosition.borrower, debtPosition.getTotalDebt());
             debtPosition.faceValue = 0;
-            debtPosition.repayFee = 0;
             debtPosition.overdueLiquidatorReward = 0;
             if (cashReceived) {
                 debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
             }
         } else {
             // The overdueCollateralReward is not cleared if the loan has not been fully repaid
-            state.data.debtToken.burn(debtPosition.borrower, repayAmount + repayFeeProRata);
-            uint256 r = Math.mulDivDown(PERCENT, debtPosition.faceValue, debtPosition.issuanceValue);
+            state.data.debtToken.burn(debtPosition.borrower, repayAmount);
             debtPosition.faceValue -= repayAmount;
-            debtPosition.repayFee -= repayFeeProRata;
-            debtPosition.issuanceValue = Math.mulDivDown(debtPosition.faceValue, PERCENT, r);
         }
 
         emit Events.UpdateDebtPosition(
             debtPositionId,
             debtPosition.borrower,
-            debtPosition.issuanceValue,
             debtPosition.faceValue,
-            debtPosition.repayFee,
             debtPosition.overdueLiquidatorReward,
-            debtPosition.startDate,
             debtPosition.dueDate,
             debtPosition.liquidityIndexAtRepayment
         );
@@ -102,17 +72,13 @@ library AccountingLibrary {
         State storage state,
         address lender,
         address borrower,
-        uint256 issuanceValue,
         uint256 faceValue,
         uint256 dueDate
     ) external returns (DebtPosition memory debtPosition) {
         debtPosition = DebtPosition({
             borrower: borrower,
-            issuanceValue: issuanceValue,
             faceValue: faceValue,
-            repayFee: LoanLibrary.repayFee(issuanceValue, block.timestamp, dueDate, state.feeConfig.repayFeeAPR),
             overdueLiquidatorReward: state.feeConfig.overdueLiquidatorReward,
-            startDate: block.timestamp,
             dueDate: dueDate,
             liquidityIndexAtRepayment: 0
         });
@@ -121,14 +87,7 @@ library AccountingLibrary {
         state.data.debtPositions[debtPositionId] = debtPosition;
 
         emit Events.CreateDebtPosition(
-            debtPositionId,
-            lender,
-            borrower,
-            issuanceValue,
-            faceValue,
-            debtPosition.repayFee,
-            debtPosition.overdueLiquidatorReward,
-            dueDate
+            debtPositionId, lender, borrower, faceValue, debtPosition.overdueLiquidatorReward, dueDate
         );
 
         CreditPosition memory creditPosition = CreditPosition({

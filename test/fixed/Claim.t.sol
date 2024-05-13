@@ -36,7 +36,7 @@ contract ClaimTest is BaseTest {
 
     function test_Claim_claim_of_exited_loan_gets_credit_back() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
@@ -67,7 +67,7 @@ contract ClaimTest is BaseTest {
 
     function test_Claim_claim_of_CreditPosition_where_DebtPosition_is_repaid_works() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
@@ -119,9 +119,6 @@ contract ClaimTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
-        uint256 repayFee =
-            size.repayFee(100e6, block.timestamp, block.timestamp + 365 days, size.feeConfig().repayFeeAPR);
-        uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
@@ -139,10 +136,8 @@ contract ClaimTest is BaseTest {
 
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - 200e6);
-        assertEq(_after.bob.collateralTokenBalance, _before.bob.collateralTokenBalance - repayFeeCollateral);
-        assertEq(
-            _after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance + repayFeeCollateral
-        );
+        assertEq(_after.bob.collateralTokenBalance, _before.bob.collateralTokenBalance);
+        assertEq(_after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance);
     }
 
     function test_Claim_claim_of_liquidated_loan_retrieves_borrow_amount() public {
@@ -173,7 +168,7 @@ contract ClaimTest is BaseTest {
         _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 160e18);
-        _deposit(bob, usdc, 100e6 + size.feeConfig().earlyExitFee);
+        _deposit(bob, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(candy, usdc, 10e6);
         _deposit(liquidator, usdc, 1000e6);
         _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
@@ -264,8 +259,8 @@ contract ClaimTest is BaseTest {
 
         _updateConfig("borrowATokenCap", type(uint256).max);
 
-        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyExitFee);
-        assertEq(_state().alice.borrowATokenBalance, 100e6 + size.feeConfig().earlyExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
+        assertEq(_state().alice.borrowATokenBalance, 100e6 + size.feeConfig().fragmentationFee);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _deposit(james, weth, 5000e18);
 

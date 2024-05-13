@@ -42,10 +42,9 @@ library Repay {
     function executeRepay(State storage state, RepayParams calldata params) external {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
-        bool chargeRepayFee = !state.isUserUnderwater(debtPosition.borrower);
 
         state.transferBorrowAToken(msg.sender, address(this), faceValue);
-        state.repayDebt(params.debtPositionId, faceValue, true, chargeRepayFee);
+        state.repayDebt(params.debtPositionId, faceValue, true);
 
         emit Events.Repay(params.debtPositionId);
     }

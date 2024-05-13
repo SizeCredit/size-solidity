@@ -4,8 +4,6 @@ pragma solidity 0.8.23;
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {ForkTest} from "@test/ForkTest.sol";
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
-
 import {DeployScript} from "@script/Deploy.s.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
@@ -62,7 +60,6 @@ contract DeployScriptTest is ForkTest {
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 1_000e6, block.timestamp + 60 days);
 
         assertEq(debtPositionId, 0);
-        assertEq(size.getDebtPosition(debtPositionId).issuanceValue, 1_000e6);
         assertEq(size.getUserView(alice).borrowATokenBalance, 1_500e6);
         assertEq(size.getUserView(bob).borrowATokenBalance, 1_000e6);
     }

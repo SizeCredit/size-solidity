@@ -13,6 +13,8 @@ import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
+import {MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
+
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
@@ -48,6 +50,13 @@ interface ISize {
     ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)
     ///     - uint256 to: The recipient of the withdrawal
     function withdraw(WithdrawParams calldata params) external payable;
+
+    /// @notice Mints a new DebtPosition/CreditPosition pair to the sender
+    /// @dev If the debt is to be repaid in the future, the user must use their credit before the due date, otherwise it may become liquidatable
+    /// @param params MintCreditParams struct containing the following fields:
+    ///     - uint256 amount: The amount of tokens to borrow (in decimals, e.g. 1_000e6 for 1000 aUSDC)
+    ///     - uint256 dueDate: The due date of the position
+    function mintCredit(MintCreditParams calldata params) external payable;
 
     /// @notice Picks a lender offer and borrow tokens from the orderbook
     ///         When using receivable credit positions as credit, the early exit lender fee is applied to the borrower

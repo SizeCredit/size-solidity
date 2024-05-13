@@ -10,8 +10,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract SetUserConfigurationValidationTest is BaseTest {
     function test_SetUserConfiguration_validation() public {
         _setPrice(1e18);
-        _updateConfig("earlyExitFee", 0);
-        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("fragmentationFee", 0);
         _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, 100e6);

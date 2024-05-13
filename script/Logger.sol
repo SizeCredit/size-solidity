@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {SizeView, UserView} from "@src/SizeView.sol";
+import {UserView} from "@src/SizeView.sol";
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {console2 as console} from "forge-std/console2.sol";
@@ -51,11 +51,8 @@ abstract contract Logger {
 
     function log(DebtPosition memory debtPosition) internal pure {
         console.log("borrower", debtPosition.borrower);
-        console.log("issuanceValue", debtPosition.issuanceValue);
         console.log("faceValue", debtPosition.faceValue);
-        console.log("repayFee", debtPosition.repayFee);
         console.log("overdueLiquidatorReward", debtPosition.overdueLiquidatorReward);
-        console.log("startDate", debtPosition.startDate);
         console.log("dueDate", debtPosition.dueDate);
         console.log("liquidityIndexAtRepayment", debtPosition.liquidityIndexAtRepayment);
     }

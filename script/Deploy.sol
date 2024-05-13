@@ -52,8 +52,9 @@ abstract contract Deploy {
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         f = InitializeFeeConfigParams({
-            repayFeeAPR: 0.005e18,
-            earlyExitFee: 5e6,
+            swapFeeAPR: 0.005e18,
+            minSwapFee: 0e6,
+            fragmentationFee: 5e6,
             collateralLiquidatorPercent: 0.3e18,
             collateralProtocolPercent: 0.1e18,
             overdueLiquidatorReward: 10e6,
@@ -118,8 +119,9 @@ abstract contract Deploy {
         }
 
         f = InitializeFeeConfigParams({
-            repayFeeAPR: 0.005e18,
-            earlyExitFee: 5e6,
+            swapFeeAPR: 0.005e18,
+            minSwapFee: 0e6,
+            fragmentationFee: 5e6,
             collateralLiquidatorPercent: 0.3e18,
             collateralProtocolPercent: 0.1e18,
             overdueLiquidatorReward: 10e6,

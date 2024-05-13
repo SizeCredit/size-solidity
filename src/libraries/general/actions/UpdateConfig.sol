@@ -32,8 +32,9 @@ library UpdateConfig {
 
     function feeConfigParams(State storage state) public view returns (InitializeFeeConfigParams memory) {
         return InitializeFeeConfigParams({
-            repayFeeAPR: state.feeConfig.repayFeeAPR,
-            earlyExitFee: state.feeConfig.earlyExitFee,
+            swapFeeAPR: state.feeConfig.swapFeeAPR,
+            minSwapFee: state.feeConfig.minSwapFee,
+            fragmentationFee: state.feeConfig.fragmentationFee,
             collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,
             collateralProtocolPercent: state.feeConfig.collateralProtocolPercent,
             overdueLiquidatorReward: state.feeConfig.overdueLiquidatorReward,
@@ -90,10 +91,12 @@ library UpdateConfig {
             state.riskConfig.debtTokenCap = params.value;
         } else if (Strings.equal(params.key, "minimumMaturity")) {
             state.riskConfig.minimumMaturity = params.value;
-        } else if (Strings.equal(params.key, "repayFeeAPR")) {
-            state.feeConfig.repayFeeAPR = params.value;
-        } else if (Strings.equal(params.key, "earlyExitFee")) {
-            state.feeConfig.earlyExitFee = params.value;
+        } else if (Strings.equal(params.key, "swapFeeAPR")) {
+            state.feeConfig.swapFeeAPR = params.value;
+        } else if (Strings.equal(params.key, "minSwapFee")) {
+            state.feeConfig.minSwapFee = params.value;
+        } else if (Strings.equal(params.key, "fragmentationFee")) {
+            state.feeConfig.fragmentationFee = params.value;
         } else if (Strings.equal(params.key, "collateralLiquidatorPercent")) {
             state.feeConfig.collateralLiquidatorPercent = params.value;
         } else if (Strings.equal(params.key, "collateralProtocolPercent")) {

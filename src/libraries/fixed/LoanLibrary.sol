@@ -13,11 +13,8 @@ uint256 constant RESERVED_ID = type(uint256).max;
 
 struct DebtPosition {
     address borrower;
-    uint256 issuanceValue; // updated on debt reduction
     uint256 faceValue; // updated on debt reduction
-    uint256 repayFee; // updated on debt reduction
     uint256 overdueLiquidatorReward; // only paid in case of overdue liquidation
-    uint256 startDate; // updated on borrower replacement
     uint256 dueDate;
     uint256 liquidityIndexAtRepayment; // set on full repayment
 }
@@ -53,22 +50,13 @@ library LoanLibrary {
 
     /// @notice Get the total debt of a DebtPosition
     ///         The total loan debt is the face value (debt to the lender)
-    ///        + the repay fee (protocol fee)
     ///        + the overdue liquidator reward (in case of overdue liquidation).
     /// @dev The overdue liquidator reward is only paid in case of overdue liquidation, but
     ///      it is included in the total debt so that it is properly collateralized.
     ///      In case of a repayment before the due date, the reward is deducted from borrower's total debt tracker.
     /// @param self The DebtPosition
     function getTotalDebt(DebtPosition memory self) internal pure returns (uint256) {
-        return self.faceValue + self.repayFee + self.overdueLiquidatorReward;
-    }
-
-    /// @notice Get the debt of a DebtPosition assuming it is repaid before due date
-    /// @dev If a DebtPosition is paid before the due date, the borrower, the overdue liquidator
-    ///      reward is deducted from borrower's total total debt tracker.
-    /// @param self The DebtPosition
-    function getDueDateDebt(DebtPosition memory self) internal pure returns (uint256) {
-        return self.faceValue + self.repayFee;
+        return self.faceValue + self.overdueLiquidatorReward;
     }
 
     function getDebtPositionIdByCreditPositionId(State storage state, uint256 creditPositionId)
@@ -177,24 +165,24 @@ library LoanLibrary {
         }
     }
 
-    function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
+    /// @notice Calculate the swap fee for a CreditPosition
+    /// @dev max((credit / (1 + rate)) * (swapFeeAPR * (dueDate - block.timestamp) / 365 days), minSwapFee)
+    ///      The fee is capped to the size of the CreditPosition
+    /// @param state The state struct
+    /// @param creditPosition The CreditPosition
+    /// @param rate The rate of the credit buyer when the credit is transferred
+    function swapFee(State storage state, CreditPosition storage creditPosition, uint256 rate)
         internal
-        pure
+        view
         returns (uint256)
     {
-        uint256 interval = dueDate - startDate;
-        uint256 repayFeePercent = Math.mulDivUp(repayFeeAPR, interval, 365 days);
-        uint256 fee = Math.mulDivUp(issuanceValue, repayFeePercent, PERCENT);
-        return fee;
-    }
-
-    /// @notice Calculate the early repayment fee for a DebtPosition
-    /// @dev The fee is calculated as a fraction of the total repayment fee, based on the time elapsed since the loan start date
-    ///      The early repay fee applies to a borrower exit only
-    /// @param self The DebtPosition
-    function earlyRepayFee(DebtPosition memory self) internal view returns (uint256) {
-        uint256 elapsed = block.timestamp - self.startDate;
-        uint256 maturity = self.dueDate - self.startDate;
-        return Math.mulDivDown(self.repayFee, elapsed, maturity);
+        DebtPosition storage debtPosition = getDebtPosition(state, creditPosition.debtPositionId);
+        uint256 fee = Math.mulDivUp(creditPosition.credit, PERCENT, PERCENT + rate)
+            * (state.feeConfig.swapFeeAPR * (debtPosition.dueDate - block.timestamp) / 365 days);
+        return Math.min(
+            Math.max(fee, state.feeConfig.minSwapFee),
+            // cap the fee to the credit position's credit
+            creditPosition.credit
+        );
     }
 }

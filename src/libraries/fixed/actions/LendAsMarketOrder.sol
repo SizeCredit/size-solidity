@@ -91,7 +91,6 @@ library LendAsMarketOrder {
         DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,
-            issuanceValue: issuanceValue,
             faceValue: faceValue,
             dueDate: params.dueDate
         });

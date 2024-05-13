@@ -7,7 +7,6 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidate_selfliquidate_rapays_with_collateral() public {
         _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
@@ -47,11 +46,10 @@ contract SelfLiquidateTest is BaseTest {
 
     function test_SelfLiquidate_selfliquidate_CreditPosition_keeps_accounting_in_check() public {
         _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(bob, weth, 150e18);
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 100e6);
@@ -129,7 +127,6 @@ contract SelfLiquidateTest is BaseTest {
         _lendAsLimitOrder(james, block.timestamp + 365 days, 0);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         _borrowAsMarketOrder(alice, candy, 5e6, block.timestamp + 365 days, [creditPositionId]);
         _borrowAsMarketOrder(alice, james, 80e6, block.timestamp + 365 days);
         _borrowAsMarketOrder(bob, james, 40e6, block.timestamp + 365 days);
@@ -137,17 +134,13 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.25e18);
 
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 50e6);
-        assertEq(size.getOverdueDebt(debtPositionId), 50e6 + repayFee);
+        assertEq(size.getOverdueDebt(debtPositionId), 50e6);
         assertEq(size.getCreditPosition(creditPositionId).credit, 50e6 - 5e6);
         assertEq(size.getCreditPosition(creditPositionId).credit, 45e6);
 
         _selfLiquidate(alice, creditPositionId);
 
-        assertLt(
-            size.getDebtPosition(debtPositionId).repayFee, repayFee, "Repay fee is adjusted after self liquidation"
-        );
-        assertGt(size.getDebtPosition(debtPositionId).repayFee, 0);
-        assertEq(size.getOverdueDebt(debtPositionId), 5e6 + size.getDebtPosition(debtPositionId).repayFee);
+        assertEq(size.getOverdueDebt(debtPositionId), 5e6);
         assertEq(size.getCreditPosition(creditPositionId).credit, 0);
         assertEq(size.getCreditPosition(creditPositionId).credit, 0);
     }
@@ -156,11 +149,11 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
-        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(bob, weth, 300e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
-        _deposit(candy, usdc, 100e6 + size.feeConfig().earlyExitFee);
+        _deposit(candy, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
@@ -189,8 +182,7 @@ contract SelfLiquidateTest is BaseTest {
 
     function test_SelfLiquidate_selfliquidateLoan_creditPosition_should_work() public {
         _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
-        _updateConfig("earlyExitFee", 0);
+        _updateConfig("fragmentationFee", 0);
         _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
@@ -227,10 +219,10 @@ contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidate_selfliquidateLoan_creditPosition_insufficient_debt_token_repay_fee() public {
         _setPrice(1e18);
         _deposit(alice, weth, 200e18);
-        _deposit(alice, usdc, 100e6 + size.feeConfig().earlyExitFee);
+        _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(bob, weth, 200e18);
         _deposit(candy, weth, 200e18);
-        _deposit(candy, usdc, 100e6 + size.feeConfig().earlyExitFee);
+        _deposit(candy, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(james, usdc, 100e6);
         _deposit(liquidator, usdc, 10_000e6);
 
@@ -257,8 +249,7 @@ contract SelfLiquidateTest is BaseTest {
     function testFuzz_SelfLiquidate_selfliquidateLoan_creditPosition_insufficient_debt_token_repay_fee_no_fees(
         uint256 exitAmount
     ) public {
-        _updateConfig("earlyExitFee", 0);
-        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("fragmentationFee", 0);
         _setPrice(1e18);
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 100e6);
@@ -312,17 +303,14 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18);
 
         assertEq(size.getUserView(alice).debtBalance, 100.5e6 + 10e6);
-        assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.5e6);
 
         _selfLiquidate(candy, creditPositionId1);
 
         assertEq(size.getUserView(alice).debtBalance, 5.025002e6 + 10e6);
-        assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.025001e6);
         assertEq(size.getCreditPosition(creditPositionId2).credit, 5.000001e6);
         assertEq(
             size.getUserView(alice).debtBalance,
-            size.getDebtPosition(debtPositionId1).repayFee + size.getCreditPosition(creditPositionId2).credit
-                + size.feeConfig().overdueLiquidatorReward
+            size.getCreditPosition(creditPositionId2).credit + size.feeConfig().overdueLiquidatorReward
         );
 
         assertTrue(size.isUserUnderwater(alice));
@@ -389,17 +377,14 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18);
 
         assertEq(size.getUserView(alice).debtBalance, 100.5e6 + 10e6);
-        assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.5e6);
 
         _selfLiquidate(candy, creditPositionId1);
 
         assertEq(size.getUserView(alice).debtBalance, 5.025002e6 + 10e6);
-        assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.025001e6);
         assertEq(size.getCreditPosition(creditPositionId2).credit, 5.000001e6);
         assertEq(
             size.getUserView(alice).debtBalance,
-            size.getDebtPosition(debtPositionId1).repayFee + size.getCreditPosition(creditPositionId2).credit
-                + size.feeConfig().overdueLiquidatorReward
+            size.getCreditPosition(creditPositionId2).credit + size.feeConfig().overdueLiquidatorReward
         );
 
         _deposit(james, weth, 200e18);
@@ -464,17 +449,14 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18);
 
         assertEq(size.getUserView(alice).debtBalance, 100.5e6 + 10e6);
-        assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.5e6);
 
         _selfLiquidate(candy, creditPositionId1);
 
         assertEq(size.getUserView(alice).debtBalance, 5.025002e6 + 10e6);
-        assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.025001e6);
         assertEq(size.getCreditPosition(creditPositionId2).credit, 5.000001e6);
         assertEq(
             size.getUserView(alice).debtBalance,
-            size.getDebtPosition(debtPositionId1).repayFee + size.getCreditPosition(creditPositionId2).credit
-                + size.feeConfig().overdueLiquidatorReward
+            size.getCreditPosition(creditPositionId2).credit + size.feeConfig().overdueLiquidatorReward
         );
 
         _repay(alice, debtPositionId1);
@@ -535,17 +517,14 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18);
 
         assertEq(size.getUserView(alice).debtBalance, 100.5e6 + 10e6);
-        assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.5e6);
 
         _selfLiquidate(candy, creditPositionId1);
 
         assertEq(size.getUserView(alice).debtBalance, 5.025002e6 + 10e6);
-        assertEq(size.getDebtPosition(debtPositionId1).repayFee, 0.025001e6);
         assertEq(size.getCreditPosition(creditPositionId2).credit, 5.000001e6);
         assertEq(
             size.getUserView(alice).debtBalance,
-            size.getDebtPosition(debtPositionId1).repayFee + size.getCreditPosition(creditPositionId2).credit
-                + size.feeConfig().overdueLiquidatorReward
+            size.getCreditPosition(creditPositionId2).credit + size.feeConfig().overdueLiquidatorReward
         );
 
         _deposit(liquidator, usdc, 10_000e6);

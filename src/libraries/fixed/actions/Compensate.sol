@@ -92,7 +92,7 @@ library Compensate {
             Math.min(params.amount, creditPositionToCompensate.credit, creditPositionWithDebtToRepay.credit);
 
         // debt reduction
-        state.repayDebt(creditPositionWithDebtToRepay.debtPositionId, amountToCompensate, false, true);
+        state.repayDebt(creditPositionWithDebtToRepay.debtPositionId, amountToCompensate, false);
 
         // credit reduction
         state.reduceCredit(params.creditPositionWithDebtToRepayId, amountToCompensate);

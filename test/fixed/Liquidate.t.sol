@@ -12,7 +12,6 @@ import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 contract LiquidateTest is BaseTest {
     function test_Liquidate_liquidate_seizes_borrower_collateral() public {
         _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 100e18);
@@ -120,8 +119,6 @@ contract LiquidateTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
 
-        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
-
         _setPrice(0.2e18);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
@@ -132,11 +129,7 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(
-            _after.bob.debtBalance,
-            _before.bob.debtBalance - debt - repayFee - size.feeConfig().overdueLiquidatorReward,
-            0
-        );
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - debt - size.feeConfig().overdueLiquidatorReward, 0);
     }
 
     function test_Liquidate_liquidate_can_be_called_unprofitably_and_liquidator_is_senior_creditor() public {
@@ -154,10 +147,6 @@ contract LiquidateTest is BaseTest {
 
         _setPrice(0.1e18);
 
-        uint256 repayFeeCollateral =
-            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).repayFee);
-
-        assertGt(repayFeeCollateral, 0);
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
         uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(debtPositionId);
         uint256 faceValueCollateral =
@@ -206,13 +195,9 @@ contract LiquidateTest is BaseTest {
         );
         assertEq(liquidatorProfitCollateralTokenFixed, 100e18 + 10e18);
 
-        uint256 repayFeeCollateral =
-            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).repayFee);
-        assertEq(repayFeeCollateral, 0.25e18);
-
-        uint256 protocolSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed - repayFeeCollateral)
+        uint256 protocolSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed)
             * size.feeConfig().overdueColProtocolPercent / PERCENT;
-        uint256 liquidatorSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed - repayFeeCollateral)
+        uint256 liquidatorSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed)
             * size.feeConfig().overdueColLiquidatorPercent / PERCENT;
 
         assertEq(protocolSplit, (180e18 - 110e18 - 0.25e18) * 0.005e18 / 1e18, 0.34875e18);
@@ -231,11 +216,10 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.bob.collateralTokenBalance,
             _before.bob.collateralTokenBalance - liquidatorProfitCollateralTokenFixed
-                - (protocolSplit + liquidatorSplit) - repayFeeCollateral
+                - (protocolSplit + liquidatorSplit)
         );
         assertEq(
-            _after.feeRecipient.collateralTokenBalance,
-            _before.feeRecipient.collateralTokenBalance + repayFeeCollateral + protocolSplit
+            _after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance + protocolSplit
         );
         assertEq(
             _after.liquidator.collateralTokenBalance,
@@ -269,13 +253,10 @@ contract LiquidateTest is BaseTest {
             size.getDebtPosition(debtPositionId).faceValue + size.feeConfig().overdueLiquidatorReward
         );
 
-        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
-        uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
-
         uint256 collateralRemainder = Math.min(
-            assignedCollateral - liquidatorProfitCollateralTokenFixed - repayFeeCollateral,
+            assignedCollateral - liquidatorProfitCollateralTokenFixed,
             Math.mulDivDown(
-                size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId) - repayFee),
+                size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId)),
                 size.riskConfig().crLiquidation,
                 PERCENT
             )
@@ -294,11 +275,10 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.bob.collateralTokenBalance,
             _before.bob.collateralTokenBalance - liquidatorProfitCollateralTokenFixed
-                - (protocolSplit + liquidatorSplit) - repayFeeCollateral
+                - (protocolSplit + liquidatorSplit)
         );
         assertEq(
-            _after.feeRecipient.collateralTokenBalance,
-            _before.feeRecipient.collateralTokenBalance + repayFeeCollateral + protocolSplit
+            _after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance + protocolSplit
         );
         assertEq(
             _after.liquidator.collateralTokenBalance,
@@ -437,11 +417,9 @@ contract LiquidateTest is BaseTest {
         );
     }
 
-    function test_Liquidate_liquidate_charge_repayFee() internal {}
+    function test_Liquidate_liquidate_charge_fee() internal {}
 
-    function test_Liquidate_unprofitable_may_not_award_repayFee() internal {}
+    function test_Liquidate_unprofitable_may_not_award_fee() internal {}
 
-    function test_Liquidate_liquidate_with_CR_100_can_be_unprofitable_due_to_repayFee() internal {}
-
-    function testFuzz_Liquidate_liquidate_charge_repayFee() internal {}
+    function test_Liquidate_liquidate_with_CR_100_can_be_unprofitable_due_to_fee() internal {}
 }

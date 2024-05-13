@@ -118,12 +118,9 @@ contract MulticallTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
-        uint256 repayFee = debtPosition.repayFee;
-        uint256 debt = faceValue + repayFee + size.feeConfig().overdueLiquidatorReward;
+        uint256 debt = faceValue + size.feeConfig().overdueLiquidatorReward;
 
         _setPrice(0.31e18);
-
-        uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
@@ -160,8 +157,8 @@ contract MulticallTest is BaseTest {
         assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance, 0);
         assertGt(
             _after.feeRecipient.collateralTokenBalance,
-            _before.feeRecipient.collateralTokenBalance + repayFeeCollateral,
-            "feeRecipient has repayFee and liquidation split"
+            _before.feeRecipient.collateralTokenBalance,
+            "feeRecipient has liquidation split"
         );
         assertEq(beforeLiquidatorWETH, 0);
         assertGt(afterLiquidatorWETH, beforeLiquidatorWETH);
@@ -172,7 +169,6 @@ contract MulticallTest is BaseTest {
     function test_Multicall_multicall_bypasses_cap_if_it_is_to_reduce_debt() public {
         _setPrice(1e18);
         _updateConfig("borrowATokenCap", 100e6);
-        _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, 100e6);
