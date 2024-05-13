@@ -32,7 +32,6 @@ library LendAsMarketOrder {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using VariablePoolLibrary for State;
-    using AccountingLibrary for State;
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.data.users[params.borrower].borrowOffer;
@@ -80,12 +79,14 @@ library LendAsMarketOrder {
 
         uint256 ratePerMaturity =
             borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
+        uint256 faceValue;
         if (params.exactAmountIn) {
             issuanceValue = params.amount;
+            faceValue = Math.mulDivDown(params.amount, PERCENT + ratePerMaturity, PERCENT);
         } else {
             issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
+            faceValue = params.amount;
         }
-        uint256 faceValue = Math.mulDivDown(issuanceValue, PERCENT + ratePerMaturity, PERCENT);
 
         DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
             lender: msg.sender,
