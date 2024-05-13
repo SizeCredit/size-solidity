@@ -90,7 +90,7 @@ library LiquidateWithReplacement {
 
     function executeLiquidateWithReplacement(State storage state, LiquidateWithReplacementParams calldata params)
         external
-        returns (uint256, uint256)
+        returns (uint256, uint256, uint256)
     {
         emit Events.LiquidateWithReplacement(params.debtPositionId, params.borrower, params.minimumCollateralProfit);
 
@@ -135,6 +135,6 @@ library LiquidateWithReplacement {
         state.transferBorrowAToken(address(this), params.borrower, issuanceValue);
         state.transferBorrowAToken(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
 
-        return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
+        return (issuanceValue, liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }
 }
