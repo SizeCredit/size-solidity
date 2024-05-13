@@ -14,7 +14,6 @@ import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.s
 library AccountingLibrary {
     using RiskLibrary for State;
     using LoanLibrary for DebtPosition;
-    using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using VariablePoolLibrary for State;
 

@@ -11,8 +11,6 @@ import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/librar
 /// @title RiskLibrary
 library RiskLibrary {
     using LoanLibrary for State;
-    using LoanLibrary for DebtPosition;
-    using LoanLibrary for CreditPosition;
 
     function validateMinimumCredit(State storage state, uint256 credit) public view {
         if (0 < credit && credit < state.riskConfig.minimumCreditBorrowAToken) {
