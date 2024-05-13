@@ -5,9 +5,6 @@ import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 
 uint256 constant PERCENT = 1e18;
 
-// @audit-info The protocol does not support tokens with more than 18 decimals
-// @audit Check rounding direction of all `FixedPointMath.mulDiv{Up,Down}`
-
 /// @title Math
 library Math {
     function min(uint256 a, uint256 b) internal pure returns (uint256) {

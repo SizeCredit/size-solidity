@@ -150,19 +150,23 @@ library Initialize {
         if (o.variablePoolBorrowRateFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        // slither-disable-next-line unused-return
-        IVariablePoolBorrowRateFeed(o.variablePoolBorrowRateFeed).getVariableBorrowRate();
     }
 
-    function validateInitializeDataParams(InitializeDataParams memory d) internal pure {
+    function validateInitializeDataParams(InitializeDataParams memory d) internal view {
         // validate underlyingCollateralToken
         if (d.underlyingCollateralToken == address(0)) {
             revert Errors.NULL_ADDRESS();
+        }
+        if (IERC20Metadata(d.underlyingCollateralToken).decimals() > 18) {
+            revert Errors.INVALID_DECIMALS(IERC20Metadata(d.underlyingCollateralToken).decimals());
         }
 
         // validate underlyingBorrowToken
         if (d.underlyingBorrowToken == address(0)) {
             revert Errors.NULL_ADDRESS();
+        }
+        if (IERC20Metadata(d.underlyingBorrowToken).decimals() > 18) {
+            revert Errors.INVALID_DECIMALS(IERC20Metadata(d.underlyingBorrowToken).decimals());
         }
 
         // validate variablePool

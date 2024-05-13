@@ -35,7 +35,6 @@ library BorrowAsMarketOrder {
     using RiskLibrary for State;
     using AccountingLibrary for State;
     using VariablePoolLibrary for State;
-    using AccountingLibrary for State;
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
         User memory lenderUser = state.data.users[params.lender];
