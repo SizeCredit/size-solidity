@@ -106,9 +106,10 @@ library AccountingLibrary {
 
     function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)
         external
+        returns (bool isFullExit)
     {
         uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
-        reduceCredit(state, exitCreditPositionId, credit);
+        isFullExit = reduceCredit(state, exitCreditPositionId, credit);
 
         CreditPosition memory creditPosition =
             CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: true});
@@ -120,11 +121,16 @@ library AccountingLibrary {
         emit Events.CreateCreditPosition(creditPositionId, lender, exitCreditPositionId, debtPositionId, credit);
     }
 
-    function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount) public {
+    function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount)
+        public
+        returns (bool isFullExit)
+    {
         CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
         creditPosition.credit -= amount;
         state.validateMinimumCredit(creditPosition.credit);
 
         emit Events.UpdateCreditPosition(creditPositionId, creditPosition.credit, creditPosition.forSale);
+
+        return creditPosition.credit == 0;
     }
 }

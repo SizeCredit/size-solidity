@@ -10,6 +10,7 @@ import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
+import {MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
@@ -52,6 +53,22 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     function _withdraw(address user, address token, uint256 amount, address to) internal {
         vm.prank(user);
         size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
+    }
+
+    function _mintCredit(address user, uint256 amount, uint256 dueDate) internal returns (uint256) {
+        uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
+        vm.prank(user);
+        size.mintCredit(MintCreditParams({amount: amount, dueDate: dueDate}));
+        uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
+        if (debtPositionIdAfter == debtPositionIdBefore) {
+            return RESERVED_ID;
+        } else {
+            return debtPositionIdAfter - 1;
+        }
+    }
+
+    function _mintCredit(address user, uint256 amount) internal returns (uint256) {
+        return _mintCredit(user, amount, 0);
     }
 
     function _lendAsLimitOrder(
@@ -322,8 +339,10 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         );
     }
 
-    function _compensate(address user, uint256 debtPositionToRepayId, uint256 creditPositionToCompensateId) internal {
-        return _compensate(user, debtPositionToRepayId, creditPositionToCompensateId, type(uint256).max);
+    function _compensate(address user, uint256 creditPositionWithDebtToRepayId, uint256 creditPositionToCompensateId)
+        internal
+    {
+        return _compensate(user, creditPositionWithDebtToRepayId, creditPositionToCompensateId, type(uint256).max);
     }
 
     function _compensate(

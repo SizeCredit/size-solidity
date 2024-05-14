@@ -43,6 +43,6 @@ library MintCredit {
         });
         state.data.debtToken.mint(msg.sender, debtPosition.getTotalDebt());
 
-        emit Events.MintCredit(params.amount, params.dueDate);
+        emit Events.MintCredit(params.amount, dueDate);
     }
 }

@@ -119,9 +119,7 @@ library BorrowAsMarketOrder {
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
-        User storage lenderUser = state.data.users[params.lender];
-
-        LoanOffer storage loanOffer = lenderUser.loanOffer;
+        LoanOffer storage loanOffer = state.data.users[params.lender].loanOffer;
 
         uint256 ratePerMaturity =
             loanOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
@@ -149,13 +147,15 @@ library BorrowAsMarketOrder {
                 break;
             }
 
-            state.createCreditPosition({
+            bool isFullExit = state.createCreditPosition({
                 exitCreditPositionId: creditPositionId,
                 lender: params.lender,
                 credit: deltaAmountIn
             });
             state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
-            state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.fragmentationFee);
+            if (!isFullExit) {
+                state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.fragmentationFee);
+            }
             amountOutLeft -= deltaAmountOut;
         }
     }

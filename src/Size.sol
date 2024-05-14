@@ -143,6 +143,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     function mintCredit(MintCreditParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateMintCredit(params);
         state.executeMintCredit(params);
+        // @audit-info Do not need to check if user is underwater after minting credit, as it can be used to repay debt
     }
 
     /// @inheritdoc ISize
