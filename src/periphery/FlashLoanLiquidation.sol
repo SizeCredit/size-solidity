@@ -42,16 +42,16 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         require(initiator == address(this));
 
         // Decode the params to get the necessary information
-        (uint256 debtPositionId, uint256 minimumCollateralProfit, address liquidator) = abi.decode(params, (uint256, uint256, address));
+        (uint256 debtPositionId, uint256 minimumCollateralProfit, address liquidator, address collateralToken) = abi.decode(params, (uint256, uint256, address, address));
 
         // Liquidate the debt position and withdraw all assets
-        liquidateDebtPosition(assets[1], assets[0], amounts[0], debtPositionId, minimumCollateralProfit);
+        liquidateDebtPosition(collateralToken, assets[0], amounts[0], debtPositionId, minimumCollateralProfit);
 
-        // Swap the collateral tokens for the debt tokens
-        uint256 swappedAmount = swapCollateral(assets[1], assets[0]);
+        // Swap the collateral tokens for the debt tokens and withdraw everything
+        swapCollateral(collateralToken, assets[0]);
 
         // Settle the debt tokens and flash loan
-        settleFlashLoan(assets, amounts, premiums, liquidator, swappedAmount);
+        settleFlashLoan(assets, amounts, premiums, liquidator);
 
         return true;
     }
@@ -116,8 +116,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         address[] calldata assets,
         uint256[] calldata amounts,
         uint256[] calldata premiums,
-        address liquidator,
-        uint256 swappedAmount
+        address liquidator
     ) internal {
         // Calculate the amount to transfer to the liquidator
         uint256 amountToLiquidator = IERC20(assets[0]).balanceOf(address(this)) - (amounts[0] + premiums[0]);
@@ -139,11 +138,10 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 flashLoanAmount, // Amount of debt token to flash loan
         address liquidator // The receiver of the liquidation proceeds
     ) external {
-        bytes memory params = abi.encode(debtPositionId, minimumCollateralProfit, liquidator);
+        bytes memory params = abi.encode(debtPositionId, minimumCollateralProfit, liquidator, collateralToken);
 
-        address[] memory assets = new address[](2);
+        address[] memory assets = new address[](1);
         assets[0] = flashLoanAsset; // The debt token (e.g. USDC)
-        assets[1] = collateralToken; // The collateral token (e.g. WETH)
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = flashLoanAmount;
