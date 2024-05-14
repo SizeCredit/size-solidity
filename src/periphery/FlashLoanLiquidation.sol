@@ -118,16 +118,20 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256[] calldata premiums,
         address liquidator
     ) internal {
+        uint256 totalDebt = amounts[0] + premiums[0];
+        uint256 balance = IERC20(assets[0]).balanceOf(address(this));
+
+        // Ensure the balance is sufficient to cover the amounts and premiums 
+        require(balance >= totalDebt, "Insufficient balance to repay flash loan"); 
+
         // Calculate the amount to transfer to the liquidator
-        uint256 amountToLiquidator = IERC20(assets[0]).balanceOf(address(this)) - (amounts[0] + premiums[0]);
+        uint256 amountToLiquidator = balance - totalDebt;
 
         // Transfer the remaining debt tokens to the liquidator
         IERC20(assets[0]).transfer(liquidator, amountToLiquidator);
 
         // Approve the Pool contract to pull the owed amount
-        for (uint256 i = 0; i < assets.length; i++) {
-            IERC20(assets[i]).approve(address(POOL), amounts[i] + premiums[i]);
-        }
+        IERC20(assets[0]).approve(address(POOL), amounts[0] + premiums[0]);
     }
 
     function liquidatePositionWithFlashLoan(
