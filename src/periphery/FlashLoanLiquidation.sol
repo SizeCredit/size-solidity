@@ -9,12 +9,25 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
+
+interface I1InchAggregator {
+    function swap(
+        address fromToken,
+        address toToken,
+        uint256 amount,
+        uint256 minReturn,
+        bytes calldata data
+    ) external payable returns (uint256 returnAmount);
+}
 
 contract FlashLoanLiquidator is FlashLoanReceiverBase {
     ISize public sizeLendingContract;
+    I1InchAggregator public aggregator;
 
-    constructor(address _addressProvider, address _sizeLendingContractAddress) FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider)) {
+    constructor(address _addressProvider, address _sizeLendingContractAddress, address _aggregator) FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider)) {
         sizeLendingContract = ISize(_sizeLendingContractAddress);
+        aggregator = I1InchAggregator(_aggregator);
         POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
     }
 
@@ -48,12 +61,30 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         // Perform the liquidation using the deposited funds
         sizeLendingContract.liquidate(liquidateParams);
 
-        // Withdraw the collateral and transfer to the liquidator
+        // Withdraw the collateral and debt tokens
         sizeLendingContract.withdraw(WithdrawParams({
             token: assets[0],
             amount: type(uint256).max,
-            to: liquidator
+            to: address(this)
         }));
+        sizeLendingContract.withdraw(WithdrawParams({
+            token: assets[1],
+            amount: type(uint256).max,
+            to: address(this)
+        }));
+
+        // Swap the collateral tokens for the debt tokens using the aggregator
+        IERC20(assets[0]).approve(address(aggregator), type(uint256).max);
+        uint256 swappedAmount = aggregator.swap(
+            assets[0],
+            assets[1], // Assuming assets[1] is the debt token (e.g. USDC)
+            IERC20(assets[0]).balanceOf(address(this)),
+            1, // Minimum return amount, can be adjusted as needed
+            ""
+        );
+
+        // Transfer the swapped debt tokens to the liquidator
+        IERC20(assets[1]).transfer(liquidator, swappedAmount);
 
         // Approve the Pool contract to pull the owed amount
         for (uint256 i = 0; i < assets.length; i++) {
@@ -68,12 +99,13 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 minimumCollateralProfit,
         address flashLoanAsset,
         uint256 flashLoanAmount,
-        address liquidator // the receiver of the liquidation proceeds, parameterised to allow anyone to use this contract
+        address liquidator
     ) external {
         bytes memory params = abi.encode(debtPositionId, minimumCollateralProfit, liquidator);
 
-        address[] memory assets = new address[](1);
+        address[] memory assets = new address[](2);
         assets[0] = flashLoanAsset;
+        assets[1] = address(0); // Placeholder for the debt token (e.g., USDC)
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = flashLoanAmount;
