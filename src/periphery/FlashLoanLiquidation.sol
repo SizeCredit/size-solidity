@@ -76,10 +76,10 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         // Swap the collateral tokens for the debt tokens using the aggregator
         IERC20(assets[0]).approve(address(aggregator), type(uint256).max);
         uint256 swappedAmount = aggregator.swap(
-            assets[0],
-            assets[1], // Assuming assets[1] is the debt token (e.g. USDC)
-            IERC20(assets[0]).balanceOf(address(this)),
-            1, // Minimum return amount, can be adjusted as needed
+            assets[1], // Assuming assets[1] is the collateral token (e.g. WETH)
+            assets[0], // Assuming assets[0] is the debt token (e.g. USDC)
+            IERC20(assets[1]).balanceOf(address(this)),
+            1, // Minimum return amount
             ""
         );
 
@@ -104,8 +104,8 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         bytes memory params = abi.encode(debtPositionId, minimumCollateralProfit, liquidator);
 
         address[] memory assets = new address[](2);
-        assets[0] = flashLoanAsset;
-        assets[1] = address(0); // Placeholder for the debt token (e.g., USDC)
+        assets[0] = flashLoanAsset; // The debt token (e.g. USDC)
+        assets[1] = address(0); // Placeholder for the collateral token (e.g. WETH)
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = flashLoanAmount;
