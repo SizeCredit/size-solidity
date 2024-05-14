@@ -7,6 +7,8 @@ import {IPool} from "aave-v3-core/contracts/interfaces/IPool.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
 contract FlashLoanLiquidator is FlashLoanReceiverBase {
     ISize public sizeLendingContract;
@@ -27,7 +29,15 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         require(initiator == address(this));
 
         // Decode the params to get the necessary information
-        (uint256 debtPositionId, uint256 minimumCollateralProfit) = abi.decode(params, (uint256, uint256));
+        (uint256 debtPositionId, uint256 minimumCollateralProfit, address liquidator) = abi.decode(params, (uint256, uint256, address));
+
+        // Approve and deposit USDC to repay the borrower's debt
+        IERC20(assets[0]).approve(address(sizeLendingContract), amounts[0]);
+        sizeLendingContract.deposit(DepositParams({
+            token: assets[0],
+            amount: amounts[0],
+            to: address(this)
+        }));
 
         // Create the LiquidateParams struct
         LiquidateParams memory liquidateParams = LiquidateParams({
@@ -35,8 +45,15 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
             minimumCollateralProfit: minimumCollateralProfit
         });
 
-        // Perform the liquidation using the borrowed funds
+        // Perform the liquidation using the deposited funds
         sizeLendingContract.liquidate(liquidateParams);
+
+        // Withdraw the collateral and transfer to the liquidator
+        sizeLendingContract.withdraw(WithdrawParams({
+            token: assets[0],
+            amount: type(uint256).max,
+            to: liquidator
+        }));
 
         // Approve the Pool contract to pull the owed amount
         for (uint256 i = 0; i < assets.length; i++) {
@@ -50,9 +67,10 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 debtPositionId,
         uint256 minimumCollateralProfit,
         address flashLoanAsset,
-        uint256 flashLoanAmount
+        uint256 flashLoanAmount,
+        address liquidator // the receiver of the liquidation proceeds, parameterised to allow anyone to use this contract
     ) external {
-        bytes memory params = abi.encode(debtPositionId, minimumCollateralProfit);
+        bytes memory params = abi.encode(debtPositionId, minimumCollateralProfit, liquidator);
 
         address[] memory assets = new address[](1);
         assets[0] = flashLoanAsset;
