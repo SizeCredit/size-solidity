@@ -23,6 +23,9 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         address initiator,
         bytes calldata params
     ) external override returns (bool) {
+        require(msg.sender == address(POOL));
+        require(initiator == address(this));
+
         // Decode the params to get the necessary information
         (uint256 debtPositionId, uint256 minimumCollateralProfit) = abi.decode(params, (uint256, uint256));
 
