@@ -124,7 +124,7 @@ library Liquidate {
 
         LiquidatePathVars memory vars = state.isUserUnderwater(debtPosition.borrower)
             ? LiquidatePathVars({
-                collateralLiquidatorFixed: 0,
+                collateralLiquidatorFixed: loanStatus == LoanStatus.OVERDUE ? debtPosition.overdueLiquidatorReward : 0,
                 collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,
                 collateralProtocolPercent: state.feeConfig.collateralProtocolPercent
             })

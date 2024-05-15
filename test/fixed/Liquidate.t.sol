@@ -337,6 +337,35 @@ contract LiquidateTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalance, _interest.alice.borrowATokenBalance + faceValue * 1.1e27 / 1e27);
     }
 
+    function test_Liquidate_liquidate_overdue_underwater() public {
+        _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 165e18);
+        _deposit(liquidator, usdc, 1_000e6);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+
+        vm.warp(block.timestamp + 365 days + 1);
+        Vars memory _before = _state();
+
+        _setPrice(0.75e18);
+        _liquidate(liquidator, debtPositionId);
+
+        uint256 liquidatorProfitCollateralTokenFixed =
+            size.debtTokenAmountToCollateralTokenAmount(faceValue + size.feeConfig().overdueLiquidatorReward);
+
+        Vars memory _after = _state();
+
+        uint256 liquidatorProfit = liquidatorProfitCollateralTokenFixed
+            + Math.mulDivDown(
+                165e18 - liquidatorProfitCollateralTokenFixed, size.feeConfig().collateralLiquidatorPercent, PERCENT
+            );
+
+        assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance + liquidatorProfit);
+    }
+
     function testFuzz_Liquidate_liquidate_minimumCollateralProfit(
         uint256 newPrice,
         uint256 interval,
