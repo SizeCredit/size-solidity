@@ -190,7 +190,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
-        (uint256 debtPositionsCount, ) = size.getPositionsCount();
+        (uint256 debtPositionsCount,) = size.getPositionsCount();
         // assumes a new debt position was created, which may not be the case on a loan exit
         return DEBT_POSITION_ID_START + debtPositionsCount - 1;
     }

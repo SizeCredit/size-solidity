@@ -98,10 +98,13 @@ library Compensate {
         state.reduceCredit(params.creditPositionWithDebtToRepayId, amountToCompensate);
 
         // credit emission
-        state.createCreditPosition({
+        uint256 exiterCreditRemaining = state.createCreditPosition({
             exitCreditPositionId: params.creditPositionToCompensateId,
             lender: creditPositionWithDebtToRepay.lender,
             credit: amountToCompensate
         });
+        if (exiterCreditRemaining > 0) {
+            state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.fragmentationFee);
+        }
     }
 }

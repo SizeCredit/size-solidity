@@ -106,10 +106,10 @@ library AccountingLibrary {
 
     function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)
         external
-        returns (bool isFullExit)
+        returns (uint256 exiterCreditRemaining)
     {
         uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
-        isFullExit = reduceCredit(state, exitCreditPositionId, credit);
+        exiterCreditRemaining = reduceCredit(state, exitCreditPositionId, credit);
 
         CreditPosition memory creditPosition =
             CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: true});
@@ -123,7 +123,7 @@ library AccountingLibrary {
 
     function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount)
         public
-        returns (bool isFullExit)
+        returns (uint256 exiterCreditRemaining)
     {
         CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
         creditPosition.credit -= amount;
@@ -131,6 +131,17 @@ library AccountingLibrary {
 
         emit Events.UpdateCreditPosition(creditPositionId, creditPosition.credit, creditPosition.forSale);
 
-        return creditPosition.credit == 0;
+        return creditPosition.credit;
+    }
+
+    /// @notice Calculate the swap fee
+    /// @dev max(cash * (swapFeeAPR * (dueDate - block.timestamp) / 365 days), minSwapFee)
+    ///      The fee is capped to the cash leaving the protocol
+    /// @param state The state struct
+    /// @param cash The amount leaving the protocol
+    /// @param dueDate The due date of the loan
+    function swapFee(State storage state, uint256 cash, uint256 dueDate) internal view returns (uint256) {
+        uint256 fee = cash * Math.mulDivUp(state.feeConfig.swapFeeAPR, (dueDate - block.timestamp) / 365 days, PERCENT);
+        return Math.min(Math.max(fee, state.feeConfig.minSwapFee), cash);
     }
 }

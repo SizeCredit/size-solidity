@@ -130,8 +130,7 @@ library BorrowAsMarketOrder {
         amountOutLeft = amountOut;
 
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
-            uint256 creditPositionId = params.receivableCreditPositionIds[i];
-            CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
+            CreditPosition storage creditPosition = state.getCreditPosition(params.receivableCreditPositionIds[i]);
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, PERCENT + ratePerMaturity, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
@@ -145,15 +144,18 @@ library BorrowAsMarketOrder {
                 continue;
             }
 
-            bool isFullExit = state.createCreditPosition({
-                exitCreditPositionId: creditPositionId,
+            uint256 swapFee = state.swapFee(deltaAmountOut, params.dueDate);
+            uint256 exiterCreditRemaining = state.createCreditPosition({
+                exitCreditPositionId: params.receivableCreditPositionIds[i],
                 lender: params.lender,
                 credit: deltaAmountIn
             });
-            state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut);
-            if (!isFullExit) {
-                state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.fragmentationFee);
-            }
+            state.transferBorrowAToken(
+                params.lender,
+                state.feeConfig.feeRecipient,
+                swapFee + (exiterCreditRemaining > 0 ? state.feeConfig.fragmentationFee : 0)
+            );
+            state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut - swapFee);
             amountOutLeft -= deltaAmountOut;
 
             // full amount borrowed
@@ -187,6 +189,8 @@ library BorrowAsMarketOrder {
         });
 
         state.data.debtToken.mint(msg.sender, debtPosition.getTotalDebt());
-        state.transferBorrowAToken(params.lender, msg.sender, issuanceValue);
+        uint256 swapFee = state.swapFee(issuanceValue, params.dueDate);
+        state.transferBorrowAToken(params.lender, state.feeConfig.feeRecipient, swapFee);
+        state.transferBorrowAToken(params.lender, msg.sender, issuanceValue - swapFee);
     }
 }

@@ -95,6 +95,8 @@ library LendAsMarketOrder {
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
-        state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
+        uint256 swapFee = state.swapFee(issuanceValue, params.dueDate);
+        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, swapFee);
+        state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue - swapFee);
     }
 }

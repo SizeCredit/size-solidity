@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 uint256 constant DEBT_POSITION_ID_START = 0;
@@ -163,26 +163,5 @@ library LoanLibrary {
         } else {
             return 0;
         }
-    }
-
-    /// @notice Calculate the swap fee for a CreditPosition
-    /// @dev max((credit / (1 + rate)) * (swapFeeAPR * (dueDate - block.timestamp) / 365 days), minSwapFee)
-    ///      The fee is capped to the size of the CreditPosition
-    /// @param state The state struct
-    /// @param creditPosition The CreditPosition
-    /// @param rate The rate of the credit buyer when the credit is transferred
-    function swapFee(State storage state, CreditPosition storage creditPosition, uint256 rate)
-        internal
-        view
-        returns (uint256)
-    {
-        DebtPosition storage debtPosition = getDebtPosition(state, creditPosition.debtPositionId);
-        uint256 fee = Math.mulDivUp(creditPosition.credit, PERCENT, PERCENT + rate)
-            * (state.feeConfig.swapFeeAPR * (debtPosition.dueDate - block.timestamp) / 365 days);
-        return Math.min(
-            Math.max(fee, state.feeConfig.minSwapFee),
-            // cap the fee to the credit position's credit
-            creditPosition.credit
-        );
     }
 }

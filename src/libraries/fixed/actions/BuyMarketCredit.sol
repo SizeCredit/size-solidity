@@ -97,13 +97,18 @@ library BuyMarketCredit {
             revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, amountOut);
         }
 
-        state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn);
-        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.fragmentationFee);
-        state.createCreditPosition({
+        uint256 swapFee = state.swapFee(amountIn, debtPosition.dueDate);
+        uint256 exiterCreditRemaining = state.createCreditPosition({
             exitCreditPositionId: params.creditPositionId,
             lender: msg.sender,
             credit: amountOut
         });
+        state.transferBorrowAToken(
+            msg.sender,
+            state.feeConfig.feeRecipient,
+            swapFee + (exiterCreditRemaining > 0 ? state.feeConfig.fragmentationFee : 0)
+        );
+        state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn - swapFee);
 
         emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
     }
