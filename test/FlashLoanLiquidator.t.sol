@@ -5,109 +5,95 @@ import "forge-std/Test.sol";
 import "../src/periphery/FlashLoanLiquidation.sol";
 import "./mocks/Mock1InchAggregator.sol";
 import "./mocks/MockAavePool.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
+
+import {BaseTest} from "@test/BaseTest.sol";
+import {Vars} from "@test/BaseTestGeneral.sol";
+
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
+
+import {Errors} from "@src/libraries/Errors.sol";
+
+import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
-import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
-import {BaseTest} from "@test/BaseTest.sol";
 
-contract FlashLoanLiquidatorTest is BaseTest {
-    FlashLoanLiquidator liquidator;
-    Mock1InchAggregator mockAggregator;
-    MockAavePool mockAavePool;
-    ISize size;
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-    address flashLoanAsset = address(0x456);
-    address collateralToken = address(0x789);
-    address liquidatorAddress = address(0xabc);
+contract FlashLoanLiquidationTest is BaseTest {
+    MockAavePool public mockAavePool;
+    Mock1InchAggregator public mock1InchAggregator;
+    FlashLoanLiquidator public flashLoanLiquidator;
 
-    function setUp() public override {
-        super.setUp();
-
-        mockAggregator = new Mock1InchAggregator();
+    function test_flashloan_liquidator_can_liquidate_and_withdraw() public {
+        // Initialize mock contracts
         mockAavePool = new MockAavePool();
-        liquidator = new FlashLoanLiquidator(address(mockAavePool), address(size), address(mockAggregator));
+        mock1InchAggregator = new Mock1InchAggregator();
 
-        // Set up initial balances and approvals
-        deal(address(usdc), alice, 1000e6);
-        deal(address(usdc), bob, 1000e6);
-        deal(address(weth), alice, 100e18);
-        deal(address(weth), bob, 100e18);
+        // Initialize the FlashLoanLiquidator contract
+        flashLoanLiquidator = new FlashLoanLiquidator(
+            address(mockAavePool),
+            address(size),
+            address(mock1InchAggregator)
+        );
 
-        vm.startPrank(alice);
-        IERC20(address(usdc)).approve(address(size), 1000e6);
-        IERC20(address(weth)).approve(address(size), 100e18);
-        vm.stopPrank();
+        // Set the FlashLoanLiquidator contract as the keeper
+        _setKeeperRole(address(flashLoanLiquidator));
 
-        vm.startPrank(bob);
-        IERC20(address(usdc)).approve(address(size), 1000e6);
-        IERC20(address(weth)).approve(address(size), 100e18);
-        vm.stopPrank();
+        _setPrice(1e18);
 
-        // Create borrower and lender positions
-        vm.startPrank(alice);
-        size.deposit(DepositParams({token: address(usdc), amount: 1000e6, to: alice}));
-        size.deposit(DepositParams({token: address(weth), amount: 100e18, to: alice}));
-        vm.stopPrank();
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
 
-        vm.startPrank(bob);
-        size.deposit(DepositParams({token: address(usdc), amount: 1000e6, to: bob}));
-        size.deposit(DepositParams({token: address(weth), amount: 100e18, to: bob}));
-        vm.stopPrank();
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        uint256 amount = 15e6;
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
+        uint256 faceValue = debtPosition.faceValue;
+        uint256 repayFee = debtPosition.repayFee;
+        uint256 debt = faceValue + repayFee + size.feeConfig().overdueLiquidatorReward;
 
-        // Create a debt position
-        vm.startPrank(bob);
-        uint256 debtPositionId = size.borrowAsMarketOrder(BorrowAsMarketOrderParams({
-            lender: alice,
-            amount: 1000e6,
-            dueDate: block.timestamp + 365 days,
-            exactAmountIn: true,
-            receivableCreditPositionIds: new uint256[](0)
-        }));
-        vm.stopPrank();
-    }
+        _setPrice(0.31e18);
 
-    function testLiquidatePositionWithFlashLoan() public {
-        uint256 debtPositionId = 1;
-        uint256 minimumCollateralProfit = 100;
-        uint256 flashLoanAmount = 1000e6;
+        uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
 
-        liquidator.liquidatePositionWithFlashLoan(
+        assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
+
+        // _mint(address(usdc), address(flashLoanLiquidator), faceValue);
+        // _approve(address(flashLoanLiquidator), address(usdc), address(size), faceValue);
+
+        Vars memory _before = _state();
+        uint256 beforeLiquidatorUSDC = usdc.balanceOf(liquidator);
+
+        // Call the liquidatePositionWithFlashLoan function
+        vm.prank(liquidator);
+        flashLoanLiquidator.liquidatePositionWithFlashLoan(
             debtPositionId,
-            minimumCollateralProfit,
-            address(weth),
-            address(usdc),
-            flashLoanAmount,
-            liquidatorAddress
+            0, // minimumCollateralProfit
+            address(weth), // collateralToken
+            address(usdc), // flashLoanAsset
+            faceValue, // flashLoanAmount
+            liquidator // The receiver of the liquidation proceeds
         );
 
-        // TODO Add assertions to verify expected behavior
-    }
+        Vars memory _after = _state();
+        uint256 afterLiquidatorUSDC = usdc.balanceOf(liquidator);
 
-    function testExecuteOperation() public {
-        address[] memory assets = new address[](1);
-        assets[0] = address(usdc);
-
-        uint256[] memory amounts = new uint256[](1);
-        amounts[0] = 1000e6;
-
-        uint256[] memory premiums = new uint256[](1);
-        premiums[0] = 10e6;
-
-        bytes memory params = abi.encode(1, 100, liquidatorAddress, address(weth));
-
-        bool success = liquidator.executeOperation(
-            assets,
-            amounts,
-            premiums,
-            address(liquidator),
-            params
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - debt, 0);
+        assertEq(_after.liquidator.borrowATokenBalance, _before.liquidator.borrowATokenBalance, 0);
+        assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance, 0);
+        assertGt(
+            _after.feeRecipient.collateralTokenBalance,
+            _before.feeRecipient.collateralTokenBalance + repayFeeCollateral,
+            "feeRecipient has repayFee and liquidation split"
         );
-
-        assertTrue(success, "executeOperation should return true");
-
-        // TODO Add assertions to verify expected behavior
+        assertGt(afterLiquidatorUSDC, beforeLiquidatorUSDC, "Liquidator should have more USDC after liquidation");
     }
 }
