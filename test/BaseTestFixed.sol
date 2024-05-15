@@ -17,7 +17,7 @@ import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
@@ -55,19 +55,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
     }
 
-    function _mintCredit(address user, uint256 amount, uint256 dueDate) internal returns (uint256) {
-        uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
+    function _mintCredit(address user, uint256 amount, uint256 dueDate) internal returns (uint256, uint256) {
         vm.prank(user);
         size.mintCredit(MintCreditParams({amount: amount, dueDate: dueDate}));
-        uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
-        if (debtPositionIdAfter == debtPositionIdBefore) {
-            return RESERVED_ID;
-        } else {
-            return debtPositionIdAfter - 1;
-        }
+        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
+        return (DEBT_POSITION_ID_START + debtPositionsCount - 1, CREDIT_POSITION_ID_START + creditPositionsCount - 1);
     }
 
-    function _mintCredit(address user, uint256 amount) internal returns (uint256) {
+    function _mintCredit(address user, uint256 amount) internal returns (uint256, uint256) {
         return _mintCredit(user, amount, 0);
     }
 
@@ -183,7 +178,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         bool exactAmountIn,
         uint256[] memory receivableCreditPositionIds
     ) internal returns (uint256) {
-        uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
         vm.prank(borrower);
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
@@ -196,12 +190,9 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 receivableCreditPositionIds: receivableCreditPositionIds
             })
         );
-        uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
-        if (debtPositionIdAfter == debtPositionIdBefore) {
-            return RESERVED_ID;
-        } else {
-            return debtPositionIdAfter - 1;
-        }
+        (uint256 debtPositionsCount, ) = size.getPositionsCount();
+        // assumes a new debt position was created, which may not be the case on a loan exit
+        return DEBT_POSITION_ID_START + debtPositionsCount - 1;
     }
 
     function _borrowAsLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {

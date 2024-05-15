@@ -184,9 +184,8 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         override(ISize)
         whenNotPaused
     {
-        uint256 amount = params.amount;
         state.validateBorrowAsMarketOrder(params);
-        state.executeBorrowAsMarketOrder(params);
+        uint256 amount = state.executeBorrowAsMarketOrder(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
         state.validateDebtTokenCap();
         state.validateVariablePoolHasEnoughLiquidity(amount);

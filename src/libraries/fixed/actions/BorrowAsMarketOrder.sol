@@ -101,12 +101,14 @@ library BorrowAsMarketOrder {
         }
     }
 
-    function executeBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external {
+    function executeBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params)
+        external
+        returns (uint256 amountOut)
+    {
         emit Events.BorrowAsMarketOrder(
             params.lender, params.amount, params.dueDate, params.exactAmountIn, params.receivableCreditPositionIds
         );
-
-        params.amount = _borrowFromCredit(state, params);
+        (amountOut, params.amount) = _borrowFromCredit(state, params);
         _borrowGeneratingDebt(state, params);
     }
 
@@ -114,18 +116,18 @@ library BorrowAsMarketOrder {
     /// @dev The `amount` is initialized to `amountOutLeft`, which is decreased as more and more CreditPositions are created
     function _borrowFromCredit(State storage state, BorrowAsMarketOrderParams memory params)
         internal
-        returns (uint256 amountOutLeft)
+        returns (uint256 amountOut, uint256 amountOutLeft)
     {
         //  amountIn: Amount of future cashflow to exit
         //  amountOut: Amount of cash to borrow at present time
 
-        LoanOffer storage loanOffer = state.data.users[params.lender].loanOffer;
+        uint256 ratePerMaturity = state.data.users[params.lender].loanOffer.getRatePerMaturityByDueDate(
+            state.oracle.variablePoolBorrowRateFeed, params.dueDate
+        );
 
-        uint256 ratePerMaturity =
-            loanOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
-
-        amountOutLeft =
+        amountOut =
             params.exactAmountIn ? Math.mulDivDown(params.amount, PERCENT, PERCENT + ratePerMaturity) : params.amount;
+        amountOutLeft = amountOut;
 
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
             uint256 creditPositionId = params.receivableCreditPositionIds[i];
@@ -142,10 +144,6 @@ library BorrowAsMarketOrder {
             if (deltaAmountIn < state.riskConfig.minimumCreditBorrowAToken) {
                 continue;
             }
-            // full amount borrowed
-            if (deltaAmountOut == 0) {
-                break;
-            }
 
             bool isFullExit = state.createCreditPosition({
                 exitCreditPositionId: creditPositionId,
@@ -157,6 +155,11 @@ library BorrowAsMarketOrder {
                 state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.fragmentationFee);
             }
             amountOutLeft -= deltaAmountOut;
+
+            // full amount borrowed
+            if (amountOutLeft == 0) {
+                break;
+            }
         }
     }
 

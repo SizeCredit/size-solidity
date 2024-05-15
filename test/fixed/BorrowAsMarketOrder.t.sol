@@ -34,9 +34,10 @@ contract BorrowAsMarketOrderTest is BaseTest {
         uint256 amount = 10e6;
         uint256 dueDate = block.timestamp + 365 days;
 
-        _borrowAsMarketOrder(bob, alice, amount, dueDate);
-
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        (, uint256 creditPositionId) = _mintCredit(bob, faceValue, dueDate);
+        _borrowAsMarketOrder(bob, alice, amount, dueDate, [creditPositionId]);
+
         uint256 faceValueOpening = Math.mulDivUp(faceValue, size.riskConfig().crOpening, PERCENT);
         uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(faceValueOpening);
 
@@ -69,9 +70,11 @@ contract BorrowAsMarketOrderTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _borrowAsMarketOrder(bob, alice, amount, dueDate);
         uint256 rate = uint256(Math.aprToRatePerMaturity(apr, dueDate - block.timestamp));
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
+
+        (, uint256 creditPositionId) = _mintCredit(bob, debt, dueDate);
+        _borrowAsMarketOrder(bob, alice, amount, dueDate, [creditPositionId]);
         uint256 debtOpening = Math.mulDivUp(debt, size.riskConfig().crOpening, PERCENT);
         uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(debtOpening);
         Vars memory _after = _state();
