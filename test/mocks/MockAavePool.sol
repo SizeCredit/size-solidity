@@ -13,9 +13,17 @@ interface IMinimalPool {
         bytes calldata params,
         uint16 referralCode
     ) external;
+
+    function getPool() external view returns (address);
 }
 
 contract MockAavePool is IMinimalPool {
+    address public pool;
+    
+    constructor() {
+        pool = address(this);
+    }
+
     struct FlashLoanParams {
         address receiverAddress;
         address[] assets;
@@ -24,6 +32,10 @@ contract MockAavePool is IMinimalPool {
         address onBehalfOf;
         bytes params;
         uint16 referralCode;
+    }
+
+    function getPool() external view returns (address) {
+        return pool;
     }
 
     function flashLoan(
