@@ -35,6 +35,13 @@ contract FlashLoanLiquidationTest is BaseTest {
         mockAavePool = new MockAavePool();
         mock1InchAggregator = new Mock1InchAggregator();
 
+        // Fund the mock aggregator and pool with WETH and USDC
+        _mint(address(weth), address(mock1InchAggregator), 100000e18);
+        _mint(address(usdc), address(mock1InchAggregator), 1000000e6);
+        _mint(address(weth), address(mockAavePool), 100000e18);
+        _mint(address(usdc), address(mockAavePool), 1000000e6);
+
+
         // Initialize the FlashLoanLiquidator contract
         flashLoanLiquidator = new FlashLoanLiquidator(
             address(mockAavePool),
