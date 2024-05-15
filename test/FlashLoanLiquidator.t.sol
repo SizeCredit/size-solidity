@@ -1,19 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 import "../src/periphery/FlashLoanLiquidation.sol";
+import "./mocks/Mock1InchAggregator.sol";
+import "./mocks/MockAavePool.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IPoolAddressesProvider} from "aave-v3-core/contracts/interfaces/IPoolAddressesProvider.sol";
-import {IPool} from "aave-v3-core/contracts/interfaces/IPool.sol";
-import {Pool} from "aave-v3-core/contracts/protocol/pool/Pool.sol";
-import {Mock1InchAggregator} from "./mocks/Mock1InchAggregator.sol";
 
 contract FlashLoanLiquidatorTest is Test {
     FlashLoanLiquidator liquidator;
     Mock1InchAggregator mockAggregator;
-    PoolAddressesProvider poolAddressesProvider;
-    Pool aavePool;
+    MockAavePool mockAavePool;
     IERC20 mockToken;
 
     address sizeLendingContract = address(0x123);
@@ -22,22 +19,9 @@ contract FlashLoanLiquidatorTest is Test {
     address liquidatorAddress = address(0xabc);
 
     function setUp() public {
-        // Deploy the Aave PoolAddressesProvider and Pool
-        poolAddressesProvider = new PoolAddressesProvider();
-        aavePool = new Pool(address(poolAddressesProvider));
-
-        // Set the pool in the PoolAddressesProvider
-        poolAddressesProvider.setPoolImpl(address(aavePool));
-
-        // Deploy the Mock1InchAggregator
         mockAggregator = new Mock1InchAggregator();
-
-        // Deploy the FlashLoanLiquidator
-        liquidator = new FlashLoanLiquidator(address(poolAddressesProvider), sizeLendingContract, address(mockAggregator));
-
-        // Fund the Aave pool with liquidity
-        mockToken = IERC20(flashLoanAsset);
-        deal(address(mockToken), address(aavePool), 1000000 * 10**18); // Fund with 1,000,000 tokens
+        mockAavePool = new MockAavePool();
+        liquidator = new FlashLoanLiquidator(address(mockAavePool), sizeLendingContract, address(mockAggregator));
     }
 
     function testLiquidatePositionWithFlashLoan() public {
@@ -54,7 +38,7 @@ contract FlashLoanLiquidatorTest is Test {
             liquidatorAddress
         );
 
-        // Add assertions to verify the expected behavior
+        // TODO Add assertions to verify expected behavior
     }
 
     function testExecuteOperation() public {
@@ -79,6 +63,7 @@ contract FlashLoanLiquidatorTest is Test {
 
         assertTrue(success, "executeOperation should return true");
 
-        // Add more assertions to verify the expected behavior
+        // TODO Add assertions to verify expected behavior
     }
 }
+
