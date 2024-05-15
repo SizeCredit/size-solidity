@@ -26,9 +26,9 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
     I1InchAggregator public aggregator;
 
     constructor(address _addressProvider, address _sizeLendingContractAddress, address _aggregator) FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider)) {
+        POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
         sizeLendingContract = ISize(_sizeLendingContractAddress);
         aggregator = I1InchAggregator(_aggregator);
-        POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
     }
 
     function executeOperation(
