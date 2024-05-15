@@ -1,11 +1,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IPool} from "aave-v3-core/contracts/interfaces/IPool.sol";
 import {FlashLoanReceiverBase} from "aave-v3-core/contracts/flashloan/base/FlashLoanReceiverBase.sol";
-import {IPoolAddressesProvider} from "aave-v3-core/contracts/interfaces/IPoolAddressesProvider.sol";
 
-contract MockAavePool is IPool {
+interface IMinimalPool {
+    function flashLoan(
+        address receiverAddress,
+        address[] calldata assets,
+        uint256[] calldata amounts,
+        uint256[] calldata modes,
+        address onBehalfOf,
+        bytes calldata params,
+        uint16 referralCode
+    ) external;
+}
+
+contract MockAavePool is IMinimalPool {
+    struct FlashLoanParams {
+        address receiverAddress;
+        address[] assets;
+        uint256[] amounts;
+        uint256[] modes;
+        address onBehalfOf;
+        bytes params;
+        uint16 referralCode;
+    }
+
     function flashLoan(
         address receiverAddress,
         address[] calldata assets,
@@ -15,31 +35,28 @@ contract MockAavePool is IPool {
         bytes calldata params,
         uint16 referralCode
     ) external override {
+        FlashLoanParams memory flParams = FlashLoanParams({
+            receiverAddress: receiverAddress,
+            assets: assets,
+            amounts: amounts,
+            modes: modes,
+            onBehalfOf: onBehalfOf,
+            params: params,
+            referralCode: referralCode
+        });
+
+        _executeFlashLoan(flParams);
+    }
+
+    function _executeFlashLoan(FlashLoanParams memory flParams) internal {
         // Mock flash loan logic
         // Call the executeOperation function on the receiver
-        FlashLoanReceiverBase receiver = FlashLoanReceiverBase(receiverAddress);
-        receiver.executeOperation(assets, amounts, new uint256[](1), receiverAddress, params);
+        FlashLoanReceiverBase(flParams.receiverAddress).executeOperation(
+            flParams.assets,
+            flParams.amounts,
+            new uint256[](1),
+            flParams.receiverAddress,
+            flParams.params
+        );
     }
-
-    // Dummy implementations for required view functions
-    function ADDRESSES_PROVIDER() external view override returns (IPoolAddressesProvider) {
-        return IPoolAddressesProvider(address(0));
-    }
-
-    function FLASHLOAN_PREMIUM_TOTAL() external view override returns (uint128) {
-        return 0;
-    }
-
-    function FLASHLOAN_PREMIUM_TO_PROTOCOL() external view override returns (uint128) {
-        return 0;
-    }
-
-    function MAX_NUMBER_RESERVES() external view override returns (uint16) {
-        return 0;
-    }
-
-    function MAX_STABLE_RATE_BORROW_SIZE_PERCENT() external view override returns (uint256) {
-        return 0;
-    }
-
 }
