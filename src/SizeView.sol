@@ -32,25 +32,9 @@ import {
     InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
 import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
+import {UserView, DataView} from "@src/SizeViewStructs.sol";
 
-struct UserView {
-    User user;
-    address account;
-    uint256 collateralTokenBalance;
-    uint256 borrowATokenBalance;
-    uint256 debtBalance;
-}
 
-struct DataView {
-    uint256 nextDebtPositionId;
-    uint256 nextCreditPositionId;
-    IERC20Metadata underlyingCollateralToken;
-    IERC20Metadata underlyingBorrowToken;
-    IPool variablePool;
-    NonTransferrableToken collateralToken;
-    IAToken borrowAToken;
-    NonTransferrableToken debtToken;
-}
 
 /// @title SizeView
 /// @notice View methods for the Size protocol
