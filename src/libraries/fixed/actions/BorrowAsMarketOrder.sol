@@ -138,24 +138,26 @@ library BorrowAsMarketOrder {
                 deltaAmountIn = creditPosition.credit;
                 deltaAmountOut = Math.mulDivDown(creditPosition.credit, PERCENT, PERCENT + ratePerMaturity);
             }
+            uint256 fees = state.swapFee(deltaAmountOut, params.dueDate)
+                + (deltaAmountIn < creditPosition.credit ? state.feeConfig.fragmentationFee : 0);
 
             // the lender doesn't have enought credit to exit
             if (deltaAmountIn < state.riskConfig.minimumCreditBorrowAToken) {
                 continue;
             }
+            // fees are higher than the amount to receive
+            if (fees > deltaAmountOut) {
+                continue;
+            }
 
-            uint256 swapFee = state.swapFee(deltaAmountOut, params.dueDate);
-            uint256 exiterCreditRemaining = state.createCreditPosition({
+            // slither-disable-next-line unused-return
+            state.createCreditPosition({
                 exitCreditPositionId: params.receivableCreditPositionIds[i],
                 lender: params.lender,
                 credit: deltaAmountIn
             });
-            state.transferBorrowAToken(
-                params.lender,
-                state.feeConfig.feeRecipient,
-                swapFee + (exiterCreditRemaining > 0 ? state.feeConfig.fragmentationFee : 0)
-            );
-            state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut - swapFee);
+            state.transferBorrowAToken(params.lender, state.feeConfig.feeRecipient, fees);
+            state.transferBorrowAToken(params.lender, msg.sender, deltaAmountOut - fees);
             amountOutLeft -= deltaAmountOut;
 
             // full amount borrowed
@@ -172,12 +174,9 @@ library BorrowAsMarketOrder {
             return;
         }
 
-        User storage lenderUser = state.data.users[params.lender];
-
-        LoanOffer storage loanOffer = lenderUser.loanOffer;
-
-        uint256 ratePerMaturity =
-            loanOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
+        uint256 ratePerMaturity = state.data.users[params.lender].loanOffer.getRatePerMaturityByDueDate(
+            state.oracle.variablePoolBorrowRateFeed, params.dueDate
+        );
         uint256 issuanceValue = params.amount;
         uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + ratePerMaturity, PERCENT);
 

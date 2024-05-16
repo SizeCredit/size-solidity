@@ -97,12 +97,12 @@ library BuyMarketCredit {
             revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, amountOut);
         }
 
-        uint256 swapFee = state.swapFee(amountIn, debtPosition.dueDate);
         uint256 exiterCreditRemaining = state.createCreditPosition({
             exitCreditPositionId: params.creditPositionId,
             lender: msg.sender,
             credit: amountOut
         });
+        uint256 swapFee = state.swapFee(amountIn, debtPosition.dueDate);
         state.transferBorrowAToken(
             msg.sender,
             state.feeConfig.feeRecipient,

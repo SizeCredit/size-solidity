@@ -33,10 +33,7 @@ library AccountingLibrary {
         );
     }
 
-    /// @notice Repays a debt position. Charges the repay fee and updates the debt position in place.
-    ///         If the fees are greater than the collateral balance, they are capped to the borrower balance
-    /// @dev The repay fee is charged in collateral tokens
-    ///      Rounds fees down during partial repayment
+    /// @notice Repays a debt position
     /// @param state The state object
     /// @param debtPositionId The debt position id
     /// @param repayAmount The amount to repay
@@ -136,12 +133,12 @@ library AccountingLibrary {
 
     /// @notice Calculate the swap fee
     /// @dev max(cash * (swapFeeAPR * (dueDate - block.timestamp) / 365 days), minSwapFee)
-    ///      The fee is capped to the cash leaving the protocol
+    ///      The fee is capped to the cash being transferred from the credit buyer to the seller
     /// @param state The state struct
-    /// @param cash The amount leaving the protocol
-    /// @param dueDate The due date of the loan
+    /// @param cash The amount of cash being transferred
+    /// @param dueDate The due date used to price the credit being sold
     function swapFee(State storage state, uint256 cash, uint256 dueDate) internal view returns (uint256) {
-        uint256 fee = cash * Math.mulDivUp(state.feeConfig.swapFeeAPR, (dueDate - block.timestamp) / 365 days, PERCENT);
+        uint256 fee = Math.mulDivUp(cash * state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), PERCENT * 365 days);
         return Math.min(Math.max(fee, state.feeConfig.minSwapFee), cash);
     }
 }

@@ -177,4 +177,11 @@ abstract contract SizeView is SizeStorage {
         CreditPosition memory creditPosition = state.getCreditPosition(creditPositionId);
         return state.getCreditPositionProRataAssignedCollateral(creditPosition);
     }
+
+    function getSwapFee(uint256 amount, uint256 dueDate) external view returns (uint256) {
+        if (dueDate < block.timestamp) {
+            revert Errors.PAST_DUE_DATE(dueDate);
+        }
+        return state.swapFee(amount, dueDate);
+    }
 }
