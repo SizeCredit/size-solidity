@@ -17,6 +17,7 @@ contract BuyMarketCreditValidationTest is BaseTest {
 
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1600e18);
+        _deposit(bob, usdc, size.getSwapFee(500e6, block.timestamp + 365 days));
         _deposit(james, weth, 1600e18);
         _deposit(james, usdc, 1000e6);
         _deposit(candy, usdc, 1200e6);

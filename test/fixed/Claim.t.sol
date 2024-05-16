@@ -66,6 +66,7 @@ contract ClaimTest is BaseTest {
     }
 
     function test_Claim_claim_of_CreditPosition_where_DebtPosition_is_repaid_works() public {
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(bob, weth, 100e18);
@@ -90,6 +91,7 @@ contract ClaimTest is BaseTest {
     }
 
     function test_Claim_claim_twice_does_not_work() public {
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -116,6 +118,7 @@ contract ClaimTest is BaseTest {
     }
 
     function test_Claim_claim_is_permissionless() public {
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -166,6 +169,7 @@ contract ClaimTest is BaseTest {
     function test_Claim_claim_at_different_times_may_have_different_interest() public {
         _setPrice(1e18);
         _updateConfig("overdueLiquidatorReward", 0);
+        _updateConfig("swapFeeAPR", 0);
 
         _deposit(alice, weth, 160e18);
         _deposit(bob, usdc, 100e6 + size.feeConfig().fragmentationFee);
@@ -222,6 +226,7 @@ contract ClaimTest is BaseTest {
     }
 
     function test_Claim_isClaimable() public {
+        _updateConfig("swapFeeAPR", 0);
         _setPrice(1e18);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 100e6);

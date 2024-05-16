@@ -34,7 +34,7 @@ contract SelfLiquidateValidationTest is BaseTest {
         _setPrice(0.75e18);
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId, 0.5e18));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId, 1.125e18));
         size.selfLiquidate(SelfLiquidateParams({creditPositionId: creditPositionId}));
         vm.stopPrank();
 
