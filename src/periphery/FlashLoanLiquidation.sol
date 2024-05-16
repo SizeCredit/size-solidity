@@ -31,8 +31,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         aggregator = I1InchAggregator(_aggregator);
     }
 
-    event Debug(string message, uint256 value);
-
     function executeOperation(
         address[] calldata assets,
         uint256[] calldata amounts,
@@ -46,15 +44,12 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         // Decode the params to get the necessary information
         (uint256 debtPositionId, uint256 minimumCollateralProfit, address liquidator, address collateralToken) = abi.decode(params, (uint256, uint256, address, address));
 
-        emit Debug("Before liquidateDebtPosition", debtPositionId);
         // Liquidate the debt position and withdraw all assets
         liquidateDebtPosition(collateralToken, assets[0], amounts[0], debtPositionId, minimumCollateralProfit);
 
-        emit Debug("Before swapCollateral", IERC20(collateralToken).balanceOf(address(this)));
         // Swap the collateral tokens for the debt tokens and withdraw everything
         swapCollateral(collateralToken, assets[0]);
 
-        emit Debug("Before settleFlashLoan", 1);
         // Settle the debt tokens and flash loan
         settleFlashLoan(assets, amounts, premiums, liquidator);
 
@@ -68,7 +63,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 debtPositionId,
         uint256 minimumCollateralProfit
     ) internal {
-        emit Debug("Before approve and deposit", debtAmount);
         // Approve and deposit USDC to repay the borrower's debt
         IERC20(debtToken).approve(address(sizeLendingContract), debtAmount);
         sizeLendingContract.deposit(DepositParams({
@@ -77,7 +71,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
             to: address(this)
         }));
 
-        emit Debug("Before liquidate", debtPositionId);
         // Create the LiquidateParams struct
         LiquidateParams memory liquidateParams = LiquidateParams({
             debtPositionId: debtPositionId,
@@ -87,7 +80,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         // Perform the liquidation using the deposited funds
         sizeLendingContract.liquidate(liquidateParams);
 
-        emit Debug("Before withdraw", 0);
         // Withdraw the collateral and debt tokens
         sizeLendingContract.withdraw(WithdrawParams({
             token: debtToken,
@@ -105,11 +97,9 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         address collateralToken,
         address debtToken
     ) internal returns (uint256) {
-        emit Debug("Before approve aggregator", IERC20(collateralToken).balanceOf(address(this)));
         // Approve the aggregator to spend the collateral tokens
         IERC20(collateralToken).approve(address(aggregator), type(uint256).max);
 
-        emit Debug("Before swap", IERC20(collateralToken).balanceOf(address(this)));
         // Swap the collateral tokens for the debt tokens using the aggregator
         uint256 swappedAmount = aggregator.swap(
             collateralToken,
@@ -119,7 +109,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
             ""
         );
 
-        emit Debug("After swap", swappedAmount);
         return swappedAmount;
     }
 
@@ -132,18 +121,15 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 totalDebt = amounts[0] + premiums[0];
         uint256 balance = IERC20(assets[0]).balanceOf(address(this));
 
-        emit Debug("Before require balance check", balance);
         // Ensure the balance is sufficient to cover the amounts and premiums 
         require(balance >= totalDebt, "Insufficient balance to repay flash loan"); 
 
         // Calculate the amount to transfer to the liquidator
         uint256 amountToLiquidator = balance - totalDebt;
 
-        emit Debug("Before transfer to liquidator", amountToLiquidator);
         // Transfer the remaining debt tokens to the liquidator
         IERC20(assets[0]).transfer(liquidator, amountToLiquidator);
 
-        emit Debug("Before approve pool", amounts[0] + premiums[0]);
         // Approve the Pool contract to pull the owed amount
         IERC20(assets[0]).approve(address(POOL), amounts[0] + premiums[0]);
     }
