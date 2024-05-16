@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {Errors} from "@src/libraries/Errors.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
@@ -42,6 +43,45 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(_after.bob.collateralTokenBalance, _before.bob.collateralTokenBalance - 150e18, 0);
         assertEq(_after.alice.collateralTokenBalance, _before.alice.collateralTokenBalance + 150e18);
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
+    }
+
+    function test_SelfLiquidate_selfliquidate_two_lenders() public {
+        _setPrice(1e18);
+        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("overdueLiquidatorReward", 0);
+        _deposit(alice, usdc, 100e6);
+        _deposit(candy, usdc, 100e6);
+        _deposit(james, usdc, 100e6);
+        _deposit(bob, weth, 200e18);
+        _deposit(liquidator, usdc, 10_000e6);
+
+        assertEq(size.collateralRatio(bob), type(uint256).max);
+
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(candy, block.timestamp + 365 days, 0);
+        _lendAsLimitOrder(james, block.timestamp + 365 days, 0);
+
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        _borrowAsMarketOrder(alice, candy, 70e6, block.timestamp + 365 days, [creditPositionId1]);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        _borrowAsMarketOrder(candy, james, 30e6, block.timestamp + 365 days, [creditPositionId2]);
+        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
+
+        assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 200e18);
+        assertEq(size.getOverdueDebt(debtPositionId), 100e6);
+        assertEq(size.collateralRatio(bob), 2.0e18);
+        assertTrue(!size.isUserUnderwater(bob));
+        assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
+
+        _setPrice(0.6e18);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId1, 1.2e18));
+        _selfLiquidate(alice, creditPositionId1);
+        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId2, 1.2e18));
+        _selfLiquidate(candy, creditPositionId2);
+        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId3, 1.2e18));
+        _selfLiquidate(james, creditPositionId3);
     }
 
     function test_SelfLiquidate_selfliquidate_CreditPosition_keeps_accounting_in_check() public {

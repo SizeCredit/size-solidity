@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
+import {PERCENT} from "@src/libraries/Math.sol";
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
@@ -28,9 +29,6 @@ library SelfLiquidate {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
-        uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
-        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.getTotalDebt());
-
         // validate creditPositionId
         if (!state.isCreditPositionSelfLiquidatable(params.creditPositionId)) {
             revert Errors.LOAN_NOT_SELF_LIQUIDATABLE(
@@ -39,8 +37,8 @@ library SelfLiquidate {
                 state.getLoanStatus(params.creditPositionId)
             );
         }
-        if (!(assignedCollateral < debtInCollateralToken)) {
-            revert Errors.LIQUIDATION_NOT_AT_LOSS(params.creditPositionId, assignedCollateral, debtInCollateralToken);
+        if (state.collateralRatio(debtPosition.borrower) >= PERCENT) {
+            revert Errors.LIQUIDATION_NOT_AT_LOSS(params.creditPositionId, state.collateralRatio(debtPosition.borrower));
         }
 
         // validate msg.sender

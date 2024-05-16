@@ -33,15 +33,8 @@ contract SelfLiquidateValidationTest is BaseTest {
 
         _setPrice(0.75e18);
 
-        uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(debtPositionId);
-        uint256 debtCollateral = size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId));
-
         vm.startPrank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId, assignedCollateral, debtCollateral
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId, 0.5e18));
         size.selfLiquidate(SelfLiquidateParams({creditPositionId: creditPositionId}));
         vm.stopPrank();
 
