@@ -71,8 +71,8 @@ library Errors {
     error LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT(
         uint256 liquidatorProfitCollateralToken, uint256 minimumCollateralProfit
     );
-    error CR_BELOW_OPENING_LIMIT_BORROW_CR(address account, uint256 collateralRatio, uint256 riskCollateralRatio);
-    error LIQUIDATION_NOT_AT_LOSS(uint256 positionId, uint256 assignedCollateral, uint256 debtCollateral);
+    error CR_BELOW_OPENING_LIMIT_BORROW_CR(address account, uint256 cr, uint256 riskCollateralRatio);
+    error LIQUIDATION_NOT_AT_LOSS(uint256 positionId, uint256 cr);
 
     error INVALID_DECIMALS(uint8 decimals);
     error INVALID_PRICE(address aggregator, int256 price);
