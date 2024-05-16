@@ -408,1446 +408,1903 @@ try{
 
 
 const abi = [
-  {
-    type: "function",
-    name: "borrowAsLimitOrder",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct BorrowAsLimitOrderParams",
-        components: [
-          {
-            name: "openingLimitBorrowCR",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "curveRelativeTime",
-            type: "tuple",
-            internalType: "struct YieldCurve",
-            components: [
-              {
-                name: "maturities",
-                type: "uint256[]",
-                internalType: "uint256[]",
-              },
-              {
-                name: "aprs",
-                type: "int256[]",
-                internalType: "int256[]",
-              },
-              {
-                name: "marketRateMultipliers",
-                type: "uint256[]",
-                internalType: "uint256[]",
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "borrowAsMarketOrder",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct BorrowAsMarketOrderParams",
-        components: [
-          { name: "lender", type: "address", internalType: "address" },
-          { name: "amount", type: "uint256", internalType: "uint256" },
-          { name: "dueDate", type: "uint256", internalType: "uint256" },
-          {
-            name: "deadline",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          { name: "maxAPR", type: "uint256", internalType: "uint256" },
-          { name: "exactAmountIn", type: "bool", internalType: "bool" },
-          {
-            name: "receivableCreditPositionIds",
-            type: "uint256[]",
-            internalType: "uint256[]",
-          },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "borrowerExit",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct BorrowerExitParams",
-        components: [
-          {
-            name: "debtPositionId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "borrowerToExitTo",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "deadline",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          { name: "minAPR", type: "uint256", internalType: "uint256" },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "buyMarketCredit",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct BuyMarketCreditParams",
-        components: [
-          {
-            name: "creditPositionId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          { name: "amount", type: "uint256", internalType: "uint256" },
-          {
-            name: "deadline",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          { name: "maxAPR", type: "uint256", internalType: "uint256" },
-          { name: "exactAmountIn", type: "bool", internalType: "bool" },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "claim",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct ClaimParams",
-        components: [
-          {
-            name: "creditPositionId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "collateralRatio",
-    inputs: [{ name: "user", type: "address", internalType: "address" }],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "compensate",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct CompensateParams",
-        components: [
-          {
-            name: "creditPositionWithDebtToRepayId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "creditPositionToCompensateId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          { name: "amount", type: "uint256", internalType: "uint256" },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "data",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "tuple",
-        internalType: "struct DataView",
-        components: [
-          {
-            name: "nextDebtPositionId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "nextCreditPositionId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "underlyingCollateralToken",
-            type: "address",
-            internalType: "contract IERC20Metadata",
-          },
-          {
-            name: "underlyingBorrowToken",
-            type: "address",
-            internalType: "contract IERC20Metadata",
-          },
-          {
-            name: "variablePool",
-            type: "address",
-            internalType: "contract IPool",
-          },
-          {
-            name: "collateralToken",
-            type: "address",
-            internalType: "contract NonTransferrableToken",
-          },
-          {
-            name: "borrowAToken",
-            type: "address",
-            internalType: "contract IAToken",
-          },
-          {
-            name: "debtToken",
-            type: "address",
-            internalType: "contract NonTransferrableToken",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "debtTokenAmountToCollateralTokenAmount",
-    inputs: [
-      {
-        name: "borrowATokenAmount",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "deposit",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct DepositParams",
-        components: [
-          { name: "token", type: "address", internalType: "address" },
-          { name: "amount", type: "uint256", internalType: "uint256" },
-          { name: "to", type: "address", internalType: "address" },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "feeConfig",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "tuple",
-        internalType: "struct InitializeFeeConfigParams",
-        components: [
-          {
-            name: "repayFeeAPR",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "earlyLenderExitFee",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "earlyBorrowerExitFee",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "collateralLiquidatorPercent",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "collateralProtocolPercent",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "overdueLiquidatorReward",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "overdueColLiquidatorPercent",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "overdueColProtocolPercent",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "feeRecipient",
-            type: "address",
-            internalType: "address",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getAPR",
-    inputs: [
-      {
-        name: "debtPositionId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getBorrowOfferAPR",
-    inputs: [
-      { name: "borrower", type: "address", internalType: "address" },
-      { name: "dueDate", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getCreditPosition",
-    inputs: [
-      {
-        name: "creditPositionId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "tuple",
-        internalType: "struct CreditPosition",
-        components: [
-          { name: "lender", type: "address", internalType: "address" },
-          { name: "forSale", type: "bool", internalType: "bool" },
-          { name: "credit", type: "uint256", internalType: "uint256" },
-          {
-            name: "debtPositionId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getCreditPositionProRataAssignedCollateral",
-    inputs: [
-      {
-        name: "creditPositionId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getDebtPosition",
-    inputs: [
-      {
-        name: "debtPositionId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "tuple",
-        internalType: "struct DebtPosition",
-        components: [
-          { name: "lender", type: "address", internalType: "address" },
-          {
-            name: "borrower",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "issuanceValue",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "faceValue",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "repayFee",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "overdueLiquidatorReward",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "startDate",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          { name: "dueDate", type: "uint256", internalType: "uint256" },
-          {
-            name: "liquidityIndexAtRepayment",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getDebtPositionAssignedCollateral",
-    inputs: [
-      {
-        name: "debtPositionId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getDueDateDebt",
-    inputs: [
-      {
-        name: "debtPositionId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getLoanOfferAPR",
-    inputs: [
-      { name: "lender", type: "address", internalType: "address" },
-      { name: "dueDate", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getLoanStatus",
-    inputs: [{ name: "positionId", type: "uint256", internalType: "uint256" }],
-    outputs: [{ name: "", type: "uint8", internalType: "enum LoanStatus" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getOverdueDebt",
-    inputs: [
-      {
-        name: "debtPositionId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getPositionsCount",
-    inputs: [],
-    outputs: [
-      { name: "", type: "uint256", internalType: "uint256" },
-      { name: "", type: "uint256", internalType: "uint256" },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getRoleAdmin",
-    inputs: [{ name: "role", type: "bytes32", internalType: "bytes32" }],
-    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getUserView",
-    inputs: [{ name: "user", type: "address", internalType: "address" }],
-    outputs: [
-      {
-        name: "",
-        type: "tuple",
-        internalType: "struct UserView",
-        components: [
-          {
-            name: "user",
-            type: "tuple",
-            internalType: "struct User",
-            components: [
-              {
-                name: "loanOffer",
-                type: "tuple",
-                internalType: "struct LoanOffer",
-                components: [
-                  {
-                    name: "maxDueDate",
-                    type: "uint256",
-                    internalType: "uint256",
-                  },
-                  {
-                    name: "curveRelativeTime",
-                    type: "tuple",
-                    internalType: "struct YieldCurve",
-                    components: [
-                      {
-                        name: "maturities",
-                        type: "uint256[]",
-                        internalType: "uint256[]",
-                      },
-                      {
-                        name: "aprs",
-                        type: "int256[]",
-                        internalType: "int256[]",
-                      },
-                      {
-                        name: "marketRateMultipliers",
-                        type: "uint256[]",
-                        internalType: "uint256[]",
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                name: "borrowOffer",
-                type: "tuple",
-                internalType: "struct BorrowOffer",
-                components: [
-                  {
-                    name: "openingLimitBorrowCR",
-                    type: "uint256",
-                    internalType: "uint256",
-                  },
-                  {
-                    name: "curveRelativeTime",
-                    type: "tuple",
-                    internalType: "struct YieldCurve",
-                    components: [
-                      {
-                        name: "maturities",
-                        type: "uint256[]",
-                        internalType: "uint256[]",
-                      },
-                      {
-                        name: "aprs",
-                        type: "int256[]",
-                        internalType: "int256[]",
-                      },
-                      {
-                        name: "marketRateMultipliers",
-                        type: "uint256[]",
-                        internalType: "uint256[]",
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                name: "scaledBorrowATokenBalance",
-                type: "uint256",
-                internalType: "uint256",
-              },
-              {
-                name: "creditPositionsForSaleDisabled",
-                type: "bool",
-                internalType: "bool",
-              },
-            ],
-          },
-          { name: "account", type: "address", internalType: "address" },
-          {
-            name: "collateralTokenBalance",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "borrowATokenBalance",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "debtBalance",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "grantRole",
-    inputs: [
-      { name: "role", type: "bytes32", internalType: "bytes32" },
-      { name: "account", type: "address", internalType: "address" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "hasRole",
-    inputs: [
-      { name: "role", type: "bytes32", internalType: "bytes32" },
-      { name: "account", type: "address", internalType: "address" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "initialize",
-    inputs: [
-      { name: "owner", type: "address", internalType: "address" },
-      {
-        name: "f",
-        type: "tuple",
-        internalType: "struct InitializeFeeConfigParams",
-        components: [
-          {
-            name: "repayFeeAPR",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "earlyLenderExitFee",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "earlyBorrowerExitFee",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "collateralLiquidatorPercent",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "collateralProtocolPercent",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "overdueLiquidatorReward",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "overdueColLiquidatorPercent",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "overdueColProtocolPercent",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "feeRecipient",
-            type: "address",
-            internalType: "address",
-          },
-        ],
-      },
-      {
-        name: "r",
-        type: "tuple",
-        internalType: "struct InitializeRiskConfigParams",
-        components: [
-          {
-            name: "crOpening",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "crLiquidation",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "minimumCreditBorrowAToken",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "collateralTokenCap",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "borrowATokenCap",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "debtTokenCap",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "minimumMaturity",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-      {
-        name: "o",
-        type: "tuple",
-        internalType: "struct InitializeOracleParams",
-        components: [
-          {
-            name: "priceFeed",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "variablePoolBorrowRateFeed",
-            type: "address",
-            internalType: "address",
-          },
-        ],
-      },
-      {
-        name: "d",
-        type: "tuple",
-        internalType: "struct InitializeDataParams",
-        components: [
-          { name: "weth", type: "address", internalType: "address" },
-          {
-            name: "underlyingCollateralToken",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "underlyingBorrowToken",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "variablePool",
-            type: "address",
-            internalType: "address",
-          },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "isCreditPositionId",
-    inputs: [
-      {
-        name: "creditPositionId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isDebtPositionId",
-    inputs: [
-      {
-        name: "debtPositionId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isDebtPositionLiquidatable",
-    inputs: [
-      {
-        name: "debtPositionId",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "isUserUnderwater",
-    inputs: [{ name: "user", type: "address", internalType: "address" }],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "lendAsLimitOrder",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct LendAsLimitOrderParams",
-        components: [
-          {
-            name: "maxDueDate",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "curveRelativeTime",
-            type: "tuple",
-            internalType: "struct YieldCurve",
-            components: [
-              {
-                name: "maturities",
-                type: "uint256[]",
-                internalType: "uint256[]",
-              },
-              {
-                name: "aprs",
-                type: "int256[]",
-                internalType: "int256[]",
-              },
-              {
-                name: "marketRateMultipliers",
-                type: "uint256[]",
-                internalType: "uint256[]",
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "lendAsMarketOrder",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct LendAsMarketOrderParams",
-        components: [
-          {
-            name: "borrower",
-            type: "address",
-            internalType: "address",
-          },
-          { name: "dueDate", type: "uint256", internalType: "uint256" },
-          { name: "amount", type: "uint256", internalType: "uint256" },
-          {
-            name: "deadline",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          { name: "minAPR", type: "uint256", internalType: "uint256" },
-          { name: "exactAmountIn", type: "bool", internalType: "bool" },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "liquidate",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct LiquidateParams",
-        components: [
-          {
-            name: "debtPositionId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "minimumCollateralProfit",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    outputs: [
-      {
-        name: "liquidatorProfitCollateralAsset",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "liquidateWithReplacement",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct LiquidateWithReplacementParams",
-        components: [
-          {
-            name: "debtPositionId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "borrower",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "minimumCollateralProfit",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "deadline",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          { name: "minAPR", type: "uint256", internalType: "uint256" },
-        ],
-      },
-    ],
-    outputs: [
-      {
-        name: "liquidatorProfitCollateralAsset",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "liquidatorProfitBorrowAsset",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "multicall",
-    inputs: [{ name: "data", type: "bytes[]", internalType: "bytes[]" }],
-    outputs: [{ name: "results", type: "bytes[]", internalType: "bytes[]" }],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "oracle",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "tuple",
-        internalType: "struct InitializeOracleParams",
-        components: [
-          {
-            name: "priceFeed",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "variablePoolBorrowRateFeed",
-            type: "address",
-            internalType: "address",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "pause",
-    inputs: [],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "paused",
-    inputs: [],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "proxiableUUID",
-    inputs: [],
-    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "renounceRole",
-    inputs: [
-      { name: "role", type: "bytes32", internalType: "bytes32" },
-      {
-        name: "callerConfirmation",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "repay",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct RepayParams",
-        components: [
-          {
-            name: "debtPositionId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "repayFee",
-    inputs: [
-      {
-        name: "issuanceValue",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      { name: "startDate", type: "uint256", internalType: "uint256" },
-      { name: "dueDate", type: "uint256", internalType: "uint256" },
-      { name: "repayFeeAPR", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "revokeRole",
-    inputs: [
-      { name: "role", type: "bytes32", internalType: "bytes32" },
-      { name: "account", type: "address", internalType: "address" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "riskConfig",
-    inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "tuple",
-        internalType: "struct InitializeRiskConfigParams",
-        components: [
-          {
-            name: "crOpening",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "crLiquidation",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "minimumCreditBorrowAToken",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "collateralTokenCap",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "borrowATokenCap",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "debtTokenCap",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "minimumMaturity",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "selfLiquidate",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct SelfLiquidateParams",
-        components: [
-          {
-            name: "creditPositionId",
-            type: "uint256",
-            internalType: "uint256",
-          },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "setCreditForSale",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct SetCreditForSaleParams",
-        components: [
-          {
-            name: "creditPositionsForSaleDisabled",
-            type: "bool",
-            internalType: "bool",
-          },
-          { name: "forSale", type: "bool", internalType: "bool" },
-          {
-            name: "creditPositionIds",
-            type: "uint256[]",
-            internalType: "uint256[]",
-          },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "supportsInterface",
-    inputs: [{ name: "interfaceId", type: "bytes4", internalType: "bytes4" }],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "unpause",
-    inputs: [],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "updateConfig",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct UpdateConfigParams",
-        components: [
-          { name: "key", type: "string", internalType: "string" },
-          { name: "value", type: "uint256", internalType: "uint256" },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "upgradeToAndCall",
-    inputs: [
-      {
-        name: "newImplementation",
-        type: "address",
-        internalType: "address",
-      },
-      { name: "data", type: "bytes", internalType: "bytes" },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "withdraw",
-    inputs: [
-      {
-        name: "params",
-        type: "tuple",
-        internalType: "struct WithdrawParams",
-        components: [
-          { name: "token", type: "address", internalType: "address" },
-          { name: "amount", type: "uint256", internalType: "uint256" },
-          { name: "to", type: "address", internalType: "address" },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "payable",
-  },
-  {
-    type: "event",
-    name: "Initialized",
-    inputs: [
-      {
-        name: "version",
-        type: "uint64",
-        indexed: false,
-        internalType: "uint64",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "Paused",
-    inputs: [
-      {
-        name: "account",
-        type: "address",
-        indexed: false,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "RoleAdminChanged",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-      {
-        name: "previousAdminRole",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-      {
-        name: "newAdminRole",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "RoleGranted",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-      {
-        name: "account",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "sender",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "RoleRevoked",
-    inputs: [
-      {
-        name: "role",
-        type: "bytes32",
-        indexed: true,
-        internalType: "bytes32",
-      },
-      {
-        name: "account",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "sender",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "Unpaused",
-    inputs: [
-      {
-        name: "account",
-        type: "address",
-        indexed: false,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "Upgraded",
-    inputs: [
-      {
-        name: "implementation",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  { type: "error", name: "AccessControlBadConfirmation", inputs: [] },
-  {
-    type: "error",
-    name: "AccessControlUnauthorizedAccount",
-    inputs: [
-      { name: "account", type: "address", internalType: "address" },
-      { name: "neededRole", type: "bytes32", internalType: "bytes32" },
-    ],
-  },
-  {
-    type: "error",
-    name: "AddressEmptyCode",
-    inputs: [{ name: "target", type: "address", internalType: "address" }],
-  },
-  {
-    type: "error",
-    name: "ERC1967InvalidImplementation",
-    inputs: [
-      {
-        name: "implementation",
-        type: "address",
-        internalType: "address",
-      },
-    ],
-  },
-  { type: "error", name: "ERC1967NonPayable", inputs: [] },
-  { type: "error", name: "EnforcedPause", inputs: [] },
-  { type: "error", name: "ExpectedPause", inputs: [] },
-  { type: "error", name: "FailedInnerCall", inputs: [] },
-  { type: "error", name: "InvalidInitialization", inputs: [] },
-  { type: "error", name: "NULL_OFFER", inputs: [] },
-  { type: "error", name: "NotInitializing", inputs: [] },
-  {
-    type: "error",
-    name: "PAST_DUE_DATE",
-    inputs: [{ name: "dueDate", type: "uint256", internalType: "uint256" }],
-  },
-  { type: "error", name: "UUPSUnauthorizedCallContext", inputs: [] },
-  {
-    type: "error",
-    name: "UUPSUnsupportedProxiableUUID",
-    inputs: [{ name: "slot", type: "bytes32", internalType: "bytes32" }],
-  },
-];
+    {
+      "type": "constructor",
+      "inputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "DEFAULT_ADMIN_ROLE",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "UPGRADE_INTERFACE_VERSION",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "string",
+          "internalType": "string"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "borrowAsLimitOrder",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct BorrowAsLimitOrderParams",
+          "components": [
+            {
+              "name": "openingLimitBorrowCR",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "curveRelativeTime",
+              "type": "tuple",
+              "internalType": "struct YieldCurve",
+              "components": [
+                {
+                  "name": "maturities",
+                  "type": "uint256[]",
+                  "internalType": "uint256[]"
+                },
+                {
+                  "name": "aprs",
+                  "type": "int256[]",
+                  "internalType": "int256[]"
+                },
+                {
+                  "name": "marketRateMultipliers",
+                  "type": "uint256[]",
+                  "internalType": "uint256[]"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "borrowAsMarketOrder",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct BorrowAsMarketOrderParams",
+          "components": [
+            {
+              "name": "lender",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "amount",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "dueDate",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "deadline",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "maxAPR",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "exactAmountIn",
+              "type": "bool",
+              "internalType": "bool"
+            },
+            {
+              "name": "receivableCreditPositionIds",
+              "type": "uint256[]",
+              "internalType": "uint256[]"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "borrowerExit",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct BorrowerExitParams",
+          "components": [
+            {
+              "name": "debtPositionId",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "borrowerToExitTo",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "deadline",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "minAPR",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "buyMarketCredit",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct BuyMarketCreditParams",
+          "components": [
+            {
+              "name": "creditPositionId",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "amount",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "deadline",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "maxAPR",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "exactAmountIn",
+              "type": "bool",
+              "internalType": "bool"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "claim",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct ClaimParams",
+          "components": [
+            {
+              "name": "creditPositionId",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "collateralRatio",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "compensate",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct CompensateParams",
+          "components": [
+            {
+              "name": "creditPositionWithDebtToRepayId",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "creditPositionToCompensateId",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "amount",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "data",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct DataView",
+          "components": [
+            {
+              "name": "nextDebtPositionId",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "nextCreditPositionId",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "underlyingCollateralToken",
+              "type": "address",
+              "internalType": "contract IERC20Metadata"
+            },
+            {
+              "name": "underlyingBorrowToken",
+              "type": "address",
+              "internalType": "contract IERC20Metadata"
+            },
+            {
+              "name": "variablePool",
+              "type": "address",
+              "internalType": "contract IPool"
+            },
+            {
+              "name": "collateralToken",
+              "type": "address",
+              "internalType": "contract NonTransferrableToken"
+            },
+            {
+              "name": "borrowAToken",
+              "type": "address",
+              "internalType": "contract IAToken"
+            },
+            {
+              "name": "debtToken",
+              "type": "address",
+              "internalType": "contract NonTransferrableToken"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "debtTokenAmountToCollateralTokenAmount",
+      "inputs": [
+        {
+          "name": "borrowATokenAmount",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "deposit",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct DepositParams",
+          "components": [
+            {
+              "name": "token",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "amount",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "to",
+              "type": "address",
+              "internalType": "address"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "feeConfig",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct InitializeFeeConfigParams",
+          "components": [
+            {
+              "name": "repayFeeAPR",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "earlyLenderExitFee",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "earlyBorrowerExitFee",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "collateralLiquidatorPercent",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "collateralProtocolPercent",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "overdueLiquidatorReward",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "overdueColLiquidatorPercent",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "overdueColProtocolPercent",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "feeRecipient",
+              "type": "address",
+              "internalType": "address"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getAPR",
+      "inputs": [
+        {
+          "name": "debtPositionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getBorrowOfferAPR",
+      "inputs": [
+        {
+          "name": "borrower",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "dueDate",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getCreditPosition",
+      "inputs": [
+        {
+          "name": "creditPositionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct CreditPosition",
+          "components": [
+            {
+              "name": "lender",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "forSale",
+              "type": "bool",
+              "internalType": "bool"
+            },
+            {
+              "name": "credit",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "debtPositionId",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getCreditPositionProRataAssignedCollateral",
+      "inputs": [
+        {
+          "name": "creditPositionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getDebtPosition",
+      "inputs": [
+        {
+          "name": "debtPositionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct DebtPosition",
+          "components": [
+            {
+              "name": "lender",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "borrower",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "issuanceValue",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "faceValue",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "repayFee",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "overdueLiquidatorReward",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "startDate",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "dueDate",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "liquidityIndexAtRepayment",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getDebtPositionAssignedCollateral",
+      "inputs": [
+        {
+          "name": "debtPositionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getDueDateDebt",
+      "inputs": [
+        {
+          "name": "debtPositionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getLoanOfferAPR",
+      "inputs": [
+        {
+          "name": "lender",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "dueDate",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getLoanStatus",
+      "inputs": [
+        {
+          "name": "positionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint8",
+          "internalType": "enum LoanStatus"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getOverdueDebt",
+      "inputs": [
+        {
+          "name": "debtPositionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getPositionsCount",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getRoleAdmin",
+      "inputs": [
+        {
+          "name": "role",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "getUserView",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct UserView",
+          "components": [
+            {
+              "name": "user",
+              "type": "tuple",
+              "internalType": "struct User",
+              "components": [
+                {
+                  "name": "loanOffer",
+                  "type": "tuple",
+                  "internalType": "struct LoanOffer",
+                  "components": [
+                    {
+                      "name": "maxDueDate",
+                      "type": "uint256",
+                      "internalType": "uint256"
+                    },
+                    {
+                      "name": "curveRelativeTime",
+                      "type": "tuple",
+                      "internalType": "struct YieldCurve",
+                      "components": [
+                        {
+                          "name": "maturities",
+                          "type": "uint256[]",
+                          "internalType": "uint256[]"
+                        },
+                        {
+                          "name": "aprs",
+                          "type": "int256[]",
+                          "internalType": "int256[]"
+                        },
+                        {
+                          "name": "marketRateMultipliers",
+                          "type": "uint256[]",
+                          "internalType": "uint256[]"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "borrowOffer",
+                  "type": "tuple",
+                  "internalType": "struct BorrowOffer",
+                  "components": [
+                    {
+                      "name": "openingLimitBorrowCR",
+                      "type": "uint256",
+                      "internalType": "uint256"
+                    },
+                    {
+                      "name": "curveRelativeTime",
+                      "type": "tuple",
+                      "internalType": "struct YieldCurve",
+                      "components": [
+                        {
+                          "name": "maturities",
+                          "type": "uint256[]",
+                          "internalType": "uint256[]"
+                        },
+                        {
+                          "name": "aprs",
+                          "type": "int256[]",
+                          "internalType": "int256[]"
+                        },
+                        {
+                          "name": "marketRateMultipliers",
+                          "type": "uint256[]",
+                          "internalType": "uint256[]"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "scaledBorrowATokenBalance",
+                  "type": "uint256",
+                  "internalType": "uint256"
+                },
+                {
+                  "name": "creditPositionsForSaleDisabled",
+                  "type": "bool",
+                  "internalType": "bool"
+                }
+              ]
+            },
+            {
+              "name": "account",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "collateralTokenBalance",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "borrowATokenBalance",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "debtBalance",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "grantRole",
+      "inputs": [
+        {
+          "name": "role",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "account",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "hasRole",
+      "inputs": [
+        {
+          "name": "role",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "account",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool",
+          "internalType": "bool"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "initialize",
+      "inputs": [
+        {
+          "name": "owner",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "f",
+          "type": "tuple",
+          "internalType": "struct InitializeFeeConfigParams",
+          "components": [
+            {
+              "name": "repayFeeAPR",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "earlyLenderExitFee",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "earlyBorrowerExitFee",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "collateralLiquidatorPercent",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "collateralProtocolPercent",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "overdueLiquidatorReward",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "overdueColLiquidatorPercent",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "overdueColProtocolPercent",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "feeRecipient",
+              "type": "address",
+              "internalType": "address"
+            }
+          ]
+        },
+        {
+          "name": "r",
+          "type": "tuple",
+          "internalType": "struct InitializeRiskConfigParams",
+          "components": [
+            {
+              "name": "crOpening",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "crLiquidation",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "minimumCreditBorrowAToken",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "collateralTokenCap",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "borrowATokenCap",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "debtTokenCap",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "minimumMaturity",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        },
+        {
+          "name": "o",
+          "type": "tuple",
+          "internalType": "struct InitializeOracleParams",
+          "components": [
+            {
+              "name": "priceFeed",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "variablePoolBorrowRateFeed",
+              "type": "address",
+              "internalType": "address"
+            }
+          ]
+        },
+        {
+          "name": "d",
+          "type": "tuple",
+          "internalType": "struct InitializeDataParams",
+          "components": [
+            {
+              "name": "weth",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "underlyingCollateralToken",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "underlyingBorrowToken",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "variablePool",
+              "type": "address",
+              "internalType": "address"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "isCreditPositionId",
+      "inputs": [
+        {
+          "name": "creditPositionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool",
+          "internalType": "bool"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "isDebtPositionId",
+      "inputs": [
+        {
+          "name": "debtPositionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool",
+          "internalType": "bool"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "isDebtPositionLiquidatable",
+      "inputs": [
+        {
+          "name": "debtPositionId",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool",
+          "internalType": "bool"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "isUserUnderwater",
+      "inputs": [
+        {
+          "name": "user",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool",
+          "internalType": "bool"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "lendAsLimitOrder",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct LendAsLimitOrderParams",
+          "components": [
+            {
+              "name": "maxDueDate",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "curveRelativeTime",
+              "type": "tuple",
+              "internalType": "struct YieldCurve",
+              "components": [
+                {
+                  "name": "maturities",
+                  "type": "uint256[]",
+                  "internalType": "uint256[]"
+                },
+                {
+                  "name": "aprs",
+                  "type": "int256[]",
+                  "internalType": "int256[]"
+                },
+                {
+                  "name": "marketRateMultipliers",
+                  "type": "uint256[]",
+                  "internalType": "uint256[]"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "lendAsMarketOrder",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct LendAsMarketOrderParams",
+          "components": [
+            {
+              "name": "borrower",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "dueDate",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "amount",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "deadline",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "minAPR",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "exactAmountIn",
+              "type": "bool",
+              "internalType": "bool"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "liquidate",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct LiquidateParams",
+          "components": [
+            {
+              "name": "debtPositionId",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "minimumCollateralProfit",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "liquidatorProfitCollateralAsset",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "liquidateWithReplacement",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct LiquidateWithReplacementParams",
+          "components": [
+            {
+              "name": "debtPositionId",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "borrower",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "minimumCollateralProfit",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "deadline",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "minAPR",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "liquidatorProfitCollateralAsset",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "liquidatorProfitBorrowAsset",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "multicall",
+      "inputs": [
+        {
+          "name": "data",
+          "type": "bytes[]",
+          "internalType": "bytes[]"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "results",
+          "type": "bytes[]",
+          "internalType": "bytes[]"
+        }
+      ],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "oracle",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct InitializeOracleParams",
+          "components": [
+            {
+              "name": "priceFeed",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "variablePoolBorrowRateFeed",
+              "type": "address",
+              "internalType": "address"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "pause",
+      "inputs": [],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "paused",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool",
+          "internalType": "bool"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "proxiableUUID",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "renounceRole",
+      "inputs": [
+        {
+          "name": "role",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "callerConfirmation",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "repay",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct RepayParams",
+          "components": [
+            {
+              "name": "debtPositionId",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "repayFee",
+      "inputs": [
+        {
+          "name": "issuanceValue",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "startDate",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "dueDate",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "repayFeeAPR",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ],
+      "stateMutability": "pure"
+    },
+    {
+      "type": "function",
+      "name": "revokeRole",
+      "inputs": [
+        {
+          "name": "role",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        },
+        {
+          "name": "account",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "riskConfig",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "tuple",
+          "internalType": "struct InitializeRiskConfigParams",
+          "components": [
+            {
+              "name": "crOpening",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "crLiquidation",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "minimumCreditBorrowAToken",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "collateralTokenCap",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "borrowATokenCap",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "debtTokenCap",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "minimumMaturity",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "selfLiquidate",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct SelfLiquidateParams",
+          "components": [
+            {
+              "name": "creditPositionId",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "setCreditForSale",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct SetCreditForSaleParams",
+          "components": [
+            {
+              "name": "creditPositionsForSaleDisabled",
+              "type": "bool",
+              "internalType": "bool"
+            },
+            {
+              "name": "forSale",
+              "type": "bool",
+              "internalType": "bool"
+            },
+            {
+              "name": "creditPositionIds",
+              "type": "uint256[]",
+              "internalType": "uint256[]"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "supportsInterface",
+      "inputs": [
+        {
+          "name": "interfaceId",
+          "type": "bytes4",
+          "internalType": "bytes4"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool",
+          "internalType": "bool"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "unpause",
+      "inputs": [],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "updateConfig",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct UpdateConfigParams",
+          "components": [
+            {
+              "name": "key",
+              "type": "string",
+              "internalType": "string"
+            },
+            {
+              "name": "value",
+              "type": "uint256",
+              "internalType": "uint256"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "upgradeToAndCall",
+      "inputs": [
+        {
+          "name": "newImplementation",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "data",
+          "type": "bytes",
+          "internalType": "bytes"
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "function",
+      "name": "withdraw",
+      "inputs": [
+        {
+          "name": "params",
+          "type": "tuple",
+          "internalType": "struct WithdrawParams",
+          "components": [
+            {
+              "name": "token",
+              "type": "address",
+              "internalType": "address"
+            },
+            {
+              "name": "amount",
+              "type": "uint256",
+              "internalType": "uint256"
+            },
+            {
+              "name": "to",
+              "type": "address",
+              "internalType": "address"
+            }
+          ]
+        }
+      ],
+      "outputs": [],
+      "stateMutability": "payable"
+    },
+    {
+      "type": "event",
+      "name": "Initialized",
+      "inputs": [
+        {
+          "name": "version",
+          "type": "uint64",
+          "indexed": false,
+          "internalType": "uint64"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Paused",
+      "inputs": [
+        {
+          "name": "account",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "RoleAdminChanged",
+      "inputs": [
+        {
+          "name": "role",
+          "type": "bytes32",
+          "indexed": true,
+          "internalType": "bytes32"
+        },
+        {
+          "name": "previousAdminRole",
+          "type": "bytes32",
+          "indexed": true,
+          "internalType": "bytes32"
+        },
+        {
+          "name": "newAdminRole",
+          "type": "bytes32",
+          "indexed": true,
+          "internalType": "bytes32"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "RoleGranted",
+      "inputs": [
+        {
+          "name": "role",
+          "type": "bytes32",
+          "indexed": true,
+          "internalType": "bytes32"
+        },
+        {
+          "name": "account",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "sender",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "RoleRevoked",
+      "inputs": [
+        {
+          "name": "role",
+          "type": "bytes32",
+          "indexed": true,
+          "internalType": "bytes32"
+        },
+        {
+          "name": "account",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        },
+        {
+          "name": "sender",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Unpaused",
+      "inputs": [
+        {
+          "name": "account",
+          "type": "address",
+          "indexed": false,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "event",
+      "name": "Upgraded",
+      "inputs": [
+        {
+          "name": "implementation",
+          "type": "address",
+          "indexed": true,
+          "internalType": "address"
+        }
+      ],
+      "anonymous": false
+    },
+    {
+      "type": "error",
+      "name": "AccessControlBadConfirmation",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "AccessControlUnauthorizedAccount",
+      "inputs": [
+        {
+          "name": "account",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "neededRole",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "AddressEmptyCode",
+      "inputs": [
+        {
+          "name": "target",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "ERC1967InvalidImplementation",
+      "inputs": [
+        {
+          "name": "implementation",
+          "type": "address",
+          "internalType": "address"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "ERC1967NonPayable",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "EnforcedPause",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "ExpectedPause",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "FailedInnerCall",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "InvalidInitialization",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "NULL_OFFER",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "NotInitializing",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "PAST_DUE_DATE",
+      "inputs": [
+        {
+          "name": "dueDate",
+          "type": "uint256",
+          "internalType": "uint256"
+        }
+      ]
+    },
+    {
+      "type": "error",
+      "name": "UUPSUnauthorizedCallContext",
+      "inputs": []
+    },
+    {
+      "type": "error",
+      "name": "UUPSUnsupportedProxiableUUID",
+      "inputs": [
+        {
+          "name": "slot",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ]
+    }
+  ]
