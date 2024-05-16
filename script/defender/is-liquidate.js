@@ -7,9 +7,9 @@ const axios = require("axios");
 const apiUrl = "https://api.binance.us/api/v3/ticker/price";
 
 const subgraphUrl =
-  "https://api.studio.thegraph.com/query/64406/subgraph-v1-0-0-rc1/v1-rc1-userview";
+  "https://api.studio.thegraph.com/query/45982/size-v2-sepolia/v0.1.rc.2b";
 
-const sizeContractAddress = "0x3a260F0F5AEe410efa8Ae415B57F36C3455251E9";
+const sizeContractAddress = "0xBa4Eb5533C57b1641d982706c20e71aBe5d5a0EB";
 
 const botAddress = "0x35411F58488d705A994Fc2b9766D99e6F7384ED8";
 
