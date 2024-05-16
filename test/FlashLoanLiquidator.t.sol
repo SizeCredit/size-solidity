@@ -33,11 +33,11 @@ contract FlashLoanLiquidationTest is BaseTest {
     function test_flashloan_liquidator_can_liquidate_and_withdraw() public {
         // Initialize mock contracts
         mockAavePool = new MockAavePool();
-        mock1InchAggregator = new Mock1InchAggregator();
+        mock1InchAggregator = new Mock1InchAggregator(address(priceFeed));
 
         // Fund the mock aggregator and pool with WETH and USDC
         _mint(address(weth), address(mock1InchAggregator), 100000e18);
-        _mint(address(usdc), address(mock1InchAggregator), 1000000e6);
+        _mint(address(usdc), address(mock1InchAggregator), 10000000000000e18);
         _mint(address(weth), address(mockAavePool), 100000e18);
         _mint(address(usdc), address(mockAavePool), 1000000e6);
 
