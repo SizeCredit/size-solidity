@@ -47,7 +47,10 @@ interface ISizeView {
     /// @return True if the debt position is liquidatable, false otherwise
     function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool);
 
-    /// @notice Get the total overdue debt for a given debt position
+    /// @notice Get the total debt of a DebtPosition
+    ///         The total loan debt is the face value (debt to the lender)
+    ///        + the repay fee (protocol fee)
+    ///        + the overdue liquidator reward (in case of overdue liquidation).
     /// @param debtPositionId The ID of the debt position
     /// @return The total overdue debt amount
     function getOverdueDebt(uint256 debtPositionId) external view returns (uint256);

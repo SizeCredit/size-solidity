@@ -139,7 +139,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 minimumCollateralProfit, 
         address collateralToken, 
         address flashLoanAsset, // Debt token
-        uint256 flashLoanAmount, // Amount of debt token to flash loan
+        // uint256 flashLoanAmount, // Amount of debt token to flash loan
         address liquidator // The receiver of the liquidation proceeds
     ) external {
         bytes memory params = abi.encode(debtPositionId, minimumCollateralProfit, liquidator, collateralToken);
@@ -148,7 +148,8 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         assets[0] = flashLoanAsset; // The debt token (e.g. USDC)
 
         uint256[] memory amounts = new uint256[](1);
-        amounts[0] = flashLoanAmount;
+        amounts[0] = sizeLendingContract.getOverdueDebt(debtPositionId);
+        // amounts[0] = flashLoanAmount;
 
         uint256[] memory modes = new uint256[](1);
         modes[0] = 0;

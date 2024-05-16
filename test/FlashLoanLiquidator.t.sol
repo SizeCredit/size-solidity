@@ -86,7 +86,7 @@ contract FlashLoanLiquidationTest is BaseTest {
             0, // minimumCollateralProfit
             address(weth), // collateralToken
             address(usdc), // flashLoanAsset
-            faceValue, // flashLoanAmount
+            // faceValue, // flashLoanAmount
             liquidator // The receiver of the liquidation proceeds
         );
 
