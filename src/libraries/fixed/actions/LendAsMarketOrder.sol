@@ -75,10 +75,9 @@ library LendAsMarketOrder {
     {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
-        BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
-
-        uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
+        uint256 ratePerMaturity = state.data.users[params.borrower].borrowOffer.getRatePerMaturityByDueDate(
+            state.oracle.variablePoolBorrowRateFeed, params.dueDate
+        );
         uint256 faceValue;
         if (params.exactAmountIn) {
             issuanceValue = params.amount;

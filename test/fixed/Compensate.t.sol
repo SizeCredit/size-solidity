@@ -177,6 +177,7 @@ contract CompensateTest is BaseTest {
     function test_Compensate_compensate_full_claim() public {
         _setPrice(1e18);
         _updateConfig("overdueLiquidatorReward", 0);
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _deposit(candy, weth, 150e18);
@@ -312,7 +313,7 @@ contract CompensateTest is BaseTest {
         );
     }
 
-    function test_Compensate_compensate_pays_fee_pro_rata() public {
+    function test_Compensate_compensate_fees() public {
         // OK so let's make an example of the approach here
         _setPrice(1e18);
 
@@ -365,20 +366,6 @@ contract CompensateTest is BaseTest {
         // then the update is
         // CreditPosition1.credit -= 20 --> 100
         assertEq(size.getCreditPosition(creditPositionId).credit, 100e6);
-
-        // Now Borrower has A=20 to compensate his debt on DebtPosition1 which results in
-        // DebtPosition1.protocolFees(t=7) = 100 * 0.005  --> 0.29
-
-        // At this point, we need to take 0.29 USDC in fees and we have 2 ways to do it
-
-        // 2) Taking from collateral
-        // In this case, we do the same as the above with
-        // NetA = A
-
-        // and no CreditPosition_For_Repayment is emitted
-        // and to take the fees instead, we do
-        // collateral[borrower] -= DebtPosition1.protocolFees(t=7) / Oracle.CurrentPrice
-        assertEq(_state().bob.collateralTokenBalance, 500e18 - (0.5e6 - 0.409091e6) * 1e12);
     }
 
     function test_Compensate_compensate_with_chain_of_exits() public {
@@ -456,7 +443,7 @@ contract CompensateTest is BaseTest {
         assertGt(_after.candy.debtBalance, _before.candy.debtBalance);
         assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
         assertEq(creditPositionAfter.credit, 0);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + 0);
+        assertGt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance);
         assertEq(debtPositionBefore.borrower, bob);
         assertEq(debtPositionAfter.borrower, bob);
         assertEq(_before.alice, _after.alice);
@@ -489,15 +476,16 @@ contract CompensateTest is BaseTest {
 
         assertEq(creditPositionAfter.credit, 0);
         assertEq(_before.alice, _after.alice);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + 0);
+        assertGt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance);
         assertEq(_after.bob.collateralTokenBalance, _before.bob.collateralTokenBalance);
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance);
+        assertLt(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance);
         assertEq(loansAfter, loansBefore + 1);
     }
 
     function test_Compensate_compensate_used_to_borrower_exit_cannot_leave_borrower_liquidatable() public {
         _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
@@ -538,8 +526,11 @@ contract CompensateTest is BaseTest {
         _borrowAsLimitOrder(candy, YieldCurveHelper.customCurve(30 days, uint256(0.25e18), 73 days, uint256(0.25e18)));
         uint256 startDate = block.timestamp;
         uint256 dueDate = startDate + 73 days;
+        uint256 swapFee1 = size.getSwapFee(1000e6, dueDate);
         uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 1000e6, dueDate);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+
+        assertEq(_state().feeRecipient.borrowATokenBalance, swapFee1);
 
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
@@ -563,7 +554,6 @@ contract CompensateTest is BaseTest {
         _repay(candy, debtPositionId2);
         assertEq(_state().alice.debtBalance, 0);
         assertEq(_state().candy.debtBalance, 0);
-        assertEq(_state().feeRecipient.borrowATokenBalance, 0);
         assertEq(_state().feeRecipient.collateralTokenBalance, 0);
     }
 
@@ -587,7 +577,6 @@ contract CompensateTest is BaseTest {
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 110e6);
-        assertEq(size.getOverdueDebt(debtPositionId), 120e6);
         vm.warp(block.timestamp + (365 days) / 2);
 
         _deposit(alice, usdc, 1000e6);
@@ -598,9 +587,8 @@ contract CompensateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEqApprox(_after.candy.borrowATokenBalance, 104.76e6, 0.01e6);
+        assertEqApprox(_after.candy.borrowATokenBalance, 99.52e6, 0.01e6);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
-        assertLt(size.getOverdueDebt(debtPositionId), 120e6);
     }
 
     function test_Compensate_compensate_used_to_borrower_exit_experiment() public {

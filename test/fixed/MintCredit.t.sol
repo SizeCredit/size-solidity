@@ -16,7 +16,7 @@ contract MintCreditTest is BaseTest {
 
         _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days, [creditPositionId]);
 
-        assertEq(size.getUserView(bob).borrowATokenBalance, 50e6);
+        assertEq(size.getUserView(bob).borrowATokenBalance, 50e6 - size.getSwapFee(50e6, block.timestamp + 365 days));
         assertEq(size.getUserView(bob).debtBalance, 100e6 + 10e6);
     }
 }

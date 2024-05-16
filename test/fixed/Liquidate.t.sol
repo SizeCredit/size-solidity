@@ -160,7 +160,11 @@ contract LiquidateTest is BaseTest {
 
         assertLt(liquidatorProfit, faceValueCollateral);
         assertEq(liquidatorProfit, assignedCollateral);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, 0);
+        assertEq(
+            _after.feeRecipient.borrowATokenBalance,
+            _before.feeRecipient.borrowATokenBalance,
+            size.getSwapFee(amount, block.timestamp + 365 days)
+        );
         assertEq(
             _after.feeRecipient.collateralTokenBalance,
             _before.feeRecipient.collateralTokenBalance,
@@ -180,6 +184,7 @@ contract LiquidateTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
+        uint256 swapFee = size.getSwapFee(50e6, block.timestamp + 365 days);
 
         vm.warp(block.timestamp + 365 days + 1);
 
@@ -200,8 +205,8 @@ contract LiquidateTest is BaseTest {
         uint256 liquidatorSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed)
             * size.feeConfig().overdueColLiquidatorPercent / PERCENT;
 
-        assertEq(protocolSplit, (180e18 - 110e18 - 0.25e18) * 0.005e18 / 1e18, 0.34875e18);
-        assertEq(liquidatorSplit, (180e18 - 110e18 - 0.25e18) * 0.01e18 / 1e18, 0.6975e18);
+        assertEq(protocolSplit, (180e18 - 110e18) * 0.005e18 / 1e18, 0.35e18);
+        assertEq(liquidatorSplit, (180e18 - 110e18) * 0.01e18 / 1e18, 0.7e18);
 
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
@@ -319,7 +324,7 @@ contract LiquidateTest is BaseTest {
 
     function test_Liquidate_liquidate_overdue_underwater() public {
         _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 165e18);
         _deposit(liquidator, usdc, 1_000e6);

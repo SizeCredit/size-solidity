@@ -38,7 +38,10 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
+        assertEq(
+            _after.alice.borrowATokenBalance,
+            _before.alice.borrowATokenBalance + amountIn - size.getSwapFee(amountIn, dueDate)
+        );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(
             _after.alice.debtBalance, _before.alice.debtBalance + faceValue + size.feeConfig().overdueLiquidatorReward
@@ -68,7 +71,10 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
+        assertEq(
+            _after.alice.borrowATokenBalance,
+            _before.alice.borrowATokenBalance + amountIn - size.getSwapFee(amountIn, dueDate)
+        );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(
             _after.alice.debtBalance, _before.alice.debtBalance + faceValue + size.feeConfig().overdueLiquidatorReward
@@ -90,9 +96,8 @@ contract LendAsMarketOrderTest is BaseTest {
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.maturities[0] + curve.maturities[1]) / 2;
-        uint256 maturity = dueDate - block.timestamp;
         uint256 apr = size.getBorrowOfferAPR(alice, dueDate);
-        uint256 rate = Math.aprToRatePerMaturity(apr, maturity);
+        uint256 rate = Math.aprToRatePerMaturity(apr, dueDate - block.timestamp);
         uint256 faceValue = Math.mulDivDown(amountIn, PERCENT + rate, PERCENT);
 
         Vars memory _before = _state();
@@ -103,7 +108,9 @@ contract LendAsMarketOrderTest is BaseTest {
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn);
+        uint256 swapFee = size.getSwapFee(amountIn, dueDate);
+
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn - swapFee);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(
             _after.alice.debtBalance, _before.alice.debtBalance + faceValue + size.feeConfig().overdueLiquidatorReward

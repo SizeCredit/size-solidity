@@ -182,19 +182,20 @@ contract MulticallTest is BaseTest {
 
         assertEq(_state().bob.debtBalance, 110e6);
 
-        _mint(address(usdc), bob, 10e6);
-        _approve(bob, address(usdc), address(size), 10e6);
+        uint256 remaining = 110e6 - size.getUserView(bob).borrowATokenBalance;
+        _mint(address(usdc), bob, remaining);
+        _approve(bob, address(usdc), address(size), remaining);
 
         // attempt to deposit to repay, but it reverts due to cap
-        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, 100e6, 110e6));
+        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, 100e6, 100e6 + remaining));
         vm.prank(bob);
-        size.deposit(DepositParams({token: address(usdc), amount: 10e6, to: bob}));
+        size.deposit(DepositParams({token: address(usdc), amount: remaining, to: bob}));
 
         assertEq(_state().bob.debtBalance, 110e6);
 
         // debt reduction is allowed to go over cap
         bytes[] memory data = new bytes[](2);
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: 10e6, to: bob}));
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: remaining, to: bob}));
         data[1] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId}));
         vm.prank(bob);
         size.multicall(data);

@@ -381,9 +381,8 @@ contract SelfLiquidateTest is BaseTest {
 
         uint256 debtPositionId1 = _borrowAsMarketOrder(alice, candy, borrowAmount, block.timestamp + 365 days);
         uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
-        uint256 id = _borrowAsMarketOrder(candy, james, exitAmount, block.timestamp + 365 days, [creditPositionId1]);
+        _borrowAsMarketOrder(candy, james, exitAmount, block.timestamp + 365 days, [creditPositionId1]);
 
-        assertEq(id, type(uint256).max);
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
         _setPrice(0.5e18);
 

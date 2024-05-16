@@ -136,23 +136,11 @@ contract RepayTest is BaseTest {
         YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
-        // Borrower B1 submits a borror market order for
-        // Loan1
-        // - Lender=L
-        // - Borrower=B1
-        // - IV=100
-        // - DD=1Y
-        // - Rate=10%/Y so
-        // - FV=110
-        // - InitiTime=0
 
         vm.warp(block.timestamp + 365 days);
 
-        _deposit(bob, usdc, 10e6);
+        _deposit(bob, usdc, 10e6 + 0.5e6);
         _repay(bob, debtPositionId);
-
-        // If the loan completes its lifecycle, we have
-        // protocolFee = 100 * (0.005 * 1) --> 0.5
     }
 
     function test_Repay_repay_fee_change_fee_after_borrow() public {
@@ -172,13 +160,13 @@ contract RepayTest is BaseTest {
 
         vm.warp(block.timestamp + 365 days);
 
+        _deposit(bob, usdc, 100e6 + 0.5e6);
         _repay(bob, debtPositionId);
 
+        _deposit(candy, usdc, 100e6 + 0.1e6);
         _repay(candy, loanId2);
 
         assertEq(size.getUserView(feeRecipient).collateralTokenBalance, 0);
-        assertGt(_state().bob.collateralTokenBalance, _state().candy.collateralTokenBalance);
-        assertEq(_state().bob.collateralTokenBalance, 180e18);
-        assertEq(_state().candy.collateralTokenBalance, 180e18);
+        assertEq(_state().bob.collateralTokenBalance, _state().candy.collateralTokenBalance, 180e18);
     }
 }

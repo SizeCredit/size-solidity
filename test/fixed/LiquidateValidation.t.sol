@@ -26,7 +26,7 @@ contract LiquidateValidationTest is BaseTest {
 
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(alice, james, 5e6, block.timestamp + 12 days, [creditId]);
+        _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 12 days, [creditId]);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 minimumCollateralProfit = 0;
 

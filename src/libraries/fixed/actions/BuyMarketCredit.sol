@@ -103,12 +103,12 @@ library BuyMarketCredit {
             credit: amountOut
         });
         uint256 swapFee = state.swapFee(amountIn, debtPosition.dueDate);
+        state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn - swapFee);
         state.transferBorrowAToken(
             msg.sender,
             state.feeConfig.feeRecipient,
             swapFee + (exiterCreditRemaining > 0 ? state.feeConfig.fragmentationFee : 0)
         );
-        state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn - swapFee);
 
         emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
     }
