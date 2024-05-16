@@ -10,6 +10,9 @@ const sizeContractAddress = "0xBa4Eb5533C57b1641d982706c20e71aBe5d5a0EB";
 
 const botAddress = "0x35411F58488d705A994Fc2b9766D99e6F7384ED8";
 
+const usdcAddress = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
+const wethAddress = "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9";
+
 const subgraphUrl =
   "https://api.studio.thegraph.com/query/45982/size-v2-sepolia/v0.1.rc.2b";
 
@@ -259,70 +262,83 @@ async function checkIfLiquidatedBefore(currentDebtPositionId) {
 async function liquidatePositions(arraysDebtPositionIdToLiquidate) {
   const contract = new ethers.Contract(sizeContractAddress, abi, signer);
   
-    const balancesBot = await contract.getUserView(botAddress);
-    console.log("WETH Bot", balancesBot[2].toString()/1e18);
-    console.log("USDC Bot", balancesBot[3].toString()/1e6);
-    console.log("Debt Bot", balancesBot[4].toString()/1e6);
+  const balancesBot = await contract.getUserView(botAddress);
+  console.log("WETH Bot", balancesBot[2].toString() / 1e18);
+  console.log("USDC Bot", balancesBot[3].toString() / 1e6);
+  console.log("Debt Bot", balancesBot[4].toString() / 1e6);
 
   // Fetch live Ethereum price
-  const ethPriceUSD = fetchPrice("ETHUSDT");
+  const ethPriceUSD = await fetchPrice("ETHUSDT");
   if (!ethPriceUSD) {
     console.error('Failed to fetch Ethereum price, cannot proceed with liquidation.');
     return;
   }
 
-  //loop//
+  // Loop over all positions and liquidate
   for (const position of arraysDebtPositionIdToLiquidate) {
     try {
-      creditPositionId = position;
+      const creditPositionId = position;
       console.log("positionId", creditPositionId);
-      const logger = await logDebtPositions(position);
+      await logDebtPositions(position);
 
       console.log(`Calling getDebtPosition with creditPositionId: ${creditPositionId}`);
-       const debtPositions = await contract.getDebtPosition(creditPositionId);
-       console.log(`Got Debt Position: ${JSON.stringify(debtPositions)}`);
-       const facevalue = debtPositions.faceValue; 
+      const debtPositions = await contract.getDebtPosition(creditPositionId);
+      console.log(`Got Debt Position: ${JSON.stringify(debtPositions)}`);
+      const faceValue = debtPositions.faceValue;
 
-       const usdcAmount = facevalue; 
+      const usdcAmount = faceValue;
 
-       const ethAmount = usdcAmount
-         .mul(ethers.utils.parseUnits("1", 18))
-         .div(ethers.utils.parseUnits(ethPriceUSD, 6));
+      const ethAmount = usdcAmount
+        .mul(ethers.utils.parseUnits("1", 18))
+        .div(ethers.utils.parseUnits(ethPriceUSD, 6));
 
-       const ethAmountFormatted = ethers.utils.formatUnits(ethAmount, 18);
+      const ethAmountFormatted = ethers.utils.formatUnits(ethAmount, 18);
 
-       console.log(`face value formatted on eth ${ethAmountFormatted}`);      
-      
-      
-      const isPositionLiquidable = await contract.isDebtPositionLiquidatable(
-        creditPositionId
-      );
+      console.log(`face value formatted on eth ${ethAmountFormatted}`);
+
+      const isPositionLiquidable = await contract.isDebtPositionLiquidatable(creditPositionId);
       console.log(isPositionLiquidable);
-      if (isPositionLiquidable == true) {
-        
-        console.log("WETH Bot Before Liquidate", balancesBot[2].toString()/1e18);
-        console.log("USDC Bot Before Liquidate", balancesBot[3].toString()/1e6);
-        console.log("Debt Bot Before Liquidate", balancesBot[4].toString()/1e6);
-        
-        const debtPositions = await contract.getDebtPosition(creditPositionId);
-        const facevalue = debtPositions.faceValue.toString() * 1e6// chat with team about it;
-        const collateral = debtPositions.borrower.toString();
-        console.log(collateral);
-        // need convert the FV on USDC to ETH
+      if (isPositionLiquidable) {
+        console.log("WETH Bot Before Liquidate", balancesBot[2].toString() / 1e18);
+        console.log("USDC Bot Before Liquidate", balancesBot[3].toString() / 1e6);
+        console.log("Debt Bot Before Liquidate", balancesBot[4].toString() / 1e6);
 
-        params = [creditPositionId, 0];
-        const liquidate = await contract.liquidate(params);
+        // Approve and deposit USDC to repay the borrower's debt
+        await contract.approve(usdcAddress, usdcAmount);
+        await contract.deposit({
+          token: usdcAddress,
+          amount: usdcAmount,
+          to: botAddress
+        });
+
+        // Create the LiquidateParams struct
+        const liquidateParams = {
+          debtPositionId: creditPositionId,
+          minimumCollateralProfit: 0
+        };
+
+        // Perform the liquidation using the deposited funds
+        const liquidate = await contract.liquidate(liquidateParams);
         console.log(liquidate);
-        
-        console.log("WETH Bot After Liquidate", balancesBot[2].toString()/1e18);
-        console.log("USDC Bot After Liquidate", balancesBot[3].toString()/1e6);
-        console.log("Debt Bot After Liquidate", balancesBot[4].toString()/1e6);
+
+        // Withdraw the collateral and debt tokens
+        await contract.withdraw({
+          token: usdcAddress,
+          amount: ethers.constants.MaxUint256,
+          to: botAddress
+        });
+        await contract.withdraw({
+          token: wethAddress,
+          amount: ethers.constants.MaxUint256,
+          to: botAddress
+        });
+
+        console.log("WETH Bot After Liquidate", balancesBot[2].toString() / 1e18);
+        console.log("USDC Bot After Liquidate", balancesBot[3].toString() / 1e6);
+        console.log("Debt Bot After Liquidate", balancesBot[4].toString() / 1e6);
       }
     } catch (error) {
-      console.error(
-        `Error liquidate creditPositionId: ${creditPositionId}`,
-        error
-      );
+      console.error(`Error liquidating creditPositionId: ${creditPositionId}`, error);
     }
   }
 }
