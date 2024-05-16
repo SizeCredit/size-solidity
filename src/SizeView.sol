@@ -33,12 +33,13 @@ import {
 } from "@src/libraries/general/actions/Initialize.sol";
 import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 import {UserView, DataView} from "@src/SizeViewStructs.sol";
+import {ISizeView} from "@src/interfaces/ISizeView.sol";
 
 
 
 /// @title SizeView
 /// @notice View methods for the Size protocol
-abstract contract SizeView is SizeStorage {
+abstract contract SizeView is ISizeView, SizeStorage {
     using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
     using LoanLibrary for DebtPosition;
