@@ -104,7 +104,14 @@ library Compensate {
             credit: amountToCompensate
         });
         if (exiterCreditRemaining > 0) {
-            state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.fragmentationFee);
+            // charge the fragmentation fee in collateral tokens, capped by the user balance
+            uint256 fragmentationFeeInCollateral = Math.min(
+                state.debtTokenAmountToCollateralTokenAmount(state.feeConfig.fragmentationFee),
+                state.data.collateralToken.balanceOf(msg.sender)
+            );
+            state.data.collateralToken.transferFrom(
+                msg.sender, state.feeConfig.feeRecipient, fragmentationFeeInCollateral
+            );
         }
     }
 }
