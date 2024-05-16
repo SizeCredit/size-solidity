@@ -248,10 +248,12 @@ async function liquidatePositions(arraysDebtPositionIdToLiquidate) {
       console.log("positionId", creditPositionId);
       const logger = await logDebtPositions(position);
 
+      console.log(`Calling getDebtPosition with creditPositionId: ${creditPositionId}`);
        const debtPositions = await contract.getDebtPosition(creditPositionId);
-       const facevalue = debtPositions.faceValue; //.toString(); // talk with team about it
+       console.log(`Got Debt Position: ${JSON.stringify(debtPositions)}`);
+       const facevalue = debtPositions.faceValue; 
 
-       const usdcAmount = facevalue; //ethers.utils.parseUnits("56", 6);
+       const usdcAmount = facevalue; 
        const ethPriceUSD = "2400";
 
        const ethAmount = usdcAmount
