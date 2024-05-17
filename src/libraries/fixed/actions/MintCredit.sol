@@ -38,13 +38,13 @@ library MintCredit {
     }
 
     function executeMintCredit(State storage state, MintCreditParams calldata params) external {
-        DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
+        state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: msg.sender,
             faceValue: params.amount,
             dueDate: params.dueDate
         });
-        state.data.debtToken.mint(msg.sender, debtPosition.getTotalDebt());
+        state.data.debtToken.mint(msg.sender, params.amount);
 
         emit Events.MintCredit(params.amount, params.dueDate);
     }

@@ -52,7 +52,6 @@ abstract contract Logger {
     function log(DebtPosition memory debtPosition) internal pure {
         console.log("borrower", debtPosition.borrower);
         console.log("faceValue", debtPosition.faceValue);
-        console.log("overdueLiquidatorReward", debtPosition.overdueLiquidatorReward);
         console.log("dueDate", debtPosition.dueDate);
         console.log("liquidityIndexAtRepayment", debtPosition.liquidityIndexAtRepayment);
     }

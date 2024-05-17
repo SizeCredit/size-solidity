@@ -20,7 +20,7 @@ contract SelfLiquidateTest is BaseTest {
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
-        assertEq(size.getOverdueDebt(debtPositionId), 100e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
@@ -69,7 +69,7 @@ contract SelfLiquidateTest is BaseTest {
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 200e18);
-        assertEq(size.getOverdueDebt(debtPositionId), 100e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 100e6);
         assertEq(size.collateralRatio(bob), 2.0e18);
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
@@ -107,7 +107,7 @@ contract SelfLiquidateTest is BaseTest {
         _borrowAsMarketOrder(alice, james, 100e6, block.timestamp + 365 days);
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
-        assertEq(size.getOverdueDebt(debtPositionId), 100e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
@@ -174,12 +174,12 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.25e18);
 
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 50e6);
-        assertEq(size.getOverdueDebt(debtPositionId), 50e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 50e6);
         assertEq(size.getCreditPosition(creditPositionId).credit, 50e6);
 
         _selfLiquidate(alice, creditPositionId);
 
-        assertEq(size.getOverdueDebt(debtPositionId), 0);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
         assertEq(size.getCreditPosition(creditPositionId).credit, 0);
         assertEq(size.getCreditPosition(creditPositionId).credit, 0);
     }
@@ -244,7 +244,7 @@ contract SelfLiquidateTest is BaseTest {
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId1), 150e18);
-        assertEq(size.getOverdueDebt(debtPositionId1), 100e6);
+        assertEq(size.getDebtPosition(debtPositionId1).faceValue, 100e6);
         assertEq(size.getCreditPosition(creditPositionId1).credit, 70e6);
         assertEq(size.collateralRatio(alice), 1.5e18);
         assertTrue(!size.isUserUnderwater(bob));
@@ -474,6 +474,6 @@ contract SelfLiquidateTest is BaseTest {
         _selfLiquidate(bob, size.getCreditPositionIdsByDebtPositionId(0)[0]);
 
         assertGt(_state().bob.collateralTokenBalance, 0);
-        assertEq(size.getOverdueDebt(debtPositionId), 0);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
     }
 }

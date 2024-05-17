@@ -168,7 +168,6 @@ contract ClaimTest is BaseTest {
 
     function test_Claim_claim_at_different_times_may_have_different_interest() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _updateConfig("swapFeeAPR", 0);
 
         _deposit(alice, weth, 160e18);
@@ -289,7 +288,7 @@ contract ClaimTest is BaseTest {
         _deposit(james, usdc, debtPosition.faceValue);
 
         _repay(james, 0);
-        assertEq(size.getOverdueDebt(debtPositionId), 0);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
 
         _claim(alice, creditPositionId);
 

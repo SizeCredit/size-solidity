@@ -34,11 +34,9 @@ library UpdateConfig {
         return InitializeFeeConfigParams({
             swapFeeAPR: state.feeConfig.swapFeeAPR,
             fragmentationFee: state.feeConfig.fragmentationFee,
+            liquidationRewardPercent: state.feeConfig.liquidationRewardPercent,
             collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,
             collateralProtocolPercent: state.feeConfig.collateralProtocolPercent,
-            overdueLiquidatorReward: state.feeConfig.overdueLiquidatorReward,
-            overdueColLiquidatorPercent: state.feeConfig.overdueColLiquidatorPercent,
-            overdueColProtocolPercent: state.feeConfig.overdueColProtocolPercent,
             feeRecipient: state.feeConfig.feeRecipient
         });
     }
@@ -94,16 +92,12 @@ library UpdateConfig {
             state.feeConfig.swapFeeAPR = params.value;
         } else if (Strings.equal(params.key, "fragmentationFee")) {
             state.feeConfig.fragmentationFee = params.value;
+        } else if (Strings.equal(params.key, "liquidationRewardPercent")) {
+            state.feeConfig.liquidationRewardPercent = params.value;
         } else if (Strings.equal(params.key, "collateralLiquidatorPercent")) {
             state.feeConfig.collateralLiquidatorPercent = params.value;
         } else if (Strings.equal(params.key, "collateralProtocolPercent")) {
             state.feeConfig.collateralProtocolPercent = params.value;
-        } else if (Strings.equal(params.key, "overdueLiquidatorReward")) {
-            state.feeConfig.overdueLiquidatorReward = params.value;
-        } else if (Strings.equal(params.key, "overdueColLiquidatorPercent")) {
-            state.feeConfig.overdueColLiquidatorPercent = params.value;
-        } else if (Strings.equal(params.key, "overdueColProtocolPercent")) {
-            state.feeConfig.overdueColProtocolPercent = params.value;
         } else if (Strings.equal(params.key, "feeRecipient")) {
             state.feeConfig.feeRecipient = address(uint160(params.value));
         } else if (Strings.equal(params.key, "priceFeed")) {

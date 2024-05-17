@@ -43,14 +43,12 @@ library AccountingLibrary {
 
         if (repayAmount == debtPosition.faceValue) {
             // full repayment
-            state.data.debtToken.burn(debtPosition.borrower, debtPosition.getTotalDebt());
+            state.data.debtToken.burn(debtPosition.borrower, debtPosition.faceValue);
             debtPosition.faceValue = 0;
-            debtPosition.overdueLiquidatorReward = 0;
             if (cashReceived) {
                 debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
             }
         } else {
-            // The overdueCollateralReward is not cleared if the loan has not been fully repaid
             state.data.debtToken.burn(debtPosition.borrower, repayAmount);
             debtPosition.faceValue -= repayAmount;
         }
@@ -59,7 +57,6 @@ library AccountingLibrary {
             debtPositionId,
             debtPosition.borrower,
             debtPosition.faceValue,
-            debtPosition.overdueLiquidatorReward,
             debtPosition.dueDate,
             debtPosition.liquidityIndexAtRepayment
         );
@@ -71,21 +68,14 @@ library AccountingLibrary {
         address borrower,
         uint256 faceValue,
         uint256 dueDate
-    ) external returns (DebtPosition memory debtPosition) {
-        debtPosition = DebtPosition({
-            borrower: borrower,
-            faceValue: faceValue,
-            overdueLiquidatorReward: state.feeConfig.overdueLiquidatorReward,
-            dueDate: dueDate,
-            liquidityIndexAtRepayment: 0
-        });
+    ) external {
+        DebtPosition memory debtPosition =
+            DebtPosition({borrower: borrower, faceValue: faceValue, dueDate: dueDate, liquidityIndexAtRepayment: 0});
 
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;
 
-        emit Events.CreateDebtPosition(
-            debtPositionId, lender, borrower, faceValue, debtPosition.overdueLiquidatorReward, dueDate
-        );
+        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, faceValue, dueDate);
 
         CreditPosition memory creditPosition = CreditPosition({
             lender: lender,

@@ -181,14 +181,14 @@ library BorrowAsMarketOrder {
         uint256 issuanceValue = params.amount;
         uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + ratePerMaturity, PERCENT);
 
-        DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
+        state.createDebtAndCreditPositions({
             lender: params.lender,
             borrower: msg.sender,
             faceValue: faceValue,
             dueDate: params.dueDate
         });
 
-        state.data.debtToken.mint(msg.sender, debtPosition.getTotalDebt());
+        state.data.debtToken.mint(msg.sender, faceValue);
         uint256 swapFee = state.swapFee(issuanceValue, params.dueDate);
         state.transferBorrowAToken(params.lender, state.feeConfig.feeRecipient, swapFee);
         state.transferBorrowAToken(params.lender, msg.sender, issuanceValue - swapFee);

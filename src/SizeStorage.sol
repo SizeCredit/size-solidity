@@ -24,11 +24,9 @@ struct User {
 struct FeeConfig {
     uint256 swapFeeAPR; // annual percentage rate of the protocol swap fee
     uint256 fragmentationFee; // fee for fractionalizing credit positions
+    uint256 liquidationRewardPercent; // percent of the face value to be given to the liquidator
     uint256 collateralLiquidatorPercent; // percent of collateral remainder to be split with liquidator on profitable liquidations
     uint256 collateralProtocolPercent; // percent of collateral to be split with protocol on profitable liquidations
-    uint256 overdueLiquidatorReward; // fixed reward for liquidators during overdue liquidations
-    uint256 overdueColLiquidatorPercent; // percent of collateral remainder to be split with liquidator on overdue liquidations
-    uint256 overdueColProtocolPercent; // percent of collateral to be split with protocol on overdue liquidations
     address feeRecipient; // address to receive protocol fees
 }
 

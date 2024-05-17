@@ -118,7 +118,7 @@ contract MulticallTest is BaseTest {
         uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
-        uint256 debt = faceValue + size.feeConfig().overdueLiquidatorReward;
+        uint256 debt = faceValue;
 
         _setPrice(0.31e18);
 

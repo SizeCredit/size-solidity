@@ -17,8 +17,6 @@ contract MintCreditTest is BaseTest {
         _deposit(bob, weth, 200e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
 
-        assertEq(size.feeConfig().overdueLiquidatorReward, 10e6);
-
         uint256[] memory receivableCreditPositionIds = new uint256[](1);
         receivableCreditPositionIds[0] = type(uint256).max;
 
@@ -46,7 +44,6 @@ contract MintCreditTest is BaseTest {
 
     function test_MintCredit_mintCredit_cannot_be_used_to_leave_the_borrower_underwater() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(bob, weth, 200e18);
         bytes[] memory data = new bytes[](1);
         data[0] =
@@ -58,7 +55,6 @@ contract MintCreditTest is BaseTest {
 
     function test_MintCredit_mintCredit_can_be_used_to_partially_repay_with_compensate() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 400e18);
