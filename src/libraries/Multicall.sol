@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {State} from "@src/SizeStorage.sol";
 import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 /// @notice Provides a function to batch together multiple calls in a single external call.
 /// @author OpenZeppelin (https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/v5.0.2/contracts/utils/Multicall.sol), Size
@@ -15,6 +16,7 @@ import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 ///        - https://twitter.com/haydenzadams/status/1427784837738418180?lang=en
 library Multicall {
     using CapsLibrary for State;
+    using RiskLibrary for State;
 
     /// @dev Receives and executes a batch of function calls on this contract.
     /// @custom:oz-upgrades-unsafe-allow-reachable delegatecall
@@ -23,6 +25,7 @@ library Multicall {
 
         uint256 borrowATokenSupplyBefore = state.data.borrowAToken.balanceOf(address(this));
         uint256 debtTokenSupplyBefore = state.data.debtToken.totalSupply();
+        bool isUnderwaterBefore = state.isUserUnderwater(msg.sender);
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
@@ -35,6 +38,9 @@ library Multicall {
         state.validateBorrowATokenIncreaseLteDebtTokenDecrease(
             borrowATokenSupplyBefore, debtTokenSupplyBefore, borrowATokenSupplyAfter, debtTokenSupplyAfter
         );
+        if (!isUnderwaterBefore) {
+            state.validateUserIsNotUnderwater(msg.sender);
+        }
 
         state.data.isMulticall = false;
     }

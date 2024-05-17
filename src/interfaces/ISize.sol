@@ -51,8 +51,11 @@ interface ISize {
     ///     - uint256 to: The recipient of the withdrawal
     function withdraw(WithdrawParams calldata params) external payable;
 
-    /// @notice Mints a new DebtPosition/CreditPosition pair to the sender
-    /// @dev If the debt is to be repaid in the future, the user must use their credit before the due date, otherwise it may become liquidatable
+    /// @notice Mints a new DebtPosition/CreditPosition pair to the sender to be used in a subsequent operation
+    /// @dev Does not to check if user is underwater, as it can be used together a debt reduction operation.
+    //       Because of the lack of underwater checks, this function is only callable from a multicall.
+    //       Since the minted credit position ID might not be known before the multicall transaction is executed, the caller may pass
+    //       the type(uint256).max in other functions to represent "the minted credit position".
     /// @param params MintCreditParams struct containing the following fields:
     ///     - uint256 amount: The amount of tokens to borrow (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     ///     - uint256 dueDate: The due date of the position

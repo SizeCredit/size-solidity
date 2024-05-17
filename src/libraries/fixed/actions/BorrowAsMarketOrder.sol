@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
@@ -80,7 +80,9 @@ library BorrowAsMarketOrder {
 
         // validate params.receivableCreditPositionIds
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
-            uint256 creditPositionId = params.receivableCreditPositionIds[i];
+            uint256 creditPositionId = params.receivableCreditPositionIds[i] == RESERVED_ID
+                ? (state.data.nextCreditPositionId - 1)
+                : params.receivableCreditPositionIds[i];
 
             CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(creditPositionId);
@@ -130,7 +132,10 @@ library BorrowAsMarketOrder {
         amountOutLeft = amountOut;
 
         for (uint256 i = 0; i < params.receivableCreditPositionIds.length; ++i) {
-            CreditPosition storage creditPosition = state.getCreditPosition(params.receivableCreditPositionIds[i]);
+            uint256 creditPositionId = params.receivableCreditPositionIds[i] == RESERVED_ID
+                ? (state.data.nextCreditPositionId - 1)
+                : params.receivableCreditPositionIds[i];
+            CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
 
             uint256 deltaAmountIn = Math.mulDivUp(amountOutLeft, PERCENT + ratePerMaturity, PERCENT);
             uint256 deltaAmountOut = amountOutLeft;
@@ -152,7 +157,7 @@ library BorrowAsMarketOrder {
 
             // slither-disable-next-line unused-return
             state.createCreditPosition({
-                exitCreditPositionId: params.receivableCreditPositionIds[i],
+                exitCreditPositionId: creditPositionId,
                 lender: params.lender,
                 credit: deltaAmountIn
             });

@@ -17,7 +17,7 @@ import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
-import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
@@ -55,14 +55,12 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
     }
 
-    function _mintCredit(address user, uint256 amount, uint256 dueDate) internal returns (uint256, uint256) {
+    function _mintCredit(address user, uint256 amount, uint256 dueDate) internal {
         vm.prank(user);
         size.mintCredit(MintCreditParams({amount: amount, dueDate: dueDate}));
-        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
-        return (DEBT_POSITION_ID_START + debtPositionsCount - 1, CREDIT_POSITION_ID_START + creditPositionsCount - 1);
     }
 
-    function _mintCredit(address user, uint256 amount) internal returns (uint256, uint256) {
+    function _mintCredit(address user, uint256 amount) internal {
         return _mintCredit(user, amount, 0);
     }
 
