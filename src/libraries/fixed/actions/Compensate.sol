@@ -95,6 +95,7 @@ library Compensate {
         state.repayDebt(creditPositionWithDebtToRepay.debtPositionId, amountToCompensate, false);
 
         // credit reduction
+        // slither-disable-next-line unused-return
         state.reduceCredit(params.creditPositionWithDebtToRepayId, amountToCompensate);
 
         // credit emission

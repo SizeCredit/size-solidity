@@ -57,6 +57,7 @@ library SelfLiquidate {
 
         state.repayDebt(creditPosition.debtPositionId, creditPosition.credit, false);
 
+        // slither-disable-next-line unused-return
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
 
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, assignedCollateral);
