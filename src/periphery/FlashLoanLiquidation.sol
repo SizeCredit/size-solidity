@@ -21,14 +21,26 @@ interface I1InchAggregator {
     ) external payable returns (uint256 returnAmount);
 }
 
+interface IUnoswapRouter {
+    function unoswapTo(
+        address recipient,
+        address srcToken,
+        uint256 amount,
+        uint256 minReturn,
+        address pool
+    ) external payable returns (uint256 returnAmount);
+}
+
 contract FlashLoanLiquidator is FlashLoanReceiverBase {
     ISize public sizeLendingContract;
-    I1InchAggregator public aggregator;
+    I1InchAggregator public 1InchAggregator;
+    IUnoswapRouter public unoswapRouter;
 
-    constructor(address _addressProvider, address _sizeLendingContractAddress, address _aggregator) FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider)) {
+    constructor(address _addressProvider, address _sizeLendingContractAddress, address _aggregator, address _unoswapRouter) FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider)) {
         POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
         sizeLendingContract = ISize(_sizeLendingContractAddress);
-        aggregator = I1InchAggregator(_aggregator);
+        1InchAggregator = I1InchAggregator(_aggregator);
+        unoswapRouter = IUnoswapRouter(_unoswapRouter);
     }
 
     function executeOperation(
@@ -97,11 +109,11 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         address collateralToken,
         address debtToken
     ) internal returns (uint256) {
-        // Approve the aggregator to spend the collateral tokens
-        IERC20(collateralToken).approve(address(aggregator), type(uint256).max);
+        // Approve the 1InchAggregator to spend the collateral tokens
+        IERC20(collateralToken).approve(address(1InchAggregator), type(uint256).max);
 
-        // Swap the collateral tokens for the debt tokens using the aggregator
-        uint256 swappedAmount = aggregator.swap(
+        // Swap the collateral tokens for the debt tokens using the 1InchAggregator
+        uint256 swappedAmount = 1InchAggregator.swap(
             collateralToken,
             debtToken,
             IERC20(collateralToken).balanceOf(address(this)),
