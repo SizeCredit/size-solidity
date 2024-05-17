@@ -35,7 +35,7 @@ library UpdateConfig {
             swapFeeAPR: state.feeConfig.swapFeeAPR,
             fragmentationFee: state.feeConfig.fragmentationFee,
             liquidationRewardPercent: state.feeConfig.liquidationRewardPercent,
-            collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,
+            overdueCollateralProtocolPercent: state.feeConfig.overdueCollateralProtocolPercent,
             collateralProtocolPercent: state.feeConfig.collateralProtocolPercent,
             feeRecipient: state.feeConfig.feeRecipient
         });
@@ -94,8 +94,8 @@ library UpdateConfig {
             state.feeConfig.fragmentationFee = params.value;
         } else if (Strings.equal(params.key, "liquidationRewardPercent")) {
             state.feeConfig.liquidationRewardPercent = params.value;
-        } else if (Strings.equal(params.key, "collateralLiquidatorPercent")) {
-            state.feeConfig.collateralLiquidatorPercent = params.value;
+        } else if (Strings.equal(params.key, "overdueCollateralProtocolPercent")) {
+            state.feeConfig.overdueCollateralProtocolPercent = params.value;
         } else if (Strings.equal(params.key, "collateralProtocolPercent")) {
             state.feeConfig.collateralProtocolPercent = params.value;
         } else if (Strings.equal(params.key, "feeRecipient")) {

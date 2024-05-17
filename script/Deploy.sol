@@ -55,7 +55,7 @@ abstract contract Deploy {
             swapFeeAPR: 0.005e18,
             fragmentationFee: 5e6,
             liquidationRewardPercent: 0.05e18,
-            collateralLiquidatorPercent: 0.3e18,
+            overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
             feeRecipient: feeRecipient
         });
@@ -119,7 +119,7 @@ abstract contract Deploy {
             swapFeeAPR: 0.005e18,
             fragmentationFee: 5e6,
             liquidationRewardPercent: 0.05e18,
-            collateralLiquidatorPercent: 0.3e18,
+            overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
             feeRecipient: _owner
         });

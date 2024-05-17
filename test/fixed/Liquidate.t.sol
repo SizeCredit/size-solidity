@@ -59,21 +59,15 @@ contract LiquidateTest is BaseTest {
             _before.feeRecipient.collateralTokenBalance
                 + Math.mulDivDown(collateralRemainder, size.feeConfig().collateralProtocolPercent, PERCENT)
         );
-        uint256 collateralPremiumToBorrower =
-            PERCENT - size.feeConfig().collateralProtocolPercent - size.feeConfig().collateralLiquidatorPercent;
+        uint256 collateralPremiumToBorrower = PERCENT - size.feeConfig().collateralProtocolPercent;
         assertEq(
             _after.bob.collateralTokenBalance,
             _before.bob.collateralTokenBalance - (debtWad * 5)
-                - Math.mulDivDown(
-                    collateralRemainder,
-                    (size.feeConfig().collateralProtocolPercent + size.feeConfig().collateralLiquidatorPercent),
-                    PERCENT
-                ),
+                - Math.mulDivDown(collateralRemainder, (size.feeConfig().collateralProtocolPercent), PERCENT),
             _before.bob.collateralTokenBalance - (debtWad * 5) - collateralRemainder
                 + Math.mulDivDown(collateralRemainder, collateralPremiumToBorrower, PERCENT)
         );
-        uint256 liquidatorProfitAmount =
-            (debtWad * 5) + Math.mulDivDown(collateralRemainder, size.feeConfig().collateralLiquidatorPercent, PERCENT);
+        uint256 liquidatorProfitAmount = (debtWad * 5);
         assertEq(
             _after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance + liquidatorProfitAmount
         );
@@ -198,12 +192,9 @@ contract LiquidateTest is BaseTest {
         assertEq(liquidatorProfitCollateralTokenFixed, 100e18 + 10e18);
 
         uint256 protocolSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed)
-            * size.feeConfig().collateralLiquidatorPercent / PERCENT;
-        uint256 liquidatorSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed)
             * size.feeConfig().collateralProtocolPercent / PERCENT;
 
         assertEq(protocolSplit, (180e18 - 110e18) * 0.005e18 / 1e18, 0.35e18);
-        assertEq(liquidatorSplit, (180e18 - 110e18) * 0.01e18 / 1e18, 0.7e18);
 
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
@@ -217,15 +208,14 @@ contract LiquidateTest is BaseTest {
         assertEq(loansBefore, loansAfter);
         assertEq(
             _after.bob.collateralTokenBalance,
-            _before.bob.collateralTokenBalance - liquidatorProfitCollateralTokenFixed
-                - (protocolSplit + liquidatorSplit)
+            _before.bob.collateralTokenBalance - liquidatorProfitCollateralTokenFixed - protocolSplit
         );
         assertEq(
             _after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance + protocolSplit
         );
         assertEq(
             _after.liquidator.collateralTokenBalance,
-            _before.liquidator.collateralTokenBalance + liquidatorProfitCollateralTokenFixed + liquidatorSplit
+            _before.liquidator.collateralTokenBalance + liquidatorProfitCollateralTokenFixed
         );
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
         assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
@@ -263,8 +253,7 @@ contract LiquidateTest is BaseTest {
             )
         );
 
-        uint256 protocolSplit = collateralRemainder * size.feeConfig().collateralLiquidatorPercent / PERCENT;
-        uint256 liquidatorSplit = collateralRemainder * size.feeConfig().collateralProtocolPercent / PERCENT;
+        uint256 protocolSplit = collateralRemainder * size.feeConfig().collateralProtocolPercent / PERCENT;
 
         _liquidate(liquidator, debtPositionId);
 
@@ -275,15 +264,14 @@ contract LiquidateTest is BaseTest {
         assertEq(loansBefore, loansAfter);
         assertEq(
             _after.bob.collateralTokenBalance,
-            _before.bob.collateralTokenBalance - liquidatorProfitCollateralTokenFixed
-                - (protocolSplit + liquidatorSplit)
+            _before.bob.collateralTokenBalance - liquidatorProfitCollateralTokenFixed - (protocolSplit)
         );
         assertEq(
             _after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance + protocolSplit
         );
         assertEq(
             _after.liquidator.collateralTokenBalance,
-            _before.liquidator.collateralTokenBalance + liquidatorProfitCollateralTokenFixed + liquidatorSplit
+            _before.liquidator.collateralTokenBalance + liquidatorProfitCollateralTokenFixed
         );
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
         assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
@@ -338,10 +326,7 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 liquidatorProfit = liquidatorProfitCollateralTokenFixed
-            + Math.mulDivDown(
-                165e18 - liquidatorProfitCollateralTokenFixed, size.feeConfig().collateralLiquidatorPercent, PERCENT
-            );
+        uint256 liquidatorProfit = liquidatorProfitCollateralTokenFixed;
 
         assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance + liquidatorProfit);
     }

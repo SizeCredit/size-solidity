@@ -22,7 +22,7 @@ struct InitializeFeeConfigParams {
     uint256 swapFeeAPR;
     uint256 fragmentationFee;
     uint256 liquidationRewardPercent;
-    uint256 collateralLiquidatorPercent;
+    uint256 overdueCollateralProtocolPercent;
     uint256 collateralProtocolPercent;
     address feeRecipient;
 }
@@ -66,22 +66,17 @@ library Initialize {
         // validate fragmentationFee
         // N/A
 
-        // validate collateralLiquidatorPercent
-        if (f.collateralLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralLiquidatorPercent);
-        }
-
         // validate liquidationRewardPercent
         // N/A
+
+        // validate overdueCollateralProtocolPercent
+        if (f.overdueCollateralProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueCollateralProtocolPercent);
+        }
 
         // validate collateralProtocolPercent
         if (f.collateralProtocolPercent > PERCENT) {
             revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralProtocolPercent);
-        }
-        if (f.collateralLiquidatorPercent + f.collateralProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                f.collateralLiquidatorPercent + f.collateralProtocolPercent
-            );
         }
 
         // validate feeRecipient
@@ -178,7 +173,7 @@ library Initialize {
         state.feeConfig.fragmentationFee = f.fragmentationFee;
 
         state.feeConfig.liquidationRewardPercent = f.liquidationRewardPercent;
-        state.feeConfig.collateralLiquidatorPercent = f.collateralLiquidatorPercent;
+        state.feeConfig.overdueCollateralProtocolPercent = f.overdueCollateralProtocolPercent;
         state.feeConfig.collateralProtocolPercent = f.collateralProtocolPercent;
 
         state.feeConfig.feeRecipient = f.feeRecipient;

@@ -43,21 +43,14 @@ contract InitializeValidationTest is Test, BaseTest {
         r.crLiquidation = 1.3e18;
         r.crOpening = 1.5e18;
 
-        f.collateralLiquidatorPercent = 1.1e18;
+        f.overdueCollateralProtocolPercent = 1.1e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.1e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        f.collateralLiquidatorPercent = 0.3e18;
+        f.overdueCollateralProtocolPercent = 0.3e18;
 
         f.collateralProtocolPercent = 1.2e18;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM.selector, 1.2e18));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        f.collateralProtocolPercent = 0.1e18;
-
-        f.collateralLiquidatorPercent = 0.6e18;
-        f.collateralProtocolPercent = 0.6e18;
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM.selector, 1.2e18));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        f.collateralLiquidatorPercent = 0.3e18;
         f.collateralProtocolPercent = 0.1e18;
 
         r.minimumCreditBorrowAToken = 0;
