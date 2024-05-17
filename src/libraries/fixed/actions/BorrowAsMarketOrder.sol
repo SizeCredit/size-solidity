@@ -37,8 +37,7 @@ library BorrowAsMarketOrder {
     using VariablePoolLibrary for State;
 
     function validateBorrowAsMarketOrder(State storage state, BorrowAsMarketOrderParams memory params) external view {
-        User memory lenderUser = state.data.users[params.lender];
-        LoanOffer memory loanOffer = lenderUser.loanOffer;
+        LoanOffer memory loanOffer = state.data.users[params.lender].loanOffer;
 
         // validate msg.sender
         // N/A
@@ -49,9 +48,6 @@ library BorrowAsMarketOrder {
         }
 
         // validate params.amount
-        if (params.amount == 0) {
-            revert Errors.NULL_AMOUNT();
-        }
         if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
             revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
         }

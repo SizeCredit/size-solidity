@@ -53,7 +53,6 @@ abstract contract Deploy {
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
-            minSwapFee: 0e6,
             fragmentationFee: 5e6,
             collateralLiquidatorPercent: 0.3e18,
             collateralProtocolPercent: 0.1e18,
@@ -120,7 +119,6 @@ abstract contract Deploy {
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
-            minSwapFee: 0e6,
             fragmentationFee: 5e6,
             collateralLiquidatorPercent: 0.3e18,
             collateralProtocolPercent: 0.1e18,

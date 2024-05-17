@@ -27,6 +27,9 @@ library MintCredit {
         // N/A
 
         // validate amount
+        if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+        }
 
         // validate dueDate
         if (params.dueDate < block.timestamp) {

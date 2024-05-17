@@ -20,7 +20,6 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct InitializeFeeConfigParams {
     uint256 swapFeeAPR;
-    uint256 minSwapFee;
     uint256 fragmentationFee;
     uint256 collateralLiquidatorPercent;
     uint256 collateralProtocolPercent;
@@ -64,9 +63,6 @@ library Initialize {
 
     function validateInitializeFeeConfigParams(InitializeFeeConfigParams memory f) internal pure {
         // validate swapFeeAPR
-        // N/A
-
-        // validate minSwapFee
         // N/A
 
         // validate fragmentationFee
@@ -196,7 +192,6 @@ library Initialize {
 
     function executeInitializeFeeConfig(State storage state, InitializeFeeConfigParams memory f) internal {
         state.feeConfig.swapFeeAPR = f.swapFeeAPR;
-        state.feeConfig.minSwapFee = f.minSwapFee;
         state.feeConfig.fragmentationFee = f.fragmentationFee;
 
         state.feeConfig.collateralLiquidatorPercent = f.collateralLiquidatorPercent;

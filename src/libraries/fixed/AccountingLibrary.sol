@@ -132,13 +132,13 @@ library AccountingLibrary {
     }
 
     /// @notice Calculate the swap fee
-    /// @dev max(cash * (swapFeeAPR * (dueDate - block.timestamp) / 365 days), minSwapFee)
-    ///      The fee is capped to the cash being transferred from the credit buyer to the seller
+    /// @dev cash * (swapFeeAPR * (dueDate - block.timestamp) / 365 days)
+    ///      The fee is capped to the cash being transferred from the credit buyer to the seller (this can only happen for loans with duration greater than 1 / swapFeeAPR = 1 / 0.005 = 200 years with the current configuration)
     /// @param state The state struct
     /// @param cash The amount of cash being transferred
     /// @param dueDate The due date used to price the credit being sold
     function swapFee(State storage state, uint256 cash, uint256 dueDate) internal view returns (uint256) {
         uint256 fee = Math.mulDivUp(cash * state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), PERCENT * 365 days);
-        return Math.min(Math.max(fee, state.feeConfig.minSwapFee), cash);
+        return Math.min(fee, cash);
     }
 }

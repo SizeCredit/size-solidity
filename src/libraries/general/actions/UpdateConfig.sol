@@ -33,7 +33,6 @@ library UpdateConfig {
     function feeConfigParams(State storage state) public view returns (InitializeFeeConfigParams memory) {
         return InitializeFeeConfigParams({
             swapFeeAPR: state.feeConfig.swapFeeAPR,
-            minSwapFee: state.feeConfig.minSwapFee,
             fragmentationFee: state.feeConfig.fragmentationFee,
             collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,
             collateralProtocolPercent: state.feeConfig.collateralProtocolPercent,
@@ -93,8 +92,6 @@ library UpdateConfig {
             state.riskConfig.minimumMaturity = params.value;
         } else if (Strings.equal(params.key, "swapFeeAPR")) {
             state.feeConfig.swapFeeAPR = params.value;
-        } else if (Strings.equal(params.key, "minSwapFee")) {
-            state.feeConfig.minSwapFee = params.value;
         } else if (Strings.equal(params.key, "fragmentationFee")) {
             state.feeConfig.fragmentationFee = params.value;
         } else if (Strings.equal(params.key, "collateralLiquidatorPercent")) {

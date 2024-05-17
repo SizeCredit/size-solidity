@@ -49,7 +49,7 @@ contract BorrowAsMarketOrderValidationTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 0, 5e6));
         size.borrowAsMarketOrder(
             BorrowAsMarketOrderParams({
                 lender: alice,
