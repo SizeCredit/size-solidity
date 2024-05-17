@@ -90,7 +90,7 @@ library BuyMarketCredit {
             amountOut = Math.mulDivDown(params.amount, PERCENT + ratePerMaturity, PERCENT);
         } else {
             amountOut = params.amount;
-            amountIn = Math.mulDivUp(amountOut, PERCENT, PERCENT + ratePerMaturity);
+            amountIn = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
         }
 
         if (amountOut > creditPosition.credit) {
