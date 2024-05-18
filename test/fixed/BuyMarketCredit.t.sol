@@ -10,7 +10,7 @@ contract BuyMarketCreditTest is BaseTest {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
         _updateConfig("swapFeeAPR", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
+
         _updateConfig("borrowATokenCap", type(uint256).max);
 
         _deposit(alice, usdc, 1000e6);

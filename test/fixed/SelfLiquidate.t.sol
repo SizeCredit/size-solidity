@@ -8,7 +8,7 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidate_selfliquidate_rapays_with_collateral() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
+
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
@@ -48,7 +48,7 @@ contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidate_selfliquidate_two_lenders() public {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
+
         _deposit(alice, usdc, 100e6);
         _deposit(candy, usdc, 100e6);
         _deposit(james, usdc, 100e6);
@@ -86,7 +86,6 @@ contract SelfLiquidateTest is BaseTest {
 
     function test_SelfLiquidate_selfliquidate_CreditPosition_keeps_accounting_in_check() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
@@ -135,7 +134,6 @@ contract SelfLiquidateTest is BaseTest {
 
     function test_SelfLiquidate_selfliquidate_DebtPosition_should_not_leave_dust_loan_when_no_exits() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 200e18 - 1);
@@ -150,7 +148,6 @@ contract SelfLiquidateTest is BaseTest {
 
     function test_SelfLiquidate_selfliquidate_DebtPosition_should_not_leave_dust_loan_when_exits() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 100e6);
@@ -222,7 +219,6 @@ contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidate_selfliquidateLoan_creditPosition_should_work() public {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 100e6);
@@ -323,7 +319,7 @@ contract SelfLiquidateTest is BaseTest {
 
     function testFuzz_SelfLiquidate_selfliquidateLoan_compensate_used_to_borrower_exit(uint256 exitAmount) public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
+
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 400e18);

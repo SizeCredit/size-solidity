@@ -169,7 +169,6 @@ contract MulticallTest is BaseTest {
     function test_Multicall_multicall_bypasses_cap_if_it_is_to_reduce_debt() public {
         _setPrice(1e18);
         _updateConfig("borrowATokenCap", 100e6);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 200e18);
