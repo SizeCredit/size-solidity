@@ -52,6 +52,14 @@ struct SwapParams {
     bytes data; // Encoded data for the specific swap method
 }
 
+struct OperationParams {
+    uint256 debtPositionId;
+    uint256 minimumCollateralProfit;
+    address liquidator;
+    address collateralToken;
+    SwapParams swapParams;
+}
+
 contract FlashLoanLiquidator is FlashLoanReceiverBase {
     ISize public sizeLendingContract;
     I1InchAggregator public oneInchAggregator;
@@ -84,16 +92,16 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         require(initiator == address(this), "Not Initiator");
 
         // Decode the params to get the necessary information
-        (uint256 debtPositionId, uint256 minimumCollateralProfit, address liquidator, address collateralToken, SwapParams memory swapParams) = abi.decode(params, (uint256, uint256, address, address, SwapParams));
+        OperationParams memory opParams = abi.decode(params, (OperationParams));
 
         // Liquidate the debt position and withdraw all assets
-        liquidateDebtPosition(collateralToken, assets[0], amounts[0], debtPositionId, minimumCollateralProfit);
+        liquidateDebtPosition(opParams.collateralToken, assets[0], amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit);
 
         // Swap the collateral tokens for the debt tokens based on the specified method
-        uint256 swappedAmount = swapCollateral(collateralToken, assets[0], swapParams);
+        swapCollateral(opParams.collateralToken, assets[0], opParams.swapParams);
 
         // Settle the debt tokens and flash loan
-        settleFlashLoan(assets, amounts, premiums, liquidator);
+        settleFlashLoan(assets, amounts, premiums, opParams.liquidator);
 
         return true;
     }
@@ -244,7 +252,15 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         address liquidator, // The receiver of the liquidation proceeds
         SwapParams memory swapParams
     ) external {
-        bytes memory params = abi.encode(debtPositionId, minimumCollateralProfit, liquidator, collateralToken, swapParams);
+        OperationParams memory opParams = OperationParams({
+            debtPositionId: debtPositionId,
+            minimumCollateralProfit: minimumCollateralProfit,
+            liquidator: liquidator,
+            collateralToken: collateralToken,
+            swapParams: swapParams
+        });
+
+        bytes memory params = abi.encode(opParams);
 
         address[] memory assets = new address[](1);
         assets[0] = flashLoanAsset; // The debt token (e.g. USDC)
