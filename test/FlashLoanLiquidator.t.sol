@@ -46,7 +46,9 @@ contract FlashLoanLiquidationTest is BaseTest {
         flashLoanLiquidator = new FlashLoanLiquidator(
             address(mockAavePool),
             address(size),
-            address(mock1InchAggregator)
+            address(mock1InchAggregator),
+            address(0), // placeholder for the unoswap router
+            address(0) // placeholder for the uniswapv2 aggregator
         );
 
         // Set the FlashLoanLiquidator contract as the keeper

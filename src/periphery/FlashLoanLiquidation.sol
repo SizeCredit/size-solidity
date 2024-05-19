@@ -49,7 +49,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
 
 
     constructor(
-        address _addressProvider,
+        address _addressProvider, // aave pool address provider
         address _sizeLendingContractAddress,
         address _1inchAggregator,
         address _unoswapRouter,
@@ -113,6 +113,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
 
         // Withdraw the collateral and debt tokens
         sizeLendingContract.withdraw(WithdrawParams({
+            token: debtToken,
             amount: type(uint256).max,
             to: address(this)
         }));
@@ -144,19 +145,19 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
 
     function swapCollateralUniswap(
         address collateralToken,
-        address debtToken
+        address[] memory tokenPaths
     ) internal returns (uint256) {
         // Approve the UniswapRouter to spend the collateral tokens
         IERC20(collateralToken).approve(address(uniswapRouter), type(uint256).max);
 
-        address[] memory path = new address[](2);
-        path[0] = collateralToken;
-        path[1] = debtToken;
+        // address[] memory path = new address[](2);
+        // path[0] = collateralToken;
+        // path[1] = debtToken;
 
         uint256[] memory amounts = uniswapRouter.swapExactTokensForTokens(
             IERC20(collateralToken).balanceOf(address(this)),
             1, // TODO consider calculating reasonable minimum return amount
-            path,
+            tokenPaths,
             address(this),
             block.timestamp
         );
@@ -166,7 +167,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
 
     function swapCollateralUnoswap(
         address collateralToken,
-        address debtToken,
         address pool
     ) internal returns (uint256) {
         // Approve the UnoswapRouter to spend the collateral tokens
