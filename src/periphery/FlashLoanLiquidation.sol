@@ -21,6 +21,16 @@ interface I1InchAggregator {
     ) external payable returns (uint256 returnAmount);
 }
 
+interface IUnoswapRouter {
+    function unoswapTo(
+        address recipient,
+        address srcToken,
+        uint256 amount,
+        uint256 minReturn,
+        address pool
+    ) external payable returns (uint256 returnAmount);
+}
+
 interface IUniswapV2Router02 {
     function swapExactTokensForTokens(
         uint amountIn,
@@ -34,17 +44,21 @@ interface IUniswapV2Router02 {
 contract FlashLoanLiquidator is FlashLoanReceiverBase {
     ISize public sizeLendingContract;
     I1InchAggregator public oneInchAggregator;
+    IUnoswapRouter public unoswapRouter;
     IUniswapV2Router02 public uniswapRouter;
+
 
     constructor(
         address _addressProvider,
         address _sizeLendingContractAddress,
-        address _aggregator,
+        address _1inchAggregator,
+        address _unoswapRouter,
         address _uniswapRouter
     ) FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider)) {
         POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
         sizeLendingContract = ISize(_sizeLendingContractAddress);
-        oneInchAggregator = I1InchAggregator(_aggregator);
+        oneInchAggregator = I1InchAggregator(_1inchAggregator);
+        unoswapRouter = IUnoswapRouter(_unoswapRouter);
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);
     }
 
@@ -141,13 +155,33 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
 
         uint256[] memory amounts = uniswapRouter.swapExactTokensForTokens(
             IERC20(collateralToken).balanceOf(address(this)),
-            1, // Minimum return amount
+            1, // TODO consider calculating reasonable minimum return amount
             path,
             address(this),
             block.timestamp
         );
 
         return amounts[amounts.length - 1];
+    }
+
+    function swapCollateralUnoswap(
+        address collateralToken,
+        address debtToken,
+        address pool
+    ) internal returns (uint256) {
+        // Approve the UnoswapRouter to spend the collateral tokens
+        IERC20(collateralToken).approve(address(unoswapRouter), type(uint256).max);
+
+        // Perform the swap using the unoswapTo function
+        uint256 returnAmount = unoswapRouter.unoswapTo(
+            address(this),
+            collateralToken,
+            IERC20(collateralToken).balanceOf(address(this)),
+            1, // TODO consider calculating reasonable minimum return amount
+            pool
+        );
+
+        return returnAmount;
     }
 
     function settleFlashLoan(
