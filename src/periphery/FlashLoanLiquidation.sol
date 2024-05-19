@@ -41,6 +41,17 @@ interface IUniswapV2Router02 {
     ) external returns (uint[] memory amounts);
 }
 
+enum SwapMethod {
+    OneInch,
+    Unoswap,
+    Uniswap
+}
+
+struct SwapParams {
+    SwapMethod method;
+    bytes data; // Encoded data for the specific swap method
+}
+
 contract FlashLoanLiquidator is FlashLoanReceiverBase {
     ISize public sizeLendingContract;
     I1InchAggregator public oneInchAggregator;
@@ -73,13 +84,13 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         require(initiator == address(this), "Not Initiator");
 
         // Decode the params to get the necessary information
-        (uint256 debtPositionId, uint256 minimumCollateralProfit, address liquidator, address collateralToken) = abi.decode(params, (uint256, uint256, address, address));
+        (uint256 debtPositionId, uint256 minimumCollateralProfit, address liquidator, address collateralToken, SwapParams memory swapParams) = abi.decode(params, (uint256, uint256, address, address, SwapParams));
 
         // Liquidate the debt position and withdraw all assets
         liquidateDebtPosition(collateralToken, assets[0], amounts[0], debtPositionId, minimumCollateralProfit);
 
-        // Swap the collateral tokens for the debt tokens and withdraw everything
-        swapCollateral(collateralToken, assets[0]);
+        // Swap the collateral tokens for the debt tokens based on the specified method
+        uint256 swappedAmount = swapCollateral(collateralToken, assets[0], swapParams);
 
         // Settle the debt tokens and flash loan
         settleFlashLoan(assets, amounts, premiums, liquidator);
@@ -126,7 +137,26 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
 
     function swapCollateral(
         address collateralToken,
-        address debtToken
+        address debtToken,
+        SwapParams memory swapParams
+    ) internal returns (uint256) {
+        if (swapParams.method == SwapMethod.OneInch) {
+            return swapCollateral1Inch(collateralToken, debtToken, swapParams.data);
+        } else if (swapParams.method == SwapMethod.Unoswap) {
+            address pool = abi.decode(swapParams.data, (address));
+            return swapCollateralUnoswap(collateralToken, pool);
+        } else if (swapParams.method == SwapMethod.Uniswap) {
+            address[] memory path = abi.decode(swapParams.data, (address[]));
+            return swapCollateralUniswap(collateralToken, path);
+        } else {
+            revert("Invalid swap method");
+        }
+    }
+
+    function swapCollateral1Inch(
+        address collateralToken,
+        address debtToken,
+        bytes memory data
     ) internal returns (uint256) {
         // Approve the 1InchAggregator to spend the collateral tokens
         IERC20(collateralToken).approve(address(oneInchAggregator), type(uint256).max);
@@ -137,7 +167,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
             debtToken,
             IERC20(collateralToken).balanceOf(address(this)),
             1, // Minimum return amount
-            ""
+            data
         );
 
         return swappedAmount;
@@ -156,7 +186,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
 
         uint256[] memory amounts = uniswapRouter.swapExactTokensForTokens(
             IERC20(collateralToken).balanceOf(address(this)),
-            1, // TODO consider calculating reasonable minimum return amount
+            1, // Minimum return amount
             tokenPaths,
             address(this),
             block.timestamp
@@ -211,9 +241,10 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 minimumCollateralProfit, 
         address collateralToken, 
         address flashLoanAsset, // Debt token
-        address liquidator // The receiver of the liquidation proceeds
+        address liquidator, // The receiver of the liquidation proceeds
+        SwapParams memory swapParams
     ) external {
-        bytes memory params = abi.encode(debtPositionId, minimumCollateralProfit, liquidator, collateralToken);
+        bytes memory params = abi.encode(debtPositionId, minimumCollateralProfit, liquidator, collateralToken, swapParams);
 
         address[] memory assets = new address[](1);
         assets[0] = flashLoanAsset; // The debt token (e.g. USDC)
