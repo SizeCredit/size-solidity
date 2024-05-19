@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import "forge-std/Test.sol";
-import "../src/periphery/FlashLoanLiquidation.sol";
-import "./mocks/Mock1InchAggregator.sol";
-import "./mocks/MockAavePool.sol";
+import {FlashLoanLiquidator, SwapParams, SwapMethod} from "@src/periphery/FlashLoanLiquidation.sol";
+import {Mock1InchAggregator} from "@test/mocks/Mock1InchAggregator.sol";
+import {MockAavePool} from "@test/mocks/MockAavePool.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -30,7 +29,7 @@ contract FlashLoanLiquidationTest is BaseTest {
     Mock1InchAggregator public mock1InchAggregator;
     FlashLoanLiquidator public flashLoanLiquidator;
 
-    function test_flashloan_liquidator_can_liquidate_and_withdraw() public {
+    function test_flashloan_liquidator_liquidate_and_swap_1inch_withdraw() public {
         // Initialize mock contracts
         mockAavePool = new MockAavePool();
         mock1InchAggregator = new Mock1InchAggregator(address(priceFeed));
@@ -81,6 +80,12 @@ contract FlashLoanLiquidationTest is BaseTest {
         Vars memory _before = _state();
         uint256 beforeLiquidatorUSDC = usdc.balanceOf(liquidator);
 
+        // Create SwapParams for a 1inch swap
+        SwapParams memory swapParams = SwapParams({
+            method: SwapMethod.OneInch,
+            data: abi.encode("arbitrary data") // Mock data for the 1inch swap
+        });
+
         // Call the liquidatePositionWithFlashLoan function
         vm.prank(liquidator);
         flashLoanLiquidator.liquidatePositionWithFlashLoan(
@@ -88,8 +93,8 @@ contract FlashLoanLiquidationTest is BaseTest {
             0, // minimumCollateralProfit
             address(weth), // collateralToken
             address(usdc), // flashLoanAsset
-            // faceValue, // flashLoanAmount
-            liquidator // The receiver of the liquidation proceeds
+            liquidator, // The receiver of the liquidation proceeds
+            swapParams // Pass the swapParams
         );
 
         Vars memory _after = _state();
