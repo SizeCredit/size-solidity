@@ -150,7 +150,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
             deadline: deadline,
             minAPR: minAPR
         });
-        (uint256 liquidatorProfitCollateralAsset, uint256 liquidatorProfitBorrowAsset) = sizeLendingContract.liquidateWithReplacement(params);
+        sizeLendingContract.liquidateWithReplacement(params);
         // Withdraw the collateral and debt tokens
         sizeLendingContract.withdraw(WithdrawParams({
             token: debtToken,

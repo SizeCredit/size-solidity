@@ -83,7 +83,7 @@ contract FlashLoanLiquidationTest is BaseTest {
         // Create SwapParams for a 1inch swap
         SwapParams memory swapParams = SwapParams({
             method: SwapMethod.OneInch,
-            data: abi.encode("arbitrary data") // Mock data for the 1inch swap
+            data: abi.encode("") // Data is not used in the mock
         });
 
         // Create ReplacementParams, not used since useReplacement is false
@@ -116,5 +116,73 @@ contract FlashLoanLiquidationTest is BaseTest {
             "feeRecipient has repayFee and liquidation split"
         );
         assertGt(afterLiquidatorUSDC, beforeLiquidatorUSDC, "Liquidator should have more USDC after liquidation");
+    }
+
+    function test_flashloan_liquidator_liquidate_with_replacement() public {
+        // Initialize mock contracts
+        mockAavePool = new MockAavePool();
+        mock1InchAggregator = new Mock1InchAggregator(address(priceFeed));
+
+        // Fund the mock aggregator and pool with WETH and USDC
+        _mint(address(weth), address(mock1InchAggregator), 100000e18);
+        _mint(address(usdc), address(mock1InchAggregator), 10000000000000e18);
+        _mint(address(weth), address(mockAavePool), 100000e18);
+        _mint(address(usdc), address(mockAavePool), 1000000e6);
+
+        // Initialize the FlashLoanLiquidator contract
+        flashLoanLiquidator = new FlashLoanLiquidator(
+            address(mockAavePool),
+            address(size),
+            address(mock1InchAggregator),
+            address(0), // placeholder for the unoswap router
+            address(0) // placeholder for the uniswapv2 aggregator
+        );
+
+        // Set the FlashLoanLiquidator contract as the keeper
+        _setKeeperRole(address(flashLoanLiquidator));
+
+        // Setup borrowers and loans
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        uint256 amount = 15e6;
+        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        _setPrice(0.31e18); // Set a price that makes the position undercollateralized
+
+        // Setup replacement borrower
+        _deposit(candy, weth, 400e18);
+        _deposit(candy, usdc, 100e6);
+        _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 365 days); // Valid borrow offer
+
+        // Create SwapParams for a 1inch swap
+        SwapParams memory swapParams = SwapParams({
+            method: SwapMethod.OneInch,
+            data: abi.encode("") // Data is not used in the mock
+        });
+
+        // Create ReplacementParams
+        ReplacementParams memory replacementParams = ReplacementParams({
+            minAPR: 0.03e18,
+            deadline: block.timestamp + 1 days
+        });
+
+        // Call the liquidatePositionWithFlashLoan function with replacement
+        vm.prank(liquidator);
+        flashLoanLiquidator.liquidatePositionWithFlashLoan(
+            address(usdc), // flashLoanAsset
+            true, // useReplacement
+            replacementParams,
+            debtPositionId,
+            0, // minimumCollateralProfit
+            address(weth), // collateralToken
+            swapParams
+        );
+
+        // Assertions to verify the state after liquidation
+        assertTrue(size.isDebtPositionLiquidatable(debtPositionId) == false, "Debt position should not be liquidatable");
+        assertEq(size.getDebtPosition(debtPositionId).borrower, candy, "Debt position should be transferred to candy");
+        assertGt(usdc.balanceOf(liquidator), 0, "Liquidator should have received some USDC as profit");
     }
 }
