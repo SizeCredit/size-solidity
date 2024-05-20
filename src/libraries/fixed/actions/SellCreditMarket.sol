@@ -65,7 +65,7 @@ library SellCreditMarket {
             revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
         }
         if (params.amount > creditPosition.credit) {
-            revert Errors.CREDIT_GREATER_THAN_CREDIT_POSITION_CREDIT(params.amount, creditPosition.credit);
+            revert Errors.AMOUNT_GREATER_THAN_CREDIT_POSITION_CREDIT(params.amount, creditPosition.credit);
         }
 
         // validate dueDate

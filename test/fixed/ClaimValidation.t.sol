@@ -17,7 +17,7 @@ contract ClaimValidationTest is BaseTest {
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
+        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         vm.startPrank(alice);

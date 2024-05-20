@@ -178,10 +178,16 @@ abstract contract SizeView is SizeStorage {
         return state.getCreditPositionProRataAssignedCollateral(creditPosition);
     }
 
-    function getSwapFee(uint256 amount, uint256 dueDate) external view returns (uint256) {
-        if (dueDate < block.timestamp) {
-            revert Errors.PAST_DUE_DATE(dueDate);
-        }
-        return state.swapFee(amount, dueDate);
+    function getAmountIn(address lender, uint256 amountOut, uint256 dueDate) external view returns (uint256) {
+        uint256 ratePerMaturity = state.data.users[lender].loanOffer.getRatePerMaturityByDueDate(
+            state.oracle.variablePoolBorrowRateFeed, dueDate
+        );
+        uint256 amountIn =
+            Math.mulDivUp(amountOut, PERCENT + ratePerMaturity, PERCENT - state.getSwapFeePercent(dueDate));
+        return amountIn;
+    }
+
+    function getSwapFee(uint256 cash, uint256 dueDate) external view returns (uint256) {
+        return Math.mulDivUp(cash, state.getSwapFeePercent(dueDate), PERCENT);
     }
 }

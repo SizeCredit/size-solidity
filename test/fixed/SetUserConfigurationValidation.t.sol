@@ -16,7 +16,7 @@ contract SetUserConfigurationValidationTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         uint256[] memory creditPositionIds = new uint256[](1);

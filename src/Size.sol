@@ -17,7 +17,7 @@ import {
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
 import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
-import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
 import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
@@ -61,7 +61,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using Deposit for State;
     using Withdraw for State;
     using MintCredit for State;
-    using BorrowAsMarketOrder for State;
+    using SellCreditMarket for State;
     using BorrowAsLimitOrder for State;
     using LendAsMarketOrder for State;
     using LendAsLimitOrder for State;
@@ -177,14 +177,9 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params)
-        external
-        payable
-        override(ISize)
-        whenNotPaused
-    {
-        state.validateBorrowAsMarketOrder(params);
-        uint256 amount = state.executeBorrowAsMarketOrder(params);
+    function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) whenNotPaused {
+        state.validateSellCreditMarket(params);
+        uint256 amount = state.executeSellCreditMarket(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
         state.validateDebtTokenCap();
         state.validateVariablePoolHasEnoughLiquidity(amount);

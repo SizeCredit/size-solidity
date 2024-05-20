@@ -73,29 +73,29 @@ library LendAsMarketOrder {
         external
         returns (uint256 issuanceValue)
     {
-        emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
+        // emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
-        uint256 ratePerMaturity = state.data.users[params.borrower].borrowOffer.getRatePerMaturityByDueDate(
-            state.oracle.variablePoolBorrowRateFeed, params.dueDate
-        );
-        uint256 faceValue;
-        if (params.exactAmountIn) {
-            issuanceValue = params.amount;
-            faceValue = Math.mulDivDown(params.amount, PERCENT + ratePerMaturity, PERCENT);
-        } else {
-            issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
-            faceValue = params.amount;
-        }
+        // uint256 ratePerMaturity = state.data.users[params.borrower].borrowOffer.getRatePerMaturityByDueDate(
+        //     state.oracle.variablePoolBorrowRateFeed, params.dueDate
+        // );
+        // uint256 faceValue;
+        // if (params.exactAmountIn) {
+        //     issuanceValue = params.amount;
+        //     faceValue = Math.mulDivDown(params.amount, PERCENT + ratePerMaturity, PERCENT);
+        // } else {
+        //     issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
+        //     faceValue = params.amount;
+        // }
 
-        DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
-            lender: msg.sender,
-            borrower: params.borrower,
-            faceValue: faceValue,
-            dueDate: params.dueDate
-        });
-        state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
-        uint256 fees = state.swapFee(issuanceValue, params.dueDate);
-        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
-        state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue - fees);
+        // DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
+        //     lender: msg.sender,
+        //     borrower: params.borrower,
+        //     faceValue: faceValue,
+        //     dueDate: params.dueDate
+        // });
+        // state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
+        // uint256 fees = state.swapFee(issuanceValue, params.dueDate);
+        // state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
+        // state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue - fees);
     }
 }

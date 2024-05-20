@@ -22,9 +22,9 @@ contract BuyMarketCreditTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 debtPositionId1 = _borrowAsMarketOrder(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
+        uint256 debtPositionId1 = _borrow(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
-        uint256 debtPositionId2 = _borrowAsMarketOrder(james, candy, 1000.004274e6, block.timestamp + 7 * 30 days);
+        uint256 debtPositionId2 = _borrow(james, candy, 1000.004274e6, block.timestamp + 7 * 30 days);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
 
         assertEq(size.getDebtPosition(debtPositionId1).faceValue, 1000.004274e6);
@@ -54,7 +54,7 @@ contract BuyMarketCreditTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(365 days, 1e18));
 
-        uint256 debtPositionId1 = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId1 = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
 
         Vars memory _before = _state();

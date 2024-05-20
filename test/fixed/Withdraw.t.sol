@@ -123,7 +123,7 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
-        _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
+        _borrow(bob, alice, 100e6, block.timestamp + 12 days);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
@@ -190,7 +190,7 @@ contract WithdrawTest is BaseTest {
         uint256 rate = 1;
         _lendAsLimitOrder(alice, block.timestamp + 365 days, int256(rate));
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
 
         _setPrice(0.125e18);

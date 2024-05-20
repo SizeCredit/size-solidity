@@ -24,7 +24,7 @@ contract RepayTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrow(bob, alice, amountLoanId1, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
 
         Vars memory _before = _state();
@@ -50,7 +50,7 @@ contract RepayTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrow(bob, alice, amountLoanId1, block.timestamp + 365 days);
         uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
 
         Vars memory _before = _state();
@@ -88,9 +88,9 @@ contract RepayTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(bob, candy, 100e6, block.timestamp + 365 days);
+        _borrow(bob, candy, 100e6, block.timestamp + 365 days);
 
         Vars memory _before = _state();
 
@@ -121,7 +121,7 @@ contract RepayTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, borrowATokenBalance, block.timestamp + 12 days);
+        uint256 debtPositionId = _borrow(bob, alice, borrowATokenBalance, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         vm.prank(bob);
@@ -135,7 +135,7 @@ contract RepayTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
 
         vm.warp(block.timestamp + 365 days);
 
@@ -151,12 +151,12 @@ contract RepayTest is BaseTest {
         _deposit(alice, usdc, 200e6);
         YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
 
         // admin changes fees
         _updateConfig("swapFeeAPR", 0.1e18);
 
-        uint256 loanId2 = _borrowAsMarketOrder(candy, alice, 100e6, block.timestamp + 365 days);
+        uint256 loanId2 = _borrow(candy, alice, 100e6, block.timestamp + 365 days);
 
         vm.warp(block.timestamp + 365 days);
 

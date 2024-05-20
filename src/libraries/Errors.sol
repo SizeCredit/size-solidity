@@ -21,6 +21,7 @@ library Errors {
     error INVALID_COLLATERAL_RATIO(uint256 cr);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM(uint256 percentage);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(uint256 sum);
+    error INVALID_MAXIMUM_MATURITY(uint256 maximumMaturity);
     error VALUE_GREATER_THAN_MAX(uint256 value, uint256 max);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error PAST_DUE_DATE(uint256 dueDate);
@@ -49,6 +50,7 @@ library Errors {
 
     error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(address account, uint256 balance, uint256 required);
     error NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(uint256 liquidity, uint256 required);
+    error AMOUNT_GREATER_THAN_CREDIT_POSITION_CREDIT(uint256 amount, uint256 credit);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE(uint256 credit, uint256 amountToCompensate);
@@ -88,4 +90,5 @@ library Errors {
     error DEBT_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
 
     error NOT_SUPPORTED();
+    error NOT_SUPPORTED_EXACT_AMOUNT_OUT(uint256 x, uint256 y, uint256 z);
 }

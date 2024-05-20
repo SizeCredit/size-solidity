@@ -115,7 +115,7 @@ contract MulticallTest is BaseTest {
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
         uint256 debt = faceValue + size.feeConfig().overdueLiquidatorReward;
@@ -176,7 +176,7 @@ contract MulticallTest is BaseTest {
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.1e18);
         uint256 amount = 100e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
 
         vm.warp(block.timestamp + 365 days);
 

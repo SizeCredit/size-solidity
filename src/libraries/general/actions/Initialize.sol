@@ -140,7 +140,7 @@ library Initialize {
             revert Errors.NULL_AMOUNT();
         }
 
-        if (r.maximumMaturity > r.minimumMaturity) {
+        if (r.maximumMaturity <= r.minimumMaturity) {
             revert Errors.INVALID_MAXIMUM_MATURITY(r.maximumMaturity);
         }
     }

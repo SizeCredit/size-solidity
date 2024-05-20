@@ -126,6 +126,10 @@ library AccountingLibrary {
         emit Events.UpdateCreditPosition(creditPositionId, creditPosition.credit, creditPosition.forSale);
     }
 
+    function getSwapFeePercent(State storage state, uint256 dueDate) internal view returns (uint256) {
+        return Math.mulDivUp(state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), 365 days);
+    }
+
     function getAmountOut(
         State storage state,
         uint256 amountIn,
@@ -136,7 +140,7 @@ library AccountingLibrary {
         // amountCash = ((amount) / (1+r)) * (1 - k * deltaT) - fragmFee
         uint256 cash = Math.mulDivDown(amountIn, PERCENT, PERCENT + ratePerMaturity);
 
-        fees = Math.mulDivUp(cash * state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), PERCENT * 365 days)
+        fees = Math.mulDivUp(cash, getSwapFeePercent(state, dueDate), PERCENT)
             + (amountIn == credit ? 0 : state.feeConfig.fragmentationFee);
 
         amountOut = cash - fees;
@@ -149,28 +153,22 @@ library AccountingLibrary {
         uint256 ratePerMaturity,
         uint256 dueDate
     ) internal view returns (uint256 amountIn, uint256 fees) {
-        uint256 swapFeePercent = Math.mulDivUp(state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), 365 days);
-        // amountCash1 = ((amount) / (1+r)) * (1 - k * deltaT) - fragmFee
-        uint256 amountCash1 = Math.mulDivDown(amountOut, PERCENT - swapFeePercent, PERCENT + ratePerMaturity)
-            - state.feeConfig.fragmentationFee;
+        uint256 swapFeePercent = getSwapFeePercent(state, dueDate);
 
-        // amountCash2 = ((amount) / (1+r)) * (1 - k * deltaT)
-        uint256 amountCash2 = Math.mulDivDown(amountOut, PERCENT - swapFeePercent, PERCENT + ratePerMaturity);
+        uint256 amountInWithFragmentation = Math.mulDivUp(
+            amountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerMaturity, PERCENT - swapFeePercent
+        );
 
-        if (amountOut == amountCash2) {
-            // no credit fractionalization
+        uint256 amountInNoFragmentation = Math.mulDivUp(amountOut, PERCENT + ratePerMaturity, PERCENT - swapFeePercent);
+
+        if (amountInWithFragmentation == credit || amountInNoFragmentation == credit) {
+            // no credit fragmentation
             amountIn = credit;
             fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT);
-        } else if (amountOut < amountCash1) {
-            // credit fractionalization
-            amountIn = Math.mulDivUp(
-                amountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerMaturity, PERCENT - swapFeePercent
-            );
-            fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
         } else {
-            // for amountCash1 < amountOut < amountCash2 we are in an inconsistent situation where charging the swap fee
-            //   would require to sell a credit that exceeds the max possible amount which is `credit`
-            revert Errors.NOT_SUPPORTED();
+            // credit fragmentation
+            amountIn = amountInWithFragmentation;
+            fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
         }
     }
 }
