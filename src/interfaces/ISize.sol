@@ -27,13 +27,14 @@ import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForS
 import {UserView, DataView} from "@src/SizeViewStructs.sol";
 
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
+import {IMulticall} from "@src/interfaces/IMulticall.sol";
 
 /// @title ISize
 /// @author Size Lending
 /// @notice This interface is the main interface for all user-facing methods of the Size protocol
 /// @dev All functions are `payable` to allow for ETH deposits in a `multicall` pattern.
 ///      See `Multicall.sol`
-interface ISize is ISizeView {
+interface ISize is ISizeView, IMulticall {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always deposited into the Variable Pool,
     ///         Collateral tokens are deposited into the Size contract through the CollateralLibrary

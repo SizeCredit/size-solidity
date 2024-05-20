@@ -134,6 +134,9 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 minimumCollateralProfit,
         ReplacementParams memory replacementParams
     ) internal {
+        // Approve USDC to repay the borrower's debt
+        IERC20(debtToken).approve(address(sizeLendingContract), debtAmount);
+
         // Encode Deposit
         bytes memory depositCall = abi.encodeWithSelector(
             ISize.deposit.selector,
@@ -182,6 +185,9 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 debtPositionId,
         uint256 minimumCollateralProfit
     ) internal {
+        // Approve USDC to repay the borrower's debt
+        IERC20(debtToken).approve(address(sizeLendingContract), debtAmount);
+
         // Encode Deposit
         bytes memory depositCall = abi.encodeWithSelector(
             ISize.deposit.selector,
