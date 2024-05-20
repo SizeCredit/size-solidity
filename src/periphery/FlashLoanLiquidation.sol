@@ -96,8 +96,8 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         address initiator,
         bytes calldata params
     ) external override returns (bool) {
-        require(msg.sender == address(POOL), "Not Aave Pool");
-        require(initiator == address(this), "Not Initiator");
+        require(msg.sender == address(POOL), "Can only be called by Aave pool");
+        require(initiator == address(this), "Can only be initiated by this contract");
 
         OperationParams memory opParams = abi.decode(params, (OperationParams));
 
