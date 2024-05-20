@@ -160,6 +160,7 @@ library AccountingLibrary {
         if (amountOut == amountCash2) {
             // no credit fractionalization
             amountIn = credit;
+            fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT);
         } else if (amountOut < amountCash1) {
             // credit fractionalization
             amountIn = Math.mulDivUp(
