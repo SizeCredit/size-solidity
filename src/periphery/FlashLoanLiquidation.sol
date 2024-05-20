@@ -134,29 +134,45 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 minimumCollateralProfit,
         ReplacementParams memory replacementParams
     ) internal {
-        // Approve and deposit USDC to repay the borrower's debt
-        IERC20(debtToken).approve(address(sizeLendingContract), debtAmount);
-        sizeLendingContract.deposit(DepositParams({
-            token: debtToken,
-            amount: debtAmount,
-            to: address(this)
-        }));
+        // Encode Deposit
+        bytes memory depositCall = abi.encodeWithSelector(
+            ISize.deposit.selector,
+            DepositParams({
+                token: debtToken,
+                amount: debtAmount,
+                to: address(this)
+            })
+        );
 
-        LiquidateWithReplacementParams memory params = LiquidateWithReplacementParams({
-            debtPositionId: debtPositionId,
-            borrower: replacementParams.replacementBorrower, // Use the specified replacement borrower
-            minimumCollateralProfit: minimumCollateralProfit,
-            deadline: replacementParams.deadline,
-            minAPR: replacementParams.minAPR
-        });
-        sizeLendingContract.liquidateWithReplacement(params);
+        // Encode Liquidate with Replacement
+        bytes memory liquidateCall = abi.encodeWithSelector(
+            ISize.liquidateWithReplacement.selector,
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
+                borrower: replacementParams.replacementBorrower,
+                minimumCollateralProfit: minimumCollateralProfit,
+                deadline: replacementParams.deadline,
+                minAPR: replacementParams.minAPR
+            })
+        );
 
-        // Withdraw the collateral
-        sizeLendingContract.withdraw(WithdrawParams({
-            token: collateralToken,
-            amount: type(uint256).max,
-            to: address(this)
-        }));
+        // Encode Withdraw
+        bytes memory withdrawCall = abi.encodeWithSelector(
+            ISize.withdraw.selector,
+            WithdrawParams({
+                token: collateralToken,
+                amount: type(uint256).max,
+                to: address(this)
+            })
+        );
+
+        // Multicall
+        bytes[] memory calls = new bytes[](3);
+        calls[0] = depositCall;
+        calls[1] = liquidateCall;
+        calls[2] = withdrawCall;
+
+        sizeLendingContract.multicall(calls);
     }
 
     function liquidateDebtPosition(
@@ -166,29 +182,42 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 debtPositionId,
         uint256 minimumCollateralProfit
     ) internal {
-        // Approve and deposit USDC to repay the borrower's debt
-        IERC20(debtToken).approve(address(sizeLendingContract), debtAmount);
-        sizeLendingContract.deposit(DepositParams({
-            token: debtToken,
-            amount: debtAmount,
-            to: address(this)
-        }));
+        // Encode Deposit
+        bytes memory depositCall = abi.encodeWithSelector(
+            ISize.deposit.selector,
+            DepositParams({
+                token: debtToken,
+                amount: debtAmount,
+                to: address(this)
+            })
+        );
 
-        // Create the LiquidateParams struct
-        LiquidateParams memory liquidateParams = LiquidateParams({
-            debtPositionId: debtPositionId,
-            minimumCollateralProfit: minimumCollateralProfit
-        });
+        // Encode Liquidate
+        bytes memory liquidateCall = abi.encodeWithSelector(
+            ISize.liquidate.selector,
+            LiquidateParams({
+                debtPositionId: debtPositionId,
+                minimumCollateralProfit: minimumCollateralProfit
+            })
+        );
 
-        // Perform the liquidation using the deposited funds
-        sizeLendingContract.liquidate(liquidateParams);
+        // Encode Withdraw
+        bytes memory withdrawCall = abi.encodeWithSelector(
+            ISize.withdraw.selector,
+            WithdrawParams({
+                token: collateralToken,
+                amount: type(uint256).max,
+                to: address(this)
+            })
+        );
 
-        // Withdraw the collateral
-        sizeLendingContract.withdraw(WithdrawParams({
-            token: collateralToken,
-            amount: type(uint256).max,
-            to: address(this)
-        }));
+        // Multicall
+        bytes[] memory calls = new bytes[](3);
+        calls[0] = depositCall;
+        calls[1] = liquidateCall;
+        calls[2] = withdrawCall;
+
+        sizeLendingContract.multicall(calls);
     }
 
     function swapCollateral(
