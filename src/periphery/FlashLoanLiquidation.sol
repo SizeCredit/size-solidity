@@ -7,6 +7,7 @@ import {IPool} from "aave-v3-core/contracts/interfaces/IPool.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -52,12 +53,19 @@ struct SwapParams {
     bytes data; // Encoded data for the specific swap method
 }
 
+struct ReplacementParams {
+    uint256 minAPR;
+    uint256 deadline;
+}
+
 struct OperationParams {
     uint256 debtPositionId;
     uint256 minimumCollateralProfit;
     address liquidator;
     address collateralToken;
     SwapParams swapParams;
+    bool useReplacement;
+    ReplacementParams replacementParams;
 }
 
 contract FlashLoanLiquidator is FlashLoanReceiverBase {
@@ -66,9 +74,8 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
     IUnoswapRouter public unoswapRouter;
     IUniswapV2Router02 public uniswapRouter;
 
-
     constructor(
-        address _addressProvider, // aave pool address provider
+        address _addressProvider,
         address _sizeLendingContractAddress,
         address _1inchAggregator,
         address _unoswapRouter,
@@ -91,19 +98,70 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         require(msg.sender == address(POOL), "Not Aave Pool");
         require(initiator == address(this), "Not Initiator");
 
-        // Decode the params to get the necessary information
         OperationParams memory opParams = abi.decode(params, (OperationParams));
 
-        // Liquidate the debt position and withdraw all assets
-        liquidateDebtPosition(opParams.collateralToken, assets[0], amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit);
+        if (opParams.useReplacement) {
+            liquidateDebtPositionWithReplacement(
+                opParams.collateralToken,
+                assets[0],
+                amounts[0],
+                opParams.debtPositionId,
+                opParams.minimumCollateralProfit,
+                opParams.replacementParams.minAPR,
+                opParams.replacementParams.deadline
+            );
+        } else {
+            liquidateDebtPosition(
+                opParams.collateralToken,
+                assets[0],
+                amounts[0],
+                opParams.debtPositionId,
+                opParams.minimumCollateralProfit
+            );
+        }
 
-        // Swap the collateral tokens for the debt tokens based on the specified method
         swapCollateral(opParams.collateralToken, assets[0], opParams.swapParams);
-
-        // Settle the debt tokens and flash loan
         settleFlashLoan(assets, amounts, premiums, opParams.liquidator);
 
         return true;
+    }
+
+    function liquidateDebtPositionWithReplacement(
+        address collateralToken,
+        address debtToken,
+        uint256 debtAmount,
+        uint256 debtPositionId,
+        uint256 minimumCollateralProfit,
+        uint256 minAPR,
+        uint256 deadline
+    ) internal {
+        // Approve and deposit USDC to repay the borrower's debt
+        IERC20(debtToken).approve(address(sizeLendingContract), debtAmount);
+        sizeLendingContract.deposit(DepositParams({
+            token: debtToken,
+            amount: debtAmount,
+            to: address(this)
+        }));
+
+        LiquidateWithReplacementParams memory params = LiquidateWithReplacementParams({
+            debtPositionId: debtPositionId,
+            borrower: msg.sender, // Assuming the liquidator takes the new position
+            minimumCollateralProfit: minimumCollateralProfit,
+            deadline: deadline,
+            minAPR: minAPR
+        });
+        (uint256 liquidatorProfitCollateralAsset, uint256 liquidatorProfitBorrowAsset) = sizeLendingContract.liquidateWithReplacement(params);
+        // Withdraw the collateral and debt tokens
+        sizeLendingContract.withdraw(WithdrawParams({
+            token: debtToken,
+            amount: type(uint256).max,
+            to: address(this)
+        }));
+        sizeLendingContract.withdraw(WithdrawParams({
+            token: collateralToken,
+            amount: type(uint256).max,
+            to: address(this)
+        }));
     }
 
     function liquidateDebtPosition(
@@ -245,29 +303,30 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
     }
 
     function liquidatePositionWithFlashLoan(
-        uint256 debtPositionId, // Debt position ID being liquidated
-        uint256 minimumCollateralProfit, 
-        address collateralToken, 
-        address flashLoanAsset, // Debt token
-        address liquidator, // The receiver of the liquidation proceeds
+        address asset,
+        bool useReplacement,
+        ReplacementParams memory replacementParams,
+        uint256 debtPositionId,
+        uint256 minimumCollateralProfit,
+        address collateralToken,
         SwapParams memory swapParams
     ) external {
         OperationParams memory opParams = OperationParams({
             debtPositionId: debtPositionId,
             minimumCollateralProfit: minimumCollateralProfit,
-            liquidator: liquidator,
+            liquidator: msg.sender,
             collateralToken: collateralToken,
-            swapParams: swapParams
+            swapParams: swapParams,
+            useReplacement: useReplacement,
+            replacementParams: replacementParams
         });
 
         bytes memory params = abi.encode(opParams);
 
         address[] memory assets = new address[](1);
-        assets[0] = flashLoanAsset; // The debt token (e.g. USDC)
-
+        assets[0] = asset;
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = sizeLendingContract.getOverdueDebt(debtPositionId);
-
         uint256[] memory modes = new uint256[](1);
         modes[0] = 0;
 
