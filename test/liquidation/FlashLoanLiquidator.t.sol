@@ -89,7 +89,8 @@ contract FlashLoanLiquidationTest is BaseTest {
         // Create ReplacementParams, not used since useReplacement is false
         ReplacementParams memory replacementParams = ReplacementParams({
             minAPR: 0, // Example value, not used in this test
-            deadline: block.timestamp + 1 days // Example value, not used in this test
+            deadline: block.timestamp + 1 days, // Example value, not used in this test
+            replacementBorrower: address(0)
         });
 
         // Call the liquidatePositionWithFlashLoan function
@@ -153,7 +154,7 @@ contract FlashLoanLiquidationTest is BaseTest {
 
         // Setup replacement borrower
         _deposit(candy, weth, 400e18);
-        _deposit(candy, usdc, 100e6);
+        _deposit(candy, usdc, 1000e6);
         _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 365 days); // Valid borrow offer
 
         // Create SwapParams for a 1inch swap
@@ -165,7 +166,8 @@ contract FlashLoanLiquidationTest is BaseTest {
         // Create ReplacementParams
         ReplacementParams memory replacementParams = ReplacementParams({
             minAPR: 0.03e18,
-            deadline: block.timestamp + 1 days
+            deadline: block.timestamp + 1 days,
+            replacementBorrower: candy
         });
 
         // Call the liquidatePositionWithFlashLoan function with replacement

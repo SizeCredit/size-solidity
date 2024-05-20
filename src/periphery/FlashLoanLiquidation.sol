@@ -56,6 +56,7 @@ struct SwapParams {
 struct ReplacementParams {
     uint256 minAPR;
     uint256 deadline;
+    address replacementBorrower;
 }
 
 struct OperationParams {
@@ -107,8 +108,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
                 amounts[0],
                 opParams.debtPositionId,
                 opParams.minimumCollateralProfit,
-                opParams.replacementParams.minAPR,
-                opParams.replacementParams.deadline
+                opParams.replacementParams 
             );
         } else {
             liquidateDebtPosition(
@@ -132,8 +132,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 debtAmount,
         uint256 debtPositionId,
         uint256 minimumCollateralProfit,
-        uint256 minAPR,
-        uint256 deadline
+        ReplacementParams memory replacementParams
     ) internal {
         // Approve and deposit USDC to repay the borrower's debt
         IERC20(debtToken).approve(address(sizeLendingContract), debtAmount);
@@ -145,12 +144,13 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
 
         LiquidateWithReplacementParams memory params = LiquidateWithReplacementParams({
             debtPositionId: debtPositionId,
-            borrower: msg.sender, // Assuming the liquidator takes the new position
+            borrower: replacementParams.replacementBorrower, // Use the specified replacement borrower
             minimumCollateralProfit: minimumCollateralProfit,
-            deadline: deadline,
-            minAPR: minAPR
+            deadline: replacementParams.deadline,
+            minAPR: replacementParams.minAPR
         });
         sizeLendingContract.liquidateWithReplacement(params);
+
         // Withdraw the collateral and debt tokens
         sizeLendingContract.withdraw(WithdrawParams({
             token: debtToken,

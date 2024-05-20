@@ -73,7 +73,8 @@ contract ForkTest is BaseTest, BaseScript {
         // Create ReplacementParams, not used since useReplacement is false
         ReplacementParams memory replacementParams = ReplacementParams({
             minAPR: 0, // Example value, not used in this test
-            deadline: block.timestamp + 1 days // Example value, not used in this test
+            deadline: block.timestamp + 1 days, // Example value, not used in this test
+            replacementBorrower: address(0)
         });
 
         // Call the liquidatePositionWithFlashLoan function
