@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {BaseScript} from "@script/BaseScript.sol";
 import {BaseTest} from "@test/BaseTest.sol";
-import {FlashLoanLiquidator, SwapParams, SwapMethod} from "@src/periphery/FlashLoanLiquidation.sol";
+import {FlashLoanLiquidator, SwapParams, SwapMethod, ReplacementParams} from "@src/periphery/FlashLoanLiquidation.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
@@ -70,15 +70,22 @@ contract ForkTest is BaseTest, BaseScript {
             data: abi.encode(path)
         });
 
+        // Create ReplacementParams, not used since useReplacement is false
+        ReplacementParams memory replacementParams = ReplacementParams({
+            minAPR: 0, // Example value, not used in this test
+            deadline: block.timestamp + 1 days // Example value, not used in this test
+        });
+
         // Call the liquidatePositionWithFlashLoan function
         vm.prank(liquidator);
         flashLoanLiquidator.liquidatePositionWithFlashLoan(
+            address(usdc), // flashLoanAsset
+            false, // useReplacement
+            replacementParams, // Replacement parameters, not used here
             debtPositionId,
             0, // minimumCollateralProfit
             address(weth), // collateralToken
-            address(usdc), // flashLoanAsset
-            liquidator, 
-            swapParams 
+            swapParams // Pass the swapParams
         );
 
         Vars memory _after = _state();

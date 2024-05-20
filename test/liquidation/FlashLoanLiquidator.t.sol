@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {FlashLoanLiquidator, SwapParams, SwapMethod} from "@src/periphery/FlashLoanLiquidation.sol";
+import {FlashLoanLiquidator, SwapParams, SwapMethod, ReplacementParams} from "@src/periphery/FlashLoanLiquidation.sol";
 import {Mock1InchAggregator} from "@test/mocks/Mock1InchAggregator.sol";
 import {MockAavePool} from "@test/mocks/MockAavePool.sol";
 
@@ -86,14 +86,21 @@ contract FlashLoanLiquidationTest is BaseTest {
             data: abi.encode("arbitrary data") // Mock data for the 1inch swap
         });
 
+        // Create ReplacementParams, not used since useReplacement is false
+        ReplacementParams memory replacementParams = ReplacementParams({
+            minAPR: 0, // Example value, not used in this test
+            deadline: block.timestamp + 1 days // Example value, not used in this test
+        });
+
         // Call the liquidatePositionWithFlashLoan function
         vm.prank(liquidator);
         flashLoanLiquidator.liquidatePositionWithFlashLoan(
+            address(usdc), // flashLoanAsset
+            false, // useReplacement
+            replacementParams, // Replacement parameters, not used here
             debtPositionId,
             0, // minimumCollateralProfit
             address(weth), // collateralToken
-            address(usdc), // flashLoanAsset
-            liquidator, // The receiver of the liquidation proceeds
             swapParams // Pass the swapParams
         );
 
