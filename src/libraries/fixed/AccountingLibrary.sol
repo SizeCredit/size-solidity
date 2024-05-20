@@ -133,7 +133,7 @@ library AccountingLibrary {
 
     /// @notice Calculate the swap fee
     /// @dev cash * (swapFeeAPR * (dueDate - block.timestamp) / 365 days)
-    ///      The fee is capped to the cash being transferred from the credit buyer to the seller (this can only happen for loans with duration greater than 1 / swapFeeAPR = 1 / 0.005 = 200 years with the current configuration)
+    ///      The fee is capped to the cash being transferred from the credit buyer to the seller (this can only happen for loans with duration greater than 1 / swapFeeAPR = 1 / 0.005 = 200 years for a 0.5% APR swap fee)
     /// @param state The state struct
     /// @param cash The amount of cash being transferred
     /// @param dueDate The due date used to price the credit being sold

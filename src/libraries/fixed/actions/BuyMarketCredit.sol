@@ -77,20 +77,20 @@ library BuyMarketCredit {
     function executeBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params) external {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
-        BorrowOffer storage borrowOffer = state.data.users[creditPosition.lender].borrowOffer;
 
-        uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
+        uint256 ratePerMaturity = state.data.users[creditPosition.lender].borrowOffer.getRatePerMaturityByDueDate(
+            state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate
+        );
 
         uint256 amountIn;
         uint256 amountOut;
 
         if (params.exactAmountIn) {
             amountIn = params.amount;
-            amountOut = Math.mulDivDown(params.amount, PERCENT + ratePerMaturity, PERCENT);
+            amountOut = Math.mulDivDown(amountIn, PERCENT + ratePerMaturity, PERCENT);
         } else {
             amountOut = params.amount;
-            amountIn = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
+            amountIn = Math.mulDivUp(amountOut, PERCENT, PERCENT + ratePerMaturity);
         }
 
         if (amountOut > creditPosition.credit) {
