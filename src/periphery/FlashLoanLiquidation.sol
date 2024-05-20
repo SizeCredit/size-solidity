@@ -151,12 +151,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         });
         sizeLendingContract.liquidateWithReplacement(params);
 
-        // Withdraw the collateral and debt tokens
-        sizeLendingContract.withdraw(WithdrawParams({
-            token: debtToken,
-            amount: type(uint256).max,
-            to: address(this)
-        }));
+        // Withdraw the collateral
         sizeLendingContract.withdraw(WithdrawParams({
             token: collateralToken,
             amount: type(uint256).max,
@@ -188,12 +183,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         // Perform the liquidation using the deposited funds
         sizeLendingContract.liquidate(liquidateParams);
 
-        // Withdraw the collateral and debt tokens
-        sizeLendingContract.withdraw(WithdrawParams({
-            token: debtToken,
-            amount: type(uint256).max,
-            to: address(this)
-        }));
+        // Withdraw the collateral
         sizeLendingContract.withdraw(WithdrawParams({
             token: collateralToken,
             amount: type(uint256).max,
