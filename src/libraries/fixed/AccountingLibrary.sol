@@ -168,6 +168,8 @@ library AccountingLibrary {
             );
             fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
         } else {
+            // for amountCash1 < amountOut < amountCash2 we are in an inconsistent situation where charging the swap fee
+            //   would require to sell a credit that exceeds the max possible amount which is `credit`
             revert Errors.NOT_SUPPORTED();
         }
     }
