@@ -5,6 +5,8 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
+
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {Initialize} from "@src/libraries/general/actions/Initialize.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
@@ -50,7 +52,8 @@ library UpdateConfig {
             minimumCreditBorrowAToken: state.riskConfig.minimumCreditBorrowAToken,
             borrowATokenCap: state.riskConfig.borrowATokenCap,
             debtTokenCap: state.riskConfig.debtTokenCap,
-            minimumMaturity: state.riskConfig.minimumMaturity
+            minimumMaturity: state.riskConfig.minimumMaturity,
+            maximumMaturity: state.riskConfig.maximumMaturity
         });
     }
 
@@ -90,8 +93,20 @@ library UpdateConfig {
             state.riskConfig.debtTokenCap = params.value;
         } else if (Strings.equal(params.key, "minimumMaturity")) {
             state.riskConfig.minimumMaturity = params.value;
+        } else if (Strings.equal(params.key, "maximumMaturity")) {
+            state.riskConfig.maximumMaturity = params.value;
+            if (params.value >= Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR)) {
+                revert Errors.VALUE_GREATER_THAN_MAX(
+                    params.value, Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR)
+                );
+            }
         } else if (Strings.equal(params.key, "swapFeeAPR")) {
             state.feeConfig.swapFeeAPR = params.value;
+            if (params.value >= Math.mulDivDown(state.riskConfig.maximumMaturity, PERCENT, 365 days)) {
+                revert Errors.VALUE_GREATER_THAN_MAX(
+                    params.value, Math.mulDivDown(state.riskConfig.maximumMaturity, PERCENT, 365 days)
+                );
+            }
         } else if (Strings.equal(params.key, "fragmentationFee")) {
             state.feeConfig.fragmentationFee = params.value;
         } else if (Strings.equal(params.key, "collateralLiquidatorPercent")) {

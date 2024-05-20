@@ -38,6 +38,7 @@ struct InitializeRiskConfigParams {
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
     uint256 minimumMaturity;
+    uint256 maximumMaturity;
 }
 
 struct InitializeOracleParams {
@@ -138,6 +139,10 @@ library Initialize {
         if (r.minimumMaturity == 0) {
             revert Errors.NULL_AMOUNT();
         }
+
+        if (r.maximumMaturity > r.minimumMaturity) {
+            revert Errors.INVALID_MAXIMUM_MATURITY(r.maximumMaturity);
+        }
     }
 
     function validateInitializeOracleParams(InitializeOracleParams memory o) internal view {
@@ -216,7 +221,7 @@ library Initialize {
         state.riskConfig.debtTokenCap = r.debtTokenCap;
 
         state.riskConfig.minimumMaturity = r.minimumMaturity;
-        state.riskConfig.maximumMaturity = Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR) - 1;
+        state.riskConfig.maximumMaturity = r.maximumMaturity;
     }
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {

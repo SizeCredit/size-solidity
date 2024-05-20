@@ -42,12 +42,12 @@ library SellCreditMarket {
         // validate msg.sender
         // N/A
 
-        // validate params.lender
+        // validate lender
         if (loanOffer.isNull()) {
             revert Errors.INVALID_LOAN_OFFER(params.lender);
         }
 
-        // validate params.creditPositionId
+        // validate creditPositionId
         if (msg.sender != creditPosition.lender) {
             revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, creditPosition.lender);
         }
@@ -60,7 +60,7 @@ library SellCreditMarket {
             );
         }
 
-        // validate params.amount
+        // validate amount
         if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
             revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
         }
@@ -68,7 +68,7 @@ library SellCreditMarket {
             revert Errors.CREDIT_GREATER_THAN_CREDIT_POSITION_CREDIT(params.amount, creditPosition.credit);
         }
 
-        // validate params.dueDate
+        // validate dueDate
         if (params.dueDate < block.timestamp) {
             revert Errors.PAST_DUE_DATE(params.dueDate);
         }
@@ -76,18 +76,18 @@ library SellCreditMarket {
             revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
         }
 
-        // validate params.deadline
+        // validate deadline
         if (params.deadline < block.timestamp) {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate params.maxAPR
+        // validate maxAPR
         uint256 apr = loanOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
         if (apr > params.maxAPR) {
             revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
         }
 
-        // validate params.exactAmountIn
+        // validate exactAmountIn
         // N/A
     }
 

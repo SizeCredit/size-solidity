@@ -159,15 +159,13 @@ library AccountingLibrary {
 
         if (amountOut == amountCash2) {
             // no credit fractionalization
-            amountIn = Math.mulDivUp(amountOut, PERCENT + ratePerMaturity, PERCENT - swapFeePercent);
-            fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT);
+            amountIn = credit;
         } else if (amountOut < amountCash1) {
             // credit fractionalization
             amountIn = Math.mulDivUp(
                 amountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerMaturity, PERCENT - swapFeePercent
             );
-            fees = Math.mulDivUp(amountOut + state.feeConfig.fragmentationFee, swapFeePercent, PERCENT)
-                + state.feeConfig.fragmentationFee;
+            fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
         } else {
             revert Errors.NOT_SUPPORTED();
         }
