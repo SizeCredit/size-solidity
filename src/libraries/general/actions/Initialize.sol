@@ -6,6 +6,8 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
 
+import {Math} from "@src/libraries/Math.sol";
+
 import {PERCENT} from "@src/libraries/Math.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
@@ -214,6 +216,7 @@ library Initialize {
         state.riskConfig.debtTokenCap = r.debtTokenCap;
 
         state.riskConfig.minimumMaturity = r.minimumMaturity;
+        state.riskConfig.maximumMaturity = Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR) - 1;
     }
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {

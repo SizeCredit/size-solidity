@@ -14,6 +14,7 @@ library Errors {
     error INVALID_MSG_VALUE(uint256 value);
     error MATURITIES_NOT_STRICTLY_INCREASING();
     error MATURITY_BELOW_MINIMUM_MATURITY(uint256 maturity, uint256 minimumMaturity);
+    error MATURITY_GREATER_THAN_MAXIMUM_MATURITY(uint256 maturity, uint256 maximumMaturity);
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
     error INVALID_KEY(string key);

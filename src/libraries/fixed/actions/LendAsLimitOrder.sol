@@ -37,7 +37,9 @@ library LendAsLimitOrder {
             }
 
             // validate params.curveRelativeTime
-            YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime, state.riskConfig.minimumMaturity);
+            YieldCurveLibrary.validateYieldCurve(
+                params.curveRelativeTime, state.riskConfig.minimumMaturity, state.riskConfig.maximumMaturity
+            );
         }
     }
 

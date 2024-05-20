@@ -28,6 +28,9 @@ library Events {
 
     event MintCredit(uint256 indexed amount, uint256 indexed dueDate);
 
+    event SellCreditMarket(
+        address indexed lender, uint256 indexed creditPositionId, uint256 amount, uint256 dueDate, bool exactAmountIn
+    );
     event BorrowAsMarketOrder(
         address indexed lender,
         uint256 indexed amount,

@@ -39,6 +39,7 @@ struct RiskConfig {
     uint256 borrowATokenCap; // maximum amount of deposited borrowed aTokens
     uint256 debtTokenCap; // maximum amount of minted debt tokens
     uint256 minimumMaturity; // minimum maturity for a loan
+    uint256 maximumMaturity; // maximum maturity for a loan
 }
 
 struct Oracle {

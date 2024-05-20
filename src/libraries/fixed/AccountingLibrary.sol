@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
@@ -103,10 +104,9 @@ library AccountingLibrary {
 
     function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)
         external
-        returns (uint256 exiterCreditRemaining)
     {
         uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
-        exiterCreditRemaining = reduceCredit(state, exitCreditPositionId, credit);
+        reduceCredit(state, exitCreditPositionId, credit);
 
         CreditPosition memory creditPosition =
             CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: true});
@@ -118,27 +118,58 @@ library AccountingLibrary {
         emit Events.CreateCreditPosition(creditPositionId, lender, exitCreditPositionId, debtPositionId, credit);
     }
 
-    function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount)
-        public
-        returns (uint256 exiterCreditRemaining)
-    {
+    function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount) public {
         CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
         creditPosition.credit -= amount;
         state.validateMinimumCredit(creditPosition.credit);
 
         emit Events.UpdateCreditPosition(creditPositionId, creditPosition.credit, creditPosition.forSale);
-
-        return creditPosition.credit;
     }
 
-    /// @notice Calculate the swap fee
-    /// @dev cash * (swapFeeAPR * (dueDate - block.timestamp) / 365 days)
-    ///      The fee is capped to the cash being transferred from the credit buyer to the seller (this can only happen for loans with duration greater than 1 / swapFeeAPR = 1 / 0.005 = 200 years for a 0.5% APR swap fee)
-    /// @param state The state struct
-    /// @param cash The amount of cash being transferred
-    /// @param dueDate The due date used to price the credit being sold
-    function swapFee(State storage state, uint256 cash, uint256 dueDate) internal view returns (uint256) {
-        uint256 fee = Math.mulDivUp(cash * state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), PERCENT * 365 days);
-        return Math.min(fee, cash);
+    function getAmountOut(
+        State storage state,
+        uint256 amountIn,
+        uint256 credit,
+        uint256 ratePerMaturity,
+        uint256 dueDate
+    ) internal view returns (uint256 amountOut, uint256 fees) {
+        // amountCash = ((amount) / (1+r)) * (1 - k * deltaT) - fragmFee
+        uint256 cash = Math.mulDivDown(amountIn, PERCENT, PERCENT + ratePerMaturity);
+
+        fees = Math.mulDivUp(cash * state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), PERCENT * 365 days)
+            + (amountIn == credit ? 0 : state.feeConfig.fragmentationFee);
+
+        amountOut = cash - fees;
+    }
+
+    function getAmountIn(
+        State storage state,
+        uint256 amountOut,
+        uint256 credit,
+        uint256 ratePerMaturity,
+        uint256 dueDate
+    ) internal view returns (uint256 amountIn, uint256 fees) {
+        uint256 swapFeePercent = Math.mulDivUp(state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), 365 days);
+        // amountCash1 = ((amount) / (1+r)) * (1 - k * deltaT) - fragmFee
+        uint256 amountCash1 = Math.mulDivDown(amountOut, PERCENT - swapFeePercent, PERCENT + ratePerMaturity)
+            - state.feeConfig.fragmentationFee;
+
+        // amountCash2 = ((amount) / (1+r)) * (1 - k * deltaT)
+        uint256 amountCash2 = Math.mulDivDown(amountOut, PERCENT - swapFeePercent, PERCENT + ratePerMaturity);
+
+        if (amountOut == amountCash2) {
+            // no credit fractionalization
+            amountIn = Math.mulDivUp(amountOut, PERCENT + ratePerMaturity, PERCENT - swapFeePercent);
+            fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT);
+        } else if (amountOut < amountCash1) {
+            // credit fractionalization
+            amountIn = Math.mulDivUp(
+                amountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerMaturity, PERCENT - swapFeePercent
+            );
+            fees = Math.mulDivUp(amountOut + state.feeConfig.fragmentationFee, swapFeePercent, PERCENT)
+                + state.feeConfig.fragmentationFee;
+        } else {
+            revert Errors.NOT_SUPPORTED();
+        }
     }
 }
