@@ -109,7 +109,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
 
     function _borrow(address borrower, address lender, uint256 amount, uint256 dueDate) internal returns (uint256) {
         bytes[] memory data = new bytes[](2);
-        uint256 faceValue = size.getAmountIn(lender, amount, dueDate);
+        uint256 faceValue = size.getAmountIn(lender, RESERVED_ID, amount, dueDate);
         data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
         data[1] = abi.encodeCall(
             size.sellCreditMarket,
@@ -146,7 +146,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 dueDate: dueDate,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: true
+                exactAmountIn: exactAmountIn
             })
         );
         return RESERVED_ID;
@@ -159,6 +159,14 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         uint256 amount,
         uint256 dueDate
     ) internal returns (uint256) {
+        return _sellCreditMarket(borrower, lender, creditPositionId, amount, dueDate, true);
+    }
+
+    function _sellCreditMarket(address borrower, address lender, uint256 creditPositionId, uint256 dueDate)
+        internal
+        returns (uint256)
+    {
+        uint256 amount = size.getCreditPosition(creditPositionId).credit;
         return _sellCreditMarket(borrower, lender, creditPositionId, amount, dueDate, true);
     }
 

@@ -130,6 +130,10 @@ library AccountingLibrary {
         return Math.mulDivUp(state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), 365 days);
     }
 
+    function getSwapFee(State storage state, uint256 cash, uint256 dueDate) internal view returns (uint256) {
+        return Math.mulDivUp(cash, getSwapFeePercent(state, dueDate), PERCENT);
+    }
+
     function getAmountOut(
         State storage state,
         uint256 amountIn,
@@ -137,11 +141,10 @@ library AccountingLibrary {
         uint256 ratePerMaturity,
         uint256 dueDate
     ) internal view returns (uint256 amountOut, uint256 fees) {
-        // amountCash = ((amount) / (1+r)) * (1 - k * deltaT) - fragmFee
+        // amountCash = (amountIn / (1+r)) * (1 - k * deltaT) - fragmFee
         uint256 cash = Math.mulDivDown(amountIn, PERCENT, PERCENT + ratePerMaturity);
 
-        fees = Math.mulDivUp(cash, getSwapFeePercent(state, dueDate), PERCENT)
-            + (amountIn == credit ? 0 : state.feeConfig.fragmentationFee);
+        fees = getSwapFee(state, cash, dueDate) + (amountIn == credit ? 0 : state.feeConfig.fragmentationFee);
 
         amountOut = cash - fees;
     }
@@ -155,11 +158,11 @@ library AccountingLibrary {
     ) internal view returns (uint256 amountIn, uint256 fees) {
         uint256 swapFeePercent = getSwapFeePercent(state, dueDate);
 
-        // amountCash1 = ((amount) / (1+r)) * (1 - k * deltaT) - fragmFee
+        // amountCash1 = (credit / (1+r)) * (1 - k * deltaT) - fragmFee
         uint256 amountCash1 = Math.mulDivDown(credit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity)
             - state.feeConfig.fragmentationFee;
 
-        // amountCash2 = ((amount) / (1+r)) * (1 - k * deltaT)
+        // amountCash2 = (credit / (1+r)) * (1 - k * deltaT)
         uint256 amountCash2 = Math.mulDivDown(credit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity);
 
         if (amountOut == amountCash2) {

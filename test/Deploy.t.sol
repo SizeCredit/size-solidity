@@ -6,6 +6,7 @@ import {ForkTest} from "@test/ForkTest.sol";
 
 import {DeployScript} from "@script/Deploy.s.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
@@ -119,7 +120,7 @@ contract DeployScriptTest is ForkTest {
         _deposit(bob, weth, 1e18);
 
         uint256 dueDate = block.timestamp + 60 days;
-        uint256 faceValue = size.getAmountIn(alice, 1_000e6, dueDate);
+        uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, 1_000e6, dueDate);
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
         data[1] = abi.encodeCall(

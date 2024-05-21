@@ -103,25 +103,25 @@ contract SellCreditMarketTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
         uint256 debtPositionId = _borrow(bob, alice, 60e6, block.timestamp + 12 days);
-        uint256 faceValue = size.getAmountIn(alice, amount, block.timestamp + 12 days);
-        uint256 swapFee = size.getSwapFee(faceValue, block.timestamp + 12 days);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         Vars memory _before = _state();
 
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-
-        _sellCreditMarket(alice, candy, creditPositionId, amount, block.timestamp + 12 days, false);
+        _sellCreditMarket(alice, candy, creditPositionId, amount, block.timestamp + 12 days, true);
+        uint256 amountOut = size.getAmountOut(candy, creditPositionId, amount, block.timestamp + 12 days);
+        uint256 swapFee = size.getSwapFee(candy, amount, block.timestamp + 12 days);
 
         Vars memory _after = _state();
 
         assertEq(
             _after.candy.borrowATokenBalance,
-            _before.candy.borrowATokenBalance - amount - swapFee - size.feeConfig().fragmentationFee
+            _before.candy.borrowATokenBalance - amountOut - swapFee - size.feeConfig().fragmentationFee
         );
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amount);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountOut);
         assertEq(
             _after.feeRecipient.borrowATokenBalance,
-            _before.feeRecipient.borrowATokenBalance + size.feeConfig().fragmentationFee + swapFee
+            _before.feeRecipient.borrowATokenBalance + size.feeConfig().fragmentationFee + swapFee,
+            "c"
         );
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
@@ -158,20 +158,22 @@ contract SellCreditMarketTest is BaseTest {
             [uint256(maturity), uint256(maturity) * 2]
         );
         uint256 debtPositionId = _borrow(bob, alice, amount, dueDate);
-        uint256 swapFee = size.getSwapFee(amount, dueDate);
         (uint256 debtPositionsCountBefore,) = size.getPositionsCount();
 
         Vars memory _before = _state();
 
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _sellCreditMarket(alice, candy, creditPositionId, amount, dueDate);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 credit = size.getCreditPosition(creditPositionId).credit;
+        uint256 amountOut = size.getAmountOut(candy, creditPositionId, credit, dueDate);
+        uint256 swapFee2 = size.getSwapFee(candy, credit, dueDate);
+        _sellCreditMarket(alice, candy, creditPositionId, dueDate);
 
         Vars memory _after = _state();
         (uint256 debtPositionsCountAfter,) = size.getPositionsCount();
 
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance - amount);
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amount - swapFee);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + swapFee);
+        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance - amountOut - swapFee2);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountOut);
+        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + swapFee2);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
         assertEq(_after.bob, _before.bob);
@@ -310,7 +312,7 @@ contract SellCreditMarketTest is BaseTest {
         uint256 apr = size.getLoanOfferAPR(alice, dueDate);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
         bytes[] memory data = new bytes[](2);
-        uint256 faceValue = size.getAmountIn(alice, amount, dueDate);
+        uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, amount, dueDate);
         data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
         data[1] = abi.encodeCall(
             size.sellCreditMarket,
@@ -340,7 +342,7 @@ contract SellCreditMarketTest is BaseTest {
         vm.startPrank(bob);
         vm.expectRevert();
         bytes[] memory data = new bytes[](2);
-        uint256 faceValue = size.getAmountIn(alice, amount, dueDate);
+        uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, amount, dueDate);
         data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
         data[1] = abi.encodeCall(
             size.sellCreditMarket,
@@ -477,7 +479,7 @@ contract SellCreditMarketTest is BaseTest {
         vm.startPrank(alice);
 
         bytes[] memory data = new bytes[](2);
-        uint256 faceValue = size.getAmountIn(james, amount, dueDate);
+        uint256 faceValue = size.getAmountIn(james, RESERVED_ID, amount, dueDate);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 0, 1.5e18));
         data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
         data[1] = abi.encodeCall(
@@ -508,7 +510,7 @@ contract SellCreditMarketTest is BaseTest {
         uint256 dueDate = block.timestamp + 12 days;
 
         bytes[] memory data = new bytes[](2);
-        uint256 faceValue = size.getAmountIn(alice, amount, dueDate);
+        uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, amount, dueDate);
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -553,7 +555,7 @@ contract SellCreditMarketTest is BaseTest {
         vm.startPrank(alice);
 
         bytes[] memory data = new bytes[](2);
-        uint256 faceValue = size.getAmountIn(bob, amount, dueDate);
+        uint256 faceValue = size.getAmountIn(bob, RESERVED_ID, amount, dueDate);
         vm.expectRevert(
             abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.riskConfig().debtTokenCap, 10e6)
         );

@@ -116,19 +116,19 @@ library SellCreditMarket {
         if (params.exactAmountIn) {
             amountIn = params.amount;
             (amountOut, fees) = state.getAmountOut({
-                amountIn: params.amount,
+                amountIn: amountIn,
                 credit: creditPosition.credit,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: params.dueDate
             });
         } else {
+            amountOut = params.amount;
             (amountIn, fees) = state.getAmountIn({
-                amountOut: params.amount,
+                amountOut: amountOut,
                 credit: creditPosition.credit,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: params.dueDate
             });
-            amountOut = params.amount;
         }
 
         state.createCreditPosition({exitCreditPositionId: creditPositionId, lender: params.lender, credit: amountIn});
