@@ -1,40 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-// import "./interfaces/I1InchAggregator.sol";
-// import "./interfaces/IUnoswapRouter.sol";
-// import "./interfaces/IUniswapV2Router02.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {I1InchAggregator} from "@src/interfaces/dex/I1InchAggregator.sol";
+import {IUnoswapRouter} from "@src/interfaces/dex/IUnoswapRouter.sol";
+import {IUniswapV2Router02} from "@src/interfaces/dex/IUniswapV2Router02.sol";
 
-interface I1InchAggregator {
-    function swap(
-        address fromToken,
-        address toToken,
-        uint256 amount,
-        uint256 minReturn,
-        bytes calldata data
-    ) external payable returns (uint256 returnAmount);
-}
-
-interface IUnoswapRouter {
-    function unoswapTo(
-        address recipient,
-        address srcToken,
-        uint256 amount,
-        uint256 minReturn,
-        address pool
-    ) external payable returns (uint256 returnAmount);
-}
-
-interface IUniswapV2Router02 {
-    function swapExactTokensForTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external returns (uint[] memory amounts);
-}
 
 enum SwapMethod {
     OneInch,
