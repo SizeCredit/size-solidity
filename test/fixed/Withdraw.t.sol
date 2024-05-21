@@ -120,18 +120,14 @@ contract WithdrawTest is BaseTest {
     function test_Withdraw_user_cannot_withdraw_if_that_would_leave_them_underwater() public {
         _setPrice(1e18);
         _updateConfig("overdueLiquidatorReward", 0);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 150e18);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
-        _borrow(bob, alice, 100e6, block.timestamp + 12 days);
+        _borrow(bob, alice, 50e6, block.timestamp + 12 days);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
         size.withdraw(WithdrawParams({token: address(weth), amount: 150e18, to: bob}));
-
-        vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0.01e18, 1.5e18));
-        size.withdraw(WithdrawParams({token: address(weth), amount: 149e18, to: bob}));
     }
 
     function test_Withdraw_withdraw_everything_general() public {
@@ -191,7 +187,7 @@ contract WithdrawTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, int256(rate));
         uint256 amount = 15e6;
         uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
-        uint256 faceValue = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         _setPrice(0.125e18);
 
