@@ -11,47 +11,8 @@ import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/Liqui
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
+import {DexSwap, SwapMethod, SwapParams} from "@src/periphery/DexSwap.sol";
 
-interface I1InchAggregator {
-    function swap(
-        address fromToken,
-        address toToken,
-        uint256 amount,
-        uint256 minReturn,
-        bytes calldata data
-    ) external payable returns (uint256 returnAmount);
-}
-
-interface IUnoswapRouter {
-    function unoswapTo(
-        address recipient,
-        address srcToken,
-        uint256 amount,
-        uint256 minReturn,
-        address pool
-    ) external payable returns (uint256 returnAmount);
-}
-
-interface IUniswapV2Router02 {
-    function swapExactTokensForTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external returns (uint[] memory amounts);
-}
-
-enum SwapMethod {
-    OneInch,
-    Unoswap,
-    Uniswap
-}
-
-struct SwapParams {
-    SwapMethod method;
-    bytes data; // Encoded data for the specific swap method
-}
 
 struct ReplacementParams {
     uint256 minAPR;
@@ -68,13 +29,8 @@ struct OperationParams {
     ReplacementParams replacementParams;
 }
 
-contract FlashLoanLiquidator is FlashLoanReceiverBase {
+contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
     ISize public sizeLendingContract;
-    I1InchAggregator public oneInchAggregator;
-    IUnoswapRouter public unoswapRouter;
-    IUniswapV2Router02 public uniswapRouter;
-    address public collateralToken;
-    address public debtToken;
 
     constructor(
         address _addressProvider,
@@ -84,14 +40,12 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         address _uniswapRouter,
         address _collateralToken,
         address _debtToken
-    ) FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider)) {
+    ) 
+    FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider))
+    DexSwap(_1inchAggregator, _unoswapRouter, _uniswapRouter, _collateralToken, _debtToken) 
+    {
         POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
         sizeLendingContract = ISize(_sizeLendingContractAddress);
-        oneInchAggregator = I1InchAggregator(_1inchAggregator);
-        unoswapRouter = IUnoswapRouter(_unoswapRouter);
-        uniswapRouter = IUniswapV2Router02(_uniswapRouter);
-        collateralToken = _collateralToken;
-        debtToken = _debtToken;
 
         // Approve the dexs to spend the collateral tokens
         IERC20(collateralToken).approve(address(oneInchAggregator), type(uint256).max);
@@ -226,71 +180,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         calls[2] = withdrawCall;
 
         sizeLendingContract.multicall(calls);
-    }
-
-    function swapCollateral(SwapParams memory swapParams) internal returns (uint256) {
-        if (swapParams.method == SwapMethod.OneInch) {
-            return swapCollateral1Inch(swapParams.data);
-        } else if (swapParams.method == SwapMethod.Unoswap) {
-            address pool = abi.decode(swapParams.data, (address));
-            return swapCollateralUnoswap(pool);
-        } else if (swapParams.method == SwapMethod.Uniswap) {
-            address[] memory path = abi.decode(swapParams.data, (address[]));
-            return swapCollateralUniswap(path);
-        } else {
-            revert("Invalid swap method");
-        }
-    }
-
-    function swapCollateral1Inch(bytes memory data) internal returns (uint256) {
-        // Approve the 1InchAggregator to spend the collateral tokens
-        IERC20(collateralToken).approve(address(oneInchAggregator), type(uint256).max);
-
-        // Swap the collateral tokens for the debt tokens using the 1InchAggregator
-        uint256 swappedAmount = oneInchAggregator.swap(
-            collateralToken,
-            debtToken,
-            IERC20(collateralToken).balanceOf(address(this)),
-            1, // Minimum return amount
-            data
-        );
-
-        return swappedAmount;
-    }
-
-    function swapCollateralUniswap(address[] memory tokenPaths) internal returns (uint256) {
-        // Approve the UniswapRouter to spend the collateral tokens
-        IERC20(collateralToken).approve(address(uniswapRouter), type(uint256).max);
-
-        // address[] memory path = new address[](2);
-        // path[0] = collateralToken;
-        // path[1] = debtToken;
-
-        uint256[] memory amounts = uniswapRouter.swapExactTokensForTokens(
-            IERC20(collateralToken).balanceOf(address(this)),
-            1, // Minimum return amount
-            tokenPaths,
-            address(this),
-            block.timestamp
-        );
-
-        return amounts[amounts.length - 1];
-    }
-
-    function swapCollateralUnoswap(address pool) internal returns (uint256) {
-        // Approve the UnoswapRouter to spend the collateral tokens
-        IERC20(collateralToken).approve(address(unoswapRouter), type(uint256).max);
-
-        // Perform the swap using the unoswapTo function
-        uint256 returnAmount = unoswapRouter.unoswapTo(
-            address(this),
-            collateralToken,
-            IERC20(collateralToken).balanceOf(address(this)),
-            1, // TODO consider calculating reasonable minimum return amount
-            pool
-        );
-
-        return returnAmount;
     }
 
     function settleFlashLoan(
