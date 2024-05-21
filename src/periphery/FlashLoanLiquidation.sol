@@ -47,10 +47,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
         sizeLendingContract = ISize(_sizeLendingContractAddress);
 
-        // Approve the dexs to spend the collateral tokens
-        IERC20(collateralToken).approve(address(oneInchAggregator), type(uint256).max);
-        IERC20(collateralToken).approve(address(unoswapRouter), type(uint256).max);
-        IERC20(collateralToken).approve(address(uniswapRouter), type(uint256).max);
     }
 
     function executeOperation(

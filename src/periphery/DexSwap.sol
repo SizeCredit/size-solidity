@@ -60,6 +60,11 @@ contract DexSwap {
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);
         collateralToken = _collateralToken;
         debtToken = _debtToken;
+
+        // Approve the dexs to spend the collateral tokens
+        IERC20(collateralToken).approve(address(oneInchAggregator), type(uint256).max);
+        IERC20(collateralToken).approve(address(unoswapRouter), type(uint256).max);
+        IERC20(collateralToken).approve(address(uniswapRouter), type(uint256).max);
     }
 
     function swapCollateral(SwapParams memory swapParams) internal returns (uint256) {
@@ -77,7 +82,6 @@ contract DexSwap {
     }
 
     function swapCollateral1Inch(bytes memory data) internal returns (uint256) {
-        IERC20(collateralToken).approve(address(oneInchAggregator), type(uint256).max);
         uint256 swappedAmount = oneInchAggregator.swap(
             collateralToken,
             debtToken,
@@ -89,7 +93,6 @@ contract DexSwap {
     }
 
     function swapCollateralUniswap(address[] memory tokenPaths) internal returns (uint256) {
-        IERC20(collateralToken).approve(address(uniswapRouter), type(uint256).max);
         uint256[] memory amounts = uniswapRouter.swapExactTokensForTokens(
             IERC20(collateralToken).balanceOf(address(this)),
             1, // Minimum return amount
@@ -101,7 +104,6 @@ contract DexSwap {
     }
 
     function swapCollateralUnoswap(address pool) internal returns (uint256) {
-        IERC20(collateralToken).approve(address(unoswapRouter), type(uint256).max);
         uint256 returnAmount = unoswapRouter.unoswapTo(
             address(this),
             collateralToken,
