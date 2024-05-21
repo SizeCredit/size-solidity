@@ -47,7 +47,9 @@ contract FlashLoanLiquidationTest is BaseTest {
             address(size),
             address(mock1InchAggregator),
             address(0), // placeholder for the unoswap router
-            address(0) // placeholder for the uniswapv2 aggregator
+            address(0), // placeholder for the uniswapv2 aggregator
+            address(weth),
+            address(usdc)
         );
 
         // Set the FlashLoanLiquidator contract as the keeper
@@ -96,12 +98,10 @@ contract FlashLoanLiquidationTest is BaseTest {
         // Call the liquidatePositionWithFlashLoan function
         vm.prank(liquidator);
         flashLoanLiquidator.liquidatePositionWithFlashLoan(
-            address(usdc), // flashLoanAsset
             false, // useReplacement
             replacementParams, // Replacement parameters, not used here
             debtPositionId,
             0, // minimumCollateralProfit
-            address(weth), // collateralToken
             swapParams // Pass the swapParams
         );
 
@@ -136,7 +136,9 @@ contract FlashLoanLiquidationTest is BaseTest {
             address(size),
             address(mock1InchAggregator),
             address(0), // placeholder for the unoswap router
-            address(0) // placeholder for the uniswapv2 aggregator
+            address(0), // placeholder for the uniswapv2 aggregator
+            address(weth),
+            address(usdc)
         );
 
         // Set the FlashLoanLiquidator contract as the keeper
@@ -173,12 +175,10 @@ contract FlashLoanLiquidationTest is BaseTest {
         // Call the liquidatePositionWithFlashLoan function with replacement
         vm.prank(liquidator);
         flashLoanLiquidator.liquidatePositionWithFlashLoan(
-            address(usdc), // flashLoanAsset
             true, // useReplacement
             replacementParams,
             debtPositionId,
             0, // minimumCollateralProfit
-            address(weth), // collateralToken
             swapParams
         );
 

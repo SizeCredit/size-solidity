@@ -63,7 +63,6 @@ struct OperationParams {
     uint256 debtPositionId;
     uint256 minimumCollateralProfit;
     address liquidator;
-    address collateralToken;
     SwapParams swapParams;
     bool useReplacement;
     ReplacementParams replacementParams;
@@ -74,19 +73,30 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
     I1InchAggregator public oneInchAggregator;
     IUnoswapRouter public unoswapRouter;
     IUniswapV2Router02 public uniswapRouter;
+    address public collateralToken;
+    address public debtToken;
 
     constructor(
         address _addressProvider,
         address _sizeLendingContractAddress,
         address _1inchAggregator,
         address _unoswapRouter,
-        address _uniswapRouter
+        address _uniswapRouter,
+        address _collateralToken,
+        address _debtToken
     ) FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider)) {
         POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
         sizeLendingContract = ISize(_sizeLendingContractAddress);
         oneInchAggregator = I1InchAggregator(_1inchAggregator);
         unoswapRouter = IUnoswapRouter(_unoswapRouter);
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);
+        collateralToken = _collateralToken;
+        debtToken = _debtToken;
+
+        // Approve the dexs to spend the collateral tokens
+        IERC20(collateralToken).approve(address(oneInchAggregator), type(uint256).max);
+        IERC20(collateralToken).approve(address(unoswapRouter), type(uint256).max);
+        IERC20(collateralToken).approve(address(uniswapRouter), type(uint256).max);
     }
 
     function executeOperation(
@@ -103,8 +113,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
 
         if (opParams.useReplacement) {
             liquidateDebtPositionWithReplacement(
-                opParams.collateralToken,
-                assets[0],
                 amounts[0],
                 opParams.debtPositionId,
                 opParams.minimumCollateralProfit,
@@ -112,23 +120,19 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
             );
         } else {
             liquidateDebtPosition(
-                opParams.collateralToken,
-                assets[0],
                 amounts[0],
                 opParams.debtPositionId,
                 opParams.minimumCollateralProfit
             );
         }
 
-        swapCollateral(opParams.collateralToken, assets[0], opParams.swapParams);
+        swapCollateral(opParams.swapParams);
         settleFlashLoan(assets, amounts, premiums, opParams.liquidator);
 
         return true;
     }
 
     function liquidateDebtPositionWithReplacement(
-        address collateralToken,
-        address debtToken,
         uint256 debtAmount,
         uint256 debtPositionId,
         uint256 minimumCollateralProfit,
@@ -179,8 +183,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
     }
 
     function liquidateDebtPosition(
-        address collateralToken,
-        address debtToken,
         uint256 debtAmount,
         uint256 debtPositionId,
         uint256 minimumCollateralProfit
@@ -226,29 +228,21 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         sizeLendingContract.multicall(calls);
     }
 
-    function swapCollateral(
-        address collateralToken,
-        address debtToken,
-        SwapParams memory swapParams
-    ) internal returns (uint256) {
+    function swapCollateral(SwapParams memory swapParams) internal returns (uint256) {
         if (swapParams.method == SwapMethod.OneInch) {
-            return swapCollateral1Inch(collateralToken, debtToken, swapParams.data);
+            return swapCollateral1Inch(swapParams.data);
         } else if (swapParams.method == SwapMethod.Unoswap) {
             address pool = abi.decode(swapParams.data, (address));
-            return swapCollateralUnoswap(collateralToken, pool);
+            return swapCollateralUnoswap(pool);
         } else if (swapParams.method == SwapMethod.Uniswap) {
             address[] memory path = abi.decode(swapParams.data, (address[]));
-            return swapCollateralUniswap(collateralToken, path);
+            return swapCollateralUniswap(path);
         } else {
             revert("Invalid swap method");
         }
     }
 
-    function swapCollateral1Inch(
-        address collateralToken,
-        address debtToken,
-        bytes memory data
-    ) internal returns (uint256) {
+    function swapCollateral1Inch(bytes memory data) internal returns (uint256) {
         // Approve the 1InchAggregator to spend the collateral tokens
         IERC20(collateralToken).approve(address(oneInchAggregator), type(uint256).max);
 
@@ -264,10 +258,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         return swappedAmount;
     }
 
-    function swapCollateralUniswap(
-        address collateralToken,
-        address[] memory tokenPaths
-    ) internal returns (uint256) {
+    function swapCollateralUniswap(address[] memory tokenPaths) internal returns (uint256) {
         // Approve the UniswapRouter to spend the collateral tokens
         IERC20(collateralToken).approve(address(uniswapRouter), type(uint256).max);
 
@@ -286,10 +277,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         return amounts[amounts.length - 1];
     }
 
-    function swapCollateralUnoswap(
-        address collateralToken,
-        address pool
-    ) internal returns (uint256) {
+    function swapCollateralUnoswap(address pool) internal returns (uint256) {
         // Approve the UnoswapRouter to spend the collateral tokens
         IERC20(collateralToken).approve(address(unoswapRouter), type(uint256).max);
 
@@ -314,13 +302,9 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         uint256 totalDebt = amounts[0] + premiums[0];
         uint256 balance = IERC20(assets[0]).balanceOf(address(this));
 
-        // Ensure the balance is sufficient to cover the amounts and premiums 
-        require(balance >= totalDebt, "Insufficient balance to repay flash loan"); 
+        require(balance >= totalDebt, "Insufficient balance to repay flash loan");
 
-        // Calculate the amount to transfer to the liquidator
         uint256 amountToLiquidator = balance - totalDebt;
-
-        // Transfer the remaining debt tokens to the liquidator
         IERC20(assets[0]).transfer(liquidator, amountToLiquidator);
 
         // Approve the Pool contract to pull the owed amount
@@ -328,19 +312,16 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
     }
 
     function liquidatePositionWithFlashLoan(
-        address asset,
         bool useReplacement,
         ReplacementParams memory replacementParams,
         uint256 debtPositionId,
         uint256 minimumCollateralProfit,
-        address collateralToken,
         SwapParams memory swapParams
     ) external {
         OperationParams memory opParams = OperationParams({
             debtPositionId: debtPositionId,
             minimumCollateralProfit: minimumCollateralProfit,
             liquidator: msg.sender,
-            collateralToken: collateralToken,
             swapParams: swapParams,
             useReplacement: useReplacement,
             replacementParams: replacementParams
@@ -349,7 +330,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase {
         bytes memory params = abi.encode(opParams);
 
         address[] memory assets = new address[](1);
-        assets[0] = asset;
+        assets[0] = debtToken;
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = sizeLendingContract.getOverdueDebt(debtPositionId);
         uint256[] memory modes = new uint256[](1);

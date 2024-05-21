@@ -29,7 +29,9 @@ contract ForkTest is BaseTest, BaseScript {
             address(size),
             address(0), // placeholder for the 1inch aggregator
             address(0), // placeholder for the unoswap router
-            address(uniswapRouter) // Uniswap V2 Router address
+            address(uniswapRouter), // Uniswap V2 Router address
+            address(weth),
+            address(usdc)
         );
 
         // Set the FlashLoanLiquidator contract as the keeper
@@ -80,12 +82,10 @@ contract ForkTest is BaseTest, BaseScript {
         // Call the liquidatePositionWithFlashLoan function
         vm.prank(liquidator);
         flashLoanLiquidator.liquidatePositionWithFlashLoan(
-            address(usdc), // flashLoanAsset
             false, // useReplacement
             replacementParams, // Replacement parameters, not used here
             debtPositionId,
             0, // minimumCollateralProfit
-            address(weth), // collateralToken
             swapParams // Pass the swapParams
         );
 
