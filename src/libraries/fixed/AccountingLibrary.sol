@@ -134,7 +134,7 @@ library AccountingLibrary {
         return Math.mulDivUp(cash, getSwapFeePercent(state, dueDate), PERCENT);
     }
 
-    function getAmountOut(
+    function getCashAmountOut(
         State storage state,
         uint256 amountIn,
         uint256 credit,
@@ -149,7 +149,7 @@ library AccountingLibrary {
         amountOut = cash - fees;
     }
 
-    function getAmountIn(
+    function getCreditAmountIn(
         State storage state,
         uint256 amountOut,
         uint256 credit,
@@ -180,5 +180,37 @@ library AccountingLibrary {
             //   would require to sell a credit that exceeds the max possible amount which is `credit`
             revert Errors.NOT_SUPPORTED();
         }
+    }
+
+    function getCreditAmountOut(
+        State storage state,
+        uint256 amountIn,
+        uint256 credit,
+        uint256 ratePerMaturity,
+        uint256 dueDate
+    ) internal view returns (uint256 amountOut, uint256 fees) {
+        uint256 maxAmountIn = Math.mulDivUp(credit, PERCENT, PERCENT + ratePerMaturity);
+
+        if (amountIn == maxAmountIn) {
+            // no credit fractionalization
+            amountOut = credit;
+            fees = getSwapFee(state, amountIn, dueDate);
+        } else {
+            // credit fractionalization
+            uint256 netAmountIn = amountIn - state.feeConfig.fragmentationFee;
+
+            amountOut = Math.mulDivDown(netAmountIn, PERCENT + ratePerMaturity, PERCENT);
+            fees = getSwapFee(state, netAmountIn, dueDate) + state.feeConfig.fragmentationFee;
+        }
+    }
+
+    function getCashAmountIn(
+        State storage state,
+        uint256 amountOut,
+        uint256 credit,
+        uint256 ratePerMaturity,
+        uint256 dueDate
+    ) internal view returns (uint256 amountIn, uint256 fees) {
+        // TODO
     }
 }

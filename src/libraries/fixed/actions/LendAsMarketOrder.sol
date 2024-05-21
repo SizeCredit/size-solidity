@@ -73,7 +73,6 @@ library LendAsMarketOrder {
         external
         returns (uint256 issuanceValue)
     {
-        // TODO
         // emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
         // uint256 ratePerMaturity = state.data.users[params.borrower].borrowOffer.getRatePerMaturityByDueDate(

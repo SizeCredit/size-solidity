@@ -115,7 +115,7 @@ library SellCreditMarket {
 
         if (params.exactAmountIn) {
             amountIn = params.amount;
-            (amountOut, fees) = state.getAmountOut({
+            (amountOut, fees) = state.getCashAmountOut({
                 amountIn: amountIn,
                 credit: creditPosition.credit,
                 ratePerMaturity: ratePerMaturity,
@@ -123,7 +123,7 @@ library SellCreditMarket {
             });
         } else {
             amountOut = params.amount;
-            (amountIn, fees) = state.getAmountIn({
+            (amountIn, fees) = state.getCreditAmountIn({
                 amountOut: amountOut,
                 credit: creditPosition.credit,
                 ratePerMaturity: ratePerMaturity,

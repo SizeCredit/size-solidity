@@ -75,41 +75,47 @@ library BuyMarketCredit {
     }
 
     function executeBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params) external {
-        // CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
-        // DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
+        CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
+        DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
-        // uint256 ratePerMaturity = state.data.users[creditPosition.lender].borrowOffer.getRatePerMaturityByDueDate(
-        //     state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate
-        // );
+        uint256 ratePerMaturity = state.data.users[creditPosition.lender].borrowOffer.getRatePerMaturityByDueDate(
+            state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate
+        );
 
-        // uint256 amountIn;
-        // uint256 amountOut;
+        uint256 amountIn; // cash
+        uint256 amountOut; // credit
+        uint256 fees;
 
-        // if (params.exactAmountIn) {
-        //     amountIn = params.amount;
-        //     amountOut = Math.mulDivDown(amountIn, PERCENT + ratePerMaturity, PERCENT);
-        // } else {
-        //     amountOut = params.amount;
-        //     amountIn = Math.mulDivUp(amountOut, PERCENT, PERCENT + ratePerMaturity);
-        // }
+        if (params.exactAmountIn) {
+            amountIn = params.amount;
+            (amountOut, fees) = state.getCreditAmountOut({
+                amountIn: amountIn,
+                credit: creditPosition.credit,
+                ratePerMaturity: ratePerMaturity,
+                dueDate: debtPosition.dueDate
+            });
+        } else {
+            amountOut = params.amount;
+            (amountIn, fees) = state.getCashAmountIn({
+                amountOut: amountOut,
+                credit: creditPosition.credit,
+                ratePerMaturity: ratePerMaturity,
+                dueDate: debtPosition.dueDate
+            });
+        }
 
-        // if (amountOut > creditPosition.credit) {
-        //     revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, amountOut);
-        // }
+        if (amountOut > creditPosition.credit) {
+            revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, amountOut);
+        }
 
-        // uint256 exiterCreditRemaining = state.createCreditPosition({
-        //     exitCreditPositionId: params.creditPositionId,
-        //     lender: msg.sender,
-        //     credit: amountOut
-        // });
-        // uint256 swapFee = state.swapFee(amountIn, debtPosition.dueDate);
-        // state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn - swapFee);
-        // state.transferBorrowAToken(
-        //     msg.sender,
-        //     state.feeConfig.feeRecipient,
-        //     swapFee + (exiterCreditRemaining > 0 ? state.feeConfig.fragmentationFee : 0)
-        // );
+        state.createCreditPosition({
+            exitCreditPositionId: params.creditPositionId,
+            lender: msg.sender,
+            credit: amountOut
+        });
+        state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn - fees);
+        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
 
-        // emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
+        emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
     }
 }

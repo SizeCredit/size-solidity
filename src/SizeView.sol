@@ -186,7 +186,7 @@ abstract contract SizeView is SizeStorage {
             amountIn = Math.mulDivUp(amountOut, PERCENT + ratePerMaturity, PERCENT - state.getSwapFeePercent(dueDate));
         } else {
             (amountIn,) =
-                state.getAmountIn(amountOut, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate);
+                state.getCreditAmountIn(amountOut, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate);
         }
     }
 
@@ -200,7 +200,7 @@ abstract contract SizeView is SizeStorage {
         );
 
         (amountOut,) =
-            state.getAmountOut(amountIn, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate);
+            state.getCashAmountOut(amountIn, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate);
     }
 
     function getSwapFee(uint256 cash, uint256 dueDate) public view returns (uint256) {
