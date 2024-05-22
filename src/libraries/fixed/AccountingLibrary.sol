@@ -183,6 +183,7 @@ library AccountingLibrary {
         // maxAmountOut = (credit / (1+r)) * (1 - k * deltaT)
         uint256 maxAmountOut = Math.mulDivDown(credit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity);
 
+        // slither-disable-next-line incorrect-equality
         if (amountOut == maxAmountOut) {
             // no credit fractionalization
             amountIn = credit;

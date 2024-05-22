@@ -187,6 +187,7 @@ abstract contract SizeView is SizeStorage {
         if (creditPositionId == RESERVED_ID) {
             amountIn = Math.mulDivUp(amountOut, PERCENT + ratePerMaturity, PERCENT - state.getSwapFeePercent(dueDate));
         } else {
+            // slither-disable-next-line unused-return
             (amountIn,) = state.getCreditAmountIn(
                 amountOut, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate
             );
@@ -204,6 +205,7 @@ abstract contract SizeView is SizeStorage {
         }
         uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
 
+        // slither-disable-next-line unused-return
         (amountOut,) =
             state.getCashAmountOut(amountIn, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate);
     }
