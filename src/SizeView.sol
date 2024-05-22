@@ -185,8 +185,9 @@ abstract contract SizeView is SizeStorage {
         if (creditPositionId == RESERVED_ID) {
             amountIn = Math.mulDivUp(amountOut, PERCENT + ratePerMaturity, PERCENT - state.getSwapFeePercent(dueDate));
         } else {
-            (amountIn,) =
-                state.getCreditAmountIn(amountOut, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate);
+            (amountIn,) = state.getCreditAmountIn(
+                amountOut, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate
+            );
         }
     }
 

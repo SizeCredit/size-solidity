@@ -211,6 +211,16 @@ library AccountingLibrary {
         uint256 ratePerMaturity,
         uint256 dueDate
     ) internal view returns (uint256 amountIn, uint256 fees) {
-        // TODO
+        if (amountOut == credit) {
+            // no credit fractionalization
+            amountIn = Math.mulDivUp(credit, PERCENT, PERCENT + ratePerMaturity);
+            fees = getSwapFee(state, amountIn, dueDate);
+        } else {
+            // credit fractionalization
+            uint256 netAmountIn = Math.mulDivUp(amountOut, PERCENT, PERCENT + ratePerMaturity);
+            amountIn = netAmountIn + state.feeConfig.fragmentationFee;
+
+            fees = getSwapFee(state, netAmountIn, dueDate) + state.feeConfig.fragmentationFee;
+        }
     }
 }

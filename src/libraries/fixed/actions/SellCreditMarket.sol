@@ -93,11 +93,10 @@ library SellCreditMarket {
 
     function executeSellCreditMarket(State storage state, SellCreditMarketParams memory params)
         external
-        returns (uint256 amountOut)
+        returns (
+            uint256 amountOut // cash
+        )
     {
-        //  amountIn: amount of future cashflow to exit
-        //  amountOut: amount of cash to borrow at present time
-
         uint256 creditPositionId =
             params.creditPositionId == RESERVED_ID ? (state.data.nextCreditPositionId - 1) : params.creditPositionId;
 
@@ -110,7 +109,7 @@ library SellCreditMarket {
             state.oracle.variablePoolBorrowRateFeed, params.dueDate
         );
 
-        uint256 amountIn;
+        uint256 amountIn; // credit
         uint256 fees;
 
         if (params.exactAmountIn) {
