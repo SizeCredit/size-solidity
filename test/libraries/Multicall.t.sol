@@ -110,17 +110,15 @@ contract MulticallTest is BaseTest {
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 100e18);
-        _deposit(bob, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
 
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        uint256 amount = 15e6;
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        uint256 amount = 40e6;
         uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
-        uint256 debt = faceValue;
 
-        _setPrice(0.31e18);
+        _setPrice(0.6e18);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
@@ -152,7 +150,7 @@ contract MulticallTest is BaseTest {
         uint256 afterLiquidatorUSDC = usdc.balanceOf(liquidator);
         uint256 afterLiquidatorWETH = weth.balanceOf(liquidator);
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - debt, 0);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue, 0);
         assertEq(_after.liquidator.borrowATokenBalance, _before.liquidator.borrowATokenBalance, 0);
         assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance, 0);
         assertGt(
