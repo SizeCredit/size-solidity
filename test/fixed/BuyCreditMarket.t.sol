@@ -2,6 +2,13 @@
 pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
+import {Math} from "@src/libraries/Math.sol";
+
+import {Vars} from "@test/BaseTestGeneral.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract BuyCreditMarketTest is BaseTest {
@@ -41,4 +48,40 @@ contract BuyCreditMarketTest is BaseTest {
 
         assertEqApprox(_state().alice.borrowATokenBalance, 1004e6, 1e6);
     }
+    
+    function test_BuyCreditMarket_lend_to_borrower() public {
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        uint256 rate = 0.03e18;
+        _borrowAsLimitOrder(alice, int256(rate), block.timestamp + 365 days);
+
+        uint256 issuanceValue = 10e6;
+        uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + rate, PERCENT);
+        uint256 dueDate = block.timestamp + 365 days;
+        uint256 amountIn = Math.mulDivUp(faceValue, PERCENT, PERCENT + rate);
+
+        Vars memory _before = _state();
+        (uint256 loansBefore,) = size.getPositionsCount();
+
+        uint256 debtPositionId = _buyCreditMarket(bob, 0, faceValue, false, dueDate, alice);
+
+        Vars memory _after = _state();
+        (uint256 loansAfter,) = size.getPositionsCount();
+
+        assertEq(
+            _after.alice.borrowATokenBalance,
+            _before.alice.borrowATokenBalance + amountIn - size.getSwapFee(amountIn, dueDate)
+        );
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
+        assertEq(
+            _after.alice.debtBalance, _before.alice.debtBalance + faceValue + size.feeConfig().overdueLiquidatorReward
+        );
+        assertEq(loansAfter, loansBefore + 1);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
+        assertEq(size.getOverdueDebt(debtPositionId), faceValue + size.feeConfig().overdueLiquidatorReward);
+        assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
+    }
 }
+

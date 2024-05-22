@@ -341,7 +341,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         );
     }
 
-    function _buyCreditMarket(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn, uint256 dueDate, address borrower) internal {
+    function _buyCreditMarket(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn, uint256 dueDate, address borrower) internal returns (uint256 debtPositions) {
+        uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
         vm.prank(user);
         size.buyCreditMarket(
             BuyCreditMarketParams({
@@ -354,6 +355,12 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 minAPR: 0
             })
         );
+        uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
+        if (debtPositionIdAfter == debtPositionIdBefore) {
+            return RESERVED_ID;
+        } else {
+            return debtPositionIdAfter - 1;
+        }
     }
 
     function _setUserConfiguration(
