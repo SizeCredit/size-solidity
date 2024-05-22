@@ -168,30 +168,32 @@ contract MulticallTest is BaseTest {
 
     function test_Multicall_multicall_bypasses_cap_if_it_is_to_reduce_debt() public {
         _setPrice(1e18);
-        _updateConfig("borrowATokenCap", 100e6);
+        uint256 amount = 100e6;
+        uint256 cap = amount + size.getSwapFee(100e6, block.timestamp + 365 days);
+        _updateConfig("borrowATokenCap", cap);
         _updateConfig("overdueLiquidatorReward", 0);
 
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, cap);
         _deposit(bob, weth, 200e18);
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.1e18);
-        uint256 amount = 100e6;
         uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         vm.warp(block.timestamp + 365 days);
 
-        assertEq(_state().bob.debtBalance, 110e6);
+        assertEq(_state().bob.debtBalance, faceValue);
 
-        uint256 remaining = 110e6 - size.getUserView(bob).borrowATokenBalance;
+        uint256 remaining = faceValue - size.getUserView(bob).borrowATokenBalance;
         _mint(address(usdc), bob, remaining);
         _approve(bob, address(usdc), address(size), remaining);
 
         // attempt to deposit to repay, but it reverts due to cap
-        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, 100e6, 100e6 + remaining));
+        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, cap, cap + remaining));
         vm.prank(bob);
         size.deposit(DepositParams({token: address(usdc), amount: remaining, to: bob}));
 
-        assertEq(_state().bob.debtBalance, 110e6);
+        assertEq(_state().bob.debtBalance, faceValue);
 
         // debt reduction is allowed to go over cap
         bytes[] memory data = new bytes[](2);
