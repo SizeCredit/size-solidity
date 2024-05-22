@@ -178,9 +178,11 @@ abstract contract SizeView is SizeStorage {
         view
         returns (uint256 amountIn)
     {
-        uint256 ratePerMaturity = state.data.users[lender].loanOffer.getRatePerMaturityByDueDate(
-            state.oracle.variablePoolBorrowRateFeed, dueDate
-        );
+        LoanOffer memory offer = state.data.users[lender].loanOffer;
+        if (offer.isNull()) {
+            revert Errors.NULL_OFFER();
+        }
+        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
 
         if (creditPositionId == RESERVED_ID) {
             amountIn = Math.mulDivUp(amountOut, PERCENT + ratePerMaturity, PERCENT - state.getSwapFeePercent(dueDate));
@@ -196,9 +198,11 @@ abstract contract SizeView is SizeStorage {
         view
         returns (uint256 amountOut)
     {
-        uint256 ratePerMaturity = state.data.users[lender].loanOffer.getRatePerMaturityByDueDate(
-            state.oracle.variablePoolBorrowRateFeed, dueDate
-        );
+        LoanOffer memory offer = state.data.users[lender].loanOffer;
+        if (offer.isNull()) {
+            revert Errors.NULL_OFFER();
+        }
+        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
 
         (amountOut,) =
             state.getCashAmountOut(amountIn, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate);
@@ -209,9 +213,11 @@ abstract contract SizeView is SizeStorage {
     }
 
     function getSwapFee(address lender, uint256 amountIn, uint256 dueDate) external view returns (uint256) {
-        uint256 ratePerMaturity = state.data.users[lender].loanOffer.getRatePerMaturityByDueDate(
-            state.oracle.variablePoolBorrowRateFeed, dueDate
-        );
+        LoanOffer memory offer = state.data.users[lender].loanOffer;
+        if (offer.isNull()) {
+            revert Errors.NULL_OFFER();
+        }
+        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
         return getSwapFee(Math.mulDivDown(amountIn, PERCENT, PERCENT + ratePerMaturity), dueDate);
     }
 }
