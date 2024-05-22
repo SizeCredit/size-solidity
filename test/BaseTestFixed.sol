@@ -30,6 +30,7 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
 import {BaseTestGeneral} from "@test/BaseTestGeneral.sol";
@@ -332,6 +333,21 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         size.buyMarketCredit(
             BuyMarketCreditParams({
                 creditPositionId: creditPositionId,
+                amount: amount,
+                exactAmountIn: exactAmountIn,
+                deadline: block.timestamp,
+                minAPR: 0
+            })
+        );
+    }
+
+    function _buyCreditMarket(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn, uint256 dueDate, address borrower) internal {
+        vm.prank(user);
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: borrower,
+                creditPositionId: creditPositionId,
+                dueDate: dueDate,
                 amount: amount,
                 exactAmountIn: exactAmountIn,
                 deadline: block.timestamp,
