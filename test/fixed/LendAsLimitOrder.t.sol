@@ -3,11 +3,16 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+
+import {MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
+import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
 contract LendAsLimitOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
@@ -48,34 +53,31 @@ contract LendAsLimitOrderTest is BaseTest {
         );
 
         vm.prank(bob);
-        size.borrowAsMarketOrder(
-            BorrowAsMarketOrderParams({
-                lender: alice,
-                amount: 100e6,
-                dueDate: 45 days,
-                deadline: block.timestamp,
-                maxAPR: type(uint256).max,
-                exactAmountIn: false,
-                receivableCreditPositionIds: new uint256[](0)
-            })
-        );
-        LendAsLimitOrderParams memory empty;
+        _borrow(bob, alice, 100e6, block.timestamp + 45 days);
 
+        LendAsLimitOrderParams memory empty;
         vm.prank(alice);
         size.lendAsLimitOrder(empty);
 
-        vm.expectRevert();
-        vm.prank(candy);
-        size.borrowAsMarketOrder(
-            BorrowAsMarketOrderParams({
+        bytes[] memory data = new bytes[](2);
+        uint256 amount = 100e6;
+        uint256 dueDate = block.timestamp + 45 days;
+        uint256 faceValue = 1.2e18 * amount / 1e18;
+        data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
+        data[1] = abi.encodeCall(
+            size.sellCreditMarket,
+            SellCreditMarketParams({
                 lender: alice,
-                amount: 100e6,
-                dueDate: 45 days,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                dueDate: dueDate,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false,
-                receivableCreditPositionIds: new uint256[](0)
+                exactAmountIn: false
             })
         );
+        vm.prank(candy);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, alice));
+        size.multicall(data);
     }
 }

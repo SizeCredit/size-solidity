@@ -65,7 +65,8 @@ abstract contract Deploy {
             minimumCreditBorrowAToken: 5e6,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            minimumMaturity: 1 days
+            minimumMaturity: 1 days,
+            maximumMaturity: 5 * 365 days
         });
         o = InitializeOracleParams({
             priceFeed: address(priceFeed),
@@ -129,7 +130,8 @@ abstract contract Deploy {
             minimumCreditBorrowAToken: 50e6,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            minimumMaturity: 1 days
+            minimumMaturity: 1 days,
+            maximumMaturity: 5 * 365 days
         });
         o = InitializeOracleParams({
             priceFeed: address(priceFeed),

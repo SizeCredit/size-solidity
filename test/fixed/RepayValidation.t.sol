@@ -20,12 +20,12 @@ contract RepayValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
         uint256 amount = 20e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 12 days);
+        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 12 days);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
 
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(alice, candy, 10e6, block.timestamp + 12 days, [creditId]);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        _sellCreditMarket(alice, candy, creditId, 10e6, block.timestamp + 12 days);
 
         vm.startPrank(bob);
         size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));

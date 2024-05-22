@@ -102,8 +102,10 @@ library Compensate {
         // slither-disable-next-line unused-return
         state.reduceCredit(creditPositionWithDebtToRepayId, amountToCompensate);
 
+        uint256 exiterCreditRemaining = creditPositionToCompensate.credit - amountToCompensate;
+
         // credit emission
-        uint256 exiterCreditRemaining = state.createCreditPosition({
+        state.createCreditPosition({
             exitCreditPositionId: creditPositionToCompensateId,
             lender: creditPositionWithDebtToRepay.lender,
             credit: amountToCompensate

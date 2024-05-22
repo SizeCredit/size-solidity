@@ -17,15 +17,14 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amountLoanId1, block.timestamp + 365 days);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 debtPositionId = _borrow(bob, alice, amountLoanId1, block.timestamp + 365 days);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _repay(bob, debtPositionId);
-
-        uint256 faceValue = Math.mulDivUp(PERCENT + 0.05e18, amountLoanId1, PERCENT);
+        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
 
         Vars memory _before = _state();
 
-        assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
         _claim(alice, creditId);
 
         Vars memory _after = _state();
@@ -36,20 +35,19 @@ contract ClaimTest is BaseTest {
 
     function test_Claim_claim_of_exited_loan_gets_credit_back() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
+        _deposit(alice, usdc, 120e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 0.03e18);
-        uint256 r = PERCENT + 0.03e18;
 
         uint256 faceValueExited = 10e6;
-        uint256 amount = Math.mulDivDown(faceValueExited, PERCENT, r);
-        _borrowAsMarketOrder(alice, candy, amount, block.timestamp + 365 days, [creditId]);
+        _sellCreditMarket(alice, candy, creditId, faceValueExited, block.timestamp + 365 days);
         _repay(bob, debtPositionId);
 
         Vars memory _before = _state();
@@ -59,7 +57,6 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 faceValue = Math.mulDivUp(100e6, r, PERCENT);
         uint256 credit = faceValue - faceValueExited;
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + credit);
         assertEq(size.getCreditPosition(creditId).credit, 0);
@@ -68,26 +65,29 @@ contract ClaimTest is BaseTest {
     function test_Claim_claim_of_CreditPosition_where_DebtPosition_is_repaid_works() public {
         _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
+        _deposit(alice, usdc, 120e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(alice, candy, 10e6, block.timestamp + 365 days, [creditId]);
-        uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 exit = 30e6;
+        _sellCreditMarket(alice, candy, creditId, exit, block.timestamp + 365 days);
+        uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
 
         Vars memory _before = _state();
 
         _repay(bob, debtPositionId);
-        _claim(alice, creditId2);
+        _claim(candy, creditId2);
 
         Vars memory _after = _state();
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - 2 * 100e6);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + 2 * 10e6);
+
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
+        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + exit);
     }
 
     function test_Claim_claim_twice_does_not_work() public {
@@ -100,8 +100,8 @@ contract ClaimTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         Vars memory _before = _state();
 
@@ -127,8 +127,8 @@ contract ClaimTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         Vars memory _before = _state();
 
@@ -146,12 +146,13 @@ contract ClaimTest is BaseTest {
     function test_Claim_claim_of_liquidated_loan_retrieves_borrow_amount() public {
         _setPrice(1e18);
 
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 120e6);
         _deposit(bob, weth, 320e18);
         _deposit(liquidator, usdc, 10000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 365 days);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         _setPrice(0.75e18);
 
@@ -163,7 +164,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 2 * 100e6);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + faceValue);
     }
 
     function test_Claim_claim_at_different_times_may_have_different_interest() public {
@@ -176,10 +177,10 @@ contract ClaimTest is BaseTest {
         _deposit(liquidator, usdc, 1000e6);
         _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
-        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 12 days);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(bob, candy, 10e6, block.timestamp + 12 days, [creditId]);
-        uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 debtPositionId = _borrow(alice, bob, 100e6, block.timestamp + 12 days);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        _sellCreditMarket(bob, candy, creditId, 10e6, block.timestamp + 12 days);
+        uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
 
         Vars memory _s1 = _state();
 
@@ -230,8 +231,8 @@ contract ClaimTest is BaseTest {
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 100e6);
         _lendAsLimitOrder(bob, block.timestamp + 365 days, 0.1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 50e6, block.timestamp + 365 days);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 debtPositionId = _borrow(alice, bob, 50e6, block.timestamp + 365 days);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         vm.warp(block.timestamp + 365 days);
         _deposit(alice, usdc, 5e6);
@@ -263,31 +264,29 @@ contract ClaimTest is BaseTest {
 
         _updateConfig("borrowATokenCap", type(uint256).max);
 
-        _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
-        assertEq(_state().alice.borrowATokenBalance, 100e6 + size.feeConfig().fragmentationFee);
+        _deposit(alice, usdc, 120e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _deposit(james, weth, 5000e18);
 
-        uint256 debtPositionId = _borrowAsMarketOrder(james, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _borrow(james, alice, 100e6, block.timestamp + 365 days);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         (uint256 debtPositions,) = size.getPositionsCount();
         assertGt(debtPositions, 0);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
-        CreditPosition memory creditPosition = size.getCreditPositions(size.getCreditPositionIdsByDebtPositionId(0))[0];
-        assertEq(debtPosition.faceValue, 100e6 * 1.03e18 / 1e18);
+        CreditPosition memory creditPosition = size.getCreditPosition(creditPositionId);
         assertEq(creditPosition.credit, debtPosition.faceValue);
 
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowATokenBalance, 100e6);
         _lendAsLimitOrder(bob, block.timestamp + 365 days, 0.02e18);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(alice, bob, 50e6, block.timestamp + 365 days, [creditPositionId]);
+        _sellCreditMarket(alice, bob, creditPositionId, 50e6, block.timestamp + 365 days);
 
         vm.expectRevert();
         _claim(alice, creditPositionId);
 
         _deposit(james, usdc, debtPosition.faceValue);
 
-        _repay(james, 0);
+        _repay(james, debtPositionId);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
 
         _claim(alice, creditPositionId);

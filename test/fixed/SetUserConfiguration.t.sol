@@ -21,8 +21,8 @@ contract SetUserConfigurationTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 debtPositionId1 = _borrowAsMarketOrder(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
+        uint256 debtPositionId1 = _borrow(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 faceValue = size.getDebtPosition(debtPositionId1).faceValue;
 
         _setUserConfiguration(alice, 0, true, false, new uint256[](0));
@@ -46,11 +46,11 @@ contract SetUserConfigurationTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 debtPositionId1 = _borrowAsMarketOrder(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
+        uint256 debtPositionId1 = _borrow(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 faceValue1 = size.getDebtPosition(debtPositionId1).faceValue;
-        uint256 debtPositionId2 = _borrowAsMarketOrder(bob, alice, 500e6, block.timestamp + 6 * 30 days);
-        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
+        uint256 debtPositionId2 = _borrow(bob, alice, 500e6, block.timestamp + 6 * 30 days);
+        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
         uint256 faceValue2 = size.getDebtPosition(debtPositionId2).faceValue;
 
         uint256[] memory creditPositionIds = new uint256[](1);

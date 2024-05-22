@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 
@@ -65,15 +65,15 @@ interface ISize {
     ///         When using receivable credit positions as credit, the early exit lender fee is applied to the borrower
     /// @dev The `amount` parameter is altered by the function, which is why the `params` argument is marked as `memory`
     ///      Order "takers" are the ones who pay the rounding, since "makers" are the ones passively waiting for an order to be matched
-    /// @param params BorrowAsMarketOrderParams struct containing the following fields:
+    /// @param params SellCreditMarketParams struct containing the following fields:
     ///     - address lender: The address of the lender
+    ///     - uint256 creditPositionId: The id of a credit position to be sold
     ///     - uint256 amount: The amount of tokens to borrow (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     ///     - uint256 dueDate: The due date of the loan
     ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
     ///     - uint256 maxAPR: The maximum APR the caller is willing to accept
     ///     - bool exactAmountIn: When passing an array of receivable credit position ids, this flag indicates if the amount is value to be returned at due date
-    ///     - uint256[] receivableCreditPositionIds: The ids of receivable credit positions that can be used as credit to borrow without assigining new collateral
-    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params) external payable;
+    function sellCreditMarket(SellCreditMarketParams memory params) external payable;
 
     /// @notice Places a new borrow offer in the orderbook
     /// @param params BorrowAsLimitOrderParams struct containing the following fields:

@@ -30,7 +30,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         );
         _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
         uint256 dueDate = block.timestamp + 365 days * 2;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, dueDate);
+        uint256 debtPositionId = _borrow(bob, alice, 15e6, dueDate);
         uint256 minimumCollateralProfit = 0;
 
         _setPrice(0.2e18);

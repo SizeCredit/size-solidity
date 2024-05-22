@@ -6,6 +6,8 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
 
+import {Math} from "@src/libraries/Math.sol";
+
 import {PERCENT} from "@src/libraries/Math.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
@@ -34,6 +36,7 @@ struct InitializeRiskConfigParams {
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
     uint256 minimumMaturity;
+    uint256 maximumMaturity;
 }
 
 struct InitializeOracleParams {
@@ -114,6 +117,10 @@ library Initialize {
         if (r.minimumMaturity == 0) {
             revert Errors.NULL_AMOUNT();
         }
+
+        if (r.maximumMaturity <= r.minimumMaturity) {
+            revert Errors.INVALID_MAXIMUM_MATURITY(r.maximumMaturity);
+        }
     }
 
     function validateInitializeOracleParams(InitializeOracleParams memory o) internal view {
@@ -189,6 +196,7 @@ library Initialize {
         state.riskConfig.debtTokenCap = r.debtTokenCap;
 
         state.riskConfig.minimumMaturity = r.minimumMaturity;
+        state.riskConfig.maximumMaturity = r.maximumMaturity;
     }
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {

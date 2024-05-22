@@ -30,15 +30,13 @@ contract CompensateValidationTest is BaseTest {
         _lendAsLimitOrder(
             james, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
         );
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, block.timestamp + 12 days);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, block.timestamp + 12 days);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
-        uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 12 days);
-        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[0];
-        _borrowAsMarketOrder(
-            bob, alice, 10e6, block.timestamp + 12 days, size.getCreditPositionIdsByDebtPositionId(loanId2)
-        );
+        uint256 debtPositionId = _borrow(bob, alice, 20e6, block.timestamp + 12 days);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 loanId2 = _borrow(candy, bob, 20e6, block.timestamp + 12 days);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
+        uint256 loanId3 = _borrow(alice, james, 20e6, block.timestamp + 12 days);
+        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[1];
+        _sellCreditMarket(bob, alice, creditPositionId2, 10e6, block.timestamp + 12 days);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
 
         vm.startPrank(bob);
@@ -105,8 +103,8 @@ contract CompensateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        uint256 l1 = _borrowAsMarketOrder(bob, alice, 20e6, block.timestamp + 12 days);
-        uint256 l2 = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 6 days);
+        uint256 l1 = _borrow(bob, alice, 20e6, block.timestamp + 12 days);
+        uint256 l2 = _borrow(alice, james, 20e6, block.timestamp + 6 days);
         uint256 creditPositionIdL2 = size.getCreditPositionIdsByDebtPositionId(l2)[0];
         uint256 creditPositionIdL1 = size.getCreditPositionIdsByDebtPositionId(l1)[0];
         vm.startPrank(alice);

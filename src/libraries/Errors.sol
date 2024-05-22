@@ -14,11 +14,14 @@ library Errors {
     error INVALID_MSG_VALUE(uint256 value);
     error MATURITIES_NOT_STRICTLY_INCREASING();
     error MATURITY_BELOW_MINIMUM_MATURITY(uint256 maturity, uint256 minimumMaturity);
+    error MATURITY_GREATER_THAN_MAXIMUM_MATURITY(uint256 maturity, uint256 maximumMaturity);
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
     error INVALID_KEY(string key);
     error INVALID_COLLATERAL_RATIO(uint256 cr);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM(uint256 percentage);
+    error INVALID_MAXIMUM_MATURITY(uint256 maximumMaturity);
+    error VALUE_GREATER_THAN_MAX(uint256 value, uint256 max);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error PAST_DUE_DATE(uint256 dueDate);
     error PAST_DEADLINE(uint256 deadline);
@@ -37,7 +40,8 @@ library Errors {
     error INVALID_BORROW_OFFER(address borrower);
 
     error CREDIT_NOT_FOR_SALE(uint256 creditPositionId);
-    error NOT_ENOUGH_CREDIT(uint256 exitCreditPositionId, uint256 credit);
+    error NOT_ENOUGH_CREDIT(uint256 credit, uint256 required);
+    error NOT_ENOUGH_CASH(uint256 cash, uint256 required);
 
     error BORROWER_IS_NOT_LENDER(address borrower, address lender);
     error COMPENSATOR_IS_NOT_BORROWER(address compensator, address borrower);
@@ -46,6 +50,7 @@ library Errors {
 
     error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(address account, uint256 balance, uint256 required);
     error NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(uint256 liquidity, uint256 required);
+    error AMOUNT_GREATER_THAN_CREDIT_POSITION_CREDIT(uint256 amount, uint256 credit);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 faceValue, uint256 minimumCreditBorrowAToken);
     error CREDIT_LOWER_THAN_AMOUNT_TO_COMPENSATE(uint256 credit, uint256 amountToCompensate);
@@ -85,4 +90,5 @@ library Errors {
     error DEBT_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
 
     error NOT_SUPPORTED();
+    error NOT_SUPPORTED_EXACT_AMOUNT_OUT(uint256 x, uint256 y, uint256 z);
 }
