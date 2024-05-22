@@ -87,12 +87,11 @@ library BuyCreditMarket {
         (uint256 amountIn, uint256 amountOut, uint256 fees) = calculateAmounts(state, params, ratePerMaturity);
 
         if (params.borrower != address(0)) {
-            handleLending(state, params, amountOut);
+            handleLending(state, params, amountIn, amountOut, fees);
         } else if (params.creditPositionId != 0) {
-            handleCreditBuying(state, params, amountOut);
+            handleCreditBuying(state, params, amountIn, amountOut, fees);
         }
 
-        finalizeTransaction(state, msg.sender, params, amountIn, fees);
         return amountIn;
     }
 
@@ -110,7 +109,7 @@ library BuyCreditMarket {
     }
 
     function calculateAmounts(State storage state, BuyCreditMarketParams calldata params, uint256 ratePerMaturity)
-        internal
+        internal view
         returns (uint256 amountIn, uint256 amountOut, uint256 fees)
     {
         if (params.exactAmountIn) {
@@ -132,7 +131,9 @@ library BuyCreditMarket {
         }
     }
 
-    function handleLending(State storage state, BuyCreditMarketParams calldata params, uint256 amountOut) internal {
+    function handleLending(State storage state, BuyCreditMarketParams calldata params, uint256 amountIn, uint256 amountOut, uint256 fees) internal {
+        emit Events.LendAsMarketOrder(params.borrower, params.dueDate, amountOut, params.exactAmountIn);
+
         DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,
@@ -140,28 +141,20 @@ library BuyCreditMarket {
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
-        emit Events.LendAsMarketOrder(params.borrower, params.dueDate, amountOut, params.exactAmountIn);
+        state.transferBorrowAToken(msg.sender, params.borrower, amountIn - fees);
+        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
     }
 
-    function handleCreditBuying(State storage state, BuyCreditMarketParams calldata params, uint256 amountOut) internal {
+    function handleCreditBuying(State storage state, BuyCreditMarketParams calldata params, uint256 amountIn, uint256 amountOut, uint256 fees) internal {
+        emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
+
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionId,
             lender: msg.sender,
             credit: amountOut
         });
-        emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
-    }
-
-    function finalizeTransaction(State storage state, address sender, BuyCreditMarketParams calldata params, uint256 amountIn, uint256 fees) internal {
-        state.transferBorrowAToken(sender, getRecipient(state, params), amountIn - fees);
-        state.transferBorrowAToken(sender, state.feeConfig.feeRecipient, fees);
-    }
-
-    function getRecipient(State storage state, BuyCreditMarketParams calldata params) internal view returns (address) {
-        if (params.borrower != address(0)) {
-            return params.borrower;
-        } else {
-            return state.getCreditPosition(params.creditPositionId).lender;
-        }
+        address lender = state.getCreditPosition(params.creditPositionId).lender;
+        state.transferBorrowAToken(msg.sender, lender, amountIn - fees);
+        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
     }
 }
