@@ -59,13 +59,23 @@ library Liquidate {
         }
     }
 
-    function _executeLiquidate(
-        State storage state,
-        DebtPosition storage debtPosition,
-        uint256 collateralProtocolPercent
-    ) private returns (uint256 liquidatorProfitCollateralToken) {
+    function executeLiquidate(State storage state, LiquidateParams calldata params)
+        external
+        returns (uint256 liquidatorProfitCollateralToken)
+    {
+        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
+        LoanStatus loanStatus = state.getLoanStatus(params.debtPositionId);
+        uint256 collateralRatio = state.collateralRatio(debtPosition.borrower);
+
+        emit Events.Liquidate(params.debtPositionId, params.minimumCollateralProfit, collateralRatio, loanStatus);
+
+        uint256 collateralProtocolPercent = state.isUserUnderwater(debtPosition.borrower)
+            ? state.feeConfig.collateralProtocolPercent
+            : state.feeConfig.overdueCollateralProtocolPercent;
+
         uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPosition);
         uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.faceValue);
+        uint256 protocolProfitCollateralToken;
 
         // profitable liquidation
         if (assignedCollateral > debtInCollateralToken) {
@@ -84,12 +94,7 @@ library Liquidate {
 
             collateralRemainder = Math.min(collateralRemainder, collateralRemainderCap);
 
-            uint256 collateralRemainderToProtocol =
-                Math.mulDivDown(collateralRemainder, collateralProtocolPercent, PERCENT);
-
-            state.data.collateralToken.transferFrom(
-                debtPosition.borrower, state.feeConfig.feeRecipient, collateralRemainderToProtocol
-            );
+            protocolProfitCollateralToken = Math.mulDivDown(collateralRemainder, collateralProtocolPercent, PERCENT);
         } else {
             // unprofitable liquidation
             liquidatorProfitCollateralToken = assignedCollateral;
@@ -97,23 +102,11 @@ library Liquidate {
 
         state.transferBorrowAToken(msg.sender, address(this), debtPosition.faceValue);
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, liquidatorProfitCollateralToken);
-    }
-
-    function executeLiquidate(State storage state, LiquidateParams calldata params)
-        external
-        returns (uint256 liquidatorProfitCollateralToken)
-    {
-        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
-        LoanStatus loanStatus = state.getLoanStatus(params.debtPositionId);
-        uint256 collateralRatio = state.collateralRatio(debtPosition.borrower);
-
-        emit Events.Liquidate(params.debtPositionId, params.minimumCollateralProfit, collateralRatio, loanStatus);
-
-        uint256 collateralLiquidatorPercent = state.isUserUnderwater(debtPosition.borrower)
-            ? state.feeConfig.collateralProtocolPercent
-            : state.feeConfig.overdueCollateralProtocolPercent;
-
-        liquidatorProfitCollateralToken = _executeLiquidate(state, debtPosition, collateralLiquidatorPercent);
+        if (protocolProfitCollateralToken > 0) {
+            state.data.collateralToken.transferFrom(
+                debtPosition.borrower, state.feeConfig.feeRecipient, protocolProfitCollateralToken
+            );
+        }
 
         state.repayDebt(params.debtPositionId, debtPosition.faceValue, true);
     }
