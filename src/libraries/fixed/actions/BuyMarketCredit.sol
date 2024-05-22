@@ -57,7 +57,9 @@ library BuyMarketCredit {
         }
 
         // validate amount
-        // N/A
+        if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+        }
 
         // validate deadline
         if (params.deadline < block.timestamp) {

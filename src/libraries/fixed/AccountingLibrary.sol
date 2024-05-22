@@ -147,10 +147,20 @@ library AccountingLibrary {
         if (amountIn == credit) {
             // no credit fractionalization
             fees = getSwapFee(state, maxAmountOut, dueDate);
+
+            if (fees > maxAmountOut) {
+                revert Errors.NOT_ENOUGH_CASH(maxAmountOut, fees);
+            }
+
             amountOut = maxAmountOut - fees;
         } else if (amountIn < credit) {
             // credit fractionalization
             fees = getSwapFee(state, maxAmountOut, dueDate) + state.feeConfig.fragmentationFee;
+
+            if (fees > maxAmountOut) {
+                revert Errors.NOT_ENOUGH_CASH(maxAmountOut, fees);
+            }
+
             amountOut = maxAmountOut - fees;
         } else {
             revert Errors.NOT_ENOUGH_CREDIT(amountIn, credit);
@@ -205,6 +215,11 @@ library AccountingLibrary {
             fees = getSwapFee(state, amountIn, dueDate);
         } else if (amountIn < maxAmountIn) {
             // credit fractionalization
+
+            if (state.feeConfig.fragmentationFee > amountIn) {
+                revert Errors.NOT_ENOUGH_CASH(state.feeConfig.fragmentationFee, amountIn);
+            }
+
             uint256 netAmountIn = amountIn - state.feeConfig.fragmentationFee;
 
             amountOut = Math.mulDivDown(netAmountIn, PERCENT + ratePerMaturity, PERCENT);
