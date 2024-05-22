@@ -18,10 +18,10 @@ contract MintCreditTest is BaseTest {
         _deposit(bob, weth, 200e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
 
-        assertEq(size.feeConfig().overdueLiquidatorReward, 10e6);
-
         uint256[] memory receivableCreditPositionIds = new uint256[](1);
         receivableCreditPositionIds[0] = type(uint256).max;
+
+        uint256 amount = 30e6;
 
         bytes[] memory data = new bytes[](2);
         data[0] =
@@ -31,7 +31,7 @@ contract MintCreditTest is BaseTest {
             SellCreditMarketParams({
                 lender: alice,
                 creditPositionId: RESERVED_ID,
-                amount: 50e6,
+                amount: amount,
                 dueDate: block.timestamp + 365 days,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
@@ -41,8 +41,8 @@ contract MintCreditTest is BaseTest {
         vm.prank(bob);
         size.multicall(data);
 
-        assertEq(size.getUserView(bob).borrowATokenBalance, 50e6 - size.getSwapFee(50e6, block.timestamp + 365 days));
-        assertEq(size.getUserView(bob).debtBalance, 100e6 + 10e6);
+        assertEq(size.getUserView(bob).borrowATokenBalance, amount);
+        assertEq(size.getUserView(bob).debtBalance, 100e6 + size.feeConfig().overdueLiquidatorReward);
     }
 
     function test_MintCredit_mintCredit_cannot_be_used_to_leave_the_borrower_underwater() public {
@@ -66,7 +66,7 @@ contract MintCreditTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.5e18);
 
         uint256 debtPositionId = _borrow(bob, alice, 120e6, block.timestamp + 365 days);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         assertEq(size.getUserView(bob).borrowATokenBalance, 120e6);
         assertEq(size.getUserView(bob).debtBalance, 180e6);

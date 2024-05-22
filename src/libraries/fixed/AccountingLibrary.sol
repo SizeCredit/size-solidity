@@ -153,7 +153,7 @@ library AccountingLibrary {
             fees = getSwapFee(state, maxAmountOut, dueDate) + state.feeConfig.fragmentationFee;
             amountOut = maxAmountOut - fees;
         } else {
-            revert Errors.NOT_SUPPORTED();
+            revert Errors.NOT_ENOUGH_CREDIT(amountIn, credit);
         }
     }
 
@@ -186,7 +186,7 @@ library AccountingLibrary {
         } else {
             // for amountCash1 < amountOut < maxAmountOut we are in an inconsistent situation where charging the swap fee
             //   would require to sell a credit that exceeds the max possible amount which is `credit`
-            revert Errors.NOT_SUPPORTED();
+            revert Errors.NOT_ENOUGH_CASH(amountCash1, amountOut);
         }
     }
 
@@ -210,7 +210,7 @@ library AccountingLibrary {
             amountOut = Math.mulDivDown(netAmountIn, PERCENT + ratePerMaturity, PERCENT);
             fees = getSwapFee(state, netAmountIn, dueDate) + state.feeConfig.fragmentationFee;
         } else {
-            revert Errors.NOT_SUPPORTED();
+            revert Errors.NOT_ENOUGH_CREDIT(maxAmountIn, amountIn);
         }
     }
 
@@ -232,7 +232,7 @@ library AccountingLibrary {
 
             fees = getSwapFee(state, netAmountIn, dueDate) + state.feeConfig.fragmentationFee;
         } else {
-            revert Errors.NOT_SUPPORTED();
+            revert Errors.NOT_ENOUGH_CREDIT(amountOut, credit);
         }
     }
 }
