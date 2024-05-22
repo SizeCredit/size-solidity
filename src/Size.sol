@@ -244,7 +244,8 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     /// @inheritdoc ISize
     function buyMarketCredit(BuyMarketCreditParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateBuyMarketCredit(params);
-        state.executeBuyMarketCredit(params);
+        uint256 amount = state.executeBuyMarketCredit(params);
+        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize

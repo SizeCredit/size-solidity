@@ -131,7 +131,7 @@ library SellCreditMarket {
         }
 
         state.createCreditPosition({exitCreditPositionId: creditPositionId, lender: params.lender, credit: amountIn});
-        state.transferBorrowAToken(params.lender, state.feeConfig.feeRecipient, fees);
         state.transferBorrowAToken(params.lender, msg.sender, amountOut);
+        state.transferBorrowAToken(params.lender, state.feeConfig.feeRecipient, fees);
     }
 }

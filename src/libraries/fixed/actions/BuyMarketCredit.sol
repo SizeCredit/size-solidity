@@ -74,7 +74,12 @@ library BuyMarketCredit {
         // N/A
     }
 
-    function executeBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params) external {
+    function executeBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params)
+        external
+        returns (
+            uint256 amountIn // cash
+        )
+    {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
@@ -82,7 +87,6 @@ library BuyMarketCredit {
             state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate
         );
 
-        uint256 amountIn; // cash
         uint256 amountOut; // credit
         uint256 fees;
 

@@ -11,14 +11,14 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract ClaimValidationTest is BaseTest {
     function test_Claim_validation() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
         uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 12 days);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_REPAID.selector, creditPositionId));
