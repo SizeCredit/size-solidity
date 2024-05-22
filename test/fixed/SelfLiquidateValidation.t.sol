@@ -12,6 +12,7 @@ contract SelfLiquidateValidationTest is BaseTest {
     function test_SelfLiquidate_validation() public {
         _setPrice(1e18);
         _updateConfig("overdueLiquidatorReward", 0);
+        _updateConfig("swapFeeAPR", 0);
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
@@ -19,7 +20,7 @@ contract SelfLiquidateValidationTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
         uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 12 days);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _borrow(bob, candy, 100e6, block.timestamp + 12 days);
 
         vm.startPrank(alice);
