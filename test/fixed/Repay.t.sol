@@ -25,7 +25,7 @@ contract RepayTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
         uint256 debtPositionId = _borrow(bob, alice, amountLoanId1, block.timestamp + 365 days);
-        uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         Vars memory _before = _state();
 
@@ -51,7 +51,7 @@ contract RepayTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
         uint256 debtPositionId = _borrow(bob, alice, amountLoanId1, block.timestamp + 365 days);
-        uint256 faceValue = Math.mulDivUp(amountLoanId1, PERCENT + 0.05e18, PERCENT);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         Vars memory _before = _state();
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
@@ -81,26 +81,27 @@ contract RepayTest is BaseTest {
 
     function test_Repay_repay_claimed_should_revert() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 200e6);
         _deposit(candy, weth, 100e18);
-        _deposit(candy, usdc, 100e6);
+        _deposit(candy, usdc, 150e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _borrow(bob, candy, 100e6, block.timestamp + 365 days);
 
         Vars memory _before = _state();
 
         _repay(bob, debtPositionId);
-        _claim(bob, creditId);
+        _claim(alice, creditId);
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - 200e6);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + faceValue);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
         assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance, 0);
 
@@ -122,7 +123,7 @@ contract RepayTest is BaseTest {
         _deposit(bob, weth, 160e18);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
         uint256 debtPositionId = _borrow(bob, alice, borrowATokenBalance, block.timestamp + 12 days);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         vm.prank(bob);
         try size.repay(RepayParams({debtPositionId: debtPositionId})) {} catch {}
@@ -132,41 +133,48 @@ contract RepayTest is BaseTest {
     function test_Repay_repay_pays_fee_simple() public {
         _setPrice(1e18);
         _deposit(bob, weth, 200e18);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 150e6);
         YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 amount = 100e6;
+        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         vm.warp(block.timestamp + 365 days);
 
-        _deposit(bob, usdc, 10e6 + 0.5e6);
+        _deposit(bob, usdc, faceValue - amount);
         _repay(bob, debtPositionId);
     }
 
     function test_Repay_repay_fee_change_fee_after_borrow() public {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0.05e18);
-        _deposit(candy, weth, 180e18);
-        _deposit(bob, weth, 180e18);
-        _deposit(alice, usdc, 200e6);
+        _deposit(candy, weth, 200e18);
+        _deposit(bob, weth, 200e18);
+        _deposit(alice, usdc, 300e6);
         YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 amount = 100e6;
+        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         // admin changes fees
         _updateConfig("swapFeeAPR", 0.1e18);
 
-        uint256 loanId2 = _borrow(candy, alice, 100e6, block.timestamp + 365 days);
+        uint256 loanId2 = _borrow(candy, alice, amount, block.timestamp + 365 days);
+        uint256 faceValue2 = size.getDebtPosition(loanId2).faceValue;
+
+        assertTrue(faceValue != faceValue2);
 
         vm.warp(block.timestamp + 365 days);
 
-        _deposit(bob, usdc, 100e6 + 0.5e6);
+        _deposit(bob, usdc, faceValue - amount);
         _repay(bob, debtPositionId);
 
-        _deposit(candy, usdc, 100e6 + 0.1e6);
+        _deposit(candy, usdc, faceValue2 - amount);
         _repay(candy, loanId2);
 
         assertEq(size.getUserView(feeRecipient).collateralTokenBalance, 0);
-        assertEq(_state().bob.collateralTokenBalance, _state().candy.collateralTokenBalance, 180e18);
+        assertEq(_state().bob.collateralTokenBalance, _state().candy.collateralTokenBalance);
     }
 }
