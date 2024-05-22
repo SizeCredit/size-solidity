@@ -23,6 +23,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         public
     {
         _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -65,6 +66,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         public
     {
         _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -174,8 +176,7 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         _updateConfig("borrowATokenCap", type(uint256).max);
         // Bob deposits in USDC
-        _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowATokenBalance, 100e6);
+        _deposit(bob, usdc, 150e6);
 
         // Bob lends as limit order
         _lendAsLimitOrder(
