@@ -23,6 +23,7 @@ import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
 import {BuyMarketCredit, BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
@@ -63,6 +64,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using MintCredit for State;
     using SellCreditMarket for State;
     using BorrowAsLimitOrder for State;
+    using BuyCreditMarket for State;
     using LendAsMarketOrder for State;
     using LendAsLimitOrder for State;
     using Repay for State;
@@ -257,5 +259,16 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     {
         state.validateSetUserConfiguration(params);
         state.executeSetUserConfiguration(params);
+    }
+
+    /// @inheritdoc ISize
+    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
+        state.validateBuyCreditMarket(params);
+        uint256 amount = state.executeBuyCreditMarket(params);
+        if (params.borrower != address(0)) {
+            state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
+        }
+        state.validateDebtTokenCap();
+        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 }

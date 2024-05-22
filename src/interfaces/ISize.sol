@@ -22,6 +22,7 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 
 import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
 /// @title ISize
@@ -188,4 +189,15 @@ interface ISize {
     /// @param data The encoded data for all the function calls to execute.
     /// @return results The results of all the function calls.
     function multicall(bytes[] calldata data) external payable returns (bytes[] memory results);
+
+    /// @notice Obtain credit via lending or buying existing credit
+    /// @param params BuyCreditMarketParams struct containing the following fields:
+    ///     - address borrower: The address of the borrower (optional, for lending)
+    ///     - uint256 creditPositionId: The id of the credit position to buy (optional, for buying credit)
+    ///     - uint256 dueDate: The due date of the loan
+    ///     - uint256 amount: The amount of tokens to lend or credit to buy
+    ///     - bool exactAmountIn: Indicates if the amount is the value to be transferred or used to calculate the transfer amount
+    ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
+    ///     - uint256 minAPR: The minimum APR the caller is willing to accept
+    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable;
 }
