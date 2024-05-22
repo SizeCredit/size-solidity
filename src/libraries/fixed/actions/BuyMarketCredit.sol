@@ -104,10 +104,6 @@ library BuyMarketCredit {
             });
         }
 
-        if (amountOut > creditPosition.credit) {
-            revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, amountOut);
-        }
-
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionId,
             lender: msg.sender,

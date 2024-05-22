@@ -142,11 +142,19 @@ library AccountingLibrary {
         uint256 dueDate
     ) internal view returns (uint256 amountOut, uint256 fees) {
         // amountCash = (amountIn / (1+r)) * (1 - k * deltaT) - fragmFee
-        uint256 cash = Math.mulDivDown(amountIn, PERCENT, PERCENT + ratePerMaturity);
+        uint256 maxAmountOut = Math.mulDivDown(amountIn, PERCENT, PERCENT + ratePerMaturity);
 
-        fees = getSwapFee(state, cash, dueDate) + (amountIn == credit ? 0 : state.feeConfig.fragmentationFee);
-
-        amountOut = cash - fees;
+        if (amountIn == credit) {
+            // no credit fractionalization
+            fees = getSwapFee(state, maxAmountOut, dueDate);
+            amountOut = maxAmountOut - fees;
+        } else if (amountIn < credit) {
+            // credit fractionalization
+            fees = getSwapFee(state, maxAmountOut, dueDate) + state.feeConfig.fragmentationFee;
+            amountOut = maxAmountOut - fees;
+        } else {
+            revert Errors.NOT_SUPPORTED();
+        }
     }
 
     function getCreditAmountIn(
@@ -162,10 +170,10 @@ library AccountingLibrary {
         uint256 amountCash1 = Math.mulDivDown(credit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity)
             - state.feeConfig.fragmentationFee;
 
-        // amountCash2 = (credit / (1+r)) * (1 - k * deltaT)
-        uint256 amountCash2 = Math.mulDivDown(credit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity);
+        // maxAmountOut = (credit / (1+r)) * (1 - k * deltaT)
+        uint256 maxAmountOut = Math.mulDivDown(credit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity);
 
-        if (amountOut == amountCash2) {
+        if (amountOut == maxAmountOut) {
             // no credit fractionalization
             amountIn = credit;
             fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT);
@@ -176,7 +184,7 @@ library AccountingLibrary {
             );
             fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
         } else {
-            // for amountCash1 < amountOut < amountCash2 we are in an inconsistent situation where charging the swap fee
+            // for amountCash1 < amountOut < maxAmountOut we are in an inconsistent situation where charging the swap fee
             //   would require to sell a credit that exceeds the max possible amount which is `credit`
             revert Errors.NOT_SUPPORTED();
         }
@@ -195,12 +203,14 @@ library AccountingLibrary {
             // no credit fractionalization
             amountOut = credit;
             fees = getSwapFee(state, amountIn, dueDate);
-        } else {
+        } else if (amountIn < maxAmountIn) {
             // credit fractionalization
             uint256 netAmountIn = amountIn - state.feeConfig.fragmentationFee;
 
             amountOut = Math.mulDivDown(netAmountIn, PERCENT + ratePerMaturity, PERCENT);
             fees = getSwapFee(state, netAmountIn, dueDate) + state.feeConfig.fragmentationFee;
+        } else {
+            revert Errors.NOT_SUPPORTED();
         }
     }
 
@@ -215,12 +225,14 @@ library AccountingLibrary {
             // no credit fractionalization
             amountIn = Math.mulDivUp(credit, PERCENT, PERCENT + ratePerMaturity);
             fees = getSwapFee(state, amountIn, dueDate);
-        } else {
+        } else if (amountOut < credit) {
             // credit fractionalization
             uint256 netAmountIn = Math.mulDivUp(amountOut, PERCENT, PERCENT + ratePerMaturity);
             amountIn = netAmountIn + state.feeConfig.fragmentationFee;
 
             fees = getSwapFee(state, netAmountIn, dueDate) + state.feeConfig.fragmentationFee;
+        } else {
+            revert Errors.NOT_SUPPORTED();
         }
     }
 }
