@@ -69,6 +69,7 @@ library Liquidate {
 
         emit Events.Liquidate(params.debtPositionId, params.minimumCollateralProfit, collateralRatio, loanStatus);
 
+        // if the loan is both underwater and overdue, the protocol fee related to underwater liquidations take precedence
         uint256 collateralProtocolPercent = state.isUserUnderwater(debtPosition.borrower)
             ? state.feeConfig.collateralProtocolPercent
             : state.feeConfig.overdueCollateralProtocolPercent;
