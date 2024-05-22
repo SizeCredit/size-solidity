@@ -17,7 +17,7 @@ contract BuyMarketCreditValidationTest is BaseTest {
 
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1600e18);
-        _deposit(bob, usdc, size.getSwapFee(500e6, block.timestamp + 365 days));
+        _deposit(bob, usdc, 100e6);
         _deposit(james, weth, 1600e18);
         _deposit(james, usdc, 1000e6);
         _deposit(candy, usdc, 1200e6);
@@ -26,9 +26,9 @@ contract BuyMarketCreditValidationTest is BaseTest {
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(365 days, 0));
 
         uint256 debtPositionId1 = _borrow(bob, alice, 500e6, block.timestamp + 365 days);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 debtPositionId2 = _borrow(james, candy, 1000.004274e6, block.timestamp + 365 days);
-        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
+        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
         _buyMarketCredit(bob, creditPositionId2_1, 500e6, false);

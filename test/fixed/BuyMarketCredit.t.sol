@@ -23,9 +23,9 @@ contract BuyMarketCreditTest is BaseTest {
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
         uint256 debtPositionId1 = _borrow(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 debtPositionId2 = _borrow(james, candy, 1000.004274e6, block.timestamp + 7 * 30 days);
-        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
+        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
 
         assertEq(size.getDebtPosition(debtPositionId1).faceValue, 1000.004274e6);
         assertEq(_state().alice.borrowATokenBalance, 24.06e6);
@@ -35,7 +35,7 @@ contract BuyMarketCreditTest is BaseTest {
 
         assertEqApprox(_state().james.borrowATokenBalance, 2000e6 - 980.66e6, 0.01e6);
 
-        uint256 creditPositionId1_2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1_2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[2];
         _compensate(james, creditPositionId2_1, creditPositionId1_2);
 
         assertEqApprox(_state().alice.borrowATokenBalance, 1004e6, 1e6);
@@ -55,7 +55,7 @@ contract BuyMarketCreditTest is BaseTest {
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(365 days, 1e18));
 
         uint256 debtPositionId1 = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
 
         Vars memory _before = _state();
 
@@ -64,11 +64,11 @@ contract BuyMarketCreditTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 swapFee = size.getSwapFee(amountIn, block.timestamp + 365 days);
+        uint256 swapFee = size.getSwapFee(amountIn - size.feeConfig().fragmentationFee, block.timestamp + 365 days);
+        assertEq(_after.james.borrowATokenBalance, _before.james.borrowATokenBalance - amountIn);
         assertEq(
-            _after.james.borrowATokenBalance,
-            _before.james.borrowATokenBalance - amountIn - size.feeConfig().fragmentationFee
+            _after.alice.borrowATokenBalance,
+            _before.alice.borrowATokenBalance + amountIn - swapFee - size.feeConfig().fragmentationFee
         );
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn - swapFee);
     }
 }
