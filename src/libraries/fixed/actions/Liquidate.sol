@@ -76,7 +76,7 @@ library Liquidate {
 
         uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPosition);
         uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.faceValue);
-        uint256 protocolProfitCollateralToken;
+        uint256 protocolProfitCollateralToken = 0;
 
         // profitable liquidation
         if (assignedCollateral > debtInCollateralToken) {
