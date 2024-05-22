@@ -87,9 +87,9 @@ library BuyCreditMarket {
         (uint256 amountIn, uint256 amountOut, uint256 fees) = calculateAmounts(state, params, ratePerMaturity);
 
         if (params.borrower != address(0)) {
-            handleLending(state, params, amountOut, fees);
+            handleLending(state, params, amountOut);
         } else if (params.creditPositionId != 0) {
-            handleCreditBuying(state, params, amountOut, fees);
+            handleCreditBuying(state, params, amountOut);
         }
 
         finalizeTransaction(state, msg.sender, params, amountIn, fees);
@@ -132,7 +132,7 @@ library BuyCreditMarket {
         }
     }
 
-    function handleLending(State storage state, BuyCreditMarketParams calldata params, uint256 amountOut, uint256 fees) internal {
+    function handleLending(State storage state, BuyCreditMarketParams calldata params, uint256 amountOut) internal {
         DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,
@@ -143,7 +143,7 @@ library BuyCreditMarket {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, amountOut, params.exactAmountIn);
     }
 
-    function handleCreditBuying(State storage state, BuyCreditMarketParams calldata params, uint256 amountOut, uint256 fees) internal {
+    function handleCreditBuying(State storage state, BuyCreditMarketParams calldata params, uint256 amountOut) internal {
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionId,
             lender: msg.sender,
