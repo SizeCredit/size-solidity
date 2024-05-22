@@ -83,73 +83,85 @@ library BuyCreditMarket {
         external
         returns (uint256 amountIn)
     {
-        if (params.borrower != address(0)) {
-            emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
+        uint256 ratePerMaturity = getRatePerMaturity(state, params);
+        (uint256 amountIn, uint256 amountOut, uint256 fees) = calculateAmounts(state, params, ratePerMaturity);
 
-            uint256 ratePerMaturity = state.data.users[params.borrower].borrowOffer.getRatePerMaturityByDueDate(
-                state.oracle.variablePoolBorrowRateFeed, params.dueDate);
-                uint256 amountOut; // credit
-                uint256 fees;
-                if (params.exactAmountIn) {
-                    amountIn = params.amount;
-                    (amountOut, fees) = state.getCreditAmountOut({
-                        amountIn: amountIn,
-                        credit: Math.mulDivDown(amountIn, PERCENT + ratePerMaturity, PERCENT),
-                        ratePerMaturity: ratePerMaturity,
-                        dueDate: params.dueDate
-                    });
-                } else {
-                    amountOut = params.amount;
-                    (amountIn, fees) = state.getCashAmountIn({
-                        amountOut: amountOut,
-                        credit: amountOut,
-                        ratePerMaturity: ratePerMaturity,
-                        dueDate: params.dueDate
-                    });
-                }
-                DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
-                    lender: msg.sender,
-                    borrower: params.borrower,
-                    faceValue: amountOut,
-                    dueDate: params.dueDate
-                });
-                state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
-                state.transferBorrowAToken(msg.sender, params.borrower, amountIn - fees);
-                state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
+        if (params.borrower != address(0)) {
+            handleLending(state, params, amountOut, fees);
         } else if (params.creditPositionId != 0) {
-            CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
+            handleCreditBuying(state, params, amountOut, fees);
+        }
+
+        finalizeTransaction(state, msg.sender, params, amountIn, fees);
+        return amountIn;
+    }
+
+    function getRatePerMaturity(State storage state, BuyCreditMarketParams calldata params) internal view returns (uint256) {
+        if (params.borrower != address(0)) {
+            return state.data.users[params.borrower].borrowOffer.getRatePerMaturityByDueDate(
+                state.oracle.variablePoolBorrowRateFeed, params.dueDate
+            );
+        } else {
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
-            uint256 ratePerMaturity = state.data.users[creditPosition.lender].borrowOffer.getRatePerMaturityByDueDate(
+            return state.data.users[state.getCreditPosition(params.creditPositionId).lender].borrowOffer.getRatePerMaturityByDueDate(
                 state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate
             );
-            uint256 amountOut; // credit
-            uint256 fees;
-            if (params.exactAmountIn) {
-                amountIn = params.amount;
-                (amountOut, fees) = state.getCreditAmountOut({
-                    amountIn: amountIn,
-                    credit: creditPosition.credit,
-                    ratePerMaturity: ratePerMaturity,
-                    dueDate: debtPosition.dueDate
-                });
-            } else {
-                amountOut = params.amount;
-                (amountIn, fees) = state.getCashAmountIn({
-                    amountOut: amountOut,
-                    credit: creditPosition.credit,
-                    ratePerMaturity: ratePerMaturity,
-                    dueDate: debtPosition.dueDate
-                });
-            }
-            state.createCreditPosition({
-                exitCreditPositionId: params.creditPositionId,
-                lender: msg.sender,
-                credit: amountOut
+        }
+    }
+
+    function calculateAmounts(State storage state, BuyCreditMarketParams calldata params, uint256 ratePerMaturity)
+        internal
+        returns (uint256 amountIn, uint256 amountOut, uint256 fees)
+    {
+        if (params.exactAmountIn) {
+            amountIn = params.amount;
+            (amountOut, fees) = state.getCreditAmountOut({
+                amountIn: amountIn,
+                credit: params.borrower != address(0) ? Math.mulDivDown(amountIn, PERCENT + ratePerMaturity, PERCENT) : state.getCreditPosition(params.creditPositionId).credit,
+                ratePerMaturity: ratePerMaturity,
+                dueDate: params.borrower != address(0) ? params.dueDate : state.getDebtPositionByCreditPositionId(params.creditPositionId).dueDate
             });
-            state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn - fees);
-            state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
-            emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
+        } else {
+            amountOut = params.amount;
+            (amountIn, fees) = state.getCashAmountIn({
+                amountOut: amountOut,
+                credit: params.borrower != address(0) ? amountOut : state.getCreditPosition(params.creditPositionId).credit,
+                ratePerMaturity: ratePerMaturity,
+                dueDate: params.borrower != address(0) ? params.dueDate : state.getDebtPositionByCreditPositionId(params.creditPositionId).dueDate
+            });
+        }
+    }
+
+    function handleLending(State storage state, BuyCreditMarketParams calldata params, uint256 amountOut, uint256 fees) internal {
+        DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
+            lender: msg.sender,
+            borrower: params.borrower,
+            faceValue: amountOut,
+            dueDate: params.dueDate
+        });
+        state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
+        emit Events.LendAsMarketOrder(params.borrower, params.dueDate, amountOut, params.exactAmountIn);
+    }
+
+    function handleCreditBuying(State storage state, BuyCreditMarketParams calldata params, uint256 amountOut, uint256 fees) internal {
+        state.createCreditPosition({
+            exitCreditPositionId: params.creditPositionId,
+            lender: msg.sender,
+            credit: amountOut
+        });
+        emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
+    }
+
+    function finalizeTransaction(State storage state, address sender, BuyCreditMarketParams calldata params, uint256 amountIn, uint256 fees) internal {
+        state.transferBorrowAToken(sender, getRecipient(state, params), amountIn - fees);
+        state.transferBorrowAToken(sender, state.feeConfig.feeRecipient, fees);
+    }
+
+    function getRecipient(State storage state, BuyCreditMarketParams calldata params) internal view returns (address) {
+        if (params.borrower != address(0)) {
+            return params.borrower;
+        } else {
+            return state.getCreditPosition(params.creditPositionId).lender;
         }
     }
 }
-
