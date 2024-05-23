@@ -37,7 +37,7 @@ library BuyCreditMarket {
         bool buying = params.creditPositionId != RESERVED_ID;
 
         if (buying && lending || !buying && !lending) {
-            revert Errors.INVALID_OPERATION();
+            revert Errors.NOT_SUPPORTED();
         }
 
         if (lending) {
