@@ -3,9 +3,10 @@ pragma solidity 0.8.23;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract LendAsMarketOrderScript is Script, Logger {
     function run() external {
@@ -25,8 +26,9 @@ contract LendAsMarketOrderScript is Script, Logger {
 
         uint256 apr = size.getBorrowOfferAPR(borrower, dueDate);
 
-        LendAsMarketOrderParams memory params = LendAsMarketOrderParams({
+        BuyCreditMarketParams memory params = BuyCreditMarketParams({
             borrower: borrower,
+            creditPositionId: RESERVED_ID,
             dueDate: dueDate,
             amount: amount,
             deadline: block.timestamp,
