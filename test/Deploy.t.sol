@@ -59,7 +59,7 @@ contract DeployScriptTest is ForkTest {
         vm.warp(block.timestamp + 30 days);
 
         _deposit(bob, weth, 1e18);
-        uint256 debtPositionId = _borrow(bob, alice, 1_000e6, block.timestamp + 60 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 1_000e6, block.timestamp + 60 days, false);
 
         assertEq(debtPositionId, 0);
         assertEq(size.getUserView(alice).borrowATokenBalance, 1_500e6);
@@ -94,7 +94,7 @@ contract DeployScriptTest is ForkTest {
         assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
 
         _deposit(bob, weth, 1e18);
-        _borrow(bob, alice, 1_000e6, block.timestamp + 60 days);
+        _sellCreditMarket(bob, alice, RESERVED_ID, 1_000e6, block.timestamp + 60 days, false);
         vm.expectRevert();
         _withdraw(bob, usdc, 1_000e6);
     }

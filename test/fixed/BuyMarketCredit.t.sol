@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -22,9 +23,11 @@ contract BuyMarketCreditTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 debtPositionId1 = _borrow(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
+        uint256 debtPositionId1 =
+            _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, block.timestamp + 6 * 30 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
-        uint256 debtPositionId2 = _borrow(james, candy, 1000.004274e6, block.timestamp + 7 * 30 days);
+        uint256 debtPositionId2 =
+            _sellCreditMarket(james, candy, RESERVED_ID, 1000.004274e6, block.timestamp + 7 * 30 days, false);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
 
         assertEq(size.getDebtPosition(debtPositionId1).faceValue, 1000.004274e6);
@@ -54,7 +57,7 @@ contract BuyMarketCreditTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(365 days, 1e18));
 
-        uint256 debtPositionId1 = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
 
         Vars memory _before = _state();

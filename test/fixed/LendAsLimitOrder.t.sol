@@ -52,7 +52,7 @@ contract LendAsLimitOrderTest is BaseTest {
     //     );
 
     //     vm.prank(bob);
-    //     _borrow(bob, alice, 100e6, block.timestamp + 45 days);
+    //     _sellCreditMarket(bob,  alice, RESERVED_ID,  100e6,  block.timestamp + 45 days, false);
 
     //     LendAsLimitOrderParams memory empty;
     //     vm.prank(alice);

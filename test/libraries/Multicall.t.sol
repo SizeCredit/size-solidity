@@ -5,6 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -115,7 +116,7 @@ contract MulticallTest is BaseTest {
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
         uint256 debt = faceValue + size.feeConfig().overdueLiquidatorReward;
@@ -177,7 +178,7 @@ contract MulticallTest is BaseTest {
         _deposit(bob, weth, 200e18);
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.1e18);
-        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         vm.warp(block.timestamp + 365 days);

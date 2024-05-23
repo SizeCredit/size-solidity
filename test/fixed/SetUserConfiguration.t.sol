@@ -2,6 +2,8 @@
 pragma solidity 0.8.23;
 
 import {Errors} from "@src/libraries/Errors.sol";
+
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -22,7 +24,8 @@ contract SetUserConfigurationTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 debtPositionId1 = _borrow(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
+        uint256 debtPositionId1 =
+            _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, block.timestamp + 6 * 30 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 faceValue = size.getDebtPosition(debtPositionId1).faceValue;
 
@@ -48,10 +51,12 @@ contract SetUserConfigurationTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 debtPositionId1 = _borrow(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
+        uint256 debtPositionId1 =
+            _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, block.timestamp + 6 * 30 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 faceValue1 = size.getDebtPosition(debtPositionId1).faceValue;
-        uint256 debtPositionId2 = _borrow(bob, alice, 500e6, block.timestamp + 6 * 30 days);
+        uint256 debtPositionId2 =
+            _sellCreditMarket(bob, alice, RESERVED_ID, 500e6, block.timestamp + 6 * 30 days, false);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
         uint256 faceValue2 = size.getDebtPosition(debtPositionId2).faceValue;
 

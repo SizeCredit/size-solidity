@@ -97,12 +97,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         size.lendAsLimitOrder(LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
     }
 
-    function _borrow(address borrower, address lender, uint256 amount, uint256 dueDate) internal returns (uint256) {
-        _sellCreditMarket(borrower, lender, RESERVED_ID, amount, dueDate, false);
-        (uint256 debtPositionsCount,) = size.getPositionsCount();
-        return DEBT_POSITION_ID_START + debtPositionsCount - 1;
-    }
-
     function _sellCreditMarket(
         address borrower,
         address lender,
@@ -123,7 +117,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 exactAmountIn: exactAmountIn
             })
         );
-        return RESERVED_ID;
+        (uint256 debtPositionsCount,) = size.getPositionsCount();
+        return DEBT_POSITION_ID_START + debtPositionsCount - 1;
     }
 
     function _sellCreditMarket(
