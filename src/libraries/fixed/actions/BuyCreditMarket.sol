@@ -30,12 +30,14 @@ library BuyCreditMarket {
     using VariablePoolLibrary for State;
     using RiskLibrary for State;
 
+    
+
     function validateBuyCreditMarket(State storage state, BuyCreditMarketParams calldata params) external view {
         bool lending = params.borrower != address(0);
         bool buying = params.creditPositionId != RESERVED_ID;
 
-        if (buying && lending) {
-            revert Errors.NOT_SUPPORTED();
+        if (buying && lending || !buying && !lending) {
+            revert Errors.INVALID_OPERATION();
         }
 
         if (lending) {
