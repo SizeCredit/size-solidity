@@ -204,66 +204,56 @@ contract SellCreditMarketTest is BaseTest {
         assertEq(debtPositionsCountAfter, debtPositionsCountBefore);
     }
 
-    // function test_SellCreditMarket_sellCreditMarket_reverts_if_below_borrowing_opening_limit() public {
-    //     _deposit(alice, weth, 100e18);
-    //     _deposit(alice, usdc, 100e6);
-    //     _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
-    //     uint256 amount = 100e6;
-    //     uint256 dueDate = block.timestamp + 12 days;
-    //     vm.startPrank(bob);
-    //     uint256 apr = size.getLoanOfferAPR(alice, dueDate);
-    //     bytes[] memory data = new bytes[](2);
-    //     uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, amount, dueDate);
-    //     data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-    //     data[1] = abi.encodeCall(
-    //         size.sellCreditMarket,
-    //         SellCreditMarketParams({
-    //             lender: alice,
-    //             creditPositionId: RESERVED_ID,
-    //             amount: amount,
-    //             dueDate: dueDate,
-    //             deadline: block.timestamp,
-    //             maxAPR: apr,
-    //             exactAmountIn: false
-    //         })
-    //     );
-    //     vm.expectRevert(
-    //         abi.encodeWithSelector(
-    //             Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector, CREDIT_POSITION_ID_START, LoanStatus.ACTIVE, 0
-    //         )
-    //     );
-    //     size.multicall(data);
-    // }
+    function test_SellCreditMarket_sellCreditMarket_reverts_if_below_borrowing_opening_limit() public {
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 120e6);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        uint256 amount = 100e6;
+        uint256 dueDate = block.timestamp + 12 days;
+        vm.startPrank(bob);
+        uint256 apr = size.getLoanOfferAPR(alice, dueDate);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, size.riskConfig().crOpening
+            )
+        );
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: alice,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                dueDate: dueDate,
+                deadline: block.timestamp,
+                maxAPR: apr,
+                exactAmountIn: false
+            })
+        );
+    }
 
-    // function test_SellCreditMarket_sellCreditMarket_reverts_if_lender_cannot_transfer_underlyingBorrowToken() public {
-    //     _deposit(alice, usdc, 1000e6);
-    //     _deposit(bob, weth, 1e18);
-    //     _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+    function test_SellCreditMarket_sellCreditMarket_reverts_if_lender_cannot_transfer_underlyingBorrowToken() public {
+        _deposit(alice, usdc, 1000e6);
+        _deposit(bob, weth, 1e18);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
 
-    //     _withdraw(alice, usdc, 999e6);
+        _withdraw(alice, usdc, 999e6);
 
-    //     uint256 amount = 10e6;
-    //     uint256 dueDate = block.timestamp + 12 days;
+        uint256 amount = 10e6;
+        uint256 dueDate = block.timestamp + 12 days;
 
-    //     vm.startPrank(bob);
-    //     bytes[] memory data = new bytes[](2);
-    //     uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, amount, dueDate);
-    //     data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-    //     data[1] = abi.encodeCall(
-    //         size.sellCreditMarket,
-    //         SellCreditMarketParams({
-    //             lender: alice,
-    //             creditPositionId: RESERVED_ID,
-    //             amount: amount,
-    //             dueDate: dueDate,
-    //             deadline: block.timestamp,
-    //             maxAPR: type(uint256).max,
-    //             exactAmountIn: false
-    //         })
-    //     );
-    //     vm.expectRevert();
-    //     size.multicall(data);
-    // }
+        vm.startPrank(bob);
+        vm.expectRevert();
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: alice,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                dueDate: dueDate,
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max,
+                exactAmountIn: false
+            })
+        );
+    }
 
     function test_SellCreditMarket_sellCreditMarket_does_not_create_new_CreditPosition_if_lender_tries_to_exit_fully_exited_CreditPosition(
     ) public {
@@ -348,81 +338,72 @@ contract SellCreditMarketTest is BaseTest {
         assertLt(creditAfter2.credit, creditBefore2.credit);
     }
 
-    // function test_SellCreditMarket_sellCreditMarket_does_not_create_loans_if_dust_amount() public {
-    //     _deposit(alice, weth, 100e18);
-    //     _deposit(alice, usdc, 100e6);
-    //     _deposit(bob, weth, 100e18);
-    //     _deposit(bob, usdc, 100e6);
-    //     _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.1e18);
+    function test_SellCreditMarket_sellCreditMarket_does_not_create_loans_if_dust_amount() public {
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.1e18);
 
-    //     Vars memory _before = _state();
+        Vars memory _before = _state();
 
-    //     uint256 amount = 1;
-    //     uint256 dueDate = block.timestamp + 12 days;
+        uint256 amount = 1;
+        uint256 dueDate = block.timestamp + 12 days;
 
-    //     bytes[] memory data = new bytes[](2);
-    //     uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, amount, dueDate);
-    //     vm.startPrank(bob);
-    //     vm.expectRevert(
-    //         abi.encodeWithSelector(
-    //             Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, faceValue, size.riskConfig().minimumCreditBorrowAToken
-    //         )
-    //     );
-    //     data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-    //     data[1] = abi.encodeCall(
-    //         size.sellCreditMarket,
-    //         SellCreditMarketParams({
-    //             lender: alice,
-    //             creditPositionId: RESERVED_ID,
-    //             amount: amount,
-    //             dueDate: dueDate,
-    //             deadline: block.timestamp,
-    //             maxAPR: type(uint256).max,
-    //             exactAmountIn: false
-    //         })
-    //     );
-    //     size.multicall(data);
+        vm.startPrank(bob);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, amount, size.riskConfig().minimumCreditBorrowAToken
+            )
+        );
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: alice,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                dueDate: dueDate,
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max,
+                exactAmountIn: false
+            })
+        );
 
-    //     Vars memory _after = _state();
+        Vars memory _after = _state();
 
-    //     assertEq(_after.alice, _before.alice);
-    //     assertEq(_after.bob, _before.bob);
-    //     assertEq(_after.bob.debtBalance, 0);
-    //     assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
-    //     (uint256 debtPositions,) = size.getPositionsCount();
-    //     assertEq(debtPositions, 0);
-    // }
+        assertEq(_after.alice, _before.alice);
+        assertEq(_after.bob, _before.bob);
+        assertEq(_after.bob.debtBalance, 0);
+        assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
+        (uint256 debtPositions,) = size.getPositionsCount();
+        assertEq(debtPositions, 0);
+    }
 
-    // function test_SellCreditMarket_sellCreditMarket_cannot_surpass_debtTokenCap() public {
-    //     _setPrice(1e18);
-    //     _updateConfig("overdueLiquidatorReward", 0);
-    //     uint256 dueDate = block.timestamp + 12 days;
-    //     uint256 amount = 10e6;
-    //     _updateConfig("debtTokenCap", 5e6);
-    //     _deposit(alice, weth, 150e18);
-    //     _deposit(bob, usdc, 200e6);
-    //     _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
+    function test_SellCreditMarket_sellCreditMarket_cannot_surpass_debtTokenCap() public {
+        _setPrice(1e18);
+        _updateConfig("overdueLiquidatorReward", 0);
+        uint256 dueDate = block.timestamp + 12 days;
+        uint256 amount = 10e6;
+        _updateConfig("debtTokenCap", 5e6);
+        _deposit(alice, weth, 150e18);
+        _deposit(bob, usdc, 200e6);
+        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
 
-    //     vm.startPrank(alice);
+        vm.startPrank(alice);
 
-    //     bytes[] memory data = new bytes[](2);
-    //     uint256 faceValue = size.getAmountIn(bob, RESERVED_ID, amount, dueDate);
-    //     vm.expectRevert(
-    //         abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.riskConfig().debtTokenCap, faceValue)
-    //     );
-    //     data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-    //     data[1] = abi.encodeCall(
-    //         size.sellCreditMarket,
-    //         SellCreditMarketParams({
-    //             lender: bob,
-    //             creditPositionId: RESERVED_ID,
-    //             amount: amount,
-    //             dueDate: dueDate,
-    //             deadline: block.timestamp,
-    //             maxAPR: type(uint256).max,
-    //             exactAmountIn: false
-    //         })
-    //     );
-    //     size.multicall(data);
-    // }
+        uint256 faceValue = size.getAmountIn(bob, RESERVED_ID, amount, dueDate);
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.riskConfig().debtTokenCap, faceValue)
+        );
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: bob,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                dueDate: dueDate,
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max,
+                exactAmountIn: false
+            })
+        );
+    }
 }

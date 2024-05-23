@@ -540,38 +540,34 @@ contract CompensateTest is BaseTest {
         _compensate(alice, creditPositionId, creditPositionId2);
     }
 
-    // function test_MintCredit_mintCredit_can_be_used_to_partially_repay_with_compensate() public {
-    //     _setPrice(1e18);
-    //     _updateConfig("overdueLiquidatorReward", 0);
-    //     _updateConfig("swapFeeAPR", 0);
-    //     _deposit(alice, usdc, 200e6);
-    //     _deposit(bob, weth, 400e18);
-    //     _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.5e18);
+    function test_Compensate_compensate_mintCredit_can_be_used_to_partially_repay_with_compensate() public {
+        _setPrice(1e18);
+        _updateConfig("overdueLiquidatorReward", 0);
+        _updateConfig("swapFeeAPR", 0);
+        _deposit(alice, usdc, 200e6);
+        _deposit(bob, weth, 400e18);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.5e18);
 
-    //     uint256 debtPositionId = _sellCreditMarket(bob,  alice, RESERVED_ID,  120e6,  block.timestamp + 365 days, false);
-    //     uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 120e6, block.timestamp + 365 days, false);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
-    //     assertEq(size.getUserView(bob).borrowATokenBalance, 120e6);
-    //     assertEq(size.getUserView(bob).debtBalance, 180e6);
+        assertEq(size.getUserView(bob).borrowATokenBalance, 120e6);
+        assertEq(size.getUserView(bob).debtBalance, 180e6);
 
-    //     uint256[] memory receivableCreditPositionIds = new uint256[](1);
-    //     receivableCreditPositionIds[0] = type(uint256).max;
+        uint256[] memory receivableCreditPositionIds = new uint256[](1);
+        receivableCreditPositionIds[0] = type(uint256).max;
 
-    //     bytes[] memory data = new bytes[](3);
-    //     data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: 70e6, dueDate: block.timestamp + 365 days}));
-    //     data[1] = abi.encodeCall(
-    //         size.compensate,
-    //         CompensateParams({
-    //             creditPositionWithDebtToRepayId: creditPositionId,
-    //             creditPositionToCompensateId: RESERVED_ID,
-    //             amount: 70e6
-    //         })
-    //     );
-    //     data[2] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId}));
-    //     vm.prank(bob);
-    //     size.multicall(data);
+        vm.prank(bob);
+        size.compensate(
+            CompensateParams({
+                creditPositionWithDebtToRepayId: creditPositionId,
+                creditPositionToCompensateId: RESERVED_ID,
+                amount: 70e6
+            })
+        );
+        _repay(bob, debtPositionId);
 
-    //     assertEq(size.getUserView(bob).borrowATokenBalance, 120e6 - (180e6 - 70e6), 10e6);
-    //     assertEq(size.getUserView(bob).debtBalance, 70e6);
-    // }
+        assertEq(size.getUserView(bob).borrowATokenBalance, 120e6 - (180e6 - 70e6), 10e6);
+        assertEq(size.getUserView(bob).debtBalance, 70e6);
+    }
 }
