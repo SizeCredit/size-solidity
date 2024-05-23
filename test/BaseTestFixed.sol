@@ -98,8 +98,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _borrow(address borrower, address lender, uint256 amount, uint256 dueDate) internal returns (uint256) {
-        uint256 faceValue = size.getAmountIn(lender, RESERVED_ID, amount, dueDate);
-        _sellCreditMarket(borrower, lender, RESERVED_ID, faceValue, dueDate);
+        _sellCreditMarket(borrower, lender, RESERVED_ID, amount, dueDate, false);
         (uint256 debtPositionsCount,) = size.getPositionsCount();
         return DEBT_POSITION_ID_START + debtPositionsCount - 1;
     }

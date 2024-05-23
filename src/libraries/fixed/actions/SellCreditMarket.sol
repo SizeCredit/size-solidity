@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
@@ -102,20 +103,11 @@ library SellCreditMarket {
         );
         CreditPosition memory creditPosition;
         uint256 creditPositionId;
+        uint256 maxCredit;
 
         if (params.creditPositionId != RESERVED_ID) {
             creditPosition = state.getCreditPosition(params.creditPositionId);
             creditPositionId = params.creditPositionId;
-        } else {
-            DebtPosition memory debtPosition;
-            (debtPosition, creditPosition) = state.createDebtAndCreditPositions({
-                lender: msg.sender,
-                borrower: msg.sender,
-                faceValue: params.amount,
-                dueDate: params.dueDate
-            });
-            state.data.debtToken.mint(msg.sender, debtPosition.getTotalDebt());
-            creditPositionId = state.data.nextCreditPositionId - 1;
         }
 
         uint256 ratePerMaturity = state.data.users[params.lender].loanOffer.getRatePerMaturityByDueDate(
@@ -127,20 +119,48 @@ library SellCreditMarket {
 
         if (params.exactAmountIn) {
             creditAmountIn = params.amount;
+
+            if (params.creditPositionId != RESERVED_ID) {
+                maxCredit = creditPosition.credit;
+            } else {
+                maxCredit = Math.mulDivDown(creditAmountIn, PERCENT, PERCENT + ratePerMaturity);
+            }
+
             (cashAmountOut, fees) = state.getCashAmountOut({
                 creditAmountIn: creditAmountIn,
-                maxCredit: creditPosition.credit,
+                maxCredit: maxCredit,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: params.dueDate
             });
         } else {
             cashAmountOut = params.amount;
+
+            if (params.creditPositionId != RESERVED_ID) {
+                maxCredit = creditPosition.credit;
+            } else {
+                maxCredit = Math.mulDivUp(
+                    cashAmountOut, PERCENT + ratePerMaturity, PERCENT - state.getSwapFeePercent(params.dueDate)
+                );
+            }
+
             (creditAmountIn, fees) = state.getCreditAmountIn({
                 cashAmountOut: cashAmountOut,
-                maxCredit: creditPosition.credit,
+                maxCredit: maxCredit,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: params.dueDate
             });
+        }
+
+        if (params.creditPositionId == RESERVED_ID) {
+            DebtPosition memory debtPosition;
+            (debtPosition, creditPosition) = state.createDebtAndCreditPositions({
+                lender: msg.sender,
+                borrower: msg.sender,
+                faceValue: creditAmountIn,
+                dueDate: params.dueDate
+            });
+            state.data.debtToken.mint(msg.sender, debtPosition.getTotalDebt());
+            creditPositionId = state.data.nextCreditPositionId - 1;
         }
 
         state.createCreditPosition({

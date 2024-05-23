@@ -439,11 +439,13 @@ contract CompensateTest is BaseTest {
         _borrowAsLimitOrder(candy, YieldCurveHelper.customCurve(30 days, uint256(0.25e18), 73 days, uint256(0.25e18)));
         uint256 startDate = block.timestamp;
         uint256 dueDate = startDate + 73 days;
-        uint256 swapFee1 = size.getSwapFee(1000e6, dueDate);
-        uint256 debtPositionId = _borrow(alice, bob, 1000e6, dueDate);
+        uint256 amount = 1000e6;
+        uint256 swapFee1 = size.getSwapFee(amount, dueDate);
+        uint256 debtPositionId = _borrow(alice, bob, amount, dueDate);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
-        assertEq(_state().feeRecipient.borrowATokenBalance, swapFee1, "z");
+        assertEq(_state().feeRecipient.borrowATokenBalance, swapFee1);
+        assertEq(_state().alice.borrowATokenBalance, amount);
 
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
