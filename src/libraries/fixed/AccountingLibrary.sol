@@ -136,119 +136,117 @@ library AccountingLibrary {
 
     function getCashAmountOut(
         State storage state,
-        uint256 amountIn,
-        uint256 credit,
+        uint256 creditAmountIn,
+        uint256 maxCredit,
         uint256 ratePerMaturity,
         uint256 dueDate
-    ) internal view returns (uint256 amountOut, uint256 fees) {
-        // amountCash = (amountIn / (1+r)) * (1 - k * deltaT) - fragmFee
-        uint256 maxAmountOut = Math.mulDivDown(amountIn, PERCENT, PERCENT + ratePerMaturity);
+    ) internal view returns (uint256 cashAmountOut, uint256 fees) {
+        uint256 maxCashAmountOunt = Math.mulDivDown(creditAmountIn, PERCENT, PERCENT + ratePerMaturity);
 
-        if (amountIn == credit) {
+        if (creditAmountIn == maxCredit) {
             // no credit fractionalization
-            fees = getSwapFee(state, maxAmountOut, dueDate);
+            fees = getSwapFee(state, maxCashAmountOunt, dueDate);
 
-            if (fees > maxAmountOut) {
-                revert Errors.NOT_ENOUGH_CASH(maxAmountOut, fees);
+            if (fees > maxCashAmountOunt) {
+                revert Errors.NOT_ENOUGH_CASH(maxCashAmountOunt, fees);
             }
 
-            amountOut = maxAmountOut - fees;
-        } else if (amountIn < credit) {
+            cashAmountOut = maxCashAmountOunt - fees;
+        } else if (creditAmountIn < maxCredit) {
             // credit fractionalization
-            fees = getSwapFee(state, maxAmountOut, dueDate) + state.feeConfig.fragmentationFee;
+            fees = getSwapFee(state, maxCashAmountOunt, dueDate) + state.feeConfig.fragmentationFee;
 
-            if (fees > maxAmountOut) {
-                revert Errors.NOT_ENOUGH_CASH(maxAmountOut, fees);
+            if (fees > maxCashAmountOunt) {
+                revert Errors.NOT_ENOUGH_CASH(maxCashAmountOunt, fees);
             }
 
-            amountOut = maxAmountOut - fees;
+            cashAmountOut = maxCashAmountOunt - fees;
         } else {
-            revert Errors.NOT_ENOUGH_CREDIT(amountIn, credit);
+            revert Errors.NOT_ENOUGH_CREDIT(creditAmountIn, maxCredit);
         }
     }
 
     function getCreditAmountIn(
         State storage state,
-        uint256 amountOut,
-        uint256 credit,
+        uint256 cashAmountOut,
+        uint256 maxCredit,
         uint256 ratePerMaturity,
         uint256 dueDate
-    ) internal view returns (uint256 amountIn, uint256 fees) {
+    ) internal view returns (uint256 creditAmountIn, uint256 fees) {
         uint256 swapFeePercent = getSwapFeePercent(state, dueDate);
 
-        // amountCash1 = (credit / (1+r)) * (1 - k * deltaT) - fragmFee
-        uint256 amountCash1 = Math.mulDivDown(credit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity)
-            - state.feeConfig.fragmentationFee;
+        uint256 fragmentationCashAmountOut = Math.mulDivDown(
+            maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity
+        ) - state.feeConfig.fragmentationFee;
 
-        // maxAmountOut = (credit / (1+r)) * (1 - k * deltaT)
-        uint256 maxAmountOut = Math.mulDivDown(credit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity);
+        uint256 maxCashAmountOut = Math.mulDivDown(maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity);
 
         // slither-disable-next-line incorrect-equality
-        if (amountOut == maxAmountOut) {
+        if (cashAmountOut == maxCashAmountOut) {
             // no credit fractionalization
-            amountIn = credit;
-            fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT);
-        } else if (amountOut < amountCash1) {
+            creditAmountIn = maxCredit;
+            fees = Math.mulDivUp(cashAmountOut, swapFeePercent, PERCENT);
+        } else if (cashAmountOut < fragmentationCashAmountOut) {
             // credit fractionalization
-            amountIn = Math.mulDivUp(
-                amountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerMaturity, PERCENT - swapFeePercent
+            creditAmountIn = Math.mulDivUp(
+                cashAmountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerMaturity, PERCENT - swapFeePercent
             );
-            fees = Math.mulDivUp(amountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
+            fees = Math.mulDivUp(cashAmountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
         } else {
-            // for amountCash1 < amountOut < maxAmountOut we are in an inconsistent situation where charging the swap fee
-            //   would require to sell a credit that exceeds the max possible amount which is `credit`
-            revert Errors.NOT_ENOUGH_CASH(amountCash1, amountOut);
+            // for fragmentationCashAmountOut < amountOut < maxCashAmountOut we are in an inconsistent situation
+            //   where charging the swap fee would require to sell a credit that exceeds the max possible credit
+            revert Errors.NOT_ENOUGH_CASH(fragmentationCashAmountOut, cashAmountOut);
         }
     }
 
     function getCreditAmountOut(
         State storage state,
-        uint256 amountIn,
-        uint256 credit,
+        uint256 cashAmountIn,
+        uint256 maxCredit,
         uint256 ratePerMaturity,
         uint256 dueDate
-    ) internal view returns (uint256 amountOut, uint256 fees) {
-        uint256 maxAmountIn = Math.mulDivUp(credit, PERCENT, PERCENT + ratePerMaturity);
+    ) internal view returns (uint256 cashAmountOut, uint256 fees) {
+        uint256 maxCashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerMaturity);
 
-        if (amountIn == maxAmountIn) {
+        if (cashAmountIn == maxCashAmountIn) {
             // no credit fractionalization
-            amountOut = credit;
-            fees = getSwapFee(state, amountIn, dueDate);
-        } else if (amountIn < maxAmountIn) {
+            cashAmountOut = maxCredit;
+            fees = getSwapFee(state, cashAmountIn, dueDate);
+        } else if (cashAmountIn < maxCashAmountIn) {
             // credit fractionalization
 
-            if (state.feeConfig.fragmentationFee > amountIn) {
-                revert Errors.NOT_ENOUGH_CASH(state.feeConfig.fragmentationFee, amountIn);
+            if (state.feeConfig.fragmentationFee > cashAmountIn) {
+                revert Errors.NOT_ENOUGH_CASH(state.feeConfig.fragmentationFee, cashAmountIn);
             }
 
-            uint256 netAmountIn = amountIn - state.feeConfig.fragmentationFee;
+            uint256 netCashAmountIn = cashAmountIn - state.feeConfig.fragmentationFee;
 
-            amountOut = Math.mulDivDown(netAmountIn, PERCENT + ratePerMaturity, PERCENT);
-            fees = getSwapFee(state, netAmountIn, dueDate) + state.feeConfig.fragmentationFee;
+            cashAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerMaturity, PERCENT);
+            fees = getSwapFee(state, netCashAmountIn, dueDate) + state.feeConfig.fragmentationFee;
         } else {
-            revert Errors.NOT_ENOUGH_CREDIT(maxAmountIn, amountIn);
+            revert Errors.NOT_ENOUGH_CREDIT(maxCashAmountIn, cashAmountIn);
         }
     }
 
     function getCashAmountIn(
         State storage state,
-        uint256 amountOut,
-        uint256 credit,
+        uint256 creditAmountOut,
+        uint256 maxCredit,
         uint256 ratePerMaturity,
         uint256 dueDate
-    ) internal view returns (uint256 amountIn, uint256 fees) {
-        if (amountOut == credit) {
+    ) internal view returns (uint256 cashAmountIn, uint256 fees) {
+        if (creditAmountOut == maxCredit) {
             // no credit fractionalization
-            amountIn = Math.mulDivUp(credit, PERCENT, PERCENT + ratePerMaturity);
-            fees = getSwapFee(state, amountIn, dueDate);
-        } else if (amountOut < credit) {
+            cashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerMaturity);
+            fees = getSwapFee(state, cashAmountIn, dueDate);
+        } else if (creditAmountOut < maxCredit) {
             // credit fractionalization
-            uint256 netAmountIn = Math.mulDivUp(amountOut, PERCENT, PERCENT + ratePerMaturity);
-            amountIn = netAmountIn + state.feeConfig.fragmentationFee;
+            uint256 netCashAmountIn = Math.mulDivUp(creditAmountOut, PERCENT, PERCENT + ratePerMaturity);
+            cashAmountIn = netCashAmountIn + state.feeConfig.fragmentationFee;
 
-            fees = getSwapFee(state, netAmountIn, dueDate) + state.feeConfig.fragmentationFee;
+            fees = getSwapFee(state, netCashAmountIn, dueDate) + state.feeConfig.fragmentationFee;
         } else {
-            revert Errors.NOT_ENOUGH_CREDIT(amountOut, credit);
+            revert Errors.NOT_ENOUGH_CREDIT(creditAmountOut, maxCredit);
         }
     }
 }

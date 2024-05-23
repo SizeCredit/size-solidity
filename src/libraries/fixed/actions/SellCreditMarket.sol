@@ -93,9 +93,7 @@ library SellCreditMarket {
 
     function executeSellCreditMarket(State storage state, SellCreditMarketParams memory params)
         external
-        returns (
-            uint256 amountOut // cash
-        )
+        returns (uint256 cashAmountOut)
     {
         uint256 creditPositionId =
             params.creditPositionId == RESERVED_ID ? (state.data.nextCreditPositionId - 1) : params.creditPositionId;
@@ -109,29 +107,33 @@ library SellCreditMarket {
             state.oracle.variablePoolBorrowRateFeed, params.dueDate
         );
 
-        uint256 amountIn; // credit
+        uint256 creditAmountIn;
         uint256 fees;
 
         if (params.exactAmountIn) {
-            amountIn = params.amount;
-            (amountOut, fees) = state.getCashAmountOut({
-                amountIn: amountIn,
-                credit: creditPosition.credit,
+            creditAmountIn = params.amount;
+            (cashAmountOut, fees) = state.getCashAmountOut({
+                creditAmountIn: creditAmountIn,
+                maxCredit: creditPosition.credit,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: params.dueDate
             });
         } else {
-            amountOut = params.amount;
-            (amountIn, fees) = state.getCreditAmountIn({
-                amountOut: amountOut,
-                credit: creditPosition.credit,
+            cashAmountOut = params.amount;
+            (creditAmountIn, fees) = state.getCreditAmountIn({
+                cashAmountOut: cashAmountOut,
+                maxCredit: creditPosition.credit,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: params.dueDate
             });
         }
 
-        state.createCreditPosition({exitCreditPositionId: creditPositionId, lender: params.lender, credit: amountIn});
-        state.transferBorrowAToken(params.lender, msg.sender, amountOut);
+        state.createCreditPosition({
+            exitCreditPositionId: creditPositionId,
+            lender: params.lender,
+            credit: creditAmountIn
+        });
+        state.transferBorrowAToken(params.lender, msg.sender, cashAmountOut);
         state.transferBorrowAToken(params.lender, state.feeConfig.feeRecipient, fees);
     }
 }
