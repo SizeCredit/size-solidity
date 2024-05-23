@@ -146,6 +146,7 @@ interface ISize {
 
     /// @notice Compensate a borrower's debt with his credit in another loan
     ///         The compensation can not exceed both 1) the credit the lender of `debtPositionToRepayId` to the borrower and 2) the credit the lender of `creditPositionToCompensateId`
+    // @dev The caller may pass type(uint256).max as the creditPositionId in order to represent "mint a new DebtPosition/CreditPosition pair"
     /// @param params CompensateParams struct containing the following fields:
     ///     - uint256 debtPositionToRepayId: The id of the debt position to repay
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
