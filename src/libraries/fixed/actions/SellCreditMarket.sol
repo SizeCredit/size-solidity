@@ -101,9 +101,11 @@ library SellCreditMarket {
             params.lender, params.creditPositionId, params.amount, params.dueDate, params.exactAmountIn
         );
         CreditPosition memory creditPosition;
+        uint256 creditPositionId;
 
         if (params.creditPositionId != RESERVED_ID) {
             creditPosition = state.getCreditPosition(params.creditPositionId);
+            creditPositionId = params.creditPositionId;
         } else {
             DebtPosition memory debtPosition;
             (debtPosition, creditPosition) = state.createDebtAndCreditPositions({
@@ -113,6 +115,7 @@ library SellCreditMarket {
                 dueDate: params.dueDate
             });
             state.data.debtToken.mint(msg.sender, debtPosition.getTotalDebt());
+            creditPositionId = state.data.nextCreditPositionId - 1;
         }
 
         uint256 ratePerMaturity = state.data.users[params.lender].loanOffer.getRatePerMaturityByDueDate(
@@ -141,7 +144,7 @@ library SellCreditMarket {
         }
 
         state.createCreditPosition({
-            exitCreditPositionId: params.creditPositionId,
+            exitCreditPositionId: creditPositionId,
             lender: params.lender,
             credit: creditAmountIn
         });

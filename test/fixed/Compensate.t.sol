@@ -443,7 +443,7 @@ contract CompensateTest is BaseTest {
         uint256 debtPositionId = _borrow(alice, bob, 1000e6, dueDate);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
-        assertEq(_state().feeRecipient.borrowATokenBalance, swapFee1);
+        assertEq(_state().feeRecipient.borrowATokenBalance, swapFee1, "z");
 
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
