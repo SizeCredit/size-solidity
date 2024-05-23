@@ -26,7 +26,7 @@ contract SellCreditMarketValidationTest is BaseTest {
         );
         _lendAsLimitOrder(candy, block.timestamp + 10 days, 0.03e18);
         _lendAsLimitOrder(james, block.timestamp + 365 days, 0.03e18);
-        uint256 debtPositionId = _borrow(alice, candy, 40e6, block.timestamp + 10 days);
+        uint256 debtPositionId = _sellCreditMarket(alice, candy, RESERVED_ID, 40e6, block.timestamp + 10 days, false);
 
         uint256 deadline = block.timestamp;
         uint256 amount = 50e6;
@@ -60,7 +60,7 @@ contract SellCreditMarketValidationTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector, 0, dueDate));
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 0));
         size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,
@@ -177,7 +177,7 @@ contract SellCreditMarketValidationTest is BaseTest {
 
         _lendAsLimitOrder(bob, block.timestamp + 365 days, 0);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 0);
-        uint256 debtPositionId2 = _borrow(alice, candy, 10e6, block.timestamp + 365 days);
+        uint256 debtPositionId2 = _sellCreditMarket(alice, candy, RESERVED_ID, 10e6, block.timestamp + 365 days, false);
         creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
         _repay(alice, debtPositionId2);
 

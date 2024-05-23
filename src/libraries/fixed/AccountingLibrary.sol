@@ -69,8 +69,8 @@ library AccountingLibrary {
         address borrower,
         uint256 faceValue,
         uint256 dueDate
-    ) external {
-        DebtPosition memory debtPosition =
+    ) external returns (DebtPosition memory debtPosition, CreditPosition memory creditPosition) {
+        debtPosition =
             DebtPosition({borrower: borrower, faceValue: faceValue, dueDate: dueDate, liquidityIndexAtRepayment: 0});
 
         uint256 debtPositionId = state.data.nextDebtPositionId++;
@@ -78,7 +78,7 @@ library AccountingLibrary {
 
         emit Events.CreateDebtPosition(debtPositionId, lender, borrower, faceValue, dueDate);
 
-        CreditPosition memory creditPosition = CreditPosition({
+        creditPosition = CreditPosition({
             lender: lender,
             credit: debtPosition.faceValue,
             debtPositionId: debtPositionId,

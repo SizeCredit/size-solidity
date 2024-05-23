@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -18,9 +18,9 @@ contract SelfLiquidateValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 12 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        _borrow(bob, candy, 100e6, block.timestamp + 12 days);
+        _sellCreditMarket(bob, candy, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
 
         vm.startPrank(alice);
         vm.expectRevert(

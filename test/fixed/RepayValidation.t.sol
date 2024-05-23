@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
@@ -20,7 +21,7 @@ contract RepayValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
         uint256 amount = 20e6;
-        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 12 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 12 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
 
