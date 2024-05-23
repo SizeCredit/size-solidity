@@ -7,7 +7,6 @@ import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/librar
 import {State} from "@src/SizeStorage.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -17,7 +16,6 @@ struct ClaimParams {
 }
 
 library Claim {
-    using VariablePoolLibrary for State;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using AccountingLibrary for State;
@@ -41,11 +39,11 @@ library Claim {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 claimAmount = Math.mulDivDown(
-            creditPosition.credit, state.borrowATokenLiquidityIndex(), debtPosition.liquidityIndexAtRepayment
+            creditPosition.credit, state.data.borrowAToken.liquidityIndex(), debtPosition.liquidityIndexAtRepayment
         );
         // slither-disable-next-line unused-return
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
-        state.transferBorrowAToken(address(this), creditPosition.lender, claimAmount);
+        state.data.borrowAToken.transferFrom(address(this), creditPosition.lender, claimAmount);
 
         emit Events.Claim(params.creditPositionId, creditPosition.debtPositionId);
     }

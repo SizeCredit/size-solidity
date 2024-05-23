@@ -9,14 +9,12 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 /// @title AccountingLibrary
 library AccountingLibrary {
     using RiskLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
-    using VariablePoolLibrary for State;
 
     /// @notice Converts debt token amount to a value in collateral tokens
     /// @dev Rounds up the debt token amount
@@ -47,7 +45,7 @@ library AccountingLibrary {
             state.data.debtToken.burn(debtPosition.borrower, debtPosition.faceValue);
             debtPosition.faceValue = 0;
             if (cashReceived) {
-                debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+                debtPosition.liquidityIndexAtRepayment = state.data.borrowAToken.liquidityIndex();
             }
         } else {
             state.data.debtToken.burn(debtPosition.borrower, repayAmount);

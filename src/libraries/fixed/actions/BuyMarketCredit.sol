@@ -9,7 +9,6 @@ import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/Lo
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -25,7 +24,6 @@ struct BuyMarketCreditParams {
 library BuyMarketCredit {
     using LoanLibrary for State;
     using AccountingLibrary for State;
-    using VariablePoolLibrary for State;
     using OfferLibrary for BorrowOffer;
     using RiskLibrary for State;
 
@@ -113,8 +111,8 @@ library BuyMarketCredit {
             lender: msg.sender,
             credit: creditAmountOut
         });
-        state.transferBorrowAToken(msg.sender, creditPosition.lender, cashAmountIn - fees);
-        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
+        state.data.borrowAToken.transferFrom(msg.sender, creditPosition.lender, cashAmountIn - fees);
+        state.data.borrowAToken.transferFrom(msg.sender, state.feeConfig.feeRecipient, fees);
 
         emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
     }

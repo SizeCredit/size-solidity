@@ -30,7 +30,7 @@ import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserCo
 interface ISize {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always deposited into the Variable Pool,
-    ///         Collateral tokens are deposited into the Size contract through the CollateralLibrary
+    ///         Collateral tokens are deposited into the Size contract through the DepositTokenLibrary
     /// @dev The caller must approve the transfer of the token to the protocol.
     ///      This function mints 1:1 Size Tokens (e.g. aUSDC, szETH) in exchange of the deposited tokens
     /// @param params DepositParams struct containing the following fields:
@@ -41,7 +41,7 @@ interface ISize {
 
     /// @notice Withdraw underlying borrow/collateral tokens from the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always withdrawn from the Variable Pool
-    ///         Collateral tokens are withdrawn from the Size contract through the CollateralLibrary
+    ///         Collateral tokens are withdrawn from the Size contract through the DepositTokenLibrary
     /// @dev This function burns 1:1 Size Tokens (e.g. aUSDC, szETH) in exchange of the withdrawn tokens
     /// @param params WithdrawParams struct containing the following fields:
     ///     - address token: The address of the token to withdraw

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
@@ -13,6 +12,8 @@ import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/f
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
+
+import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -215,14 +216,23 @@ library Initialize {
 
         state.data.collateralToken = new NonTransferrableToken(
             address(this),
-            string.concat("Size Fixed ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
+            string.concat("Size ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
             string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
             IERC20Metadata(state.data.underlyingCollateralToken).decimals()
         );
-        state.data.borrowAToken =
-            IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
+        state.data.borrowAToken = new NonTransferrableScaledToken(
+            state.data.variablePool,
+            state.data.underlyingBorrowToken,
+            address(this),
+            string.concat("Size Scaled ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
+            string.concat("sza", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
+            IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+        );
         state.data.debtToken = new NonTransferrableToken(
-            address(this), "Size Fixed Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+            address(this),
+            string.concat("Size Debt ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
+            string.concat("szDebt", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
+            IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
     }
 

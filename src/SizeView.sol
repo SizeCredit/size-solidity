@@ -16,8 +16,9 @@ import {
 } from "@src/libraries/fixed/LoanLibrary.sol";
 import {UpdateConfig} from "@src/libraries/general/actions/UpdateConfig.sol";
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
+
+import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
@@ -31,7 +32,6 @@ import {
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 struct UserView {
     User user;
@@ -46,10 +46,10 @@ struct DataView {
     uint256 nextCreditPositionId;
     IERC20Metadata underlyingCollateralToken;
     IERC20Metadata underlyingBorrowToken;
-    IPool variablePool;
-    NonTransferrableToken collateralToken;
-    IAToken borrowAToken;
-    NonTransferrableToken debtToken;
+    NonTransferrableToken collateralToken; // // Size deposit underlying collateral token
+    NonTransferrableScaledToken borrowAToken; // // Size deposit underlying borrow aToken
+    NonTransferrableToken debtToken; // Size tokenized debt
+    IPool variablePool; // Variable Pool (Aave v3)
 }
 
 /// @title SizeView
@@ -61,7 +61,6 @@ abstract contract SizeView is SizeStorage {
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using RiskLibrary for State;
-    using VariablePoolLibrary for State;
     using AccountingLibrary for State;
     using UpdateConfig for State;
 
@@ -111,7 +110,7 @@ abstract contract SizeView is SizeStorage {
             user: state.data.users[user],
             account: user,
             collateralTokenBalance: state.data.collateralToken.balanceOf(user),
-            borrowATokenBalance: state.borrowATokenBalanceOf(user),
+            borrowATokenBalance: state.data.borrowAToken.balanceOf(user),
             debtBalance: state.data.debtToken.balanceOf(user)
         });
     }

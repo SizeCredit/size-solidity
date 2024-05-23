@@ -7,7 +7,6 @@ import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
@@ -31,7 +30,6 @@ library LendAsMarketOrder {
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
-    using VariablePoolLibrary for State;
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.data.users[params.borrower].borrowOffer;
@@ -107,7 +105,7 @@ library LendAsMarketOrder {
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(params.borrower, creditAmountOut);
-        state.transferBorrowAToken(msg.sender, params.borrower, cashAmountIn - fees);
-        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
+        state.data.borrowAToken.transferFrom(msg.sender, params.borrower, cashAmountIn - fees);
+        state.data.borrowAToken.transferFrom(msg.sender, state.feeConfig.feeRecipient, fees);
     }
 }

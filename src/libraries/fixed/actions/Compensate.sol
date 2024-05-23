@@ -14,7 +14,6 @@ import {
 } from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 struct CompensateParams {
     uint256 creditPositionWithDebtToRepayId;
@@ -27,7 +26,7 @@ library Compensate {
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
-    using VariablePoolLibrary for State;
+
     using RiskLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {

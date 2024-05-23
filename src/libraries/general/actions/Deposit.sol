@@ -8,8 +8,7 @@ import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
+import {DepositTokenLibrary} from "@src/libraries/fixed/DepositTokenLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -23,8 +22,8 @@ struct DepositParams {
 library Deposit {
     using SafeERC20 for IERC20Metadata;
     using SafeERC20 for IWETH;
-    using VariablePoolLibrary for State;
-    using CollateralLibrary for State;
+
+    using DepositTokenLibrary for State;
     using CapsLibrary for State;
 
     function validateDeposit(State storage state, DepositParams calldata params) external view {
