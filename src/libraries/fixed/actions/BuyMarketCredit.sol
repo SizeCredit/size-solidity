@@ -57,7 +57,9 @@ library BuyMarketCredit {
         }
 
         // validate amount
-        // N/A
+        if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+        }
 
         // validate deadline
         if (params.deadline < block.timestamp) {
@@ -74,36 +76,45 @@ library BuyMarketCredit {
         // N/A
     }
 
-    function executeBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params) external {
+    function executeBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params)
+        external
+        returns (uint256 cashAmountIn)
+    {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
-        BorrowOffer storage borrowOffer = state.data.users[creditPosition.lender].borrowOffer;
 
-        uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
+        uint256 ratePerMaturity = state.data.users[creditPosition.lender].borrowOffer.getRatePerMaturityByDueDate(
+            state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate
+        );
 
-        uint256 amountIn;
-        uint256 amountOut;
+        uint256 creditAmountOut;
+        uint256 fees;
 
         if (params.exactAmountIn) {
-            amountIn = params.amount;
-            amountOut = Math.mulDivDown(params.amount, PERCENT + ratePerMaturity, PERCENT);
+            cashAmountIn = params.amount;
+            (creditAmountOut, fees) = state.getCreditAmountOut({
+                cashAmountIn: cashAmountIn,
+                maxCredit: creditPosition.credit,
+                ratePerMaturity: ratePerMaturity,
+                dueDate: debtPosition.dueDate
+            });
         } else {
-            amountOut = params.amount;
-            amountIn = Math.mulDivUp(amountOut, PERCENT, PERCENT + ratePerMaturity);
+            creditAmountOut = params.amount;
+            (cashAmountIn, fees) = state.getCashAmountIn({
+                creditAmountOut: creditAmountOut,
+                maxCredit: creditPosition.credit,
+                ratePerMaturity: ratePerMaturity,
+                dueDate: debtPosition.dueDate
+            });
         }
 
-        if (amountOut > creditPosition.credit) {
-            revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, amountOut);
-        }
-
-        state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn);
-        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyExitFee);
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionId,
             lender: msg.sender,
-            credit: amountOut
+            credit: creditAmountOut
         });
+        state.transferBorrowAToken(msg.sender, creditPosition.lender, cashAmountIn - fees);
+        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
 
         emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
     }

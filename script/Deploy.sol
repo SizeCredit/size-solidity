@@ -52,8 +52,8 @@ abstract contract Deploy {
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         f = InitializeFeeConfigParams({
-            repayFeeAPR: 0.005e18,
-            earlyExitFee: 5e6,
+            swapFeeAPR: 0.005e18,
+            fragmentationFee: 5e6,
             collateralLiquidatorPercent: 0.3e18,
             collateralProtocolPercent: 0.1e18,
             overdueLiquidatorReward: 10e6,
@@ -67,7 +67,8 @@ abstract contract Deploy {
             minimumCreditBorrowAToken: 5e6,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            minimumMaturity: 1 days
+            minimumMaturity: 1 days,
+            maximumMaturity: 5 * 365 days
         });
         o = InitializeOracleParams({
             priceFeed: address(priceFeed),
@@ -118,8 +119,8 @@ abstract contract Deploy {
         }
 
         f = InitializeFeeConfigParams({
-            repayFeeAPR: 0.005e18,
-            earlyExitFee: 5e6,
+            swapFeeAPR: 0.005e18,
+            fragmentationFee: 5e6,
             collateralLiquidatorPercent: 0.3e18,
             collateralProtocolPercent: 0.1e18,
             overdueLiquidatorReward: 10e6,
@@ -133,7 +134,8 @@ abstract contract Deploy {
             minimumCreditBorrowAToken: 50e6,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            minimumMaturity: 1 days
+            minimumMaturity: 1 days,
+            maximumMaturity: 5 * 365 days
         });
         o = InitializeOracleParams({
             priceFeed: address(priceFeed),

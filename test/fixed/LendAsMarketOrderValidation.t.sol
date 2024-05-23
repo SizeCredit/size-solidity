@@ -13,6 +13,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
 
     function test_LendAsMarketOrder_validation() public {
         _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 2 * 150e18);
         _deposit(bob, usdc, 10e6);
         _borrowAsLimitOrder(alice, [int256(1e18), int256(1e18)], [uint256(365 days), uint256(365 days * 2)]);

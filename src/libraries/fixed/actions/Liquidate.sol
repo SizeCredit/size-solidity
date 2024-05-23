@@ -76,22 +76,12 @@ library Liquidate {
             state.debtTokenAmountToCollateralTokenAmount(debtPosition.faceValue + vars.collateralLiquidatorFixed);
 
         if (assignedCollateral > liquidatorProfitCollateralToken) {
-            uint256 repayFeeInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.repayFee);
-
             // split remaining collateral between liquidator, protocol, and borrower, capped by the crLiquidation
-            uint256 collateralRemainder = assignedCollateral - liquidatorProfitCollateralToken
-                > repayFeeInCollateralToken
-                ? assignedCollateral - liquidatorProfitCollateralToken - repayFeeInCollateralToken
-                : assignedCollateral - liquidatorProfitCollateralToken;
+            uint256 collateralRemainder = assignedCollateral - liquidatorProfitCollateralToken;
 
             // cap the collateral remainder to the liquidation ratio (otherwise, the split for overdue loans could be too much)
-            uint256 collateralRemainderCap = Math.mulDivDown(
-                debtInCollateralToken > repayFeeInCollateralToken
-                    ? debtInCollateralToken - repayFeeInCollateralToken
-                    : debtInCollateralToken,
-                state.riskConfig.crLiquidation,
-                PERCENT
-            );
+            uint256 collateralRemainderCap =
+                Math.mulDivDown(debtInCollateralToken, state.riskConfig.crLiquidation, PERCENT);
 
             collateralRemainder = Math.min(collateralRemainder, collateralRemainderCap);
 
@@ -136,6 +126,6 @@ library Liquidate {
 
         liquidatorProfitCollateralToken = _executeLiquidate(state, debtPosition, vars);
 
-        state.repayDebt(params.debtPositionId, debtPosition.faceValue, true, true);
+        state.repayDebt(params.debtPositionId, debtPosition.faceValue, true);
     }
 }

@@ -6,6 +6,8 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
 
+import {Math} from "@src/libraries/Math.sol";
+
 import {PERCENT} from "@src/libraries/Math.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
@@ -19,8 +21,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct InitializeFeeConfigParams {
-    uint256 repayFeeAPR;
-    uint256 earlyExitFee;
+    uint256 swapFeeAPR;
+    uint256 fragmentationFee;
     uint256 collateralLiquidatorPercent;
     uint256 collateralProtocolPercent;
     uint256 overdueLiquidatorReward;
@@ -36,6 +38,7 @@ struct InitializeRiskConfigParams {
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
     uint256 minimumMaturity;
+    uint256 maximumMaturity;
 }
 
 struct InitializeOracleParams {
@@ -62,10 +65,10 @@ library Initialize {
     }
 
     function validateInitializeFeeConfigParams(InitializeFeeConfigParams memory f) internal pure {
-        // validate repayFeeAPR
+        // validate swapFeeAPR
         // N/A
 
-        // validate earlyExitFee
+        // validate fragmentationFee
         // N/A
 
         // validate collateralLiquidatorPercent
@@ -136,6 +139,10 @@ library Initialize {
         if (r.minimumMaturity == 0) {
             revert Errors.NULL_AMOUNT();
         }
+
+        if (r.maximumMaturity <= r.minimumMaturity) {
+            revert Errors.INVALID_MAXIMUM_MATURITY(r.maximumMaturity);
+        }
     }
 
     function validateInitializeOracleParams(InitializeOracleParams memory o) internal view {
@@ -191,9 +198,8 @@ library Initialize {
     }
 
     function executeInitializeFeeConfig(State storage state, InitializeFeeConfigParams memory f) internal {
-        state.feeConfig.repayFeeAPR = f.repayFeeAPR;
-
-        state.feeConfig.earlyExitFee = f.earlyExitFee;
+        state.feeConfig.swapFeeAPR = f.swapFeeAPR;
+        state.feeConfig.fragmentationFee = f.fragmentationFee;
 
         state.feeConfig.collateralLiquidatorPercent = f.collateralLiquidatorPercent;
         state.feeConfig.collateralProtocolPercent = f.collateralProtocolPercent;
@@ -215,6 +221,7 @@ library Initialize {
         state.riskConfig.debtTokenCap = r.debtTokenCap;
 
         state.riskConfig.minimumMaturity = r.minimumMaturity;
+        state.riskConfig.maximumMaturity = r.maximumMaturity;
     }
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {

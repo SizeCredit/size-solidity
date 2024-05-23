@@ -7,13 +7,13 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract LiquidateTest is BaseTest {
     function test_Liquidate_liquidate_seizes_borrower_collateral() public {
         _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
+        _updateConfig("swapFeeAPR", 0);
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -26,7 +26,7 @@ contract LiquidateTest is BaseTest {
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtWad = size.debtTokenAmountToCollateralTokenAmount(faceValue);
         uint256 assigned = 100e18;
@@ -93,7 +93,7 @@ contract LiquidateTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, block.timestamp + 365 days, false);
 
         _setPrice(0.2e18);
 
@@ -117,26 +117,15 @@ contract LiquidateTest is BaseTest {
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
-        uint256 debt = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-
-        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
 
         _setPrice(0.2e18);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
-        Vars memory _before = _state();
-
         _liquidate(liquidator, debtPositionId);
 
-        Vars memory _after = _state();
-
-        assertEq(
-            _after.bob.debtBalance,
-            _before.bob.debtBalance - debt - repayFee - size.feeConfig().overdueLiquidatorReward,
-            0
-        );
+        assertEq(_state().bob.debtBalance, 0);
     }
 
     function test_Liquidate_liquidate_can_be_called_unprofitably_and_liquidator_is_senior_creditor() public {
@@ -150,14 +139,10 @@ contract LiquidateTest is BaseTest {
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
 
         _setPrice(0.1e18);
 
-        uint256 repayFeeCollateral =
-            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).repayFee);
-
-        assertGt(repayFeeCollateral, 0);
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
         uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(debtPositionId);
         uint256 faceValueCollateral =
@@ -171,7 +156,11 @@ contract LiquidateTest is BaseTest {
 
         assertLt(liquidatorProfit, faceValueCollateral);
         assertEq(liquidatorProfit, assignedCollateral);
-        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, 0);
+        assertEq(
+            _after.feeRecipient.borrowATokenBalance,
+            _before.feeRecipient.borrowATokenBalance,
+            size.getSwapFee(amount, block.timestamp + 365 days)
+        );
         assertEq(
             _after.feeRecipient.collateralTokenBalance,
             _before.feeRecipient.collateralTokenBalance,
@@ -183,6 +172,7 @@ contract LiquidateTest is BaseTest {
 
     function test_Liquidate_liquidate_overdue_well_collateralized() public {
         _updateConfig("minimumMaturity", 1);
+        _updateConfig("swapFeeAPR", 0);
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 180e18);
@@ -190,7 +180,7 @@ contract LiquidateTest is BaseTest {
         _deposit(liquidator, usdc, 1_000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
 
         vm.warp(block.timestamp + 365 days + 1);
 
@@ -206,17 +196,13 @@ contract LiquidateTest is BaseTest {
         );
         assertEq(liquidatorProfitCollateralTokenFixed, 100e18 + 10e18);
 
-        uint256 repayFeeCollateral =
-            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).repayFee);
-        assertEq(repayFeeCollateral, 0.25e18);
-
-        uint256 protocolSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed - repayFeeCollateral)
+        uint256 protocolSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed)
             * size.feeConfig().overdueColProtocolPercent / PERCENT;
-        uint256 liquidatorSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed - repayFeeCollateral)
+        uint256 liquidatorSplit = (assignedCollateral - liquidatorProfitCollateralTokenFixed)
             * size.feeConfig().overdueColLiquidatorPercent / PERCENT;
 
-        assertEq(protocolSplit, (180e18 - 110e18 - 0.25e18) * 0.005e18 / 1e18, 0.34875e18);
-        assertEq(liquidatorSplit, (180e18 - 110e18 - 0.25e18) * 0.01e18 / 1e18, 0.6975e18);
+        assertEq(protocolSplit, (180e18 - 110e18) * 0.005e18 / 1e18, 0.35e18);
+        assertEq(liquidatorSplit, (180e18 - 110e18) * 0.01e18 / 1e18, 0.7e18);
 
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
@@ -231,11 +217,10 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.bob.collateralTokenBalance,
             _before.bob.collateralTokenBalance - liquidatorProfitCollateralTokenFixed
-                - (protocolSplit + liquidatorSplit) - repayFeeCollateral
+                - (protocolSplit + liquidatorSplit)
         );
         assertEq(
-            _after.feeRecipient.collateralTokenBalance,
-            _before.feeRecipient.collateralTokenBalance + repayFeeCollateral + protocolSplit
+            _after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance + protocolSplit
         );
         assertEq(
             _after.liquidator.collateralTokenBalance,
@@ -255,7 +240,7 @@ contract LiquidateTest is BaseTest {
         _deposit(liquidator, usdc, 1_000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
 
         vm.warp(block.timestamp + 365 days + 1);
 
@@ -269,13 +254,10 @@ contract LiquidateTest is BaseTest {
             size.getDebtPosition(debtPositionId).faceValue + size.feeConfig().overdueLiquidatorReward
         );
 
-        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
-        uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
-
         uint256 collateralRemainder = Math.min(
-            assignedCollateral - liquidatorProfitCollateralTokenFixed - repayFeeCollateral,
+            assignedCollateral - liquidatorProfitCollateralTokenFixed,
             Math.mulDivDown(
-                size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId) - repayFee),
+                size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId)),
                 size.riskConfig().crLiquidation,
                 PERCENT
             )
@@ -294,11 +276,10 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.bob.collateralTokenBalance,
             _before.bob.collateralTokenBalance - liquidatorProfitCollateralTokenFixed
-                - (protocolSplit + liquidatorSplit) - repayFeeCollateral
+                - (protocolSplit + liquidatorSplit)
         );
         assertEq(
-            _after.feeRecipient.collateralTokenBalance,
-            _before.feeRecipient.collateralTokenBalance + repayFeeCollateral + protocolSplit
+            _after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance + protocolSplit
         );
         assertEq(
             _after.liquidator.collateralTokenBalance,
@@ -310,14 +291,15 @@ contract LiquidateTest is BaseTest {
     }
 
     function test_Liquidate_liquidate_overdue_should_claim_later_with_interest() public {
+        _updateConfig("swapFeeAPR", 0);
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 170e18);
         _deposit(liquidator, usdc, 1_000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         vm.warp(block.timestamp + 365 days + 1);
 
@@ -339,12 +321,12 @@ contract LiquidateTest is BaseTest {
 
     function test_Liquidate_liquidate_overdue_underwater() public {
         _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 165e18);
         _deposit(liquidator, usdc, 1_000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 50e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         vm.warp(block.timestamp + 365 days + 1);
@@ -381,7 +363,7 @@ contract LiquidateTest is BaseTest {
         _deposit(liquidator, usdc, 1_000e6);
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, block.timestamp + 365 days, false);
 
         _setPrice(newPrice);
         vm.warp(block.timestamp + interval);
@@ -403,11 +385,10 @@ contract LiquidateTest is BaseTest {
 
     function test_Liquidate_example() public {
         _setPrice(1e18);
-        _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowATokenBalance, 100e6);
+        _deposit(bob, usdc, 150e6);
         _lendAsLimitOrder(bob, block.timestamp + 6 days, 0.03e18);
         _deposit(alice, weth, 200e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 6 days);
+        uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, block.timestamp + 6 days, false);
         assertGe(size.collateralRatio(alice), size.riskConfig().crOpening);
         assertTrue(!size.isUserUnderwater(alice), "borrower should not be underwater");
         vm.warp(block.timestamp + 1 days);
@@ -434,7 +415,7 @@ contract LiquidateTest is BaseTest {
         _deposit(alice, weth, 50e18);
 
         // Alice borrows as market order from Bob
-        _borrowAsMarketOrder(alice, bob, 70e6, block.timestamp + 5 days);
+        _sellCreditMarket(alice, bob, RESERVED_ID, 70e6, block.timestamp + 5 days, false);
 
         // Move forward the clock as the loan is overdue
         vm.warp(block.timestamp + 6 days);
@@ -442,8 +423,8 @@ contract LiquidateTest is BaseTest {
         // Assert loan conditions
         assertEq(size.getLoanStatus(0), LoanStatus.OVERDUE, "Loan should be overdue");
         (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
-        assertEq(debtPositionsCount, 1, "Expect one active loan");
-        assertEq(creditPositionsCount, 1, "Expect one active loan");
+        assertEq(debtPositionsCount, 1);
+        assertEq(creditPositionsCount, 2);
 
         assertGt(size.getOverdueDebt(0), 0, "Loan should not be repaid before moving to the variable pool");
         uint256 aliceCollateralBefore = _state().alice.collateralTokenBalance;
@@ -466,11 +447,9 @@ contract LiquidateTest is BaseTest {
         );
     }
 
-    function test_Liquidate_liquidate_charge_repayFee() internal {}
+    function test_Liquidate_liquidate_charge_fee() internal {}
 
-    function test_Liquidate_unprofitable_may_not_award_repayFee() internal {}
+    function test_Liquidate_unprofitable_may_not_award_fee() internal {}
 
-    function test_Liquidate_liquidate_with_CR_100_can_be_unprofitable_due_to_repayFee() internal {}
-
-    function testFuzz_Liquidate_liquidate_charge_repayFee() internal {}
+    function test_Liquidate_liquidate_with_CR_100_can_be_unprofitable_due_to_fee() internal {}
 }

@@ -5,6 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -115,15 +116,12 @@ contract MulticallTest is BaseTest {
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
-        uint256 repayFee = debtPosition.repayFee;
-        uint256 debt = faceValue + repayFee + size.feeConfig().overdueLiquidatorReward;
+        uint256 debt = faceValue + size.feeConfig().overdueLiquidatorReward;
 
         _setPrice(0.31e18);
-
-        uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
@@ -160,8 +158,8 @@ contract MulticallTest is BaseTest {
         assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance, 0);
         assertGt(
             _after.feeRecipient.collateralTokenBalance,
-            _before.feeRecipient.collateralTokenBalance + repayFeeCollateral,
-            "feeRecipient has repayFee and liquidation split"
+            _before.feeRecipient.collateralTokenBalance,
+            "feeRecipient has liquidation split"
         );
         assertEq(beforeLiquidatorWETH, 0);
         assertGt(afterLiquidatorWETH, beforeLiquidatorWETH);
@@ -171,34 +169,36 @@ contract MulticallTest is BaseTest {
 
     function test_Multicall_multicall_bypasses_cap_if_it_is_to_reduce_debt() public {
         _setPrice(1e18);
-        _updateConfig("borrowATokenCap", 100e6);
-        _updateConfig("repayFeeAPR", 0);
+        uint256 amount = 100e6;
+        uint256 cap = amount + size.getSwapFee(100e6, block.timestamp + 365 days);
+        _updateConfig("borrowATokenCap", cap);
         _updateConfig("overdueLiquidatorReward", 0);
 
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, cap);
         _deposit(bob, weth, 200e18);
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.1e18);
-        uint256 amount = 100e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
+        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         vm.warp(block.timestamp + 365 days);
 
-        assertEq(_state().bob.debtBalance, 110e6);
+        assertEq(_state().bob.debtBalance, faceValue);
 
-        _mint(address(usdc), bob, 10e6);
-        _approve(bob, address(usdc), address(size), 10e6);
+        uint256 remaining = faceValue - size.getUserView(bob).borrowATokenBalance;
+        _mint(address(usdc), bob, remaining);
+        _approve(bob, address(usdc), address(size), remaining);
 
         // attempt to deposit to repay, but it reverts due to cap
-        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, 100e6, 110e6));
+        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, cap, cap + remaining));
         vm.prank(bob);
-        size.deposit(DepositParams({token: address(usdc), amount: 10e6, to: bob}));
+        size.deposit(DepositParams({token: address(usdc), amount: remaining, to: bob}));
 
-        assertEq(_state().bob.debtBalance, 110e6);
+        assertEq(_state().bob.debtBalance, faceValue);
 
         // debt reduction is allowed to go over cap
         bytes[] memory data = new bytes[](2);
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: 10e6, to: bob}));
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: remaining, to: bob}));
         data[1] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId}));
         vm.prank(bob);
         size.multicall(data);

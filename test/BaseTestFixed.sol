@@ -14,9 +14,9 @@ import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
@@ -97,94 +97,46 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         size.lendAsLimitOrder(LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
     }
 
-    function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate)
-        internal
-        returns (uint256)
-    {
-        return _borrowAsMarketOrder(borrower, lender, amount, dueDate, false);
-    }
-
-    function _borrowAsMarketOrder(address borrower, address lender, uint256 amount, uint256 dueDate, bool exactAmontIn)
-        internal
-        returns (uint256)
-    {
-        uint256[] memory receivableLoanIds;
-        return _borrowAsMarketOrder(
-            borrower, lender, amount, dueDate, block.timestamp, type(uint256).max, exactAmontIn, receivableLoanIds
-        );
-    }
-
-    function _borrowAsMarketOrder(
+    function _sellCreditMarket(
         address borrower,
         address lender,
+        uint256 creditPositionId,
         uint256 amount,
         uint256 dueDate,
-        uint256[] memory receivableLoanIds
+        bool exactAmountIn
     ) internal returns (uint256) {
-        return _borrowAsMarketOrder(
-            borrower, lender, amount, dueDate, block.timestamp, type(uint256).max, false, receivableLoanIds
-        );
-    }
-
-    function _borrowAsMarketOrder(
-        address borrower,
-        address lender,
-        uint256 amount,
-        uint256 dueDate,
-        uint256[1] memory ids
-    ) internal returns (uint256) {
-        uint256[] memory receivableLoanIds = new uint256[](1);
-        receivableLoanIds[0] = ids[0];
-        return _borrowAsMarketOrder(
-            borrower, lender, amount, dueDate, block.timestamp, type(uint256).max, false, receivableLoanIds
-        );
-    }
-
-    function _borrowAsMarketOrder(
-        address borrower,
-        address lender,
-        uint256 amount,
-        uint256 dueDate,
-        uint256 deadline,
-        uint256 maxAPR,
-        bool exactAmountIn,
-        uint256[1] memory ids
-    ) internal returns (uint256) {
-        uint256[] memory receivableLoanIds = new uint256[](1);
-        receivableLoanIds[0] = ids[0];
-        return
-            _borrowAsMarketOrder(borrower, lender, amount, dueDate, deadline, maxAPR, exactAmountIn, receivableLoanIds);
-    }
-
-    function _borrowAsMarketOrder(
-        address borrower,
-        address lender,
-        uint256 amount,
-        uint256 dueDate,
-        uint256 deadline,
-        uint256 maxAPR,
-        bool exactAmountIn,
-        uint256[] memory receivableCreditPositionIds
-    ) internal returns (uint256) {
-        uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
         vm.prank(borrower);
-        size.borrowAsMarketOrder(
-            BorrowAsMarketOrderParams({
+        size.sellCreditMarket(
+            SellCreditMarketParams({
                 lender: lender,
+                creditPositionId: creditPositionId,
                 amount: amount,
                 dueDate: dueDate,
-                deadline: deadline,
-                maxAPR: maxAPR,
-                exactAmountIn: exactAmountIn,
-                receivableCreditPositionIds: receivableCreditPositionIds
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max,
+                exactAmountIn: exactAmountIn
             })
         );
-        uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
-        if (debtPositionIdAfter == debtPositionIdBefore) {
-            return RESERVED_ID;
-        } else {
-            return debtPositionIdAfter - 1;
-        }
+        (uint256 debtPositionsCount,) = size.getPositionsCount();
+        return DEBT_POSITION_ID_START + debtPositionsCount - 1;
+    }
+
+    function _sellCreditMarket(
+        address borrower,
+        address lender,
+        uint256 creditPositionId,
+        uint256 amount,
+        uint256 dueDate
+    ) internal returns (uint256) {
+        return _sellCreditMarket(borrower, lender, creditPositionId, amount, dueDate, true);
+    }
+
+    function _sellCreditMarket(address borrower, address lender, uint256 creditPositionId, uint256 dueDate)
+        internal
+        returns (uint256)
+    {
+        uint256 amount = size.getCreditPosition(creditPositionId).credit;
+        return _sellCreditMarket(borrower, lender, creditPositionId, amount, dueDate, true);
     }
 
     function _borrowAsLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {
@@ -322,8 +274,10 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         );
     }
 
-    function _compensate(address user, uint256 debtPositionToRepayId, uint256 creditPositionToCompensateId) internal {
-        return _compensate(user, debtPositionToRepayId, creditPositionToCompensateId, type(uint256).max);
+    function _compensate(address user, uint256 creditPositionWithDebtToRepayId, uint256 creditPositionToCompensateId)
+        internal
+    {
+        return _compensate(user, creditPositionWithDebtToRepayId, creditPositionToCompensateId, type(uint256).max);
     }
 
     function _compensate(

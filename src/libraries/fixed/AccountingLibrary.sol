@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
@@ -33,66 +34,33 @@ library AccountingLibrary {
         );
     }
 
-    /// @notice Repays a debt position. Charges the repay fee and updates the debt position in place.
-    ///         If the fees are greater than the collateral balance, they are capped to the borrower balance
-    /// @dev The repay fee is charged in collateral tokens
-    ///      Rounds fees down during partial repayment
+    /// @notice Repays a debt position
     /// @param state The state object
     /// @param debtPositionId The debt position id
     /// @param repayAmount The amount to repay
     /// @param cashReceived Whether this is a cash operation
-    /// @param chargeRepayFee Whether we should charge the repay fee
-    function repayDebt(
-        State storage state,
-        uint256 debtPositionId,
-        uint256 repayAmount,
-        bool cashReceived,
-        bool chargeRepayFee
-    ) public {
+    function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount, bool cashReceived) public {
         DebtPosition storage debtPosition = state.getDebtPosition(debtPositionId);
 
-        bool isFullRepay = repayAmount == debtPosition.faceValue;
-        uint256 repayFeeProRata = isFullRepay
-            ? debtPosition.repayFee
-            : Math.mulDivDown(debtPosition.repayFee, repayAmount, debtPosition.faceValue);
-
-        if (chargeRepayFee) {
-            uint256 repayFeeCollateral = debtTokenAmountToCollateralTokenAmount(state, repayFeeProRata);
-
-            if (state.data.collateralToken.balanceOf(debtPosition.borrower) < repayFeeCollateral) {
-                repayFeeCollateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
-            }
-
-            state.data.collateralToken.transferFrom(
-                debtPosition.borrower, state.feeConfig.feeRecipient, repayFeeCollateral
-            );
-        }
-
-        if (isFullRepay) {
+        if (repayAmount == debtPosition.faceValue) {
+            // full repayment
             state.data.debtToken.burn(debtPosition.borrower, debtPosition.getTotalDebt());
             debtPosition.faceValue = 0;
-            debtPosition.repayFee = 0;
             debtPosition.overdueLiquidatorReward = 0;
             if (cashReceived) {
                 debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
             }
         } else {
             // The overdueCollateralReward is not cleared if the loan has not been fully repaid
-            state.data.debtToken.burn(debtPosition.borrower, repayAmount + repayFeeProRata);
-            uint256 r = Math.mulDivDown(PERCENT, debtPosition.faceValue, debtPosition.issuanceValue);
+            state.data.debtToken.burn(debtPosition.borrower, repayAmount);
             debtPosition.faceValue -= repayAmount;
-            debtPosition.repayFee -= repayFeeProRata;
-            debtPosition.issuanceValue = Math.mulDivDown(debtPosition.faceValue, PERCENT, r);
         }
 
         emit Events.UpdateDebtPosition(
             debtPositionId,
             debtPosition.borrower,
-            debtPosition.issuanceValue,
             debtPosition.faceValue,
-            debtPosition.repayFee,
             debtPosition.overdueLiquidatorReward,
-            debtPosition.startDate,
             debtPosition.dueDate,
             debtPosition.liquidityIndexAtRepayment
         );
@@ -102,17 +70,13 @@ library AccountingLibrary {
         State storage state,
         address lender,
         address borrower,
-        uint256 issuanceValue,
         uint256 faceValue,
         uint256 dueDate
-    ) external returns (DebtPosition memory debtPosition) {
+    ) external returns (DebtPosition memory debtPosition, CreditPosition memory creditPosition) {
         debtPosition = DebtPosition({
             borrower: borrower,
-            issuanceValue: issuanceValue,
             faceValue: faceValue,
-            repayFee: LoanLibrary.repayFee(issuanceValue, block.timestamp, dueDate, state.feeConfig.repayFeeAPR),
             overdueLiquidatorReward: state.feeConfig.overdueLiquidatorReward,
-            startDate: block.timestamp,
             dueDate: dueDate,
             liquidityIndexAtRepayment: 0
         });
@@ -121,17 +85,10 @@ library AccountingLibrary {
         state.data.debtPositions[debtPositionId] = debtPosition;
 
         emit Events.CreateDebtPosition(
-            debtPositionId,
-            lender,
-            borrower,
-            issuanceValue,
-            faceValue,
-            debtPosition.repayFee,
-            debtPosition.overdueLiquidatorReward,
-            dueDate
+            debtPositionId, lender, borrower, faceValue, debtPosition.overdueLiquidatorReward, dueDate
         );
 
-        CreditPosition memory creditPosition = CreditPosition({
+        creditPosition = CreditPosition({
             lender: lender,
             credit: debtPosition.faceValue,
             debtPositionId: debtPositionId,
@@ -167,5 +124,137 @@ library AccountingLibrary {
         state.validateMinimumCredit(creditPosition.credit);
 
         emit Events.UpdateCreditPosition(creditPositionId, creditPosition.credit, creditPosition.forSale);
+    }
+
+    function getSwapFeePercent(State storage state, uint256 dueDate) internal view returns (uint256) {
+        return Math.mulDivUp(state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), 365 days);
+    }
+
+    function getSwapFee(State storage state, uint256 cash, uint256 dueDate) internal view returns (uint256) {
+        return Math.mulDivUp(cash, getSwapFeePercent(state, dueDate), PERCENT);
+    }
+
+    function getCashAmountOut(
+        State storage state,
+        uint256 creditAmountIn,
+        uint256 maxCredit,
+        uint256 ratePerMaturity,
+        uint256 dueDate
+    ) internal view returns (uint256 cashAmountOut, uint256 fees) {
+        uint256 maxCashAmountOut = Math.mulDivDown(creditAmountIn, PERCENT, PERCENT + ratePerMaturity);
+
+        if (creditAmountIn == maxCredit) {
+            // no credit fractionalization
+
+            fees = getSwapFee(state, maxCashAmountOut, dueDate);
+
+            if (fees > maxCashAmountOut) {
+                revert Errors.NOT_ENOUGH_CASH(maxCashAmountOut, fees);
+            }
+
+            cashAmountOut = maxCashAmountOut - fees;
+        } else if (creditAmountIn < maxCredit) {
+            // credit fractionalization
+
+            fees = getSwapFee(state, maxCashAmountOut, dueDate) + state.feeConfig.fragmentationFee;
+
+            if (fees > maxCashAmountOut) {
+                revert Errors.NOT_ENOUGH_CASH(maxCashAmountOut, fees);
+            }
+
+            cashAmountOut = maxCashAmountOut - fees;
+        } else {
+            revert Errors.NOT_ENOUGH_CREDIT(creditAmountIn, maxCredit);
+        }
+    }
+
+    function getCreditAmountIn(
+        State storage state,
+        uint256 cashAmountOut,
+        uint256 maxCredit,
+        uint256 ratePerMaturity,
+        uint256 dueDate
+    ) internal view returns (uint256 creditAmountIn, uint256 fees) {
+        uint256 swapFeePercent = getSwapFeePercent(state, dueDate);
+
+        uint256 maxCashAmountOutFragmentation = Math.mulDivDown(
+            maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity
+        ) - state.feeConfig.fragmentationFee;
+
+        uint256 maxCashAmountOut = Math.mulDivDown(maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity);
+
+        // slither-disable-next-line incorrect-equality
+        if (cashAmountOut == maxCashAmountOut) {
+            // no credit fractionalization
+
+            creditAmountIn = maxCredit;
+            fees = Math.mulDivUp(cashAmountOut, swapFeePercent, PERCENT);
+        } else if (cashAmountOut < maxCashAmountOutFragmentation) {
+            // credit fractionalization
+
+            creditAmountIn = Math.mulDivUp(
+                cashAmountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerMaturity, PERCENT - swapFeePercent
+            );
+            fees = Math.mulDivUp(cashAmountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
+        } else {
+            // for maxCashAmountOutFragmentation < amountOut < maxCashAmountOut we are in an inconsistent situation
+            //   where charging the swap fee would require to sell a credit that exceeds the max possible credit
+
+            revert Errors.NOT_ENOUGH_CASH(maxCashAmountOutFragmentation, cashAmountOut);
+        }
+    }
+
+    function getCreditAmountOut(
+        State storage state,
+        uint256 cashAmountIn,
+        uint256 maxCredit,
+        uint256 ratePerMaturity,
+        uint256 dueDate
+    ) internal view returns (uint256 cashAmountOut, uint256 fees) {
+        uint256 maxCashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerMaturity);
+
+        if (cashAmountIn == maxCashAmountIn) {
+            // no credit fractionalization
+
+            cashAmountOut = maxCredit;
+            fees = getSwapFee(state, cashAmountIn, dueDate);
+        } else if (cashAmountIn < maxCashAmountIn) {
+            // credit fractionalization
+
+            if (state.feeConfig.fragmentationFee > cashAmountIn) {
+                revert Errors.NOT_ENOUGH_CASH(state.feeConfig.fragmentationFee, cashAmountIn);
+            }
+
+            uint256 netCashAmountIn = cashAmountIn - state.feeConfig.fragmentationFee;
+
+            cashAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerMaturity, PERCENT);
+            fees = getSwapFee(state, netCashAmountIn, dueDate) + state.feeConfig.fragmentationFee;
+        } else {
+            revert Errors.NOT_ENOUGH_CREDIT(maxCashAmountIn, cashAmountIn);
+        }
+    }
+
+    function getCashAmountIn(
+        State storage state,
+        uint256 creditAmountOut,
+        uint256 maxCredit,
+        uint256 ratePerMaturity,
+        uint256 dueDate
+    ) internal view returns (uint256 cashAmountIn, uint256 fees) {
+        if (creditAmountOut == maxCredit) {
+            // no credit fractionalization
+
+            cashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerMaturity);
+            fees = getSwapFee(state, cashAmountIn, dueDate);
+        } else if (creditAmountOut < maxCredit) {
+            // credit fractionalization
+
+            uint256 netCashAmountIn = Math.mulDivUp(creditAmountOut, PERCENT, PERCENT + ratePerMaturity);
+            cashAmountIn = netCashAmountIn + state.feeConfig.fragmentationFee;
+
+            fees = getSwapFee(state, netCashAmountIn, dueDate) + state.feeConfig.fragmentationFee;
+        } else {
+            revert Errors.NOT_ENOUGH_CREDIT(creditAmountOut, maxCredit);
+        }
     }
 }

@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
@@ -10,6 +11,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 contract RepayValidationTest is BaseTest {
     function test_Repay_validation() public {
+        _updateConfig("swapFeeAPR", 0);
+
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 300e6);
         _deposit(bob, weth, 100e18);
@@ -18,12 +21,12 @@ contract RepayValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
         uint256 amount = 20e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 12 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 12 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
 
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(alice, candy, 10e6, block.timestamp + 12 days, [creditId]);
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        _sellCreditMarket(alice, candy, creditId, 10e6, block.timestamp + 12 days);
 
         vm.startPrank(bob);
         size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));

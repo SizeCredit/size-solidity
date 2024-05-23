@@ -55,6 +55,8 @@ abstract contract BaseTestGeneral is Test, Deploy {
         vm.label(address(usdc), "usdc");
         vm.label(address(weth), "weth");
         vm.label(address(variablePool), "variablePool");
+
+        vm.label(address(0), "address(0)");
     }
 
     function _mint(address token, address user, uint256 amount) internal {

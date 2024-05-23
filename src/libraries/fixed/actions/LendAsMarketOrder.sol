@@ -71,31 +71,43 @@ library LendAsMarketOrder {
 
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params)
         external
-        returns (uint256 issuanceValue)
+        returns (uint256 cashAmountIn)
     {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
-        BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
+        uint256 ratePerMaturity = state.data.users[params.borrower].borrowOffer.getRatePerMaturityByDueDate(
+            state.oracle.variablePoolBorrowRateFeed, params.dueDate
+        );
 
-        uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
-        uint256 faceValue;
+        uint256 creditAmountOut;
+        uint256 fees;
+
         if (params.exactAmountIn) {
-            issuanceValue = params.amount;
-            faceValue = Math.mulDivDown(params.amount, PERCENT + ratePerMaturity, PERCENT);
+            cashAmountIn = params.amount;
+            (creditAmountOut, fees) = state.getCreditAmountOut({
+                cashAmountIn: cashAmountIn,
+                maxCredit: Math.mulDivDown(cashAmountIn, PERCENT + ratePerMaturity, PERCENT),
+                ratePerMaturity: ratePerMaturity,
+                dueDate: params.dueDate
+            });
         } else {
-            issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
-            faceValue = params.amount;
+            creditAmountOut = params.amount;
+            (cashAmountIn, fees) = state.getCashAmountIn({
+                creditAmountOut: creditAmountOut,
+                maxCredit: creditAmountOut,
+                ratePerMaturity: ratePerMaturity,
+                dueDate: params.dueDate
+            });
         }
 
-        DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
+        (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,
-            issuanceValue: issuanceValue,
-            faceValue: faceValue,
+            faceValue: creditAmountOut,
             dueDate: params.dueDate
         });
         state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
-        state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
+        state.transferBorrowAToken(msg.sender, params.borrower, cashAmountIn - fees);
+        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
     }
 }

@@ -3,11 +3,15 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+
+import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
 contract LendAsLimitOrderTest is BaseTest {
     using OfferLibrary for LoanOffer;
@@ -47,34 +51,25 @@ contract LendAsLimitOrderTest is BaseTest {
             })
         );
 
-        vm.prank(bob);
-        size.borrowAsMarketOrder(
-            BorrowAsMarketOrderParams({
-                lender: alice,
-                amount: 100e6,
-                dueDate: 45 days,
-                deadline: block.timestamp,
-                maxAPR: type(uint256).max,
-                exactAmountIn: false,
-                receivableCreditPositionIds: new uint256[](0)
-            })
-        );
-        LendAsLimitOrderParams memory empty;
+        _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 45 days, false);
 
+        LendAsLimitOrderParams memory empty;
         vm.prank(alice);
         size.lendAsLimitOrder(empty);
 
-        vm.expectRevert();
+        uint256 amount = 100e6;
+        uint256 dueDate = block.timestamp + 45 days;
         vm.prank(candy);
-        size.borrowAsMarketOrder(
-            BorrowAsMarketOrderParams({
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, alice));
+        size.sellCreditMarket(
+            SellCreditMarketParams({
                 lender: alice,
-                amount: 100e6,
-                dueDate: 45 days,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                dueDate: dueDate,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false,
-                receivableCreditPositionIds: new uint256[](0)
+                exactAmountIn: false
             })
         );
     }

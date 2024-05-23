@@ -2,14 +2,15 @@
 pragma solidity 0.8.23;
 
 import {Errors} from "@src/libraries/Errors.sol";
+
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract SetUserConfigurationTest is BaseTest {
     function test_SetUserConfiguration_setCreditForSale_disable_all() public {
         _setPrice(1e18);
-        _updateConfig("earlyExitFee", 0);
-        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("fragmentationFee", 0);
         _updateConfig("overdueLiquidatorReward", 0);
 
         _updateConfig("borrowATokenCap", type(uint256).max);
@@ -23,8 +24,9 @@ contract SetUserConfigurationTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 debtPositionId1 = _borrowAsMarketOrder(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
+        uint256 debtPositionId1 =
+            _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, block.timestamp + 6 * 30 days, false);
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 faceValue = size.getDebtPosition(debtPositionId1).faceValue;
 
         _setUserConfiguration(alice, 0, true, false, new uint256[](0));
@@ -35,8 +37,7 @@ contract SetUserConfigurationTest is BaseTest {
 
     function test_SetUserConfiguration_setCreditForSale_disable_single() public {
         _setPrice(1e18);
-        _updateConfig("earlyExitFee", 0);
-        _updateConfig("repayFeeAPR", 0);
+        _updateConfig("fragmentationFee", 0);
         _updateConfig("overdueLiquidatorReward", 0);
 
         _updateConfig("borrowATokenCap", type(uint256).max);
@@ -50,11 +51,13 @@ contract SetUserConfigurationTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 debtPositionId1 = _borrowAsMarketOrder(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
+        uint256 debtPositionId1 =
+            _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, block.timestamp + 6 * 30 days, false);
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 faceValue1 = size.getDebtPosition(debtPositionId1).faceValue;
-        uint256 debtPositionId2 = _borrowAsMarketOrder(bob, alice, 500e6, block.timestamp + 6 * 30 days);
-        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
+        uint256 debtPositionId2 =
+            _sellCreditMarket(bob, alice, RESERVED_ID, 500e6, block.timestamp + 6 * 30 days, false);
+        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
         uint256 faceValue2 = size.getDebtPosition(debtPositionId2).faceValue;
 
         uint256[] memory creditPositionIds = new uint256[](1);
