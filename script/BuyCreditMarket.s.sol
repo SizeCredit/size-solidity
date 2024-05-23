@@ -3,12 +3,13 @@ pragma solidity 0.8.23;
 
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
+
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
-contract LendAsMarketOrderScript is Script, Logger {
+contract BuyCreditMarketScript is Script, Logger {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");

@@ -350,7 +350,7 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18 - 1);
 
         _selfLiquidate(candy, creditPositionId1);
-        uint256 debtPositionId2 = _lendAsMarketOrder(
+        uint256 debtPositionId2 = _buyCreditMarket(
             alice, james, borrowAmount - size.feeConfig().fragmentationFee, block.timestamp + 365 days
         );
         uint256 creditPositionId21 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];

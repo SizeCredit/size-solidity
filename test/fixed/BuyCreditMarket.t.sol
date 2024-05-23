@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {BaseTest} from "@test/BaseTest.sol";
 import {Math} from "@src/libraries/Math.sol";
+import {BaseTest} from "@test/BaseTest.sol";
 
-import {Vars} from "@test/BaseTestGeneral.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
+
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
-import {Errors} from "@src/libraries/Errors.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {Vars} from "@test/BaseTestGeneral.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract BuyCreditMarketTest is BaseTest {
-
     function test_BuyCreditMarket_parameter_validation() public {
         // try calling specifying both borrower and credit position
         vm.startPrank(james);

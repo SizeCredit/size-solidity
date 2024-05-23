@@ -19,8 +19,8 @@ import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 
-import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
+import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
@@ -143,7 +143,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
     }
 
-    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn)
+    function buyCreditMarket(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn)
         public
         getSender
     {

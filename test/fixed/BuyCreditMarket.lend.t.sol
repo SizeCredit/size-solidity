@@ -7,18 +7,19 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
+
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
 contract BuyCreditMarketLendTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
-    function test_BuyCreditMarket_lendAsMarketOrder_transfers_to_borrower() public {
+    function test_BuyCreditMarket_buyCreditMarket_transfers_to_borrower() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -34,7 +35,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
 
-        uint256 debtPositionId = _lendAsMarketOrder(bob, alice, faceValue, dueDate);
+        uint256 debtPositionId = _buyCreditMarket(bob, alice, faceValue, dueDate);
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -53,7 +54,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
-    function test_BuyCreditMarket_lendAsMarketOrder_exactAmountIn() public {
+    function test_BuyCreditMarket_buyCreditMarket_exactAmountIn() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -67,7 +68,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
 
-        uint256 debtPositionId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
+        uint256 debtPositionId = _buyCreditMarket(bob, alice, amountIn, dueDate, true);
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -85,7 +86,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
-    function testFuzz_BuyCreditMarket_lendAsMarketOrder_exactAmountIn(uint256 amountIn, uint256 seed) public {
+    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountIn(uint256 amountIn, uint256 seed) public {
         _updateConfig("minimumMaturity", 1);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -104,7 +105,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
 
-        uint256 debtPositionId = _lendAsMarketOrder(bob, alice, amountIn, dueDate, true);
+        uint256 debtPositionId = _buyCreditMarket(bob, alice, amountIn, dueDate, true);
 
         Vars memory _after = _state();
         (uint256 loansAfter,) = size.getPositionsCount();
@@ -121,7 +122,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
-    function test_BuyCreditMarket_lendAsMarketOrder_cannot_leave_borrower_liquidatable() public {
+    function test_BuyCreditMarket_buyCreditMarket_cannot_leave_borrower_liquidatable() public {
         _setPrice(1e18);
         _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 150e18);
@@ -145,7 +146,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
     }
 
-    function test_BuyCreditMarket_lendAsMarketOrder_cannot_surpass_debtTokenCap() public {
+    function test_BuyCreditMarket_buyCreditMarket_cannot_surpass_debtTokenCap() public {
         _setPrice(1e18);
         _updateConfig("debtTokenCap", 5e6);
         _updateConfig("overdueLiquidatorReward", 0);
@@ -170,7 +171,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
     }
 
-    function test_BuyCreditMarket_lendAsMarketOrder_reverts_if_dueDate_out_of_range() public {
+    function test_BuyCreditMarket_buyCreditMarket_reverts_if_dueDate_out_of_range() public {
         _setPrice(1e18);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
@@ -217,7 +218,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
     }
 
-    function test_BuyCreditMarket_lendAsMarketOrder_experiment() public {
+    function test_BuyCreditMarket_buyCreditMarket_experiment() public {
         _setPrice(1e18);
         // Alice deposits in WETH
         _deposit(alice, weth, 200e18);
@@ -234,7 +235,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         assertEq(debtPositionsCount, 0, "There should be no active loans initially");
 
         // Bob lends to Alice's offer in the market order
-        _lendAsMarketOrder(bob, alice, 70e6, block.timestamp + 5 days);
+        _buyCreditMarket(bob, alice, 70e6, block.timestamp + 5 days);
 
         // Assert a loan is active after lending
         (debtPositionsCount, creditPositionsCount) = size.getPositionsCount();

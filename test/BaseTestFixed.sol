@@ -207,21 +207,21 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _borrowAsLimitOrder(borrower, curveRelativeTime);
     }
 
-    function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate)
+    function _buyCreditMarket(address lender, address borrower, uint256 amount, uint256 dueDate)
         internal
         returns (uint256)
     {
-        return _lendAsMarketOrder(lender, borrower, amount, dueDate, false);
+        return _buyCreditMarket(lender, borrower, amount, dueDate, false);
     }
 
-    function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate, bool exactAmountIn)
+    function _buyCreditMarket(address lender, address borrower, uint256 amount, uint256 dueDate, bool exactAmountIn)
         internal
         returns (uint256)
     {
-        return _lendAsMarketOrder(lender, borrower, amount, dueDate, block.timestamp, 0, exactAmountIn);
+        return _buyCreditMarket(lender, borrower, amount, dueDate, block.timestamp, 0, exactAmountIn);
     }
 
-    function _lendAsMarketOrder(
+    function _buyCreditMarket(
         address lender,
         address borrower,
         uint256 amount,
@@ -321,7 +321,16 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         _buyCreditMarket(user, creditPositionId, amount, exactAmountIn, block.timestamp, address(0), 0, block.timestamp);
     }
 
-    function _buyCreditMarket(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn, uint256 dueDate, address borrower, uint256 minAPR, uint256 deadline) internal {
+    function _buyCreditMarket(
+        address user,
+        uint256 creditPositionId,
+        uint256 amount,
+        bool exactAmountIn,
+        uint256 dueDate,
+        address borrower,
+        uint256 minAPR,
+        uint256 deadline
+    ) internal {
         vm.prank(user);
         size.buyCreditMarket(
             BuyCreditMarketParams({

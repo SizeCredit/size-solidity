@@ -2,14 +2,15 @@
 pragma solidity 0.8.23;
 
 import {State, User} from "@src/SizeStorage.sol";
+
+import {Errors} from "@src/libraries/Errors.sol";
+import {Events} from "@src/libraries/Events.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
-import {Errors} from "@src/libraries/Errors.sol";
-import {Events} from "@src/libraries/Events.sol";
 
 struct BuyCreditMarketParams {
     address borrower;
@@ -30,8 +31,6 @@ library BuyCreditMarket {
     using VariablePoolLibrary for State;
     using RiskLibrary for State;
 
-    
-
     function validateBuyCreditMarket(State storage state, BuyCreditMarketParams calldata params) external view {
         bool lending = params.borrower != address(0);
         bool buying = params.creditPositionId != RESERVED_ID;
@@ -49,7 +48,9 @@ library BuyCreditMarket {
                 revert Errors.PAST_DUE_DATE(params.dueDate);
             }
             if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
-                revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+                revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(
+                    params.amount, state.riskConfig.minimumCreditBorrowAToken
+                );
             }
         }
 
@@ -81,8 +82,13 @@ library BuyCreditMarket {
         }
 
         uint256 apr = lending
-            ? state.data.users[params.borrower].borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate)
-            : state.data.users[state.getCreditPosition(params.creditPositionId).lender].borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, state.getDebtPositionByCreditPositionId(params.creditPositionId).dueDate);
+            ? state.data.users[params.borrower].borrowOffer.getAPRByDueDate(
+                state.oracle.variablePoolBorrowRateFeed, params.dueDate
+            )
+            : state.data.users[state.getCreditPosition(params.creditPositionId).lender].borrowOffer.getAPRByDueDate(
+                state.oracle.variablePoolBorrowRateFeed,
+                state.getDebtPositionByCreditPositionId(params.creditPositionId).dueDate
+            );
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
@@ -104,43 +110,60 @@ library BuyCreditMarket {
         return amountIn;
     }
 
-    function getRatePerMaturity(State storage state, BuyCreditMarketParams calldata params) internal view returns (uint256) {
+    function getRatePerMaturity(State storage state, BuyCreditMarketParams calldata params)
+        internal
+        view
+        returns (uint256)
+    {
         if (params.borrower != address(0)) {
             return state.data.users[params.borrower].borrowOffer.getRatePerMaturityByDueDate(
                 state.oracle.variablePoolBorrowRateFeed, params.dueDate
             );
         } else {
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
-            return state.data.users[state.getCreditPosition(params.creditPositionId).lender].borrowOffer.getRatePerMaturityByDueDate(
-                state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate
-            );
+            return state.data.users[state.getCreditPosition(params.creditPositionId).lender]
+                .borrowOffer
+                .getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
         }
     }
 
     function calculateAmounts(State storage state, BuyCreditMarketParams calldata params, uint256 ratePerMaturity)
-        internal view
-        returns (uint256 amountIn, uint256 amountOut, uint256 fees)
+        internal
+        view
+        returns (uint256 cashAmountIn, uint256 creditAmountOut, uint256 fees)
     {
         if (params.exactAmountIn) {
-            amountIn = params.amount;
-            (amountOut, fees) = state.getCreditAmountOut({
-                amountIn: amountIn,
-                credit: params.borrower != address(0) ? Math.mulDivDown(amountIn, PERCENT + ratePerMaturity, PERCENT) : state.getCreditPosition(params.creditPositionId).credit,
+            cashAmountIn = params.amount;
+            (creditAmountOut, fees) = state.getCreditAmountOut({
+                cashAmountIn: cashAmountIn,
+                maxCredit: params.borrower != address(0)
+                    ? Math.mulDivDown(cashAmountIn, PERCENT + ratePerMaturity, PERCENT)
+                    : state.getCreditPosition(params.creditPositionId).credit,
                 ratePerMaturity: ratePerMaturity,
-                dueDate: params.borrower != address(0) ? params.dueDate : state.getDebtPositionByCreditPositionId(params.creditPositionId).dueDate
+                dueDate: params.borrower != address(0)
+                    ? params.dueDate
+                    : state.getDebtPositionByCreditPositionId(params.creditPositionId).dueDate
             });
         } else {
-            amountOut = params.amount;
-            (amountIn, fees) = state.getCashAmountIn({
-                amountOut: amountOut,
-                credit: params.borrower != address(0) ? amountOut : state.getCreditPosition(params.creditPositionId).credit,
+            creditAmountOut = params.amount;
+            (cashAmountIn, fees) = state.getCashAmountIn({
+                creditAmountOut: creditAmountOut,
+                maxCredit: params.borrower != address(0) ? creditAmountOut : state.getCreditPosition(params.creditPositionId).credit,
                 ratePerMaturity: ratePerMaturity,
-                dueDate: params.borrower != address(0) ? params.dueDate : state.getDebtPositionByCreditPositionId(params.creditPositionId).dueDate
+                dueDate: params.borrower != address(0)
+                    ? params.dueDate
+                    : state.getDebtPositionByCreditPositionId(params.creditPositionId).dueDate
             });
         }
     }
 
-    function handleLending(State storage state, BuyCreditMarketParams calldata params, uint256 amountIn, uint256 amountOut, uint256 fees) internal {
+    function handleLending(
+        State storage state,
+        BuyCreditMarketParams calldata params,
+        uint256 amountIn,
+        uint256 amountOut,
+        uint256 fees
+    ) internal {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, amountOut, params.exactAmountIn);
 
         DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
@@ -154,7 +177,13 @@ library BuyCreditMarket {
         state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
     }
 
-    function handleCreditBuying(State storage state, BuyCreditMarketParams calldata params, uint256 amountIn, uint256 amountOut, uint256 fees) internal {
+    function handleCreditBuying(
+        State storage state,
+        BuyCreditMarketParams calldata params,
+        uint256 amountIn,
+        uint256 amountOut,
+        uint256 fees
+    ) internal {
         emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
 
         state.createCreditPosition({

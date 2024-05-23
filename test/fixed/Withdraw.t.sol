@@ -205,7 +205,7 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(alice, weth, 160e18);
         _borrowAsLimitOrder(alice, 1e18, block.timestamp + 12 days);
-        _lendAsMarketOrder(alice, alice, 100e6, block.timestamp + 12 days);
+        _buyCreditMarket(alice, alice, 100e6, block.timestamp + 12 days);
         _withdraw(alice, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
     }
@@ -217,7 +217,7 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
         _borrowAsLimitOrder(bob, 1e18, block.timestamp + 12 days);
-        _lendAsMarketOrder(alice, bob, 100e6, block.timestamp + 12 days);
+        _buyCreditMarket(alice, bob, 100e6, block.timestamp + 12 days);
         _withdraw(bob, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
     }

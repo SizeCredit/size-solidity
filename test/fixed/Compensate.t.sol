@@ -11,9 +11,10 @@ import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract CompensateTest is BaseTest {
     function test_Compensate_compensate_reduces_repaid_loan_debt_and_compensated_loan_credit() public {
@@ -340,7 +341,7 @@ contract CompensateTest is BaseTest {
         (uint256 loansBefore,) = size.getPositionsCount();
 
         uint256 debtPositionId2 =
-            _lendAsMarketOrder(bob, candy, debtPositionBefore.faceValue, debtPositionBefore.dueDate);
+            _buyCreditMarket(bob, candy, debtPositionBefore.faceValue, debtPositionBefore.dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(bob, creditPositionId, creditPositionId2);
 
@@ -377,7 +378,7 @@ contract CompensateTest is BaseTest {
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         (uint256 loansBefore,) = size.getPositionsCount();
 
-        uint256 debtPositionId2 = _lendAsMarketOrder(bob, bob, debtPositionBefore.faceValue, debtPositionBefore.dueDate);
+        uint256 debtPositionId2 = _buyCreditMarket(bob, bob, debtPositionBefore.faceValue, debtPositionBefore.dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(bob, creditPositionId, creditPositionId2);
 
@@ -411,9 +412,10 @@ contract CompensateTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, candy, 1.5e18 / 2, 1.5e18)
         );
-        size.lendAsMarketOrder(
-            LendAsMarketOrderParams({
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
                 borrower: candy,
+                creditPositionId: RESERVED_ID,
                 dueDate: block.timestamp + 365 days,
                 amount: 200e6,
                 deadline: block.timestamp,
@@ -450,7 +452,7 @@ contract CompensateTest is BaseTest {
 
         vm.warp(block.timestamp + 30 days);
 
-        uint256 debtPositionId2 = _lendAsMarketOrder(alice, candy, faceValue, dueDate);
+        uint256 debtPositionId2 = _buyCreditMarket(alice, candy, faceValue, dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(alice, creditPositionId, creditPositionId2);
 
@@ -493,7 +495,7 @@ contract CompensateTest is BaseTest {
         _deposit(alice, usdc, 1000e6);
 
         uint256 debtPositionId2 =
-            _lendAsMarketOrder(alice, candy, size.getDebtPosition(debtPositionId).faceValue, dueDate);
+            _buyCreditMarket(alice, candy, size.getDebtPosition(debtPositionId).faceValue, dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(alice, creditPositionId, creditPositionId2);
 
@@ -529,7 +531,7 @@ contract CompensateTest is BaseTest {
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         // Borrower (Alice) exits the loan to the offer made by Candy
-        uint256 debtPositionId2 = _lendAsMarketOrder(alice, candy, 110e6, block.timestamp + 5 days);
+        uint256 debtPositionId2 = _buyCreditMarket(alice, candy, 110e6, block.timestamp + 5 days);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(alice, creditPositionId, creditPositionId2);
     }

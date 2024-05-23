@@ -7,8 +7,8 @@ import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 contract BorrowAsLimitOrderTest is BaseTest {
     using OfferLibrary for BorrowOffer;
