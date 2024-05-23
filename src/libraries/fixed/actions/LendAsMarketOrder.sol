@@ -71,9 +71,7 @@ library LendAsMarketOrder {
 
     function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params)
         external
-        returns (
-            uint256 amountIn // cash
-        )
+        returns (uint256 cashAmountIn)
     {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
@@ -81,22 +79,22 @@ library LendAsMarketOrder {
             state.oracle.variablePoolBorrowRateFeed, params.dueDate
         );
 
-        uint256 amountOut; // credit
+        uint256 creditAmountOut;
         uint256 fees;
 
         if (params.exactAmountIn) {
-            amountIn = params.amount;
-            (amountOut, fees) = state.getCreditAmountOut({
-                amountIn: amountIn,
-                credit: Math.mulDivDown(amountIn, PERCENT + ratePerMaturity, PERCENT),
+            cashAmountIn = params.amount;
+            (creditAmountOut, fees) = state.getCreditAmountOut({
+                cashAmountIn: cashAmountIn,
+                maxCredit: Math.mulDivDown(cashAmountIn, PERCENT + ratePerMaturity, PERCENT),
                 ratePerMaturity: ratePerMaturity,
                 dueDate: params.dueDate
             });
         } else {
-            amountOut = params.amount;
-            (amountIn, fees) = state.getCashAmountIn({
-                amountOut: amountOut,
-                credit: amountOut,
+            creditAmountOut = params.amount;
+            (cashAmountIn, fees) = state.getCashAmountIn({
+                creditAmountOut: creditAmountOut,
+                maxCredit: creditAmountOut,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: params.dueDate
             });
@@ -105,11 +103,11 @@ library LendAsMarketOrder {
         state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,
-            faceValue: amountOut,
+            faceValue: creditAmountOut,
             dueDate: params.dueDate
         });
-        state.data.debtToken.mint(params.borrower, amountOut);
-        state.transferBorrowAToken(msg.sender, params.borrower, amountIn - fees);
+        state.data.debtToken.mint(params.borrower, creditAmountOut);
+        state.transferBorrowAToken(msg.sender, params.borrower, cashAmountIn - fees);
         state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
     }
 }

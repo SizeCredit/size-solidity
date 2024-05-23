@@ -78,9 +78,7 @@ library BuyMarketCredit {
 
     function executeBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params)
         external
-        returns (
-            uint256 amountIn // cash
-        )
+        returns (uint256 cashAmountIn)
     {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
@@ -89,22 +87,22 @@ library BuyMarketCredit {
             state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate
         );
 
-        uint256 amountOut; // credit
+        uint256 creditAmountOut;
         uint256 fees;
 
         if (params.exactAmountIn) {
-            amountIn = params.amount;
-            (amountOut, fees) = state.getCreditAmountOut({
-                amountIn: amountIn,
-                credit: creditPosition.credit,
+            cashAmountIn = params.amount;
+            (creditAmountOut, fees) = state.getCreditAmountOut({
+                cashAmountIn: cashAmountIn,
+                maxCredit: creditPosition.credit,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: debtPosition.dueDate
             });
         } else {
-            amountOut = params.amount;
-            (amountIn, fees) = state.getCashAmountIn({
-                amountOut: amountOut,
-                credit: creditPosition.credit,
+            creditAmountOut = params.amount;
+            (cashAmountIn, fees) = state.getCashAmountIn({
+                creditAmountOut: creditAmountOut,
+                maxCredit: creditPosition.credit,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: debtPosition.dueDate
             });
@@ -113,9 +111,9 @@ library BuyMarketCredit {
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionId,
             lender: msg.sender,
-            credit: amountOut
+            credit: creditAmountOut
         });
-        state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn - fees);
+        state.transferBorrowAToken(msg.sender, creditPosition.lender, cashAmountIn - fees);
         state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
 
         emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
