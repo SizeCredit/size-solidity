@@ -29,7 +29,6 @@ import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/Liqui
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
-import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 

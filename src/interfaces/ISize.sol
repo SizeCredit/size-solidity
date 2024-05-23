@@ -21,7 +21,6 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 
-import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
@@ -163,15 +162,6 @@ interface ISize {
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     function compensate(CompensateParams calldata params) external payable;
-
-    /// @notice Buy a lender's credit with cash
-    /// @param params BuyMarketCredit struct containing the following fields:
-    ///     - uint256 creditPositionId: The id of the credit position to buy
-    ///     - uint256 amount: The amont of credit to buy from the credit position
-    ///     - bool exactAmountIn: This flag indicates if the amount is the present value cash used to buy credit
-    ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
-    ///     - uint256 minAPR: The minimum APR the caller is willing to accept
-    function buyMarketCredit(BuyMarketCreditParams calldata params) external payable;
 
     /// @notice Set the credit positions for sale
     /// @dev By default, all created creadit positions are for sale.

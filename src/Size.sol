@@ -22,7 +22,6 @@ import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/fixed/act
 import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
-import {BuyMarketCredit, BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
 import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
@@ -73,7 +72,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using SelfLiquidate for State;
     using LiquidateWithReplacement for State;
     using Compensate for State;
-    using BuyMarketCredit for State;
     using SetUserConfiguration for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
@@ -241,13 +239,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         state.validateCompensate(params);
         state.executeCompensate(params);
         state.validateUserIsNotUnderwater(msg.sender);
-    }
-
-    /// @inheritdoc ISize
-    function buyMarketCredit(BuyMarketCreditParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateBuyMarketCredit(params);
-        uint256 amount = state.executeBuyMarketCredit(params);
-        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize

@@ -5,6 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract BuyCreditMarketBuyTest is BaseTest {
     function test_BuyCreditMarket_buyMarketCredit_experiment() public {
