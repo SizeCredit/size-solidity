@@ -324,7 +324,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _buyCreditMarket(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn, uint256 dueDate, address borrower) internal returns (uint256 debtPositions) {
-        uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
         vm.prank(user);
         size.buyCreditMarket(
             BuyCreditMarketParams({
