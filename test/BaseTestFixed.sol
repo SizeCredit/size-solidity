@@ -233,7 +233,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         bool exactAmountIn
     ) internal returns (uint256 debtPositions) {
         uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
-        _buyCreditMarket(lender, 0, amount, exactAmountIn, dueDate, borrower);
+        _buyCreditMarket(lender, RESERVED_ID, amount, exactAmountIn, dueDate, borrower, minAPR);
 
         uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
         if (debtPositionIdAfter == debtPositionIdBefore) {
@@ -320,10 +320,10 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _buyMarketCredit(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn) internal {
-        _buyCreditMarket(user, creditPositionId, amount, exactAmountIn, block.timestamp, address(0));
+        _buyCreditMarket(user, creditPositionId, amount, exactAmountIn, block.timestamp, address(0), 0);
     }
 
-    function _buyCreditMarket(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn, uint256 dueDate, address borrower) internal returns (uint256 debtPositions) {
+    function _buyCreditMarket(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn, uint256 dueDate, address borrower, uint256 minAPR) internal {
         vm.prank(user);
         size.buyCreditMarket(
             BuyCreditMarketParams({
@@ -333,7 +333,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 amount: amount,
                 exactAmountIn: exactAmountIn,
                 deadline: block.timestamp,
-                minAPR: 0
+                minAPR: minAPR
             })
         );
     }
