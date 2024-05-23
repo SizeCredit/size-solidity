@@ -6,7 +6,6 @@ import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -21,7 +20,6 @@ library SelfLiquidate {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
-    using VariablePoolLibrary for State;
     using AccountingLibrary for State;
     using RiskLibrary for State;
 

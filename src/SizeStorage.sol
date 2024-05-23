@@ -11,6 +11,8 @@ import {BorrowOffer, LoanOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
+
+import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 struct User {
@@ -52,10 +54,10 @@ struct Data {
     uint256 nextDebtPositionId; // next debt position id
     uint256 nextCreditPositionId; // next credit position id
     IWETH weth; // Wrapped Ether contract address
-    IERC20Metadata underlyingCollateralToken; // // the token used by borrowers to collateralize their loans
+    IERC20Metadata underlyingCollateralToken; // the token used by borrowers to collateralize their loans
     IERC20Metadata underlyingBorrowToken; // the token lent from lenders to borrowers
-    NonTransferrableToken collateralToken; // // Size tokenized underlying collateral token
-    IAToken borrowAToken; // Variable Pool's rebasing AToken from the underlying borrow token
+    NonTransferrableToken collateralToken; // Size deposit underlying collateral token
+    NonTransferrableScaledToken borrowAToken; // Size deposit underlying borrow aToken
     NonTransferrableToken debtToken; // Size tokenized debt
     IPool variablePool; // Variable Pool (Aave v3)
     bool isMulticall; // Multicall lock to check if multicall is in progress

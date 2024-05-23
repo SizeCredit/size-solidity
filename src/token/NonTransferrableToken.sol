@@ -8,7 +8,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 /// @title NonTransferrableToken
 /// @notice An ERC-20 that is not transferrable from outside of the protocol
-/// @dev The contract owner (e.g. the Size contract) can still mint, burn, and transfer tokens
+/// @dev The contract owner (i.e. the Size contract) can still mint, burn, and transfer tokens
 contract NonTransferrableToken is Ownable, ERC20 {
     uint8 internal immutable _decimals;
 
@@ -20,12 +20,12 @@ contract NonTransferrableToken is Ownable, ERC20 {
         _decimals = decimals_;
     }
 
-    function mint(address to, uint256 amount) external virtual onlyOwner {
-        _mint(to, amount);
+    function mint(address to, uint256 value) external virtual onlyOwner {
+        _mint(to, value);
     }
 
-    function burn(address from, uint256 amount) external virtual onlyOwner {
-        _burn(from, amount);
+    function burn(address from, uint256 value) external virtual onlyOwner {
+        _burn(from, value);
     }
 
     function transferFrom(address from, address to, uint256 value) public virtual override onlyOwner returns (bool) {

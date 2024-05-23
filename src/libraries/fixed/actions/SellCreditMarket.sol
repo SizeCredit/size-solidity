@@ -8,7 +8,6 @@ import {State} from "@src/SizeStorage.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -30,7 +29,6 @@ library SellCreditMarket {
     using LoanLibrary for State;
     using RiskLibrary for State;
     using AccountingLibrary for State;
-    using VariablePoolLibrary for State;
 
     function validateSellCreditMarket(State storage state, SellCreditMarketParams memory params) external view {
         uint256 creditPositionId =
@@ -133,7 +131,7 @@ library SellCreditMarket {
             lender: params.lender,
             credit: creditAmountIn
         });
-        state.transferBorrowAToken(params.lender, msg.sender, cashAmountOut);
-        state.transferBorrowAToken(params.lender, state.feeConfig.feeRecipient, fees);
+        state.data.borrowAToken.transferFrom(params.lender, msg.sender, cashAmountOut);
+        state.data.borrowAToken.transferFrom(params.lender, state.feeConfig.feeRecipient, fees);
     }
 }

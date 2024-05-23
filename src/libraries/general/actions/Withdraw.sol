@@ -4,8 +4,7 @@ pragma solidity 0.8.23;
 import {State} from "@src/SizeStorage.sol";
 
 import {Math} from "@src/libraries/Math.sol";
-import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
+import {DepositTokenLibrary} from "@src/libraries/fixed/DepositTokenLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -17,8 +16,7 @@ struct WithdrawParams {
 }
 
 library Withdraw {
-    using VariablePoolLibrary for State;
-    using CollateralLibrary for State;
+    using DepositTokenLibrary for State;
 
     function validateWithdraw(State storage state, WithdrawParams calldata params) external view {
         // validte msg.sender
@@ -46,7 +44,7 @@ library Withdraw {
     function executeWithdraw(State storage state, WithdrawParams calldata params) public {
         uint256 amount;
         if (params.token == address(state.data.underlyingBorrowToken)) {
-            amount = Math.min(params.amount, state.borrowATokenBalanceOf(msg.sender));
+            amount = Math.min(params.amount, state.data.borrowAToken.balanceOf(msg.sender));
             if (amount > 0) {
                 state.withdrawUnderlyingTokenFromVariablePool(msg.sender, params.to, amount);
             }
