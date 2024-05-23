@@ -233,17 +233,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         bool exactAmountIn
     ) internal returns (uint256 debtPositions) {
         uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
-        vm.prank(lender);
-        size.lendAsMarketOrder(
-            LendAsMarketOrderParams({
-                borrower: borrower,
-                amount: amount,
-                dueDate: dueDate,
-                exactAmountIn: exactAmountIn,
-                deadline: deadline,
-                minAPR: minAPR
-            })
-        );
+        _buyCreditMarket(lender, 0, amount, exactAmountIn, dueDate, borrower);
+
         uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
         if (debtPositionIdAfter == debtPositionIdBefore) {
             return RESERVED_ID;
@@ -329,16 +320,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _buyMarketCredit(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn) internal {
-        vm.prank(user);
-        size.buyMarketCredit(
-            BuyMarketCreditParams({
-                creditPositionId: creditPositionId,
-                amount: amount,
-                exactAmountIn: exactAmountIn,
-                deadline: block.timestamp,
-                minAPR: 0
-            })
-        );
+        _buyCreditMarket(user, creditPositionId, amount, exactAmountIn, block.timestamp, address(0));
     }
 
     function _buyCreditMarket(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn, uint256 dueDate, address borrower) internal returns (uint256 debtPositions) {
@@ -355,12 +337,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 minAPR: 0
             })
         );
-        uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
-        if (debtPositionIdAfter == debtPositionIdBefore) {
-            return RESERVED_ID;
-        } else {
-            return debtPositionIdAfter - 1;
-        }
     }
 
     function _setUserConfiguration(
