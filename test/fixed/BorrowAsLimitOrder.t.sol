@@ -4,10 +4,11 @@ pragma solidity 0.8.23;
 import {Errors} from "@src/libraries/Errors.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
-import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract BorrowAsLimitOrderTest is BaseTest {
     using OfferLibrary for BorrowOffer;
@@ -65,9 +66,10 @@ contract BorrowAsLimitOrderTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.5e18, 1.7e18));
         vm.prank(bob);
-        size.lendAsMarketOrder(
-            LendAsMarketOrderParams({
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
                 borrower: alice,
+                creditPositionId: RESERVED_ID,
                 amount: 100e6,
                 dueDate: block.timestamp + 1 days,
                 deadline: block.timestamp,
@@ -96,9 +98,10 @@ contract BorrowAsLimitOrderTest is BaseTest {
         );
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.4e18, 1.5e18));
         vm.prank(bob);
-        size.lendAsMarketOrder(
-            LendAsMarketOrderParams({
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
                 borrower: alice,
+                creditPositionId: RESERVED_ID,
                 amount: 100e6,
                 dueDate: block.timestamp + 1 days,
                 deadline: block.timestamp,

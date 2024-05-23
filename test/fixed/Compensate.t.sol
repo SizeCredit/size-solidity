@@ -8,7 +8,6 @@ import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";

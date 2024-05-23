@@ -37,7 +37,7 @@ contract LendAsMarketOrderScript is Script, Logger {
         });
         console.log("lender USDC", size.getUserView(lender).borrowATokenBalance);
         vm.startBroadcast(deployerPrivateKey);
-        size.lendAsMarketOrder(params);
+        size.buyCreditMarket(params);
         vm.stopBroadcast();
     }
 }

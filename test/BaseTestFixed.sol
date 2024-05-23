@@ -21,7 +21,6 @@ import {DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibr
 
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";

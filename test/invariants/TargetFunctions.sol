@@ -20,7 +20,7 @@ import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
@@ -29,7 +29,7 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
-import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
     function setup() internal override {
@@ -154,9 +154,10 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         amount = between(amount, 0, _before.sender.borrowATokenBalance / 10);
 
         hevm.prank(sender);
-        size.lendAsMarketOrder(
-            LendAsMarketOrderParams({
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
                 borrower: borrower,
+                creditPositionId: RESERVED_ID,
                 dueDate: dueDate,
                 amount: amount,
                 deadline: block.timestamp,
