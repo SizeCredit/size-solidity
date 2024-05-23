@@ -240,9 +240,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateBuyCreditMarket(params);
         uint256 amount = state.executeBuyCreditMarket(params);
-        if (params.borrower != address(0)) {
-            state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
-        }
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
         state.validateDebtTokenCap();
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }

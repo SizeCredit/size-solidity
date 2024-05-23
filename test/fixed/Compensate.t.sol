@@ -7,11 +7,11 @@ import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
-import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {CreditPosition, DebtPosition, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -340,8 +340,7 @@ contract CompensateTest is BaseTest {
         DebtPosition memory debtPositionBefore = size.getDebtPosition(debtPositionId);
         (uint256 loansBefore,) = size.getPositionsCount();
 
-        uint256 debtPositionId2 =
-            _buyCreditMarket(bob, candy, debtPositionBefore.faceValue, debtPositionBefore.dueDate);
+        uint256 debtPositionId2 = _buyCreditMarket(bob, candy, debtPositionBefore.faceValue, debtPositionBefore.dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(bob, creditPositionId, creditPositionId2);
 

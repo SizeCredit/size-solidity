@@ -29,7 +29,7 @@ contract SetUserConfigurationTest is BaseTest {
         _setUserConfiguration(alice, 0, true, false, new uint256[](0));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_NOT_FOR_SALE.selector, creditPositionId1_1));
-        _buyMarketCredit(james, creditPositionId1_1, faceValue, false);
+        _buyCreditMarket(james, creditPositionId1_1, faceValue, false);
     }
 
     function test_SetUserConfiguration_setCreditForSale_disable_single() public {
@@ -60,8 +60,8 @@ contract SetUserConfigurationTest is BaseTest {
         _setUserConfiguration(alice, 0, false, false, creditPositionIds);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_NOT_FOR_SALE.selector, creditPositionId1_1));
-        _buyMarketCredit(james, creditPositionId1_1, faceValue1, false);
+        _buyCreditMarket(james, creditPositionId1_1, faceValue1, false);
 
-        _buyMarketCredit(james, creditPositionId2_1, faceValue2, false);
+        _buyCreditMarket(james, creditPositionId2_1, faceValue2, false);
     }
 }

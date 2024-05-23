@@ -17,7 +17,7 @@ import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
-import {DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DEBT_POSITION_ID_START, DebtPosition, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
@@ -207,38 +207,54 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _borrowAsLimitOrder(borrower, curveRelativeTime);
     }
 
+    function _buyCreditMarket(address lender, uint256 creditPositionId, uint256 amount, bool exactAmountIn)
+        internal
+        returns (uint256)
+    {
+        CreditPosition memory creditPosition = size.getCreditPosition(creditPositionId);
+        DebtPosition memory debtPosition = size.getDebtPosition(creditPosition.debtPositionId);
+        address borrower = creditPosition.lender;
+        uint256 dueDate = debtPosition.dueDate;
+        return _buyCreditMarket(lender, borrower, creditPositionId, amount, dueDate, exactAmountIn);
+    }
+
     function _buyCreditMarket(address lender, address borrower, uint256 amount, uint256 dueDate)
         internal
         returns (uint256)
     {
-        return _buyCreditMarket(lender, borrower, amount, dueDate, false);
+        return _buyCreditMarket(lender, borrower, RESERVED_ID, amount, dueDate, false);
     }
 
     function _buyCreditMarket(address lender, address borrower, uint256 amount, uint256 dueDate, bool exactAmountIn)
         internal
         returns (uint256)
     {
-        return _buyCreditMarket(lender, borrower, amount, dueDate, block.timestamp, 0, exactAmountIn);
+        return _buyCreditMarket(lender, borrower, RESERVED_ID, amount, dueDate, exactAmountIn);
     }
 
     function _buyCreditMarket(
-        address lender,
+        address user,
         address borrower,
-        uint256 amount,
+        uint256 creditPositionId,
         uint256 dueDate,
-        uint256 deadline,
-        uint256 minAPR,
+        uint256 amount,
         bool exactAmountIn
-    ) internal returns (uint256 debtPositions) {
-        uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
-        _buyCreditMarket(lender, RESERVED_ID, amount, exactAmountIn, dueDate, borrower, minAPR, deadline);
+    ) internal returns (uint256) {
+        vm.prank(user);
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: borrower,
+                creditPositionId: creditPositionId,
+                dueDate: dueDate,
+                amount: amount,
+                exactAmountIn: exactAmountIn,
+                deadline: block.timestamp,
+                minAPR: 0
+            })
+        );
 
-        uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
-        if (debtPositionIdAfter == debtPositionIdBefore) {
-            return RESERVED_ID;
-        } else {
-            return debtPositionIdAfter - 1;
-        }
+        (uint256 debtPositionsCount,) = size.getPositionsCount();
+        return DEBT_POSITION_ID_START + debtPositionsCount - 1;
     }
 
     function _repay(address user, uint256 debtPositionId) internal {
@@ -313,34 +329,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 creditPositionWithDebtToRepayId: creditPositionWithDebtToRepayId,
                 creditPositionToCompensateId: creditPositionToCompensateId,
                 amount: amount
-            })
-        );
-    }
-
-    function _buyMarketCredit(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn) internal {
-        _buyCreditMarket(user, creditPositionId, amount, exactAmountIn, block.timestamp, address(0), 0, block.timestamp);
-    }
-
-    function _buyCreditMarket(
-        address user,
-        uint256 creditPositionId,
-        uint256 amount,
-        bool exactAmountIn,
-        uint256 dueDate,
-        address borrower,
-        uint256 minAPR,
-        uint256 deadline
-    ) internal {
-        vm.prank(user);
-        size.buyCreditMarket(
-            BuyCreditMarketParams({
-                borrower: borrower,
-                creditPositionId: creditPositionId,
-                dueDate: dueDate,
-                amount: amount,
-                exactAmountIn: exactAmountIn,
-                deadline: deadline,
-                minAPR: minAPR
             })
         );
     }

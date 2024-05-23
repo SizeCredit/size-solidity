@@ -143,10 +143,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         __after();
     }
 
-    function buyCreditMarket(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn)
-        public
-        getSender
-    {
+    function buyCreditMarket(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn) public getSender {
         __before();
 
         borrower = _getRandomUser(borrower);
