@@ -10,7 +10,6 @@ import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
@@ -53,15 +52,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     function _withdraw(address user, address token, uint256 amount, address to) internal {
         vm.prank(user);
         size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
-    }
-
-    function _mintCredit(address user, uint256 amount, uint256 dueDate) internal {
-        vm.prank(user);
-        size.mintCredit(MintCreditParams({amount: amount, dueDate: dueDate}));
-    }
-
-    function _mintCredit(address user, uint256 amount) internal {
-        return _mintCredit(user, amount, 0);
     }
 
     function _lendAsLimitOrder(
@@ -108,23 +98,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
     }
 
     function _borrow(address borrower, address lender, uint256 amount, uint256 dueDate) internal returns (uint256) {
-        bytes[] memory data = new bytes[](2);
         uint256 faceValue = size.getAmountIn(lender, RESERVED_ID, amount, dueDate);
-        data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-        data[1] = abi.encodeCall(
-            size.sellCreditMarket,
-            SellCreditMarketParams({
-                lender: lender,
-                creditPositionId: RESERVED_ID,
-                amount: amount,
-                dueDate: dueDate,
-                deadline: block.timestamp,
-                maxAPR: type(uint256).max,
-                exactAmountIn: false
-            })
-        );
-        vm.prank(borrower);
-        size.multicall(data);
+        _sellCreditMarket(borrower, lender, RESERVED_ID, faceValue, dueDate);
         (uint256 debtPositionsCount,) = size.getPositionsCount();
         return DEBT_POSITION_ID_START + debtPositionsCount - 1;
     }

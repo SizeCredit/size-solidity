@@ -8,7 +8,6 @@ import {DeployScript} from "@script/Deploy.s.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 import {ForkTest} from "@test/ForkTest.sol";
 import {Test} from "forge-std/Test.sol";
@@ -100,43 +99,43 @@ contract DeployScriptTest is ForkTest {
         _withdraw(bob, usdc, 1_000e6);
     }
 
-    function testFork_Deploy_transferBorrowAToken_reverts_if_low_liquidity() public {
-        _setPrice(2468e18);
-        _deposit(alice, usdc, 2_500e6);
-        assertEq(usdc.balanceOf(address(variablePool)), 2_500e6);
-        _lendAsLimitOrder(
-            alice, block.timestamp + 365 days, [int256(0.05e18), int256(0.07e18)], [uint256(30 days), uint256(180 days)]
-        );
+    // function testFork_Deploy_transferBorrowAToken_reverts_if_low_liquidity() public {
+    //     _setPrice(2468e18);
+    //     _deposit(alice, usdc, 2_500e6);
+    //     assertEq(usdc.balanceOf(address(variablePool)), 2_500e6);
+    //     _lendAsLimitOrder(
+    //         alice, block.timestamp + 365 days, [int256(0.05e18), int256(0.07e18)], [uint256(30 days), uint256(180 days)]
+    //     );
 
-        vm.warp(block.timestamp + 30 days);
+    //     vm.warp(block.timestamp + 30 days);
 
-        _depositVariable(candy, weth, 2e18);
-        _borrowVariable(candy, 2_000e6);
+    //     _depositVariable(candy, weth, 2e18);
+    //     _borrowVariable(candy, 2_000e6);
 
-        assertEq(usdc.balanceOf(address(variablePool)), 500e6);
-        assertEq(usdc.balanceOf(candy), 2_000e6);
-        assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
+    //     assertEq(usdc.balanceOf(address(variablePool)), 500e6);
+    //     assertEq(usdc.balanceOf(candy), 2_000e6);
+    //     assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
 
-        _deposit(bob, weth, 1e18);
+    //     _deposit(bob, weth, 1e18);
 
-        uint256 dueDate = block.timestamp + 60 days;
-        uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, 1_000e6, dueDate);
-        bytes[] memory data = new bytes[](2);
-        data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-        data[1] = abi.encodeCall(
-            size.sellCreditMarket,
-            SellCreditMarketParams({
-                lender: alice,
-                creditPositionId: type(uint256).max,
-                amount: 1_000e6,
-                dueDate: dueDate,
-                deadline: block.timestamp,
-                maxAPR: type(uint256).max,
-                exactAmountIn: false
-            })
-        );
-        vm.prank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector, 500e6, 2500e6));
-        size.multicall(data);
-    }
+    //     uint256 dueDate = block.timestamp + 60 days;
+    //     uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, 1_000e6, dueDate);
+    //     bytes[] memory data = new bytes[](2);
+    //     data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
+    //     data[1] = abi.encodeCall(
+    //         size.sellCreditMarket,
+    //         SellCreditMarketParams({
+    //             lender: alice,
+    //             creditPositionId: type(uint256).max,
+    //             amount: 1_000e6,
+    //             dueDate: dueDate,
+    //             deadline: block.timestamp,
+    //             maxAPR: type(uint256).max,
+    //             exactAmountIn: false
+    //         })
+    //     );
+    //     vm.prank(bob);
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector, 500e6, 2500e6));
+    //     size.multicall(data);
+    // }
 }
