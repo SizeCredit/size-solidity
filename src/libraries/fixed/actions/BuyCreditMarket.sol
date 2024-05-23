@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {State, User} from "@src/SizeStorage.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
@@ -31,7 +31,14 @@ library BuyCreditMarket {
     using RiskLibrary for State;
 
     function validateBuyCreditMarket(State storage state, BuyCreditMarketParams calldata params) external view {
-        if (params.borrower != address(0)) {
+        bool lending = params.borrower != address(0);
+        bool buying = params.creditPositionId != RESERVED_ID;
+
+        if (buying && lending) {
+            revert Errors.NOT_SUPPORTED();
+        }
+
+        if (lending) {
             BorrowOffer memory borrowOffer = state.data.users[params.borrower].borrowOffer;
             if (borrowOffer.isNull()) {
                 revert Errors.INVALID_BORROW_OFFER(params.borrower);
@@ -44,7 +51,7 @@ library BuyCreditMarket {
             }
         }
 
-        if (params.creditPositionId != 0) {
+        if (buying) {
             CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
             if (!state.isCreditPositionTransferrable(params.creditPositionId)) {
@@ -71,7 +78,7 @@ library BuyCreditMarket {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        uint256 apr = (params.borrower != address(0))
+        uint256 apr = lending
             ? state.data.users[params.borrower].borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate)
             : state.data.users[state.getCreditPosition(params.creditPositionId).lender].borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, state.getDebtPositionByCreditPositionId(params.creditPositionId).dueDate);
         if (apr < params.minAPR) {
