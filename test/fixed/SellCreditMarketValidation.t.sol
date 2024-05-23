@@ -60,7 +60,7 @@ contract SellCreditMarketValidationTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector, 0, dueDate));
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 0));
         size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,
