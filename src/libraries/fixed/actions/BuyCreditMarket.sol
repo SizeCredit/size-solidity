@@ -129,6 +129,12 @@ library BuyCreditMarket {
                 dueDate: params.dueDate
             });
             state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
+        } else {
+            state.createCreditPosition({
+                exitCreditPositionId: params.creditPositionId,
+                lender: msg.sender,
+                credit: amountOut
+            });
         }
 
         state.transferBorrowAToken(msg.sender, params.borrower, cashAmountIn - fees);
