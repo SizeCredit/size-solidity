@@ -6,7 +6,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 contract SelfLiquidateTest is BaseTest {
-    function test_SelfLiquidate_selfliquidate_rapays_with_collateral() public {
+    function test_SelfLiquidate_selfLiquidate_rapays_with_collateral() public {
         _setPrice(1e18);
         _updateConfig("overdueLiquidatorReward", 0);
         _updateConfig("swapFeeAPR", 0);
@@ -46,7 +46,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
     }
 
-    function test_SelfLiquidate_selfliquidate_two_lenders() public {
+    function test_SelfLiquidate_selfLiquidate_two_lenders() public {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
@@ -85,7 +85,7 @@ contract SelfLiquidateTest is BaseTest {
         _selfLiquidate(james, creditPositionId3);
     }
 
-    function test_SelfLiquidate_selfliquidate_keeps_accounting_in_check() public {
+    function test_SelfLiquidate_selfLiquidate_keeps_accounting_in_check() public {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
         _updateConfig("overdueLiquidatorReward", 0);
@@ -135,7 +135,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
     }
 
-    function test_SelfLiquidate_selfliquidate_should_not_leave_dust_loan_when_no_exits() public {
+    function test_SelfLiquidate_selfLiquidate_should_not_leave_dust_loan_when_no_exits() public {
         _setPrice(1e18);
         _updateConfig("overdueLiquidatorReward", 0);
 
@@ -150,7 +150,7 @@ contract SelfLiquidateTest is BaseTest {
         _selfLiquidate(alice, creditPositionId);
     }
 
-    function test_SelfLiquidate_selfliquidate_should_not_leave_dust_loan_if_already_exited() public {
+    function test_SelfLiquidate_selfLiquidate_should_not_leave_dust_loan_if_already_exited() public {
         _setPrice(1e18);
         _updateConfig("overdueLiquidatorReward", 0);
 
@@ -182,7 +182,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(size.getCreditPosition(creditPositionId).credit, 0);
     }
 
-    function test_SelfLiquidate_selfliquidate_should_not_leave_dust_loan() public {
+    function test_SelfLiquidate_selfLiquidate_should_not_leave_dust_loan() public {
         _setPrice(1e18);
 
         _deposit(alice, weth, 150e18);
@@ -217,7 +217,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(size.getCreditPosition(creditPositionId3).credit, 0);
     }
 
-    function test_SelfLiquidate_selfliquidateLoan_should_work() public {
+    function test_SelfLiquidate_selfLiquidateLoan_should_work() public {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
         _updateConfig("fragmentationFee", 0);
@@ -254,7 +254,7 @@ contract SelfLiquidateTest is BaseTest {
         _selfLiquidate(james, creditPositionId2);
     }
 
-    function test_SelfLiquidate_selfliquidateLoan_insufficient_debt_token_repay_fee() public {
+    function test_SelfLiquidate_selfLiquidateLoan_insufficient_debt_token_repay_fee() public {
         _setPrice(1e18);
         _deposit(alice, weth, 200e18);
         _deposit(alice, usdc, 150e6);
@@ -284,7 +284,7 @@ contract SelfLiquidateTest is BaseTest {
         _selfLiquidate(james, creditPositionId2);
     }
 
-    function testFuzz_SelfLiquidate_selfliquidateLoan_insufficient_debt_token_repay_fee_no_fees(uint256 exitAmount)
+    function testFuzz_SelfLiquidate_selfLiquidateLoan_insufficient_debt_token_repay_fee_no_fees(uint256 exitAmount)
         public
     {
         _updateConfig("fragmentationFee", 0);
@@ -320,7 +320,7 @@ contract SelfLiquidateTest is BaseTest {
         _selfLiquidate(james, creditPositionId2);
     }
 
-    function testFuzz_SelfLiquidate_selfliquidateLoan_compensate_used_to_borrower_exit(uint256 exitAmount) public {
+    function testFuzz_SelfLiquidate_selfLiquidateLoan_compensate_used_to_borrower_exit(uint256 exitAmount) public {
         _setPrice(1e18);
         _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 200e18);
@@ -357,7 +357,7 @@ contract SelfLiquidateTest is BaseTest {
         _compensate(alice, creditPositionId12, creditPositionId21);
     }
 
-    function testFuzz_SelfLiquidate_selfliquidateLoan_repay(uint256 exitAmount) public {
+    function testFuzz_SelfLiquidate_selfLiquidateLoan_repay(uint256 exitAmount) public {
         _setPrice(1e18);
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 150e6);
@@ -389,7 +389,7 @@ contract SelfLiquidateTest is BaseTest {
         _repay(alice, debtPositionId1);
     }
 
-    function testFuzz_SelfLiquidate_selfliquidateLoan_liquidate(uint256 exitAmount) public {
+    function testFuzz_SelfLiquidate_selfLiquidateLoan_liquidate(uint256 exitAmount) public {
         _setPrice(1e18);
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 150e6);
@@ -421,7 +421,7 @@ contract SelfLiquidateTest is BaseTest {
         _liquidate(liquidator, debtPositionId1);
     }
 
-    function testFuzz_SelfLiquidate_selfliquidateLoan_creditPosition_insufficient_debt_token_fees(uint256 exitAmount)
+    function testFuzz_SelfLiquidate_selfLiquidateLoan_creditPosition_insufficient_debt_token_fees(uint256 exitAmount)
         public
     {
         _setPrice(1e18);
