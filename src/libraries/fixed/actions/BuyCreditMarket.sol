@@ -133,7 +133,7 @@ library BuyCreditMarket {
             state.createCreditPosition({
                 exitCreditPositionId: params.creditPositionId,
                 lender: msg.sender,
-                credit: amountOut
+                credit: creditAmountOut
             });
         }
 
