@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {console2 as console} from "forge-std/console2.sol";
-
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
@@ -38,7 +35,7 @@ contract SellCreditMarketTest is BaseTest {
         uint256 dueDate = block.timestamp + 365 days;
 
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 debtPositionId = _borrow(bob, alice, amount, dueDate);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, dueDate, false);
 
         uint256 faceValueOpening = Math.mulDivUp(faceValue, size.riskConfig().crOpening, PERCENT);
         uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(faceValueOpening);
@@ -77,7 +74,7 @@ contract SellCreditMarketTest is BaseTest {
         uint256 rate = uint256(Math.aprToRatePerMaturity(apr, dueDate - block.timestamp));
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
 
-        uint256 debtPositionId = _borrow(bob, alice, amount, dueDate);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, dueDate, false);
         uint256 debtOpening = Math.mulDivUp(debt, size.riskConfig().crOpening, PERCENT);
         uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(debtOpening);
         Vars memory _after = _state();
@@ -102,7 +99,7 @@ contract SellCreditMarketTest is BaseTest {
         uint256 amount = 30e6;
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
-        uint256 debtPositionId = _borrow(bob, alice, 60e6, block.timestamp + 12 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 60e6, block.timestamp + 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         Vars memory _before = _state();
@@ -120,8 +117,7 @@ contract SellCreditMarketTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountOut);
         assertEq(
             _after.feeRecipient.borrowATokenBalance,
-            _before.feeRecipient.borrowATokenBalance + size.feeConfig().fragmentationFee + swapFee,
-            "c"
+            _before.feeRecipient.borrowATokenBalance + size.feeConfig().fragmentationFee + swapFee
         );
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance);
@@ -157,7 +153,7 @@ contract SellCreditMarketTest is BaseTest {
             [int256(rate), int256(rate)],
             [uint256(maturity), uint256(maturity) * 2]
         );
-        uint256 debtPositionId = _borrow(bob, alice, amount, dueDate);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, dueDate, false);
         (uint256 debtPositionsCountBefore,) = size.getPositionsCount();
 
         Vars memory _before = _state();
@@ -189,7 +185,7 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
-        uint256 debtPositionId = _borrow(bob, alice, 60e6, block.timestamp + 12 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 60e6, block.timestamp + 12 days, false);
 
         Vars memory _before = _state();
         (uint256 debtPositionsCountBefore,) = size.getPositionsCount();
@@ -210,17 +206,18 @@ contract SellCreditMarketTest is BaseTest {
 
     function test_SellCreditMarket_sellCreditMarket_reverts_if_below_borrowing_opening_limit() public {
         _deposit(alice, weth, 100e18);
-        _deposit(alice, usdc, 100e6);
+        _deposit(alice, usdc, 120e6);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
         uint256 amount = 100e6;
         uint256 dueDate = block.timestamp + 12 days;
         vm.startPrank(bob);
         uint256 apr = size.getLoanOfferAPR(alice, dueDate);
-        bytes[] memory data = new bytes[](2);
-        uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, amount, dueDate);
-        data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-        data[1] = abi.encodeCall(
-            size.sellCreditMarket,
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, size.riskConfig().crOpening
+            )
+        );
+        size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,
                 creditPositionId: RESERVED_ID,
@@ -231,12 +228,6 @@ contract SellCreditMarketTest is BaseTest {
                 exactAmountIn: false
             })
         );
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector, CREDIT_POSITION_ID_START, LoanStatus.ACTIVE, 0
-            )
-        );
-        size.multicall(data);
     }
 
     function test_SellCreditMarket_sellCreditMarket_reverts_if_lender_cannot_transfer_underlyingBorrowToken() public {
@@ -250,11 +241,8 @@ contract SellCreditMarketTest is BaseTest {
         uint256 dueDate = block.timestamp + 12 days;
 
         vm.startPrank(bob);
-        bytes[] memory data = new bytes[](2);
-        uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, amount, dueDate);
-        data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-        data[1] = abi.encodeCall(
-            size.sellCreditMarket,
+        vm.expectRevert();
+        size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,
                 creditPositionId: RESERVED_ID,
@@ -265,8 +253,6 @@ contract SellCreditMarketTest is BaseTest {
                 exactAmountIn: false
             })
         );
-        vm.expectRevert();
-        size.multicall(data);
     }
 
     function test_SellCreditMarket_sellCreditMarket_does_not_create_new_CreditPosition_if_lender_tries_to_exit_fully_exited_CreditPosition(
@@ -285,7 +271,7 @@ contract SellCreditMarketTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 0.03e18);
         _lendAsLimitOrder(james, block.timestamp + 365 days, 0.03e18);
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(alice, candy, creditPositionId, block.timestamp + 365 days);
 
@@ -311,7 +297,7 @@ contract SellCreditMarketTest is BaseTest {
         _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
         _lendAsLimitOrder(james, block.timestamp + 12 days, 0);
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 12 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(alice, candy, creditPositionId, 49e6, block.timestamp + 12 days);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
@@ -335,7 +321,7 @@ contract SellCreditMarketTest is BaseTest {
         _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
         _lendAsLimitOrder(james, block.timestamp + 12 days, 0);
-        uint256 debtPositionId = _borrow(bob, alice, 1000e6, block.timestamp + 12 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 1000e6, block.timestamp + 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(alice, candy, creditPositionId, 490e6, block.timestamp + 12 days, false);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
@@ -364,17 +350,13 @@ contract SellCreditMarketTest is BaseTest {
         uint256 amount = 1;
         uint256 dueDate = block.timestamp + 12 days;
 
-        bytes[] memory data = new bytes[](2);
-        uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, amount, dueDate);
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, faceValue, size.riskConfig().minimumCreditBorrowAToken
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, amount, size.riskConfig().minimumCreditBorrowAToken
             )
         );
-        data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-        data[1] = abi.encodeCall(
-            size.sellCreditMarket,
+        size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,
                 creditPositionId: RESERVED_ID,
@@ -385,7 +367,6 @@ contract SellCreditMarketTest is BaseTest {
                 exactAmountIn: false
             })
         );
-        size.multicall(data);
 
         Vars memory _after = _state();
 
@@ -409,14 +390,11 @@ contract SellCreditMarketTest is BaseTest {
 
         vm.startPrank(alice);
 
-        bytes[] memory data = new bytes[](2);
         uint256 faceValue = size.getAmountIn(bob, RESERVED_ID, amount, dueDate);
         vm.expectRevert(
             abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.riskConfig().debtTokenCap, faceValue)
         );
-        data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-        data[1] = abi.encodeCall(
-            size.sellCreditMarket,
+        size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: bob,
                 creditPositionId: RESERVED_ID,
@@ -427,6 +405,5 @@ contract SellCreditMarketTest is BaseTest {
                 exactAmountIn: false
             })
         );
-        size.multicall(data);
     }
 }

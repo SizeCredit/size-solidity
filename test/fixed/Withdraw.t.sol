@@ -8,7 +8,9 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 import {UserView} from "@src/SizeView.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+
 import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
@@ -123,7 +125,7 @@ contract WithdrawTest is BaseTest {
         _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 150e18);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
-        _borrow(bob, alice, 50e6, block.timestamp + 12 days);
+        _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 12 days, false);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
@@ -186,7 +188,7 @@ contract WithdrawTest is BaseTest {
         uint256 rate = 1;
         _lendAsLimitOrder(alice, block.timestamp + 365 days, int256(rate));
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         _setPrice(0.125e18);

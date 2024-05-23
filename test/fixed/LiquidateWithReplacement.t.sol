@@ -6,7 +6,7 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
@@ -35,7 +35,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 365 days);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 delta = faceValue - amount;
 
@@ -78,7 +78,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.01e18, block.timestamp + 365 days);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 newAmount = Math.mulDivDown(faceValue, PERCENT, (PERCENT + 0.01e18));
         uint256 delta = faceValue - newAmount;
@@ -118,7 +118,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 365 days);
-        uint256 debtPositionId = _borrow(bob, alice, 15e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, block.timestamp + 365 days, false);
 
         _setPrice(0.2e18);
 
@@ -149,7 +149,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.03e18, 30);
-        uint256 debtPositionId = _borrow(bob, alice, 15e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, block.timestamp + 365 days, false);
 
         _setPrice(0.2e18);
 
@@ -190,7 +190,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(alice, weth, 200e18);
 
         // Alice borrows as market order from Bob
-        _borrow(alice, bob, 100e6, block.timestamp + 365 days);
+        _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.riskConfig().crOpening, "Alice should be above CR opening");

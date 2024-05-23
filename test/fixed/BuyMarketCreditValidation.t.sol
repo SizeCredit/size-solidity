@@ -2,6 +2,8 @@
 pragma solidity 0.8.23;
 
 import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -25,9 +27,10 @@ contract BuyMarketCreditValidationTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(365 days, 0));
 
-        uint256 debtPositionId1 = _borrow(bob, alice, 500e6, block.timestamp + 365 days);
+        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 500e6, block.timestamp + 365 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
-        uint256 debtPositionId2 = _borrow(james, candy, 1000.004274e6, block.timestamp + 365 days);
+        uint256 debtPositionId2 =
+            _sellCreditMarket(james, candy, RESERVED_ID, 1000.004274e6, block.timestamp + 365 days, false);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
