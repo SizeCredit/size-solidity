@@ -37,20 +37,17 @@ contract CompensateTest is BaseTest {
         uint256 loanId3 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, block.timestamp + 365 days, false);
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[1];
 
-        uint256 repaidLoanDebtBefore = size.getOverdueDebt(loanId3);
+        uint256 repaidLoanDebtBefore = size.getDebtPosition(loanId3).faceValue;
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionId).credit;
 
         _compensate(alice, creditPositionId3, creditPositionId);
 
-        uint256 repaidLoanDebtAfter = size.getOverdueDebt(loanId3);
+        uint256 repaidLoanDebtAfter = size.getDebtPosition(loanId3).faceValue;
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionId).credit;
 
-        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - faceValue - size.feeConfig().overdueLiquidatorReward);
+        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - faceValue);
         assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - faceValue);
-        assertEq(
-            repaidLoanDebtBefore - repaidLoanDebtAfter - size.feeConfig().overdueLiquidatorReward,
-            compensatedLoanCreditBefore - compensatedLoanCreditAfter
-        );
+        assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
     }
 
     function test_Compensate_compensate_CreditPosition_with_CreditPosition_reduces_DebtPosition_debt_and_CreditPosition_credit(
@@ -74,13 +71,13 @@ contract CompensateTest is BaseTest {
         _sellCreditMarket(bob, alice, creditPositionId, 30e6, block.timestamp + 365 days);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
 
-        uint256 repaidLoanDebtBefore = size.getOverdueDebt(debtPositionId);
+        uint256 repaidLoanDebtBefore = size.getDebtPosition(debtPositionId).faceValue;
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionId2).credit;
         uint256 creditFromRepaidPositionBefore = size.getCreditPosition(creditPositionId).credit;
 
         _compensate(alice, creditPositionId, creditPositionId2);
 
-        uint256 repaidLoanDebtAfter = size.getOverdueDebt(debtPositionId);
+        uint256 repaidLoanDebtAfter = size.getDebtPosition(debtPositionId).faceValue;
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionId2).credit;
         uint256 creditFromRepaidPositionAfter = size.getCreditPosition(creditPositionId).credit;
 
@@ -176,7 +173,6 @@ contract CompensateTest is BaseTest {
 
     function test_Compensate_compensate_full_claim() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
@@ -225,20 +221,17 @@ contract CompensateTest is BaseTest {
         uint256 loanToRepay = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, block.timestamp + 365 days, false);
         uint256 creditPositionWithDebtToRepayId = size.getCreditPositionIdsByDebtPositionId(loanToRepay)[1];
 
-        uint256 repaidLoanDebtBefore = size.getOverdueDebt(loanToRepay);
+        uint256 repaidLoanDebtBefore = size.getDebtPosition(loanToRepay).faceValue;
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionToCompensateId).credit;
 
         _compensate(alice, creditPositionWithDebtToRepayId, creditPositionToCompensateId);
 
-        uint256 repaidLoanDebtAfter = size.getOverdueDebt(loanToRepay);
+        uint256 repaidLoanDebtAfter = size.getDebtPosition(loanToRepay).faceValue;
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionToCompensateId).credit;
 
-        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e6 - size.feeConfig().overdueLiquidatorReward);
+        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e6);
         assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - 2 * 20e6);
-        assertEq(
-            repaidLoanDebtBefore - repaidLoanDebtAfter - size.feeConfig().overdueLiquidatorReward,
-            compensatedLoanCreditBefore - compensatedLoanCreditAfter
-        );
+        assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
         assertEq(repaidLoanDebtAfter, 0);
 
         vm.expectRevert(
@@ -286,7 +279,6 @@ contract CompensateTest is BaseTest {
 
     function test_Compensate_compensate_with_chain_of_exits() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _updateConfig("swapFeeAPR", 0);
 
         _deposit(alice, usdc, 100e6);
@@ -402,7 +394,6 @@ contract CompensateTest is BaseTest {
     function test_Compensate_compensate_used_to_borrower_exit_cannot_leave_borrower_liquidatable() public {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
         _deposit(bob, usdc, 100e6);
@@ -432,7 +423,6 @@ contract CompensateTest is BaseTest {
         vm.warp(block.timestamp + 12345 days);
 
         _updateConfig("borrowATokenCap", type(uint256).max);
-        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1500e6);
         _deposit(candy, weth, 2000e18);
@@ -465,7 +455,7 @@ contract CompensateTest is BaseTest {
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
         assertEq(_state().alice.debtBalance, 0);
-        assertEq(_state().candy.debtBalance, size.getOverdueDebt(debtPositionId2));
+        assertEq(_state().candy.debtBalance, size.getDebtPosition(debtPositionId2).faceValue);
         assertEq(aliceCollateralAfter, aliceCollateralBefore);
 
         _deposit(candy, usdc, 10_000e6);
@@ -483,7 +473,6 @@ contract CompensateTest is BaseTest {
 
         _updateConfig("borrowATokenCap", type(uint256).max);
         _updateConfig("swapFeeAPR", 0.1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1000e6);
         _deposit(candy, weth, 2000e18);
@@ -542,7 +531,6 @@ contract CompensateTest is BaseTest {
 
     function test_Compensate_compensate_mintCredit_can_be_used_to_partially_repay_with_compensate() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 400e18);

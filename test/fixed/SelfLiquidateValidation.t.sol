@@ -11,7 +11,6 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract SelfLiquidateValidationTest is BaseTest {
     function test_SelfLiquidate_validation() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _updateConfig("swapFeeAPR", 0);
 
         _deposit(alice, usdc, 100e6);

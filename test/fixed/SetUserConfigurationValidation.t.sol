@@ -12,7 +12,6 @@ contract SetUserConfigurationValidationTest is BaseTest {
     function test_SetUserConfiguration_validation() public {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 200e18);

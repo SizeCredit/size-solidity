@@ -106,7 +106,7 @@ library LendAsMarketOrder {
             faceValue: creditAmountOut,
             dueDate: params.dueDate
         });
-        state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
+        state.data.debtToken.mint(params.borrower, creditAmountOut);
         state.transferBorrowAToken(msg.sender, params.borrower, cashAmountIn - fees);
         state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
     }

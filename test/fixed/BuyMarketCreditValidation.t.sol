@@ -13,7 +13,6 @@ contract BuyMarketCreditValidationTest is BaseTest {
     function test_BuyMarketCredit_validation() public {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _updateConfig("borrowATokenCap", type(uint256).max);
 

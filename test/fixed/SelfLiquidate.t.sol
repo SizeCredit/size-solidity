@@ -10,7 +10,6 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidate_selfliquidate_rapays_with_collateral() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 150e18);
@@ -23,7 +22,7 @@ contract SelfLiquidateTest is BaseTest {
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
-        assertEq(size.getOverdueDebt(debtPositionId), 100e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
@@ -51,7 +50,6 @@ contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidate_selfliquidate_two_lenders() public {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, usdc, 150e6);
         _deposit(candy, usdc, 150e6);
         _deposit(james, usdc, 150e6);
@@ -72,7 +70,7 @@ contract SelfLiquidateTest is BaseTest {
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[3];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 200e18);
-        assertEq(size.getOverdueDebt(debtPositionId), 100e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 100e6);
         assertEq(size.collateralRatio(bob), 2.0e18);
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
@@ -90,7 +88,6 @@ contract SelfLiquidateTest is BaseTest {
     function test_SelfLiquidate_selfliquidate_keeps_accounting_in_check() public {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 150e6);
@@ -111,7 +108,7 @@ contract SelfLiquidateTest is BaseTest {
         _sellCreditMarket(alice, james, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
-        assertEq(size.getOverdueDebt(debtPositionId), 100e6);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
@@ -139,7 +136,6 @@ contract SelfLiquidateTest is BaseTest {
 
     function test_SelfLiquidate_selfliquidate_should_not_leave_dust_loan_when_no_exits() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 200e18 - 1);
@@ -154,7 +150,6 @@ contract SelfLiquidateTest is BaseTest {
 
     function test_SelfLiquidate_selfliquidate_should_not_leave_dust_loan_if_already_exited() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 150e6);
@@ -180,7 +175,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _selfLiquidate(alice, creditPositionId);
 
-        assertEq(size.getOverdueDebt(debtPositionId), credit);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, credit);
         assertEq(size.getCreditPosition(creditPositionId).credit, 0);
     }
 
@@ -223,7 +218,6 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
         _updateConfig("fragmentationFee", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 150e6);
@@ -245,7 +239,7 @@ contract SelfLiquidateTest is BaseTest {
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[2];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId1), 150e18);
-        assertEq(size.getOverdueDebt(debtPositionId1), 100e6);
+        assertEq(size.getDebtPosition(debtPositionId1).faceValue, 100e6);
         assertEq(size.getCreditPosition(creditPositionId1).credit, 70e6);
         assertEq(size.collateralRatio(alice), 1.5e18);
         assertTrue(!size.isUserUnderwater(bob));
@@ -325,7 +319,7 @@ contract SelfLiquidateTest is BaseTest {
 
     function testFuzz_SelfLiquidate_selfliquidateLoan_compensate_used_to_borrower_exit(uint256 exitAmount) public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
+
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 150e6);
         _deposit(james, weth, 400e18);
@@ -480,6 +474,6 @@ contract SelfLiquidateTest is BaseTest {
         _selfLiquidate(bob, size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1]);
 
         assertGt(_state().bob.collateralTokenBalance, 0);
-        assertEq(size.getOverdueDebt(debtPositionId), 0);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
     }
 }

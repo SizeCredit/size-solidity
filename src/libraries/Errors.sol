@@ -20,7 +20,6 @@ library Errors {
     error INVALID_KEY(string key);
     error INVALID_COLLATERAL_RATIO(uint256 cr);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM(uint256 percentage);
-    error INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(uint256 sum);
     error INVALID_MAXIMUM_MATURITY(uint256 maximumMaturity);
     error VALUE_GREATER_THAN_MAX(uint256 value, uint256 max);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);

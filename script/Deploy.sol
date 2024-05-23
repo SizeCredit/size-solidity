@@ -54,11 +54,9 @@ abstract contract Deploy {
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
             fragmentationFee: 5e6,
-            collateralLiquidatorPercent: 0.3e18,
+            liquidationRewardPercent: 0.05e18,
+            overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
-            overdueLiquidatorReward: 10e6,
-            overdueColLiquidatorPercent: 0.01e18,
-            overdueColProtocolPercent: 0.005e18,
             feeRecipient: feeRecipient
         });
         r = InitializeRiskConfigParams({
@@ -121,11 +119,9 @@ abstract contract Deploy {
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
             fragmentationFee: 5e6,
-            collateralLiquidatorPercent: 0.3e18,
+            liquidationRewardPercent: 0.05e18,
+            overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
-            overdueLiquidatorReward: 10e6,
-            overdueColLiquidatorPercent: 0.01e18,
-            overdueColProtocolPercent: 0.01e18,
             feeRecipient: _owner
         });
         r = InitializeRiskConfigParams({

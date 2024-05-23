@@ -23,11 +23,9 @@ import {Events} from "@src/libraries/Events.sol";
 struct InitializeFeeConfigParams {
     uint256 swapFeeAPR;
     uint256 fragmentationFee;
-    uint256 collateralLiquidatorPercent;
+    uint256 liquidationRewardPercent;
+    uint256 overdueCollateralProtocolPercent;
     uint256 collateralProtocolPercent;
-    uint256 overdueLiquidatorReward;
-    uint256 overdueColLiquidatorPercent;
-    uint256 overdueColProtocolPercent;
     address feeRecipient;
 }
 
@@ -71,37 +69,17 @@ library Initialize {
         // validate fragmentationFee
         // N/A
 
-        // validate collateralLiquidatorPercent
-        if (f.collateralLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralLiquidatorPercent);
+        // validate liquidationRewardPercent
+        // N/A
+
+        // validate overdueCollateralProtocolPercent
+        if (f.overdueCollateralProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueCollateralProtocolPercent);
         }
 
         // validate collateralProtocolPercent
         if (f.collateralProtocolPercent > PERCENT) {
             revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralProtocolPercent);
-        }
-        if (f.collateralLiquidatorPercent + f.collateralProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                f.collateralLiquidatorPercent + f.collateralProtocolPercent
-            );
-        }
-
-        // validate overdueLiquidatorReward
-        // N/A
-
-        // validate overdueColLiquidatorPercent
-        if (f.overdueColLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueColLiquidatorPercent);
-        }
-
-        // validate overdueColProtocolPercent
-        if (f.overdueColProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueColProtocolPercent);
-        }
-        if (f.overdueColLiquidatorPercent + f.overdueColProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                f.overdueColLiquidatorPercent + f.overdueColProtocolPercent
-            );
         }
 
         // validate feeRecipient
@@ -201,12 +179,9 @@ library Initialize {
         state.feeConfig.swapFeeAPR = f.swapFeeAPR;
         state.feeConfig.fragmentationFee = f.fragmentationFee;
 
-        state.feeConfig.collateralLiquidatorPercent = f.collateralLiquidatorPercent;
+        state.feeConfig.liquidationRewardPercent = f.liquidationRewardPercent;
+        state.feeConfig.overdueCollateralProtocolPercent = f.overdueCollateralProtocolPercent;
         state.feeConfig.collateralProtocolPercent = f.collateralProtocolPercent;
-
-        state.feeConfig.overdueLiquidatorReward = f.overdueLiquidatorReward;
-        state.feeConfig.overdueColLiquidatorPercent = f.overdueColLiquidatorPercent;
-        state.feeConfig.overdueColProtocolPercent = f.overdueColProtocolPercent;
 
         state.feeConfig.feeRecipient = f.feeRecipient;
     }

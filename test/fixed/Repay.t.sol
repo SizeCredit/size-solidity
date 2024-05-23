@@ -31,12 +31,12 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue - size.feeConfig().overdueLiquidatorReward);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
         assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertEq(size.getOverdueDebt(debtPositionId), 0);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
     }
 
     function test_Repay_overdue_does_not_increase_debt() public {
@@ -62,19 +62,19 @@ contract RepayTest is BaseTest {
         assertEq(_overdue.bob.debtBalance, _before.bob.debtBalance);
         assertEq(_overdue.bob.borrowATokenBalance, _before.bob.borrowATokenBalance);
         assertEq(_overdue.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertGt(size.getOverdueDebt(debtPositionId), 0);
+        assertGt(size.getDebtPosition(debtPositionId).faceValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.OVERDUE);
 
         _repay(bob, debtPositionId);
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue - size.feeConfig().overdueLiquidatorReward);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
         assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
-        assertEq(size.getOverdueDebt(debtPositionId), 0);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
     }
 

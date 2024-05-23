@@ -105,7 +105,7 @@ library Compensate {
                 faceValue: amountToCompensate,
                 dueDate: debtPositionToRepay.dueDate
             });
-            state.data.debtToken.mint(msg.sender, debtPosition.getTotalDebt());
+            state.data.debtToken.mint(msg.sender, debtPosition.faceValue);
         } else {
             creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
             amountToCompensate = Math.min(amountToCompensate, creditPositionToCompensate.credit);

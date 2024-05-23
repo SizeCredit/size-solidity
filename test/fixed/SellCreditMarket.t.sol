@@ -47,17 +47,14 @@ contract SellCreditMarketTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - amount - swapFee);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
-        assertEq(
-            _after.bob.debtBalance,
-            size.getDebtPosition(debtPositionId).faceValue + size.feeConfig().overdueLiquidatorReward
-        );
+        assertEq(_after.bob.debtBalance, size.getDebtPosition(debtPositionId).faceValue);
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_used_to_borrow(uint256 amount, uint256 apr, uint256 dueDate)
         public
     {
         _updateConfig("minimumMaturity", 1);
-        _updateConfig("overdueLiquidatorReward", 0);
+
         amount = bound(amount, MAX_AMOUNT_USDC / 20, MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
         apr = bound(apr, 0, MAX_RATE);
         dueDate = bound(dueDate, block.timestamp + 1, block.timestamp + MAX_MATURITY - 1);
@@ -86,7 +83,7 @@ contract SellCreditMarketTest is BaseTest {
         );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
-        assertEq(_after.bob.debtBalance, size.getOverdueDebt(debtPositionId));
+        assertEq(_after.bob.debtBalance, size.getDebtPosition(debtPositionId).faceValue);
     }
 
     function test_SellCreditMarket_sellCreditMarket_fragmentation() public {
@@ -283,7 +280,6 @@ contract SellCreditMarketTest is BaseTest {
     function test_SellCreditMarket_sellCreditMarket_CreditPosition_of_CreditPosition_creates_with_correct_debtPositionId(
     ) public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 100e6 + size.feeConfig().fragmentationFee);
@@ -309,7 +305,6 @@ contract SellCreditMarketTest is BaseTest {
 
     function test_SellCreditMarket_sellCreditMarket_CreditPosition_credit_is_decreased_after_exit() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, weth, 1500e18);
         _deposit(alice, usdc, 1000e6 + size.feeConfig().fragmentationFee);
@@ -380,7 +375,7 @@ contract SellCreditMarketTest is BaseTest {
 
     function test_SellCreditMarket_sellCreditMarket_cannot_surpass_debtTokenCap() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
+
         uint256 dueDate = block.timestamp + 12 days;
         uint256 amount = 10e6;
         _updateConfig("debtTokenCap", 5e6);

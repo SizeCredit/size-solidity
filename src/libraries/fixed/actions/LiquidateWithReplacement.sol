@@ -112,19 +112,17 @@ library LiquidateWithReplacement {
 
         debtPosition.borrower = params.borrower;
         debtPosition.faceValue = debtPositionCopy.faceValue;
-        debtPosition.overdueLiquidatorReward = state.feeConfig.overdueLiquidatorReward;
         debtPosition.liquidityIndexAtRepayment = 0;
 
         emit Events.UpdateDebtPosition(
             params.debtPositionId,
             debtPosition.borrower,
             debtPosition.faceValue,
-            debtPosition.overdueLiquidatorReward,
             debtPosition.dueDate,
             debtPosition.liquidityIndexAtRepayment
         );
 
-        state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
+        state.data.debtToken.mint(params.borrower, debtPosition.faceValue);
         state.transferBorrowAToken(address(this), params.borrower, issuanceValue);
         state.transferBorrowAToken(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
 

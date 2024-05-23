@@ -11,7 +11,6 @@ contract SetUserConfigurationTest is BaseTest {
     function test_SetUserConfiguration_setCreditForSale_disable_all() public {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _updateConfig("borrowATokenCap", type(uint256).max);
 
@@ -38,7 +37,6 @@ contract SetUserConfigurationTest is BaseTest {
     function test_SetUserConfiguration_setCreditForSale_disable_single() public {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _updateConfig("borrowATokenCap", type(uint256).max);
 

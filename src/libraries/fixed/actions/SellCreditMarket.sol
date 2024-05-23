@@ -143,7 +143,7 @@ library SellCreditMarket {
                 faceValue: creditAmountIn,
                 dueDate: params.dueDate
             });
-            state.data.debtToken.mint(msg.sender, debtPosition.getTotalDebt());
+            state.data.debtToken.mint(msg.sender, debtPosition.faceValue);
         }
 
         state.createCreditPosition({
