@@ -241,4 +241,81 @@ contract BuyCreditMarketLendTest is BaseTest {
         assertEq(debtPositionsCount, 1, "There should be one active loan after lending");
         assertEq(creditPositionsCount, 1, "There should be one active loan after lending");
     }
+
+    function test_BuyCreditMarket_validation() public {
+        _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
+        _deposit(alice, weth, 2 * 150e18);
+        _deposit(bob, usdc, 10e6);
+        _borrowAsLimitOrder(alice, [int256(1e18), int256(1e18)], [uint256(365 days), uint256(365 days * 2)]);
+
+        uint256 dueDate = block.timestamp + 365 days;
+
+        vm.startPrank(bob);
+
+        vm.expectRevert();
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: address(0),
+                creditPositionId: RESERVED_ID,
+                dueDate: dueDate,
+                amount: 100e6,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: false
+            })
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, bob, 10e6, 50e6));
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: alice,
+                creditPositionId: RESERVED_ID,
+                dueDate: dueDate,
+                amount: 100e6,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: false
+            })
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp - 1));
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: alice,
+                creditPositionId: RESERVED_ID,
+                dueDate: block.timestamp - 1,
+                amount: 100e6,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: false
+            })
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DEADLINE.selector, block.timestamp - 1));
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: alice,
+                creditPositionId: RESERVED_ID,
+                dueDate: block.timestamp + 365 days,
+                amount: 10e6,
+                deadline: block.timestamp - 1,
+                minAPR: 0,
+                exactAmountIn: false
+            })
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.APR_LOWER_THAN_MIN_APR.selector, 1e18, 2e18));
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: alice,
+                creditPositionId: RESERVED_ID,
+                dueDate: block.timestamp + 365 days,
+                amount: 10e6,
+                deadline: block.timestamp,
+                minAPR: 2e18,
+                exactAmountIn: false
+            })
+        );
+    }
 }
