@@ -17,6 +17,10 @@ contract NonTransferrableToken is Ownable, ERC20 {
         Ownable(owner_)
         ERC20(name_, symbol_)
     {
+        if (decimals_ == 0) {
+            revert Errors.NULL_AMOUNT();
+        }
+
         _decimals = decimals_;
     }
 
