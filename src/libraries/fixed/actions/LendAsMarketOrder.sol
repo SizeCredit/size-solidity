@@ -98,7 +98,7 @@ library LendAsMarketOrder {
             });
         }
 
-        state.createDebtAndCreditPositions({
+        (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,
             faceValue: creditAmountOut,

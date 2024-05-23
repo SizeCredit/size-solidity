@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -22,9 +22,9 @@ contract LiquidateValidationTest is BaseTest {
         _lendAsLimitOrder(bob, block.timestamp + 12 days, 0.03e18);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
         _lendAsLimitOrder(james, block.timestamp + 12 days, 0.03e18);
-        _borrow(bob, candy, 90e6, block.timestamp + 12 days);
+        _sellCreditMarket(bob, candy, RESERVED_ID, 90e6, block.timestamp + 12 days, false);
 
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 12 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(alice, james, creditId, 20e6, block.timestamp + 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
@@ -51,7 +51,7 @@ contract LiquidateValidationTest is BaseTest {
         vm.stopPrank();
 
         _sellCreditMarket(alice, candy, creditId, 10e6, block.timestamp + 12 days);
-        _borrow(alice, james, 50e6, block.timestamp + 12 days);
+        _sellCreditMarket(alice, james, RESERVED_ID, 50e6, block.timestamp + 12 days, false);
 
         // DebtPosition with high CR cannot be liquidated
         vm.startPrank(liquidator);

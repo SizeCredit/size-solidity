@@ -11,7 +11,6 @@ import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 
-import {MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
 contract LendAsLimitOrderTest is BaseTest {
@@ -52,20 +51,17 @@ contract LendAsLimitOrderTest is BaseTest {
             })
         );
 
-        vm.prank(bob);
-        _borrow(bob, alice, 100e6, block.timestamp + 45 days);
+        _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 45 days, false);
 
         LendAsLimitOrderParams memory empty;
         vm.prank(alice);
         size.lendAsLimitOrder(empty);
 
-        bytes[] memory data = new bytes[](2);
         uint256 amount = 100e6;
         uint256 dueDate = block.timestamp + 45 days;
-        uint256 faceValue = 1.2e18 * amount / 1e18;
-        data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-        data[1] = abi.encodeCall(
-            size.sellCreditMarket,
+        vm.prank(candy);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, alice));
+        size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,
                 creditPositionId: RESERVED_ID,
@@ -76,8 +72,5 @@ contract LendAsLimitOrderTest is BaseTest {
                 exactAmountIn: false
             })
         );
-        vm.prank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, alice));
-        size.multicall(data);
     }
 }

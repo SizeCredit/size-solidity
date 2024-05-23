@@ -29,8 +29,6 @@ import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/act
 import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {Liquidate, LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
-import {MintCredit, MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
-
 import {Multicall} from "@src/libraries/Multicall.sol";
 import {Compensate, CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {
@@ -60,7 +58,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using UpdateConfig for State;
     using Deposit for State;
     using Withdraw for State;
-    using MintCredit for State;
     using SellCreditMarket for State;
     using BorrowAsLimitOrder for State;
     using LendAsMarketOrder for State;
@@ -137,12 +134,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         state.validateWithdraw(params);
         state.executeWithdraw(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
-    }
-
-    /// @inheritdoc ISize
-    function mintCredit(MintCreditParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateMintCredit(params);
-        state.executeMintCredit(params);
     }
 
     /// @inheritdoc ISize

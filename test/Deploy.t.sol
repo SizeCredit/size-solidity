@@ -8,7 +8,6 @@ import {DeployScript} from "@script/Deploy.s.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 import {ForkTest} from "@test/ForkTest.sol";
 import {Test} from "forge-std/Test.sol";
@@ -60,7 +59,7 @@ contract DeployScriptTest is ForkTest {
         vm.warp(block.timestamp + 30 days);
 
         _deposit(bob, weth, 1e18);
-        uint256 debtPositionId = _borrow(bob, alice, 1_000e6, block.timestamp + 60 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 1_000e6, block.timestamp + 60 days, false);
 
         assertEq(debtPositionId, 0);
         assertEq(size.getUserView(alice).borrowATokenBalance, 1_500e6);
@@ -95,7 +94,7 @@ contract DeployScriptTest is ForkTest {
         assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
 
         _deposit(bob, weth, 1e18);
-        _borrow(bob, alice, 1_000e6, block.timestamp + 60 days);
+        _sellCreditMarket(bob, alice, RESERVED_ID, 1_000e6, block.timestamp + 60 days, false);
         vm.expectRevert();
         _withdraw(bob, usdc, 1_000e6);
     }
@@ -120,14 +119,12 @@ contract DeployScriptTest is ForkTest {
         _deposit(bob, weth, 1e18);
 
         uint256 dueDate = block.timestamp + 60 days;
-        uint256 faceValue = size.getAmountIn(alice, RESERVED_ID, 1_000e6, dueDate);
-        bytes[] memory data = new bytes[](2);
-        data[0] = abi.encodeCall(size.mintCredit, MintCreditParams({amount: faceValue, dueDate: dueDate}));
-        data[1] = abi.encodeCall(
-            size.sellCreditMarket,
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector, 500e6, 2500e6));
+        size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,
-                creditPositionId: type(uint256).max,
+                creditPositionId: RESERVED_ID,
                 amount: 1_000e6,
                 dueDate: dueDate,
                 deadline: block.timestamp,
@@ -135,8 +132,5 @@ contract DeployScriptTest is ForkTest {
                 exactAmountIn: false
             })
         );
-        vm.prank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector, 500e6, 2500e6));
-        size.multicall(data);
     }
 }
