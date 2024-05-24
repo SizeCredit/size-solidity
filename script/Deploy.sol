@@ -64,7 +64,6 @@ abstract contract Deploy {
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: 5e6,
             borrowATokenCap: 1_000_000e6,
-            debtTokenCap: 500_000e6,
             minimumMaturity: 1 days,
             maximumMaturity: 5 * 365 days
         });
@@ -129,7 +128,6 @@ abstract contract Deploy {
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: 50e6,
             borrowATokenCap: 1_000_000e6,
-            debtTokenCap: 500_000e6,
             minimumMaturity: 1 days,
             maximumMaturity: 5 * 365 days
         });

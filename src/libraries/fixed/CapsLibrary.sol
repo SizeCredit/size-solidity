@@ -42,12 +42,6 @@ library CapsLibrary {
         }
     }
 
-    function validateDebtTokenCap(State storage state) external view {
-        if (state.data.debtToken.totalSupply() > state.riskConfig.debtTokenCap) {
-            revert Errors.DEBT_TOKEN_CAP_EXCEEDED(state.riskConfig.debtTokenCap, state.data.debtToken.totalSupply());
-        }
-    }
-
     function validateVariablePoolHasEnoughLiquidity(State storage state, uint256 amount) public view {
         uint256 liquidity = state.data.underlyingBorrowToken.balanceOf(address(state.data.variablePool));
         if (liquidity < amount) {

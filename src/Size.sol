@@ -163,7 +163,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         state.validateLendAsMarketOrder(params);
         uint256 amount = state.executeLendAsMarketOrder(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
-        state.validateDebtTokenCap();
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
@@ -172,7 +171,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         state.validateSellCreditMarket(params);
         uint256 amount = state.executeSellCreditMarket(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
-        state.validateDebtTokenCap();
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
