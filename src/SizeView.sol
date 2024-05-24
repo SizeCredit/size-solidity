@@ -46,10 +46,10 @@ struct DataView {
     uint256 nextCreditPositionId;
     IERC20Metadata underlyingCollateralToken;
     IERC20Metadata underlyingBorrowToken;
-    NonTransferrableToken collateralToken; // // Size deposit underlying collateral token
-    NonTransferrableScaledToken borrowAToken; // // Size deposit underlying borrow aToken
-    NonTransferrableToken debtToken; // Size tokenized debt
-    IPool variablePool; // Variable Pool (Aave v3)
+    NonTransferrableToken collateralToken;
+    NonTransferrableScaledToken borrowAToken;
+    NonTransferrableToken debtToken;
+    IPool variablePool;
 }
 
 /// @title SizeView
@@ -168,53 +168,17 @@ abstract contract SizeView is SizeStorage {
         return state.getCreditPositionProRataAssignedCollateral(creditPosition);
     }
 
-    function getAmountIn(address lender, uint256 creditPositionId, uint256 amountOut, uint256 dueDate)
-        external
-        view
-        returns (uint256 amountIn)
-    {
-        LoanOffer memory offer = state.data.users[lender].loanOffer;
-        if (offer.isNull()) {
-            revert Errors.NULL_OFFER();
+    function getSwapFeePercent(uint256 dueDate) public view returns (uint256) {
+        if (dueDate < block.timestamp) {
+            revert Errors.PAST_DUE_DATE(dueDate);
         }
-        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
-
-        if (creditPositionId == RESERVED_ID) {
-            amountIn = Math.mulDivUp(amountOut, PERCENT + ratePerMaturity, PERCENT - state.getSwapFeePercent(dueDate));
-        } else {
-            // slither-disable-next-line unused-return
-            (amountIn,) = state.getCreditAmountIn(
-                amountOut, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate
-            );
-        }
-    }
-
-    function getAmountOut(address lender, uint256 creditPositionId, uint256 amountIn, uint256 dueDate)
-        external
-        view
-        returns (uint256 amountOut)
-    {
-        LoanOffer memory offer = state.data.users[lender].loanOffer;
-        if (offer.isNull()) {
-            revert Errors.NULL_OFFER();
-        }
-        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
-
-        // slither-disable-next-line unused-return
-        (amountOut,) =
-            state.getCashAmountOut(amountIn, state.getCreditPosition(creditPositionId).credit, ratePerMaturity, dueDate);
+        return state.getSwapFeePercent(dueDate);
     }
 
     function getSwapFee(uint256 cash, uint256 dueDate) public view returns (uint256) {
-        return state.getSwapFee(cash, dueDate);
-    }
-
-    function getSwapFee(address lender, uint256 amountIn, uint256 dueDate) external view returns (uint256) {
-        LoanOffer memory offer = state.data.users[lender].loanOffer;
-        if (offer.isNull()) {
-            revert Errors.NULL_OFFER();
+        if (dueDate < block.timestamp) {
+            revert Errors.PAST_DUE_DATE(dueDate);
         }
-        uint256 ratePerMaturity = offer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
-        return getSwapFee(Math.mulDivDown(amountIn, PERCENT, PERCENT + ratePerMaturity), dueDate);
+        return state.getSwapFee(cash, dueDate);
     }
 }
