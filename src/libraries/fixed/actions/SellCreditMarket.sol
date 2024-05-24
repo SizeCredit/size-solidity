@@ -31,7 +31,7 @@ library SellCreditMarket {
     using RiskLibrary for State;
     using AccountingLibrary for State;
 
-    function validateSellCreditMarket(State storage state, SellCreditMarketParams memory params) external view {
+    function validateSellCreditMarket(State storage state, SellCreditMarketParams calldata params) external view {
         LoanOffer memory loanOffer = state.data.users[params.lender].loanOffer;
 
         // validate msg.sender
@@ -92,7 +92,7 @@ library SellCreditMarket {
         // N/A
     }
 
-    function executeSellCreditMarket(State storage state, SellCreditMarketParams memory params)
+    function executeSellCreditMarket(State storage state, SellCreditMarketParams calldata params)
         external
         returns (uint256 cashAmountOut)
     {
@@ -104,6 +104,7 @@ library SellCreditMarket {
             state.oracle.variablePoolBorrowRateFeed, params.dueDate
         );
 
+        // slither-disable-next-line uninitialized-local
         CreditPosition memory creditPosition;
         if (params.creditPositionId != RESERVED_ID) {
             creditPosition = state.getCreditPosition(params.creditPositionId);
@@ -134,15 +135,13 @@ library SellCreditMarket {
         }
 
         if (params.creditPositionId == RESERVED_ID) {
-            DebtPosition memory debtPosition;
             // slither-disable-next-line unused-return
-            (debtPosition,) = state.createDebtAndCreditPositions({
+            state.createDebtAndCreditPositions({
                 lender: msg.sender,
                 borrower: msg.sender,
                 faceValue: creditAmountIn,
                 dueDate: params.dueDate
             });
-            state.data.debtToken.mint(msg.sender, debtPosition.faceValue);
         }
 
         state.createCreditPosition({

@@ -97,14 +97,12 @@ library Compensate {
 
         CreditPosition memory creditPositionToCompensate;
         if (params.creditPositionToCompensateId == RESERVED_ID) {
-            DebtPosition memory debtPosition;
-            (debtPosition, creditPositionToCompensate) = state.createDebtAndCreditPositions({
+            creditPositionToCompensate = state.createDebtAndCreditPositions({
                 lender: msg.sender,
                 borrower: msg.sender,
                 faceValue: amountToCompensate,
                 dueDate: debtPositionToRepay.dueDate
             });
-            state.data.debtToken.mint(msg.sender, debtPosition.faceValue);
         } else {
             creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
             amountToCompensate = Math.min(amountToCompensate, creditPositionToCompensate.credit);

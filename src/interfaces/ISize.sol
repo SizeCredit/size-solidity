@@ -50,9 +50,8 @@ interface ISize {
     function withdraw(WithdrawParams calldata params) external payable;
 
     /// @notice Picks a lender offer and borrow tokens from the orderbook
-    ///         When using receivable credit positions as credit, the early exit lender fee is applied to the borrower
-    /// @dev The `amount` parameter is altered by the function, which is why the `params` argument is marked as `memory`
-    ///      Order "takers" are the ones who pay the rounding, since "makers" are the ones passively waiting for an order to be matched
+    ///         This function can be used both for selling an existing credit or to borrow by creating a DebtPosition/CreditPosition pair
+    /// @dev Order "takers" are the ones who pay the rounding, since "makers" are the ones passively waiting for an order to be matched
     //       The caller may pass type(uint256).max as the creditPositionId in order to represent "mint a new DebtPosition/CreditPosition pair"
     /// @param params SellCreditMarketParams struct containing the following fields:
     ///     - address lender: The address of the lender
@@ -61,8 +60,8 @@ interface ISize {
     ///     - uint256 dueDate: The due date of the loan
     ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
     ///     - uint256 maxAPR: The maximum APR the caller is willing to accept
-    ///     - bool exactAmountIn: When passing an array of receivable credit position ids, this flag indicates if the amount is value to be returned at due date
-    function sellCreditMarket(SellCreditMarketParams memory params) external payable;
+    ///     - bool exactAmountIn: this flag indicates if the amount argument represents either credit (true) or cash (false)
+    function sellCreditMarket(SellCreditMarketParams calldata params) external payable;
 
     /// @notice Places a new borrow offer in the orderbook
     /// @param params BorrowAsLimitOrderParams struct containing the following fields:
@@ -77,7 +76,7 @@ interface ISize {
     ///     - address borrower: The address of the borrower
     ///     - uint256 amount: The amount of tokens to lend (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     ///     - uint256 dueDate: The due date of the loan
-    ///     - bool exactAmountIn: This flag indicates if the amount is the value to be transferred to the borrower or if it should be used to calculate the amount to be transferred
+    ///     - bool exactAmountIn: this flag indicates if the amount argument represents either cash (true) or credit (false)
     ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
     ///     - uint256 minAPR: The minimum APR the caller is willing to accept
     function lendAsMarketOrder(LendAsMarketOrderParams calldata params) external payable;
@@ -157,7 +156,7 @@ interface ISize {
     /// @param params BuyMarketCredit struct containing the following fields:
     ///     - uint256 creditPositionId: The id of the credit position to buy
     ///     - uint256 amount: The amont of credit to buy from the credit position
-    ///     - bool exactAmountIn: This flag indicates if the amount is the present value cash used to buy credit
+    ///     - bool exactAmountIn: this flag indicates if the amount argument represents either cash (true) or credit (false)
     ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
     ///     - uint256 minAPR: The minimum APR the caller is willing to accept
     function buyMarketCredit(BuyMarketCreditParams calldata params) external payable;

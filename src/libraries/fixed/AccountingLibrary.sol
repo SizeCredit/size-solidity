@@ -67,8 +67,8 @@ library AccountingLibrary {
         address borrower,
         uint256 faceValue,
         uint256 dueDate
-    ) external returns (DebtPosition memory debtPosition, CreditPosition memory creditPosition) {
-        debtPosition =
+    ) external returns (CreditPosition memory creditPosition) {
+        DebtPosition memory debtPosition =
             DebtPosition({borrower: borrower, faceValue: faceValue, dueDate: dueDate, liquidityIndexAtRepayment: 0});
 
         uint256 debtPositionId = state.data.nextDebtPositionId++;
@@ -88,6 +88,8 @@ library AccountingLibrary {
         state.validateMinimumCreditOpening(creditPosition.credit);
 
         emit Events.CreateCreditPosition(creditPositionId, lender, RESERVED_ID, debtPositionId, creditPosition.credit);
+
+        state.data.debtToken.mint(borrower, faceValue);
     }
 
     function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)

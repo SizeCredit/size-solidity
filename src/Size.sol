@@ -168,7 +168,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) whenNotPaused {
+    function sellCreditMarket(SellCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateSellCreditMarket(params);
         uint256 amount = state.executeSellCreditMarket(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);

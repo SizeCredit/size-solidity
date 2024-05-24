@@ -72,7 +72,7 @@ library LendAsMarketOrder {
         // N/A
     }
 
-    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params)
+    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params)
         external
         returns (uint256 cashAmountIn)
     {
@@ -103,13 +103,13 @@ library LendAsMarketOrder {
             });
         }
 
-        (DebtPosition memory debtPosition,) = state.createDebtAndCreditPositions({
+        // slither-disable-next-line unused-return
+        state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,
             faceValue: creditAmountOut,
             dueDate: params.dueDate
         });
-        state.data.debtToken.mint(params.borrower, debtPosition.faceValue);
         state.data.borrowAToken.transferFrom(msg.sender, params.borrower, cashAmountIn - fees);
         state.data.borrowAToken.transferFrom(msg.sender, state.feeConfig.feeRecipient, fees);
     }
