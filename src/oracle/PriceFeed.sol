@@ -9,38 +9,27 @@ import {IPriceFeed} from "./IPriceFeed.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 /// @title PriceFeed
-/// @notice A contract that provides the price of an asset in terms of another asset
+/// @notice A contract that provides the price of a `base` asset in terms of a `quote` asset, using an intermediate asset, scaled to 18 decimals
 /// @dev The price is calculated as `base / quote`. Example configuration:
 ///      _base: ETH/USD feed
 ///      _quote: USDC/USD feed
-///      _decimals: 18
 ///      _baseStalePriceInterval: 3600 seconds (https://data.chain.link/ethereum/mainnet/crypto-usd/eth-usd)
 ///      _quoteStalePriceInterval: 86400 seconds (https://data.chain.link/ethereum/mainnet/stablecoins/usdc-usd)
 ///      answer: ETH/USDC in 1e18
+///      Note: _base and _quote must have the same number of decimals
+///      Note: _base and _quote must have the same intermediate asset (in this example, USD)
 contract PriceFeed is IPriceFeed {
-    /* solhint-disable immutable-vars-naming */
+    /* solhint-disable */
+    uint256 public constant decimals = 18;
     AggregatorV3Interface public immutable base;
     AggregatorV3Interface public immutable quote;
-    uint8 public immutable decimals;
-    uint8 public immutable baseDecimals;
-    uint8 public immutable quoteDecimals;
     uint256 public immutable baseStalePriceInterval;
     uint256 public immutable quoteStalePriceInterval;
-    /* solhint-enable immutable-vars-naming */
+    /* solhint-enable */
 
-    constructor(
-        address _base,
-        address _quote,
-        uint8 _decimals,
-        uint256 _baseStalePriceInterval,
-        uint256 _quoteStalePriceInterval
-    ) {
+    constructor(address _base, address _quote, uint256 _baseStalePriceInterval, uint256 _quoteStalePriceInterval) {
         if (_base == address(0) || _quote == address(0)) {
             revert Errors.NULL_ADDRESS();
-        }
-
-        if (_decimals == 0 || _decimals > 18) {
-            revert Errors.INVALID_DECIMALS(_decimals);
         }
 
         if (_baseStalePriceInterval == 0 || _quoteStalePriceInterval == 0) {
@@ -49,12 +38,12 @@ contract PriceFeed is IPriceFeed {
 
         base = AggregatorV3Interface(_base);
         quote = AggregatorV3Interface(_quote);
-        decimals = _decimals;
         baseStalePriceInterval = _baseStalePriceInterval;
         quoteStalePriceInterval = _quoteStalePriceInterval;
 
-        baseDecimals = base.decimals();
-        quoteDecimals = quote.decimals();
+        if (base.decimals() != quote.decimals()) {
+            revert Errors.INVALID_DECIMALS(quote.decimals());
+        }
     }
 
     function getPrice() external view returns (uint256) {
@@ -72,18 +61,6 @@ contract PriceFeed is IPriceFeed {
             revert Errors.STALE_PRICE(address(aggregator), updatedAt);
         }
 
-        price = _scalePrice(price, aggregator.decimals(), decimals);
-
         return SafeCast.toUint256(price);
-    }
-
-    function _scalePrice(int256 _price, uint8 _priceDecimals, uint8 _decimals) internal pure returns (int256) {
-        if (_priceDecimals < _decimals) {
-            return _price * SafeCast.toInt256(10 ** uint256(_decimals - _priceDecimals));
-        } else if (_priceDecimals > _decimals) {
-            return _price / SafeCast.toInt256(10 ** uint256(_priceDecimals - _decimals));
-        } else {
-            return _price;
-        }
     }
 }

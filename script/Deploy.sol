@@ -104,7 +104,7 @@ abstract contract Deploy {
             variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(_owner);
             VariablePoolBorrowRateFeedMock(address(variablePoolBorrowRateFeed)).setVariableBorrowRate(0.0724e18);
         } else {
-            priceFeed = new PriceFeed(_wethAggregator, _usdcAggregator, 18, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
+            priceFeed = new PriceFeed(_wethAggregator, _usdcAggregator, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
 
             variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeed(_owner, 6 hours, borrowRate);
         }
