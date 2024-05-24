@@ -12,8 +12,6 @@ import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
-import {MintCreditParams} from "@src/libraries/fixed/actions/MintCredit.sol";
-
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
@@ -31,7 +29,7 @@ import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserCo
 interface ISize {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always deposited into the Variable Pool,
-    ///         Collateral tokens are deposited into the Size contract through the CollateralLibrary
+    ///         Collateral tokens are deposited into the Size contract through the DepositTokenLibrary
     /// @dev The caller must approve the transfer of the token to the protocol.
     ///      This function mints 1:1 Size Tokens (e.g. aUSDC, szETH) in exchange of the deposited tokens
     /// @param params DepositParams struct containing the following fields:
@@ -42,7 +40,7 @@ interface ISize {
 
     /// @notice Withdraw underlying borrow/collateral tokens from the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always withdrawn from the Variable Pool
-    ///         Collateral tokens are withdrawn from the Size contract through the CollateralLibrary
+    ///         Collateral tokens are withdrawn from the Size contract through the DepositTokenLibrary
     /// @dev This function burns 1:1 Size Tokens (e.g. aUSDC, szETH) in exchange of the withdrawn tokens
     /// @param params WithdrawParams struct containing the following fields:
     ///     - address token: The address of the token to withdraw
@@ -50,20 +48,10 @@ interface ISize {
     ///     - uint256 to: The recipient of the withdrawal
     function withdraw(WithdrawParams calldata params) external payable;
 
-    /// @notice Mints a new DebtPosition/CreditPosition pair to the sender to be used in a subsequent operation
-    /// @dev Does not to check if user is underwater, as it can be used together a debt reduction operation.
-    //       Because of the lack of underwater checks, this function is only callable from a multicall.
-    //       Since the minted credit position ID might not be known before the multicall transaction is executed, the caller may pass
-    //       the type(uint256).max in other functions to represent "the minted credit position".
-    /// @param params MintCreditParams struct containing the following fields:
-    ///     - uint256 amount: The amount of tokens to borrow (in decimals, e.g. 1_000e6 for 1000 aUSDC)
-    ///     - uint256 dueDate: The due date of the position
-    function mintCredit(MintCreditParams calldata params) external payable;
-
     /// @notice Picks a lender offer and borrow tokens from the orderbook
-    ///         When using receivable credit positions as credit, the early exit lender fee is applied to the borrower
-    /// @dev The `amount` parameter is altered by the function, which is why the `params` argument is marked as `memory`
-    ///      Order "takers" are the ones who pay the rounding, since "makers" are the ones passively waiting for an order to be matched
+    ///         This function can be used both for selling an existing credit or to borrow by creating a DebtPosition/CreditPosition pair
+    /// @dev Order "takers" are the ones who pay the rounding, since "makers" are the ones passively waiting for an order to be matched
+    //       The caller may pass type(uint256).max as the creditPositionId in order to represent "mint a new DebtPosition/CreditPosition pair"
     /// @param params SellCreditMarketParams struct containing the following fields:
     ///     - address lender: The address of the lender
     ///     - uint256 creditPositionId: The id of a credit position to be sold
@@ -71,8 +59,8 @@ interface ISize {
     ///     - uint256 dueDate: The due date of the loan
     ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
     ///     - uint256 maxAPR: The maximum APR the caller is willing to accept
-    ///     - bool exactAmountIn: When passing an array of receivable credit position ids, this flag indicates if the amount is value to be returned at due date
-    function sellCreditMarket(SellCreditMarketParams memory params) external payable;
+    ///     - bool exactAmountIn: this flag indicates if the amount argument represents either credit (true) or cash (false)
+    function sellCreditMarket(SellCreditMarketParams calldata params) external payable;
 
     /// @notice Places a new borrow offer in the orderbook
     /// @param params BorrowAsLimitOrderParams struct containing the following fields:
@@ -146,6 +134,7 @@ interface ISize {
 
     /// @notice Compensate a borrower's debt with his credit in another loan
     ///         The compensation can not exceed both 1) the credit the lender of `debtPositionToRepayId` to the borrower and 2) the credit the lender of `creditPositionToCompensateId`
+    // @dev The caller may pass type(uint256).max as the creditPositionId in order to represent "mint a new DebtPosition/CreditPosition pair"
     /// @param params CompensateParams struct containing the following fields:
     ///     - uint256 debtPositionToRepayId: The id of the debt position to repay
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate

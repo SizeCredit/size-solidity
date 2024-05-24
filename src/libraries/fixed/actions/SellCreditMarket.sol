@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
@@ -8,7 +9,6 @@ import {State} from "@src/SizeStorage.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -30,14 +30,9 @@ library SellCreditMarket {
     using LoanLibrary for State;
     using RiskLibrary for State;
     using AccountingLibrary for State;
-    using VariablePoolLibrary for State;
 
-    function validateSellCreditMarket(State storage state, SellCreditMarketParams memory params) external view {
-        uint256 creditPositionId =
-            params.creditPositionId == RESERVED_ID ? (state.data.nextCreditPositionId - 1) : params.creditPositionId;
+    function validateSellCreditMarket(State storage state, SellCreditMarketParams calldata params) external view {
         LoanOffer memory loanOffer = state.data.users[params.lender].loanOffer;
-        CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
-        DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(creditPositionId);
 
         // validate msg.sender
         // N/A
@@ -48,24 +43,30 @@ library SellCreditMarket {
         }
 
         // validate creditPositionId
-        if (msg.sender != creditPosition.lender) {
-            revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, creditPosition.lender);
-        }
-        if (params.dueDate < debtPosition.dueDate) {
-            revert Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(params.dueDate, debtPosition.dueDate);
-        }
-        if (!state.isCreditPositionTransferrable(creditPositionId)) {
-            revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
-                creditPositionId, state.getLoanStatus(creditPositionId), state.collateralRatio(debtPosition.borrower)
-            );
+        if (params.creditPositionId != RESERVED_ID) {
+            CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
+            DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
+            if (msg.sender != creditPosition.lender) {
+                revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, creditPosition.lender);
+            }
+            if (params.dueDate < debtPosition.dueDate) {
+                revert Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(params.dueDate, debtPosition.dueDate);
+            }
+            if (!state.isCreditPositionTransferrable(params.creditPositionId)) {
+                revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
+                    params.creditPositionId,
+                    state.getLoanStatus(params.creditPositionId),
+                    state.collateralRatio(debtPosition.borrower)
+                );
+            }
+            // validate amount
+            if (params.amount > creditPosition.credit) {
+                revert Errors.AMOUNT_GREATER_THAN_CREDIT_POSITION_CREDIT(params.amount, creditPosition.credit);
+            }
         }
 
-        // validate amount
         if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
             revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
-        }
-        if (params.amount > creditPosition.credit) {
-            revert Errors.AMOUNT_GREATER_THAN_CREDIT_POSITION_CREDIT(params.amount, creditPosition.credit);
         }
 
         // validate dueDate
@@ -91,49 +92,66 @@ library SellCreditMarket {
         // N/A
     }
 
-    function executeSellCreditMarket(State storage state, SellCreditMarketParams memory params)
+    function executeSellCreditMarket(State storage state, SellCreditMarketParams calldata params)
         external
         returns (uint256 cashAmountOut)
     {
-        uint256 creditPositionId =
-            params.creditPositionId == RESERVED_ID ? (state.data.nextCreditPositionId - 1) : params.creditPositionId;
-
         emit Events.SellCreditMarket(
-            params.lender, creditPositionId, params.amount, params.dueDate, params.exactAmountIn
+            params.lender, params.creditPositionId, params.amount, params.dueDate, params.exactAmountIn
         );
 
-        CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
         uint256 ratePerMaturity = state.data.users[params.lender].loanOffer.getRatePerMaturityByDueDate(
             state.oracle.variablePoolBorrowRateFeed, params.dueDate
         );
 
+        // slither-disable-next-line uninitialized-local
+        CreditPosition memory creditPosition;
+        if (params.creditPositionId != RESERVED_ID) {
+            creditPosition = state.getCreditPosition(params.creditPositionId);
+        }
         uint256 creditAmountIn;
         uint256 fees;
 
         if (params.exactAmountIn) {
             creditAmountIn = params.amount;
+
             (cashAmountOut, fees) = state.getCashAmountOut({
                 creditAmountIn: creditAmountIn,
-                maxCredit: creditPosition.credit,
+                maxCredit: params.creditPositionId == RESERVED_ID ? creditAmountIn : creditPosition.credit,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: params.dueDate
             });
         } else {
             cashAmountOut = params.amount;
+
             (creditAmountIn, fees) = state.getCreditAmountIn({
                 cashAmountOut: cashAmountOut,
-                maxCredit: creditPosition.credit,
+                maxCredit: params.creditPositionId == RESERVED_ID
+                    ? Math.mulDivUp(cashAmountOut, PERCENT + ratePerMaturity, PERCENT - state.getSwapFeePercent(params.dueDate))
+                    : creditPosition.credit,
                 ratePerMaturity: ratePerMaturity,
                 dueDate: params.dueDate
             });
         }
 
+        if (params.creditPositionId == RESERVED_ID) {
+            // slither-disable-next-line unused-return
+            state.createDebtAndCreditPositions({
+                lender: msg.sender,
+                borrower: msg.sender,
+                faceValue: creditAmountIn,
+                dueDate: params.dueDate
+            });
+        }
+
         state.createCreditPosition({
-            exitCreditPositionId: creditPositionId,
+            exitCreditPositionId: params.creditPositionId == RESERVED_ID
+                ? state.data.nextCreditPositionId - 1
+                : params.creditPositionId,
             lender: params.lender,
             credit: creditAmountIn
         });
-        state.transferBorrowAToken(params.lender, msg.sender, cashAmountOut);
-        state.transferBorrowAToken(params.lender, state.feeConfig.feeRecipient, fees);
+        state.data.borrowAToken.transferFrom(params.lender, msg.sender, cashAmountOut);
+        state.data.borrowAToken.transferFrom(params.lender, state.feeConfig.feeRecipient, fees);
     }
 }

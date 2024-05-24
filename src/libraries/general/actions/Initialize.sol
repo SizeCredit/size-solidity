@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
@@ -13,6 +12,8 @@ import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/f
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
+
+import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -23,11 +24,9 @@ import {Events} from "@src/libraries/Events.sol";
 struct InitializeFeeConfigParams {
     uint256 swapFeeAPR;
     uint256 fragmentationFee;
-    uint256 collateralLiquidatorPercent;
+    uint256 liquidationRewardPercent;
+    uint256 overdueCollateralProtocolPercent;
     uint256 collateralProtocolPercent;
-    uint256 overdueLiquidatorReward;
-    uint256 overdueColLiquidatorPercent;
-    uint256 overdueColProtocolPercent;
     address feeRecipient;
 }
 
@@ -71,37 +70,17 @@ library Initialize {
         // validate fragmentationFee
         // N/A
 
-        // validate collateralLiquidatorPercent
-        if (f.collateralLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralLiquidatorPercent);
+        // validate liquidationRewardPercent
+        // N/A
+
+        // validate overdueCollateralProtocolPercent
+        if (f.overdueCollateralProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueCollateralProtocolPercent);
         }
 
         // validate collateralProtocolPercent
         if (f.collateralProtocolPercent > PERCENT) {
             revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralProtocolPercent);
-        }
-        if (f.collateralLiquidatorPercent + f.collateralProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                f.collateralLiquidatorPercent + f.collateralProtocolPercent
-            );
-        }
-
-        // validate overdueLiquidatorReward
-        // N/A
-
-        // validate overdueColLiquidatorPercent
-        if (f.overdueColLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueColLiquidatorPercent);
-        }
-
-        // validate overdueColProtocolPercent
-        if (f.overdueColProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueColProtocolPercent);
-        }
-        if (f.overdueColLiquidatorPercent + f.overdueColProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                f.overdueColLiquidatorPercent + f.overdueColProtocolPercent
-            );
         }
 
         // validate feeRecipient
@@ -201,12 +180,9 @@ library Initialize {
         state.feeConfig.swapFeeAPR = f.swapFeeAPR;
         state.feeConfig.fragmentationFee = f.fragmentationFee;
 
-        state.feeConfig.collateralLiquidatorPercent = f.collateralLiquidatorPercent;
+        state.feeConfig.liquidationRewardPercent = f.liquidationRewardPercent;
+        state.feeConfig.overdueCollateralProtocolPercent = f.overdueCollateralProtocolPercent;
         state.feeConfig.collateralProtocolPercent = f.collateralProtocolPercent;
-
-        state.feeConfig.overdueLiquidatorReward = f.overdueLiquidatorReward;
-        state.feeConfig.overdueColLiquidatorPercent = f.overdueColLiquidatorPercent;
-        state.feeConfig.overdueColProtocolPercent = f.overdueColProtocolPercent;
 
         state.feeConfig.feeRecipient = f.feeRecipient;
     }
@@ -240,14 +216,23 @@ library Initialize {
 
         state.data.collateralToken = new NonTransferrableToken(
             address(this),
-            string.concat("Size Fixed ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
+            string.concat("Size ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
             string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
             IERC20Metadata(state.data.underlyingCollateralToken).decimals()
         );
-        state.data.borrowAToken =
-            IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
+        state.data.borrowAToken = new NonTransferrableScaledToken(
+            state.data.variablePool,
+            state.data.underlyingBorrowToken,
+            address(this),
+            string.concat("Size Scaled ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
+            string.concat("sza", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
+            IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+        );
         state.data.debtToken = new NonTransferrableToken(
-            address(this), "Size Fixed Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+            address(this),
+            string.concat("Size Debt ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
+            string.concat("szDebt", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
+            IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
     }
 

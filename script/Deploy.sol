@@ -54,11 +54,9 @@ abstract contract Deploy {
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
             fragmentationFee: 5e6,
-            collateralLiquidatorPercent: 0.3e18,
+            liquidationRewardPercent: 0.05e18,
+            overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
-            overdueLiquidatorReward: 10e6,
-            overdueColLiquidatorPercent: 0.01e18,
-            overdueColProtocolPercent: 0.005e18,
             feeRecipient: feeRecipient
         });
         r = InitializeRiskConfigParams({
@@ -106,7 +104,7 @@ abstract contract Deploy {
             variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(_owner);
             VariablePoolBorrowRateFeedMock(address(variablePoolBorrowRateFeed)).setVariableBorrowRate(0.0724e18);
         } else {
-            priceFeed = new PriceFeed(_wethAggregator, _usdcAggregator, 18, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
+            priceFeed = new PriceFeed(_wethAggregator, _usdcAggregator, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
 
             variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeed(_owner, 6 hours, borrowRate);
         }
@@ -121,11 +119,9 @@ abstract contract Deploy {
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
             fragmentationFee: 5e6,
-            collateralLiquidatorPercent: 0.3e18,
+            liquidationRewardPercent: 0.05e18,
+            overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
-            overdueLiquidatorReward: 10e6,
-            overdueColLiquidatorPercent: 0.01e18,
-            overdueColProtocolPercent: 0.01e18,
             feeRecipient: _owner
         });
         r = InitializeRiskConfigParams({

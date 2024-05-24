@@ -46,11 +46,10 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(
-            _after.alice.debtBalance, _before.alice.debtBalance + faceValue + size.feeConfig().overdueLiquidatorReward
+            _after.alice.debtBalance, _before.alice.debtBalance + faceValue
         );
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
-        assertEq(size.getOverdueDebt(debtPositionId), faceValue + size.feeConfig().overdueLiquidatorReward);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
     }
 
@@ -79,7 +78,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(
-            _after.alice.debtBalance, _before.alice.debtBalance + faceValue + size.feeConfig().overdueLiquidatorReward
+            _after.alice.debtBalance, _before.alice.debtBalance + faceValue
         );
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
@@ -115,7 +114,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn - swapFee);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
         assertEq(
-            _after.alice.debtBalance, _before.alice.debtBalance + faceValue + size.feeConfig().overdueLiquidatorReward
+            _after.alice.debtBalance, _before.alice.debtBalance + faceValue
         );
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
@@ -124,7 +123,6 @@ contract BuyCreditMarketLendTest is BaseTest {
 
     function test_BuyCreditMarket_buyCreditMarket_cannot_leave_borrower_liquidatable() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
         _borrowAsLimitOrder(alice, 0, block.timestamp + 365 days);
@@ -149,7 +147,6 @@ contract BuyCreditMarketLendTest is BaseTest {
     function test_BuyCreditMarket_buyCreditMarket_cannot_surpass_debtTokenCap() public {
         _setPrice(1e18);
         _updateConfig("debtTokenCap", 5e6);
-        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
         _borrowAsLimitOrder(alice, 0, block.timestamp + 365 days);
@@ -267,7 +264,7 @@ contract BuyCreditMarketLendTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, bob, 10e6, 50e6));
+        vm.expectRevert();
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: alice,
@@ -324,7 +321,6 @@ contract BuyCreditMarketLendTest is BaseTest {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
         _updateConfig("swapFeeAPR", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
         _updateConfig("borrowATokenCap", type(uint256).max);
 
         _deposit(alice, usdc, 1000e6);

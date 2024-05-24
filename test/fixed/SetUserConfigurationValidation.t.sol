@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -11,12 +12,11 @@ contract SetUserConfigurationValidationTest is BaseTest {
     function test_SetUserConfiguration_validation() public {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 200e18);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         uint256[] memory creditPositionIds = new uint256[](1);

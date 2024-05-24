@@ -10,7 +10,6 @@ import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 struct BuyCreditMarketParams {
     address borrower;
@@ -28,7 +27,6 @@ library BuyCreditMarket {
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
-    using VariablePoolLibrary for State;
     using RiskLibrary for State;
 
     function validateBuyCreditMarket(State storage state, BuyCreditMarketParams calldata params) external view {
@@ -122,13 +120,12 @@ library BuyCreditMarket {
         }
 
         if (params.creditPositionId == RESERVED_ID) {
-            DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
+            state.createDebtAndCreditPositions({
                 lender: msg.sender,
                 borrower: params.borrower,
                 faceValue: creditAmountOut,
                 dueDate: params.dueDate
             });
-            state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
         } else {
             state.createCreditPosition({
                 exitCreditPositionId: params.creditPositionId,
@@ -137,7 +134,7 @@ library BuyCreditMarket {
             });
         }
 
-        state.transferBorrowAToken(msg.sender, params.borrower, cashAmountIn - fees);
-        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, fees);
+        state.data.borrowAToken.transferFrom(msg.sender, params.borrower, cashAmountIn - fees);
+        state.data.borrowAToken.transferFrom(msg.sender, state.feeConfig.feeRecipient, fees);
     }
 }

@@ -14,7 +14,6 @@ uint256 constant RESERVED_ID = type(uint256).max;
 struct DebtPosition {
     address borrower;
     uint256 faceValue; // updated on debt reduction
-    uint256 overdueLiquidatorReward; // only paid in case of overdue liquidation
     uint256 dueDate;
     uint256 liquidityIndexAtRepayment; // set on full repayment
 }
@@ -46,17 +45,6 @@ library LoanLibrary {
 
     function isCreditPositionId(State storage state, uint256 positionId) internal view returns (bool) {
         return positionId >= CREDIT_POSITION_ID_START && positionId < state.data.nextCreditPositionId;
-    }
-
-    /// @notice Get the total debt of a DebtPosition
-    ///         The total loan debt is the face value (debt to the lender)
-    ///        + the overdue liquidator reward (in case of overdue liquidation).
-    /// @dev The overdue liquidator reward is only paid in case of overdue liquidation, but
-    ///      it is included in the total debt so that it is properly collateralized.
-    ///      In case of a repayment before the due date, the reward is deducted from borrower's total debt tracker.
-    /// @param self The DebtPosition
-    function getTotalDebt(DebtPosition memory self) internal pure returns (uint256) {
-        return self.faceValue + self.overdueLiquidatorReward;
     }
 
     function getDebtPositionIdByCreditPositionId(State storage state, uint256 creditPositionId)
@@ -112,7 +100,7 @@ library LoanLibrary {
         }
 
         // slither-disable-next-line incorrect-equality
-        if (getTotalDebt(debtPosition) == 0) {
+        if (debtPosition.faceValue == 0) {
             return LoanStatus.REPAID;
         } else if (block.timestamp > debtPosition.dueDate) {
             return LoanStatus.OVERDUE;
@@ -122,8 +110,6 @@ library LoanLibrary {
     }
 
     /// @notice Get the amount of collateral assigned to a DebtPosition
-    /// @dev Takes into account the total debt of the loan and the user,
-    ///      which includes the repayment fee and the overdue collateral reward
     /// @param state The state struct
     /// @param debtPosition The DebtPosition
     /// @return The amount of collateral assigned to the DebtPosition
@@ -136,7 +122,7 @@ library LoanLibrary {
         uint256 collateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
 
         if (debt != 0) {
-            return Math.mulDivDown(collateral, getTotalDebt(debtPosition), debt);
+            return Math.mulDivDown(collateral, debtPosition.faceValue, debt);
         } else {
             return 0;
         }

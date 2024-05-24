@@ -7,7 +7,6 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -27,7 +26,7 @@ struct LiquidateWithReplacementParams {
 library LiquidateWithReplacement {
     using LoanLibrary for CreditPosition;
     using OfferLibrary for BorrowOffer;
-    using VariablePoolLibrary for State;
+
     using LoanLibrary for State;
     using Liquidate for State;
     using LoanLibrary for DebtPosition;
@@ -112,21 +111,19 @@ library LiquidateWithReplacement {
 
         debtPosition.borrower = params.borrower;
         debtPosition.faceValue = debtPositionCopy.faceValue;
-        debtPosition.overdueLiquidatorReward = state.feeConfig.overdueLiquidatorReward;
         debtPosition.liquidityIndexAtRepayment = 0;
 
         emit Events.UpdateDebtPosition(
             params.debtPositionId,
             debtPosition.borrower,
             debtPosition.faceValue,
-            debtPosition.overdueLiquidatorReward,
             debtPosition.dueDate,
             debtPosition.liquidityIndexAtRepayment
         );
 
-        state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
-        state.transferBorrowAToken(address(this), params.borrower, issuanceValue);
-        state.transferBorrowAToken(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
+        state.data.debtToken.mint(params.borrower, debtPosition.faceValue);
+        state.data.borrowAToken.transferFrom(address(this), params.borrower, issuanceValue);
+        state.data.borrowAToken.transferFrom(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
 
         return (issuanceValue, liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }

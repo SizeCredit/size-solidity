@@ -9,14 +9,12 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 /// @title AccountingLibrary
 library AccountingLibrary {
     using RiskLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
-    using VariablePoolLibrary for State;
 
     /// @notice Converts debt token amount to a value in collateral tokens
     /// @dev Rounds up the debt token amount
@@ -44,14 +42,12 @@ library AccountingLibrary {
 
         if (repayAmount == debtPosition.faceValue) {
             // full repayment
-            state.data.debtToken.burn(debtPosition.borrower, debtPosition.getTotalDebt());
+            state.data.debtToken.burn(debtPosition.borrower, debtPosition.faceValue);
             debtPosition.faceValue = 0;
-            debtPosition.overdueLiquidatorReward = 0;
             if (cashReceived) {
-                debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+                debtPosition.liquidityIndexAtRepayment = state.data.borrowAToken.liquidityIndex();
             }
         } else {
-            // The overdueCollateralReward is not cleared if the loan has not been fully repaid
             state.data.debtToken.burn(debtPosition.borrower, repayAmount);
             debtPosition.faceValue -= repayAmount;
         }
@@ -60,7 +56,6 @@ library AccountingLibrary {
             debtPositionId,
             debtPosition.borrower,
             debtPosition.faceValue,
-            debtPosition.overdueLiquidatorReward,
             debtPosition.dueDate,
             debtPosition.liquidityIndexAtRepayment
         );
@@ -72,23 +67,16 @@ library AccountingLibrary {
         address borrower,
         uint256 faceValue,
         uint256 dueDate
-    ) external returns (DebtPosition memory debtPosition) {
-        debtPosition = DebtPosition({
-            borrower: borrower,
-            faceValue: faceValue,
-            overdueLiquidatorReward: state.feeConfig.overdueLiquidatorReward,
-            dueDate: dueDate,
-            liquidityIndexAtRepayment: 0
-        });
+    ) external returns (CreditPosition memory creditPosition) {
+        DebtPosition memory debtPosition =
+            DebtPosition({borrower: borrower, faceValue: faceValue, dueDate: dueDate, liquidityIndexAtRepayment: 0});
 
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;
 
-        emit Events.CreateDebtPosition(
-            debtPositionId, lender, borrower, faceValue, debtPosition.overdueLiquidatorReward, dueDate
-        );
+        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, faceValue, dueDate);
 
-        CreditPosition memory creditPosition = CreditPosition({
+        creditPosition = CreditPosition({
             lender: lender,
             credit: debtPosition.faceValue,
             debtPositionId: debtPositionId,
@@ -100,6 +88,8 @@ library AccountingLibrary {
         state.validateMinimumCreditOpening(creditPosition.credit);
 
         emit Events.CreateCreditPosition(creditPositionId, lender, RESERVED_ID, debtPositionId, creditPosition.credit);
+
+        state.data.debtToken.mint(borrower, faceValue);
     }
 
     function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)

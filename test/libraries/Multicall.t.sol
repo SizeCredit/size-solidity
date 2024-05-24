@@ -5,6 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -110,17 +111,15 @@ contract MulticallTest is BaseTest {
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 100e18);
-        _deposit(bob, usdc, 100e6);
+        _deposit(bob, weth, 150e18);
 
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        uint256 amount = 15e6;
-        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
+        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        uint256 amount = 40e6;
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         uint256 faceValue = debtPosition.faceValue;
-        uint256 debt = faceValue + size.feeConfig().overdueLiquidatorReward;
 
-        _setPrice(0.31e18);
+        _setPrice(0.6e18);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
@@ -152,7 +151,7 @@ contract MulticallTest is BaseTest {
         uint256 afterLiquidatorUSDC = usdc.balanceOf(liquidator);
         uint256 afterLiquidatorWETH = weth.balanceOf(liquidator);
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - debt, 0);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue, 0);
         assertEq(_after.liquidator.borrowATokenBalance, _before.liquidator.borrowATokenBalance, 0);
         assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance, 0);
         assertGt(
@@ -171,13 +170,12 @@ contract MulticallTest is BaseTest {
         uint256 amount = 100e6;
         uint256 cap = amount + size.getSwapFee(100e6, block.timestamp + 365 days);
         _updateConfig("borrowATokenCap", cap);
-        _updateConfig("overdueLiquidatorReward", 0);
 
         _deposit(alice, usdc, cap);
         _deposit(bob, weth, 200e18);
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.1e18);
-        uint256 debtPositionId = _borrow(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 
         vm.warp(block.timestamp + 365 days);

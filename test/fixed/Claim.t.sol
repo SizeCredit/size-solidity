@@ -4,10 +4,7 @@ pragma solidity 0.8.23;
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
-import {PERCENT} from "@src/libraries/Math.sol";
-import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
-
-import {Math} from "@src/libraries/Math.sol";
+import {CreditPosition, DebtPosition, LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract ClaimTest is BaseTest {
     function test_Claim_claim_gets_loan_FV_back() public {
@@ -17,7 +14,8 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
-        uint256 debtPositionId = _borrow(bob, alice, amountLoanId1, block.timestamp + 365 days);
+        uint256 debtPositionId =
+            _sellCreditMarket(bob, alice, RESERVED_ID, amountLoanId1, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _repay(bob, debtPositionId);
@@ -41,7 +39,7 @@ contract ClaimTest is BaseTest {
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 0.03e18);
@@ -72,7 +70,7 @@ contract ClaimTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 exit = 30e6;
@@ -100,7 +98,7 @@ contract ClaimTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         Vars memory _before = _state();
@@ -127,7 +125,7 @@ contract ClaimTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         Vars memory _before = _state();
@@ -150,7 +148,7 @@ contract ClaimTest is BaseTest {
         _deposit(bob, weth, 320e18);
         _deposit(liquidator, usdc, 10000e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
@@ -169,7 +167,6 @@ contract ClaimTest is BaseTest {
 
     function test_Claim_claim_at_different_times_may_have_different_interest() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _updateConfig("swapFeeAPR", 0);
 
         _deposit(alice, weth, 160e18);
@@ -178,7 +175,7 @@ contract ClaimTest is BaseTest {
         _deposit(liquidator, usdc, 1000e6);
         _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
-        uint256 debtPositionId = _borrow(alice, bob, 100e6, block.timestamp + 12 days);
+        uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(bob, candy, creditId, 10e6, block.timestamp + 12 days);
         uint256 creditId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
@@ -232,7 +229,7 @@ contract ClaimTest is BaseTest {
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 100e6);
         _lendAsLimitOrder(bob, block.timestamp + 365 days, 0.1e18);
-        uint256 debtPositionId = _borrow(alice, bob, 50e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         vm.warp(block.timestamp + 365 days);
@@ -269,7 +266,7 @@ contract ClaimTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _deposit(james, weth, 5000e18);
 
-        uint256 debtPositionId = _borrow(james, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(james, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         (uint256 debtPositions,) = size.getPositionsCount();
         assertGt(debtPositions, 0);
@@ -288,7 +285,7 @@ contract ClaimTest is BaseTest {
         _deposit(james, usdc, debtPosition.faceValue);
 
         _repay(james, debtPositionId);
-        assertEq(size.getOverdueDebt(debtPositionId), 0);
+        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
 
         _claim(alice, creditPositionId);
 

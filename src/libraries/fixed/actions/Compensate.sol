@@ -14,7 +14,6 @@ import {
 } from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 struct CompensateParams {
     uint256 creditPositionWithDebtToRepayId;
@@ -27,7 +26,7 @@ library Compensate {
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
-    using VariablePoolLibrary for State;
+
     using RiskLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
@@ -38,13 +37,9 @@ library Compensate {
 
         CreditPosition storage creditPositionWithDebtToRepay = state.getCreditPosition(creditPositionWithDebtToRepayId);
         DebtPosition storage debtPositionToRepay =
-            state.getDebtPositionByCreditPositionId(creditPositionWithDebtToRepayId);
-        CreditPosition storage creditPositionToCompensate = state.getCreditPosition(creditPositionToCompensateId);
-        DebtPosition storage debtPositionToCompensate =
-            state.getDebtPositionByCreditPositionId(creditPositionToCompensateId);
+            state.getDebtPositionByCreditPositionId(params.creditPositionWithDebtToRepayId);
 
-        uint256 amountToCompensate =
-            Math.min(params.amount, creditPositionToCompensate.credit, creditPositionWithDebtToRepay.credit);
+        uint256 amountToCompensate = Math.min(params.amount, creditPositionWithDebtToRepay.credit);
 
         // validate creditPositionWithDebtToRepayId
         if (state.getLoanStatus(creditPositionWithDebtToRepayId) != LoanStatus.ACTIVE) {
@@ -52,22 +47,33 @@ library Compensate {
         }
 
         // validate creditPositionToCompensateId
-        if (!state.isCreditPositionTransferrable(creditPositionToCompensateId)) {
-            revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
-                creditPositionToCompensateId,
-                state.getLoanStatus(creditPositionToCompensateId),
-                state.collateralRatio(debtPositionToCompensate.borrower)
-            );
-        }
-        if (debtPositionToRepay.dueDate < state.getDebtPositionByCreditPositionId(creditPositionToCompensateId).dueDate)
-        {
-            revert Errors.DUE_DATE_NOT_COMPATIBLE(creditPositionWithDebtToRepayId, creditPositionToCompensateId);
-        }
-        if (creditPositionToCompensate.lender != debtPositionToRepay.borrower) {
-            revert Errors.INVALID_LENDER(creditPositionToCompensate.lender);
-        }
-        if (creditPositionToCompensateId == creditPositionWithDebtToRepayId) {
-            revert Errors.INVALID_CREDIT_POSITION_ID(creditPositionToCompensateId);
+        if (params.creditPositionToCompensateId != RESERVED_ID) {
+            CreditPosition storage creditPositionToCompensate =
+                state.getCreditPosition(params.creditPositionToCompensateId);
+            DebtPosition storage debtPositionToCompensate =
+                state.getDebtPositionByCreditPositionId(params.creditPositionToCompensateId);
+            if (!state.isCreditPositionTransferrable(params.creditPositionToCompensateId)) {
+                revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
+                    params.creditPositionToCompensateId,
+                    state.getLoanStatus(params.creditPositionToCompensateId),
+                    state.collateralRatio(debtPositionToCompensate.borrower)
+                );
+            }
+            if (
+                debtPositionToRepay.dueDate
+                    < state.getDebtPositionByCreditPositionId(params.creditPositionToCompensateId).dueDate
+            ) {
+                revert Errors.DUE_DATE_NOT_COMPATIBLE(
+                    params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId
+                );
+            }
+            if (creditPositionToCompensate.lender != debtPositionToRepay.borrower) {
+                revert Errors.INVALID_LENDER(creditPositionToCompensate.lender);
+            }
+            if (params.creditPositionToCompensateId == params.creditPositionWithDebtToRepayId) {
+                revert Errors.INVALID_CREDIT_POSITION_ID(params.creditPositionToCompensateId);
+            }
+            amountToCompensate = Math.min(amountToCompensate, creditPositionToCompensate.credit);
         }
 
         // validate msg.sender
@@ -87,26 +93,40 @@ library Compensate {
             ? (state.data.nextCreditPositionId - 1)
             : params.creditPositionToCompensateId;
 
-        emit Events.Compensate(creditPositionWithDebtToRepayId, creditPositionToCompensateId, params.amount);
+        CreditPosition storage creditPositionWithDebtToRepay =
+            state.getCreditPosition(params.creditPositionWithDebtToRepayId);
+        DebtPosition storage debtPositionToRepay =
+            state.getDebtPositionByCreditPositionId(params.creditPositionWithDebtToRepayId);
 
-        CreditPosition storage creditPositionWithDebtToRepay = state.getCreditPosition(creditPositionWithDebtToRepayId);
-        CreditPosition storage creditPositionToCompensate = state.getCreditPosition(creditPositionToCompensateId);
+        uint256 amountToCompensate = Math.min(params.amount, creditPositionWithDebtToRepay.credit);
 
-        uint256 amountToCompensate =
-            Math.min(params.amount, creditPositionToCompensate.credit, creditPositionWithDebtToRepay.credit);
+        CreditPosition memory creditPositionToCompensate;
+        if (params.creditPositionToCompensateId == RESERVED_ID) {
+            creditPositionToCompensate = state.createDebtAndCreditPositions({
+                lender: msg.sender,
+                borrower: msg.sender,
+                faceValue: amountToCompensate,
+                dueDate: debtPositionToRepay.dueDate
+            });
+        } else {
+            creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
+            amountToCompensate = Math.min(amountToCompensate, creditPositionToCompensate.credit);
+        }
 
         // debt reduction
         state.repayDebt(creditPositionWithDebtToRepay.debtPositionId, amountToCompensate, false);
 
         // credit reduction
         // slither-disable-next-line unused-return
-        state.reduceCredit(creditPositionWithDebtToRepayId, amountToCompensate);
+        state.reduceCredit(params.creditPositionWithDebtToRepayId, amountToCompensate);
 
         uint256 exiterCreditRemaining = creditPositionToCompensate.credit - amountToCompensate;
 
         // credit emission
         state.createCreditPosition({
-            exitCreditPositionId: creditPositionToCompensateId,
+            exitCreditPositionId: params.creditPositionToCompensateId == RESERVED_ID
+                ? state.data.nextCreditPositionId - 1
+                : params.creditPositionToCompensateId,
             lender: creditPositionWithDebtToRepay.lender,
             credit: amountToCompensate
         });

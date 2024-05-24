@@ -23,27 +23,21 @@ contract PriceFeedTest is Test, AssertsHelper {
     function setUp() public {
         ethToUsd = new MockV3Aggregator(ETH_TO_USD_DECIMALS, ETH_TO_USD);
         usdcToUsd = new MockV3Aggregator(USDC_TO_USD_DECIMALS, USDC_TO_USD);
-        priceFeed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 18, 3600, 86400);
+        priceFeed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 3600, 86400);
     }
 
     function test_PriceFeed_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new PriceFeed(address(0), address(usdcToUsd), 18, 3600, 86400);
+        new PriceFeed(address(0), address(usdcToUsd), 3600, 86400);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new PriceFeed(address(ethToUsd), address(0), 18, 3600, 86400);
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DECIMALS.selector, 0));
-        new PriceFeed(address(ethToUsd), address(usdcToUsd), 0, 3600, 86400);
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DECIMALS.selector, 24));
-        new PriceFeed(address(ethToUsd), address(usdcToUsd), 24, 3600, 86400);
+        new PriceFeed(address(ethToUsd), address(0), 3600, 86400);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_STALE_PRICE.selector));
-        new PriceFeed(address(ethToUsd), address(usdcToUsd), 18, 0, 86400);
+        new PriceFeed(address(ethToUsd), address(usdcToUsd), 0, 86400);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_STALE_PRICE.selector));
-        new PriceFeed(address(ethToUsd), address(usdcToUsd), 18, 3600, 0);
+        new PriceFeed(address(ethToUsd), address(usdcToUsd), 3600, 0);
     }
 
     function test_PriceFeed_getPrice_success() public {
@@ -102,18 +96,6 @@ contract PriceFeedTest is Test, AssertsHelper {
 
         usdcToUsd.updateAnswer((USDC_TO_USD * 1.2e8) / 1e8);
         assertEq(priceFeed.getPrice(), (uint256(2200.12e18) * 1e18 * 1e18) / (uint256(0.9999e18) * uint256(1.2e18)));
-    }
-
-    function test_PriceFeed_getPrice_low_decimals() public {
-        PriceFeed feed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 2, 3600, 86400);
-
-        assertEq(feed.getPrice(), Math.mulDivDown(uint256(220012), 100, uint256(99)));
-    }
-
-    function test_PriceFeed_getPrice_8_decimals() public {
-        PriceFeed feed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 8, 3600, 86400);
-
-        assertEq(feed.getPrice(), Math.mulDivDown(uint256(2200.12e8), 1e8, uint256(0.9999e8)));
     }
 
     function test_PriceFeed_getPrice_is_consistent() public {

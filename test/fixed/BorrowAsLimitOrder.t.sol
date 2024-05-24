@@ -49,7 +49,6 @@ contract BorrowAsLimitOrderTest is BaseTest {
 
     function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_openingLimitBorrowCR() public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(bob, usdc, 100e6);
         _deposit(alice, weth, 150e18);
         uint256[] memory maturities = new uint256[](2);
@@ -82,7 +81,6 @@ contract BorrowAsLimitOrderTest is BaseTest {
     function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_crOpening_even_if_openingLimitBorrowCR_is_below(
     ) public {
         _setPrice(1e18);
-        _updateConfig("overdueLiquidatorReward", 0);
         _deposit(bob, usdc, 100e6);
         _deposit(alice, weth, 140e18);
         uint256[] memory maturities = new uint256[](2);
