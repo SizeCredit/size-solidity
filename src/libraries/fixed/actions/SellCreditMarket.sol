@@ -135,7 +135,8 @@ library SellCreditMarket {
 
         if (params.creditPositionId == RESERVED_ID) {
             DebtPosition memory debtPosition;
-            (debtPosition, creditPosition) = state.createDebtAndCreditPositions({
+            // slither-disable-next-line unused-return
+            (debtPosition,) = state.createDebtAndCreditPositions({
                 lender: msg.sender,
                 borrower: msg.sender,
                 faceValue: creditAmountIn,
