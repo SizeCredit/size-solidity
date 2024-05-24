@@ -150,7 +150,6 @@ contract SellCreditMarketTest is BaseTest {
         Vars memory _before = _state();
 
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        uint256 credit = size.getCreditPosition(creditPositionId).credit;
         _sellCreditMarket(alice, candy, creditPositionId, dueDate);
 
         Vars memory _after = _state();

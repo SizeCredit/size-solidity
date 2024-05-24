@@ -45,9 +45,7 @@ contract BuyCreditMarketLendTest is BaseTest {
             _before.alice.borrowATokenBalance + amountIn - size.getSwapFee(amountIn, dueDate)
         );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
-        assertEq(
-            _after.alice.debtBalance, _before.alice.debtBalance + faceValue
-        );
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
@@ -77,9 +75,7 @@ contract BuyCreditMarketLendTest is BaseTest {
             _before.alice.borrowATokenBalance + amountIn - size.getSwapFee(amountIn, dueDate)
         );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
-        assertEq(
-            _after.alice.debtBalance, _before.alice.debtBalance + faceValue
-        );
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
@@ -113,9 +109,7 @@ contract BuyCreditMarketLendTest is BaseTest {
 
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn - swapFee);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
-        assertEq(
-            _after.alice.debtBalance, _before.alice.debtBalance + faceValue
-        );
+        assertEq(_after.alice.debtBalance, _before.alice.debtBalance + faceValue);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).faceValue, faceValue);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
@@ -332,9 +326,9 @@ contract BuyCreditMarketLendTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 debtPositionId1 = _borrow(bob, alice, 975.94e6, block.timestamp + 6 * 30 days);
+        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, 975.94e6, block.timestamp + 6 * 30 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
-        uint256 debtPositionId2 = _borrow(james, candy, 1000.004274e6, block.timestamp + 7 * 30 days);
+        uint256 debtPositionId2 = _sellCreditMarket(james, candy, 1000.004274e6, block.timestamp + 7 * 30 days, false);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
 
         assertEq(size.getDebtPosition(debtPositionId1).faceValue, 1000.004274e6);
@@ -364,7 +358,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(365 days, 1e18));
 
-        uint256 debtPositionId1 = _borrow(bob, alice, 100e6, block.timestamp + 365 days);
+        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, 100e6, block.timestamp + 365 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
 
         Vars memory _before = _state();
@@ -376,9 +370,6 @@ contract BuyCreditMarketLendTest is BaseTest {
 
         uint256 swapFee = size.getSwapFee(amountIn, block.timestamp + 365 days);
         assertEq(_after.james.borrowATokenBalance, _before.james.borrowATokenBalance - amountIn);
-        assertEq(
-            _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance + amountIn - swapFee
-        );
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn - swapFee);
     }
 }

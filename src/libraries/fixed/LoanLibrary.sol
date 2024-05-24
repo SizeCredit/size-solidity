@@ -32,7 +32,6 @@ enum LoanStatus {
     ACTIVE, // not yet due
     OVERDUE, // eligible to liquidation
     REPAID // by borrower or liquidator
-
 }
 
 /// @title LoanLibrary

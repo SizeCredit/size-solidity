@@ -138,11 +138,11 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _sellCreditMarket(borrower, lender, creditPositionId, amount, dueDate, true);
     }
 
-    function _borrow(address borrower, address lender, uint256 amount, uint256 dueDate)
+    function _sellCreditMarket(address borrower, address lender, uint256 amount, uint256 dueDate, bool exactAmountIn)
         internal
         returns (uint256)
     {
-        return _sellCreditMarket(borrower, lender, RESERVED_ID, amount, dueDate, false);
+        return _sellCreditMarket(borrower, lender, RESERVED_ID, amount, dueDate, exactAmountIn);
     }
 
     function _borrowAsLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {

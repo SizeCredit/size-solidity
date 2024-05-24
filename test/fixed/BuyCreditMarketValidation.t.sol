@@ -15,35 +15,35 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract BuyCreditMarketTest is BaseTest {
-    // function test_BuyCreditMarket_parameter_validation() public {
-    //     // try calling specifying both borrower and credit position
-    //     vm.startPrank(james);
-    //     vm.expectRevert(abi.encodeWithSelector(Errors.NOT_SUPPORTED.selector));
-    //     size.buyCreditMarket(
-    //         BuyCreditMarketParams({
-    //             borrower: alice,
-    //             creditPositionId: 3,
-    //             dueDate: 0,
-    //             amount: 10000,
-    //             deadline: block.timestamp,
-    //             minAPR: 0,
-    //             exactAmountIn: false
-    //         })
-    //     );
+// function test_BuyCreditMarket_parameter_validation() public {
+//     // try calling specifying both borrower and credit position
+//     vm.startPrank(james);
+//     vm.expectRevert(abi.encodeWithSelector(Errors.NOT_SUPPORTED.selector));
+//     size.buyCreditMarket(
+//         BuyCreditMarketParams({
+//             borrower: alice,
+//             creditPositionId: 3,
+//             dueDate: 0,
+//             amount: 10000,
+//             deadline: block.timestamp,
+//             minAPR: 0,
+//             exactAmountIn: false
+//         })
+//     );
 
-    //     // try calling specifying neither borrower or creditposition
-    //     vm.startPrank(james);
-    //     vm.expectRevert(abi.encodeWithSelector(Errors.NOT_SUPPORTED.selector));
-    //     size.buyCreditMarket(
-    //         BuyCreditMarketParams({
-    //             borrower: address(0),
-    //             creditPositionId: RESERVED_ID,
-    //             dueDate: 0,
-    //             amount: 10000,
-    //             deadline: block.timestamp,
-    //             minAPR: 0,
-    //             exactAmountIn: false
-    //         })
-    //     );
-    // }
+//     // try calling specifying neither borrower or creditposition
+//     vm.startPrank(james);
+//     vm.expectRevert(abi.encodeWithSelector(Errors.NOT_SUPPORTED.selector));
+//     size.buyCreditMarket(
+//         BuyCreditMarketParams({
+//             borrower: address(0),
+//             creditPositionId: RESERVED_ID,
+//             dueDate: 0,
+//             amount: 10000,
+//             deadline: block.timestamp,
+//             minAPR: 0,
+//             exactAmountIn: false
+//         })
+//     );
+// }
 }

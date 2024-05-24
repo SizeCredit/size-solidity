@@ -25,8 +25,7 @@ contract SetUserConfigurationTest is BaseTest {
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
         uint256 dueDate = block.timestamp + 6 * 30 days;
-        uint256 debtPositionId1 =
-            _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, dueDate, false);
+        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, dueDate, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 faceValue = size.getDebtPosition(debtPositionId1).faceValue;
 
@@ -54,12 +53,10 @@ contract SetUserConfigurationTest is BaseTest {
         _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
         uint256 dueDate = block.timestamp + 6 * 30 days;
-        uint256 debtPositionId1 =
-            _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, dueDate, false);
+        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, dueDate, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 faceValue1 = size.getDebtPosition(debtPositionId1).faceValue;
-        uint256 debtPositionId2 =
-            _sellCreditMarket(bob, alice, RESERVED_ID, 500e6, dueDate, false);
+        uint256 debtPositionId2 = _sellCreditMarket(bob, alice, RESERVED_ID, 500e6, dueDate, false);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
         uint256 faceValue2 = size.getDebtPosition(debtPositionId2).faceValue;
 
