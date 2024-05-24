@@ -378,11 +378,11 @@ contract BuyCreditMarketLendTest is BaseTest {
 
         Vars memory _after = _state();
 
-        uint256 swapFee = size.getSwapFee(amountIn - size.feeConfig().fragmentationFee, block.timestamp + 365 days);
+        uint256 swapFee = size.getSwapFee(amountIn, block.timestamp + 365 days);
         assertEq(_after.james.borrowATokenBalance, _before.james.borrowATokenBalance - amountIn);
         assertEq(
             _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance + amountIn - swapFee - size.feeConfig().fragmentationFee
+            _before.alice.borrowATokenBalance + amountIn - swapFee
         );
     }
 }
