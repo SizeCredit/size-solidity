@@ -25,7 +25,6 @@ library Multicall {
 
         uint256 borrowATokenSupplyBefore = state.data.borrowAToken.balanceOf(address(this));
         uint256 debtTokenSupplyBefore = state.data.debtToken.totalSupply();
-        bool isUnderwaterBefore = state.isUserUnderwater(msg.sender);
 
         results = new bytes[](data.length);
         for (uint256 i = 0; i < data.length; i++) {
@@ -38,9 +37,6 @@ library Multicall {
         state.validateBorrowATokenIncreaseLteDebtTokenDecrease(
             borrowATokenSupplyBefore, debtTokenSupplyBefore, borrowATokenSupplyAfter, debtTokenSupplyAfter
         );
-        if (!isUnderwaterBefore) {
-            state.validateUserIsNotUnderwater(msg.sender);
-        }
 
         state.data.isMulticall = false;
     }

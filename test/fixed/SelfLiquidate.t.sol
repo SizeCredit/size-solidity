@@ -47,7 +47,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - 100e6);
     }
 
-    function test_SelfLiquidate_selfLiquidate_two_lenders() public {
+    function test_SelfLiquidate_selfliquidate_two_lenders() public {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 150e6);

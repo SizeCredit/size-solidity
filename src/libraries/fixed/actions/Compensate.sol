@@ -42,8 +42,8 @@ library Compensate {
         uint256 amountToCompensate = Math.min(params.amount, creditPositionWithDebtToRepay.credit);
 
         // validate creditPositionWithDebtToRepayId
-        if (state.getLoanStatus(creditPositionWithDebtToRepayId) != LoanStatus.ACTIVE) {
-            revert Errors.LOAN_NOT_ACTIVE(creditPositionWithDebtToRepayId);
+        if (state.getLoanStatus(params.creditPositionWithDebtToRepayId) != LoanStatus.ACTIVE) {
+            revert Errors.LOAN_NOT_ACTIVE(params.creditPositionWithDebtToRepayId);
         }
 
         // validate creditPositionToCompensateId
