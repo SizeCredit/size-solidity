@@ -42,6 +42,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         WITHDRAW_ERRORS.push(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector);
 
         // SELL_CREDIT_MARKET_ERRORS
+        SELL_CREDIT_MARKET_ERRORS.push(Errors.INVALID_CREDIT_POSITION_ID.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.INVALID_LOAN_OFFER.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.NULL_AMOUNT.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.PAST_DUE_DATE.selector);
