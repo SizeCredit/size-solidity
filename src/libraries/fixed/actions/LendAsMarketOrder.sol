@@ -46,6 +46,9 @@ library LendAsMarketOrder {
         if (params.dueDate < block.timestamp + state.riskConfig.minimumMaturity) {
             revert Errors.PAST_DUE_DATE(params.dueDate);
         }
+        if(params.dueDate > block.timestamp + state.riskConfig.maximumMaturity) {
+            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, block.timestamp + state.riskConfig.maximumMaturity);
+        }
 
         // validate amount
         if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
