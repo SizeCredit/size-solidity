@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
@@ -28,8 +29,9 @@ contract UpdateConfigTest is BaseTest {
         assertTrue(size.riskConfig().minimumCreditBorrowAToken == 1e6);
     }
 
-    function test_UpdateConfig_updateConfig_can_maliciously_liquidate_all_positions() public {
+    function test_UpdateConfig_updateConfig_cannot_maliciously_liquidate_all_positions() public {
         size.updateConfig(UpdateConfigParams({key: "crOpening", value: 10.0e18}));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, 9.99e18));
         size.updateConfig(UpdateConfigParams({key: "crLiquidation", value: 9.99e18}));
     }
 }

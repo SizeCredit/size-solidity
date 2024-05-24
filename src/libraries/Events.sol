@@ -26,6 +26,11 @@ library Events {
     event Deposit(address indexed token, address indexed to, uint256 indexed amount);
     event Withdraw(address indexed token, address indexed to, uint256 indexed amount);
 
+    event MintCredit(uint256 indexed amount, uint256 indexed dueDate);
+
+    event SellCreditMarket(
+        address indexed lender, uint256 indexed creditPositionId, uint256 amount, uint256 dueDate, bool exactAmountIn
+    );
     event BorrowAsMarketOrder(
         address indexed lender,
         uint256 indexed amount,
@@ -34,7 +39,6 @@ library Events {
         uint256[] receivableCreditPositionIds
     );
     event BorrowAsLimitOrder(
-        uint256 indexed openingLimitBorrowCR,
         uint256[] curveRelativeTimeMaturities,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
@@ -52,10 +56,7 @@ library Events {
         uint256 indexed debtPositionId,
         address indexed lender,
         address indexed borrower,
-        uint256 issuanceValue,
         uint256 faceValue,
-        uint256 repayFee,
-        uint256 overdueLiquidatorReward,
         uint256 dueDate
     );
     event CreateCreditPosition(
@@ -84,5 +85,21 @@ library Events {
         uint256 indexed amount
     );
     event BuyMarketCredit(uint256 indexed creditPositionId, uint256 indexed amount, bool indexed exactAmountIn);
-    event SetCreditForSale(bool indexed forSale, bool indexed creditPositionsNotForSale, uint256[] creditPositionIds);
+    event SetUserConfiguration(
+        uint256 indexed openingLimitBorrowCR,
+        bool indexed allCreditPositionsForSaleDisabled,
+        bool indexed creditPositionIdsForSale,
+        uint256[] creditPositionIds
+    );
+
+    // updates
+    event UpdateDebtPosition(
+        uint256 indexed debtPositionId,
+        address indexed borrower,
+        uint256 faceValue,
+        uint256 dueDate,
+        uint256 liquidityIndexAtRepayment
+    );
+
+    event UpdateCreditPosition(uint256 indexed creditPositionId, uint256 credit, bool forSale);
 }

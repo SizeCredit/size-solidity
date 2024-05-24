@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 
@@ -13,6 +14,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
 
     function test_LendAsMarketOrder_validation() public {
         _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 2 * 150e18);
         _deposit(bob, usdc, 10e6);
         _borrowAsLimitOrder(alice, [int256(1e18), int256(1e18)], [uint256(365 days), uint256(365 days * 2)]);
@@ -33,7 +35,7 @@ contract LendAsMarketOrderValidationTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, bob, 10e6, 50e6));
+        vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, bob, 10e6, 50e6));
         size.lendAsMarketOrder(
             LendAsMarketOrderParams({
                 borrower: alice,

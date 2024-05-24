@@ -7,7 +7,7 @@ import {console2 as console} from "forge-std/Script.sol";
 
 import {Size} from "@src/Size.sol";
 
-import {Addresses} from "./Addresses.sol";
+import {Addresses, Contracts} from "./Addresses.sol";
 import {BaseScript, Deployment, Parameter} from "./BaseScript.sol";
 import {Deploy} from "@script/Deploy.sol";
 
@@ -17,48 +17,49 @@ contract DeployScript is BaseScript, Addresses, Deploy {
     address owner;
     address wethAggregator;
     address usdcAggregator;
+    uint128 variableBorrowRate;
     string chainName;
 
     function setUp() public {}
 
     modifier parseEnv() {
-        mockContracts = vm.envOr("MOCK_CONTRACTS", true);
         deployer = vm.addr(vm.envOr("DEPLOYER_PRIVATE_KEY", vm.deriveKey(TEST_MNEMONIC, 0)));
         owner = vm.envOr("OWNER", address(0));
-        variablePool = IPool(vm.envOr("VARIABLE_POOL", address(0))); // TODO hardcode
-        wethAggregator = vm.envOr("WETH_AGGREGATOR", address(0)); // TODO hardcode
-        usdcAggregator = vm.envOr("USDC_AGGREGATOR", address(0)); // TODO hardcode
         chainName = vm.envOr("CHAIN_NAME", TEST_CHAIN_NAME);
+        variableBorrowRate = uint128(vm.envUint("VARIABLE_BORROW_RATE"));
         _;
     }
 
     function run() public parseEnv broadcast returns (Deployment[] memory, Parameter[] memory) {
         console.log("[Size v1] deploying...");
 
-        console.log("[Size v1] chain\t", chainName);
-        console.log("[Size v1] owner\t", deployer);
+        console.log("[Size v1] chain:   ", chainName);
+        console.log("[Size v1] deployer:", deployer);
+        console.log("[Size v1] owner:   ", owner);
 
-        address weth = addresses(chainName).weth;
-        address usdc = addresses(chainName).usdc;
+        Contracts memory contracts = addresses(chainName);
 
-        if (mockContracts) {
-            setupChainWithMocks(deployer, weth, usdc);
-            console.log("[Size v1] using MOCK contracts");
-        } else {
-            setupChain(owner, weth, usdc, address(variablePool), wethAggregator, usdcAggregator);
-            console.log("[Size v1] using REAL contracts");
-        }
+        setupProduction(
+            owner,
+            contracts.weth,
+            contracts.usdc,
+            contracts.variablePool,
+            contracts.wethAggregator,
+            contracts.usdcAggregator,
+            variableBorrowRate
+        );
 
         deployments.push(Deployment({name: "Size-implementation", addr: address(size)}));
         deployments.push(Deployment({name: "Size-proxy", addr: address(proxy)}));
         deployments.push(Deployment({name: "PriceFeed", addr: address(priceFeed)}));
         deployments.push(Deployment({name: "VariablePoolBorrowRateFeed", addr: address(variablePoolBorrowRateFeed)}));
-        parameters.push(Parameter({key: "owner", value: Strings.toHexString(deployer)}));
-        parameters.push(Parameter({key: "usdc", value: Strings.toHexString(usdc)}));
-        parameters.push(Parameter({key: "weth", value: Strings.toHexString(weth)}));
-        parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(wethAggregator)}));
-        parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(usdcAggregator)}));
+        parameters.push(Parameter({key: "owner", value: Strings.toHexString(owner)}));
+        parameters.push(Parameter({key: "usdc", value: Strings.toHexString(address(usdc))}));
+        parameters.push(Parameter({key: "weth", value: Strings.toHexString(address(weth))}));
+        parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(contracts.wethAggregator)}));
+        parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(contracts.usdcAggregator)}));
         parameters.push(Parameter({key: "variablePool", value: Strings.toHexString(address(variablePool))}));
+        parameters.push(Parameter({key: "variableBorrowRate", value: Strings.toString(variableBorrowRate)}));
 
         console.log("[Size v1] deployed\n");
 
@@ -69,7 +70,7 @@ contract DeployScript is BaseScript, Addresses, Deploy {
             console.log("[Size v1] Parameter:  ", parameters[i].key, "\t", parameters[i].value);
         }
 
-        exportDeployments();
+        exportDeployments(chainName);
 
         console.log("[Size v1] done");
 

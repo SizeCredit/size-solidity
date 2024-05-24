@@ -7,7 +7,6 @@ import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
@@ -31,8 +30,6 @@ library LendAsMarketOrder {
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
-    using VariablePoolLibrary for State;
-    using AccountingLibrary for State;
 
     function validateLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params) external view {
         BorrowOffer memory borrowOffer = state.data.users[params.borrower].borrowOffer;
@@ -46,12 +43,19 @@ library LendAsMarketOrder {
         }
 
         // validate dueDate
-        if (params.dueDate < block.timestamp) {
+        if (params.dueDate < block.timestamp + state.riskConfig.minimumMaturity) {
             revert Errors.PAST_DUE_DATE(params.dueDate);
+        }
+        if (params.dueDate > block.timestamp + state.riskConfig.maximumMaturity) {
+            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(
+                params.dueDate, block.timestamp + state.riskConfig.maximumMaturity
+            );
         }
 
         // validate amount
-        // N/A
+        if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+        }
 
         // validate deadline
         if (params.deadline < block.timestamp) {
@@ -68,31 +72,45 @@ library LendAsMarketOrder {
         // N/A
     }
 
-    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams memory params)
+    function executeLendAsMarketOrder(State storage state, LendAsMarketOrderParams calldata params)
         external
-        returns (uint256 issuanceValue)
+        returns (uint256 cashAmountIn)
     {
         emit Events.LendAsMarketOrder(params.borrower, params.dueDate, params.amount, params.exactAmountIn);
 
-        BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
+        uint256 ratePerMaturity = state.data.users[params.borrower].borrowOffer.getRatePerMaturityByDueDate(
+            state.oracle.variablePoolBorrowRateFeed, params.dueDate
+        );
 
-        uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
+        uint256 creditAmountOut;
+        uint256 fees;
+
         if (params.exactAmountIn) {
-            issuanceValue = params.amount;
+            cashAmountIn = params.amount;
+            (creditAmountOut, fees) = state.getCreditAmountOut({
+                cashAmountIn: cashAmountIn,
+                maxCredit: Math.mulDivDown(cashAmountIn, PERCENT + ratePerMaturity, PERCENT),
+                ratePerMaturity: ratePerMaturity,
+                dueDate: params.dueDate
+            });
         } else {
-            issuanceValue = Math.mulDivUp(params.amount, PERCENT, PERCENT + ratePerMaturity);
+            creditAmountOut = params.amount;
+            (cashAmountIn, fees) = state.getCashAmountIn({
+                creditAmountOut: creditAmountOut,
+                maxCredit: creditAmountOut,
+                ratePerMaturity: ratePerMaturity,
+                dueDate: params.dueDate
+            });
         }
-        uint256 faceValue = Math.mulDivDown(issuanceValue, PERCENT + ratePerMaturity, PERCENT);
 
-        DebtPosition memory debtPosition = state.createDebtAndCreditPositions({
+        // slither-disable-next-line unused-return
+        state.createDebtAndCreditPositions({
             lender: msg.sender,
             borrower: params.borrower,
-            issuanceValue: issuanceValue,
-            faceValue: faceValue,
+            faceValue: creditAmountOut,
             dueDate: params.dueDate
         });
-        state.data.debtToken.mint(params.borrower, debtPosition.getTotalDebt());
-        state.transferBorrowAToken(msg.sender, params.borrower, issuanceValue);
+        state.data.borrowAToken.transferFrom(msg.sender, params.borrower, cashAmountIn - fees);
+        state.data.borrowAToken.transferFrom(msg.sender, state.feeConfig.feeRecipient, fees);
     }
 }

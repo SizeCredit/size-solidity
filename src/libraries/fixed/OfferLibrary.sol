@@ -12,7 +12,6 @@ struct LoanOffer {
 }
 
 struct BorrowOffer {
-    uint256 openingLimitBorrowCR;
     YieldCurve curveRelativeTime;
 }
 
@@ -25,7 +24,7 @@ library OfferLibrary {
     }
 
     function isNull(BorrowOffer memory self) internal pure returns (bool) {
-        return self.openingLimitBorrowCR == 0 && self.curveRelativeTime.isNull();
+        return self.curveRelativeTime.isNull();
     }
 
     function getAPRByDueDate(

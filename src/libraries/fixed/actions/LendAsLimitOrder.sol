@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -16,14 +15,13 @@ struct LendAsLimitOrderParams {
 }
 
 library LendAsLimitOrder {
-    using VariablePoolLibrary for State;
     using OfferLibrary for LoanOffer;
 
     function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external view {
         LoanOffer memory loanOffer =
             LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
-        // a null offer mean clearning their limit orders
+        // a null offer mean clearing their limit orders
         if (!loanOffer.isNull()) {
             // validate msg.sender
             // N/A
@@ -32,12 +30,14 @@ library LendAsLimitOrder {
             if (params.maxDueDate == 0) {
                 revert Errors.NULL_MAX_DUE_DATE();
             }
-            if (params.maxDueDate < block.timestamp) {
+            if (params.maxDueDate < block.timestamp + state.riskConfig.minimumMaturity) {
                 revert Errors.PAST_MAX_DUE_DATE(params.maxDueDate);
             }
 
             // validate params.curveRelativeTime
-            YieldCurveLibrary.validateYieldCurve(params.curveRelativeTime, state.riskConfig.minimumMaturity);
+            YieldCurveLibrary.validateYieldCurve(
+                params.curveRelativeTime, state.riskConfig.minimumMaturity, state.riskConfig.maximumMaturity
+            );
         }
     }
 

@@ -11,8 +11,6 @@ import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/librar
 /// @title RiskLibrary
 library RiskLibrary {
     using LoanLibrary for State;
-    using LoanLibrary for DebtPosition;
-    using LoanLibrary for CreditPosition;
 
     function validateMinimumCredit(State storage state, uint256 credit) public view {
         if (0 < credit && credit < state.riskConfig.minimumCreditBorrowAToken) {
@@ -52,6 +50,15 @@ library RiskLibrary {
             && (isUserUnderwater(state, debtPosition.borrower) && status != LoanStatus.REPAID);
     }
 
+    function isCreditPositionTransferrable(State storage state, uint256 creditPositionId)
+        internal
+        view
+        returns (bool)
+    {
+        return state.getLoanStatus(creditPositionId) == LoanStatus.ACTIVE
+            && !isUserUnderwater(state, state.getDebtPositionByCreditPositionId(creditPositionId).borrower);
+    }
+
     function isDebtPositionLiquidatable(State storage state, uint256 debtPositionId) public view returns (bool) {
         DebtPosition storage debtPosition = state.data.debtPositions[debtPositionId];
         LoanStatus status = state.getLoanStatus(debtPositionId);
@@ -78,7 +85,7 @@ library RiskLibrary {
     function validateUserIsNotBelowOpeningLimitBorrowCR(State storage state, address account) external view {
         uint256 openingLimitBorrowCR = Math.max(
             state.riskConfig.crOpening,
-            state.data.users[account].borrowOffer.openingLimitBorrowCR // 0 by default, or user-defined if BorrowAsLimitOrder has been placed
+            state.data.users[account].openingLimitBorrowCR // 0 by default, or user-defined if SetUserConfiguration has been used
         );
         if (collateralRatio(state, account) < openingLimitBorrowCR) {
             revert Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR(

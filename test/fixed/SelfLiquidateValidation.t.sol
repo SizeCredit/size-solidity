@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -11,17 +11,16 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract SelfLiquidateValidationTest is BaseTest {
     function test_SelfLiquidate_validation() public {
         _setPrice(1e18);
-        _updateConfig("repayFeeAPR", 0);
-        _updateConfig("overdueLiquidatorReward", 0);
+        _updateConfig("swapFeeAPR", 0);
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 2 * 150e18);
         _deposit(candy, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
         _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 100e6, block.timestamp + 12 days);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _borrowAsMarketOrder(bob, candy, 100e6, block.timestamp + 12 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        _sellCreditMarket(bob, candy, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
 
         vm.startPrank(alice);
         vm.expectRevert(
@@ -34,15 +33,8 @@ contract SelfLiquidateValidationTest is BaseTest {
 
         _setPrice(0.75e18);
 
-        uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(debtPositionId);
-        uint256 debtCollateral = size.debtTokenAmountToCollateralTokenAmount(size.getOverdueDebt(debtPositionId));
-
         vm.startPrank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId, assignedCollateral, debtCollateral
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId, 1.125e18));
         size.selfLiquidate(SelfLiquidateParams({creditPositionId: creditPositionId}));
         vm.stopPrank();
 

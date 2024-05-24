@@ -4,11 +4,11 @@ pragma solidity 0.8.23;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
+import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {CollateralLibrary} from "@src/libraries/fixed/CollateralLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
+import {DepositTokenLibrary} from "@src/libraries/fixed/DepositTokenLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -22,8 +22,9 @@ struct DepositParams {
 library Deposit {
     using SafeERC20 for IERC20Metadata;
     using SafeERC20 for IWETH;
-    using VariablePoolLibrary for State;
-    using CollateralLibrary for State;
+
+    using DepositTokenLibrary for State;
+    using CapsLibrary for State;
 
     function validateDeposit(State storage state, DepositParams calldata params) external view {
         // validate msg.sender
@@ -55,9 +56,10 @@ library Deposit {
 
     function executeDeposit(State storage state, DepositParams calldata params) public {
         address from = msg.sender;
+        uint256 amount = params.amount;
         if (msg.value > 0) {
             // do not trust msg.value (see `Multicall.sol`)
-            uint256 amount = address(this).balance;
+            amount = address(this).balance;
             // slither-disable-next-line arbitrary-send-eth
             state.data.weth.deposit{value: amount}();
             state.data.weth.forceApprove(address(this), amount);
@@ -65,11 +67,14 @@ library Deposit {
         }
 
         if (params.token == address(state.data.underlyingBorrowToken)) {
-            state.depositUnderlyingBorrowTokenToVariablePool(from, params.to, params.amount);
+            state.depositUnderlyingBorrowTokenToVariablePool(from, params.to, amount);
+            if (!state.data.isMulticall) {
+                state.validateBorrowATokenCap();
+            }
         } else {
-            state.depositUnderlyingCollateralToken(from, params.to, params.amount);
+            state.depositUnderlyingCollateralToken(from, params.to, amount);
         }
 
-        emit Events.Deposit(params.token, params.to, params.amount);
+        emit Events.Deposit(params.token, params.to, amount);
     }
 }

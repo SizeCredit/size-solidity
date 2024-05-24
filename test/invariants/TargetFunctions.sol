@@ -13,9 +13,8 @@ import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
-import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
@@ -34,7 +33,7 @@ import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/f
 
 abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunctions {
     function setup() internal override {
-        setup(address(this), address(this));
+        setupLocal(address(this), address(this));
         address[] memory users = new address[](3);
         users[0] = USER1;
         users[1] = USER2;
@@ -93,13 +92,12 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         }
     }
 
-    function borrowAsMarketOrder(
+    function sellCreditMarket(
         address lender,
+        uint256 creditPositionId,
         uint256 amount,
         uint256 dueDate,
-        bool exactAmountIn,
-        uint256 n,
-        uint256 seedReceivableCreditPositionIds
+        bool exactAmountIn
     ) public getSender {
         __before();
 
@@ -107,22 +105,16 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         amount = between(amount, 0, MAX_AMOUNT_USDC / 100);
         dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
 
-        uint256[] memory receivableCreditPositionIds;
-        if (_before.creditPositionsCount > 0) {
-            n = between(n, 0, _before.creditPositionsCount);
-            receivableCreditPositionIds = _getRandomReceivableCreditPositionIds(n, seedReceivableCreditPositionIds);
-        }
-
         hevm.prank(sender);
-        size.borrowAsMarketOrder(
-            BorrowAsMarketOrderParams({
+        size.sellCreditMarket(
+            SellCreditMarketParams({
                 lender: lender,
+                creditPositionId: creditPositionId,
                 amount: amount,
                 dueDate: dueDate,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn,
-                receivableCreditPositionIds: receivableCreditPositionIds
+                exactAmountIn: exactAmountIn
             })
         );
 
@@ -135,11 +127,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
                 gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
 
-            if (receivableCreditPositionIds.length > 0) {
-                gte(_after.creditPositionsCount, _before.creditPositionsCount + 1, BORROW_02);
-            } else {
-                eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
-            }
+            gte(_after.creditPositionsCount, _before.creditPositionsCount + 1, BORROW_02);
         }
     }
 
@@ -150,9 +138,7 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
         hevm.prank(sender);
-        size.borrowAsLimitOrder(
-            BorrowAsLimitOrderParams({openingLimitBorrowCR: 0, curveRelativeTime: curveRelativeTime})
-        );
+        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
 
         __after();
     }
@@ -200,33 +186,6 @@ abstract contract TargetFunctions is Deploy, Helper, Properties, BaseTargetFunct
         size.lendAsLimitOrder(LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
 
         __after();
-    }
-
-    function borrowerExit(uint256 debtPositionId, address borrowerToExitTo) public getSender {
-        __before(debtPositionId);
-
-        precondition(_before.debtPositionsCount > 0);
-        debtPositionId = between(debtPositionId, DEBT_POSITION_ID_START, _before.debtPositionsCount - 1);
-
-        borrowerToExitTo = _getRandomUser(borrowerToExitTo);
-
-        hevm.prank(sender);
-        size.borrowerExit(
-            BorrowerExitParams({
-                debtPositionId: debtPositionId,
-                minAPR: 0,
-                deadline: block.timestamp,
-                borrowerToExitTo: borrowerToExitTo
-            })
-        );
-
-        __after(debtPositionId);
-
-        if (borrowerToExitTo == sender) {
-            eq(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
-        } else {
-            lt(_after.sender.debtBalance, _before.sender.debtBalance, BORROWER_EXIT_01);
-        }
     }
 
     function repay(uint256 debtPositionId) public getSender {

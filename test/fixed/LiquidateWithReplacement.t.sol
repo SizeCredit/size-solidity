@@ -6,7 +6,7 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
@@ -23,6 +23,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         public
     {
         _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -34,9 +35,8 @@ contract LiquidateWithReplacementTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 365 days);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
-        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         uint256 delta = faceValue - amount;
 
         _setPrice(0.2e18);
@@ -44,7 +44,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _before = _state();
 
         assertEq(size.getDebtPosition(debtPositionId).borrower, bob);
-        assertGt(size.getOverdueDebt(debtPositionId), 0);
+        assertGt(size.getDebtPosition(debtPositionId).faceValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
 
         _liquidateWithReplacement(liquidator, debtPositionId, candy);
@@ -52,14 +52,11 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
-        assertEq(
-            _after.candy.debtBalance,
-            _before.candy.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
-        );
+        assertEq(_after.candy.debtBalance, _before.candy.debtBalance + faceValue);
         assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + amount);
         assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
-        assertGt(size.getOverdueDebt(debtPositionId), 0);
+        assertGt(size.getDebtPosition(debtPositionId).faceValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
     }
 
@@ -67,6 +64,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         public
     {
         _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -78,10 +76,9 @@ contract LiquidateWithReplacementTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.01e18, block.timestamp + 365 days);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 newAmount = Math.mulDivDown(faceValue, PERCENT, (PERCENT + 0.01e18));
-        uint256 repayFee = size.getDebtPosition(debtPositionId).repayFee;
         uint256 delta = faceValue - newAmount;
 
         _setPrice(0.2e18);
@@ -89,7 +86,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _before = _state();
 
         assertEq(size.getDebtPosition(debtPositionId).borrower, bob);
-        assertGt(size.getOverdueDebt(debtPositionId), 0);
+        assertGt(size.getDebtPosition(debtPositionId).faceValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
 
         _liquidateWithReplacement(liquidator, debtPositionId, candy);
@@ -97,16 +94,13 @@ contract LiquidateWithReplacementTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.alice, _before.alice);
-        assertEq(
-            _after.candy.debtBalance,
-            _before.candy.debtBalance + faceValue + repayFee + size.feeConfig().overdueLiquidatorReward
-        );
+        assertEq(_after.candy.debtBalance, _before.candy.debtBalance + faceValue);
         assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + newAmount);
         assertEq(_before.variablePool.borrowATokenBalance, 0);
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
         assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + delta);
         assertEq(size.getDebtPosition(debtPositionId).borrower, candy);
-        assertGt(size.getOverdueDebt(debtPositionId), 0);
+        assertGt(size.getDebtPosition(debtPositionId).faceValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
     }
 
@@ -120,7 +114,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 365 days);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, block.timestamp + 365 days, false);
 
         _setPrice(0.2e18);
 
@@ -151,7 +145,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(liquidator, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         _borrowAsLimitOrder(candy, 0.03e18, 30);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, block.timestamp + 365 days, false);
 
         _setPrice(0.2e18);
 
@@ -175,11 +169,10 @@ contract LiquidateWithReplacementTest is BaseTest {
 
     function test_LiquidateWithReplacement_liquidateWithReplacement_experiment() public {
         _setPrice(1e18);
-        _updateConfig("collateralTokenCap", type(uint256).max);
+
         _updateConfig("borrowATokenCap", type(uint256).max);
         // Bob deposits in USDC
-        _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowATokenBalance, 100e6);
+        _deposit(bob, usdc, 150e6);
 
         // Bob lends as limit order
         _lendAsLimitOrder(
@@ -193,7 +186,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(alice, weth, 200e18);
 
         // Alice borrows as market order from Bob
-        _borrowAsMarketOrder(alice, bob, 100e6, block.timestamp + 365 days);
+        _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.riskConfig().crOpening, "Alice should be above CR opening");
@@ -213,23 +206,15 @@ contract LiquidateWithReplacementTest is BaseTest {
         assertTrue(size.isDebtPositionLiquidatable(0), "Loan should be liquidatable");
 
         DebtPosition memory loan = size.getDebtPosition(0);
-        uint256 repayFee = loan.repayFee;
         assertEq(loan.borrower, alice, "Alice should be the borrower");
-        assertEq(
-            _state().alice.debtBalance,
-            loan.faceValue + repayFee + size.feeConfig().overdueLiquidatorReward,
-            "Alice should have the debt"
-        );
+        assertEq(_state().alice.debtBalance, loan.faceValue, "Alice should have the debt");
 
         assertEq(_state().candy.debtBalance, 0, "Candy should have no debt");
         // Perform the liquidation with replacement
         _deposit(liquidator, usdc, 10_000e6);
         _liquidateWithReplacement(liquidator, 0, candy);
         assertEq(_state().alice.debtBalance, 0, "Alice should have no debt after");
-        assertEq(
-            _state().candy.debtBalance,
-            loan.faceValue + repayFee + size.feeConfig().overdueLiquidatorReward,
-            "Candy should have the debt after"
-        );
+        loan = size.getDebtPosition(0);
+        assertEq(_state().candy.debtBalance, loan.faceValue, "Candy should have the debt after");
     }
 }

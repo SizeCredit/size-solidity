@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {State} from "@src/SizeStorage.sol";
+import {State, User} from "@src/SizeStorage.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
+
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -17,15 +17,15 @@ struct BuyMarketCreditParams {
     uint256 creditPositionId;
     uint256 amount;
     uint256 deadline;
-    uint256 maxAPR;
+    uint256 minAPR;
     bool exactAmountIn;
 }
 
 library BuyMarketCredit {
     using LoanLibrary for State;
     using AccountingLibrary for State;
-    using VariablePoolLibrary for State;
     using OfferLibrary for BorrowOffer;
+    using RiskLibrary for State;
 
     function validateBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params) external view {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
@@ -35,8 +35,12 @@ library BuyMarketCredit {
         // N/A
 
         // validate creditPositionId
-        if (state.getLoanStatus(params.creditPositionId) != LoanStatus.ACTIVE) {
-            revert Errors.LOAN_NOT_ACTIVE(params.creditPositionId);
+        if (!state.isCreditPositionTransferrable(params.creditPositionId)) {
+            revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
+                params.creditPositionId,
+                state.getLoanStatus(params.creditPositionId),
+                state.collateralRatio(debtPosition.borrower)
+            );
         }
         if (creditPosition.credit == 0) {
             revert Errors.CREDIT_POSITION_ALREADY_CLAIMED(params.creditPositionId);
@@ -46,58 +50,69 @@ library BuyMarketCredit {
         if (borrowOffer.isNull()) {
             revert Errors.NULL_OFFER();
         }
-        if (user.creditPositionsForSaleDisabled || !creditPosition.forSale) {
+        if (user.allCreditPositionsForSaleDisabled || !creditPosition.forSale) {
             revert Errors.CREDIT_NOT_FOR_SALE(params.creditPositionId);
         }
 
         // validate amount
-        // N/A
+        if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+        }
 
         // validate deadline
         if (params.deadline < block.timestamp) {
             revert Errors.PAST_DEADLINE(params.deadline);
         }
 
-        // validate maxAPR
+        // validate minAPR
         uint256 apr = borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
-        if (apr > params.maxAPR) {
-            revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
+        if (apr < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
 
         // validate exactAmountIn
         // N/A
     }
 
-    function executeBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params) external {
+    function executeBuyMarketCredit(State storage state, BuyMarketCreditParams calldata params)
+        external
+        returns (uint256 cashAmountIn)
+    {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
-        BorrowOffer storage borrowOffer = state.data.users[creditPosition.lender].borrowOffer;
 
-        uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
+        uint256 ratePerMaturity = state.data.users[creditPosition.lender].borrowOffer.getRatePerMaturityByDueDate(
+            state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate
+        );
 
-        uint256 amountIn;
-        uint256 amountOut;
+        uint256 creditAmountOut;
+        uint256 fees;
 
         if (params.exactAmountIn) {
-            amountIn = params.amount;
-            amountOut = Math.mulDivDown(params.amount, PERCENT + ratePerMaturity, PERCENT);
+            cashAmountIn = params.amount;
+            (creditAmountOut, fees) = state.getCreditAmountOut({
+                cashAmountIn: cashAmountIn,
+                maxCredit: creditPosition.credit,
+                ratePerMaturity: ratePerMaturity,
+                dueDate: debtPosition.dueDate
+            });
         } else {
-            amountOut = params.amount;
-            amountIn = Math.mulDivUp(amountOut, PERCENT, PERCENT + ratePerMaturity);
+            creditAmountOut = params.amount;
+            (cashAmountIn, fees) = state.getCashAmountIn({
+                creditAmountOut: creditAmountOut,
+                maxCredit: creditPosition.credit,
+                ratePerMaturity: ratePerMaturity,
+                dueDate: debtPosition.dueDate
+            });
         }
 
-        if (amountOut > creditPosition.credit) {
-            revert Errors.NOT_ENOUGH_CREDIT(params.creditPositionId, amountOut);
-        }
-
-        state.transferBorrowAToken(msg.sender, creditPosition.lender, amountIn);
-        state.transferBorrowAToken(msg.sender, state.feeConfig.feeRecipient, state.feeConfig.earlyLenderExitFee);
         state.createCreditPosition({
             exitCreditPositionId: params.creditPositionId,
             lender: msg.sender,
-            credit: amountOut
+            credit: creditAmountOut
         });
+        state.data.borrowAToken.transferFrom(msg.sender, creditPosition.lender, cashAmountIn - fees);
+        state.data.borrowAToken.transferFrom(msg.sender, state.feeConfig.feeRecipient, fees);
 
         emit Events.BuyMarketCredit(params.creditPositionId, params.amount, params.exactAmountIn);
     }
