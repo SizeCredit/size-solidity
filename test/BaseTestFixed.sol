@@ -236,8 +236,8 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address user,
         address borrower,
         uint256 creditPositionId,
-        uint256 dueDate,
         uint256 amount,
+        uint256 dueDate,
         bool exactAmountIn
     ) internal returns (uint256) {
         vm.prank(user);
