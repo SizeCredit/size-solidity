@@ -8,7 +8,7 @@ import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLim
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-contract BorrowAsLimitOrder is Script, Logger {
+contract BorrowAsLimitOrderScript is Script, Logger {
     function run() external {
         console.log("BorrowAsLimitOrder...");
 

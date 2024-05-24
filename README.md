@@ -169,13 +169,22 @@ forge test
 
 - Check [`Properties.sol`](./test/invariants/Properties.sol)
 
-### Invariants pending implementation
+Run Echidna with
 
-- Taking a loan with only receivables does not decrease the borrower CR
-- Taking a collateralized loan decreases the borrower CR
-- The user cannot withdraw more than their deposits
-- If the loan is liquidatable, the liquidation should not revert
-- When a user self liquidates a CreditPosition, it will improve the collateralization ratio of other CreditPosition. This is because self liquidating decreases the DebtPosition's faceValue, so it decreases all CreditPosition's assigned collateral
+```bash
+echidna . --contract CryticTester --config echidna.yaml --test-mode property
+echidna . --contract CryticTester --config echidna.yaml --test-mode assertion
+```
+
+## Formal Verification
+
+- [`Math.binarySearch`](./test/libraries/Math.t.sol)
+
+Run Halmos with
+
+```bash
+for i in {0..5}; do halmos --loop $i; done
+```
 
 ## Known limitations
 

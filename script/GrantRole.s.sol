@@ -2,22 +2,22 @@
 pragma solidity 0.8.23;
 
 import {Size} from "@src/Size.sol";
-import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-contract UpdateConfigScript is Script {
+contract GrantRoleScript is Script {
     function run() external {
-        console.log("UpdateConfig...");
+        console.log("GrantRole...");
+
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
-        string memory key = vm.envString("KEY");
-        uint256 value = vm.envUint("VALUE");
+        address account = vm.envAddress("ACCOUNT");
+        bytes32 role = vm.envBytes32("ROLE");
 
         Size size = Size(payable(sizeContractAddress));
 
         vm.startBroadcast(deployerPrivateKey);
-        size.updateConfig(UpdateConfigParams({key: key, value: value}));
+        size.grantRole(role, account);
         vm.stopBroadcast();
     }
 }

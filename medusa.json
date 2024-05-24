@@ -5,12 +5,12 @@
 		"timeout": 0,
 		"testLimit": 0,
 		"callSequenceLength": 100,
-		"corpusDirectory": "",
+		"corpusDirectory": "medusa",
 		"coverageEnabled": true,
 		"targetContracts": [
 			"CryticTester"
 		],
-		"targetContractsBalances": ["0x1043561a8829300000"],
+		"targetContractsBalances": [],
 		"constructorArgs": {},
 		"deployerAddress": "0x30000",
 		"senderAddresses": [
