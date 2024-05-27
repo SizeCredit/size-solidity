@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-
 /// @title Multicall
 interface IMulticall {
     /// @notice Executes multiple calls in a single transaction

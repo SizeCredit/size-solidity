@@ -13,7 +13,6 @@ import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {DexSwap, SwapMethod, SwapParams} from "@src/periphery/DexSwap.sol";
 
-
 struct ReplacementParams {
     uint256 minAPR;
     uint256 deadline;
@@ -40,13 +39,12 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         address _uniswapRouter,
         address _collateralToken,
         address _debtToken
-    ) 
-    FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider))
-    DexSwap(_1inchAggregator, _unoswapRouter, _uniswapRouter, _collateralToken, _debtToken) 
+    )
+        FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider))
+        DexSwap(_1inchAggregator, _unoswapRouter, _uniswapRouter, _collateralToken, _debtToken)
     {
         POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
         sizeLendingContract = ISize(_sizeLendingContractAddress);
-
     }
 
     function executeOperation(
@@ -63,17 +61,10 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
 
         if (opParams.useReplacement) {
             liquidateDebtPositionWithReplacement(
-                amounts[0],
-                opParams.debtPositionId,
-                opParams.minimumCollateralProfit,
-                opParams.replacementParams 
+                amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit, opParams.replacementParams
             );
         } else {
-            liquidateDebtPosition(
-                amounts[0],
-                opParams.debtPositionId,
-                opParams.minimumCollateralProfit
-            );
+            liquidateDebtPosition(amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit);
         }
 
         swapCollateral(opParams.swapParams);
@@ -93,12 +84,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
 
         // Encode Deposit
         bytes memory depositCall = abi.encodeWithSelector(
-            ISize.deposit.selector,
-            DepositParams({
-                token: debtToken,
-                amount: debtAmount,
-                to: address(this)
-            })
+            ISize.deposit.selector, DepositParams({token: debtToken, amount: debtAmount, to: address(this)})
         );
 
         // Encode Liquidate with Replacement
@@ -116,11 +102,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         // Encode Withdraw
         bytes memory withdrawCall = abi.encodeWithSelector(
             ISize.withdraw.selector,
-            WithdrawParams({
-                token: collateralToken,
-                amount: type(uint256).max,
-                to: address(this)
-            })
+            WithdrawParams({token: collateralToken, amount: type(uint256).max, to: address(this)})
         );
 
         // Multicall
@@ -132,41 +114,27 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         sizeLendingContract.multicall(calls);
     }
 
-    function liquidateDebtPosition(
-        uint256 debtAmount,
-        uint256 debtPositionId,
-        uint256 minimumCollateralProfit
-    ) internal {
+    function liquidateDebtPosition(uint256 debtAmount, uint256 debtPositionId, uint256 minimumCollateralProfit)
+        internal
+    {
         // Approve USDC to repay the borrower's debt
         IERC20(debtToken).approve(address(sizeLendingContract), debtAmount);
 
         // Encode Deposit
         bytes memory depositCall = abi.encodeWithSelector(
-            ISize.deposit.selector,
-            DepositParams({
-                token: debtToken,
-                amount: debtAmount,
-                to: address(this)
-            })
+            ISize.deposit.selector, DepositParams({token: debtToken, amount: debtAmount, to: address(this)})
         );
 
         // Encode Liquidate
         bytes memory liquidateCall = abi.encodeWithSelector(
             ISize.liquidate.selector,
-            LiquidateParams({
-                debtPositionId: debtPositionId,
-                minimumCollateralProfit: minimumCollateralProfit
-            })
+            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
         );
 
         // Encode Withdraw
         bytes memory withdrawCall = abi.encodeWithSelector(
             ISize.withdraw.selector,
-            WithdrawParams({
-                token: collateralToken,
-                amount: type(uint256).max,
-                to: address(this)
-            })
+            WithdrawParams({token: collateralToken, amount: type(uint256).max, to: address(this)})
         );
 
         // Multicall
@@ -221,14 +189,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         uint256[] memory modes = new uint256[](1);
         modes[0] = 0;
 
-        POOL.flashLoan(
-            address(this),
-            assets,
-            amounts,
-            modes,
-            address(this),
-            params,
-            0
-        );
+        POOL.flashLoan(address(this), assets, amounts, modes, address(this), params, 0);
     }
 }

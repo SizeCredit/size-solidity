@@ -6,7 +6,6 @@ import {I1InchAggregator} from "@src/interfaces/dex/I1InchAggregator.sol";
 import {IUnoswapRouter} from "@src/interfaces/dex/IUnoswapRouter.sol";
 import {IUniswapV2Router02} from "@src/interfaces/dex/IUniswapV2Router02.sol";
 
-
 enum SwapMethod {
     OneInch,
     Unoswap,
@@ -25,7 +24,13 @@ contract DexSwap {
     address public collateralToken;
     address public debtToken;
 
-    constructor(address _oneInchAggregator, address _unoswapRouter, address _uniswapRouter, address _collateralToken, address _debtToken) {
+    constructor(
+        address _oneInchAggregator,
+        address _unoswapRouter,
+        address _uniswapRouter,
+        address _collateralToken,
+        address _debtToken
+    ) {
         oneInchAggregator = I1InchAggregator(_oneInchAggregator);
         unoswapRouter = IUnoswapRouter(_unoswapRouter);
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);

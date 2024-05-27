@@ -16,10 +16,13 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
-import {InitializeFeeConfigParams, InitializeRiskConfigParams, InitializeOracleParams} from "@src/libraries/general/actions/Initialize.sol";
+import {
+    InitializeFeeConfigParams,
+    InitializeRiskConfigParams,
+    InitializeOracleParams
+} from "@src/libraries/general/actions/Initialize.sol";
 import {DebtPosition, CreditPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {UserView, DataView} from "@src/SizeViewStructs.sol";
-
 
 /// @title ISizeView
 /// @author Size Lending

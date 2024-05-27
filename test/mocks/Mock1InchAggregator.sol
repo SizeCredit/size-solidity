@@ -7,26 +7,18 @@ import "./PriceFeedMock.sol";
 contract Mock1InchAggregator {
     PriceFeedMock public priceFeed;
 
-    event Swap(
-        address indexed fromToken,
-        address indexed toToken,
-        uint256 amount,
-        uint256 minReturn,
-        bytes data
-    );
+    event Swap(address indexed fromToken, address indexed toToken, uint256 amount, uint256 minReturn, bytes data);
 
     constructor(address _priceFeed) {
         priceFeed = PriceFeedMock(_priceFeed);
     }
 
     // Note: This function only calculates swap amounts correctly for Base -> Quote token of the priceFeed
-    function swap( 
-        address fromToken,
-        address toToken,
-        uint256 amount,
-        uint256 minReturn,
-        bytes calldata data
-    ) external payable returns (uint256 returnAmount) {
+    function swap(address fromToken, address toToken, uint256 amount, uint256 minReturn, bytes calldata data)
+        external
+        payable
+        returns (uint256 returnAmount)
+    {
         // Log the parameters to avoid compiler warnings
         emit Swap(fromToken, toToken, amount, minReturn, data);
 
@@ -35,7 +27,7 @@ contract Mock1InchAggregator {
 
         // Calculate the amount of toToken to return based on the price feed
         uint256 price = priceFeed.getPrice();
-        uint256 toTokenAmount = (amount * price) / 1e12; // Adjust for WETH/USDC decimals 
+        uint256 toTokenAmount = (amount * price) / 1e12; // Adjust for WETH/USDC decimals
 
         // Ensure the aggregator has enough toToken balance
         require(IERC20(toToken).balanceOf(address(this)) >= toTokenAmount, "Insufficient toToken balance");

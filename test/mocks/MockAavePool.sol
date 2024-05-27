@@ -20,7 +20,7 @@ interface IMinimalPool {
 
 contract MockAavePool is IMinimalPool {
     address public pool;
-    
+
     constructor() {
         pool = address(this);
     }
@@ -69,20 +69,13 @@ contract MockAavePool is IMinimalPool {
 
         // Call the executeOperation function on the receiver
         FlashLoanReceiverBase(flParams.receiverAddress).executeOperation(
-            flParams.assets,
-            flParams.amounts,
-            new uint256[](1),
-            flParams.receiverAddress,
-            flParams.params
+            flParams.assets, flParams.amounts, new uint256[](1), flParams.receiverAddress, flParams.params
         );
 
         // Ensure the receiver has repaid the loan plus premium
         for (uint256 i = 0; i < flParams.assets.length; i++) {
             uint256 amountOwed = flParams.amounts[i]; // Assuming no premium for simplicity
-            require(
-                IERC20(flParams.assets[i]).balanceOf(address(this)) >= amountOwed,
-                "Flash loan not repaid"
-            );
+            require(IERC20(flParams.assets[i]).balanceOf(address(this)) >= amountOwed, "Flash loan not repaid");
         }
     }
 }

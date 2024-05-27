@@ -40,7 +40,6 @@ contract FlashLoanLiquidationTest is BaseTest {
         _mint(address(weth), address(mockAavePool), 100000e18);
         _mint(address(usdc), address(mockAavePool), 1000000e6);
 
-
         // Initialize the FlashLoanLiquidator contract
         flashLoanLiquidator = new FlashLoanLiquidator(
             address(mockAavePool),
@@ -71,7 +70,7 @@ contract FlashLoanLiquidationTest is BaseTest {
         // uint256 debt = faceValue + repayFee + size.feeConfig().overdueLiquidatorReward;
         uint256 debt = debtPosition.faceValue;
 
-        _setPrice(0.20e18);
+        _setPrice(0.2e18);
 
         // uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
 
@@ -153,7 +152,7 @@ contract FlashLoanLiquidationTest is BaseTest {
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, amount, block.timestamp + 365 days, false);
-        _setPrice(0.20e18); // Set a price that makes the position undercollateralized
+        _setPrice(0.2e18); // Set a price that makes the position undercollateralized
 
         // Setup replacement borrower
         _deposit(candy, weth, 400e18);
@@ -167,11 +166,8 @@ contract FlashLoanLiquidationTest is BaseTest {
         });
 
         // Create ReplacementParams
-        ReplacementParams memory replacementParams = ReplacementParams({
-            minAPR: 0.03e18,
-            deadline: block.timestamp + 1 days,
-            replacementBorrower: candy
-        });
+        ReplacementParams memory replacementParams =
+            ReplacementParams({minAPR: 0.03e18, deadline: block.timestamp + 1 days, replacementBorrower: candy});
 
         // Call the liquidatePositionWithFlashLoan function with replacement
         vm.prank(liquidator);
