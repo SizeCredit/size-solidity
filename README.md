@@ -96,11 +96,11 @@ forge test
 
 | File                                                     | % Lines            | % Statements       | % Branches       | % Funcs          |
 |----------------------------------------------------------|--------------------|--------------------|------------------|------------------|
-| src/Size.sol                                             | 98.21% (55/56)     | 98.31% (58/59)     | 100.00% (0/0)    | 95.24% (20/21)   |
+| src/Size.sol                                             | 98.11% (52/53)     | 98.18% (54/55)     | 100.00% (0/0)    | 95.00% (19/20)   |
 | src/SizeView.sol                                         | 84.85% (28/33)     | 85.45% (47/55)     | 75.00% (6/8)     | 90.48% (19/21)   |
 | src/libraries/Math.sol                                   | 95.00% (19/20)     | 93.75% (30/32)     | 100.00% (6/6)    | 88.89% (8/9)     |
 | src/libraries/Multicall.sol                              | 100.00% (10/10)    | 100.00% (16/16)    | 100.00% (0/0)    | 100.00% (1/1)    |
-| src/libraries/fixed/AccountingLibrary.sol                | 85.71% (66/77)     | 87.10% (81/93)     | 53.85% (14/26)   | 100.00% (11/11)  |
+| src/libraries/fixed/AccountingLibrary.sol                | 79.22% (61/77)     | 80.65% (75/93)     | 42.31% (11/26)   | 100.00% (11/11)  |
 | src/libraries/fixed/CapsLibrary.sol                      | 84.62% (11/13)     | 88.24% (15/17)     | 50.00% (5/10)    | 100.00% (4/4)    |
 | src/libraries/fixed/DepositTokenLibrary.sol              | 100.00% (20/20)    | 100.00% (28/28)    | 100.00% (0/0)    | 100.00% (4/4)    |
 | src/libraries/fixed/LoanLibrary.sol                      | 96.97% (32/33)     | 97.87% (46/47)     | 93.75% (15/16)   | 100.00% (9/9)    |
@@ -108,11 +108,10 @@ forge test
 | src/libraries/fixed/RiskLibrary.sol                      | 88.46% (23/26)     | 93.48% (43/46)     | 70.00% (7/10)    | 100.00% (9/9)    |
 | src/libraries/fixed/YieldCurveLibrary.sol                | 96.67% (29/30)     | 98.15% (53/54)     | 77.78% (14/18)   | 100.00% (4/4)    |
 | src/libraries/fixed/actions/BorrowAsLimitOrder.sol       | 100.00% (5/5)      | 100.00% (6/6)      | 100.00% (2/2)    | 100.00% (2/2)    |
-| src/libraries/fixed/actions/BuyMarketCredit.sol          | 87.88% (29/33)     | 89.74% (35/39)     | 68.75% (11/16)   | 100.00% (2/2)    |
+| src/libraries/fixed/actions/BuyCreditMarket.sol          | 97.50% (39/40)     | 97.78% (44/45)     | 88.46% (23/26)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Claim.sol                    | 100.00% (11/11)    | 100.00% (16/16)    | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/libraries/fixed/actions/Compensate.sol               | 97.67% (42/43)     | 97.92% (47/48)     | 75.00% (15/20)   | 100.00% (2/2)    |
+| src/libraries/fixed/actions/Compensate.sol               | 97.78% (44/45)     | 98.11% (52/53)     | 75.00% (15/20)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/LendAsLimitOrder.sol         | 90.00% (9/10)      | 90.91% (10/11)     | 83.33% (5/6)     | 100.00% (2/2)    |
-| src/libraries/fixed/actions/LendAsMarketOrder.sol        | 92.31% (24/26)     | 93.10% (27/29)     | 85.71% (12/14)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Liquidate.sol                | 100.00% (26/26)    | 100.00% (35/35)    | 83.33% (5/6)     | 100.00% (3/3)    |
 | src/libraries/fixed/actions/LiquidateWithReplacement.sol | 93.94% (31/33)     | 95.12% (39/41)     | 80.00% (8/10)    | 100.00% (3/3)    |
 | src/libraries/fixed/actions/Repay.sol                    | 100.00% (10/10)    | 100.00% (14/14)    | 75.00% (3/4)     | 100.00% (2/2)    |
@@ -135,14 +134,13 @@ forge test
 │          (index)           │ Values │
 ├────────────────────────────┼────────┤
 │     BorrowAsLimitOrder     │   5    │
-│      BuyMarketCredit       │   3    │
+│      BuyCreditMarket       │   10   │
 │           Claim            │   10   │
 │         Compensate         │   15   │
 │      CryticToFoundry       │   3    │
 │          Deposit           │   5    │
 │         Initialize         │   4    │
 │      LendAsLimitOrder      │   4    │
-│     LendAsMarketOrder      │   7    │
 │  LiquidateWithReplacement  │   6    │
 │         Liquidate          │   10   │
 │            Math            │   10   │
