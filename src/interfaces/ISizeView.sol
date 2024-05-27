@@ -2,13 +2,10 @@
 pragma solidity 0.8.23;
 
 import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
 
-import {BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
@@ -21,11 +18,7 @@ import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.so
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {InitializeFeeConfigParams, InitializeRiskConfigParams, InitializeOracleParams} from "@src/libraries/general/actions/Initialize.sol";
 import {DebtPosition, CreditPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
-
-import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
-import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
 import {UserView, DataView} from "@src/SizeViewStructs.sol";
-
 
 
 /// @title ISizeView
@@ -46,24 +39,6 @@ interface ISizeView {
     /// @param debtPositionId The ID of the debt position
     /// @return True if the debt position is liquidatable, false otherwise
     function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool);
-
-    /// @notice Get the total debt of a DebtPosition
-    ///         The total loan debt is the face value (debt to the lender)
-    ///        + the repay fee (protocol fee)
-    ///        + the overdue liquidator reward (in case of overdue liquidation).
-    /// @param debtPositionId The ID of the debt position
-    /// @return The total overdue debt amount
-    function getOverdueDebt(uint256 debtPositionId) external view returns (uint256);
-
-    /// @notice Get the due date debt for a given debt position
-    /// @param debtPositionId The ID of the debt position
-    /// @return The due date debt amount
-    function getDueDateDebt(uint256 debtPositionId) external view returns (uint256);
-
-    /// @notice Get the APR for a given debt position
-    /// @param debtPositionId The ID of the debt position
-    /// @return The APR of the debt position
-    function getAPR(uint256 debtPositionId) external view returns (uint256);
 
     /// @notice Convert debt token amount to collateral token amount
     /// @param borrowATokenAmount The amount of borrow A tokens
@@ -115,14 +90,6 @@ interface ISizeView {
     /// @param positionId The ID of the position
     /// @return The loan status
     function getLoanStatus(uint256 positionId) external view returns (LoanStatus);
-
-    /// @notice Calculate the repay fee
-    /// @param issuanceValue The issuance value
-    /// @param startDate The start date of the loan
-    /// @param dueDate The due date of the loan
-    /// @param repayFeeAPR The APR of the repay fee
-    /// @return The calculated repay fee
-    function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR) external pure returns (uint256);
 
     /// @notice Get the count of debt and credit positions
     /// @return The count of debt positions and credit positions

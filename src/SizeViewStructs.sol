@@ -5,7 +5,8 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
+import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
+import {User} from "@src/SizeStorage.sol";
 
 struct UserView {
     User user;
@@ -20,8 +21,8 @@ struct DataView {
     uint256 nextCreditPositionId;
     IERC20Metadata underlyingCollateralToken;
     IERC20Metadata underlyingBorrowToken;
-    IPool variablePool;
     NonTransferrableToken collateralToken;
-    IAToken borrowAToken;
+    NonTransferrableScaledToken borrowAToken;
     NonTransferrableToken debtToken;
+    IPool variablePool;
 }

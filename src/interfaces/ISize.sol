@@ -20,10 +20,6 @@ import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {InitializeFeeConfigParams, InitializeRiskConfigParams, InitializeOracleParams} from "@src/libraries/general/actions/Initialize.sol";
 import {DebtPosition, CreditPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
-import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
-import {SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
-import {UserView, DataView} from "@src/SizeViewStructs.sol";
-
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
