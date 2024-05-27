@@ -16,7 +16,7 @@ import {
 } from "@src/libraries/general/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
-import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
+import {SellCreditLimit, SellCreditLimitParams} from "@src/libraries/fixed/actions/SellCreditLimit.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
 import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
@@ -25,7 +25,7 @@ import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol
 import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
-import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {BuyCreditLimit, BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
 import {Liquidate, LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
 import {Multicall} from "@src/libraries/Multicall.sol";
@@ -58,9 +58,9 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using Deposit for State;
     using Withdraw for State;
     using SellCreditMarket for State;
-    using BorrowAsLimitOrder for State;
+    using SellCreditLimit for State;
     using BuyCreditMarket for State;
-    using LendAsLimitOrder for State;
+    using BuyCreditLimit for State;
     using Repay for State;
     using Claim for State;
     using Liquidate for State;
@@ -135,20 +135,20 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function lendAsLimitOrder(LendAsLimitOrderParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateLendAsLimitOrder(params);
-        state.executeLendAsLimitOrder(params);
+    function buyCreditLimitOrder(BuyCreditLimitParams calldata params) external payable override(ISize) whenNotPaused {
+        state.validateBuyCreditLimit(params);
+        state.executeBuyCreditLimit(params);
     }
 
     /// @inheritdoc ISize
-    function borrowAsLimitOrder(BorrowAsLimitOrderParams calldata params)
+    function sellCreditLimitOrder(SellCreditLimitParams calldata params)
         external
         payable
         override(ISize)
         whenNotPaused
     {
-        state.validateBorrowAsLimitOrder(params);
-        state.executeBorrowAsLimitOrder(params);
+        state.validateSellCreditLimit(params);
+        state.executeSellCreditLimit(params);
     }
 
     /// @inheritdoc ISize

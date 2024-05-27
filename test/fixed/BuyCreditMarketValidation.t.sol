@@ -7,7 +7,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {RESERVED_ID, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
@@ -24,10 +24,10 @@ contract BuyCreditMarketTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _borrowAsLimitOrder(alice, 0.03e18, block.timestamp + 10 days);
-        _borrowAsLimitOrder(bob, 0.03e18, block.timestamp + 10 days);
-        _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 10 days);
-        _borrowAsLimitOrder(james, 0.03e18, block.timestamp + 365 days);
+        _sellCreditLimitOrder(alice, 0.03e18, block.timestamp + 10 days);
+        _sellCreditLimitOrder(bob, 0.03e18, block.timestamp + 10 days);
+        _sellCreditLimitOrder(candy, 0.03e18, block.timestamp + 10 days);
+        _sellCreditLimitOrder(james, 0.03e18, block.timestamp + 365 days);
         uint256 debtPositionId = _buyCreditMarket(alice, candy, RESERVED_ID, 40e6, block.timestamp + 10 days, false);
 
         uint256 deadline = block.timestamp;
@@ -143,8 +143,8 @@ contract BuyCreditMarketTest is BaseTest {
         );
         vm.stopPrank();
 
-        _borrowAsLimitOrder(bob, 0, block.timestamp + 365 days);
-        _borrowAsLimitOrder(candy, 0, block.timestamp + 365 days);
+        _sellCreditLimitOrder(bob, 0, block.timestamp + 365 days);
+        _sellCreditLimitOrder(candy, 0, block.timestamp + 365 days);
         uint256 debtPositionId2 = _buyCreditMarket(alice, candy, RESERVED_ID, 10e6, block.timestamp + 365 days, false);
         creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _repay(candy, debtPositionId2);

@@ -25,7 +25,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         uint256 rate = 0.03e18;
-        _borrowAsLimitOrder(alice, int256(rate), block.timestamp + 365 days);
+        _sellCreditLimitOrder(alice, int256(rate), block.timestamp + 365 days);
 
         uint256 issuanceValue = 10e6;
         uint256 faceValue = Math.mulDivUp(issuanceValue, PERCENT + rate, PERCENT);
@@ -56,7 +56,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _borrowAsLimitOrder(alice, 0.03e18, block.timestamp + 365 days);
+        _sellCreditLimitOrder(alice, 0.03e18, block.timestamp + 365 days);
 
         uint256 amountIn = 10e6;
         uint256 dueDate = block.timestamp + 365 days;
@@ -89,7 +89,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _setVariableBorrowRate(0);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
-        _borrowAsLimitOrder(alice, curve);
+        _sellCreditLimitOrder(alice, curve);
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.maturities[0] + curve.maturities[1]) / 2;
@@ -119,7 +119,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
-        _borrowAsLimitOrder(alice, 0, block.timestamp + 365 days);
+        _sellCreditLimitOrder(alice, 0, block.timestamp + 365 days);
 
         vm.startPrank(bob);
         vm.expectRevert(
@@ -143,7 +143,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _updateConfig("debtTokenCap", 5e6);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
-        _borrowAsLimitOrder(alice, 0, block.timestamp + 365 days);
+        _sellCreditLimitOrder(alice, 0, block.timestamp + 365 days);
 
         vm.startPrank(bob);
         vm.expectRevert(
@@ -167,7 +167,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        _borrowAsLimitOrder(alice, curve);
+        _sellCreditLimitOrder(alice, curve);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));
@@ -215,7 +215,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(alice, weth, 200e18);
 
         // Alice places a borrow limit order
-        _borrowAsLimitOrder(alice, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
+        _sellCreditLimitOrder(alice, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
 
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
@@ -239,7 +239,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 2 * 150e18);
         _deposit(bob, usdc, 10e6);
-        _borrowAsLimitOrder(alice, [int256(1e18), int256(1e18)], [uint256(365 days), uint256(365 days * 2)]);
+        _sellCreditLimitOrder(alice, [int256(1e18), int256(1e18)], [uint256(365 days), uint256(365 days * 2)]);
 
         uint256 dueDate = block.timestamp + 365 days;
 
@@ -322,9 +322,9 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(james, weth, 1600e18);
         _deposit(james, usdc, 1000e6);
         _deposit(candy, usdc, 1200e6);
-        _lendAsLimitOrder(alice, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(6 * 30 days, 0.05e18));
-        _lendAsLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
-        _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
+        _buyCreditLimitOrder(alice, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(6 * 30 days, 0.05e18));
+        _buyCreditLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
+        _sellCreditLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, 975.94e6, block.timestamp + 6 * 30 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
@@ -354,9 +354,9 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(james, weth, 1600e18);
         _deposit(james, usdc, 1000e6);
         _deposit(candy, usdc, 1200e6);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        _borrowAsLimitOrder(alice, YieldCurveHelper.pointCurve(365 days, 1e18));
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 1e18);
+        _sellCreditLimitOrder(alice, YieldCurveHelper.pointCurve(365 days, 1e18));
 
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, 100e6, block.timestamp + 365 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];

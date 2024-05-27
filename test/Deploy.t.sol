@@ -50,9 +50,9 @@ contract DeployScriptTest is ForkTest {
         assertEq(size.getUserView(alice).borrowATokenBalance, 0);
     }
 
-    function testFork_Deploy_deposit_lendAsLimitOrder_borrow() public {
+    function testFork_Deploy_deposit_buyCreditLimitOrder_borrow() public {
         _deposit(alice, usdc, 2500 * 1e6);
-        _lendAsLimitOrder(
+        _buyCreditLimitOrder(
             alice, block.timestamp + 365 days, [int256(0.05e18), int256(0.07e18)], [uint256(30 days), uint256(180 days)]
         );
 
@@ -77,10 +77,10 @@ contract DeployScriptTest is ForkTest {
         _withdrawVariable(alice, usdc, 2_500e6);
     }
 
-    function testFork_Deploy_RevertWith_deposit_lendAsLimitOrder_variablePool_borrow_borrow_low_liquidity() public {
+    function testFork_Deploy_RevertWith_deposit_buyCreditLimitOrder_variablePool_borrow_borrow_low_liquidity() public {
         _deposit(alice, usdc, 2_500e6);
         assertEq(usdc.balanceOf(address(variablePool)), 2_500e6);
-        _lendAsLimitOrder(
+        _buyCreditLimitOrder(
             alice, block.timestamp + 365 days, [int256(0.05e18), int256(0.07e18)], [uint256(30 days), uint256(180 days)]
         );
 
@@ -103,7 +103,7 @@ contract DeployScriptTest is ForkTest {
         _setPrice(2468e18);
         _deposit(alice, usdc, 2_500e6);
         assertEq(usdc.balanceOf(address(variablePool)), 2_500e6);
-        _lendAsLimitOrder(
+        _buyCreditLimitOrder(
             alice, block.timestamp + 365 days, [int256(0.05e18), int256(0.07e18)], [uint256(30 days), uint256(180 days)]
         );
 

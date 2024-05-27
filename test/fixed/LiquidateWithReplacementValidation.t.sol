@@ -23,13 +23,13 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(
+        _buyCreditLimitOrder(
             alice,
             block.timestamp + 365 days * 2,
             [int256(0.03e18), int256(0.03e18)],
             [uint256(365 days), uint256(365 days * 2)]
         );
-        _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
+        _sellCreditLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
         uint256 dueDate = block.timestamp + 365 days * 2;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, dueDate, false);
         uint256 minimumCollateralProfit = 0;

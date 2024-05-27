@@ -19,15 +19,15 @@ import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
-import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
+import {SellCreditLimitParams} from "@src/libraries/fixed/actions/SellCreditLimit.sol";
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 
+import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
@@ -44,7 +44,6 @@ import {KEEPER_ROLE} from "@src/Size.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
-
 
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
@@ -172,7 +171,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function borrowAsLimitOrder(uint256 yieldCurveSeed)
+    function sellCreditLimitOrder(uint256 yieldCurveSeed)
         public
         getSender
         checkExpectedErrors(BORROW_AS_LIMIT_ORDER_ERRORS)
@@ -183,7 +182,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
 
         hevm.prank(sender);
         (success, returnData) = address(size).call(
-            abi.encodeCall(size.borrowAsLimitOrder, BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}))
+            abi.encodeCall(size.sellCreditLimitOrder, SellCreditLimitParams({curveRelativeTime: curveRelativeTime}))
         );
         if (success) {
             __after();
@@ -219,7 +218,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function lendAsLimitOrder(uint256 maxDueDate, uint256 yieldCurveSeed)
+    function buyCreditLimitOrder(uint256 maxDueDate, uint256 yieldCurveSeed)
         public
         getSender
         checkExpectedErrors(LEND_AS_LIMIT_ORDER_ERRORS)
@@ -232,8 +231,8 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         hevm.prank(sender);
         (success, returnData) = address(size).call(
             abi.encodeCall(
-                size.lendAsLimitOrder,
-                LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
+                size.buyCreditLimitOrder,
+                BuyCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
             )
         );
         if (success) {

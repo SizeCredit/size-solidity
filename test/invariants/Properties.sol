@@ -26,42 +26,39 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
     event L3(uint256 a, uint256 b, uint256 c);
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
-    function invariant_LOAN_01() public returns (bool) {
+    function invariant_LOAN() public returns (bool) {
         (uint256 minimumCreditBorrowAToken,) = size.getCryticVariables();
         CreditPosition[] memory creditPositions = size.getCreditPositions();
 
         for (uint256 i = 0; i < creditPositions.length; i++) {
-            if (0 < creditPositions[i].credit && creditPositions[i].credit < minimumCreditBorrowAToken) {
-                t(false, LOAN_01);
-                return false;
-            }
+            t(creditPositions[i].credit == 0 || creditPositions[i].credit >= minimumCreditBorrowAToken, LOAN_01);
         }
         return true;
     }
 
-    function invariant_UNDERWATER_01() public returns (bool) {
-        if (!_before.isSenderLiquidatable && _after.isSenderLiquidatable) {
-            t(false, UNDERWATER_01);
-            return false;
-        }
+    function invariant_UNDERWATER() public returns (bool) {
+        t(!(!_before.isSenderLiquidatable && _after.isSenderLiquidatable), UNDERWATER_01);
+        t(!(_before.isSenderLiquidatable && _after.debtPositionsCount > _before.debtPositionsCount), UNDERWATER_02);
+
         return true;
     }
 
-    function invariant_TOKENS_01() public returns (bool) {
+    function invariant_TOKENS() public returns (bool) {
         (, address feeRecipient) = size.getCryticVariables();
         address[6] memory users = [USER1, USER2, USER3, address(size), address(variablePool), address(feeRecipient)];
 
-        uint256 collateralBalance;
+        uint256 borrowATokenBalance;
+        uint256 collateralTokenBalance;
 
         for (uint256 i = 0; i < users.length; i++) {
             UserView memory userView = size.getUserView(users[i]);
-            collateralBalance += userView.collateralTokenBalance;
+            collateralTokenBalance += userView.collateralTokenBalance;
+            borrowATokenBalance += userView.borrowATokenBalance;
         }
 
-        if (weth.balanceOf(address(size)) != collateralBalance) {
-            t(false, TOKENS_01);
-            return false;
-        }
+        eq(weth.balanceOf(address(size)), collateralTokenBalance, TOKENS_01);
+        gte(size.data().borrowAToken.totalSupply(), borrowATokenBalance, TOKENS_02);
+
         return true;
     }
 
@@ -94,28 +91,16 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
             positionsDebt[userIndex] += debtPosition.faceValue;
         }
 
-        if (outstandingDebt != outstandingCredit) {
-            t(false, SOLVENCY_01);
-            return false;
-        }
+        eq(outstandingDebt, outstandingCredit, SOLVENCY_01);
 
-        if (size.data().debtToken.totalSupply() < outstandingCredit) {
-            t(false, SOLVENCY_02);
-            return false;
-        }
+        gte(size.data().debtToken.totalSupply(), outstandingCredit, SOLVENCY_02);
 
         for (uint256 i = 0; i < positionsDebt.length; ++i) {
             totalDebt += positionsDebt[i];
-            if (size.data().debtToken.balanceOf(users[i]) != positionsDebt[i]) {
-                t(false, SOLVENCY_03);
-                return false;
-            }
+            eq(size.data().debtToken.balanceOf(users[i]), positionsDebt[i], SOLVENCY_03);
         }
 
-        if (totalDebt != size.data().debtToken.totalSupply()) {
-            t(false, SOLVENCY_04);
-            return false;
-        }
+        eq(totalDebt, size.data().debtToken.totalSupply(), SOLVENCY_04);
 
         return true;
     }

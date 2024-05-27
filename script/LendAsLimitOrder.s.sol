@@ -4,11 +4,11 @@ pragma solidity 0.8.23;
 import {Size} from "@src/Size.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-contract LendAsLimitOrderScript is Script {
+contract BuyCreditLimitScript is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
@@ -33,11 +33,11 @@ contract LendAsLimitOrderScript is Script {
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
 
-        LendAsLimitOrderParams memory params =
-            LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
+        BuyCreditLimitParams memory params =
+            BuyCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
-        size.lendAsLimitOrder(params);
+        size.buyCreditLimitOrder(params);
         vm.stopBroadcast();
     }
 }

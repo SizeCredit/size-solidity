@@ -33,7 +33,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
 
     function test_CryticToFoundry_02() public {
         deposit(address(0xdeadbeef), 97519241443110920792153965957231585900669055815069515145356);
-        borrowAsLimitOrder(12128712494074002390108299745881041598326456919377586132);
+        sellCreditLimitOrder(12128712494074002390108299745881041598326456919377586132);
         deposit(address(0x0), 3454149647212318342190486356561251068327670996371);
         buyCreditMarket(
             address(0x0),
@@ -47,11 +47,25 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
     }
 
     function test_CryticToFoundry_03() public {
-        borrowAsLimitOrder(0);
+        sellCreditLimitOrder(0);
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
         buyCreditMarket(address(0x0), 14883685759233386169554070446227790, 5068531, false);
         setPrice(0);
         compensate(0, 0, 0);
+    }
+
+    function test_CryticToFoundry_04() public {
+        deposit(0xe11bcd2D4941AA8648b2c1D5e470D915c05CC603, 73899321702418552725334123008022);
+        invariant_TOKENS();
+    }
+
+    function test_CryticToFoundry_05() public {
+        deposit(
+            0x64Cf4A4613A8E4C56e81D52Bc814dF43fB6Ac75d,
+            115792089237316195423570985008687907853269984665640564039457584007913129639932
+        );
+        setLiquidityIndex(115792089237316195423570985008687907853269984665640564039457584007913129639934, 3);
+        invariant_TOKENS();
     }
 }

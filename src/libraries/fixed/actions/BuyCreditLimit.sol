@@ -9,15 +9,15 @@ import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-struct LendAsLimitOrderParams {
+struct BuyCreditLimitParams {
     uint256 maxDueDate;
     YieldCurve curveRelativeTime;
 }
 
-library LendAsLimitOrder {
+library BuyCreditLimit {
     using OfferLibrary for LoanOffer;
 
-    function validateLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external view {
+    function validateBuyCreditLimit(State storage state, BuyCreditLimitParams calldata params) external view {
         LoanOffer memory loanOffer =
             LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
@@ -41,10 +41,10 @@ library LendAsLimitOrder {
         }
     }
 
-    function executeLendAsLimitOrder(State storage state, LendAsLimitOrderParams calldata params) external {
+    function executeBuyCreditLimit(State storage state, BuyCreditLimitParams calldata params) external {
         state.data.users[msg.sender].loanOffer =
             LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
-        emit Events.LendAsLimitOrder(
+        emit Events.BuyCreditLimit(
             params.maxDueDate,
             params.curveRelativeTime.maturities,
             params.curveRelativeTime.aprs,

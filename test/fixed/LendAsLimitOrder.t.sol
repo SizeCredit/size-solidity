@@ -9,22 +9,22 @@ import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
-import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
 
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
-contract LendAsLimitOrderTest is BaseTest {
+contract BuyCreditLimitTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
-    function test_LendAsLimitOrder_lendAsLimitOrder_adds_loanOffer_to_orderbook() public {
+    function test_BuyCreditLimit_buyCreditLimitOrder_adds_loanOffer_to_orderbook() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         assertTrue(_state().alice.user.loanOffer.isNull());
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 1.01e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 1.01e18);
         assertTrue(!_state().alice.user.loanOffer.isNull());
     }
 
-    function test_LendAsLimitOrder_lendAsLimitOrder_clear_limit_order() public {
+    function test_BuyCreditLimit_buyCreditLimitOrder_clear_limit_order() public {
         _setPrice(1e18);
         _deposit(alice, usdc, 1_000e6);
         _deposit(bob, weth, 300e18);
@@ -40,8 +40,8 @@ contract LendAsLimitOrderTest is BaseTest {
         aprs[0] = 0.12e18;
 
         vm.prank(alice);
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({
+        size.buyCreditLimitOrder(
+            BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
@@ -53,9 +53,9 @@ contract LendAsLimitOrderTest is BaseTest {
 
         _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 45 days, false);
 
-        LendAsLimitOrderParams memory empty;
+        BuyCreditLimitParams memory empty;
         vm.prank(alice);
-        size.lendAsLimitOrder(empty);
+        size.buyCreditLimitOrder(empty);
 
         uint256 amount = 100e6;
         uint256 dueDate = block.timestamp + 45 days;
@@ -74,7 +74,7 @@ contract LendAsLimitOrderTest is BaseTest {
         );
     }
 
-    function test_LendAsLimitOrder_lendAsLimitOrder_experiment_strategy_speculator() public {
+    function test_BuyCreditLimit_buyCreditLimitOrder_experiment_strategy_speculator() public {
         // The speculator hopes to profit off of interest rate movements, by either:
         // 1. Lending at a high interest rate and exit to other lenders when interest rates drop
         // 2. Borrowing at low interest rate and exit to other borrowers when interest rates rise
@@ -88,7 +88,7 @@ contract LendAsLimitOrderTest is BaseTest {
         _updateConfig("swapFeeAPR", 0);
 
         _deposit(alice, usdc, 10_000e6);
-        _lendAsLimitOrder(alice, block.timestamp + 180 days, 0.06e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 180 days, 0.06e18);
 
         _deposit(bob, weth, 20_000e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 10_000e6, block.timestamp + 180 days, false);
@@ -98,7 +98,7 @@ contract LendAsLimitOrderTest is BaseTest {
 
         vm.warp(block.timestamp + 14 days);
         _deposit(candy, usdc, faceValue);
-        _lendAsLimitOrder(candy, block.timestamp + 180 days - 14 days, 0.045e18);
+        _buyCreditLimitOrder(candy, block.timestamp + 180 days - 14 days, 0.045e18);
         _sellCreditMarket(alice, candy, creditPositionId, size.getDebtPosition(debtPositionId).dueDate);
 
         assertEqApprox(_state().alice.borrowATokenBalance, 10_091e6, 10e6);

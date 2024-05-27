@@ -30,12 +30,8 @@ library Compensate {
     using RiskLibrary for State;
 
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
-        uint256 creditPositionWithDebtToRepayId = params.creditPositionWithDebtToRepayId;
-        uint256 creditPositionToCompensateId = params.creditPositionToCompensateId == RESERVED_ID
-            ? (state.data.nextCreditPositionId - 1)
-            : params.creditPositionToCompensateId;
-
-        CreditPosition storage creditPositionWithDebtToRepay = state.getCreditPosition(creditPositionWithDebtToRepayId);
+        CreditPosition storage creditPositionWithDebtToRepay =
+            state.getCreditPosition(params.creditPositionWithDebtToRepayId);
         DebtPosition storage debtPositionToRepay =
             state.getDebtPositionByCreditPositionId(params.creditPositionWithDebtToRepayId);
 
@@ -88,10 +84,9 @@ library Compensate {
     }
 
     function executeCompensate(State storage state, CompensateParams calldata params) external {
-        uint256 creditPositionWithDebtToRepayId = params.creditPositionWithDebtToRepayId;
-        uint256 creditPositionToCompensateId = params.creditPositionToCompensateId == RESERVED_ID
-            ? (state.data.nextCreditPositionId - 1)
-            : params.creditPositionToCompensateId;
+        emit Events.Compensate(
+            params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId, params.amount
+        );
 
         CreditPosition storage creditPositionWithDebtToRepay =
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);
