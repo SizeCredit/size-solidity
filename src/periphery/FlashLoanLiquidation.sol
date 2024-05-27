@@ -217,7 +217,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         address[] memory assets = new address[](1);
         assets[0] = debtToken;
         uint256[] memory amounts = new uint256[](1);
-        amounts[0] = sizeLendingContract.getOverdueDebt(debtPositionId);
+        amounts[0] = sizeLendingContract.getDebtPosition(debtPositionId).faceValue;
         uint256[] memory modes = new uint256[](1);
         modes[0] = 0;
 
