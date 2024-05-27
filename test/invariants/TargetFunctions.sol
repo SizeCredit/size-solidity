@@ -45,7 +45,6 @@ import {KEEPER_ROLE} from "@src/Size.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 
-
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetFunctions {

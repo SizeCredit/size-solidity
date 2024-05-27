@@ -26,7 +26,7 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
     event L3(uint256 a, uint256 b, uint256 c);
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
-    function invariant_LOAN_01() public returns (bool) {
+    function invariant_LOAN() public returns (bool) {
         (uint256 minimumCreditBorrowAToken,) = size.getCryticVariables();
         CreditPosition[] memory creditPositions = size.getCreditPositions();
 
@@ -39,27 +39,37 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
         return true;
     }
 
-    function invariant_UNDERWATER_01() public returns (bool) {
+    function invariant_UNDERWATER() public returns (bool) {
         if (!_before.isSenderLiquidatable && _after.isSenderLiquidatable) {
             t(false, UNDERWATER_01);
+            return false;
+        }
+        if (_before.isSenderLiquidatable && _after.debtPositionsCount > _before.debtPositionsCount) {
+            t(false, UNDERWATER_02);
             return false;
         }
         return true;
     }
 
-    function invariant_TOKENS_01() public returns (bool) {
+    function invariant_TOKENS() public returns (bool) {
         (, address feeRecipient) = size.getCryticVariables();
         address[6] memory users = [USER1, USER2, USER3, address(size), address(variablePool), address(feeRecipient)];
 
-        uint256 collateralBalance;
+        uint256 borrowATokenBalance;
+        uint256 collateralTokenBalance;
 
         for (uint256 i = 0; i < users.length; i++) {
             UserView memory userView = size.getUserView(users[i]);
-            collateralBalance += userView.collateralTokenBalance;
+            collateralTokenBalance += userView.collateralTokenBalance;
+            borrowATokenBalance += userView.borrowATokenBalance;
         }
 
-        if (weth.balanceOf(address(size)) != collateralBalance) {
+        if (weth.balanceOf(address(size)) != collateralTokenBalance) {
             t(false, TOKENS_01);
+            return false;
+        }
+        if (usdc.balanceOf(address(size)) < borrowATokenBalance) {
+            t(false, TOKENS_02);
             return false;
         }
         return true;
