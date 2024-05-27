@@ -101,11 +101,9 @@ library Liquidate {
 
         state.data.borrowAToken.transferFrom(msg.sender, address(this), debtPosition.faceValue);
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, liquidatorProfitCollateralToken);
-        if (protocolProfitCollateralToken > 0) {
-            state.data.collateralToken.transferFrom(
-                debtPosition.borrower, state.feeConfig.feeRecipient, protocolProfitCollateralToken
-            );
-        }
+        state.data.collateralToken.transferFrom(
+            debtPosition.borrower, state.feeConfig.feeRecipient, protocolProfitCollateralToken
+        );
 
         state.repayDebt(params.debtPositionId, debtPosition.faceValue, true);
     }
