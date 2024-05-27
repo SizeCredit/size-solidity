@@ -23,10 +23,7 @@ library YieldCurveLibrary {
         return self.maturities.length == 0 && self.aprs.length == 0 && self.marketRateMultipliers.length == 0;
     }
 
-    function validateYieldCurve(YieldCurve memory self, uint256 minimumTenor, uint256 maximumTenor)
-        internal
-        pure
-    {
+    function validateYieldCurve(YieldCurve memory self, uint256 minimumTenor, uint256 maximumTenor) internal pure {
         if (self.maturities.length == 0 || self.aprs.length == 0 || self.marketRateMultipliers.length == 0) {
             revert Errors.NULL_ARRAY();
         }
@@ -49,9 +46,7 @@ library YieldCurveLibrary {
             revert Errors.TENOR_BELOW_MINIMUM_TENOR(self.maturities[0], minimumTenor);
         }
         if (self.maturities[self.maturities.length - 1] > maximumTenor) {
-            revert Errors.TENOR_GREATER_THAN_MAXIMUM_TENOR(
-                self.maturities[self.maturities.length - 1], maximumTenor
-            );
+            revert Errors.TENOR_GREATER_THAN_MAXIMUM_TENOR(self.maturities[self.maturities.length - 1], maximumTenor);
         }
 
         // validate marketRateMultipliers

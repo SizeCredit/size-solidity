@@ -115,9 +115,7 @@ contract SellCreditMarketTest is BaseTest {
         assertEq(_after.bob, _before.bob);
     }
 
-    function testFuzz_SellCreditMarket_sellCreditMarket_exit_full(uint256 amount, uint256 rate, uint256 tenor)
-        public
-    {
+    function testFuzz_SellCreditMarket_sellCreditMarket_exit_full(uint256 amount, uint256 rate, uint256 tenor) public {
         _updateConfig("minimumTenor", 1);
         amount = bound(amount, MAX_AMOUNT_USDC / 10, 2 * MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
         rate = bound(rate, 0, MAX_RATE);
@@ -133,16 +131,10 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(candy, usdc, MAX_AMOUNT_USDC);
 
         _buyCreditLimit(
-            alice,
-            block.timestamp + MAX_TENOR,
-            [int256(rate), int256(rate)],
-            [uint256(tenor), uint256(tenor) * 2]
+            alice, block.timestamp + MAX_TENOR, [int256(rate), int256(rate)], [uint256(tenor), uint256(tenor) * 2]
         );
         _buyCreditLimit(
-            candy,
-            block.timestamp + MAX_TENOR,
-            [int256(rate), int256(rate)],
-            [uint256(tenor), uint256(tenor) * 2]
+            candy, block.timestamp + MAX_TENOR, [int256(rate), int256(rate)], [uint256(tenor), uint256(tenor) * 2]
         );
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, dueDate, false);
         (uint256 debtPositionsCountBefore,) = size.getPositionsCount();

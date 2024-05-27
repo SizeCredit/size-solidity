@@ -466,9 +466,7 @@ contract CompensateTest is BaseTest {
         assertEq(_state().feeRecipient.collateralTokenBalance, 0);
     }
 
-    function test_Compensate_compensate_used_to_borrower_exit_before_tenor_does_not_overcharge_new_borrower()
-        public
-    {
+    function test_Compensate_compensate_used_to_borrower_exit_before_tenor_does_not_overcharge_new_borrower() public {
         _setPrice(1e18);
         vm.warp(block.timestamp + 12345 days);
 
