@@ -18,10 +18,10 @@ contract LiquidateValidationTest is BaseTest {
         _deposit(candy, usdc, 150e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 150e6);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
-        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0.03e18);
-        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
-        _lendAsLimitOrder(james, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimitOrder(bob, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimitOrder(james, block.timestamp + 12 days, 0.03e18);
         _sellCreditMarket(bob, candy, RESERVED_ID, 90e6, block.timestamp + 12 days, false);
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 12 days, false);

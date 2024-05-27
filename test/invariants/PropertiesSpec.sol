@@ -24,17 +24,21 @@ abstract contract PropertiesSpec {
     string internal constant REPAY_01 = "REPAY_01: Repay transfers cash from the sender to the protocol";
     string internal constant REPAY_02 = "REPAY_02: Repay decreases the borrower's debt";
 
+    string internal constant LOAN = "LOAN: Loan properties";
     string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
 
+    string internal constant TOKENS = "TOKENS: Token properties";
     string internal constant TOKENS_01 = "TOKENS_01: The sum of collateral tokens is constant";
     string internal constant TOKENS_02 = "TOKENS_02: The sum of borrow tokens is constant (up to rounding)";
 
+    string internal constant UNDERWATER = "UNDERWATER: Underwater properties";
     string internal constant UNDERWATER_01 =
         "UNDERWATER_01: A user cannot make an operation that leaves them underwater";
     string internal constant UNDERWATER_02 = "UNDERWATER_01: Underwater users cannot borrow";
 
     string internal constant COMPENSATE_01 = "COMPENSATE_01: Compensate reduces the borrower debt";
 
+    string internal constant SOLVENCY = "SOLVENCY: Solvency properties";
     string internal constant SOLVENCY_01 = "SOLVENCY_01: SUM(outstanding credit) == SUM(outstanding debt)";
     string internal constant SOLVENCY_02 = "SOLVENCY_02: SUM(credit) <= SUM(debt)";
     string internal constant SOLVENCY_03 = "SOLVENCY_03: SUM(positions debt) == user total debt, for each user";

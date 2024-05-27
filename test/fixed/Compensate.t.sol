@@ -27,10 +27,10 @@ contract CompensateTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        _lendAsLimitOrder(bob, block.timestamp + 365 days, 1e18);
-        _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
-        _lendAsLimitOrder(james, block.timestamp + 365 days, 1e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimitOrder(bob, block.timestamp + 365 days, 1e18);
+        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 1e18);
+        _buyCreditLimitOrder(james, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
@@ -61,10 +61,10 @@ contract CompensateTest is BaseTest {
         _deposit(candy, usdc, 200e6);
         _deposit(james, weth, 200e18);
         _deposit(james, usdc, 200e6);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
-        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0);
-        _lendAsLimitOrder(candy, block.timestamp + 365 days, 0);
-        _lendAsLimitOrder(james, block.timestamp + 365 days, 0);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0);
+        _buyCreditLimitOrder(bob, block.timestamp + 365 days, 0);
+        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 0);
+        _buyCreditLimitOrder(james, block.timestamp + 365 days, 0);
         _sellCreditMarket(bob, alice, RESERVED_ID, 70e6, block.timestamp + 365 days, false);
         uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 40e6, block.timestamp + 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
@@ -101,10 +101,10 @@ contract CompensateTest is BaseTest {
         _deposit(candy, usdc, 2 * amount);
         _deposit(james, weth, 2e18);
         _deposit(james, usdc, 2 * amount);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, rate);
-        _lendAsLimitOrder(bob, block.timestamp + 365 days, rate);
-        _lendAsLimitOrder(candy, block.timestamp + 365 days, rate);
-        _lendAsLimitOrder(james, block.timestamp + 365 days, rate);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, rate);
+        _buyCreditLimitOrder(bob, block.timestamp + 365 days, rate);
+        _buyCreditLimitOrder(candy, block.timestamp + 365 days, rate);
+        _buyCreditLimitOrder(james, block.timestamp + 365 days, rate);
 
         uint256 debtPositionId =
             _sellCreditMarket(alice, bob, RESERVED_ID, borrowAmount, block.timestamp + 365 days, false);
@@ -157,10 +157,10 @@ contract CompensateTest is BaseTest {
         _deposit(candy, usdc, 200e6);
         _deposit(james, weth, 200e18);
         _deposit(james, usdc, 200e6);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
-        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
-        _lendAsLimitOrder(candy, block.timestamp + 12 days, 0);
-        _lendAsLimitOrder(james, block.timestamp + 12 days, 0);
+        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0);
+        _buyCreditLimitOrder(bob, block.timestamp + 12 days, 0);
+        _buyCreditLimitOrder(candy, block.timestamp + 12 days, 0);
+        _buyCreditLimitOrder(james, block.timestamp + 12 days, 0);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 40e6, block.timestamp + 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 loanId2 = _sellCreditMarket(alice, candy, RESERVED_ID, 20e6, block.timestamp + 12 days, false);
@@ -178,8 +178,8 @@ contract CompensateTest is BaseTest {
         _deposit(bob, weth, 150e18);
         _deposit(candy, weth, 150e18);
         _deposit(liquidator, usdc, 100e6);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
-        _lendAsLimitOrder(bob, block.timestamp + 12 days, 0);
+        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0);
+        _buyCreditLimitOrder(bob, block.timestamp + 12 days, 0);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 debtPositionId2 = _sellCreditMarket(candy, bob, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
@@ -213,9 +213,9 @@ contract CompensateTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
-        _lendAsLimitOrder(bob, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
-        _lendAsLimitOrder(james, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
+        _buyCreditLimitOrder(bob, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
+        _buyCreditLimitOrder(james, block.timestamp + 365 days, [int256(1e18)], [uint256(365 days)]);
         uint256 loanToCompensateId = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, block.timestamp + 365 days, false);
         uint256 creditPositionToCompensateId = size.getCreditPositionIdsByDebtPositionId(loanToCompensateId)[1];
         uint256 loanToRepay = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, block.timestamp + 365 days, false);
@@ -262,10 +262,10 @@ contract CompensateTest is BaseTest {
         }
         YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
         YieldCurve memory curve2 = YieldCurveHelper.pointCurve(365 days, 0);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
-        _lendAsLimitOrder(bob, block.timestamp + 365 days, curve2);
-        _lendAsLimitOrder(candy, block.timestamp + 365 days, curve2);
-        _lendAsLimitOrder(james, block.timestamp + 365 days, curve2);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, curve);
+        _buyCreditLimitOrder(bob, block.timestamp + 365 days, curve2);
+        _buyCreditLimitOrder(candy, block.timestamp + 365 days, curve2);
+        _buyCreditLimitOrder(james, block.timestamp + 365 days, curve2);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 creditPosition1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 loanId2 = _sellCreditMarket(candy, james, RESERVED_ID, 200e6, block.timestamp + 365 days, false);
@@ -285,9 +285,9 @@ contract CompensateTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, usdc, 100e6);
 
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0);
-        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0);
-        _lendAsLimitOrder(candy, block.timestamp + 365 days, 0);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0);
+        _buyCreditLimitOrder(bob, block.timestamp + 365 days, 0);
+        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 0);
 
         _deposit(bob, weth, 150e18);
 
@@ -325,9 +325,9 @@ contract CompensateTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
-        _borrowAsLimitOrder(candy, 0.03e18, block.timestamp + 12 days);
+        _sellCreditLimitOrder(candy, 0.03e18, block.timestamp + 12 days);
 
         Vars memory _before = _state();
 
@@ -362,9 +362,9 @@ contract CompensateTest is BaseTest {
         _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
-        _borrowAsLimitOrder(bob, 0.03e18, block.timestamp + 365 days);
+        _sellCreditLimitOrder(bob, 0.03e18, block.timestamp + 365 days);
 
         Vars memory _before = _state();
 
@@ -397,9 +397,9 @@ contract CompensateTest is BaseTest {
         _deposit(bob, weth, 2 * 150e18);
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 150e18);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
-        _borrowAsLimitOrder(candy, 0, block.timestamp + 365 days);
+        _sellCreditLimitOrder(candy, 0, block.timestamp + 365 days);
 
         vm.startPrank(bob);
         vm.expectRevert(
@@ -426,10 +426,10 @@ contract CompensateTest is BaseTest {
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1500e6);
         _deposit(candy, weth, 2000e18);
-        _lendAsLimitOrder(
+        _buyCreditLimitOrder(
             bob, block.timestamp + 365 days, [int256(0.1e18), int256(0.1e18)], [uint256(30 days), uint256(365 days)]
         );
-        _borrowAsLimitOrder(candy, YieldCurveHelper.customCurve(30 days, uint256(0.25e18), 73 days, uint256(0.25e18)));
+        _sellCreditLimitOrder(candy, YieldCurveHelper.customCurve(30 days, uint256(0.25e18), 73 days, uint256(0.25e18)));
         uint256 startDate = block.timestamp;
         uint256 dueDate = startDate + 73 days;
         uint256 amount = 1000e6;
@@ -476,8 +476,8 @@ contract CompensateTest is BaseTest {
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1000e6);
         _deposit(candy, weth, 2000e18);
-        _lendAsLimitOrder(bob, block.timestamp + 365 days, [int256(0.1e18)], [uint256(365 days)]);
-        _borrowAsLimitOrder(candy, [int256(0.1e18), int256(0.1e18)], [uint256(365 days / 2), uint256(365 days)]);
+        _buyCreditLimitOrder(bob, block.timestamp + 365 days, [int256(0.1e18)], [uint256(365 days)]);
+        _sellCreditLimitOrder(candy, [int256(0.1e18), int256(0.1e18)], [uint256(365 days / 2), uint256(365 days)]);
 
         uint256 dueDate = block.timestamp + 365 days;
         uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, dueDate, false);
@@ -504,7 +504,7 @@ contract CompensateTest is BaseTest {
         assertEq(_state().bob.borrowATokenBalance, 100e6);
 
         // Bob lends as limit order
-        _lendAsLimitOrder(
+        _buyCreditLimitOrder(
             bob, block.timestamp + 10 days, [int256(0.03e18), int256(0.03e18)], [uint256(3 days), uint256(8 days)]
         );
 
@@ -512,7 +512,7 @@ contract CompensateTest is BaseTest {
         _deposit(candy, weth, 200e18);
 
         // Candy places a borrow limit order
-        _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
+        _sellCreditLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
 
         // Alice deposits in WETH and USDC
         _deposit(alice, weth, 5000e18);
@@ -534,7 +534,7 @@ contract CompensateTest is BaseTest {
         _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 400e18);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.5e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.5e18);
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 120e6, block.timestamp + 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];

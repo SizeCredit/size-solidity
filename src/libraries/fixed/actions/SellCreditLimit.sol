@@ -7,14 +7,14 @@ import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibr
 
 import {Events} from "@src/libraries/Events.sol";
 
-struct BorrowAsLimitOrderParams {
+struct SellCreditLimitParams {
     YieldCurve curveRelativeTime;
 }
 
-library BorrowAsLimitOrder {
+library SellCreditLimit {
     using OfferLibrary for BorrowOffer;
 
-    function validateBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams calldata params) external view {
+    function validateSellCreditLimit(State storage state, SellCreditLimitParams calldata params) external view {
         BorrowOffer memory borrowOffer = BorrowOffer({curveRelativeTime: params.curveRelativeTime});
 
         // a null offer mean clearing their limit orders
@@ -32,9 +32,9 @@ library BorrowAsLimitOrder {
         }
     }
 
-    function executeBorrowAsLimitOrder(State storage state, BorrowAsLimitOrderParams calldata params) external {
+    function executeSellCreditLimit(State storage state, SellCreditLimitParams calldata params) external {
         state.data.users[msg.sender].borrowOffer = BorrowOffer({curveRelativeTime: params.curveRelativeTime});
-        emit Events.BorrowAsLimitOrder(
+        emit Events.SellCreditLimit(
             params.curveRelativeTime.maturities,
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers

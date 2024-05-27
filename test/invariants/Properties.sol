@@ -31,23 +31,15 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
         CreditPosition[] memory creditPositions = size.getCreditPositions();
 
         for (uint256 i = 0; i < creditPositions.length; i++) {
-            if (0 < creditPositions[i].credit && creditPositions[i].credit < minimumCreditBorrowAToken) {
-                t(false, LOAN_01);
-                return false;
-            }
+            t(creditPositions[i].credit == 0 || creditPositions[i].credit >= minimumCreditBorrowAToken, LOAN_01);
         }
         return true;
     }
 
     function invariant_UNDERWATER() public returns (bool) {
-        if (!_before.isSenderLiquidatable && _after.isSenderLiquidatable) {
-            t(false, UNDERWATER_01);
-            return false;
-        }
-        if (_before.isSenderLiquidatable && _after.debtPositionsCount > _before.debtPositionsCount) {
-            t(false, UNDERWATER_02);
-            return false;
-        }
+        t(!(!_before.isSenderLiquidatable && _after.isSenderLiquidatable), UNDERWATER_01);
+        t(!(_before.isSenderLiquidatable && _after.debtPositionsCount > _before.debtPositionsCount), UNDERWATER_02);
+
         return true;
     }
 
@@ -64,14 +56,9 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
             borrowATokenBalance += userView.borrowATokenBalance;
         }
 
-        if (weth.balanceOf(address(size)) != collateralTokenBalance) {
-            t(false, TOKENS_01);
-            return false;
-        }
-        if (usdc.balanceOf(address(size)) < borrowATokenBalance) {
-            t(false, TOKENS_02);
-            return false;
-        }
+        eq(weth.balanceOf(address(size)), collateralTokenBalance, TOKENS_01);
+        gte(size.data().borrowAToken.totalSupply(), borrowATokenBalance, TOKENS_02);
+
         return true;
     }
 
@@ -104,28 +91,16 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
             positionsDebt[userIndex] += debtPosition.faceValue;
         }
 
-        if (outstandingDebt != outstandingCredit) {
-            t(false, SOLVENCY_01);
-            return false;
-        }
+        eq(outstandingDebt, outstandingCredit, SOLVENCY_01);
 
-        if (size.data().debtToken.totalSupply() < outstandingCredit) {
-            t(false, SOLVENCY_02);
-            return false;
-        }
+        gte(size.data().debtToken.totalSupply(), outstandingCredit, SOLVENCY_02);
 
         for (uint256 i = 0; i < positionsDebt.length; ++i) {
             totalDebt += positionsDebt[i];
-            if (size.data().debtToken.balanceOf(users[i]) != positionsDebt[i]) {
-                t(false, SOLVENCY_03);
-                return false;
-            }
+            eq(size.data().debtToken.balanceOf(users[i]), positionsDebt[i], SOLVENCY_03);
         }
 
-        if (totalDebt != size.data().debtToken.totalSupply()) {
-            t(false, SOLVENCY_04);
-            return false;
-        }
+        eq(totalDebt, size.data().debtToken.totalSupply(), SOLVENCY_04);
 
         return true;
     }

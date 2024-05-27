@@ -13,9 +13,9 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {SellCreditLimitParams} from "@src/libraries/fixed/actions/SellCreditLimit.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
@@ -34,11 +34,8 @@ contract MulticallTest is BaseTest {
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
         data[1] = abi.encodeCall(
-            size.lendAsLimitOrder,
-            LendAsLimitOrderParams({
-                maxDueDate: block.timestamp + 1 days,
-                curveRelativeTime: YieldCurveHelper.flatCurve()
-            })
+            size.buyCreditLimitOrder,
+            BuyCreditLimitParams({maxDueDate: block.timestamp + 1 days, curveRelativeTime: YieldCurveHelper.flatCurve()})
         );
         bytes[] memory results = size.multicall(data);
 
@@ -59,7 +56,7 @@ contract MulticallTest is BaseTest {
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
         data[1] = abi.encodeCall(
-            size.borrowAsLimitOrder, BorrowAsLimitOrderParams({curveRelativeTime: YieldCurveHelper.flatCurve()})
+            size.sellCreditLimitOrder, SellCreditLimitParams({curveRelativeTime: YieldCurveHelper.flatCurve()})
         );
         size.multicall{value: amount}(data);
 
@@ -117,7 +114,7 @@ contract MulticallTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
 
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
         uint256 amount = 40e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
@@ -178,7 +175,7 @@ contract MulticallTest is BaseTest {
         _deposit(alice, usdc, cap);
         _deposit(bob, weth, 200e18);
 
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.1e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
 

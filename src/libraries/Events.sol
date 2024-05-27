@@ -38,12 +38,12 @@ library Events {
         bool exactAmountIn,
         uint256[] receivableCreditPositionIds
     );
-    event BorrowAsLimitOrder(
+    event SellCreditLimit(
         uint256[] curveRelativeTimeMaturities,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
-    event LendAsLimitOrder(
+    event BuyCreditLimit(
         uint256 indexed maxDueDate,
         uint256[] curveRelativeTimeMaturities,
         int256[] curveRelativeTimeAprs,

@@ -10,7 +10,7 @@ contract SizeViewTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
         size.getBorrowOfferAPR(alice, block.timestamp);
 
-        _borrowAsLimitOrder(alice, YieldCurveHelper.marketCurve());
+        _sellCreditLimitOrder(alice, YieldCurveHelper.marketCurve());
 
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp - 1));
         size.getBorrowOfferAPR(alice, block.timestamp - 1);
@@ -20,7 +20,7 @@ contract SizeViewTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
         size.getLoanOfferAPR(alice, block.timestamp);
 
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp - 1));
         size.getLoanOfferAPR(alice, block.timestamp - 1);
