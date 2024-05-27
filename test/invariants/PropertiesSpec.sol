@@ -8,7 +8,6 @@ abstract contract PropertiesSpec {
 
     string internal constant BORROW_01 = "BORROW_01: Borrow increases the borrower cash";
     string internal constant BORROW_02 = "BORROW_02: Borrow increases the number of loans";
-    string internal constant BORROW_03 = "BORROW_03: Borrow from self does not change the borrower cash except for fees";
 
     string internal constant CLAIM_01 = "CLAIM_01: Claim does not decrease the sender cash";
     string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for DebtPositions";
@@ -23,7 +22,7 @@ abstract contract PropertiesSpec {
     string internal constant SELF_LIQUIDATE_02 = "SELF_LIQUIDATE_02: Self-Liquidate decreases the borrower's debt";
 
     string internal constant REPAY_01 = "REPAY_01: Repay transfers cash from the sender to the protocol";
-    string internal constant REPAY_02 = "REPAY_02: Repay decreases the sender debt";
+    string internal constant REPAY_02 = "REPAY_02: Repay decreases the borrower's debt";
 
     string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
 

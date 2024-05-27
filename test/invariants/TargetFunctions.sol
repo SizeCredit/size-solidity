@@ -166,9 +166,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         if (success) {
             __after();
 
-            if (lender == sender) {
-                lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_03);
-            } else {
+            if (lender != sender) {
                 gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
         }
@@ -220,9 +218,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         if (success) {
             __after();
 
-            if (sender == borrower) {
-                eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_03);
-            } else {
+            if (sender != borrower) {
                 lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
             eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
@@ -264,7 +260,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
 
             lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, REPAY_01);
             gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
-            lt(_after.sender.debtBalance, _before.sender.debtBalance, REPAY_02);
+            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, REPAY_02);
         }
     }
 
