@@ -37,7 +37,7 @@ contract BuyCreditLimitScript is Script {
             BuyCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
-        size.buyCreditLimitOrder(params);
+        size.buyCreditLimit(params);
         vm.stopBroadcast();
     }
 }

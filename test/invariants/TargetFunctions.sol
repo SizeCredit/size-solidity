@@ -171,7 +171,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function sellCreditLimitOrder(uint256 yieldCurveSeed)
+    function sellCreditLimit(uint256 yieldCurveSeed)
         public
         getSender
         checkExpectedErrors(BORROW_AS_LIMIT_ORDER_ERRORS)
@@ -182,7 +182,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
 
         hevm.prank(sender);
         (success, returnData) = address(size).call(
-            abi.encodeCall(size.sellCreditLimitOrder, SellCreditLimitParams({curveRelativeTime: curveRelativeTime}))
+            abi.encodeCall(size.sellCreditLimit, SellCreditLimitParams({curveRelativeTime: curveRelativeTime}))
         );
         if (success) {
             __after();
@@ -218,7 +218,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function buyCreditLimitOrder(uint256 maxDueDate, uint256 yieldCurveSeed)
+    function buyCreditLimit(uint256 maxDueDate, uint256 yieldCurveSeed)
         public
         getSender
         checkExpectedErrors(LEND_AS_LIMIT_ORDER_ERRORS)
@@ -231,7 +231,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         hevm.prank(sender);
         (success, returnData) = address(size).call(
             abi.encodeCall(
-                size.buyCreditLimitOrder,
+                size.buyCreditLimit,
                 BuyCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
             )
         );

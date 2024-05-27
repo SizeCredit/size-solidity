@@ -32,8 +32,8 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        _sellCreditLimitOrder(candy, 0.03e18, block.timestamp + 365 days);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
+        _sellCreditLimit(candy, 0.03e18, block.timestamp + 365 days);
         uint256 amount = 15e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 futureValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
@@ -73,8 +73,8 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        _sellCreditLimitOrder(candy, 0.01e18, block.timestamp + 365 days);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
+        _sellCreditLimit(candy, 0.01e18, block.timestamp + 365 days);
         uint256 amount = 15e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 futureValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
@@ -112,8 +112,8 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        _sellCreditLimitOrder(candy, 0.03e18, block.timestamp + 365 days);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
+        _sellCreditLimit(candy, 0.03e18, block.timestamp + 365 days);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, block.timestamp + 365 days, false);
 
         _setPrice(0.2e18);
@@ -143,8 +143,8 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        _sellCreditLimitOrder(candy, 0.03e18, 30);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
+        _sellCreditLimit(candy, 0.03e18, 30);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, block.timestamp + 365 days, false);
 
         _setPrice(0.2e18);
@@ -175,7 +175,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _deposit(bob, usdc, 150e6);
 
         // Bob lends as limit order
-        _buyCreditLimitOrder(
+        _buyCreditLimit(
             bob,
             block.timestamp + 365 days,
             [int256(0.03e18), int256(0.03e18)],
@@ -195,7 +195,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
         _deposit(candy, weth, 20000e18);
         assertEq(_state().candy.collateralTokenBalance, 20000e18);
-        _sellCreditLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(180 days), uint256(365 days * 2)]);
+        _sellCreditLimit(candy, [int256(0.03e18), int256(0.03e18)], [uint256(180 days), uint256(365 days * 2)]);
 
         // Update the context (time and price)
         vm.warp(block.timestamp + 1 days);

@@ -35,7 +35,7 @@ contract SellCreditLimitScript is Script, Logger {
         SellCreditLimitParams memory params = SellCreditLimitParams({curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
-        size.sellCreditLimitOrder(params);
+        size.sellCreditLimit(params);
         vm.stopBroadcast();
     }
 }

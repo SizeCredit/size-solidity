@@ -135,20 +135,23 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function buyCreditLimitOrder(BuyCreditLimitParams calldata params) external payable override(ISize) whenNotPaused {
+    function buyCreditLimit(BuyCreditLimitParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateBuyCreditLimit(params);
         state.executeBuyCreditLimit(params);
     }
 
     /// @inheritdoc ISize
-    function sellCreditLimitOrder(SellCreditLimitParams calldata params)
-        external
-        payable
-        override(ISize)
-        whenNotPaused
-    {
+    function sellCreditLimit(SellCreditLimitParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateSellCreditLimit(params);
         state.executeSellCreditLimit(params);
+    }
+
+    /// @inheritdoc ISize
+    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
+        state.validateBuyCreditMarket(params);
+        uint256 amount = state.executeBuyCreditMarket(params);
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
+        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
@@ -177,11 +180,11 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         payable
         override(ISize)
         whenNotPaused
-        returns (uint256 liquidatorProfitCollateralAsset)
+        returns (uint256 liquidatorProfitCollateralToken)
     {
         state.validateLiquidate(params);
-        liquidatorProfitCollateralAsset = state.executeLiquidate(params);
-        state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralAsset);
+        liquidatorProfitCollateralToken = state.executeLiquidate(params);
+        state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralToken);
     }
 
     /// @inheritdoc ISize
@@ -197,14 +200,14 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         override(ISize)
         whenNotPaused
         onlyRole(KEEPER_ROLE)
-        returns (uint256 liquidatorProfitCollateralAsset, uint256 liquidatorProfitBorrowAsset)
+        returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
     {
         state.validateLiquidateWithReplacement(params);
         uint256 amount;
-        (amount, liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
+        (amount, liquidatorProfitCollateralToken, liquidatorProfitBorrowToken) =
             state.executeLiquidateWithReplacement(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
-        state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralAsset);
+        state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralToken);
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
@@ -224,13 +227,5 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     {
         state.validateSetUserConfiguration(params);
         state.executeSetUserConfiguration(params);
-    }
-
-    /// @inheritdoc ISize
-    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateBuyCreditMarket(params);
-        uint256 amount = state.executeBuyCreditMarket(params);
-        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
-        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 }

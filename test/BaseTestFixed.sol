@@ -53,7 +53,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
     }
 
-    function _buyCreditLimitOrder(
+    function _buyCreditLimit(
         address lender,
         uint256 maxDueDate,
         int256[1] memory ratesArray,
@@ -66,10 +66,10 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         maturities[0] = maturitiesArray[0];
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
-        return _buyCreditLimitOrder(lender, maxDueDate, curveRelativeTime);
+        return _buyCreditLimit(lender, maxDueDate, curveRelativeTime);
     }
 
-    function _buyCreditLimitOrder(
+    function _buyCreditLimit(
         address lender,
         uint256 maxDueDate,
         int256[2] memory ratesArray,
@@ -84,16 +84,16 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
-        return _buyCreditLimitOrder(lender, maxDueDate, curveRelativeTime);
+        return _buyCreditLimit(lender, maxDueDate, curveRelativeTime);
     }
 
-    function _buyCreditLimitOrder(address lender, uint256 maxDueDate, int256 rate) internal {
-        return _buyCreditLimitOrder(lender, maxDueDate, [rate], [maxDueDate - block.timestamp]);
+    function _buyCreditLimit(address lender, uint256 maxDueDate, int256 rate) internal {
+        return _buyCreditLimit(lender, maxDueDate, [rate], [maxDueDate - block.timestamp]);
     }
 
-    function _buyCreditLimitOrder(address lender, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {
+    function _buyCreditLimit(address lender, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {
         vm.prank(lender);
-        size.buyCreditLimitOrder(BuyCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
+        size.buyCreditLimit(BuyCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
     }
 
     function _sellCreditMarket(
@@ -145,12 +145,12 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _sellCreditMarket(borrower, lender, RESERVED_ID, amount, dueDate, exactAmountIn);
     }
 
-    function _sellCreditLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {
+    function _sellCreditLimit(address borrower, YieldCurve memory curveRelativeTime) internal {
         vm.prank(borrower);
-        size.sellCreditLimitOrder(SellCreditLimitParams({curveRelativeTime: curveRelativeTime}));
+        size.sellCreditLimit(SellCreditLimitParams({curveRelativeTime: curveRelativeTime}));
     }
 
-    function _sellCreditLimitOrder(address borrower, int256[1] memory ratesArray, uint256[1] memory maturitiesArray)
+    function _sellCreditLimit(address borrower, int256[1] memory ratesArray, uint256[1] memory maturitiesArray)
         internal
     {
         int256[] memory aprs = new int256[](1);
@@ -160,10 +160,10 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         maturities[0] = maturitiesArray[0];
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
-        return _sellCreditLimitOrder(borrower, curveRelativeTime);
+        return _sellCreditLimit(borrower, curveRelativeTime);
     }
 
-    function _sellCreditLimitOrder(address borrower, int256[2] memory ratesArray, uint256[2] memory maturitiesArray)
+    function _sellCreditLimit(address borrower, int256[2] memory ratesArray, uint256[2] memory maturitiesArray)
         internal
     {
         int256[] memory aprs = new int256[](2);
@@ -175,12 +175,12 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
-        return _sellCreditLimitOrder(borrower, curveRelativeTime);
+        return _sellCreditLimit(borrower, curveRelativeTime);
     }
 
-    function _sellCreditLimitOrder(address borrower, int256 rate, uint256 dueDate) internal {
+    function _sellCreditLimit(address borrower, int256 rate, uint256 dueDate) internal {
         YieldCurve memory curveRelativeTime = YieldCurveHelper.pointCurve(dueDate - block.timestamp, rate);
-        return _sellCreditLimitOrder(borrower, curveRelativeTime);
+        return _sellCreditLimit(borrower, curveRelativeTime);
     }
 
     function _buyCreditMarket(address lender, uint256 creditPositionId, uint256 amount, bool exactAmountIn)

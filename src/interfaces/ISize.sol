@@ -48,7 +48,35 @@ interface ISize {
     ///     - uint256 to: The recipient of the withdrawal
     function withdraw(WithdrawParams calldata params) external payable;
 
-    /// @notice Picks a lender offer and borrow tokens from the orderbook
+    /// @notice Places a new loan offer in the orderbook
+    /// @param params BuyCreditLimitParams struct containing the following fields:
+    ///     - uint256 maxDueDate: The maximum due date of the loan (e.g., 1712188800 for April 4th, 2024)
+    ///     - YieldCurve curveRelativeTime: The yield curve for the loan offer, a struct containing the following fields:
+    ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
+    ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
+    ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
+    function buyCreditLimit(BuyCreditLimitParams calldata params) external payable;
+
+    /// @notice Places a new borrow offer in the orderbook
+    /// @param params SellCreditLimitParams struct containing the following fields:
+    ///     - YieldCurve curveRelativeTime: The yield curve for the borrow offer, a struct containing the following fields:
+    ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
+    ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
+    ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
+    function sellCreditLimit(SellCreditLimitParams calldata params) external payable;
+
+    /// @notice Obtains credit via lending or buying existing credit
+    /// @param params BuyCreditMarketParams struct containing the following fields:
+    ///     - address borrower: The address of the borrower (optional, for lending)
+    ///     - uint256 creditPositionId: The id of the credit position to buy (optional, for buying credit)
+    ///     - uint256 dueDate: The due date of the loan
+    ///     - uint256 amount: The amount of tokens to lend or credit to buy
+    ///     - bool exactAmountIn: Indicates if the amount is the value to be transferred or used to calculate the transfer amount
+    ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
+    ///     - uint256 minAPR: The minimum APR the caller is willing to accept
+    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable;
+
+    /// @notice Sells credit via borrowing or exiting an existing credit position
     ///         This function can be used both for selling an existing credit or to borrow by creating a DebtPosition/CreditPosition pair
     /// @dev Order "takers" are the ones who pay the rounding, since "makers" are the ones passively waiting for an order to be matched
     //       The caller may pass type(uint256).max as the creditPositionId in order to represent "mint a new DebtPosition/CreditPosition pair"
@@ -61,23 +89,6 @@ interface ISize {
     ///     - uint256 maxAPR: The maximum APR the caller is willing to accept
     ///     - bool exactAmountIn: this flag indicates if the amount argument represents either credit (true) or cash (false)
     function sellCreditMarket(SellCreditMarketParams calldata params) external payable;
-
-    /// @notice Places a new borrow offer in the orderbook
-    /// @param params SellCreditLimitParams struct containing the following fields:
-    ///     - YieldCurve curveRelativeTime: The yield curve for the borrow offer, a struct containing the following fields:
-    ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
-    ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
-    ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
-    function sellCreditLimitOrder(SellCreditLimitParams calldata params) external payable;
-
-    /// @notice Places a new lend offer in the orderbook
-    /// @param params BuyCreditLimitParams struct containing the following fields:
-    ///     - uint256 maxDueDate: The maximum due date of the loan (e.g., 1712188800 for April 4th, 2024)
-    ///     - YieldCurve curveRelativeTime: The yield curve for the lend offer, a struct containing the following fields:
-    ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
-    ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
-    ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
-    function buyCreditLimitOrder(BuyCreditLimitParams calldata params) external payable;
 
     /// @notice Repay a debt position by transferring the amount due of borrow tokens to the protocol, which are deposited to the Variable Pool for the lenders to claim
     ///         Partial repayment are currently unsupported
@@ -103,7 +114,11 @@ interface ISize {
     /// @param params LiquidateParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
-    function liquidate(LiquidateParams calldata params) external payable returns (uint256);
+    /// @return liquidatorProfitCollateralToken The amount of collateral tokens the liquidator received from the liquidation
+    function liquidate(LiquidateParams calldata params)
+        external
+        payable
+        returns (uint256 liquidatorProfitCollateralToken);
 
     /// @notice Self liquidate a credit position that is undercollateralized
     ///         The lender cancels an amount of debt equivalent to their credit and a percentage of the protocol fees
@@ -127,10 +142,12 @@ interface ISize {
     ///     - address borrower: The address of the replacement borrower
     ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
     ///     - uint256 minAPR: The minimum APR the caller is willing to accept
+    /// @return liquidatorProfitCollateralToken The amount of collateral tokens liquidator received from the liquidation
+    /// @return liquidatorProfitBorrowToken The amount of borrow tokens liquidator received from the liquidation
     function liquidateWithReplacement(LiquidateWithReplacementParams calldata params)
         external
         payable
-        returns (uint256, uint256);
+        returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken);
 
     /// @notice Compensate a borrower's debt with his credit in another loan
     ///         The compensation can not exceed both 1) the credit the lender of `debtPositionToRepayId` to the borrower and 2) the credit the lender of `creditPositionToCompensateId`
@@ -157,15 +174,4 @@ interface ISize {
     /// @param data The encoded data for all the function calls to execute.
     /// @return results The results of all the function calls.
     function multicall(bytes[] calldata data) external payable returns (bytes[] memory results);
-
-    /// @notice Obtain credit via lending or buying existing credit
-    /// @param params BuyCreditMarketParams struct containing the following fields:
-    ///     - address borrower: The address of the borrower (optional, for lending)
-    ///     - uint256 creditPositionId: The id of the credit position to buy (optional, for buying credit)
-    ///     - uint256 dueDate: The due date of the loan
-    ///     - uint256 amount: The amount of tokens to lend or credit to buy
-    ///     - bool exactAmountIn: Indicates if the amount is the value to be transferred or used to calculate the transfer amount
-    ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
-    ///     - uint256 minAPR: The minimum APR the caller is willing to accept
-    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable;
 }

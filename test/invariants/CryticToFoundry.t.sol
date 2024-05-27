@@ -33,7 +33,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
 
     function test_CryticToFoundry_02() public {
         deposit(address(0xdeadbeef), 97519241443110920792153965957231585900669055815069515145356);
-        sellCreditLimitOrder(12128712494074002390108299745881041598326456919377586132);
+        sellCreditLimit(12128712494074002390108299745881041598326456919377586132);
         deposit(address(0x0), 3454149647212318342190486356561251068327670996371);
         buyCreditMarket(
             address(0x0),
@@ -47,7 +47,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
     }
 
     function test_CryticToFoundry_03() public {
-        sellCreditLimitOrder(0);
+        sellCreditLimit(0);
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
         buyCreditMarket(address(0x0), 14883685759233386169554070446227790, 5068531, false);
