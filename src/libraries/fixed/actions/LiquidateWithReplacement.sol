@@ -97,7 +97,7 @@ library LiquidateWithReplacement {
         DebtPosition memory debtPositionCopy = debtPosition;
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
-        uint256 liquidatorProfitCollateralAsset = state.executeLiquidate(
+        uint256 liquidatorProfitCollateralToken = state.executeLiquidate(
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
                 minimumCollateralProfit: params.minimumCollateralProfit
@@ -107,7 +107,7 @@ library LiquidateWithReplacement {
         uint256 ratePerMaturity =
             borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPositionCopy.dueDate);
         uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerMaturity);
-        uint256 liquidatorProfitBorrowAsset = debtPositionCopy.futureValue - issuanceValue;
+        uint256 liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 
         debtPosition.borrower = params.borrower;
         debtPosition.futureValue = debtPositionCopy.futureValue;
@@ -123,8 +123,8 @@ library LiquidateWithReplacement {
 
         state.data.debtToken.mint(params.borrower, debtPosition.futureValue);
         state.data.borrowAToken.transferFrom(address(this), params.borrower, issuanceValue);
-        state.data.borrowAToken.transferFrom(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
+        state.data.borrowAToken.transferFrom(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowToken);
 
-        return (issuanceValue, liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
+        return (issuanceValue, liquidatorProfitCollateralToken, liquidatorProfitBorrowToken);
     }
 }

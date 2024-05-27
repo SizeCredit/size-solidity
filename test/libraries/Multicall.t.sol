@@ -34,7 +34,7 @@ contract MulticallTest is BaseTest {
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
         data[1] = abi.encodeCall(
-            size.buyCreditLimitOrder,
+            size.buyCreditLimit,
             BuyCreditLimitParams({maxDueDate: block.timestamp + 1 days, curveRelativeTime: YieldCurveHelper.flatCurve()})
         );
         bytes[] memory results = size.multicall(data);
@@ -56,7 +56,7 @@ contract MulticallTest is BaseTest {
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
         data[1] = abi.encodeCall(
-            size.sellCreditLimitOrder, SellCreditLimitParams({curveRelativeTime: YieldCurveHelper.flatCurve()})
+            size.sellCreditLimit, SellCreditLimitParams({curveRelativeTime: YieldCurveHelper.flatCurve()})
         );
         size.multicall{value: amount}(data);
 
@@ -114,7 +114,7 @@ contract MulticallTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
 
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
         uint256 amount = 40e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
@@ -176,7 +176,7 @@ contract MulticallTest is BaseTest {
         _deposit(alice, usdc, cap);
         _deposit(bob, weth, 200e18);
 
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.1e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 0.1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 

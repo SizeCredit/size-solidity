@@ -21,9 +21,9 @@ contract SetUserConfigurationTest is BaseTest {
         _deposit(james, weth, 1600e18);
         _deposit(james, usdc, 1000e6);
         _deposit(candy, usdc, 1200e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(6 * 30 days, 0.05e18));
-        _buyCreditLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
-        _sellCreditLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
+        _buyCreditLimit(alice, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(6 * 30 days, 0.05e18));
+        _buyCreditLimit(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
+        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
         uint256 dueDate = block.timestamp + 6 * 30 days;
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, dueDate, false);
@@ -49,9 +49,9 @@ contract SetUserConfigurationTest is BaseTest {
         _deposit(james, weth, 1600e18);
         _deposit(james, usdc, 1000e6);
         _deposit(candy, usdc, 1200e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(6 * 30 days, 0.05e18));
-        _buyCreditLimitOrder(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
-        _sellCreditLimitOrder(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
+        _buyCreditLimit(alice, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(6 * 30 days, 0.05e18));
+        _buyCreditLimit(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
+        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
         uint256 dueDate = block.timestamp + 6 * 30 days;
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, dueDate, false);

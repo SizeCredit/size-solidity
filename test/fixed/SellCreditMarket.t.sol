@@ -27,7 +27,7 @@ contract SellCreditMarketTest is BaseTest {
     function test_SellCreditMarket_sellCreditMarket_used_to_borrow() public {
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 100e18);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
 
         Vars memory _before = _state();
 
@@ -63,7 +63,7 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(bob, weth, MAX_AMOUNT_WETH);
         _deposit(bob, usdc, MAX_AMOUNT_USDC);
 
-        _buyCreditLimitOrder(alice, dueDate, int256(apr));
+        _buyCreditLimit(alice, dueDate, int256(apr));
 
         Vars memory _before = _state();
 
@@ -93,8 +93,8 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
         uint256 amount = 30e6;
-        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
-        _buyCreditLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimit(alice, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimit(candy, block.timestamp + 12 days, 0.03e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 60e6, block.timestamp + 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
@@ -132,13 +132,13 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(candy, weth, MAX_AMOUNT_WETH);
         _deposit(candy, usdc, MAX_AMOUNT_USDC);
 
-        _buyCreditLimitOrder(
+        _buyCreditLimit(
             alice,
             block.timestamp + MAX_MATURITY,
             [int256(rate), int256(rate)],
             [uint256(maturity), uint256(maturity) * 2]
         );
-        _buyCreditLimitOrder(
+        _buyCreditLimit(
             candy,
             block.timestamp + MAX_MATURITY,
             [int256(rate), int256(rate)],
@@ -171,8 +171,8 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
-        _buyCreditLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimit(alice, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimit(candy, block.timestamp + 12 days, 0.03e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 60e6, block.timestamp + 12 days, false);
 
         Vars memory _before = _state();
@@ -195,7 +195,7 @@ contract SellCreditMarketTest is BaseTest {
     function test_SellCreditMarket_sellCreditMarket_reverts_if_below_borrowing_opening_limit() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 120e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimit(alice, block.timestamp + 12 days, 0.03e18);
         uint256 amount = 100e6;
         uint256 dueDate = block.timestamp + 12 days;
         vm.startPrank(bob);
@@ -221,7 +221,7 @@ contract SellCreditMarketTest is BaseTest {
     function test_SellCreditMarket_sellCreditMarket_reverts_if_lender_cannot_transfer_underlyingBorrowToken() public {
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1e18);
-        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimit(alice, block.timestamp + 12 days, 0.03e18);
 
         _withdraw(alice, usdc, 999e6);
 
@@ -256,9 +256,9 @@ contract SellCreditMarketTest is BaseTest {
 
         assertEq(size.collateralRatio(bob), type(uint256).max);
 
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
-        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 0.03e18);
-        _buyCreditLimitOrder(james, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimit(candy, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimit(james, block.timestamp + 365 days, 0.03e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(alice, candy, creditPositionId, block.timestamp + 365 days);
@@ -280,10 +280,10 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(candy, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(james, usdc, 200e6);
         _deposit(liquidator, usdc, 10_000e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0);
-        _buyCreditLimitOrder(bob, block.timestamp + 12 days, 0);
-        _buyCreditLimitOrder(candy, block.timestamp + 12 days, 0);
-        _buyCreditLimitOrder(james, block.timestamp + 12 days, 0);
+        _buyCreditLimit(alice, block.timestamp + 12 days, 0);
+        _buyCreditLimit(bob, block.timestamp + 12 days, 0);
+        _buyCreditLimit(candy, block.timestamp + 12 days, 0);
+        _buyCreditLimit(james, block.timestamp + 12 days, 0);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(alice, candy, creditPositionId, 49e6, block.timestamp + 12 days);
@@ -303,10 +303,10 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(bob, usdc, 1000e6);
         _deposit(candy, usdc, 1000e6);
         _deposit(james, usdc, 2000e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0);
-        _buyCreditLimitOrder(bob, block.timestamp + 12 days, 0);
-        _buyCreditLimitOrder(candy, block.timestamp + 12 days, 0);
-        _buyCreditLimitOrder(james, block.timestamp + 12 days, 0);
+        _buyCreditLimit(alice, block.timestamp + 12 days, 0);
+        _buyCreditLimit(bob, block.timestamp + 12 days, 0);
+        _buyCreditLimit(candy, block.timestamp + 12 days, 0);
+        _buyCreditLimit(james, block.timestamp + 12 days, 0);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 1000e6, block.timestamp + 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(alice, candy, creditPositionId, 490e6, block.timestamp + 12 days, false);
@@ -329,7 +329,7 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0.1e18);
+        _buyCreditLimit(alice, block.timestamp + 12 days, 0.1e18);
 
         Vars memory _before = _state();
 

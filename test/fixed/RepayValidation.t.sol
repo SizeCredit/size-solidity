@@ -19,11 +19,11 @@ contract RepayValidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
+        _buyCreditLimit(alice, block.timestamp + 12 days, 0.05e18);
         uint256 amount = 20e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 12 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
-        _buyCreditLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimit(candy, block.timestamp + 12 days, 0.03e18);
 
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(alice, candy, creditId, 10e6, block.timestamp + 12 days);

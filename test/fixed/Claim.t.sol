@@ -12,7 +12,7 @@ contract ClaimTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
         uint256 debtPositionId =
             _sellCreditMarket(bob, alice, RESERVED_ID, amountLoanId1, block.timestamp + 365 days, false);
@@ -38,11 +38,11 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimit(candy, block.timestamp + 365 days, 0.03e18);
 
         uint256 futureValueExited = 10e6;
         _sellCreditMarket(alice, candy, creditId, futureValueExited, block.timestamp + 365 days);
@@ -68,8 +68,8 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 1e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimit(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
@@ -96,8 +96,8 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 1e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimit(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
@@ -123,8 +123,8 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 1e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimit(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
@@ -147,7 +147,7 @@ contract ClaimTest is BaseTest {
         _deposit(alice, usdc, 120e6);
         _deposit(bob, weth, 320e18);
         _deposit(liquidator, usdc, 10000e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
@@ -173,8 +173,8 @@ contract ClaimTest is BaseTest {
         _deposit(bob, usdc, 100e6 + size.feeConfig().fragmentationFee);
         _deposit(candy, usdc, 10e6);
         _deposit(liquidator, usdc, 1000e6);
-        _buyCreditLimitOrder(bob, block.timestamp + 12 days, 0);
-        _buyCreditLimitOrder(candy, block.timestamp + 12 days, 0);
+        _buyCreditLimit(bob, block.timestamp + 12 days, 0);
+        _buyCreditLimit(candy, block.timestamp + 12 days, 0);
         uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(bob, candy, creditId, 10e6, block.timestamp + 12 days);
@@ -228,7 +228,7 @@ contract ClaimTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 100e6);
-        _buyCreditLimitOrder(bob, block.timestamp + 365 days, 0.1e18);
+        _buyCreditLimit(bob, block.timestamp + 365 days, 0.1e18);
         uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
@@ -263,7 +263,7 @@ contract ClaimTest is BaseTest {
         _updateConfig("borrowATokenCap", type(uint256).max);
 
         _deposit(alice, usdc, 120e6);
-        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
         _deposit(james, weth, 5000e18);
 
         uint256 debtPositionId = _sellCreditMarket(james, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
@@ -276,7 +276,7 @@ contract ClaimTest is BaseTest {
 
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowATokenBalance, 100e6);
-        _buyCreditLimitOrder(bob, block.timestamp + 365 days, 0.02e18);
+        _buyCreditLimit(bob, block.timestamp + 365 days, 0.02e18);
         _sellCreditMarket(alice, bob, creditPositionId, 50e6, block.timestamp + 365 days);
 
         vm.expectRevert();

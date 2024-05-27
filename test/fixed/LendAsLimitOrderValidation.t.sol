@@ -24,7 +24,7 @@ contract BuyCreditLimitValidationTest is BaseTest {
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
-        size.buyCreditLimitOrder(
+        size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
@@ -38,7 +38,7 @@ contract BuyCreditLimitValidationTest is BaseTest {
         int256[] memory empty;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
-        size.buyCreditLimitOrder(
+        size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
@@ -56,7 +56,7 @@ contract BuyCreditLimitValidationTest is BaseTest {
         maturities[0] = 2 days;
         maturities[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.MATURITIES_NOT_STRICTLY_INCREASING.selector));
-        size.buyCreditLimitOrder(
+        size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
@@ -70,7 +70,7 @@ contract BuyCreditLimitValidationTest is BaseTest {
         maturities[0] = 6 hours;
         maturities[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector, 6 hours, 24 hours));
-        size.buyCreditLimitOrder(
+        size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
@@ -87,7 +87,7 @@ contract BuyCreditLimitValidationTest is BaseTest {
         vm.warp(3);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_MAX_DUE_DATE.selector, 2));
-        size.buyCreditLimitOrder(
+        size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: 2,
                 curveRelativeTime: YieldCurve({

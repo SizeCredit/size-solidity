@@ -19,16 +19,16 @@ contract CompensateValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _buyCreditLimitOrder(
+        _buyCreditLimit(
             alice, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
         );
-        _buyCreditLimitOrder(
+        _buyCreditLimit(
             bob, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
         );
-        _buyCreditLimitOrder(
+        _buyCreditLimit(
             candy, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
         );
-        _buyCreditLimitOrder(
+        _buyCreditLimit(
             james, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
         );
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, block.timestamp + 12 days, false);

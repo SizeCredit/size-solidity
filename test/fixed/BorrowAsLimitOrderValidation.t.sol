@@ -23,7 +23,7 @@ contract SellCreditLimitValidationTest is BaseTest {
         rates1[0] = 1.01e18;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
-        size.sellCreditLimitOrder(
+        size.sellCreditLimit(
             SellCreditLimitParams({
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
@@ -36,7 +36,7 @@ contract SellCreditLimitValidationTest is BaseTest {
         int256[] memory empty;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
-        size.sellCreditLimitOrder(
+        size.sellCreditLimit(
             SellCreditLimitParams({
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
@@ -53,7 +53,7 @@ contract SellCreditLimitValidationTest is BaseTest {
         maturities[0] = 2 days;
         maturities[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.MATURITIES_NOT_STRICTLY_INCREASING.selector));
-        size.sellCreditLimitOrder(
+        size.sellCreditLimit(
             SellCreditLimitParams({
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
@@ -66,7 +66,7 @@ contract SellCreditLimitValidationTest is BaseTest {
         maturities[0] = 6 hours;
         maturities[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector, 6 hours, 24 hours));
-        size.sellCreditLimitOrder(
+        size.sellCreditLimit(
             SellCreditLimitParams({
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
