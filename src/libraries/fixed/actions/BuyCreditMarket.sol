@@ -120,6 +120,7 @@ library BuyCreditMarket {
         }
 
         if (params.creditPositionId == RESERVED_ID) {
+            // slither-disable-next-line unused-return
             state.createDebtAndCreditPositions({
                 lender: msg.sender,
                 borrower: params.borrower,
