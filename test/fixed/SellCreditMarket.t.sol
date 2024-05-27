@@ -363,32 +363,4 @@ contract SellCreditMarketTest is BaseTest {
         (uint256 debtPositions,) = size.getPositionsCount();
         assertEq(debtPositions, 0);
     }
-
-    function test_SellCreditMarket_sellCreditMarket_cannot_surpass_debtTokenCap() public {
-        _setPrice(1e18);
-        uint256 dueDate = block.timestamp + 12 days;
-        uint256 amount = 10e6;
-        _updateConfig("debtTokenCap", 5e6);
-        _deposit(alice, weth, 150e18);
-        _deposit(bob, usdc, 200e6);
-        _buyCreditLimitOrder(bob, block.timestamp + 12 days, 0);
-
-        vm.startPrank(alice);
-
-        uint256 faceValue = Math.mulDivUp(amount, PERCENT, PERCENT - size.getSwapFeePercent(dueDate));
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.DEBT_TOKEN_CAP_EXCEEDED.selector, size.riskConfig().debtTokenCap, faceValue)
-        );
-        size.sellCreditMarket(
-            SellCreditMarketParams({
-                lender: bob,
-                creditPositionId: RESERVED_ID,
-                amount: amount,
-                dueDate: dueDate,
-                deadline: block.timestamp,
-                maxAPR: type(uint256).max,
-                exactAmountIn: false
-            })
-        );
-    }
 }

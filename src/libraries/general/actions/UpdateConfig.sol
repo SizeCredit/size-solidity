@@ -49,7 +49,6 @@ library UpdateConfig {
             crLiquidation: state.riskConfig.crLiquidation,
             minimumCreditBorrowAToken: state.riskConfig.minimumCreditBorrowAToken,
             borrowATokenCap: state.riskConfig.borrowATokenCap,
-            debtTokenCap: state.riskConfig.debtTokenCap,
             minimumMaturity: state.riskConfig.minimumMaturity,
             maximumMaturity: state.riskConfig.maximumMaturity
         });
@@ -78,8 +77,6 @@ library UpdateConfig {
             state.riskConfig.minimumCreditBorrowAToken = params.value;
         } else if (Strings.equal(params.key, "borrowATokenCap")) {
             state.riskConfig.borrowATokenCap = params.value;
-        } else if (Strings.equal(params.key, "debtTokenCap")) {
-            state.riskConfig.debtTokenCap = params.value;
         } else if (Strings.equal(params.key, "minimumMaturity")) {
             state.riskConfig.minimumMaturity = params.value;
         } else if (Strings.equal(params.key, "maximumMaturity")) {

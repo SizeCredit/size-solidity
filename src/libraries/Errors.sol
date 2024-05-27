@@ -88,7 +88,6 @@ library Errors {
 
     error BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE(uint256 borrowATokenIncrease, uint256 debtTokenDecrease);
     error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
-    error DEBT_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
 
     error NOT_SUPPORTED();
     error NOT_SUPPORTED_EXACT_AMOUNT_OUT(uint256 x, uint256 y, uint256 z);
