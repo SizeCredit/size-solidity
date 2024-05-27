@@ -128,10 +128,10 @@ library AccountingLibrary {
         State storage state,
         uint256 creditAmountIn,
         uint256 maxCredit,
-        uint256 ratePerMaturity,
+        uint256 ratePerTenor,
         uint256 dueDate
     ) internal view returns (uint256 cashAmountOut, uint256 fees) {
-        uint256 maxCashAmountOut = Math.mulDivDown(creditAmountIn, PERCENT, PERCENT + ratePerMaturity);
+        uint256 maxCashAmountOut = Math.mulDivDown(creditAmountIn, PERCENT, PERCENT + ratePerTenor);
 
         if (creditAmountIn == maxCredit) {
             // no credit fractionalization
@@ -162,16 +162,16 @@ library AccountingLibrary {
         State storage state,
         uint256 cashAmountOut,
         uint256 maxCredit,
-        uint256 ratePerMaturity,
+        uint256 ratePerTenor,
         uint256 dueDate
     ) internal view returns (uint256 creditAmountIn, uint256 fees) {
         uint256 swapFeePercent = getSwapFeePercent(state, dueDate);
 
         uint256 maxCashAmountOutFragmentation = Math.mulDivDown(
-            maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity
+            maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerTenor
         ) - state.feeConfig.fragmentationFee;
 
-        uint256 maxCashAmountOut = Math.mulDivDown(maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerMaturity);
+        uint256 maxCashAmountOut = Math.mulDivDown(maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerTenor);
 
         // slither-disable-next-line incorrect-equality
         if (cashAmountOut == maxCashAmountOut) {
@@ -183,7 +183,7 @@ library AccountingLibrary {
             // credit fractionalization
 
             creditAmountIn = Math.mulDivUp(
-                cashAmountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerMaturity, PERCENT - swapFeePercent
+                cashAmountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerTenor, PERCENT - swapFeePercent
             );
             fees = Math.mulDivUp(cashAmountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
         } else {
@@ -198,10 +198,10 @@ library AccountingLibrary {
         State storage state,
         uint256 cashAmountIn,
         uint256 maxCredit,
-        uint256 ratePerMaturity,
+        uint256 ratePerTenor,
         uint256 dueDate
     ) internal view returns (uint256 cashAmountOut, uint256 fees) {
-        uint256 maxCashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerMaturity);
+        uint256 maxCashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerTenor);
 
         if (cashAmountIn == maxCashAmountIn) {
             // no credit fractionalization
@@ -217,7 +217,7 @@ library AccountingLibrary {
 
             uint256 netCashAmountIn = cashAmountIn - state.feeConfig.fragmentationFee;
 
-            cashAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerMaturity, PERCENT);
+            cashAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerTenor, PERCENT);
             fees = getSwapFee(state, netCashAmountIn, dueDate) + state.feeConfig.fragmentationFee;
         } else {
             revert Errors.NOT_ENOUGH_CREDIT(maxCashAmountIn, cashAmountIn);
@@ -228,18 +228,18 @@ library AccountingLibrary {
         State storage state,
         uint256 creditAmountOut,
         uint256 maxCredit,
-        uint256 ratePerMaturity,
+        uint256 ratePerTenor,
         uint256 dueDate
     ) internal view returns (uint256 cashAmountIn, uint256 fees) {
         if (creditAmountOut == maxCredit) {
             // no credit fractionalization
 
-            cashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerMaturity);
+            cashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerTenor);
             fees = getSwapFee(state, cashAmountIn, dueDate);
         } else if (creditAmountOut < maxCredit) {
             // credit fractionalization
 
-            uint256 netCashAmountIn = Math.mulDivUp(creditAmountOut, PERCENT, PERCENT + ratePerMaturity);
+            uint256 netCashAmountIn = Math.mulDivUp(creditAmountOut, PERCENT, PERCENT + ratePerTenor);
             cashAmountIn = netCashAmountIn + state.feeConfig.fragmentationFee;
 
             fees = getSwapFee(state, netCashAmountIn, dueDate) + state.feeConfig.fragmentationFee;

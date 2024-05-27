@@ -99,7 +99,7 @@ contract LiquidateTest is BaseTest {
     }
 
     function test_Liquidate_liquidate_overdue_well_collateralized() public {
-        _updateConfig("minimumMaturity", 1);
+        _updateConfig("minimumTenor", 1);
         _updateConfig("swapFeeAPR", 0);
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
@@ -157,7 +157,7 @@ contract LiquidateTest is BaseTest {
     }
 
     function test_Liquidate_liquidate_overdue_very_high_CR() public {
-        _updateConfig("minimumMaturity", 1);
+        _updateConfig("minimumTenor", 1);
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 1000e18);

@@ -82,7 +82,7 @@ contract BuyCreditMarketLendTest is BaseTest {
     }
 
     function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountIn(uint256 amountIn, uint256 seed) public {
-        _updateConfig("minimumMaturity", 1);
+        _updateConfig("minimumTenor", 1);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -94,7 +94,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 dueDate = block.timestamp + (curve.maturities[0] + curve.maturities[1]) / 2;
         uint256 apr = size.getBorrowOfferAPR(alice, dueDate);
-        uint256 rate = Math.aprToRatePerMaturity(apr, dueDate - block.timestamp);
+        uint256 rate = Math.aprToRatePerTenor(apr, dueDate - block.timestamp);
         uint256 futureValue = Math.mulDivDown(amountIn, PERCENT + rate, PERCENT);
 
         Vars memory _before = _state();
@@ -146,7 +146,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _sellCreditLimit(alice, curve);
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: alice,
@@ -159,7 +159,7 @@ contract BuyCreditMarketLendTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_OUT_OF_RANGE.selector, 151 days, 30 days, 150 days));
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 151 days, 30 days, 150 days));
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: alice,

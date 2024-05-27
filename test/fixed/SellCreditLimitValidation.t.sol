@@ -65,7 +65,7 @@ contract SellCreditLimitValidationTest is BaseTest {
 
         maturities[0] = 6 hours;
         maturities[1] = 1 days;
-        vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector, 6 hours, 24 hours));
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_BELOW_MINIMUM_TENOR.selector, 6 hours, 24 hours));
         size.sellCreditLimit(
             SellCreditLimitParams({
                 curveRelativeTime: YieldCurve({

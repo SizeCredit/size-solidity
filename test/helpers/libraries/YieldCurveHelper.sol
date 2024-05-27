@@ -8,7 +8,7 @@ library YieldCurveHelper {
     // -----------  CURVES -------------
 
     // Normal Yield Curve: This is the most common shape, where
-    // longer-maturity bonds have higher yields than shorter-maturity bonds.
+    // longer-tenor bonds have higher yields than shorter-tenor bonds.
     // It indicates expectations of steady economic growth and
     // gradual interest rate increases.
     function normalCurve() public pure returns (YieldCurve memory) {
@@ -55,7 +55,7 @@ library YieldCurveHelper {
     }
 
     // Inverted Yield Curve: An inverted yield curve occurs when
-    // shorter-maturity bonds have higher yields than longer-maturity bonds.
+    // shorter-tenor bonds have higher yields than longer-tenor bonds.
     // It is considered a predictor of an economic recession, as
     // it signals expectations of future interest rate declines.
     function invertedCurve() public pure returns (YieldCurve memory) {
@@ -79,8 +79,8 @@ library YieldCurveHelper {
     }
 
     // Humped (or Peaked) Yield Curve: A humped yield curve features higher
-    // yields for intermediate-maturity bonds compared to both short-maturity and
-    // long-maturity bonds. It may indicate market uncertainty or expectations
+    // yields for intermediate-tenor bonds compared to both short-tenor and
+    // long-tenor bonds. It may indicate market uncertainty or expectations
     // of changes in monetary policy. This type of curve can be observed during
     // transitional periods or policy shifts by central banks.
     function humpedCurve() public pure returns (YieldCurve memory) {
@@ -104,10 +104,10 @@ library YieldCurveHelper {
     }
 
     // Steep Yield Curve: A steep yield curve indicates a wide spread between
-    // short-maturity and long-maturity interest aprs. It suggests expectations of
+    // short-tenor and long-tenor interest aprs. It suggests expectations of
     // accelerating economic growth and rising inflation. A steep yield curve
     // can benefit banks and financial institutions by allowing them to borrow
-    // at lower short-maturity aprs and lend at higher long-maturity aprs.
+    // at lower short-tenor aprs and lend at higher long-tenor aprs.
     function steepCurve() public pure returns (YieldCurve memory) {
         uint256[] memory maturities = new uint256[](5);
         int256[] memory aprs = new int256[](5);
@@ -129,8 +129,8 @@ library YieldCurveHelper {
     }
 
     // Negative Yield Curve: In rare instances, a negative yield curve
-    // occurs when longer-maturity bonds have negative yields compared to
-    // shorter-maturity bonds. This situation typically arises during
+    // occurs when longer-tenor bonds have negative yields compared to
+    // shorter-tenor bonds. This situation typically arises during
     // periods of extreme market uncertainty, such as
     // financial crises or deflation.
     function negativeCurve() public pure returns (YieldCurve memory) {

@@ -100,7 +100,7 @@ library SellCreditMarket {
             params.lender, params.creditPositionId, params.amount, params.dueDate, params.exactAmountIn
         );
 
-        uint256 ratePerMaturity = state.data.users[params.lender].loanOffer.getRatePerMaturityByDueDate(
+        uint256 ratePerTenor = state.data.users[params.lender].loanOffer.getRatePerTenorByDueDate(
             state.oracle.variablePoolBorrowRateFeed, params.dueDate
         );
 
@@ -118,7 +118,7 @@ library SellCreditMarket {
             (cashAmountOut, fees) = state.getCashAmountOut({
                 creditAmountIn: creditAmountIn,
                 maxCredit: params.creditPositionId == RESERVED_ID ? creditAmountIn : creditPosition.credit,
-                ratePerMaturity: ratePerMaturity,
+                ratePerTenor: ratePerTenor,
                 dueDate: params.dueDate
             });
         } else {
@@ -127,9 +127,9 @@ library SellCreditMarket {
             (creditAmountIn, fees) = state.getCreditAmountIn({
                 cashAmountOut: cashAmountOut,
                 maxCredit: params.creditPositionId == RESERVED_ID
-                    ? Math.mulDivUp(cashAmountOut, PERCENT + ratePerMaturity, PERCENT - state.getSwapFeePercent(params.dueDate))
+                    ? Math.mulDivUp(cashAmountOut, PERCENT + ratePerTenor, PERCENT - state.getSwapFeePercent(params.dueDate))
                     : creditPosition.credit,
-                ratePerMaturity: ratePerMaturity,
+                ratePerTenor: ratePerTenor,
                 dueDate: params.dueDate
             });
         }

@@ -46,7 +46,7 @@ contract GetUserViewScript is Script, Logger {
             LoanOffer({maxDueDate: block.timestamp + 30 days, curveRelativeTime: curveRelativeTime});
 
         console.log(
-            offer.getRatePerMaturityByDueDate(
+            offer.getRatePerTenorByDueDate(
                 IVariablePoolBorrowRateFeed(size.oracle().variablePoolBorrowRateFeed), dueDate
             )
         );

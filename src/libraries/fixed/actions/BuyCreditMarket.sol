@@ -64,7 +64,7 @@ library BuyCreditMarket {
         }
 
         // validate dueDate
-        if (params.dueDate < block.timestamp + state.riskConfig.minimumMaturity) {
+        if (params.dueDate < block.timestamp + state.riskConfig.minimumTenor) {
             revert Errors.PAST_DUE_DATE(params.dueDate);
         }
 
@@ -94,7 +94,7 @@ library BuyCreditMarket {
     {
         emit Events.BuyCreditMarket(params.borrower, params.creditPositionId, params.amount, params.exactAmountIn);
 
-        uint256 ratePerMaturity = state.data.users[params.borrower].borrowOffer.getRatePerMaturityByDueDate(
+        uint256 ratePerTenor = state.data.users[params.borrower].borrowOffer.getRatePerTenorByDueDate(
             state.oracle.variablePoolBorrowRateFeed, params.dueDate
         );
 
@@ -105,8 +105,8 @@ library BuyCreditMarket {
             cashAmountIn = params.amount;
             (creditAmountOut, fees) = state.getCreditAmountOut({
                 cashAmountIn: cashAmountIn,
-                maxCredit: Math.mulDivDown(cashAmountIn, PERCENT + ratePerMaturity, PERCENT),
-                ratePerMaturity: ratePerMaturity,
+                maxCredit: Math.mulDivDown(cashAmountIn, PERCENT + ratePerTenor, PERCENT),
+                ratePerTenor: ratePerTenor,
                 dueDate: params.dueDate
             });
         } else {
@@ -114,7 +114,7 @@ library BuyCreditMarket {
             (cashAmountIn, fees) = state.getCashAmountIn({
                 creditAmountOut: creditAmountOut,
                 maxCredit: creditAmountOut,
-                ratePerMaturity: ratePerMaturity,
+                ratePerTenor: ratePerTenor,
                 dueDate: params.dueDate
             });
         }
