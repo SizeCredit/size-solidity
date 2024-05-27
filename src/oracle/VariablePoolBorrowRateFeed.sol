@@ -17,22 +17,30 @@ contract VariablePoolBorrowRateFeed is IVariablePoolBorrowRateFeed, Ownable2Step
     event BorrowRateUpdated(uint128 indexed oldBorrowRate, uint128 indexed newBorrowRate);
     event StaleRateIntervalUpdated(uint64 indexed oldStaleRateInterval, uint64 indexed newStaleRateInterval);
 
-    constructor(address _owner, uint64 _staleRateInterval) Ownable(_owner) {
+    constructor(address _owner, uint64 _staleRateInterval, uint128 _borrowRate) Ownable(_owner) {
         if (_staleRateInterval == 0) {
             revert Errors.NULL_STALE_RATE();
         }
 
-        staleRateInterval = _staleRateInterval;
-        emit StaleRateIntervalUpdated(0, _staleRateInterval);
+        _setStaleRateInterval(_staleRateInterval);
+        _setVariableBorrowRate(_borrowRate);
     }
 
     function setStaleRateInterval(uint64 _staleRateInterval) external onlyOwner {
+        _setStaleRateInterval(_staleRateInterval);
+    }
+
+    function _setStaleRateInterval(uint64 _staleRateInterval) internal {
         uint64 oldStaleRateInterval = staleRateInterval;
         staleRateInterval = _staleRateInterval;
         emit StaleRateIntervalUpdated(oldStaleRateInterval, _staleRateInterval);
     }
 
     function setVariableBorrowRate(uint128 _borrowRate) external onlyOwner {
+        _setVariableBorrowRate(_borrowRate);
+    }
+
+    function _setVariableBorrowRate(uint128 _borrowRate) internal {
         uint128 oldBorrowRate = borrowRate;
         borrowRate = _borrowRate;
         borrowRateUpdatedAt = uint64(block.timestamp);

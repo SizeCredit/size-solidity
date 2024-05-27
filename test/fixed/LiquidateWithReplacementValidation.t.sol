@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -30,7 +31,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         );
         _borrowAsLimitOrder(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
         uint256 dueDate = block.timestamp + 365 days * 2;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 15e6, dueDate);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, dueDate, false);
         uint256 minimumCollateralProfit = 0;
 
         _setPrice(0.2e18);

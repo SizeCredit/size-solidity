@@ -7,7 +7,6 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -27,7 +26,7 @@ struct LiquidateWithReplacementParams {
 library LiquidateWithReplacement {
     using LoanLibrary for CreditPosition;
     using OfferLibrary for BorrowOffer;
-    using VariablePoolLibrary for State;
+
     using LoanLibrary for State;
     using Liquidate for State;
     using LoanLibrary for DebtPosition;
@@ -90,7 +89,7 @@ library LiquidateWithReplacement {
 
     function executeLiquidateWithReplacement(State storage state, LiquidateWithReplacementParams calldata params)
         external
-        returns (uint256, uint256)
+        returns (uint256, uint256, uint256)
     {
         emit Events.LiquidateWithReplacement(params.debtPositionId, params.borrower, params.minimumCollateralProfit);
 
@@ -111,18 +110,21 @@ library LiquidateWithReplacement {
         uint256 liquidatorProfitBorrowAsset = debtPositionCopy.faceValue - issuanceValue;
 
         debtPosition.borrower = params.borrower;
-        debtPosition.startDate = block.timestamp;
-        debtPosition.issuanceValue = issuanceValue;
         debtPosition.faceValue = debtPositionCopy.faceValue;
-        debtPosition.overdueLiquidatorReward = state.feeConfig.overdueLiquidatorReward;
         debtPosition.liquidityIndexAtRepayment = 0;
-        debtPosition.repayFee =
-            LoanLibrary.repayFee(issuanceValue, block.timestamp, debtPosition.dueDate, state.feeConfig.repayFeeAPR);
 
-        state.data.debtToken.mint(params.borrower, debtPositionCopy.getTotalDebt());
-        state.transferBorrowAToken(address(this), params.borrower, issuanceValue);
-        state.transferBorrowAToken(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
+        emit Events.UpdateDebtPosition(
+            params.debtPositionId,
+            debtPosition.borrower,
+            debtPosition.faceValue,
+            debtPosition.dueDate,
+            debtPosition.liquidityIndexAtRepayment
+        );
 
-        return (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
+        state.data.debtToken.mint(params.borrower, debtPosition.faceValue);
+        state.data.borrowAToken.transferFrom(address(this), params.borrower, issuanceValue);
+        state.data.borrowAToken.transferFrom(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
+
+        return (issuanceValue, liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset);
     }
 }

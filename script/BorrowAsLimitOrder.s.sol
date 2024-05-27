@@ -8,7 +8,7 @@ import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLim
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-contract BorrowAsLimitOrder is Script, Logger {
+contract BorrowAsLimitOrderScript is Script, Logger {
     function run() external {
         console.log("BorrowAsLimitOrder...");
 
@@ -32,8 +32,7 @@ contract BorrowAsLimitOrder is Script, Logger {
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
 
-        BorrowAsLimitOrderParams memory params =
-            BorrowAsLimitOrderParams({openingLimitBorrowCR: 0, curveRelativeTime: curveRelativeTime});
+        BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
         size.borrowAsLimitOrder(params);

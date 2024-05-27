@@ -17,19 +17,18 @@ import {
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
 import {BorrowAsLimitOrder, BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
-import {BorrowAsMarketOrder, BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
-import {BorrowerExit, BorrowerExitParams} from "@src/libraries/fixed/actions/BorrowerExit.sol";
 import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
-import {BuyMarketCredit, BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
-import {SetCreditForSale, SetCreditForSaleParams} from "@src/libraries/fixed/actions/SetCreditForSale.sol";
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
+import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {Liquidate, LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
+import {Multicall} from "@src/libraries/Multicall.sol";
 import {Compensate, CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {
     LiquidateWithReplacement,
@@ -45,7 +44,6 @@ import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
-import {Multicall} from "@src/proxy/Multicall.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
@@ -54,35 +52,25 @@ bytes32 constant PAUSER_ROLE = "PAUSER_ROLE";
 
 /// @title Size
 /// @notice See the documentation in {ISize}.
-contract Size is
-    ISize,
-    SizeView,
-    Multicall,
-    Initializable,
-    AccessControlUpgradeable,
-    PausableUpgradeable,
-    UUPSUpgradeable
-{
-    // @audit Check if borrower == lender == liquidator may cause any issues
+contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using Initialize for State;
     using UpdateConfig for State;
     using Deposit for State;
     using Withdraw for State;
-    using BorrowAsMarketOrder for State;
+    using SellCreditMarket for State;
     using BorrowAsLimitOrder for State;
-    using LendAsMarketOrder for State;
+    using BuyCreditMarket for State;
     using LendAsLimitOrder for State;
-    using BorrowerExit for State;
     using Repay for State;
     using Claim for State;
     using Liquidate for State;
     using SelfLiquidate for State;
     using LiquidateWithReplacement for State;
     using Compensate for State;
-    using BuyMarketCredit for State;
-    using SetCreditForSale for State;
+    using SetUserConfiguration for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
+    using Multicall for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -123,12 +111,20 @@ contract Size is
         _unpause();
     }
 
+    function multicall(bytes[] calldata _data)
+        public
+        payable
+        override(ISize)
+        whenNotPaused
+        returns (bytes[] memory results)
+    {
+        results = state.multicall(_data);
+    }
+
     /// @inheritdoc ISize
     function deposit(DepositParams calldata params) public payable override(ISize) whenNotPaused {
         state.validateDeposit(params);
         state.executeDeposit(params);
-        state.validateCollateralTokenCap();
-        state.validateBorrowATokenCap();
     }
 
     /// @inheritdoc ISize
@@ -156,39 +152,11 @@ contract Size is
     }
 
     /// @inheritdoc ISize
-    function lendAsMarketOrder(LendAsMarketOrderParams calldata params)
-        external
-        payable
-        override(ISize)
-        whenNotPaused
-    {
-        state.validateLendAsMarketOrder(params);
-        uint256 amount = state.executeLendAsMarketOrder(params);
-        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
-        state.validateDebtTokenCap();
-        state.validateVariablePoolHasEnoughLiquidity(amount);
-    }
-
-    /// @inheritdoc ISize
-    function borrowAsMarketOrder(BorrowAsMarketOrderParams memory params)
-        external
-        payable
-        override(ISize)
-        whenNotPaused
-    {
-        uint256 amount = params.amount;
-        state.validateBorrowAsMarketOrder(params);
-        state.executeBorrowAsMarketOrder(params);
+    function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) whenNotPaused {
+        state.validateSellCreditMarket(params);
+        uint256 amount = state.executeSellCreditMarket(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
         state.validateDebtTokenCap();
-        state.validateVariablePoolHasEnoughLiquidity(amount);
-    }
-
-    /// @inheritdoc ISize
-    function borrowerExit(BorrowerExitParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateBorrowerExit(params);
-        uint256 amount = state.executeBorrowerExit(params);
-        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrowerToExitTo);
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
@@ -196,7 +164,6 @@ contract Size is
     function repay(RepayParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateRepay(params);
         state.executeRepay(params);
-        state.validateUserIsNotUnderwater(msg.sender);
     }
 
     /// @inheritdoc ISize
@@ -234,27 +201,38 @@ contract Size is
         returns (uint256 liquidatorProfitCollateralAsset, uint256 liquidatorProfitBorrowAsset)
     {
         state.validateLiquidateWithReplacement(params);
-        (liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) = state.executeLiquidateWithReplacement(params);
+        uint256 amount;
+        (amount, liquidatorProfitCollateralAsset, liquidatorProfitBorrowAsset) =
+            state.executeLiquidateWithReplacement(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
         state.validateMinimumCollateralProfit(params, liquidatorProfitCollateralAsset);
+        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
     function compensate(CompensateParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateCompensate(params);
         state.executeCompensate(params);
-        state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
+        state.validateUserIsNotUnderwater(msg.sender);
     }
 
     /// @inheritdoc ISize
-    function buyMarketCredit(BuyMarketCreditParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateBuyMarketCredit(params);
-        state.executeBuyMarketCredit(params);
+    function setUserConfiguration(SetUserConfigurationParams calldata params)
+        external
+        payable
+        override(ISize)
+        whenNotPaused
+    {
+        state.validateSetUserConfiguration(params);
+        state.executeSetUserConfiguration(params);
     }
 
     /// @inheritdoc ISize
-    function setCreditForSale(SetCreditForSaleParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateSetCreditForSale(params);
-        state.executeSetCreditForSale(params);
+    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
+        state.validateBuyCreditMarket(params);
+        uint256 amount = state.executeBuyCreditMarket(params);
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
+        state.validateDebtTokenCap();
+        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 }

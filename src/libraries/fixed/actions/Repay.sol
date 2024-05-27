@@ -4,9 +4,9 @@ pragma solidity 0.8.23;
 import {State} from "@src/SizeStorage.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
+import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -16,11 +16,10 @@ struct RepayParams {
 }
 
 library Repay {
-    using VariablePoolLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
     using AccountingLibrary for State;
-    using AccountingLibrary for State;
+    using RiskLibrary for State;
 
     function validateRepay(State storage state, RepayParams calldata params) external view {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
@@ -31,27 +30,19 @@ library Repay {
         }
 
         // validate msg.sender
-        if (msg.sender != debtPosition.borrower) {
-            revert Errors.REPAYER_IS_NOT_BORROWER(msg.sender, debtPosition.borrower);
-        }
-        if (state.borrowATokenBalanceOf(msg.sender) < debtPosition.faceValue) {
+        if (state.data.borrowAToken.balanceOf(msg.sender) < debtPosition.faceValue) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                msg.sender, state.borrowATokenBalanceOf(msg.sender), debtPosition.faceValue
+                msg.sender, state.data.borrowAToken.balanceOf(msg.sender), debtPosition.faceValue
             );
         }
     }
 
     function executeRepay(State storage state, RepayParams calldata params) external {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
-        uint256 debt = debtPosition.getTotalDebt();
         uint256 faceValue = debtPosition.faceValue;
 
-        state.transferBorrowAToken(msg.sender, address(this), faceValue);
-        uint256 repayFee = state.chargeRepayFeeInCollateral(debtPosition, faceValue);
-        debtPosition.updateRepayFee(faceValue, repayFee);
-        state.data.debtToken.burn(debtPosition.borrower, debt);
-        debtPosition.overdueLiquidatorReward = 0;
-        debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
+        state.data.borrowAToken.transferFrom(msg.sender, address(this), faceValue);
+        state.repayDebt(params.debtPositionId, faceValue, true);
 
         emit Events.Repay(params.debtPositionId);
     }

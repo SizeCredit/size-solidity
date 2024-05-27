@@ -44,7 +44,7 @@ abstract contract Deploy {
     InitializeDataParams internal d;
     IPool internal variablePool;
 
-    function setup(address owner, address feeRecipient) internal {
+    function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
         variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(owner);
         weth = new WETH();
@@ -52,24 +52,21 @@ abstract contract Deploy {
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         f = InitializeFeeConfigParams({
-            repayFeeAPR: 0.005e18,
-            earlyLenderExitFee: 5e6,
-            earlyBorrowerExitFee: 1e6,
-            collateralLiquidatorPercent: 0.3e18,
+            swapFeeAPR: 0.005e18,
+            fragmentationFee: 5e6,
+            liquidationRewardPercent: 0.05e18,
+            overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
-            overdueLiquidatorReward: 10e6,
-            overdueColLiquidatorPercent: 0.01e18,
-            overdueColProtocolPercent: 0.005e18,
             feeRecipient: feeRecipient
         });
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: 5e6,
-            collateralTokenCap: 1000e18,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            minimumMaturity: 1 days
+            minimumMaturity: 1 days,
+            maximumMaturity: 5 * 365 days
         });
         o = InitializeOracleParams({
             priceFeed: address(priceFeed),
@@ -89,78 +86,52 @@ abstract contract Deploy {
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
 
-    function setupChain(
+    function setupProduction(
         address _owner,
         address _weth,
         address _usdc,
         address _variablePool,
         address _wethAggregator,
-        address _usdcAggregator
+        address _usdcAggregator,
+        uint128 borrowRate
     ) internal {
         variablePool = IPool(_variablePool);
-        priceFeed = new PriceFeed(_wethAggregator, _usdcAggregator, 18, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
-        variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeed(_owner, 6 hours);
-        f = InitializeFeeConfigParams({
-            repayFeeAPR: 0.005e18,
-            earlyLenderExitFee: 5e6,
-            earlyBorrowerExitFee: 1e6,
-            collateralLiquidatorPercent: 0.3e18,
-            collateralProtocolPercent: 0.1e18,
-            overdueLiquidatorReward: 10e6,
-            overdueColLiquidatorPercent: 0.01e18,
-            overdueColProtocolPercent: 0.01e18,
-            feeRecipient: _owner
-        });
-        r = InitializeRiskConfigParams({
-            crOpening: 1.5e18,
-            crLiquidation: 1.3e18,
-            minimumCreditBorrowAToken: 5e6,
-            collateralTokenCap: 1000e18,
-            borrowATokenCap: 1_000_000e6,
-            debtTokenCap: 500_000e6,
-            minimumMaturity: 1 days
-        });
-        o = InitializeOracleParams({
-            priceFeed: address(priceFeed),
-            variablePoolBorrowRateFeed: address(variablePoolBorrowRateFeed)
-        });
-        d = InitializeDataParams({
-            weth: address(_weth),
-            underlyingCollateralToken: address(_weth),
-            underlyingBorrowToken: address(_usdc),
-            variablePool: address(variablePool) // Aave v3
-        });
-        implementation = address(new Size());
-        proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
-        size = SizeMock(payable(proxy));
-    }
 
-    function setupChainWithMocks(address _owner, address _weth, address _usdc) internal {
-        priceFeed = new PriceFeedMock(_owner);
-        variablePool = IPool(address(new PoolMock()));
-        PoolMock(address(variablePool)).setLiquidityIndex(address(_usdc), WadRayMath.RAY);
-        PriceFeedMock(address(priceFeed)).setPrice(2468e18);
-        variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(_owner);
-        VariablePoolBorrowRateFeedMock(address(variablePoolBorrowRateFeed)).setVariableBorrowRate(0.0724e18);
+        if (_wethAggregator == address(0) && _usdcAggregator == address(0)) {
+            priceFeed = new PriceFeedMock(_owner);
+            PriceFeedMock(address(priceFeed)).setPrice(2468e18);
+
+            variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(_owner);
+            VariablePoolBorrowRateFeedMock(address(variablePoolBorrowRateFeed)).setVariableBorrowRate(0.0724e18);
+        } else {
+            priceFeed = new PriceFeed(_wethAggregator, _usdcAggregator, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
+
+            variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeed(_owner, 6 hours, borrowRate);
+        }
+
+        if (_variablePool == address(0)) {
+            variablePool = IPool(address(new PoolMock()));
+            PoolMock(address(variablePool)).setLiquidityIndex(address(_usdc), WadRayMath.RAY);
+        } else {
+            variablePool = IPool(_variablePool);
+        }
+
         f = InitializeFeeConfigParams({
-            repayFeeAPR: 0.005e18,
-            earlyLenderExitFee: 5e6,
-            earlyBorrowerExitFee: 1e6,
-            collateralLiquidatorPercent: 0.3e18,
+            swapFeeAPR: 0.005e18,
+            fragmentationFee: 5e6,
+            liquidationRewardPercent: 0.05e18,
+            overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
-            overdueLiquidatorReward: 10e6,
-            overdueColLiquidatorPercent: 0.01e18,
-            overdueColProtocolPercent: 0.01e18,
             feeRecipient: _owner
         });
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            minimumCreditBorrowAToken: 5e6,
-            collateralTokenCap: 1000e18,
+            minimumCreditBorrowAToken: 50e6,
             borrowATokenCap: 1_000_000e6,
             debtTokenCap: 500_000e6,
-            minimumMaturity: 1 days
+            minimumMaturity: 1 days,
+            maximumMaturity: 5 * 365 days
         });
         o = InitializeOracleParams({
             priceFeed: address(priceFeed),

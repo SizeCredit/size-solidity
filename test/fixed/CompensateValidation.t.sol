@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
@@ -29,15 +31,13 @@ contract CompensateValidationTest is BaseTest {
         _lendAsLimitOrder(
             james, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
         );
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 20e6, block.timestamp + 12 days);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 loanId2 = _borrowAsMarketOrder(candy, bob, 20e6, block.timestamp + 12 days);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
-        uint256 loanId3 = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 12 days);
-        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[0];
-        _borrowAsMarketOrder(
-            bob, alice, 10e6, block.timestamp + 12 days, size.getCreditPositionIdsByDebtPositionId(loanId2)
-        );
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, block.timestamp + 12 days, false);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 loanId2 = _sellCreditMarket(candy, bob, RESERVED_ID, 20e6, block.timestamp + 12 days, false);
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
+        uint256 loanId3 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, block.timestamp + 12 days, false);
+        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[1];
+        _sellCreditMarket(bob, alice, creditPositionId2, 10e6, block.timestamp + 12 days);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
 
         vm.startPrank(bob);
@@ -76,7 +76,12 @@ contract CompensateValidationTest is BaseTest {
         _repay(bob, debtPositionId);
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditPositionId));
+        uint256 cr = size.collateralRatio(bob);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector, creditPositionId, LoanStatus.REPAID, cr
+            )
+        );
         size.compensate(
             CompensateParams({
                 creditPositionWithDebtToRepayId: creditPositionId3,
@@ -89,7 +94,7 @@ contract CompensateValidationTest is BaseTest {
         _repay(alice, loanId3);
 
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditPositionId3));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, creditPositionId3));
         size.compensate(
             CompensateParams({
                 creditPositionWithDebtToRepayId: creditPositionId3,
@@ -99,8 +104,8 @@ contract CompensateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        uint256 l1 = _borrowAsMarketOrder(bob, alice, 20e6, block.timestamp + 12 days);
-        uint256 l2 = _borrowAsMarketOrder(alice, james, 20e6, block.timestamp + 6 days);
+        uint256 l1 = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, block.timestamp + 12 days, false);
+        uint256 l2 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, block.timestamp + 6 days, false);
         uint256 creditPositionIdL2 = size.getCreditPositionIdsByDebtPositionId(l2)[0];
         uint256 creditPositionIdL1 = size.getCreditPositionIdsByDebtPositionId(l1)[0];
         vm.startPrank(alice);

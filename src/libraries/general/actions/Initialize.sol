@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
+
+import {Math} from "@src/libraries/Math.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
+
+import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -19,14 +22,11 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct InitializeFeeConfigParams {
-    uint256 repayFeeAPR;
-    uint256 earlyLenderExitFee;
-    uint256 earlyBorrowerExitFee;
-    uint256 collateralLiquidatorPercent;
+    uint256 swapFeeAPR;
+    uint256 fragmentationFee;
+    uint256 liquidationRewardPercent;
+    uint256 overdueCollateralProtocolPercent;
     uint256 collateralProtocolPercent;
-    uint256 overdueLiquidatorReward;
-    uint256 overdueColLiquidatorPercent;
-    uint256 overdueColProtocolPercent;
     address feeRecipient;
 }
 
@@ -34,10 +34,10 @@ struct InitializeRiskConfigParams {
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 minimumCreditBorrowAToken;
-    uint256 collateralTokenCap;
     uint256 borrowATokenCap;
     uint256 debtTokenCap;
     uint256 minimumMaturity;
+    uint256 maximumMaturity;
 }
 
 struct InitializeOracleParams {
@@ -64,46 +64,23 @@ library Initialize {
     }
 
     function validateInitializeFeeConfigParams(InitializeFeeConfigParams memory f) internal pure {
-        // validate repayFeeAPR
+        // validate swapFeeAPR
         // N/A
 
-        // validate earlyLenderExitFee
+        // validate fragmentationFee
         // N/A
 
-        // validate earlyBorrowerExitFee
+        // validate liquidationRewardPercent
         // N/A
 
-        // validate collateralLiquidatorPercent
-        if (f.collateralLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralLiquidatorPercent);
+        // validate overdueCollateralProtocolPercent
+        if (f.overdueCollateralProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueCollateralProtocolPercent);
         }
 
         // validate collateralProtocolPercent
         if (f.collateralProtocolPercent > PERCENT) {
             revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralProtocolPercent);
-        }
-        if (f.collateralLiquidatorPercent + f.collateralProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                f.collateralLiquidatorPercent + f.collateralProtocolPercent
-            );
-        }
-
-        // validate overdueLiquidatorReward
-        // N/A
-
-        // validate overdueColLiquidatorPercent
-        if (f.overdueColLiquidatorPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueColLiquidatorPercent);
-        }
-
-        // validate overdueColProtocolPercent
-        if (f.overdueColProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueColProtocolPercent);
-        }
-        if (f.overdueColLiquidatorPercent + f.overdueColProtocolPercent > PERCENT) {
-            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM_SUM(
-                f.overdueColLiquidatorPercent + f.overdueColProtocolPercent
-            );
         }
 
         // validate feeRecipient
@@ -131,9 +108,6 @@ library Initialize {
             revert Errors.NULL_AMOUNT();
         }
 
-        // validate underlyingCollateralTokenCap
-        // N/A
-
         // validate underlyingBorrowTokenCap
         // N/A
 
@@ -143,6 +117,10 @@ library Initialize {
         // validate minimumMaturity
         if (r.minimumMaturity == 0) {
             revert Errors.NULL_AMOUNT();
+        }
+
+        if (r.maximumMaturity <= r.minimumMaturity) {
+            revert Errors.INVALID_MAXIMUM_MATURITY(r.maximumMaturity);
         }
     }
 
@@ -158,19 +136,23 @@ library Initialize {
         if (o.variablePoolBorrowRateFeed == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        // slither-disable-next-line unused-return
-        IVariablePoolBorrowRateFeed(o.variablePoolBorrowRateFeed).getVariableBorrowRate();
     }
 
-    function validateInitializeDataParams(InitializeDataParams memory d) internal pure {
+    function validateInitializeDataParams(InitializeDataParams memory d) internal view {
         // validate underlyingCollateralToken
         if (d.underlyingCollateralToken == address(0)) {
             revert Errors.NULL_ADDRESS();
+        }
+        if (IERC20Metadata(d.underlyingCollateralToken).decimals() > 18) {
+            revert Errors.INVALID_DECIMALS(IERC20Metadata(d.underlyingCollateralToken).decimals());
         }
 
         // validate underlyingBorrowToken
         if (d.underlyingBorrowToken == address(0)) {
             revert Errors.NULL_ADDRESS();
+        }
+        if (IERC20Metadata(d.underlyingBorrowToken).decimals() > 18) {
+            revert Errors.INVALID_DECIMALS(IERC20Metadata(d.underlyingBorrowToken).decimals());
         }
 
         // validate variablePool
@@ -195,17 +177,12 @@ library Initialize {
     }
 
     function executeInitializeFeeConfig(State storage state, InitializeFeeConfigParams memory f) internal {
-        state.feeConfig.repayFeeAPR = f.repayFeeAPR;
+        state.feeConfig.swapFeeAPR = f.swapFeeAPR;
+        state.feeConfig.fragmentationFee = f.fragmentationFee;
 
-        state.feeConfig.earlyLenderExitFee = f.earlyLenderExitFee;
-        state.feeConfig.earlyBorrowerExitFee = f.earlyBorrowerExitFee;
-
-        state.feeConfig.collateralLiquidatorPercent = f.collateralLiquidatorPercent;
+        state.feeConfig.liquidationRewardPercent = f.liquidationRewardPercent;
+        state.feeConfig.overdueCollateralProtocolPercent = f.overdueCollateralProtocolPercent;
         state.feeConfig.collateralProtocolPercent = f.collateralProtocolPercent;
-
-        state.feeConfig.overdueLiquidatorReward = f.overdueLiquidatorReward;
-        state.feeConfig.overdueColLiquidatorPercent = f.overdueColLiquidatorPercent;
-        state.feeConfig.overdueColProtocolPercent = f.overdueColProtocolPercent;
 
         state.feeConfig.feeRecipient = f.feeRecipient;
     }
@@ -216,11 +193,11 @@ library Initialize {
 
         state.riskConfig.minimumCreditBorrowAToken = r.minimumCreditBorrowAToken;
 
-        state.riskConfig.collateralTokenCap = r.collateralTokenCap;
         state.riskConfig.borrowATokenCap = r.borrowATokenCap;
         state.riskConfig.debtTokenCap = r.debtTokenCap;
 
         state.riskConfig.minimumMaturity = r.minimumMaturity;
+        state.riskConfig.maximumMaturity = r.maximumMaturity;
     }
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {
@@ -239,14 +216,23 @@ library Initialize {
 
         state.data.collateralToken = new NonTransferrableToken(
             address(this),
-            string.concat("Size Fixed ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
+            string.concat("Size ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
             string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
             IERC20Metadata(state.data.underlyingCollateralToken).decimals()
         );
-        state.data.borrowAToken =
-            IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
+        state.data.borrowAToken = new NonTransferrableScaledToken(
+            state.data.variablePool,
+            state.data.underlyingBorrowToken,
+            address(this),
+            string.concat("Size Scaled ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
+            string.concat("sza", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
+            IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+        );
         state.data.debtToken = new NonTransferrableToken(
-            address(this), "Size Fixed Debt", "szDebt", IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+            address(this),
+            string.concat("Size Debt ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
+            string.concat("szDebt", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
+            IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
     }
 

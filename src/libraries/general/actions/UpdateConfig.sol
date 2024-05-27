@@ -5,6 +5,8 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
+
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {Initialize} from "@src/libraries/general/actions/Initialize.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
@@ -32,14 +34,11 @@ library UpdateConfig {
 
     function feeConfigParams(State storage state) public view returns (InitializeFeeConfigParams memory) {
         return InitializeFeeConfigParams({
-            repayFeeAPR: state.feeConfig.repayFeeAPR,
-            earlyLenderExitFee: state.feeConfig.earlyLenderExitFee,
-            earlyBorrowerExitFee: state.feeConfig.earlyBorrowerExitFee,
-            collateralLiquidatorPercent: state.feeConfig.collateralLiquidatorPercent,
+            swapFeeAPR: state.feeConfig.swapFeeAPR,
+            fragmentationFee: state.feeConfig.fragmentationFee,
+            liquidationRewardPercent: state.feeConfig.liquidationRewardPercent,
+            overdueCollateralProtocolPercent: state.feeConfig.overdueCollateralProtocolPercent,
             collateralProtocolPercent: state.feeConfig.collateralProtocolPercent,
-            overdueLiquidatorReward: state.feeConfig.overdueLiquidatorReward,
-            overdueColLiquidatorPercent: state.feeConfig.overdueColLiquidatorPercent,
-            overdueColProtocolPercent: state.feeConfig.overdueColProtocolPercent,
             feeRecipient: state.feeConfig.feeRecipient
         });
     }
@@ -49,10 +48,10 @@ library UpdateConfig {
             crOpening: state.riskConfig.crOpening,
             crLiquidation: state.riskConfig.crLiquidation,
             minimumCreditBorrowAToken: state.riskConfig.minimumCreditBorrowAToken,
-            collateralTokenCap: state.riskConfig.collateralTokenCap,
             borrowATokenCap: state.riskConfig.borrowATokenCap,
             debtTokenCap: state.riskConfig.debtTokenCap,
-            minimumMaturity: state.riskConfig.minimumMaturity
+            minimumMaturity: state.riskConfig.minimumMaturity,
+            maximumMaturity: state.riskConfig.maximumMaturity
         });
     }
 
@@ -60,15 +59,6 @@ library UpdateConfig {
         return InitializeOracleParams({
             priceFeed: address(state.oracle.priceFeed),
             variablePoolBorrowRateFeed: address(state.oracle.variablePoolBorrowRateFeed)
-        });
-    }
-
-    function dataParams(State storage state) external view returns (InitializeDataParams memory) {
-        return InitializeDataParams({
-            weth: address(state.data.weth),
-            underlyingCollateralToken: address(state.data.underlyingCollateralToken),
-            underlyingBorrowToken: address(state.data.underlyingBorrowToken),
-            variablePool: address(state.data.variablePool)
         });
     }
 
@@ -80,33 +70,40 @@ library UpdateConfig {
         if (Strings.equal(params.key, "crOpening")) {
             state.riskConfig.crOpening = params.value;
         } else if (Strings.equal(params.key, "crLiquidation")) {
+            if (params.value >= state.riskConfig.crLiquidation) {
+                revert Errors.INVALID_COLLATERAL_RATIO(params.value);
+            }
             state.riskConfig.crLiquidation = params.value;
         } else if (Strings.equal(params.key, "minimumCreditBorrowAToken")) {
             state.riskConfig.minimumCreditBorrowAToken = params.value;
-        } else if (Strings.equal(params.key, "collateralTokenCap")) {
-            state.riskConfig.collateralTokenCap = params.value;
         } else if (Strings.equal(params.key, "borrowATokenCap")) {
             state.riskConfig.borrowATokenCap = params.value;
         } else if (Strings.equal(params.key, "debtTokenCap")) {
             state.riskConfig.debtTokenCap = params.value;
         } else if (Strings.equal(params.key, "minimumMaturity")) {
             state.riskConfig.minimumMaturity = params.value;
-        } else if (Strings.equal(params.key, "repayFeeAPR")) {
-            state.feeConfig.repayFeeAPR = params.value;
-        } else if (Strings.equal(params.key, "earlyLenderExitFee")) {
-            state.feeConfig.earlyLenderExitFee = params.value;
-        } else if (Strings.equal(params.key, "earlyBorrowerExitFee")) {
-            state.feeConfig.earlyBorrowerExitFee = params.value;
-        } else if (Strings.equal(params.key, "collateralLiquidatorPercent")) {
-            state.feeConfig.collateralLiquidatorPercent = params.value;
+        } else if (Strings.equal(params.key, "maximumMaturity")) {
+            state.riskConfig.maximumMaturity = params.value;
+            if (params.value >= Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR)) {
+                revert Errors.VALUE_GREATER_THAN_MAX(
+                    params.value, Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR)
+                );
+            }
+        } else if (Strings.equal(params.key, "swapFeeAPR")) {
+            state.feeConfig.swapFeeAPR = params.value;
+            if (params.value >= Math.mulDivDown(state.riskConfig.maximumMaturity, PERCENT, 365 days)) {
+                revert Errors.VALUE_GREATER_THAN_MAX(
+                    params.value, Math.mulDivDown(state.riskConfig.maximumMaturity, PERCENT, 365 days)
+                );
+            }
+        } else if (Strings.equal(params.key, "fragmentationFee")) {
+            state.feeConfig.fragmentationFee = params.value;
+        } else if (Strings.equal(params.key, "liquidationRewardPercent")) {
+            state.feeConfig.liquidationRewardPercent = params.value;
+        } else if (Strings.equal(params.key, "overdueCollateralProtocolPercent")) {
+            state.feeConfig.overdueCollateralProtocolPercent = params.value;
         } else if (Strings.equal(params.key, "collateralProtocolPercent")) {
             state.feeConfig.collateralProtocolPercent = params.value;
-        } else if (Strings.equal(params.key, "overdueLiquidatorReward")) {
-            state.feeConfig.overdueLiquidatorReward = params.value;
-        } else if (Strings.equal(params.key, "overdueColLiquidatorPercent")) {
-            state.feeConfig.overdueColLiquidatorPercent = params.value;
-        } else if (Strings.equal(params.key, "overdueColProtocolPercent")) {
-            state.feeConfig.overdueColProtocolPercent = params.value;
         } else if (Strings.equal(params.key, "feeRecipient")) {
             state.feeConfig.feeRecipient = address(uint160(params.value));
         } else if (Strings.equal(params.key, "priceFeed")) {

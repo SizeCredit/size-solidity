@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {SizeStorage, State} from "@src/SizeStorage.sol";
+import {SizeStorage, State, User} from "@src/SizeStorage.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {
@@ -11,12 +11,14 @@ import {
     DEBT_POSITION_ID_START,
     DebtPosition,
     LoanLibrary,
-    LoanStatus
+    LoanStatus,
+    RESERVED_ID
 } from "@src/libraries/fixed/LoanLibrary.sol";
 import {UpdateConfig} from "@src/libraries/general/actions/UpdateConfig.sol";
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
+
+import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
@@ -24,18 +26,24 @@ import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
-import {UserView, DataView} from "@src/SizeViewStructs.sol";
-import {ISizeView} from "@src/interfaces/ISizeView.sol";
 
 
+struct DataView {
+    uint256 nextDebtPositionId;
+    uint256 nextCreditPositionId;
+    IERC20Metadata underlyingCollateralToken;
+    IERC20Metadata underlyingBorrowToken;
+    NonTransferrableToken collateralToken;
+    NonTransferrableScaledToken borrowAToken;
+    NonTransferrableToken debtToken;
+    IPool variablePool;
+}
 
 /// @title SizeView
 /// @notice View methods for the Size protocol
@@ -46,7 +54,6 @@ abstract contract SizeView is ISizeView, SizeStorage {
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using RiskLibrary for State;
-    using VariablePoolLibrary for State;
     using AccountingLibrary for State;
     using UpdateConfig for State;
 
@@ -60,21 +67,6 @@ abstract contract SizeView is ISizeView, SizeStorage {
 
     function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool) {
         return state.isDebtPositionLiquidatable(debtPositionId);
-    }
-
-    function getOverdueDebt(uint256 debtPositionId) external view returns (uint256) {
-        return state.getDebtPosition(debtPositionId).getTotalDebt();
-    }
-
-    function getDueDateDebt(uint256 debtPositionId) external view returns (uint256) {
-        return state.getDebtPosition(debtPositionId).getDueDateDebt();
-    }
-
-    function getAPR(uint256 debtPositionId) external view returns (uint256) {
-        DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
-        uint256 maturity = debtPosition.dueDate - debtPosition.startDate;
-        uint256 ratePerMaturity = Math.mulDivDown(debtPosition.faceValue, PERCENT, debtPosition.issuanceValue) - PERCENT;
-        return Math.ratePerMaturityToAPR(ratePerMaturity, maturity);
     }
 
     function debtTokenAmountToCollateralTokenAmount(uint256 borrowATokenAmount) external view returns (uint256) {
@@ -111,7 +103,7 @@ abstract contract SizeView is ISizeView, SizeStorage {
             user: state.data.users[user],
             account: user,
             collateralTokenBalance: state.data.collateralToken.balanceOf(user),
-            borrowATokenBalance: state.borrowATokenBalanceOf(user),
+            borrowATokenBalance: state.data.borrowAToken.balanceOf(user),
             debtBalance: state.data.debtToken.balanceOf(user)
         });
     }
@@ -136,14 +128,6 @@ abstract contract SizeView is ISizeView, SizeStorage {
         return state.getLoanStatus(positionId);
     }
 
-    function repayFee(uint256 issuanceValue, uint256 startDate, uint256 dueDate, uint256 repayFeeAPR)
-        external
-        pure
-        returns (uint256)
-    {
-        return LoanLibrary.repayFee(issuanceValue, startDate, dueDate, repayFeeAPR);
-    }
-
     function getPositionsCount() external view returns (uint256, uint256) {
         return (
             state.data.nextDebtPositionId - DEBT_POSITION_ID_START,
@@ -156,9 +140,6 @@ abstract contract SizeView is ISizeView, SizeStorage {
         if (offer.isNull()) {
             revert Errors.NULL_OFFER();
         }
-        if (dueDate < block.timestamp) {
-            revert Errors.PAST_DUE_DATE(dueDate);
-        }
         return offer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
     }
 
@@ -166,9 +147,6 @@ abstract contract SizeView is ISizeView, SizeStorage {
         LoanOffer memory offer = state.data.users[lender].loanOffer;
         if (offer.isNull()) {
             revert Errors.NULL_OFFER();
-        }
-        if (dueDate < block.timestamp) {
-            revert Errors.PAST_DUE_DATE(dueDate);
         }
         return offer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
     }
@@ -181,5 +159,19 @@ abstract contract SizeView is ISizeView, SizeStorage {
     function getCreditPositionProRataAssignedCollateral(uint256 creditPositionId) external view returns (uint256) {
         CreditPosition memory creditPosition = state.getCreditPosition(creditPositionId);
         return state.getCreditPositionProRataAssignedCollateral(creditPosition);
+    }
+
+    function getSwapFeePercent(uint256 dueDate) public view returns (uint256) {
+        if (dueDate < block.timestamp) {
+            revert Errors.PAST_DUE_DATE(dueDate);
+        }
+        return state.getSwapFeePercent(dueDate);
+    }
+
+    function getSwapFee(uint256 cash, uint256 dueDate) public view returns (uint256) {
+        if (dueDate < block.timestamp) {
+            revert Errors.PAST_DUE_DATE(dueDate);
+        }
+        return state.getSwapFee(cash, dueDate);
     }
 }

@@ -11,6 +11,6 @@ contract WadRayMathTest is BaseTest {
 
         uint256 x_div_y = WadRayMath.rayDiv(x, y);
         uint256 x_div_y_mul_y = WadRayMath.rayMul(x_div_y, y);
-        assertEqApprox(x_div_y_mul_y, x, 1, "rayMul(rayDiv(x, y), y) should equal x +- 2");
+        assertEqApprox(x_div_y_mul_y, x, 1, "rayMul(rayDiv(x, y), y) should equal x +- 1");
     }
 }

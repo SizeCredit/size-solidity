@@ -3,9 +3,9 @@ pragma solidity 0.8.23;
 
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
+import {PERCENT} from "@src/libraries/Math.sol";
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolLibrary} from "@src/libraries/variable/VariablePoolLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -20,16 +20,12 @@ library SelfLiquidate {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
-    using VariablePoolLibrary for State;
     using AccountingLibrary for State;
     using RiskLibrary for State;
 
     function validateSelfLiquidate(State storage state, SelfLiquidateParams calldata params) external view {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
-
-        uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
-        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.getTotalDebt());
 
         // validate creditPositionId
         if (!state.isCreditPositionSelfLiquidatable(params.creditPositionId)) {
@@ -39,8 +35,8 @@ library SelfLiquidate {
                 state.getLoanStatus(params.creditPositionId)
             );
         }
-        if (!(assignedCollateral < debtInCollateralToken)) {
-            revert Errors.LIQUIDATION_NOT_AT_LOSS(params.creditPositionId, assignedCollateral, debtInCollateralToken);
+        if (state.collateralRatio(debtPosition.borrower) >= PERCENT) {
+            revert Errors.LIQUIDATION_NOT_AT_LOSS(params.creditPositionId, state.collateralRatio(debtPosition.borrower));
         }
 
         // validate msg.sender
@@ -55,19 +51,12 @@ library SelfLiquidate {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
-        uint256 credit = creditPosition.credit;
-
-        uint256 repayFeeProRata = state.chargeRepayFeeInCollateral(debtPosition, credit);
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
-        (uint256 debtProRata, bool isFullRepayment) = debtPosition.getDebtProRata(credit, repayFeeProRata);
-        state.data.debtToken.burn(debtPosition.borrower, debtProRata);
-        debtPosition.updateRepayFee(credit, repayFeeProRata);
-        if (isFullRepayment) {
-            debtPosition.overdueLiquidatorReward = 0;
-            debtPosition.liquidityIndexAtRepayment = state.borrowATokenLiquidityIndex();
-        }
 
-        creditPosition.credit = 0;
+        state.repayDebt(creditPosition.debtPositionId, creditPosition.credit, false);
+
+        // slither-disable-next-line unused-return
+        state.reduceCredit(params.creditPositionId, creditPosition.credit);
 
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, assignedCollateral);
     }

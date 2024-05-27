@@ -6,7 +6,7 @@ import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.so
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-contract UpdateConfig is Script {
+contract UpdateConfigScript is Script {
     function run() external {
         console.log("UpdateConfig...");
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");

@@ -4,11 +4,11 @@ pragma solidity 0.8.23;
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {ForkTest} from "@test/ForkTest.sol";
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
-
 import {DeployScript} from "@script/Deploy.s.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {BorrowAsMarketOrderParams} from "@src/libraries/fixed/actions/BorrowAsMarketOrder.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+
+import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 import {ForkTest} from "@test/ForkTest.sol";
 import {Test} from "forge-std/Test.sol";
 
@@ -50,7 +50,7 @@ contract DeployScriptTest is ForkTest {
         assertEq(size.getUserView(alice).borrowATokenBalance, 0);
     }
 
-    function testFork_Deploy_deposit_lendAsLimitOrder_borrowAsMarketOrder() public {
+    function testFork_Deploy_deposit_lendAsLimitOrder_borrow() public {
         _deposit(alice, usdc, 2500 * 1e6);
         _lendAsLimitOrder(
             alice, block.timestamp + 365 days, [int256(0.05e18), int256(0.07e18)], [uint256(30 days), uint256(180 days)]
@@ -59,10 +59,9 @@ contract DeployScriptTest is ForkTest {
         vm.warp(block.timestamp + 30 days);
 
         _deposit(bob, weth, 1e18);
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, 1_000e6, block.timestamp + 60 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 1_000e6, block.timestamp + 60 days, false);
 
         assertEq(debtPositionId, 0);
-        assertEq(size.getDebtPosition(debtPositionId).issuanceValue, 1_000e6);
         assertEq(size.getUserView(alice).borrowATokenBalance, 1_500e6);
         assertEq(size.getUserView(bob).borrowATokenBalance, 1_000e6);
     }
@@ -78,9 +77,7 @@ contract DeployScriptTest is ForkTest {
         _withdrawVariable(alice, usdc, 2_500e6);
     }
 
-    function testFork_Deploy_RevertWith_deposit_lendAsLimitOrder_variablePool_borrow_borrowAsMarketOrder_low_liquidity()
-        public
-    {
+    function testFork_Deploy_RevertWith_deposit_lendAsLimitOrder_variablePool_borrow_borrow_low_liquidity() public {
         _deposit(alice, usdc, 2_500e6);
         assertEq(usdc.balanceOf(address(variablePool)), 2_500e6);
         _lendAsLimitOrder(
@@ -97,7 +94,7 @@ contract DeployScriptTest is ForkTest {
         assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
 
         _deposit(bob, weth, 1e18);
-        _borrowAsMarketOrder(bob, alice, 1_000e6, block.timestamp + 60 days);
+        _sellCreditMarket(bob, alice, RESERVED_ID, 1_000e6, block.timestamp + 60 days, false);
         vm.expectRevert();
         _withdraw(bob, usdc, 1_000e6);
     }
@@ -120,17 +117,19 @@ contract DeployScriptTest is ForkTest {
         assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
 
         _deposit(bob, weth, 1e18);
+
+        uint256 dueDate = block.timestamp + 60 days;
         vm.prank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector, 500e6, 2500e6));
-        size.borrowAsMarketOrder(
-            BorrowAsMarketOrderParams({
+        size.sellCreditMarket(
+            SellCreditMarketParams({
                 lender: alice,
+                creditPositionId: RESERVED_ID,
                 amount: 1_000e6,
-                dueDate: block.timestamp + 60 days,
+                dueDate: dueDate,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: false,
-                receivableCreditPositionIds: new uint256[](0)
+                exactAmountIn: false
             })
         );
     }

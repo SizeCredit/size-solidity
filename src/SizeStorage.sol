@@ -1,39 +1,43 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
-
-import {User} from "@src/libraries/fixed/UserLibrary.sol";
+import {BorrowOffer, LoanOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
+
+import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
+struct User {
+    LoanOffer loanOffer;
+    BorrowOffer borrowOffer;
+    uint256 openingLimitBorrowCR;
+    bool allCreditPositionsForSaleDisabled;
+}
+
 struct FeeConfig {
-    uint256 repayFeeAPR; // annual percentage rate of the protocol repay fee
-    uint256 earlyLenderExitFee; // fee for early lender exits
-    uint256 earlyBorrowerExitFee; // fee for early borrower exits
-    uint256 collateralLiquidatorPercent; // percent of collateral remainder to be split with liquidator on profitable liquidations
+    uint256 swapFeeAPR; // annual percentage rate of the protocol swap fee
+    uint256 fragmentationFee; // fee for fractionalizing credit positions
+    uint256 liquidationRewardPercent; // percent of the face value to be given to the liquidator
+    uint256 overdueCollateralProtocolPercent; // percent of collateral remainder to be split with protocol on profitable liquidations for overdue loans
     uint256 collateralProtocolPercent; // percent of collateral to be split with protocol on profitable liquidations
-    uint256 overdueLiquidatorReward; // fixed reward for liquidators during overdue liquidations
-    uint256 overdueColLiquidatorPercent; // percent of collateral remainder to be split with liquidator on overdue liquidations
-    uint256 overdueColProtocolPercent; // percent of collateral to be split with protocol on overdue liquidations
     address feeRecipient; // address to receive protocol fees
 }
 
 struct RiskConfig {
     uint256 crOpening; // minimum collateral ratio for opening a loan
-    uint256 crLiquidation; // minimum collateral ratio for liquidation
+    uint256 crLiquidation; // maximum collateral ratio for liquidation
     uint256 minimumCreditBorrowAToken; // minimum credit value of loans
-    uint256 collateralTokenCap; // maximum amount of deposited collateral tokens
     uint256 borrowATokenCap; // maximum amount of deposited borrowed aTokens
     uint256 debtTokenCap; // maximum amount of minted debt tokens
     uint256 minimumMaturity; // minimum maturity for a loan
+    uint256 maximumMaturity; // maximum maturity for a loan
 }
 
 struct Oracle {
@@ -48,12 +52,13 @@ struct Data {
     uint256 nextDebtPositionId; // next debt position id
     uint256 nextCreditPositionId; // next credit position id
     IWETH weth; // Wrapped Ether contract address
-    IERC20Metadata underlyingCollateralToken; // // the token used by borrowers to collateralize their loans
+    IERC20Metadata underlyingCollateralToken; // the token used by borrowers to collateralize their loans
     IERC20Metadata underlyingBorrowToken; // the token lent from lenders to borrowers
-    NonTransferrableToken collateralToken; // // Size tokenized underlying collateral token
-    IAToken borrowAToken; // Variable Pool's rebasing AToken from the underlying borrow token
+    NonTransferrableToken collateralToken; // Size deposit underlying collateral token
+    NonTransferrableScaledToken borrowAToken; // Size deposit underlying borrow aToken
     NonTransferrableToken debtToken; // Size tokenized debt
     IPool variablePool; // Variable Pool (Aave v3)
+    bool isMulticall; // Multicall lock to check if multicall is in progress
 }
 
 struct State {
