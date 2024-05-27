@@ -5,14 +5,14 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
+import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-contract LendAsLimitOrderValidationTest is BaseTest {
+contract BuyCreditLimitValidationTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
-    function test_LendAsLimitOrder_validation() public {
+    function test_BuyCreditLimit_validation() public {
         _deposit(alice, usdc, 100e6);
         uint256 maxDueDate = 12 days;
         uint256[] memory marketRateMultipliers = new uint256[](2);
@@ -24,8 +24,8 @@ contract LendAsLimitOrderValidationTest is BaseTest {
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({
+        size.buyCreditLimitOrder(
+            BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
@@ -38,8 +38,8 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         int256[] memory empty;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({
+        size.buyCreditLimitOrder(
+            BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
@@ -56,8 +56,8 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         maturities[0] = 2 days;
         maturities[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.MATURITIES_NOT_STRICTLY_INCREASING.selector));
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({
+        size.buyCreditLimitOrder(
+            BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
@@ -70,8 +70,8 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         maturities[0] = 6 hours;
         maturities[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector, 6 hours, 24 hours));
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({
+        size.buyCreditLimitOrder(
+            BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,
@@ -87,8 +87,8 @@ contract LendAsLimitOrderValidationTest is BaseTest {
         vm.warp(3);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.PAST_MAX_DUE_DATE.selector, 2));
-        size.lendAsLimitOrder(
-            LendAsLimitOrderParams({
+        size.buyCreditLimitOrder(
+            BuyCreditLimitParams({
                 maxDueDate: 2,
                 curveRelativeTime: YieldCurve({
                     maturities: maturities,

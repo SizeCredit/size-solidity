@@ -18,14 +18,14 @@ contract SellCreditMarketValidationTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _lendAsLimitOrder(
+        _buyCreditLimitOrder(
             alice, block.timestamp + 10 days, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]
         );
-        _lendAsLimitOrder(
+        _buyCreditLimitOrder(
             bob, block.timestamp + 5 days, [int256(0.03e18), int256(0.03e18)], [uint256(1 days), uint256(12 days)]
         );
-        _lendAsLimitOrder(candy, block.timestamp + 10 days, 0.03e18);
-        _lendAsLimitOrder(james, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimitOrder(candy, block.timestamp + 10 days, 0.03e18);
+        _buyCreditLimitOrder(james, block.timestamp + 365 days, 0.03e18);
         uint256 debtPositionId = _sellCreditMarket(alice, candy, RESERVED_ID, 40e6, block.timestamp + 10 days, false);
 
         uint256 deadline = block.timestamp;
@@ -175,8 +175,8 @@ contract SellCreditMarketValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        _lendAsLimitOrder(bob, block.timestamp + 365 days, 0);
-        _lendAsLimitOrder(candy, block.timestamp + 365 days, 0);
+        _buyCreditLimitOrder(bob, block.timestamp + 365 days, 0);
+        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 0);
         uint256 debtPositionId2 = _sellCreditMarket(alice, candy, RESERVED_ID, 10e6, block.timestamp + 365 days, false);
         creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
         _repay(alice, debtPositionId2);

@@ -4,13 +4,13 @@ pragma solidity 0.8.23;
 import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/Size.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
+import {SellCreditLimitParams} from "@src/libraries/fixed/actions/SellCreditLimit.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-contract BorrowAsLimitOrder is Script, Logger {
+contract SellCreditLimitScript is Script, Logger {
     function run() external {
-        console.log("BorrowAsLimitOrder...");
+        console.log("SellCreditLimit...");
 
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
@@ -32,10 +32,10 @@ contract BorrowAsLimitOrder is Script, Logger {
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
 
-        BorrowAsLimitOrderParams memory params = BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime});
+        SellCreditLimitParams memory params = SellCreditLimitParams({curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
-        size.borrowAsLimitOrder(params);
+        size.sellCreditLimitOrder(params);
         vm.stopBroadcast();
     }
 }

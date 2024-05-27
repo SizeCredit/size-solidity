@@ -33,7 +33,7 @@ echo "### FIles" >> README.md
 echo "" >> README.md
 echo "$COVERAGE" >> README.md
 echo "" >> README.md
-echo "### Scenarios" >> README.md
+echo "### Tests per file" >> README.md
 echo "" >> README.md
 echo "$SCENARIOS" >> README.md
 echo "$PART_3" >> README.md

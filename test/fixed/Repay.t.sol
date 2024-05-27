@@ -19,7 +19,7 @@ contract RepayTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
         uint256 debtPositionId =
             _sellCreditMarket(bob, alice, RESERVED_ID, amountLoanId1, block.timestamp + 365 days, false);
@@ -46,7 +46,7 @@ contract RepayTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.05e18);
         uint256 amountLoanId1 = 10e6;
         uint256 debtPositionId =
             _sellCreditMarket(bob, alice, RESERVED_ID, amountLoanId1, block.timestamp + 365 days, false);
@@ -85,8 +85,8 @@ contract RepayTest is BaseTest {
         _deposit(bob, usdc, 200e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 150e6);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, 1e18);
-        _lendAsLimitOrder(candy, block.timestamp + 365 days, 1e18);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimitOrder(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
@@ -120,7 +120,7 @@ contract RepayTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0);
         uint256 debtPositionId =
             _sellCreditMarket(bob, alice, RESERVED_ID, borrowATokenBalance, block.timestamp + 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
@@ -135,7 +135,7 @@ contract RepayTest is BaseTest {
         _deposit(bob, weth, 200e18);
         _deposit(alice, usdc, 150e6);
         YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0.1e18);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, curve);
         uint256 amount = 100e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
@@ -153,7 +153,7 @@ contract RepayTest is BaseTest {
         _deposit(bob, weth, 200e18);
         _deposit(alice, usdc, 300e6);
         YieldCurve memory curve = YieldCurveHelper.pointCurve(365 days, 0);
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, curve);
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, curve);
         uint256 amount = 100e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
@@ -176,5 +176,16 @@ contract RepayTest is BaseTest {
 
         assertEq(size.getUserView(feeRecipient).collateralTokenBalance, 0);
         assertEq(_state().bob.collateralTokenBalance, _state().candy.collateralTokenBalance);
+    }
+
+    function test_Repay_repay_after_price_decrease() public {
+        _setPrice(1e18);
+        _deposit(alice, usdc, 3000e6);
+        _deposit(bob, weth, 500e18);
+        _sellCreditLimitOrder(bob, [int256(0.03e18), int256(0.03e18)], [uint256(30 days), uint256(60 days)]);
+        _buyCreditMarket(alice, bob, 100e6, block.timestamp + 40 days);
+        _buyCreditMarket(alice, bob, 200e6, block.timestamp + 50 days);
+        _setPrice(0.0001e18);
+        _repay(bob, 0);
     }
 }

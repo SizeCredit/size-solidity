@@ -13,14 +13,13 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
-import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
+import {SellCreditLimitParams} from "@src/libraries/fixed/actions/SellCreditLimit.sol";
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
-import {DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DEBT_POSITION_ID_START, DebtPosition, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
+import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
 import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
-import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
@@ -28,7 +27,7 @@ import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/Liqui
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
-import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
 import {BaseTestGeneral} from "@test/BaseTestGeneral.sol";
@@ -54,7 +53,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         size.withdraw(WithdrawParams({token: token, amount: amount, to: to}));
     }
 
-    function _lendAsLimitOrder(
+    function _buyCreditLimitOrder(
         address lender,
         uint256 maxDueDate,
         int256[1] memory ratesArray,
@@ -67,10 +66,10 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         maturities[0] = maturitiesArray[0];
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
-        return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
+        return _buyCreditLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
-    function _lendAsLimitOrder(
+    function _buyCreditLimitOrder(
         address lender,
         uint256 maxDueDate,
         int256[2] memory ratesArray,
@@ -85,16 +84,16 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
-        return _lendAsLimitOrder(lender, maxDueDate, curveRelativeTime);
+        return _buyCreditLimitOrder(lender, maxDueDate, curveRelativeTime);
     }
 
-    function _lendAsLimitOrder(address lender, uint256 maxDueDate, int256 rate) internal {
-        return _lendAsLimitOrder(lender, maxDueDate, [rate], [maxDueDate - block.timestamp]);
+    function _buyCreditLimitOrder(address lender, uint256 maxDueDate, int256 rate) internal {
+        return _buyCreditLimitOrder(lender, maxDueDate, [rate], [maxDueDate - block.timestamp]);
     }
 
-    function _lendAsLimitOrder(address lender, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {
+    function _buyCreditLimitOrder(address lender, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {
         vm.prank(lender);
-        size.lendAsLimitOrder(LendAsLimitOrderParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
+        size.buyCreditLimitOrder(BuyCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
     }
 
     function _sellCreditMarket(
@@ -139,12 +138,19 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _sellCreditMarket(borrower, lender, creditPositionId, amount, dueDate, true);
     }
 
-    function _borrowAsLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {
-        vm.prank(borrower);
-        size.borrowAsLimitOrder(BorrowAsLimitOrderParams({curveRelativeTime: curveRelativeTime}));
+    function _sellCreditMarket(address borrower, address lender, uint256 amount, uint256 dueDate, bool exactAmountIn)
+        internal
+        returns (uint256)
+    {
+        return _sellCreditMarket(borrower, lender, RESERVED_ID, amount, dueDate, exactAmountIn);
     }
 
-    function _borrowAsLimitOrder(address borrower, int256[1] memory ratesArray, uint256[1] memory maturitiesArray)
+    function _sellCreditLimitOrder(address borrower, YieldCurve memory curveRelativeTime) internal {
+        vm.prank(borrower);
+        size.sellCreditLimitOrder(SellCreditLimitParams({curveRelativeTime: curveRelativeTime}));
+    }
+
+    function _sellCreditLimitOrder(address borrower, int256[1] memory ratesArray, uint256[1] memory maturitiesArray)
         internal
     {
         int256[] memory aprs = new int256[](1);
@@ -154,10 +160,10 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         maturities[0] = maturitiesArray[0];
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
-        return _borrowAsLimitOrder(borrower, curveRelativeTime);
+        return _sellCreditLimitOrder(borrower, curveRelativeTime);
     }
 
-    function _borrowAsLimitOrder(address borrower, int256[2] memory ratesArray, uint256[2] memory maturitiesArray)
+    function _sellCreditLimitOrder(address borrower, int256[2] memory ratesArray, uint256[2] memory maturitiesArray)
         internal
     {
         int256[] memory aprs = new int256[](2);
@@ -169,55 +175,62 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         maturities[1] = maturitiesArray[1];
         YieldCurve memory curveRelativeTime =
             YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
-        return _borrowAsLimitOrder(borrower, curveRelativeTime);
+        return _sellCreditLimitOrder(borrower, curveRelativeTime);
     }
 
-    function _borrowAsLimitOrder(address borrower, int256 rate, uint256 dueDate) internal {
+    function _sellCreditLimitOrder(address borrower, int256 rate, uint256 dueDate) internal {
         YieldCurve memory curveRelativeTime = YieldCurveHelper.pointCurve(dueDate - block.timestamp, rate);
-        return _borrowAsLimitOrder(borrower, curveRelativeTime);
+        return _sellCreditLimitOrder(borrower, curveRelativeTime);
     }
 
-    function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate)
+    function _buyCreditMarket(address lender, uint256 creditPositionId, uint256 amount, bool exactAmountIn)
         internal
         returns (uint256)
     {
-        return _lendAsMarketOrder(lender, borrower, amount, dueDate, false);
+        CreditPosition memory creditPosition = size.getCreditPosition(creditPositionId);
+        DebtPosition memory debtPosition = size.getDebtPosition(creditPosition.debtPositionId);
+        address borrower = creditPosition.lender;
+        uint256 dueDate = debtPosition.dueDate;
+        return _buyCreditMarket(lender, borrower, creditPositionId, amount, dueDate, exactAmountIn);
     }
 
-    function _lendAsMarketOrder(address lender, address borrower, uint256 amount, uint256 dueDate, bool exactAmountIn)
+    function _buyCreditMarket(address lender, address borrower, uint256 amount, uint256 dueDate)
         internal
         returns (uint256)
     {
-        return _lendAsMarketOrder(lender, borrower, amount, dueDate, block.timestamp, 0, exactAmountIn);
+        return _buyCreditMarket(lender, borrower, RESERVED_ID, amount, dueDate, false);
     }
 
-    function _lendAsMarketOrder(
-        address lender,
+    function _buyCreditMarket(address lender, address borrower, uint256 amount, uint256 dueDate, bool exactAmountIn)
+        internal
+        returns (uint256)
+    {
+        return _buyCreditMarket(lender, borrower, RESERVED_ID, amount, dueDate, exactAmountIn);
+    }
+
+    function _buyCreditMarket(
+        address user,
         address borrower,
+        uint256 creditPositionId,
         uint256 amount,
         uint256 dueDate,
-        uint256 deadline,
-        uint256 minAPR,
         bool exactAmountIn
-    ) internal returns (uint256 debtPositions) {
-        uint256 debtPositionIdBefore = size.data().nextDebtPositionId;
-        vm.prank(lender);
-        size.lendAsMarketOrder(
-            LendAsMarketOrderParams({
+    ) internal returns (uint256) {
+        vm.prank(user);
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
                 borrower: borrower,
-                amount: amount,
+                creditPositionId: creditPositionId,
                 dueDate: dueDate,
+                amount: amount,
                 exactAmountIn: exactAmountIn,
-                deadline: deadline,
-                minAPR: minAPR
+                deadline: block.timestamp,
+                minAPR: 0
             })
         );
-        uint256 debtPositionIdAfter = size.data().nextDebtPositionId;
-        if (debtPositionIdAfter == debtPositionIdBefore) {
-            return RESERVED_ID;
-        } else {
-            return debtPositionIdAfter - 1;
-        }
+
+        (uint256 debtPositionsCount,) = size.getPositionsCount();
+        return DEBT_POSITION_ID_START + debtPositionsCount - 1;
     }
 
     function _repay(address user, uint256 debtPositionId) internal {
@@ -292,19 +305,6 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 creditPositionWithDebtToRepayId: creditPositionWithDebtToRepayId,
                 creditPositionToCompensateId: creditPositionToCompensateId,
                 amount: amount
-            })
-        );
-    }
-
-    function _buyMarketCredit(address user, uint256 creditPositionId, uint256 amount, bool exactAmountIn) internal {
-        vm.prank(user);
-        size.buyMarketCredit(
-            BuyMarketCreditParams({
-                creditPositionId: creditPositionId,
-                amount: amount,
-                exactAmountIn: exactAmountIn,
-                deadline: block.timestamp,
-                minAPR: 0
             })
         );
     }

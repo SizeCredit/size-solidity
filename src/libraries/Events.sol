@@ -38,15 +38,12 @@ library Events {
         bool exactAmountIn,
         uint256[] receivableCreditPositionIds
     );
-    event BorrowAsLimitOrder(
+    event SellCreditLimit(
         uint256[] curveRelativeTimeMaturities,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
-    event LendAsMarketOrder(
-        address indexed borrower, uint256 indexed dueDate, uint256 indexed amount, bool exactAmountIn
-    );
-    event LendAsLimitOrder(
+    event BuyCreditLimit(
         uint256 indexed maxDueDate,
         uint256[] curveRelativeTimeMaturities,
         int256[] curveRelativeTimeAprs,
@@ -84,7 +81,9 @@ library Events {
         uint256 indexed creditPositionToCompensateId,
         uint256 indexed amount
     );
-    event BuyMarketCredit(uint256 indexed creditPositionId, uint256 indexed amount, bool indexed exactAmountIn);
+    event BuyCreditMarket(
+        address indexed borrower, uint256 indexed creditPositionId, uint256 amount, bool exactAmountIn
+    );
     event SetUserConfiguration(
         uint256 indexed openingLimitBorrowCR,
         bool indexed allCreditPositionsForSaleDisabled,

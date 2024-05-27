@@ -123,7 +123,7 @@ contract WithdrawTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 150e18);
-        _lendAsLimitOrder(alice, block.timestamp + 12 days, 0);
+        _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0);
         _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 12 days, false);
 
         vm.startPrank(bob);
@@ -185,7 +185,7 @@ contract WithdrawTest is BaseTest {
         _deposit(bob, weth, 150e18);
         _deposit(liquidator, usdc, 10_000e6);
         uint256 rate = 1;
-        _lendAsLimitOrder(alice, block.timestamp + 365 days, int256(rate));
+        _buyCreditLimitOrder(alice, block.timestamp + 365 days, int256(rate));
         uint256 amount = 15e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
@@ -205,8 +205,8 @@ contract WithdrawTest is BaseTest {
 
         _deposit(alice, usdc, 100e6);
         _deposit(alice, weth, 160e18);
-        _borrowAsLimitOrder(alice, 1e18, block.timestamp + 12 days);
-        _lendAsMarketOrder(alice, alice, 100e6, block.timestamp + 12 days);
+        _sellCreditLimitOrder(alice, 1e18, block.timestamp + 12 days);
+        _buyCreditMarket(alice, alice, 100e6, block.timestamp + 12 days);
         _withdraw(alice, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
     }
@@ -217,9 +217,20 @@ contract WithdrawTest is BaseTest {
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
-        _borrowAsLimitOrder(bob, 1e18, block.timestamp + 12 days);
-        _lendAsMarketOrder(alice, bob, 100e6, block.timestamp + 12 days);
+        _sellCreditLimitOrder(bob, 1e18, block.timestamp + 12 days);
+        _buyCreditMarket(alice, bob, 100e6, block.timestamp + 12 days);
         _withdraw(bob, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
+    }
+
+    function testFuzz_Withdraw_withdraw_more_than_balance(uint256 index, uint256 delta) public {
+        index = bound(index, 1e27, 2e27);
+        delta = bound(delta, 0, 1e6);
+        _setPrice(1e18);
+        _deposit(bob, usdc, 1_000e6);
+        _setLiquidityIndex(index);
+        _deposit(alice, usdc, 100e6);
+        _withdraw(alice, usdc, 100e6 + delta);
+        assertTrue(usdc.balanceOf(address(alice)) == 100e6 || usdc.balanceOf(address(alice)) == 100e6 - 1);
     }
 }

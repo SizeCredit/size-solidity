@@ -3,6 +3,8 @@ pragma solidity 0.8.23;
 
 import {TargetFunctions} from "./TargetFunctions.sol";
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
+
+import {PropertiesSpec} from "@test/invariants/PropertiesSpec.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract Handler is TargetFunctions, FoundryAsserts {
@@ -22,7 +24,7 @@ contract Handler is TargetFunctions, FoundryAsserts {
     }
 }
 
-contract FoundryTester is Test {
+contract FoundryTester is Test, PropertiesSpec {
     Handler public handler;
 
     function setUp() public {
@@ -31,8 +33,9 @@ contract FoundryTester is Test {
     }
 
     function invariant() public {
-        assertTrue(handler.invariant_LOAN(), "LOAN");
-        assertTrue(handler.invariant_LIQUIDATION_01(), "LIQUIDATION_01");
-        assertTrue(handler.invariant_TOKENS_01(), "TOKENS_01");
+        assertTrue(handler.invariant_LOAN(), LOAN);
+        assertTrue(handler.invariant_UNDERWATER(), UNDERWATER);
+        assertTrue(handler.invariant_TOKENS(), TOKENS);
+        assertTrue(handler.invariant_SOLVENCY(), SOLVENCY);
     }
 }
