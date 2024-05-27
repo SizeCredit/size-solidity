@@ -29,12 +29,13 @@ library Errors {
     error APR_LOWER_THAN_MIN_APR(uint256 apr, uint256 minAPR);
     error APR_GREATER_THAN_MAX_APR(uint256 apr, uint256 maxAPR);
     error DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(uint256 dueDate, uint256 debtPositionDueDate);
-    error DUE_DATE_NOT_COMPATIBLE(uint256 debtPositionIdToRepay, uint256 creditPositionIdToCompensate);
+    error DUE_DATE_NOT_COMPATIBLE(uint256 dueDate1, uint256 dueDate2);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error MATURITY_OUT_OF_RANGE(uint256 maturity, uint256 minMaturity, uint256 maxMaturity);
     error INVALID_POSITION_ID(uint256 positionId);
     error INVALID_DEBT_POSITION_ID(uint256 debtPositionId);
     error INVALID_CREDIT_POSITION_ID(uint256 creditPositionId);
+    error INVALID_BORROWER(address account);
     error INVALID_LENDER(address account);
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);

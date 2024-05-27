@@ -8,7 +8,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
 contract SelfLiquidateTest is BaseTest {
-    function test_SelfLiquidate_selfliquidate_rapays_with_collateral() public {
+    function test_SelfLiquidate_selfLiquidate_rapays_with_collateral() public {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 150e6);
@@ -348,9 +348,8 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18 - 1);
 
         _selfLiquidate(candy, creditPositionId1);
-        uint256 debtPositionId2 = _lendAsMarketOrder(
-            alice, james, borrowAmount - size.feeConfig().fragmentationFee, block.timestamp + 365 days
-        );
+        uint256 debtPositionId2 =
+            _buyCreditMarket(alice, james, borrowAmount - size.feeConfig().fragmentationFee, block.timestamp + 365 days);
         uint256 creditPositionId21 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(alice, creditPositionId12, creditPositionId21);
     }

@@ -5,9 +5,10 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 contract BorrowAsLimitOrderTest is BaseTest {
@@ -49,7 +50,6 @@ contract BorrowAsLimitOrderTest is BaseTest {
 
     function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_openingLimitBorrowCR() public {
         _setPrice(1e18);
-
         _deposit(bob, usdc, 100e6);
         _deposit(alice, weth, 150e18);
         uint256[] memory maturities = new uint256[](2);
@@ -66,9 +66,10 @@ contract BorrowAsLimitOrderTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.5e18, 1.7e18));
         vm.prank(bob);
-        size.lendAsMarketOrder(
-            LendAsMarketOrderParams({
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
                 borrower: alice,
+                creditPositionId: RESERVED_ID,
                 amount: 100e6,
                 dueDate: block.timestamp + 1 days,
                 deadline: block.timestamp,
@@ -81,7 +82,6 @@ contract BorrowAsLimitOrderTest is BaseTest {
     function test_BorrowAsLimitOrder_borrowAsLimitOrder_cant_be_placed_if_cr_is_below_crOpening_even_if_openingLimitBorrowCR_is_below(
     ) public {
         _setPrice(1e18);
-
         _deposit(bob, usdc, 100e6);
         _deposit(alice, weth, 140e18);
         uint256[] memory maturities = new uint256[](2);
@@ -97,9 +97,10 @@ contract BorrowAsLimitOrderTest is BaseTest {
         );
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.4e18, 1.5e18));
         vm.prank(bob);
-        size.lendAsMarketOrder(
-            LendAsMarketOrderParams({
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
                 borrower: alice,
+                creditPositionId: RESERVED_ID,
                 amount: 100e6,
                 dueDate: block.timestamp + 1 days,
                 deadline: block.timestamp,
@@ -122,7 +123,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         _borrowAsLimitOrder(bob, [int256(0.02e18)], [uint256(120 days)]);
 
         _deposit(candy, usdc, 20_000e6);
-        uint256 debtPositionId = _lendAsMarketOrder(candy, bob, 12_000e6, block.timestamp + 120 days, true);
+        uint256 debtPositionId = _buyCreditMarket(candy, bob, 12_000e6, block.timestamp + 120 days, true);
 
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         assertEqApprox(debtPosition.faceValue, 12_080e6, 2e6);
@@ -133,7 +134,7 @@ contract BorrowAsLimitOrderTest is BaseTest {
         _borrowAsLimitOrder(james, [int256(0.035e18)], [uint256(120 days - 14 days)]);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
-        uint256 debtPositionId2 = _lendAsMarketOrder(bob, james, debtPosition.faceValue, debtPosition.dueDate);
+        uint256 debtPositionId2 = _buyCreditMarket(bob, james, debtPosition.faceValue, debtPosition.dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(bob, creditPositionId, creditPositionId2);
 

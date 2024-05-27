@@ -183,8 +183,8 @@ contract RepayTest is BaseTest {
         _deposit(alice, usdc, 3000e6);
         _deposit(bob, weth, 500e18);
         _borrowAsLimitOrder(bob, [int256(0.03e18), int256(0.03e18)], [uint256(30 days), uint256(60 days)]);
-        _lendAsMarketOrder(alice, bob, 100e6, block.timestamp + 40 days);
-        _lendAsMarketOrder(alice, bob, 200e6, block.timestamp + 50 days);
+        _buyCreditMarket(alice, bob, 100e6, block.timestamp + 40 days);
+        _buyCreditMarket(alice, bob, 200e6, block.timestamp + 50 days);
         _setPrice(0.0001e18);
         _repay(bob, 0);
     }

@@ -54,7 +54,6 @@ contract SellCreditMarketTest is BaseTest {
         public
     {
         _updateConfig("minimumMaturity", 1);
-
         amount = bound(amount, MAX_AMOUNT_USDC / 20, MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
         apr = bound(apr, 0, MAX_RATE);
         dueDate = bound(dueDate, block.timestamp + 1, block.timestamp + MAX_MATURITY - 1);
@@ -367,7 +366,6 @@ contract SellCreditMarketTest is BaseTest {
 
     function test_SellCreditMarket_sellCreditMarket_cannot_surpass_debtTokenCap() public {
         _setPrice(1e18);
-
         uint256 dueDate = block.timestamp + 12 days;
         uint256 amount = 10e6;
         _updateConfig("debtTokenCap", 5e6);

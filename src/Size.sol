@@ -22,11 +22,10 @@ import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/fixed/act
 import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
-import {BuyMarketCredit, BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
 import {LendAsLimitOrder, LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LendAsMarketOrder, LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {Liquidate, LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 
 import {Multicall} from "@src/libraries/Multicall.sol";
@@ -60,7 +59,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using Withdraw for State;
     using SellCreditMarket for State;
     using BorrowAsLimitOrder for State;
-    using LendAsMarketOrder for State;
+    using BuyCreditMarket for State;
     using LendAsLimitOrder for State;
     using Repay for State;
     using Claim for State;
@@ -68,7 +67,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using SelfLiquidate for State;
     using LiquidateWithReplacement for State;
     using Compensate for State;
-    using BuyMarketCredit for State;
     using SetUserConfiguration for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
@@ -154,21 +152,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function lendAsMarketOrder(LendAsMarketOrderParams calldata params)
-        external
-        payable
-        override(ISize)
-        whenNotPaused
-    {
-        state.validateLendAsMarketOrder(params);
-        uint256 amount = state.executeLendAsMarketOrder(params);
-        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
-        state.validateDebtTokenCap();
-        state.validateVariablePoolHasEnoughLiquidity(amount);
-    }
-
-    /// @inheritdoc ISize
-    function sellCreditMarket(SellCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
+    function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) whenNotPaused {
         state.validateSellCreditMarket(params);
         uint256 amount = state.executeSellCreditMarket(params);
         state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
@@ -233,13 +217,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function buyMarketCredit(BuyMarketCreditParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateBuyMarketCredit(params);
-        uint256 amount = state.executeBuyMarketCredit(params);
-        state.validateVariablePoolHasEnoughLiquidity(amount);
-    }
-
-    /// @inheritdoc ISize
     function setUserConfiguration(SetUserConfigurationParams calldata params)
         external
         payable
@@ -248,5 +225,14 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     {
         state.validateSetUserConfiguration(params);
         state.executeSetUserConfiguration(params);
+    }
+
+    /// @inheritdoc ISize
+    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
+        state.validateBuyCreditMarket(params);
+        uint256 amount = state.executeBuyCreditMarket(params);
+        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
+        state.validateDebtTokenCap();
+        state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 }

@@ -26,8 +26,8 @@ import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LendAsMarketOrderParams} from "@src/libraries/fixed/actions/LendAsMarketOrder.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 
@@ -36,7 +36,6 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
-import {BuyMarketCreditParams} from "@src/libraries/fixed/actions/BuyMarketCredit.sol";
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
 import {KEEPER_ROLE} from "@src/Size.sol";
@@ -46,7 +45,8 @@ import {KEEPER_ROLE} from "@src/Size.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 
-import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
+
+import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetFunctions {
     function setup() internal override {
@@ -190,11 +190,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function lendAsMarketOrder(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn)
-        public
-        getSender
-        checkExpectedErrors(LEND_AS_MARKET_ORDER_ERRORS)
-    {
+    function buyCreditMarket(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn) public getSender {
         __before();
 
         borrower = _getRandomUser(borrower);
@@ -202,18 +198,16 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         amount = between(amount, 0, _before.sender.borrowATokenBalance / 10);
 
         hevm.prank(sender);
-        (success, returnData) = address(size).call(
-            abi.encodeCall(
-                size.lendAsMarketOrder,
-                LendAsMarketOrderParams({
-                    borrower: borrower,
-                    dueDate: dueDate,
-                    amount: amount,
-                    deadline: block.timestamp,
-                    minAPR: 0,
-                    exactAmountIn: exactAmountIn
-                })
-            )
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: borrower,
+                creditPositionId: RESERVED_ID,
+                dueDate: dueDate,
+                amount: amount,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: exactAmountIn
+            })
         );
         if (success) {
             __after();
@@ -419,37 +413,6 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             __after(creditPositionWithDebtToRepayId);
 
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, COMPENSATE_01);
-        }
-    }
-
-    function buyMarketCredit(uint256 creditPositionId, uint256 amount, bool exactAmountIn)
-        public
-        getSender
-        hasLoans
-        checkExpectedErrors(BUY_MARKET_CREDIT_ERRORS)
-    {
-        creditPositionId = between(
-            creditPositionId, CREDIT_POSITION_ID_START, CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
-        );
-        __before(creditPositionId);
-
-        amount = between(amount, 0, MAX_AMOUNT_USDC);
-
-        hevm.prank(sender);
-        (success, returnData) = address(size).call(
-            abi.encodeCall(
-                size.buyMarketCredit,
-                BuyMarketCreditParams({
-                    creditPositionId: creditPositionId,
-                    amount: amount,
-                    deadline: block.timestamp,
-                    minAPR: 0,
-                    exactAmountIn: exactAmountIn
-                })
-            )
-        );
-        if (success) {
-            __after(creditPositionId);
         }
     }
 
