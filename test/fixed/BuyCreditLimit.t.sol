@@ -8,6 +8,7 @@ import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
 
@@ -20,7 +21,7 @@ contract BuyCreditLimitTest is BaseTest {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         assertTrue(_state().alice.user.loanOffer.isNull());
-        _buyCreditLimit(alice, block.timestamp + 12 days, 1.01e18);
+        _buyCreditLimit(alice, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 1.01e18));
         assertTrue(!_state().alice.user.loanOffer.isNull());
     }
 
@@ -32,9 +33,9 @@ contract BuyCreditLimitTest is BaseTest {
 
         uint256 maxDueDate = block.timestamp + 365 days;
         uint256[] memory marketRateMultipliers = new uint256[](2);
-        uint256[] memory maturities = new uint256[](2);
-        maturities[0] = 30 days;
-        maturities[1] = 60 days;
+        uint256[] memory tenors = new uint256[](2);
+        tenors[0] = 30 days;
+        tenors[1] = 60 days;
         int256[] memory aprs = new int256[](2);
         aprs[0] = 0.15e18;
         aprs[0] = 0.12e18;
@@ -43,22 +44,18 @@ contract BuyCreditLimitTest is BaseTest {
         size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({
-                    maturities: maturities,
-                    marketRateMultipliers: marketRateMultipliers,
-                    aprs: aprs
-                })
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
             })
         );
 
-        _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 45 days, false);
+        _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 45 days, false);
 
         BuyCreditLimitParams memory empty;
         vm.prank(alice);
         size.buyCreditLimit(empty);
 
         uint256 amount = 100e6;
-        uint256 dueDate = block.timestamp + 45 days;
+        uint256 tenor = 45 days;
         vm.prank(candy);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, alice));
         size.sellCreditMarket(
@@ -66,7 +63,7 @@ contract BuyCreditLimitTest is BaseTest {
                 lender: alice,
                 creditPositionId: RESERVED_ID,
                 amount: amount,
-                dueDate: dueDate,
+                tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
                 exactAmountIn: false
@@ -88,18 +85,22 @@ contract BuyCreditLimitTest is BaseTest {
         _updateConfig("swapFeeAPR", 0);
 
         _deposit(alice, usdc, 10_000e6);
-        _buyCreditLimit(alice, block.timestamp + 180 days, 0.06e18);
+        _buyCreditLimit(alice, block.timestamp + 180 days, YieldCurveHelper.pointCurve(180 days, 0.06e18));
 
         _deposit(bob, weth, 20_000e18);
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 10_000e6, block.timestamp + 180 days, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 10_000e6, 180 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         assertEqApprox(futureValue, 10_300e6, 100e6);
 
         vm.warp(block.timestamp + 14 days);
         _deposit(candy, usdc, futureValue);
-        _buyCreditLimit(candy, block.timestamp + 180 days - 14 days, 0.045e18);
-        _sellCreditMarket(alice, candy, creditPositionId, size.getDebtPosition(debtPositionId).dueDate);
+        _buyCreditLimit(
+            candy, block.timestamp + 180 days - 14 days, YieldCurveHelper.pointCurve(180 days - 14 days, 0.045e18)
+        );
+        _sellCreditMarket(
+            alice, candy, creditPositionId, size.getDebtPosition(debtPositionId).dueDate - block.timestamp
+        );
 
         assertEqApprox(_state().alice.borrowATokenBalance, 10_091e6, 10e6);
         assertEq(_state().alice.debtBalance, 0);

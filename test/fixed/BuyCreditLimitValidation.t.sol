@@ -16,9 +16,9 @@ contract BuyCreditLimitValidationTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         uint256 maxDueDate = 12 days;
         uint256[] memory marketRateMultipliers = new uint256[](2);
-        uint256[] memory maturities = new uint256[](2);
-        maturities[0] = 1 days;
-        maturities[1] = 2 days;
+        uint256[] memory tenors = new uint256[](2);
+        tenors[0] = 1 days;
+        tenors[1] = 2 days;
         int256[] memory rates1 = new int256[](1);
         rates1[0] = 1.01e18;
 
@@ -27,11 +27,7 @@ contract BuyCreditLimitValidationTest is BaseTest {
         size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({
-                    maturities: maturities,
-                    marketRateMultipliers: marketRateMultipliers,
-                    aprs: rates1
-                })
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: rates1})
             })
         );
 
@@ -41,11 +37,7 @@ contract BuyCreditLimitValidationTest is BaseTest {
         size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({
-                    maturities: maturities,
-                    marketRateMultipliers: marketRateMultipliers,
-                    aprs: empty
-                })
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: empty})
             })
         );
 
@@ -53,36 +45,28 @@ contract BuyCreditLimitValidationTest is BaseTest {
         aprs[0] = 1.01e18;
         aprs[1] = 1.02e18;
 
-        maturities[0] = 2 days;
-        maturities[1] = 1 days;
-        vm.expectRevert(abi.encodeWithSelector(Errors.MATURITIES_NOT_STRICTLY_INCREASING.selector));
+        tenors[0] = 2 days;
+        tenors[1] = 1 days;
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENORS_NOT_STRICTLY_INCREASING.selector));
         size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({
-                    maturities: maturities,
-                    marketRateMultipliers: marketRateMultipliers,
-                    aprs: aprs
-                })
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
             })
         );
 
-        maturities[0] = 6 hours;
-        maturities[1] = 1 days;
+        tenors[0] = 6 hours;
+        tenors[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_BELOW_MINIMUM_TENOR.selector, 6 hours, 24 hours));
         size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
-                curveRelativeTime: YieldCurve({
-                    maturities: maturities,
-                    marketRateMultipliers: marketRateMultipliers,
-                    aprs: aprs
-                })
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
             })
         );
 
-        maturities[0] = 1 days;
-        maturities[1] = 2 days;
+        tenors[0] = 1 days;
+        tenors[1] = 2 days;
 
         vm.warp(3);
 
@@ -90,11 +74,7 @@ contract BuyCreditLimitValidationTest is BaseTest {
         size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: 2,
-                curveRelativeTime: YieldCurve({
-                    maturities: maturities,
-                    marketRateMultipliers: marketRateMultipliers,
-                    aprs: aprs
-                })
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
             })
         );
     }

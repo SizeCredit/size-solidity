@@ -24,15 +24,15 @@ contract BuyCreditMarketTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _sellCreditLimit(alice, 0.03e18, block.timestamp + 10 days);
-        _sellCreditLimit(bob, 0.03e18, block.timestamp + 10 days);
-        _sellCreditLimit(candy, 0.03e18, block.timestamp + 10 days);
-        _sellCreditLimit(james, 0.03e18, block.timestamp + 365 days);
-        uint256 debtPositionId = _buyCreditMarket(alice, candy, RESERVED_ID, 40e6, block.timestamp + 10 days, false);
+        _sellCreditLimit(alice, 0.03e18, 10 days);
+        _sellCreditLimit(bob, 0.03e18, 10 days);
+        _sellCreditLimit(candy, 0.03e18, 10 days);
+        _sellCreditLimit(james, 0.03e18, 365 days);
+        uint256 debtPositionId = _buyCreditMarket(alice, candy, RESERVED_ID, 40e6, 10 days, false);
 
         uint256 deadline = block.timestamp;
         uint256 amount = 50e6;
-        uint256 dueDate = block.timestamp + 10 days;
+        uint256 tenor = 10 days;
         bool exactAmountIn = false;
 
         vm.startPrank(candy);
@@ -42,7 +42,7 @@ contract BuyCreditMarketTest is BaseTest {
                 borrower: address(0),
                 creditPositionId: RESERVED_ID,
                 amount: amount,
-                dueDate: dueDate,
+                tenor: tenor,
                 deadline: deadline,
                 minAPR: 0,
                 exactAmountIn: exactAmountIn
@@ -55,20 +55,22 @@ contract BuyCreditMarketTest is BaseTest {
                 borrower: alice,
                 creditPositionId: RESERVED_ID,
                 amount: 0,
-                dueDate: dueDate,
+                tenor: tenor,
                 deadline: deadline,
                 minAPR: 0,
                 exactAmountIn: exactAmountIn
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 0));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.TENOR_BELOW_MINIMUM_TENOR.selector, 0, size.riskConfig().minimumTenor)
+        );
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: alice,
                 creditPositionId: RESERVED_ID,
                 amount: 100e6,
-                dueDate: 0,
+                tenor: 0,
                 deadline: deadline,
                 minAPR: 0,
                 exactAmountIn: exactAmountIn
@@ -85,7 +87,7 @@ contract BuyCreditMarketTest is BaseTest {
                 borrower: james,
                 creditPositionId: RESERVED_ID,
                 amount: 1e6,
-                dueDate: block.timestamp + 365 days,
+                tenor: 365 days,
                 deadline: deadline,
                 minAPR: 0,
                 exactAmountIn: exactAmountIn
@@ -96,13 +98,12 @@ contract BuyCreditMarketTest is BaseTest {
         vm.startPrank(james);
 
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        vm.expectRevert(abi.encodeWithSelector(Errors.BORROWER_IS_NOT_LENDER.selector, james, alice));
         size.buyCreditMarket(
             BuyCreditMarketParams({
-                borrower: james,
+                borrower: address(0),
                 creditPositionId: creditPositionId,
                 amount: 20e6,
-                dueDate: dueDate,
+                tenor: type(uint256).max,
                 deadline: deadline,
                 minAPR: 0,
                 exactAmountIn: exactAmountIn
@@ -110,17 +111,13 @@ contract BuyCreditMarketTest is BaseTest {
         );
 
         vm.startPrank(candy);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.DUE_DATE_NOT_COMPATIBLE.selector, block.timestamp + 4 days, block.timestamp + 10 days
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_CREDIT.selector, 100e6, 20e6));
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: bob,
                 creditPositionId: creditPositionId,
                 amount: 100e6,
-                dueDate: block.timestamp + 4 days,
+                tenor: 4 days,
                 deadline: deadline,
                 minAPR: 0,
                 exactAmountIn: exactAmountIn
@@ -135,7 +132,7 @@ contract BuyCreditMarketTest is BaseTest {
                 borrower: james,
                 creditPositionId: RESERVED_ID,
                 amount: 20e6,
-                dueDate: block.timestamp + 10 days,
+                tenor: 10 days,
                 deadline: deadline - 1,
                 minAPR: 0,
                 exactAmountIn: exactAmountIn
@@ -143,9 +140,9 @@ contract BuyCreditMarketTest is BaseTest {
         );
         vm.stopPrank();
 
-        _sellCreditLimit(bob, 0, block.timestamp + 365 days);
-        _sellCreditLimit(candy, 0, block.timestamp + 365 days);
-        uint256 debtPositionId2 = _buyCreditMarket(alice, candy, RESERVED_ID, 10e6, block.timestamp + 365 days, false);
+        _sellCreditLimit(bob, 0, 365 days);
+        _sellCreditLimit(candy, 0, 365 days);
+        uint256 debtPositionId2 = _buyCreditMarket(alice, candy, RESERVED_ID, 10e6, 365 days, false);
         creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _repay(candy, debtPositionId2);
 
@@ -162,7 +159,7 @@ contract BuyCreditMarketTest is BaseTest {
                 borrower: bob,
                 creditPositionId: creditPositionId,
                 amount: 10e6,
-                dueDate: block.timestamp + 365 days,
+                tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
                 exactAmountIn: exactAmountIn

@@ -26,8 +26,7 @@ abstract contract Logger {
             console.log("user.loanOffer.maxDueDate", userView.user.loanOffer.maxDueDate);
             for (uint256 i = 0; i < userView.user.loanOffer.curveRelativeTime.aprs.length; i++) {
                 console.log(
-                    "user.loanOffer.curveRelativeTime.maturities[]",
-                    userView.user.loanOffer.curveRelativeTime.maturities[i]
+                    "user.loanOffer.curveRelativeTime.tenors[]", userView.user.loanOffer.curveRelativeTime.tenors[i]
                 );
                 console.log(
                     "user.loanOffer.curveRelativeTime.aprs[]", userView.user.loanOffer.curveRelativeTime.aprs[i]
@@ -41,8 +40,7 @@ abstract contract Logger {
         if (!userView.user.borrowOffer.isNull()) {
             for (uint256 i = 0; i < userView.user.borrowOffer.curveRelativeTime.aprs.length; i++) {
                 console.log(
-                    "user.borrowOffer.curveRelativeTime.maturities[]",
-                    userView.user.borrowOffer.curveRelativeTime.maturities[i]
+                    "user.borrowOffer.curveRelativeTime.tenors[]", userView.user.borrowOffer.curveRelativeTime.tenors[i]
                 );
                 console.log(
                     "user.borrowOffer.curveRelativeTime.aprs[]", userView.user.borrowOffer.curveRelativeTime.aprs[i]

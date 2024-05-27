@@ -59,7 +59,7 @@ contract DeployScriptTest is ForkTest {
         vm.warp(block.timestamp + 30 days);
 
         _deposit(bob, weth, 1e18);
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 1_000e6, block.timestamp + 60 days, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 1_000e6, 60 days, false);
 
         assertEq(debtPositionId, 0);
         assertEq(size.getUserView(alice).borrowATokenBalance, 1_500e6);
@@ -94,7 +94,7 @@ contract DeployScriptTest is ForkTest {
         assertEq(size.getUserView(alice).borrowATokenBalance, 2_500e6);
 
         _deposit(bob, weth, 1e18);
-        _sellCreditMarket(bob, alice, RESERVED_ID, 1_000e6, block.timestamp + 60 days, false);
+        _sellCreditMarket(bob, alice, RESERVED_ID, 1_000e6, 60 days, false);
         vm.expectRevert();
         _withdraw(bob, usdc, 1_000e6);
     }
@@ -118,7 +118,7 @@ contract DeployScriptTest is ForkTest {
 
         _deposit(bob, weth, 1e18);
 
-        uint256 dueDate = block.timestamp + 60 days;
+        uint256 tenor = 60 days;
         vm.prank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector, 500e6, 2500e6));
         size.sellCreditMarket(
@@ -126,7 +126,7 @@ contract DeployScriptTest is ForkTest {
                 lender: alice,
                 creditPositionId: RESERVED_ID,
                 amount: 1_000e6,
-                dueDate: dueDate,
+                tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
                 exactAmountIn: false

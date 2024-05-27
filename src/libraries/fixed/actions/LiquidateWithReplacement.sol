@@ -66,7 +66,7 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        uint256 apr = borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPosition.dueDate);
+        uint256 apr = borrowOffer.getAPRByTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
@@ -96,6 +96,7 @@ library LiquidateWithReplacement {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         DebtPosition memory debtPositionCopy = debtPosition;
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
+        uint256 tenor = debtPositionCopy.dueDate - block.timestamp;
 
         uint256 liquidatorProfitCollateralToken = state.executeLiquidate(
             LiquidateParams({
@@ -104,8 +105,7 @@ library LiquidateWithReplacement {
             })
         );
 
-        uint256 ratePerTenor =
-            borrowOffer.getRatePerTenorByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPositionCopy.dueDate);
+        uint256 ratePerTenor = borrowOffer.getRatePerTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
         uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
         uint256 liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 

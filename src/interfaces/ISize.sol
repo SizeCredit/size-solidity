@@ -52,7 +52,7 @@ interface ISize {
     /// @param params BuyCreditLimitParams struct containing the following fields:
     ///     - uint256 maxDueDate: The maximum due date of the loan (e.g., 1712188800 for April 4th, 2024)
     ///     - YieldCurve curveRelativeTime: The yield curve for the loan offer, a struct containing the following fields:
-    ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
+    ///         - uint256[] tenors: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
     ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
     function buyCreditLimit(BuyCreditLimitParams calldata params) external payable;
@@ -60,7 +60,7 @@ interface ISize {
     /// @notice Places a new borrow offer in the orderbook
     /// @param params SellCreditLimitParams struct containing the following fields:
     ///     - YieldCurve curveRelativeTime: The yield curve for the borrow offer, a struct containing the following fields:
-    ///         - uint256[] maturities: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
+    ///         - uint256[] tenors: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
     ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
     ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
     function sellCreditLimit(SellCreditLimitParams calldata params) external payable;
@@ -69,7 +69,7 @@ interface ISize {
     /// @param params BuyCreditMarketParams struct containing the following fields:
     ///     - address borrower: The address of the borrower (optional, for lending)
     ///     - uint256 creditPositionId: The id of the credit position to buy (optional, for buying credit)
-    ///     - uint256 dueDate: The due date of the loan
+    ///     - uint256 tenor: The tenor of the loan
     ///     - uint256 amount: The amount of tokens to lend or credit to buy
     ///     - bool exactAmountIn: Indicates if the amount is the value to be transferred or used to calculate the transfer amount
     ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
@@ -84,7 +84,7 @@ interface ISize {
     ///     - address lender: The address of the lender
     ///     - uint256 creditPositionId: The id of a credit position to be sold
     ///     - uint256 amount: The amount of tokens to borrow (in decimals, e.g. 1_000e6 for 1000 aUSDC)
-    ///     - uint256 dueDate: The due date of the loan
+    ///     - uint256 tenor: The tenor of the loan
     ///     - uint256 deadline: The maximum timestamp for the transaction to be executed
     ///     - uint256 maxAPR: The maximum APR the caller is willing to accept
     ///     - bool exactAmountIn: this flag indicates if the amount argument represents either credit (true) or cash (false)

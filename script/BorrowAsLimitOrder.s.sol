@@ -17,9 +17,9 @@ contract SellCreditLimitScript is Script, Logger {
 
         Size size = Size(payable(sizeContractAddress));
 
-        uint256[] memory maturities = new uint256[](2);
-        maturities[0] = 1 days;
-        maturities[1] = 3 days;
+        uint256[] memory tenors = new uint256[](2);
+        tenors[0] = 1 days;
+        tenors[1] = 3 days;
 
         int256[] memory aprs = new int256[](2);
         aprs[0] = 0.1e18;
@@ -30,7 +30,7 @@ contract SellCreditLimitScript is Script, Logger {
         marketRateMultipliers[1] = 0;
 
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
+            YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
 
         SellCreditLimitParams memory params = SellCreditLimitParams({curveRelativeTime: curveRelativeTime});
 

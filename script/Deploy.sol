@@ -87,6 +87,7 @@ abstract contract Deploy {
 
     function setupProduction(
         address _owner,
+        address _feeRecipient,
         address _weth,
         address _usdc,
         address _variablePool,
@@ -121,7 +122,7 @@ abstract contract Deploy {
             liquidationRewardPercent: 0.05e18,
             overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
-            feeRecipient: _owner
+            feeRecipient: _feeRecipient
         });
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,

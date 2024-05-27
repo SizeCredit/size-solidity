@@ -46,7 +46,7 @@ library BuyCreditLimit {
             LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
         emit Events.BuyCreditLimit(
             params.maxDueDate,
-            params.curveRelativeTime.maturities,
+            params.curveRelativeTime.tenors,
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers
         );

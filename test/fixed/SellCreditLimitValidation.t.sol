@@ -15,21 +15,17 @@ contract SellCreditLimitValidationTest is BaseTest {
 
     function test_SellCreditLimit_validation() public {
         _deposit(alice, weth, 100e18);
-        uint256[] memory maturities = new uint256[](2);
+        uint256[] memory tenors = new uint256[](2);
         uint256[] memory marketRateMultipliers = new uint256[](2);
-        maturities[0] = 1 days;
-        maturities[1] = 2 days;
+        tenors[0] = 1 days;
+        tenors[1] = 2 days;
         int256[] memory rates1 = new int256[](1);
         rates1[0] = 1.01e18;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
         size.sellCreditLimit(
             SellCreditLimitParams({
-                curveRelativeTime: YieldCurve({
-                    maturities: maturities,
-                    marketRateMultipliers: marketRateMultipliers,
-                    aprs: rates1
-                })
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: rates1})
             })
         );
 
@@ -38,11 +34,7 @@ contract SellCreditLimitValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
         size.sellCreditLimit(
             SellCreditLimitParams({
-                curveRelativeTime: YieldCurve({
-                    maturities: maturities,
-                    marketRateMultipliers: marketRateMultipliers,
-                    aprs: empty
-                })
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: empty})
             })
         );
 
@@ -50,29 +42,21 @@ contract SellCreditLimitValidationTest is BaseTest {
         aprs[0] = 1.01e18;
         aprs[1] = 1.02e18;
 
-        maturities[0] = 2 days;
-        maturities[1] = 1 days;
-        vm.expectRevert(abi.encodeWithSelector(Errors.MATURITIES_NOT_STRICTLY_INCREASING.selector));
+        tenors[0] = 2 days;
+        tenors[1] = 1 days;
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENORS_NOT_STRICTLY_INCREASING.selector));
         size.sellCreditLimit(
             SellCreditLimitParams({
-                curveRelativeTime: YieldCurve({
-                    maturities: maturities,
-                    marketRateMultipliers: marketRateMultipliers,
-                    aprs: aprs
-                })
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
             })
         );
 
-        maturities[0] = 6 hours;
-        maturities[1] = 1 days;
+        tenors[0] = 6 hours;
+        tenors[1] = 1 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_BELOW_MINIMUM_TENOR.selector, 6 hours, 24 hours));
         size.sellCreditLimit(
             SellCreditLimitParams({
-                curveRelativeTime: YieldCurve({
-                    maturities: maturities,
-                    marketRateMultipliers: marketRateMultipliers,
-                    aprs: aprs
-                })
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
             })
         );
     }

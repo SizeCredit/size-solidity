@@ -27,44 +27,40 @@ library OfferLibrary {
         return self.curveRelativeTime.isNull();
     }
 
-    function getAPRByDueDate(
-        LoanOffer memory self,
-        IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
-        uint256 dueDate
-    ) internal view returns (uint256) {
-        if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
-        uint256 tenor = dueDate - block.timestamp;
+    function getAPRByTenor(LoanOffer memory self, IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed, uint256 tenor)
+        internal
+        view
+        returns (uint256)
+    {
+        if (tenor == 0) revert Errors.NULL_TENOR();
         return YieldCurveLibrary.getAPR(self.curveRelativeTime, variablePoolBorrowRateFeed, tenor);
     }
 
-    function getRatePerTenorByDueDate(
+    function getRatePerTenor(
         LoanOffer memory self,
         IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
-        uint256 dueDate
+        uint256 tenor
     ) internal view returns (uint256) {
-        if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
-        uint256 tenor = dueDate - block.timestamp;
+        if (tenor == 0) revert Errors.NULL_TENOR();
         uint256 apr = YieldCurveLibrary.getAPR(self.curveRelativeTime, variablePoolBorrowRateFeed, tenor);
         return Math.aprToRatePerTenor(apr, tenor);
     }
 
-    function getAPRByDueDate(
+    function getAPRByTenor(
         BorrowOffer memory self,
         IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
-        uint256 dueDate
+        uint256 tenor
     ) internal view returns (uint256) {
-        if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
-        uint256 tenor = dueDate - block.timestamp;
+        if (tenor == 0) revert Errors.NULL_TENOR();
         return YieldCurveLibrary.getAPR(self.curveRelativeTime, variablePoolBorrowRateFeed, tenor);
     }
 
-    function getRatePerTenorByDueDate(
+    function getRatePerTenor(
         BorrowOffer memory self,
         IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
-        uint256 dueDate
+        uint256 tenor
     ) internal view returns (uint256) {
-        if (dueDate < block.timestamp) revert Errors.PAST_DUE_DATE(dueDate);
-        uint256 tenor = dueDate - block.timestamp;
+        if (tenor == 0) revert Errors.NULL_TENOR();
         uint256 apr = YieldCurveLibrary.getAPR(self.curveRelativeTime, variablePoolBorrowRateFeed, tenor);
         return Math.aprToRatePerTenor(apr, tenor);
     }

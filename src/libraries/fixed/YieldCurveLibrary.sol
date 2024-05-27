@@ -7,7 +7,7 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 
 struct YieldCurve {
-    uint256[] maturities;
+    uint256[] tenors;
     int256[] aprs;
     uint256[] marketRateMultipliers;
 }
@@ -16,37 +16,37 @@ struct YieldCurve {
 /// @notice A library for working with yield curves
 ///         The yield curve is defined as following:
 ///         R[t] = aprs[t] + marketRateMultipliers[t] * marketRate,
-///         for all t in `maturities`, with `marketRate` defined by an external oracle
+///         for all t in `tenors`, with `marketRate` defined by an external oracle
 /// @dev The final rate per tenor is an unsigned integer, as it is a percentage
 library YieldCurveLibrary {
     function isNull(YieldCurve memory self) internal pure returns (bool) {
-        return self.maturities.length == 0 && self.aprs.length == 0 && self.marketRateMultipliers.length == 0;
+        return self.tenors.length == 0 && self.aprs.length == 0 && self.marketRateMultipliers.length == 0;
     }
 
     function validateYieldCurve(YieldCurve memory self, uint256 minimumTenor, uint256 maximumTenor) internal pure {
-        if (self.maturities.length == 0 || self.aprs.length == 0 || self.marketRateMultipliers.length == 0) {
+        if (self.tenors.length == 0 || self.aprs.length == 0 || self.marketRateMultipliers.length == 0) {
             revert Errors.NULL_ARRAY();
         }
-        if (self.maturities.length != self.aprs.length || self.maturities.length != self.marketRateMultipliers.length) {
+        if (self.tenors.length != self.aprs.length || self.tenors.length != self.marketRateMultipliers.length) {
             revert Errors.ARRAY_LENGTHS_MISMATCH();
         }
 
         // validate aprs
         // N/A
 
-        // validate maturities
+        // validate tenors
         uint256 lastTenor = type(uint256).max;
-        for (uint256 i = self.maturities.length; i != 0; i--) {
-            if (self.maturities[i - 1] >= lastTenor) {
-                revert Errors.MATURITIES_NOT_STRICTLY_INCREASING();
+        for (uint256 i = self.tenors.length; i != 0; i--) {
+            if (self.tenors[i - 1] >= lastTenor) {
+                revert Errors.TENORS_NOT_STRICTLY_INCREASING();
             }
-            lastTenor = self.maturities[i - 1];
+            lastTenor = self.tenors[i - 1];
         }
-        if (self.maturities[0] < minimumTenor) {
-            revert Errors.TENOR_BELOW_MINIMUM_TENOR(self.maturities[0], minimumTenor);
+        if (self.tenors[0] < minimumTenor) {
+            revert Errors.TENOR_BELOW_MINIMUM_TENOR(self.tenors[0], minimumTenor);
         }
-        if (self.maturities[self.maturities.length - 1] > maximumTenor) {
-            revert Errors.TENOR_GREATER_THAN_MAXIMUM_TENOR(self.maturities[self.maturities.length - 1], maximumTenor);
+        if (self.tenors[self.tenors.length - 1] > maximumTenor) {
+            revert Errors.TENOR_GREATER_THAN_MAXIMUM_TENOR(self.tenors[self.tenors.length - 1], maximumTenor);
         }
 
         // validate marketRateMultipliers
@@ -89,18 +89,16 @@ library YieldCurveLibrary {
         IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
         uint256 tenor
     ) external view returns (uint256) {
-        uint256 length = curveRelativeTime.maturities.length;
-        if (tenor < curveRelativeTime.maturities[0] || tenor > curveRelativeTime.maturities[length - 1]) {
-            revert Errors.TENOR_OUT_OF_RANGE(
-                tenor, curveRelativeTime.maturities[0], curveRelativeTime.maturities[length - 1]
-            );
+        uint256 length = curveRelativeTime.tenors.length;
+        if (tenor < curveRelativeTime.tenors[0] || tenor > curveRelativeTime.tenors[length - 1]) {
+            revert Errors.TENOR_OUT_OF_RANGE(tenor, curveRelativeTime.tenors[0], curveRelativeTime.tenors[length - 1]);
         } else {
-            (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.maturities, tenor);
-            uint256 x0 = curveRelativeTime.maturities[low];
+            (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.tenors, tenor);
+            uint256 x0 = curveRelativeTime.tenors[low];
             uint256 y0 = getAdjustedAPR(
                 curveRelativeTime.aprs[low], curveRelativeTime.marketRateMultipliers[low], variablePoolBorrowRateFeed
             );
-            uint256 x1 = curveRelativeTime.maturities[high];
+            uint256 x1 = curveRelativeTime.tenors[high];
             uint256 y1 = getAdjustedAPR(
                 curveRelativeTime.aprs[high], curveRelativeTime.marketRateMultipliers[high], variablePoolBorrowRateFeed
             );

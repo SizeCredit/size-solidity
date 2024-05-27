@@ -114,9 +114,9 @@ contract MulticallTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 150e18);
 
-        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
         uint256 amount = 40e6;
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         uint256 futureValue = debtPosition.futureValue;
 
@@ -170,14 +170,14 @@ contract MulticallTest is BaseTest {
     function test_Multicall_multicall_bypasses_cap_if_it_is_to_reduce_debt() public {
         _setPrice(1e18);
         uint256 amount = 100e6;
-        uint256 cap = amount + size.getSwapFee(100e6, block.timestamp + 365 days);
+        uint256 cap = amount + size.getSwapFee(100e6, 365 days);
         _updateConfig("borrowATokenCap", cap);
 
         _deposit(alice, usdc, cap);
         _deposit(bob, weth, 200e18);
 
-        _buyCreditLimit(alice, block.timestamp + 365 days, 0.1e18);
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         vm.warp(block.timestamp + 365 days);

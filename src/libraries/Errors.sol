@@ -8,11 +8,12 @@ library Errors {
     error USER_IS_UNDERWATER(address account, uint256 cr);
     error NULL_ADDRESS();
     error NULL_AMOUNT();
+    error NULL_TENOR();
     error NULL_MAX_DUE_DATE();
     error NULL_ARRAY();
     error NULL_OFFER();
     error INVALID_MSG_VALUE(uint256 value);
-    error MATURITIES_NOT_STRICTLY_INCREASING();
+    error TENORS_NOT_STRICTLY_INCREASING();
     error TENOR_BELOW_MINIMUM_TENOR(uint256 tenor, uint256 minimumTenor);
     error TENOR_GREATER_THAN_MAXIMUM_TENOR(uint256 tenor, uint256 maximumTenor);
     error ARRAY_LENGTHS_MISMATCH();
