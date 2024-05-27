@@ -64,15 +64,16 @@ contract FlashLoanLiquidationTest is BaseTest {
 
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, amount, block.timestamp + 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
-        uint256 faceValue = debtPosition.faceValue;
-        uint256 repayFee = debtPosition.repayFee;
-        uint256 debt = faceValue + repayFee + size.feeConfig().overdueLiquidatorReward;
+        // uint256 faceValue = debtPosition.faceValue;
+        // uint256 repayFee = debtPosition.repayFee;
+        // uint256 debt = faceValue + repayFee + size.feeConfig().overdueLiquidatorReward;
+        uint256 debt = debtPosition.faceValue;
 
-        _setPrice(0.31e18);
+        _setPrice(0.20e18);
 
-        uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
+        // uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
@@ -113,7 +114,7 @@ contract FlashLoanLiquidationTest is BaseTest {
         assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance, 0);
         assertGt(
             _after.feeRecipient.collateralTokenBalance,
-            _before.feeRecipient.collateralTokenBalance + repayFeeCollateral,
+            _before.feeRecipient.collateralTokenBalance,
             "feeRecipient has repayFee and liquidation split"
         );
         assertGt(afterLiquidatorUSDC, beforeLiquidatorUSDC, "Liquidator should have more USDC after liquidation");
@@ -151,8 +152,8 @@ contract FlashLoanLiquidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _lendAsLimitOrder(alice, block.timestamp + 365 days, 0.03e18);
         uint256 amount = 15e6;
-        uint256 debtPositionId = _borrowAsMarketOrder(bob, alice, amount, block.timestamp + 365 days);
-        _setPrice(0.31e18); // Set a price that makes the position undercollateralized
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, amount, block.timestamp + 365 days, false);
+        _setPrice(0.20e18); // Set a price that makes the position undercollateralized
 
         // Setup replacement borrower
         _deposit(candy, weth, 400e18);
