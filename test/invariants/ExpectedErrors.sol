@@ -51,10 +51,10 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.MATURITY_OUT_OF_RANGE.selector);
-        SELL_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector);
+        SELL_CREDIT_MARKET_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
 
         // BORROW_AS_LIMIT_ORDER_ERRORS
         BORROW_AS_LIMIT_ORDER_ERRORS.push(Errors.MATURITY_BELOW_MINIMUM_MATURITY.selector);
@@ -82,7 +82,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         CLAIM_ERRORS.push(Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector);
 
         // LIQUIDATE_ERRORS
-        LIQUIDATE_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector);
+        LIQUIDATE_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         LIQUIDATE_ERRORS.push(Errors.LOAN_NOT_LIQUIDATABLE.selector);
         LIQUIDATE_ERRORS.push(Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector);
 
@@ -113,6 +113,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         COMPENSATE_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector);
         COMPENSATE_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector);
         COMPENSATE_ERRORS.push(Errors.INVALID_CREDIT_POSITION_ID.selector);
+        COMPENSATE_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
 
         // BUY_MARKET_CREDIT_ERRORS
         BUY_MARKET_CREDIT_ERRORS.push(Errors.LOAN_NOT_ACTIVE.selector);
@@ -123,7 +124,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         BUY_MARKET_CREDIT_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector);
         BUY_MARKET_CREDIT_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector);
         BUY_MARKET_CREDIT_ERRORS.push(Errors.MATURITY_OUT_OF_RANGE.selector);
-        BUY_MARKET_CREDIT_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector);
+        BUY_MARKET_CREDIT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         BUY_MARKET_CREDIT_ERRORS.push(Errors.NOT_ENOUGH_CREDIT.selector);
 
         // SET_USER_CONFIGURATION_ERRORS N/A
