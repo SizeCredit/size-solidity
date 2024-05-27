@@ -188,14 +188,14 @@ contract WithdrawTest is BaseTest {
         _buyCreditLimitOrder(alice, block.timestamp + 365 days, int256(rate));
         uint256 amount = 15e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         _setPrice(0.125e18);
 
         _liquidate(liquidator, debtPositionId);
         _withdraw(liquidator, usdc, type(uint256).max);
 
-        assertEq(usdc.balanceOf(liquidator), liquidatorAmount - faceValue);
+        assertEq(usdc.balanceOf(liquidator), liquidatorAmount - futureValue);
         assertEq(_state().variablePool.borrowATokenBalance, 0);
         assertGt(_state().feeRecipient.collateralTokenBalance, 0);
     }

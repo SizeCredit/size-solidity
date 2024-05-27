@@ -73,14 +73,14 @@ library Liquidate {
             : state.feeConfig.overdueCollateralProtocolPercent;
 
         uint256 assignedCollateral = state.getDebtPositionAssignedCollateral(debtPosition);
-        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.faceValue);
+        uint256 debtInCollateralToken = state.debtTokenAmountToCollateralTokenAmount(debtPosition.futureValue);
         uint256 protocolProfitCollateralToken = 0;
 
         // profitable liquidation
         if (assignedCollateral > debtInCollateralToken) {
             uint256 liquidatorReward = Math.min(
                 assignedCollateral - debtInCollateralToken,
-                Math.mulDivUp(debtPosition.faceValue, state.feeConfig.liquidationRewardPercent, PERCENT)
+                Math.mulDivUp(debtPosition.futureValue, state.feeConfig.liquidationRewardPercent, PERCENT)
             );
             liquidatorProfitCollateralToken = debtInCollateralToken + liquidatorReward;
 
@@ -99,12 +99,12 @@ library Liquidate {
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 
-        state.data.borrowAToken.transferFrom(msg.sender, address(this), debtPosition.faceValue);
+        state.data.borrowAToken.transferFrom(msg.sender, address(this), debtPosition.futureValue);
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, liquidatorProfitCollateralToken);
         state.data.collateralToken.transferFrom(
             debtPosition.borrower, state.feeConfig.feeRecipient, protocolProfitCollateralToken
         );
 
-        state.repayDebt(params.debtPositionId, debtPosition.faceValue, true);
+        state.repayDebt(params.debtPositionId, debtPosition.futureValue, true);
     }
 }

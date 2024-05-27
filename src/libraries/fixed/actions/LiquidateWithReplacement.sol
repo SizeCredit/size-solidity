@@ -106,22 +106,22 @@ library LiquidateWithReplacement {
 
         uint256 ratePerMaturity =
             borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPositionCopy.dueDate);
-        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.faceValue, PERCENT, PERCENT + ratePerMaturity);
-        uint256 liquidatorProfitBorrowAsset = debtPositionCopy.faceValue - issuanceValue;
+        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerMaturity);
+        uint256 liquidatorProfitBorrowAsset = debtPositionCopy.futureValue - issuanceValue;
 
         debtPosition.borrower = params.borrower;
-        debtPosition.faceValue = debtPositionCopy.faceValue;
+        debtPosition.futureValue = debtPositionCopy.futureValue;
         debtPosition.liquidityIndexAtRepayment = 0;
 
         emit Events.UpdateDebtPosition(
             params.debtPositionId,
             debtPosition.borrower,
-            debtPosition.faceValue,
+            debtPosition.futureValue,
             debtPosition.dueDate,
             debtPosition.liquidityIndexAtRepayment
         );
 
-        state.data.debtToken.mint(params.borrower, debtPosition.faceValue);
+        state.data.debtToken.mint(params.borrower, debtPosition.futureValue);
         state.data.borrowAToken.transferFrom(address(this), params.borrower, issuanceValue);
         state.data.borrowAToken.transferFrom(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowAsset);
 

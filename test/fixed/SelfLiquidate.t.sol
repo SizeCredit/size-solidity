@@ -22,7 +22,7 @@ contract SelfLiquidateTest is BaseTest {
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 100e6);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
@@ -31,7 +31,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(size.collateralRatio(bob), 0.75e18);
 
         uint256 debtInCollateralToken =
-            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).faceValue);
+            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).futureValue);
 
         vm.expectRevert();
         _liquidate(liquidator, debtPositionId, debtInCollateralToken);
@@ -70,7 +70,7 @@ contract SelfLiquidateTest is BaseTest {
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[3];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 200e18);
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 100e6);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 100e6);
         assertEq(size.collateralRatio(bob), 2.0e18);
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
@@ -108,7 +108,7 @@ contract SelfLiquidateTest is BaseTest {
         _sellCreditMarket(alice, james, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 100e6);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
@@ -116,11 +116,11 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(bob), 0.75e18);
 
-        uint256 faceValueInCollateralToken =
-            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).faceValue);
+        uint256 futureValueInCollateralToken =
+            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).futureValue);
 
         vm.expectRevert();
-        _liquidate(liquidator, debtPositionId, faceValueInCollateralToken);
+        _liquidate(liquidator, debtPositionId, futureValueInCollateralToken);
 
         Vars memory _before = _state();
 
@@ -175,7 +175,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _selfLiquidate(alice, creditPositionId);
 
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, credit);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, credit);
         assertEq(size.getCreditPosition(creditPositionId).credit, 0);
     }
 
@@ -239,7 +239,7 @@ contract SelfLiquidateTest is BaseTest {
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[2];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId1), 150e18);
-        assertEq(size.getDebtPosition(debtPositionId1).faceValue, 100e6);
+        assertEq(size.getDebtPosition(debtPositionId1).futureValue, 100e6);
         assertEq(size.getCreditPosition(creditPositionId1).credit, 70e6);
         assertEq(size.collateralRatio(alice), 1.5e18);
         assertTrue(!size.isUserUnderwater(bob));
@@ -473,6 +473,6 @@ contract SelfLiquidateTest is BaseTest {
         _selfLiquidate(bob, size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1]);
 
         assertGt(_state().bob.collateralTokenBalance, 0);
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 0);
     }
 }

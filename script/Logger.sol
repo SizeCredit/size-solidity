@@ -60,7 +60,7 @@ abstract contract Logger {
 
     function _log(DebtPosition memory debtPosition) internal pure {
         console.log("borrower", debtPosition.borrower);
-        console.log("faceValue", debtPosition.faceValue);
+        console.log("futureValue", debtPosition.futureValue);
         console.log("dueDate", debtPosition.dueDate);
         console.log("liquidityIndexAtRepayment", debtPosition.liquidityIndexAtRepayment);
     }
@@ -78,8 +78,8 @@ abstract contract Logger {
         uint256 totalCredit;
         for (uint256 i = 0; i < debtPositionsCount; ++i) {
             uint256 debtPositionId = DEBT_POSITION_ID_START + i;
-            totalDebt += size.getDebtPosition(debtPositionId).faceValue;
-            console.log(string.concat("D[", Strings.toString(i), "]"), size.getDebtPosition(debtPositionId).faceValue);
+            totalDebt += size.getDebtPosition(debtPositionId).futureValue;
+            console.log(string.concat("D[", Strings.toString(i), "]"), size.getDebtPosition(debtPositionId).futureValue);
         }
         console.log("D   ", totalDebt);
         for (uint256 i = 0; i < creditPositionsCount; ++i) {

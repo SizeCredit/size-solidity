@@ -123,7 +123,7 @@ library BuyCreditMarket {
             state.createDebtAndCreditPositions({
                 lender: msg.sender,
                 borrower: params.borrower,
-                faceValue: creditAmountOut,
+                futureValue: creditAmountOut,
                 dueDate: params.dueDate
             });
         } else {

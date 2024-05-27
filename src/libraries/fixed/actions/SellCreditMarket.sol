@@ -139,7 +139,7 @@ library SellCreditMarket {
             state.createDebtAndCreditPositions({
                 lender: msg.sender,
                 borrower: msg.sender,
-                faceValue: creditAmountIn,
+                futureValue: creditAmountIn,
                 dueDate: params.dueDate
             });
         }

@@ -28,14 +28,14 @@ contract SetUserConfigurationTest is BaseTest {
         uint256 dueDate = block.timestamp + 6 * 30 days;
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, dueDate, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
-        uint256 faceValue = size.getDebtPosition(debtPositionId1).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId1).futureValue;
 
         CreditPosition memory creditPosition = size.getCreditPosition(creditPositionId1_1);
         assertEq(creditPosition.lender, alice);
         _setUserConfiguration(alice, 0, true, false, new uint256[](0));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_NOT_FOR_SALE.selector, creditPositionId1_1));
-        _buyCreditMarket(james, alice, creditPositionId1_1, faceValue, dueDate, false);
+        _buyCreditMarket(james, alice, creditPositionId1_1, futureValue, dueDate, false);
     }
 
     function test_SetUserConfiguration_setCreditForSale_disable_single() public {
@@ -56,10 +56,10 @@ contract SetUserConfigurationTest is BaseTest {
         uint256 dueDate = block.timestamp + 6 * 30 days;
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, dueDate, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
-        uint256 faceValue1 = size.getDebtPosition(debtPositionId1).faceValue;
+        uint256 futureValue1 = size.getDebtPosition(debtPositionId1).futureValue;
         uint256 debtPositionId2 = _sellCreditMarket(bob, alice, RESERVED_ID, 500e6, dueDate, false);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
-        uint256 faceValue2 = size.getDebtPosition(debtPositionId2).faceValue;
+        uint256 futureValue2 = size.getDebtPosition(debtPositionId2).futureValue;
 
         uint256[] memory creditPositionIds = new uint256[](1);
         creditPositionIds[0] = creditPositionId1_1;
@@ -67,8 +67,8 @@ contract SetUserConfigurationTest is BaseTest {
 
         // vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_NOT_FOR_SALE.selector, creditPositionId1_1));
         vm.expectRevert();
-        _buyCreditMarket(james, alice, creditPositionId1_1, faceValue1, dueDate, false);
+        _buyCreditMarket(james, alice, creditPositionId1_1, futureValue1, dueDate, false);
 
-        _buyCreditMarket(james, alice, creditPositionId2_1, faceValue2, dueDate, false);
+        _buyCreditMarket(james, alice, creditPositionId2_1, futureValue2, dueDate, false);
     }
 }

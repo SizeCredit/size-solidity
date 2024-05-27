@@ -23,7 +23,7 @@ contract RepayTest is BaseTest {
         uint256 amountLoanId1 = 10e6;
         uint256 debtPositionId =
             _sellCreditMarket(bob, alice, RESERVED_ID, amountLoanId1, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         Vars memory _before = _state();
 
@@ -31,12 +31,12 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - futureValue);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - futureValue);
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
-        assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
+        assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + futureValue);
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 0);
     }
 
     function test_Repay_overdue_does_not_increase_debt() public {
@@ -50,7 +50,7 @@ contract RepayTest is BaseTest {
         uint256 amountLoanId1 = 10e6;
         uint256 debtPositionId =
             _sellCreditMarket(bob, alice, RESERVED_ID, amountLoanId1, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         Vars memory _before = _state();
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.ACTIVE);
@@ -62,19 +62,19 @@ contract RepayTest is BaseTest {
         assertEq(_overdue.bob.debtBalance, _before.bob.debtBalance);
         assertEq(_overdue.bob.borrowATokenBalance, _before.bob.borrowATokenBalance);
         assertEq(_overdue.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
-        assertGt(size.getDebtPosition(debtPositionId).faceValue, 0);
+        assertGt(size.getDebtPosition(debtPositionId).futureValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.OVERDUE);
 
         _repay(bob, debtPositionId);
 
         Vars memory _after = _state();
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - futureValue);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - futureValue);
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance);
-        assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + faceValue);
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
+        assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance + futureValue);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
     }
 
@@ -88,7 +88,7 @@ contract RepayTest is BaseTest {
         _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _buyCreditLimitOrder(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(bob, candy, RESERVED_ID, 100e6, block.timestamp + 365 days, false);
 
@@ -99,8 +99,8 @@ contract RepayTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + faceValue);
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - faceValue);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + futureValue);
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - futureValue);
         assertEq(_after.variablePool.borrowATokenBalance, _before.variablePool.borrowATokenBalance);
         assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance, 0);
 
@@ -138,11 +138,11 @@ contract RepayTest is BaseTest {
         _buyCreditLimitOrder(alice, block.timestamp + 365 days, curve);
         uint256 amount = 100e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         vm.warp(block.timestamp + 365 days);
 
-        _deposit(bob, usdc, faceValue - amount);
+        _deposit(bob, usdc, futureValue - amount);
         _repay(bob, debtPositionId);
     }
 
@@ -156,22 +156,22 @@ contract RepayTest is BaseTest {
         _buyCreditLimitOrder(alice, block.timestamp + 365 days, curve);
         uint256 amount = 100e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         // admin changes fees
         _updateConfig("swapFeeAPR", 0.1e18);
 
         uint256 loanId2 = _sellCreditMarket(candy, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
-        uint256 faceValue2 = size.getDebtPosition(loanId2).faceValue;
+        uint256 futureValue2 = size.getDebtPosition(loanId2).futureValue;
 
-        assertTrue(faceValue != faceValue2);
+        assertTrue(futureValue != futureValue2);
 
         vm.warp(block.timestamp + 365 days);
 
-        _deposit(bob, usdc, faceValue - amount);
+        _deposit(bob, usdc, futureValue - amount);
         _repay(bob, debtPositionId);
 
-        _deposit(candy, usdc, faceValue2 - amount);
+        _deposit(candy, usdc, futureValue2 - amount);
         _repay(candy, loanId2);
 
         assertEq(size.getUserView(feeRecipient).collateralTokenBalance, 0);

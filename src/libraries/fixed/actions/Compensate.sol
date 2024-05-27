@@ -100,7 +100,7 @@ library Compensate {
             creditPositionToCompensate = state.createDebtAndCreditPositions({
                 lender: msg.sender,
                 borrower: msg.sender,
-                faceValue: amountToCompensate,
+                futureValue: amountToCompensate,
                 dueDate: debtPositionToRepay.dueDate
             });
         } else {
