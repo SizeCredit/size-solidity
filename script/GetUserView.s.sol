@@ -24,7 +24,7 @@ contract GetUserViewScript is Script, Logger {
         SizeView size = SizeView(sizeContractAddress);
 
         vm.startBroadcast();
-        log(size.getUserView(lender));
+        _log(size.getUserView(lender));
         uint256 dueDate = block.timestamp + 2 days;
         console.log(block.timestamp);
 

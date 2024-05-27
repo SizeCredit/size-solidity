@@ -39,11 +39,17 @@ library Math {
         return mulDivDown(apr, maturity, 365 days);
     }
 
+    /// @notice Find the index of `value` in the sorted list `array`
+    /// @dev If `value` is below the lowest value in `array` or above the highest value in `array`, the function returns (type(uint256).max, type(uint256).max)
+    ///      Formally verified with Halmos (check_Math_binarySearch)
+    /// @param array The sorted list to search
+    /// @param value The value to search for
+    /// @return low The index of the largest element in `array` that is less than or equal to `value`
+    /// @return high The index of the smallest element in `array` that is greater than or equal to `value`
     function binarySearch(uint256[] memory array, uint256 value) internal pure returns (uint256 low, uint256 high) {
         low = 0;
         high = array.length - 1;
         if (value < array[low] || value > array[high]) {
-            // @audit-info Covered in test_Math_binarySearch_not_found
             return (type(uint256).max, type(uint256).max);
         }
         while (low <= high) {

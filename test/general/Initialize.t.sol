@@ -15,6 +15,7 @@ contract InitializeTest is BaseTest {
         implementation.initialize(owner, f, r, o, d);
 
         assertEq(implementation.riskConfig().crLiquidation, 0);
+        assertEq(Size(payable(proxy)).oracle().priceFeed, address(priceFeed));
     }
 
     function test_Initialize_proxy_can_be_initialized() public {

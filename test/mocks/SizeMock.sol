@@ -94,4 +94,8 @@ contract SizeMock is Size {
     {
         return getCreditPositions(getCreditPositionIdsByDebtPositionId(debtPositionId));
     }
+
+    function getCryticVariables() external view returns (uint256 minimumCreditBorrowAToken, address feeRecipient) {
+        return (state.riskConfig.minimumCreditBorrowAToken, state.feeConfig.feeRecipient);
+    }
 }

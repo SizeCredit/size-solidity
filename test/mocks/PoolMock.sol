@@ -47,8 +47,8 @@ contract PoolMock is Ownable {
                 asset,
                 incentivesController,
                 decimals,
-                string.concat("Size aToken ", name),
-                string.concat("asz", IERC20Metadata(asset).symbol()),
+                string.concat("aToken ", name),
+                string.concat("a", IERC20Metadata(asset).symbol()),
                 ""
             );
             data.debtToken.initialize(
@@ -56,8 +56,8 @@ contract PoolMock is Ownable {
                 asset,
                 incentivesController,
                 decimals,
-                string.concat("Size variableDebtToken ", name),
-                string.concat("dsz", symbol),
+                string.concat("VariableDebtToken ", name),
+                string.concat("d", symbol),
                 ""
             );
         }
