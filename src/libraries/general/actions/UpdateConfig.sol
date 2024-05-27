@@ -49,8 +49,8 @@ library UpdateConfig {
             crLiquidation: state.riskConfig.crLiquidation,
             minimumCreditBorrowAToken: state.riskConfig.minimumCreditBorrowAToken,
             borrowATokenCap: state.riskConfig.borrowATokenCap,
-            minimumMaturity: state.riskConfig.minimumMaturity,
-            maximumMaturity: state.riskConfig.maximumMaturity
+            minimumTenor: state.riskConfig.minimumTenor,
+            maximumTenor: state.riskConfig.maximumTenor
         });
     }
 
@@ -77,10 +77,10 @@ library UpdateConfig {
             state.riskConfig.minimumCreditBorrowAToken = params.value;
         } else if (Strings.equal(params.key, "borrowATokenCap")) {
             state.riskConfig.borrowATokenCap = params.value;
-        } else if (Strings.equal(params.key, "minimumMaturity")) {
-            state.riskConfig.minimumMaturity = params.value;
-        } else if (Strings.equal(params.key, "maximumMaturity")) {
-            state.riskConfig.maximumMaturity = params.value;
+        } else if (Strings.equal(params.key, "minimumTenor")) {
+            state.riskConfig.minimumTenor = params.value;
+        } else if (Strings.equal(params.key, "maximumTenor")) {
+            state.riskConfig.maximumTenor = params.value;
             if (params.value >= Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR)) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
                     params.value, Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR)
@@ -88,9 +88,9 @@ library UpdateConfig {
             }
         } else if (Strings.equal(params.key, "swapFeeAPR")) {
             state.feeConfig.swapFeeAPR = params.value;
-            if (params.value >= Math.mulDivDown(state.riskConfig.maximumMaturity, PERCENT, 365 days)) {
+            if (params.value >= Math.mulDivDown(state.riskConfig.maximumTenor, PERCENT, 365 days)) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
-                    params.value, Math.mulDivDown(state.riskConfig.maximumMaturity, PERCENT, 365 days)
+                    params.value, Math.mulDivDown(state.riskConfig.maximumTenor, PERCENT, 365 days)
                 );
             }
         } else if (Strings.equal(params.key, "fragmentationFee")) {

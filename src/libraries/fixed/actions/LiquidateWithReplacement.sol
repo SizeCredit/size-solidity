@@ -50,9 +50,9 @@ library LiquidateWithReplacement {
         if (state.getLoanStatus(params.debtPositionId) != LoanStatus.ACTIVE) {
             revert Errors.LOAN_NOT_ACTIVE(params.debtPositionId);
         }
-        uint256 maturity = debtPosition.dueDate - block.timestamp;
-        if (maturity < state.riskConfig.minimumMaturity) {
-            revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(maturity, state.riskConfig.minimumMaturity);
+        uint256 tenor = debtPosition.dueDate - block.timestamp;
+        if (tenor < state.riskConfig.minimumTenor) {
+            revert Errors.TENOR_BELOW_MINIMUM_TENOR(tenor, state.riskConfig.minimumTenor);
         }
 
         // validate borrower
@@ -104,9 +104,9 @@ library LiquidateWithReplacement {
             })
         );
 
-        uint256 ratePerMaturity =
-            borrowOffer.getRatePerMaturityByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPositionCopy.dueDate);
-        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerMaturity);
+        uint256 ratePerTenor =
+            borrowOffer.getRatePerTenorByDueDate(state.oracle.variablePoolBorrowRateFeed, debtPositionCopy.dueDate);
+        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
         uint256 liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 
         debtPosition.borrower = params.borrower;

@@ -31,12 +31,12 @@ library Math {
         return amount * 10 ** (18 - decimals);
     }
 
-    function ratePerMaturityToAPR(uint256 ratePerMaturity, uint256 maturity) internal pure returns (uint256) {
-        return mulDivDown(ratePerMaturity, 365 days, maturity);
+    function ratePerTenorToAPR(uint256 ratePerTenor, uint256 tenor) internal pure returns (uint256) {
+        return mulDivDown(ratePerTenor, 365 days, tenor);
     }
 
-    function aprToRatePerMaturity(uint256 apr, uint256 maturity) internal pure returns (uint256) {
-        return mulDivDown(apr, maturity, 365 days);
+    function aprToRatePerTenor(uint256 apr, uint256 tenor) internal pure returns (uint256) {
+        return mulDivDown(apr, tenor, 365 days);
     }
 
     /// @notice Find the index of `value` in the sorted list `array`

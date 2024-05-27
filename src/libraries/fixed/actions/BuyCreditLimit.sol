@@ -30,13 +30,13 @@ library BuyCreditLimit {
             if (params.maxDueDate == 0) {
                 revert Errors.NULL_MAX_DUE_DATE();
             }
-            if (params.maxDueDate < block.timestamp + state.riskConfig.minimumMaturity) {
+            if (params.maxDueDate < block.timestamp + state.riskConfig.minimumTenor) {
                 revert Errors.PAST_MAX_DUE_DATE(params.maxDueDate);
             }
 
             // validate params.curveRelativeTime
             YieldCurveLibrary.validateYieldCurve(
-                params.curveRelativeTime, state.riskConfig.minimumMaturity, state.riskConfig.maximumMaturity
+                params.curveRelativeTime, state.riskConfig.minimumTenor, state.riskConfig.maximumTenor
             );
         }
     }

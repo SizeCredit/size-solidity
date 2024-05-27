@@ -13,14 +13,14 @@ library Errors {
     error NULL_OFFER();
     error INVALID_MSG_VALUE(uint256 value);
     error MATURITIES_NOT_STRICTLY_INCREASING();
-    error MATURITY_BELOW_MINIMUM_MATURITY(uint256 maturity, uint256 minimumMaturity);
-    error MATURITY_GREATER_THAN_MAXIMUM_MATURITY(uint256 maturity, uint256 maximumMaturity);
+    error TENOR_BELOW_MINIMUM_TENOR(uint256 tenor, uint256 minimumTenor);
+    error TENOR_GREATER_THAN_MAXIMUM_TENOR(uint256 tenor, uint256 maximumTenor);
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
     error INVALID_KEY(string key);
     error INVALID_COLLATERAL_RATIO(uint256 cr);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM(uint256 percentage);
-    error INVALID_MAXIMUM_MATURITY(uint256 maximumMaturity);
+    error INVALID_MAXIMUM_TENOR(uint256 maximumTenor);
     error VALUE_GREATER_THAN_MAX(uint256 value, uint256 max);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error PAST_DUE_DATE(uint256 dueDate);
@@ -31,7 +31,7 @@ library Errors {
     error DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(uint256 dueDate, uint256 debtPositionDueDate);
     error DUE_DATE_NOT_COMPATIBLE(uint256 dueDate1, uint256 dueDate2);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
-    error MATURITY_OUT_OF_RANGE(uint256 maturity, uint256 minMaturity, uint256 maxMaturity);
+    error TENOR_OUT_OF_RANGE(uint256 tenor, uint256 minTenor, uint256 maxTenor);
     error INVALID_POSITION_ID(uint256 positionId);
     error INVALID_DEBT_POSITION_ID(uint256 debtPositionId);
     error INVALID_CREDIT_POSITION_ID(uint256 creditPositionId);

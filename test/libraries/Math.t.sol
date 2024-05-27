@@ -95,9 +95,9 @@ contract MathTest is Test, AssertsHelper {
         assertEq(high, type(uint256).max);
     }
 
-    function test_Math_aprToRatePerMaturity() public {
+    function test_Math_aprToRatePerTenor() public {
         // 1% APY (linear interest) is 0.082% over the period of 30 days
-        assertEqApprox((Math.aprToRatePerMaturity(uint256(0.01e18), 30 days)), 0.000821917808219178e18, 1);
+        assertEqApprox((Math.aprToRatePerTenor(uint256(0.01e18), 30 days)), 0.000821917808219178e18, 1);
     }
 
     function test_Math_amountToWad_18_decimals() public {

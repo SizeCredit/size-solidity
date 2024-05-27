@@ -17,16 +17,13 @@ struct YieldCurve {
 ///         The yield curve is defined as following:
 ///         R[t] = aprs[t] + marketRateMultipliers[t] * marketRate,
 ///         for all t in `maturities`, with `marketRate` defined by an external oracle
-/// @dev The final rate per maturity is an unsigned integer, as it is a percentage
+/// @dev The final rate per tenor is an unsigned integer, as it is a percentage
 library YieldCurveLibrary {
     function isNull(YieldCurve memory self) internal pure returns (bool) {
         return self.maturities.length == 0 && self.aprs.length == 0 && self.marketRateMultipliers.length == 0;
     }
 
-    function validateYieldCurve(YieldCurve memory self, uint256 minimumMaturity, uint256 maximumMaturity)
-        internal
-        pure
-    {
+    function validateYieldCurve(YieldCurve memory self, uint256 minimumTenor, uint256 maximumTenor) internal pure {
         if (self.maturities.length == 0 || self.aprs.length == 0 || self.marketRateMultipliers.length == 0) {
             revert Errors.NULL_ARRAY();
         }
@@ -38,20 +35,18 @@ library YieldCurveLibrary {
         // N/A
 
         // validate maturities
-        uint256 lastMaturity = type(uint256).max;
+        uint256 lastTenor = type(uint256).max;
         for (uint256 i = self.maturities.length; i != 0; i--) {
-            if (self.maturities[i - 1] >= lastMaturity) {
+            if (self.maturities[i - 1] >= lastTenor) {
                 revert Errors.MATURITIES_NOT_STRICTLY_INCREASING();
             }
-            lastMaturity = self.maturities[i - 1];
+            lastTenor = self.maturities[i - 1];
         }
-        if (self.maturities[0] < minimumMaturity) {
-            revert Errors.MATURITY_BELOW_MINIMUM_MATURITY(self.maturities[0], minimumMaturity);
+        if (self.maturities[0] < minimumTenor) {
+            revert Errors.TENOR_BELOW_MINIMUM_TENOR(self.maturities[0], minimumTenor);
         }
-        if (self.maturities[self.maturities.length - 1] > maximumMaturity) {
-            revert Errors.MATURITY_GREATER_THAN_MAXIMUM_MATURITY(
-                self.maturities[self.maturities.length - 1], maximumMaturity
-            );
+        if (self.maturities[self.maturities.length - 1] > maximumTenor) {
+            revert Errors.TENOR_GREATER_THAN_MAXIMUM_TENOR(self.maturities[self.maturities.length - 1], maximumTenor);
         }
 
         // validate marketRateMultipliers
@@ -64,7 +59,7 @@ library YieldCurveLibrary {
     /// @param apr The annual percentage rate from the yield curve
     /// @param marketRateMultiplier The market rate multiplier
     /// @param variablePoolBorrowRateFeed The market borrow rate feed
-    /// @return Returns ratePerMaturity + marketRate * marketRateMultiplier
+    /// @return Returns ratePerTenor + marketRate * marketRateMultiplier
     function getAdjustedAPR(
         int256 apr,
         uint256 marketRateMultiplier,
@@ -87,20 +82,20 @@ library YieldCurveLibrary {
     /// @dev Reverts if the due date is in the past or out of range
     /// @param curveRelativeTime The yield curve
     /// @param variablePoolBorrowRateFeed The variable pool borrow rate feed
-    /// @param maturity The maturity
-    /// @return The rate from the yield curve per given maturity
+    /// @param tenor The tenor
+    /// @return The rate from the yield curve per given tenor
     function getAPR(
         YieldCurve memory curveRelativeTime,
         IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
-        uint256 maturity
+        uint256 tenor
     ) external view returns (uint256) {
         uint256 length = curveRelativeTime.maturities.length;
-        if (maturity < curveRelativeTime.maturities[0] || maturity > curveRelativeTime.maturities[length - 1]) {
-            revert Errors.MATURITY_OUT_OF_RANGE(
-                maturity, curveRelativeTime.maturities[0], curveRelativeTime.maturities[length - 1]
+        if (tenor < curveRelativeTime.maturities[0] || tenor > curveRelativeTime.maturities[length - 1]) {
+            revert Errors.TENOR_OUT_OF_RANGE(
+                tenor, curveRelativeTime.maturities[0], curveRelativeTime.maturities[length - 1]
             );
         } else {
-            (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.maturities, maturity);
+            (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.maturities, tenor);
             uint256 x0 = curveRelativeTime.maturities[low];
             uint256 y0 = getAdjustedAPR(
                 curveRelativeTime.aprs[low], curveRelativeTime.marketRateMultipliers[low], variablePoolBorrowRateFeed
@@ -112,9 +107,9 @@ library YieldCurveLibrary {
 
             if (x1 != x0) {
                 if (y1 >= y0) {
-                    return y0 + Math.mulDivDown(y1 - y0, maturity - x0, x1 - x0);
+                    return y0 + Math.mulDivDown(y1 - y0, tenor - x0, x1 - x0);
                 } else {
-                    return y0 - Math.mulDivDown(y0 - y1, maturity - x0, x1 - x0);
+                    return y0 - Math.mulDivDown(y0 - y1, tenor - x0, x1 - x0);
                 }
             } else {
                 return y0;

@@ -20,7 +20,7 @@ contract SellCreditMarketTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
     uint256 private constant MAX_RATE = 2e18;
-    uint256 private constant MAX_MATURITY = 365 days * 2;
+    uint256 private constant MAX_TENOR = 365 days * 2;
     uint256 private constant MAX_AMOUNT_USDC = 100e6;
     uint256 private constant MAX_AMOUNT_WETH = 2e18;
 
@@ -53,10 +53,10 @@ contract SellCreditMarketTest is BaseTest {
     function testFuzz_SellCreditMarket_sellCreditMarket_used_to_borrow(uint256 amount, uint256 apr, uint256 dueDate)
         public
     {
-        _updateConfig("minimumMaturity", 1);
+        _updateConfig("minimumTenor", 1);
         amount = bound(amount, MAX_AMOUNT_USDC / 20, MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
         apr = bound(apr, 0, MAX_RATE);
-        dueDate = bound(dueDate, block.timestamp + 1, block.timestamp + MAX_MATURITY - 1);
+        dueDate = bound(dueDate, block.timestamp + 1, block.timestamp + MAX_TENOR - 1);
 
         _deposit(alice, weth, MAX_AMOUNT_WETH);
         _deposit(alice, usdc, MAX_AMOUNT_USDC);
@@ -67,7 +67,7 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _before = _state();
 
-        uint256 rate = uint256(Math.aprToRatePerMaturity(apr, dueDate - block.timestamp));
+        uint256 rate = uint256(Math.aprToRatePerTenor(apr, dueDate - block.timestamp));
         uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, dueDate, false);
@@ -115,15 +115,13 @@ contract SellCreditMarketTest is BaseTest {
         assertEq(_after.bob, _before.bob);
     }
 
-    function testFuzz_SellCreditMarket_sellCreditMarket_exit_full(uint256 amount, uint256 rate, uint256 maturity)
-        public
-    {
-        _updateConfig("minimumMaturity", 1);
+    function testFuzz_SellCreditMarket_sellCreditMarket_exit_full(uint256 amount, uint256 rate, uint256 tenor) public {
+        _updateConfig("minimumTenor", 1);
         amount = bound(amount, MAX_AMOUNT_USDC / 10, 2 * MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
         rate = bound(rate, 0, MAX_RATE);
-        maturity = bound(maturity, 1, MAX_MATURITY - 1);
+        tenor = bound(tenor, 1, MAX_TENOR - 1);
 
-        uint256 dueDate = block.timestamp + maturity;
+        uint256 dueDate = block.timestamp + tenor;
 
         _deposit(alice, weth, MAX_AMOUNT_WETH);
         _deposit(alice, usdc, MAX_AMOUNT_USDC + size.feeConfig().fragmentationFee);
@@ -133,16 +131,10 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(candy, usdc, MAX_AMOUNT_USDC);
 
         _buyCreditLimit(
-            alice,
-            block.timestamp + MAX_MATURITY,
-            [int256(rate), int256(rate)],
-            [uint256(maturity), uint256(maturity) * 2]
+            alice, block.timestamp + MAX_TENOR, [int256(rate), int256(rate)], [uint256(tenor), uint256(tenor) * 2]
         );
         _buyCreditLimit(
-            candy,
-            block.timestamp + MAX_MATURITY,
-            [int256(rate), int256(rate)],
-            [uint256(maturity), uint256(maturity) * 2]
+            candy, block.timestamp + MAX_TENOR, [int256(rate), int256(rate)], [uint256(tenor), uint256(tenor) * 2]
         );
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, dueDate, false);
         (uint256 debtPositionsCountBefore,) = size.getPositionsCount();
