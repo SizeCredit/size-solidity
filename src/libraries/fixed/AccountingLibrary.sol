@@ -40,22 +40,22 @@ library AccountingLibrary {
     function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount, bool cashReceived) public {
         DebtPosition storage debtPosition = state.getDebtPosition(debtPositionId);
 
-        if (repayAmount == debtPosition.faceValue) {
+        if (repayAmount == debtPosition.futureValue) {
             // full repayment
-            state.data.debtToken.burn(debtPosition.borrower, debtPosition.faceValue);
-            debtPosition.faceValue = 0;
+            state.data.debtToken.burn(debtPosition.borrower, debtPosition.futureValue);
+            debtPosition.futureValue = 0;
             if (cashReceived) {
                 debtPosition.liquidityIndexAtRepayment = state.data.borrowAToken.liquidityIndex();
             }
         } else {
             state.data.debtToken.burn(debtPosition.borrower, repayAmount);
-            debtPosition.faceValue -= repayAmount;
+            debtPosition.futureValue -= repayAmount;
         }
 
         emit Events.UpdateDebtPosition(
             debtPositionId,
             debtPosition.borrower,
-            debtPosition.faceValue,
+            debtPosition.futureValue,
             debtPosition.dueDate,
             debtPosition.liquidityIndexAtRepayment
         );
@@ -65,20 +65,20 @@ library AccountingLibrary {
         State storage state,
         address lender,
         address borrower,
-        uint256 faceValue,
+        uint256 futureValue,
         uint256 dueDate
     ) external returns (CreditPosition memory creditPosition) {
         DebtPosition memory debtPosition =
-            DebtPosition({borrower: borrower, faceValue: faceValue, dueDate: dueDate, liquidityIndexAtRepayment: 0});
+            DebtPosition({borrower: borrower, futureValue: futureValue, dueDate: dueDate, liquidityIndexAtRepayment: 0});
 
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;
 
-        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, faceValue, dueDate);
+        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, futureValue, dueDate);
 
         creditPosition = CreditPosition({
             lender: lender,
-            credit: debtPosition.faceValue,
+            credit: debtPosition.futureValue,
             debtPositionId: debtPositionId,
             forSale: true
         });
@@ -89,7 +89,7 @@ library AccountingLibrary {
 
         emit Events.CreateCreditPosition(creditPositionId, lender, RESERVED_ID, debtPositionId, creditPosition.credit);
 
-        state.data.debtToken.mint(borrower, faceValue);
+        state.data.debtToken.mint(borrower, futureValue);
     }
 
     function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)

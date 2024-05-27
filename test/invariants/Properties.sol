@@ -82,13 +82,13 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
         for (uint256 i = 0; i < debtPositionsCount; ++i) {
             uint256 debtPositionId = DEBT_POSITION_ID_START + i;
             DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
-            outstandingDebt += debtPosition.faceValue;
+            outstandingDebt += debtPosition.futureValue;
 
             uint256 userIndex = debtPosition.borrower == USER1
                 ? 0
                 : debtPosition.borrower == USER2 ? 1 : debtPosition.borrower == USER3 ? 2 : type(uint256).max;
 
-            positionsDebt[userIndex] += debtPosition.faceValue;
+            positionsDebt[userIndex] += debtPosition.futureValue;
         }
 
         eq(outstandingDebt, outstandingCredit, SOLVENCY_01);

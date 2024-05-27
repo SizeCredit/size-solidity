@@ -126,7 +126,7 @@ contract SellCreditLimitTest is BaseTest {
         uint256 debtPositionId = _buyCreditMarket(candy, bob, 12_000e6, block.timestamp + 120 days, true);
 
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
-        assertEqApprox(debtPosition.faceValue, 12_080e6, 2e6);
+        assertEqApprox(debtPosition.futureValue, 12_080e6, 2e6);
 
         vm.warp(block.timestamp + 14 days);
 
@@ -134,7 +134,7 @@ contract SellCreditLimitTest is BaseTest {
         _sellCreditLimitOrder(james, [int256(0.035e18)], [uint256(120 days - 14 days)]);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
-        uint256 debtPositionId2 = _buyCreditMarket(bob, james, debtPosition.faceValue, debtPosition.dueDate);
+        uint256 debtPositionId2 = _buyCreditMarket(bob, james, debtPosition.futureValue, debtPosition.dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(bob, creditPositionId, creditPositionId2);
 

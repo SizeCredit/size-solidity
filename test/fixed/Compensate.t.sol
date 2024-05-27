@@ -32,21 +32,21 @@ contract CompensateTest is BaseTest {
         _buyCreditLimitOrder(candy, block.timestamp + 365 days, 1e18);
         _buyCreditLimitOrder(james, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 loanId3 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, block.timestamp + 365 days, false);
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[1];
 
-        uint256 repaidLoanDebtBefore = size.getDebtPosition(loanId3).faceValue;
+        uint256 repaidLoanDebtBefore = size.getDebtPosition(loanId3).futureValue;
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionId).credit;
 
         _compensate(alice, creditPositionId3, creditPositionId);
 
-        uint256 repaidLoanDebtAfter = size.getDebtPosition(loanId3).faceValue;
+        uint256 repaidLoanDebtAfter = size.getDebtPosition(loanId3).futureValue;
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionId).credit;
 
-        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - faceValue);
-        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - faceValue);
+        assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - futureValue);
+        assertEq(compensatedLoanCreditAfter, compensatedLoanCreditBefore - futureValue);
         assertEq(repaidLoanDebtBefore - repaidLoanDebtAfter, compensatedLoanCreditBefore - compensatedLoanCreditAfter);
     }
 
@@ -71,13 +71,13 @@ contract CompensateTest is BaseTest {
         _sellCreditMarket(bob, alice, creditPositionId, 30e6, block.timestamp + 365 days);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
 
-        uint256 repaidLoanDebtBefore = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 repaidLoanDebtBefore = size.getDebtPosition(debtPositionId).futureValue;
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionId2).credit;
         uint256 creditFromRepaidPositionBefore = size.getCreditPosition(creditPositionId).credit;
 
         _compensate(alice, creditPositionId, creditPositionId2);
 
-        uint256 repaidLoanDebtAfter = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 repaidLoanDebtAfter = size.getDebtPosition(debtPositionId).futureValue;
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionId2).credit;
         uint256 creditFromRepaidPositionAfter = size.getCreditPosition(creditPositionId).credit;
 
@@ -221,12 +221,12 @@ contract CompensateTest is BaseTest {
         uint256 loanToRepay = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, block.timestamp + 365 days, false);
         uint256 creditPositionWithDebtToRepayId = size.getCreditPositionIdsByDebtPositionId(loanToRepay)[1];
 
-        uint256 repaidLoanDebtBefore = size.getDebtPosition(loanToRepay).faceValue;
+        uint256 repaidLoanDebtBefore = size.getDebtPosition(loanToRepay).futureValue;
         uint256 compensatedLoanCreditBefore = size.getCreditPosition(creditPositionToCompensateId).credit;
 
         _compensate(alice, creditPositionWithDebtToRepayId, creditPositionToCompensateId);
 
-        uint256 repaidLoanDebtAfter = size.getDebtPosition(loanToRepay).faceValue;
+        uint256 repaidLoanDebtAfter = size.getDebtPosition(loanToRepay).futureValue;
         uint256 compensatedLoanCreditAfter = size.getCreditPosition(creditPositionToCompensateId).credit;
 
         assertEq(repaidLoanDebtAfter, repaidLoanDebtBefore - 2 * 20e6);
@@ -301,7 +301,7 @@ contract CompensateTest is BaseTest {
         _sellCreditMarket(bob, candy, creditPositionId_bob, 70e6, block.timestamp + 365 days);
         uint256 creditPositionId_candy = size.getCreditPositionIdsByDebtPositionId(debtPositionId_bob)[3];
 
-        assertEq(size.getDebtPosition(debtPositionId_bob).faceValue, 100e6);
+        assertEq(size.getDebtPosition(debtPositionId_bob).futureValue, 100e6);
         assertEq(size.getCreditPosition(creditPositionId_alice).credit, 0);
         assertEq(size.getCreditPosition(creditPositionId_bob).credit, 30e6);
         assertEq(size.getCreditPosition(creditPositionId_candy).credit, 70e6);
@@ -309,7 +309,7 @@ contract CompensateTest is BaseTest {
         _compensate(bob, creditPositionId_candy, creditPositionId_bob);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId_bob)[4];
 
-        assertEq(size.getDebtPosition(debtPositionId_bob).faceValue, 70e6);
+        assertEq(size.getDebtPosition(debtPositionId_bob).futureValue, 70e6);
         assertEq(size.getCreditPosition(creditPositionId_alice).credit, 0);
         assertEq(size.getCreditPosition(creditPositionId_bob).credit, 0);
         assertEq(size.getCreditPosition(creditPositionId_candy).credit, 40e6);
@@ -335,7 +335,8 @@ contract CompensateTest is BaseTest {
         DebtPosition memory debtPositionBefore = size.getDebtPosition(debtPositionId);
         (uint256 loansBefore,) = size.getPositionsCount();
 
-        uint256 debtPositionId2 = _buyCreditMarket(bob, candy, debtPositionBefore.faceValue, debtPositionBefore.dueDate);
+        uint256 debtPositionId2 =
+            _buyCreditMarket(bob, candy, debtPositionBefore.futureValue, debtPositionBefore.dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(bob, creditPositionId, creditPositionId2);
 
@@ -372,7 +373,7 @@ contract CompensateTest is BaseTest {
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         (uint256 loansBefore,) = size.getPositionsCount();
 
-        uint256 debtPositionId2 = _buyCreditMarket(bob, bob, debtPositionBefore.faceValue, debtPositionBefore.dueDate);
+        uint256 debtPositionId2 = _buyCreditMarket(bob, bob, debtPositionBefore.futureValue, debtPositionBefore.dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(bob, creditPositionId, creditPositionId2);
 
@@ -440,22 +441,22 @@ contract CompensateTest is BaseTest {
         assertEq(_state().feeRecipient.borrowATokenBalance, swapFee1);
         assertEq(_state().alice.borrowATokenBalance, amount);
 
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         uint256 aliceCollateralBefore = _state().alice.collateralTokenBalance;
 
         vm.warp(block.timestamp + 30 days);
 
-        uint256 debtPositionId2 = _buyCreditMarket(alice, candy, faceValue, dueDate);
+        uint256 debtPositionId2 = _buyCreditMarket(alice, candy, futureValue, dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(alice, creditPositionId, creditPositionId2);
 
         uint256 aliceCollateralAfter = _state().alice.collateralTokenBalance;
 
         assertEq(size.getDebtPosition(debtPositionId).dueDate, dueDate);
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 0);
         assertEq(_state().alice.debtBalance, 0);
-        assertEq(_state().candy.debtBalance, size.getDebtPosition(debtPositionId2).faceValue);
+        assertEq(_state().candy.debtBalance, size.getDebtPosition(debtPositionId2).futureValue);
         assertEq(aliceCollateralAfter, aliceCollateralBefore);
 
         _deposit(candy, usdc, 10_000e6);
@@ -488,11 +489,11 @@ contract CompensateTest is BaseTest {
         _deposit(alice, usdc, 1000e6);
 
         uint256 debtPositionId2 =
-            _buyCreditMarket(alice, candy, size.getDebtPosition(debtPositionId).faceValue, dueDate);
+            _buyCreditMarket(alice, candy, size.getDebtPosition(debtPositionId).futureValue, dueDate);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(alice, creditPositionId, creditPositionId2);
 
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 0);
     }
 
     function test_Compensate_compensate_used_to_borrower_exit_experiment() public {

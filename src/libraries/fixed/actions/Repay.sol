@@ -30,19 +30,19 @@ library Repay {
         }
 
         // validate msg.sender
-        if (state.data.borrowAToken.balanceOf(msg.sender) < debtPosition.faceValue) {
+        if (state.data.borrowAToken.balanceOf(msg.sender) < debtPosition.futureValue) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                msg.sender, state.data.borrowAToken.balanceOf(msg.sender), debtPosition.faceValue
+                msg.sender, state.data.borrowAToken.balanceOf(msg.sender), debtPosition.futureValue
             );
         }
     }
 
     function executeRepay(State storage state, RepayParams calldata params) external {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
-        uint256 faceValue = debtPosition.faceValue;
+        uint256 futureValue = debtPosition.futureValue;
 
-        state.data.borrowAToken.transferFrom(msg.sender, address(this), faceValue);
-        state.repayDebt(params.debtPositionId, faceValue, true);
+        state.data.borrowAToken.transferFrom(msg.sender, address(this), futureValue);
+        state.repayDebt(params.debtPositionId, futureValue, true);
 
         emit Events.Repay(params.debtPositionId);
     }

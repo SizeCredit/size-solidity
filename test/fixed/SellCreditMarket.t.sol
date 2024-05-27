@@ -34,11 +34,11 @@ contract SellCreditMarketTest is BaseTest {
         uint256 amount = 100e6;
         uint256 dueDate = block.timestamp + 365 days;
 
-        uint256 faceValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
+        uint256 futureValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, dueDate, false);
 
-        uint256 faceValueOpening = Math.mulDivUp(faceValue, size.riskConfig().crOpening, PERCENT);
-        uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(faceValueOpening);
+        uint256 futureValueOpening = Math.mulDivUp(futureValue, size.riskConfig().crOpening, PERCENT);
+        uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(futureValueOpening);
         uint256 swapFee = size.getSwapFee(amount, dueDate);
 
         Vars memory _after = _state();
@@ -47,7 +47,7 @@ contract SellCreditMarketTest is BaseTest {
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - amount - swapFee);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
-        assertEq(_after.bob.debtBalance, size.getDebtPosition(debtPositionId).faceValue);
+        assertEq(_after.bob.debtBalance, size.getDebtPosition(debtPositionId).futureValue);
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_used_to_borrow(uint256 amount, uint256 apr, uint256 dueDate)
@@ -82,7 +82,7 @@ contract SellCreditMarketTest is BaseTest {
         );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
-        assertEq(_after.bob.debtBalance, size.getDebtPosition(debtPositionId).faceValue);
+        assertEq(_after.bob.debtBalance, size.getDebtPosition(debtPositionId).futureValue);
     }
 
     function test_SellCreditMarket_sellCreditMarket_fragmentation() public {

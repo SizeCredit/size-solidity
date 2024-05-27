@@ -79,7 +79,7 @@ contract BuyCreditLimitTest is BaseTest {
         // 1. Lending at a high interest rate and exit to other lenders when interest rates drop
         // 2. Borrowing at low interest rate and exit to other borrowers when interest rates rise
         // #### Case 1: Betting on Rates Dropping
-        // Lenny the Lender lends 10,000 at 6% interest for 6 months, with a face value of 10,300.
+        // Lenny the Lender lends 10,000 at 6% interest for 6 months, with a futureValue of 10,300.
         // Two weeks after Lenny lends, the interest rate to borrow for 5.5 months is 4.5%.
         // Lenny exits to another lender, who pays 10300/(1+0.045*11/24) = 10,091 to Lenny in return for the 10300 from the borrower in 5.5 months.
         // Lenny has now made 91 over the course of 2 weeks. While only around 1%, it’s 26% annualized without compounding, and he may compound his profits by repeating this strategy.
@@ -93,11 +93,11 @@ contract BuyCreditLimitTest is BaseTest {
         _deposit(bob, weth, 20_000e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 10_000e6, block.timestamp + 180 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
-        assertEqApprox(faceValue, 10_300e6, 100e6);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
+        assertEqApprox(futureValue, 10_300e6, 100e6);
 
         vm.warp(block.timestamp + 14 days);
-        _deposit(candy, usdc, faceValue);
+        _deposit(candy, usdc, futureValue);
         _buyCreditLimitOrder(candy, block.timestamp + 180 days - 14 days, 0.045e18);
         _sellCreditMarket(alice, candy, creditPositionId, size.getDebtPosition(debtPositionId).dueDate);
 

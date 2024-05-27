@@ -13,7 +13,7 @@ uint256 constant RESERVED_ID = type(uint256).max;
 
 struct DebtPosition {
     address borrower;
-    uint256 faceValue; // updated on debt reduction
+    uint256 futureValue; // updated on debt reduction
     uint256 dueDate;
     uint256 liquidityIndexAtRepayment; // set on full repayment
 }
@@ -100,7 +100,7 @@ library LoanLibrary {
         }
 
         // slither-disable-next-line incorrect-equality
-        if (debtPosition.faceValue == 0) {
+        if (debtPosition.futureValue == 0) {
             return LoanStatus.REPAID;
         } else if (block.timestamp > debtPosition.dueDate) {
             return LoanStatus.OVERDUE;
@@ -122,13 +122,13 @@ library LoanLibrary {
         uint256 collateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
 
         if (debt != 0) {
-            return Math.mulDivDown(collateral, debtPosition.faceValue, debt);
+            return Math.mulDivDown(collateral, debtPosition.futureValue, debt);
         } else {
             return 0;
         }
     }
 
-    /// @notice Get the amount of collateral assigned to a CreditPosition, pro-rata to the DebtPosition's faceValue
+    /// @notice Get the amount of collateral assigned to a CreditPosition, pro-rata to the DebtPosition's futureValue
     /// @dev Takes into account the total debt of the user, which includes the repayment fee
     /// @param state The state struct
     /// @param creditPosition The CreditPosition
@@ -142,10 +142,10 @@ library LoanLibrary {
 
         uint256 debtPositionCollateral = getDebtPositionAssignedCollateral(state, debtPosition);
         uint256 creditPositionCredit = creditPosition.credit;
-        uint256 debtPositionFaceValue = debtPosition.faceValue;
+        uint256 debtPositionFutureValue = debtPosition.futureValue;
 
-        if (debtPositionFaceValue != 0) {
-            return Math.mulDivDown(debtPositionCollateral, creditPositionCredit, debtPositionFaceValue);
+        if (debtPositionFutureValue != 0) {
+            return Math.mulDivDown(debtPositionCollateral, creditPositionCredit, debtPositionFutureValue);
         } else {
             return 0;
         }

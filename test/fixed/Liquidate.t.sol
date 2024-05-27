@@ -73,8 +73,8 @@ contract LiquidateTest is BaseTest {
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
         uint256 assignedCollateral = size.getDebtPositionAssignedCollateral(debtPositionId);
-        uint256 faceValueCollateral =
-            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).faceValue);
+        uint256 futureValueCollateral =
+            size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).futureValue);
 
         Vars memory _before = _state();
 
@@ -82,7 +82,7 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertLt(liquidatorProfit, faceValueCollateral);
+        assertLt(liquidatorProfit, futureValueCollateral);
         assertEq(liquidatorProfit, assignedCollateral);
         assertEq(
             _after.feeRecipient.borrowATokenBalance,
@@ -109,21 +109,21 @@ contract LiquidateTest is BaseTest {
         _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _buyCreditLimitOrder(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         vm.warp(block.timestamp + 365 days + 1);
 
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
-        assertGt(size.getDebtPosition(debtPositionId).faceValue, 0);
+        assertGt(size.getDebtPosition(debtPositionId).futureValue, 0);
 
         uint256 assignedCollateral = _before.bob.collateralTokenBalance;
         assertEq(assignedCollateral, 180e18);
 
-        uint256 debtInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(faceValue);
+        uint256 debtInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(futureValue);
         uint256 liquidatorReward = Math.min(
             _state().bob.collateralTokenBalance - debtInCollateralToken,
-            Math.mulDivUp(faceValue, size.feeConfig().liquidationRewardPercent, PERCENT)
+            Math.mulDivUp(futureValue, size.feeConfig().liquidationRewardPercent, PERCENT)
         );
         uint256 liquidatorProfitCollateralToken = debtInCollateralToken + liquidatorReward;
 
@@ -151,7 +151,7 @@ contract LiquidateTest is BaseTest {
             _after.liquidator.collateralTokenBalance,
             _before.liquidator.collateralTokenBalance + liquidatorProfitCollateralToken
         );
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 0);
         assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
         assertEq(_after.bob.debtBalance, 0);
     }
@@ -166,27 +166,27 @@ contract LiquidateTest is BaseTest {
         _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
         _buyCreditLimitOrder(candy, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         vm.warp(block.timestamp + 365 days + 1);
 
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
-        assertGt(size.getDebtPosition(debtPositionId).faceValue, 0);
+        assertGt(size.getDebtPosition(debtPositionId).futureValue, 0);
 
         uint256 assignedCollateral = _before.bob.collateralTokenBalance;
 
-        uint256 debtInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(faceValue);
+        uint256 debtInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(futureValue);
         uint256 liquidatorReward = Math.min(
             _state().bob.collateralTokenBalance - debtInCollateralToken,
-            Math.mulDivUp(faceValue, size.feeConfig().liquidationRewardPercent, PERCENT)
+            Math.mulDivUp(futureValue, size.feeConfig().liquidationRewardPercent, PERCENT)
         );
         uint256 liquidatorProfitCollateralToken = debtInCollateralToken + liquidatorReward;
 
         uint256 collateralRemainder = Math.min(
             assignedCollateral - liquidatorProfitCollateralToken,
             Math.mulDivDown(
-                size.debtTokenAmountToCollateralTokenAmount(faceValue), size.riskConfig().crLiquidation, PERCENT
+                size.debtTokenAmountToCollateralTokenAmount(futureValue), size.riskConfig().crLiquidation, PERCENT
             )
         );
 
@@ -210,7 +210,7 @@ contract LiquidateTest is BaseTest {
             _after.liquidator.collateralTokenBalance,
             _before.liquidator.collateralTokenBalance + liquidatorProfitCollateralToken
         );
-        assertEq(size.getDebtPosition(debtPositionId).faceValue, 0);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 0);
         assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
         assertEq(_after.bob.debtBalance, 0);
     }
@@ -223,7 +223,7 @@ contract LiquidateTest is BaseTest {
         _deposit(liquidator, usdc, 1_000e6);
         _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         vm.warp(block.timestamp + 365 days + 1);
@@ -241,7 +241,7 @@ contract LiquidateTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_interest.alice.borrowATokenBalance, _before.alice.borrowATokenBalance * 1.1e27 / 1e27);
-        assertEq(_after.alice.borrowATokenBalance, _interest.alice.borrowATokenBalance + faceValue * 1.1e27 / 1e27);
+        assertEq(_after.alice.borrowATokenBalance, _interest.alice.borrowATokenBalance + futureValue * 1.1e27 / 1e27);
     }
 
     function test_Liquidate_liquidate_overdue_underwater() public {
@@ -252,17 +252,17 @@ contract LiquidateTest is BaseTest {
         _deposit(liquidator, usdc, 1_000e6);
         _buyCreditLimitOrder(alice, block.timestamp + 365 days, 1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         vm.warp(block.timestamp + 365 days + 1);
         Vars memory _before = _state();
 
         _setPrice(0.75e18);
 
-        uint256 debtInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(faceValue);
+        uint256 debtInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(futureValue);
         uint256 liquidatorReward = Math.min(
             _state().bob.collateralTokenBalance - debtInCollateralToken,
-            Math.mulDivUp(faceValue, size.feeConfig().liquidationRewardPercent, PERCENT)
+            Math.mulDivUp(futureValue, size.feeConfig().liquidationRewardPercent, PERCENT)
         );
         uint256 liquidatorProfitCollateralToken = debtInCollateralToken + liquidatorReward;
 
@@ -355,7 +355,7 @@ contract LiquidateTest is BaseTest {
         assertEq(debtPositionsCount, 1);
         assertEq(creditPositionsCount, 2);
 
-        assertGt(size.getDebtPosition(0).faceValue, 0, "Loan should not be repaid before moving to the variable pool");
+        assertGt(size.getDebtPosition(0).futureValue, 0, "Loan should not be repaid before moving to the variable pool");
         uint256 aliceCollateralBefore = _state().alice.collateralTokenBalance;
         assertEq(aliceCollateralBefore, 50e18, "Alice should have no locked ETH initially");
 
@@ -368,7 +368,7 @@ contract LiquidateTest is BaseTest {
         uint256 aliceCollateralAfter = _state().alice.collateralTokenBalance;
 
         // Assert post-overdue liquidation conditions
-        assertEq(size.getDebtPosition(0).faceValue, 0, "Loan should be repaid by moving into the variable pool");
+        assertEq(size.getDebtPosition(0).futureValue, 0, "Loan should be repaid by moving into the variable pool");
         assertLt(
             aliceCollateralAfter,
             aliceCollateralBefore,

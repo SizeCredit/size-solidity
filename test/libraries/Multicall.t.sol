@@ -118,22 +118,23 @@ contract MulticallTest is BaseTest {
         uint256 amount = 40e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
-        uint256 faceValue = debtPosition.faceValue;
+        uint256 futureValue = debtPosition.futureValue;
 
         _setPrice(0.6e18);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
-        _mint(address(usdc), liquidator, faceValue);
-        _approve(liquidator, address(usdc), address(size), faceValue);
+        _mint(address(usdc), liquidator, futureValue);
+        _approve(liquidator, address(usdc), address(size), futureValue);
 
         Vars memory _before = _state();
         uint256 beforeLiquidatorUSDC = usdc.balanceOf(liquidator);
         uint256 beforeLiquidatorWETH = weth.balanceOf(liquidator);
 
         bytes[] memory data = new bytes[](4);
-        // deposit only the necessary to cover for the loan's faceValue
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: faceValue, to: liquidator}));
+        // deposit only the necessary to cover for the loan's futureValue
+        data[0] =
+            abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: futureValue, to: liquidator}));
         // liquidate profitably (but does not enforce CR)
         data[1] = abi.encodeCall(
             size.liquidate, LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: 0})
@@ -152,7 +153,7 @@ contract MulticallTest is BaseTest {
         uint256 afterLiquidatorUSDC = usdc.balanceOf(liquidator);
         uint256 afterLiquidatorWETH = weth.balanceOf(liquidator);
 
-        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - faceValue, 0);
+        assertEq(_after.bob.debtBalance, _before.bob.debtBalance - futureValue, 0);
         assertEq(_after.liquidator.borrowATokenBalance, _before.liquidator.borrowATokenBalance, 0);
         assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance, 0);
         assertGt(
@@ -162,7 +163,7 @@ contract MulticallTest is BaseTest {
         );
         assertEq(beforeLiquidatorWETH, 0);
         assertGt(afterLiquidatorWETH, beforeLiquidatorWETH);
-        assertEq(beforeLiquidatorUSDC, faceValue);
+        assertEq(beforeLiquidatorUSDC, futureValue);
         assertEq(afterLiquidatorUSDC, 0);
     }
 
@@ -177,13 +178,13 @@ contract MulticallTest is BaseTest {
 
         _buyCreditLimitOrder(alice, block.timestamp + 365 days, 0.1e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         vm.warp(block.timestamp + 365 days);
 
-        assertEq(_state().bob.debtBalance, faceValue);
+        assertEq(_state().bob.debtBalance, futureValue);
 
-        uint256 remaining = faceValue - size.getUserView(bob).borrowATokenBalance;
+        uint256 remaining = futureValue - size.getUserView(bob).borrowATokenBalance;
         _mint(address(usdc), bob, remaining);
         _approve(bob, address(usdc), address(size), remaining);
 
@@ -192,7 +193,7 @@ contract MulticallTest is BaseTest {
         vm.prank(bob);
         size.deposit(DepositParams({token: address(usdc), amount: remaining, to: bob}));
 
-        assertEq(_state().bob.debtBalance, faceValue);
+        assertEq(_state().bob.debtBalance, futureValue);
 
         // debt reduction is allowed to go over cap
         bytes[] memory data = new bytes[](2);

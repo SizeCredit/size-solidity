@@ -22,7 +22,7 @@ contract RepayValidationTest is BaseTest {
         _buyCreditLimitOrder(alice, block.timestamp + 12 days, 0.05e18);
         uint256 amount = 20e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 12 days, false);
-        uint256 faceValue = size.getDebtPosition(debtPositionId).faceValue;
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         _buyCreditLimitOrder(candy, block.timestamp + 12 days, 0.03e18);
 
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
@@ -30,7 +30,9 @@ contract RepayValidationTest is BaseTest {
 
         vm.startPrank(bob);
         size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, bob, 20e6, faceValue));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, bob, 20e6, futureValue)
+        );
         size.repay(RepayParams({debtPositionId: debtPositionId}));
         vm.stopPrank();
 
