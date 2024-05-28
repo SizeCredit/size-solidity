@@ -25,8 +25,8 @@ contract SetUserConfigurationTest is BaseTest {
         _buyCreditLimit(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _sellCreditLimit(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 dueDate = block.timestamp + 6 * 30 days;
-        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, dueDate, false);
+        uint256 tenor = 6 * 30 days;
+        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, tenor, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 futureValue = size.getDebtPosition(debtPositionId1).futureValue;
 
@@ -35,7 +35,7 @@ contract SetUserConfigurationTest is BaseTest {
         _setUserConfiguration(alice, 0, true, false, new uint256[](0));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_NOT_FOR_SALE.selector, creditPositionId1_1));
-        _buyCreditMarket(james, alice, creditPositionId1_1, futureValue, dueDate, false);
+        _buyCreditMarket(james, alice, creditPositionId1_1, futureValue, tenor, false);
     }
 
     function test_SetUserConfiguration_setCreditForSale_disable_single() public {
@@ -53,11 +53,11 @@ contract SetUserConfigurationTest is BaseTest {
         _buyCreditLimit(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
         _sellCreditLimit(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
-        uint256 dueDate = block.timestamp + 6 * 30 days;
-        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, dueDate, false);
+        uint256 tenor = 6 * 30 days;
+        uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, tenor, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
         uint256 futureValue1 = size.getDebtPosition(debtPositionId1).futureValue;
-        uint256 debtPositionId2 = _sellCreditMarket(bob, alice, RESERVED_ID, 500e6, dueDate, false);
+        uint256 debtPositionId2 = _sellCreditMarket(bob, alice, RESERVED_ID, 500e6, tenor, false);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
         uint256 futureValue2 = size.getDebtPosition(debtPositionId2).futureValue;
 
@@ -67,8 +67,8 @@ contract SetUserConfigurationTest is BaseTest {
 
         // vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_NOT_FOR_SALE.selector, creditPositionId1_1));
         vm.expectRevert();
-        _buyCreditMarket(james, alice, creditPositionId1_1, futureValue1, dueDate, false);
+        _buyCreditMarket(james, alice, creditPositionId1_1, futureValue1, tenor, false);
 
-        _buyCreditMarket(james, alice, creditPositionId2_1, futureValue2, dueDate, false);
+        _buyCreditMarket(james, alice, creditPositionId2_1, futureValue2, tenor, false);
     }
 }

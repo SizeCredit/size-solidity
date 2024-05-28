@@ -31,13 +31,13 @@ contract CompensateValidationTest is BaseTest {
         _buyCreditLimit(
             james, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
         );
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, block.timestamp + 12 days, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, 12 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        uint256 loanId2 = _sellCreditMarket(candy, bob, RESERVED_ID, 20e6, block.timestamp + 12 days, false);
+        uint256 loanId2 = _sellCreditMarket(candy, bob, RESERVED_ID, 20e6, 12 days, false);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
-        uint256 loanId3 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, block.timestamp + 12 days, false);
+        uint256 loanId3 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, 12 days, false);
         uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[1];
-        _sellCreditMarket(bob, alice, creditPositionId2, 10e6, block.timestamp + 12 days);
+        _sellCreditMarket(bob, alice, creditPositionId2, 10e6, 12 days);
         uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
 
         vm.startPrank(bob);
@@ -104,8 +104,8 @@ contract CompensateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        uint256 l1 = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, block.timestamp + 12 days, false);
-        uint256 l2 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, block.timestamp + 6 days, false);
+        uint256 l1 = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, 12 days, false);
+        uint256 l2 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, 6 days, false);
         uint256 creditPositionIdL2 = size.getCreditPositionIdsByDebtPositionId(l2)[0];
         uint256 creditPositionIdL1 = size.getCreditPositionIdsByDebtPositionId(l1)[0];
         vm.startPrank(alice);

@@ -39,13 +39,13 @@ library Events {
         uint256[] receivableCreditPositionIds
     );
     event SellCreditLimit(
-        uint256[] curveRelativeTimeMaturities,
+        uint256[] curveRelativeTimetenors,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
     event BuyCreditLimit(
         uint256 indexed maxDueDate,
-        uint256[] curveRelativeTimeMaturities,
+        uint256[] curveRelativeTimetenors,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
     );

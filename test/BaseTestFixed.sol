@@ -57,15 +57,15 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address lender,
         uint256 maxDueDate,
         int256[1] memory ratesArray,
-        uint256[1] memory maturitiesArray
+        uint256[1] memory tenorsArray
     ) internal {
         int256[] memory aprs = new int256[](1);
-        uint256[] memory maturities = new uint256[](1);
+        uint256[] memory tenors = new uint256[](1);
         uint256[] memory marketRateMultipliers = new uint256[](1);
         aprs[0] = ratesArray[0];
-        maturities[0] = maturitiesArray[0];
+        tenors[0] = tenorsArray[0];
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
+            YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
         return _buyCreditLimit(lender, maxDueDate, curveRelativeTime);
     }
 
@@ -73,22 +73,18 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address lender,
         uint256 maxDueDate,
         int256[2] memory ratesArray,
-        uint256[2] memory maturitiesArray
+        uint256[2] memory tenorsArray
     ) internal {
         int256[] memory aprs = new int256[](2);
-        uint256[] memory maturities = new uint256[](2);
+        uint256[] memory tenors = new uint256[](2);
         uint256[] memory marketRateMultipliers = new uint256[](2);
         aprs[0] = ratesArray[0];
         aprs[1] = ratesArray[1];
-        maturities[0] = maturitiesArray[0];
-        maturities[1] = maturitiesArray[1];
+        tenors[0] = tenorsArray[0];
+        tenors[1] = tenorsArray[1];
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
+            YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
         return _buyCreditLimit(lender, maxDueDate, curveRelativeTime);
-    }
-
-    function _buyCreditLimit(address lender, uint256 maxDueDate, int256 rate) internal {
-        return _buyCreditLimit(lender, maxDueDate, [rate], [maxDueDate - block.timestamp]);
     }
 
     function _buyCreditLimit(address lender, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {
@@ -101,7 +97,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address lender,
         uint256 creditPositionId,
         uint256 amount,
-        uint256 dueDate,
+        uint256 tenor,
         bool exactAmountIn
     ) internal returns (uint256) {
         vm.prank(borrower);
@@ -110,7 +106,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
                 lender: lender,
                 creditPositionId: creditPositionId,
                 amount: amount,
-                dueDate: dueDate,
+                tenor: tenor,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn
@@ -125,24 +121,25 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address lender,
         uint256 creditPositionId,
         uint256 amount,
-        uint256 dueDate
+        uint256 tenor
     ) internal returns (uint256) {
-        return _sellCreditMarket(borrower, lender, creditPositionId, amount, dueDate, true);
+        return _sellCreditMarket(borrower, lender, creditPositionId, amount, tenor, true);
     }
 
-    function _sellCreditMarket(address borrower, address lender, uint256 creditPositionId, uint256 dueDate)
+    function _sellCreditMarket(address borrower, address lender, uint256 creditPositionId, uint256 tenor)
         internal
         returns (uint256)
     {
-        uint256 amount = size.getCreditPosition(creditPositionId).credit;
-        return _sellCreditMarket(borrower, lender, creditPositionId, amount, dueDate, true);
+        return _sellCreditMarket(
+            borrower, lender, creditPositionId, size.getCreditPosition(creditPositionId).credit, tenor, true
+        );
     }
 
-    function _sellCreditMarket(address borrower, address lender, uint256 amount, uint256 dueDate, bool exactAmountIn)
+    function _sellCreditMarket(address borrower, address lender, uint256 amount, uint256 tenor, bool exactAmountIn)
         internal
         returns (uint256)
     {
-        return _sellCreditMarket(borrower, lender, RESERVED_ID, amount, dueDate, exactAmountIn);
+        return _sellCreditMarket(borrower, lender, RESERVED_ID, amount, tenor, exactAmountIn);
     }
 
     function _sellCreditLimit(address borrower, YieldCurve memory curveRelativeTime) internal {
@@ -150,36 +147,32 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         size.sellCreditLimit(SellCreditLimitParams({curveRelativeTime: curveRelativeTime}));
     }
 
-    function _sellCreditLimit(address borrower, int256[1] memory ratesArray, uint256[1] memory maturitiesArray)
-        internal
-    {
+    function _sellCreditLimit(address borrower, int256[1] memory ratesArray, uint256[1] memory tenorsArray) internal {
         int256[] memory aprs = new int256[](1);
-        uint256[] memory maturities = new uint256[](1);
+        uint256[] memory tenors = new uint256[](1);
         uint256[] memory marketRateMultipliers = new uint256[](1);
         aprs[0] = ratesArray[0];
-        maturities[0] = maturitiesArray[0];
+        tenors[0] = tenorsArray[0];
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
+            YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
         return _sellCreditLimit(borrower, curveRelativeTime);
     }
 
-    function _sellCreditLimit(address borrower, int256[2] memory ratesArray, uint256[2] memory maturitiesArray)
-        internal
-    {
+    function _sellCreditLimit(address borrower, int256[2] memory ratesArray, uint256[2] memory tenorsArray) internal {
         int256[] memory aprs = new int256[](2);
-        uint256[] memory maturities = new uint256[](2);
+        uint256[] memory tenors = new uint256[](2);
         uint256[] memory marketRateMultipliers = new uint256[](2);
         aprs[0] = ratesArray[0];
         aprs[1] = ratesArray[1];
-        maturities[0] = maturitiesArray[0];
-        maturities[1] = maturitiesArray[1];
+        tenors[0] = tenorsArray[0];
+        tenors[1] = tenorsArray[1];
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
+            YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
         return _sellCreditLimit(borrower, curveRelativeTime);
     }
 
-    function _sellCreditLimit(address borrower, int256 rate, uint256 dueDate) internal {
-        YieldCurve memory curveRelativeTime = YieldCurveHelper.pointCurve(dueDate - block.timestamp, rate);
+    function _sellCreditLimit(address borrower, int256 rate, uint256 tenor) internal {
+        YieldCurve memory curveRelativeTime = YieldCurveHelper.pointCurve(tenor, rate);
         return _sellCreditLimit(borrower, curveRelativeTime);
     }
 
@@ -187,25 +180,21 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         internal
         returns (uint256)
     {
-        CreditPosition memory creditPosition = size.getCreditPosition(creditPositionId);
-        DebtPosition memory debtPosition = size.getDebtPosition(creditPosition.debtPositionId);
-        address borrower = creditPosition.lender;
-        uint256 dueDate = debtPosition.dueDate;
-        return _buyCreditMarket(lender, borrower, creditPositionId, amount, dueDate, exactAmountIn);
+        return _buyCreditMarket(lender, address(0), creditPositionId, amount, type(uint256).max, exactAmountIn);
     }
 
-    function _buyCreditMarket(address lender, address borrower, uint256 amount, uint256 dueDate)
+    function _buyCreditMarket(address lender, address borrower, uint256 amount, uint256 tenor)
         internal
         returns (uint256)
     {
-        return _buyCreditMarket(lender, borrower, RESERVED_ID, amount, dueDate, false);
+        return _buyCreditMarket(lender, borrower, RESERVED_ID, amount, tenor, false);
     }
 
-    function _buyCreditMarket(address lender, address borrower, uint256 amount, uint256 dueDate, bool exactAmountIn)
+    function _buyCreditMarket(address lender, address borrower, uint256 amount, uint256 tenor, bool exactAmountIn)
         internal
         returns (uint256)
     {
-        return _buyCreditMarket(lender, borrower, RESERVED_ID, amount, dueDate, exactAmountIn);
+        return _buyCreditMarket(lender, borrower, RESERVED_ID, amount, tenor, exactAmountIn);
     }
 
     function _buyCreditMarket(
@@ -213,7 +202,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         address borrower,
         uint256 creditPositionId,
         uint256 amount,
-        uint256 dueDate,
+        uint256 tenor,
         bool exactAmountIn
     ) internal returns (uint256) {
         vm.prank(user);
@@ -221,7 +210,7 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
             BuyCreditMarketParams({
                 borrower: borrower,
                 creditPositionId: creditPositionId,
-                dueDate: dueDate,
+                tenor: tenor,
                 amount: amount,
                 exactAmountIn: exactAmountIn,
                 deadline: block.timestamp,

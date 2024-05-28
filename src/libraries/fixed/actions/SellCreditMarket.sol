@@ -17,7 +17,7 @@ struct SellCreditMarketParams {
     address lender;
     uint256 creditPositionId;
     uint256 amount;
-    uint256 dueDate;
+    uint256 tenor;
     uint256 deadline;
     uint256 maxAPR;
     bool exactAmountIn;
@@ -43,14 +43,16 @@ library SellCreditMarket {
         }
 
         // validate creditPositionId
-        if (params.creditPositionId != RESERVED_ID) {
+        if (params.creditPositionId == RESERVED_ID) {} else {
             CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
             if (msg.sender != creditPosition.lender) {
                 revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, creditPosition.lender);
             }
-            if (params.dueDate < debtPosition.dueDate) {
-                revert Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(params.dueDate, debtPosition.dueDate);
+            if (block.timestamp + params.tenor < debtPosition.dueDate) {
+                revert Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(
+                    block.timestamp + params.tenor, debtPosition.dueDate
+                );
             }
             if (!state.isCreditPositionTransferrable(params.creditPositionId)) {
                 revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
@@ -65,16 +67,17 @@ library SellCreditMarket {
             }
         }
 
+        // validate amount
         if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
             revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
         }
 
-        // validate dueDate
-        if (params.dueDate < block.timestamp) {
-            revert Errors.PAST_DUE_DATE(params.dueDate);
+        // validate tenor
+        if (params.tenor == 0) {
+            revert Errors.NULL_TENOR();
         }
-        if (params.dueDate > loanOffer.maxDueDate) {
-            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(params.dueDate, loanOffer.maxDueDate);
+        if (block.timestamp + params.tenor > loanOffer.maxDueDate) {
+            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + params.tenor, loanOffer.maxDueDate);
         }
 
         // validate deadline
@@ -83,7 +86,7 @@ library SellCreditMarket {
         }
 
         // validate maxAPR
-        uint256 apr = loanOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
+        uint256 apr = loanOffer.getAPRByTenor(state.oracle.variablePoolBorrowRateFeed, params.tenor);
         if (apr > params.maxAPR) {
             revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
         }
@@ -97,11 +100,11 @@ library SellCreditMarket {
         returns (uint256 cashAmountOut)
     {
         emit Events.SellCreditMarket(
-            params.lender, params.creditPositionId, params.amount, params.dueDate, params.exactAmountIn
+            params.lender, params.creditPositionId, params.amount, params.tenor, params.exactAmountIn
         );
 
-        uint256 ratePerTenor = state.data.users[params.lender].loanOffer.getRatePerTenorByDueDate(
-            state.oracle.variablePoolBorrowRateFeed, params.dueDate
+        uint256 ratePerTenor = state.data.users[params.lender].loanOffer.getRatePerTenor(
+            state.oracle.variablePoolBorrowRateFeed, params.tenor
         );
 
         // slither-disable-next-line uninitialized-local
@@ -119,7 +122,7 @@ library SellCreditMarket {
                 creditAmountIn: creditAmountIn,
                 maxCredit: params.creditPositionId == RESERVED_ID ? creditAmountIn : creditPosition.credit,
                 ratePerTenor: ratePerTenor,
-                dueDate: params.dueDate
+                tenor: params.tenor
             });
         } else {
             cashAmountOut = params.amount;
@@ -127,10 +130,10 @@ library SellCreditMarket {
             (creditAmountIn, fees) = state.getCreditAmountIn({
                 cashAmountOut: cashAmountOut,
                 maxCredit: params.creditPositionId == RESERVED_ID
-                    ? Math.mulDivUp(cashAmountOut, PERCENT + ratePerTenor, PERCENT - state.getSwapFeePercent(params.dueDate))
+                    ? Math.mulDivUp(cashAmountOut, PERCENT + ratePerTenor, PERCENT - state.getSwapFeePercent(params.tenor))
                     : creditPosition.credit,
                 ratePerTenor: ratePerTenor,
-                dueDate: params.dueDate
+                tenor: params.tenor
             });
         }
 
@@ -140,7 +143,7 @@ library SellCreditMarket {
                 lender: msg.sender,
                 borrower: msg.sender,
                 futureValue: creditAmountIn,
-                dueDate: params.dueDate
+                dueDate: block.timestamp + params.tenor
             });
         }
 

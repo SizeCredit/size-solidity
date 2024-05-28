@@ -30,8 +30,8 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
             [uint256(365 days), uint256(365 days * 2)]
         );
         _sellCreditLimit(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
-        uint256 dueDate = block.timestamp + 365 days * 2;
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, dueDate, false);
+        uint256 tenor = 365 days * 2;
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, tenor, false);
         uint256 minimumCollateralProfit = 0;
 
         _setPrice(0.2e18);

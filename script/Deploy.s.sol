@@ -15,6 +15,7 @@ contract DeployScript is BaseScript, Addresses, Deploy {
     bool mockContracts;
     address deployer;
     address owner;
+    address feeRecipient;
     address wethAggregator;
     address usdcAggregator;
     uint128 variableBorrowRate;
@@ -25,6 +26,7 @@ contract DeployScript is BaseScript, Addresses, Deploy {
     modifier parseEnv() {
         deployer = vm.addr(vm.envOr("DEPLOYER_PRIVATE_KEY", vm.deriveKey(TEST_MNEMONIC, 0)));
         owner = vm.envOr("OWNER", address(0));
+        feeRecipient = vm.envOr("FEE_RECIPIENT", address(0));
         chainName = vm.envOr("CHAIN_NAME", TEST_CHAIN_NAME);
         variableBorrowRate = uint128(vm.envUint("VARIABLE_BORROW_RATE"));
         _;
@@ -33,14 +35,16 @@ contract DeployScript is BaseScript, Addresses, Deploy {
     function run() public parseEnv broadcast returns (Deployment[] memory, Parameter[] memory) {
         console.log("[Size v1] deploying...");
 
-        console.log("[Size v1] chain:   ", chainName);
-        console.log("[Size v1] deployer:", deployer);
-        console.log("[Size v1] owner:   ", owner);
+        console.log("[Size v1] chain:       ", chainName);
+        console.log("[Size v1] deployer:    ", deployer);
+        console.log("[Size v1] owner:       ", owner);
+        console.log("[Size v1] feeRecipient:", feeRecipient);
 
         Contracts memory contracts = addresses(chainName);
 
         setupProduction(
             owner,
+            feeRecipient,
             contracts.weth,
             contracts.usdc,
             contracts.variablePool,
@@ -54,6 +58,7 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         deployments.push(Deployment({name: "PriceFeed", addr: address(priceFeed)}));
         deployments.push(Deployment({name: "VariablePoolBorrowRateFeed", addr: address(variablePoolBorrowRateFeed)}));
         parameters.push(Parameter({key: "owner", value: Strings.toHexString(owner)}));
+        parameters.push(Parameter({key: "feeRecipient", value: Strings.toHexString(feeRecipient)}));
         parameters.push(Parameter({key: "usdc", value: Strings.toHexString(address(usdc))}));
         parameters.push(Parameter({key: "weth", value: Strings.toHexString(address(weth))}));
         parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(contracts.wethAggregator)}));

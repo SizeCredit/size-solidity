@@ -8,6 +8,7 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract LiquidateTest is BaseTest {
     function test_Liquidate_liquidate_repays_loan() public {
@@ -20,8 +21,8 @@ contract LiquidateTest is BaseTest {
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
 
-        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, block.timestamp + 365 days, false);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, 365 days, false);
 
         _setPrice(0.2e18);
 
@@ -43,9 +44,9 @@ contract LiquidateTest is BaseTest {
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
 
-        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         uint256 amount = 15e6;
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 365 days, false);
 
         _setPrice(0.2e18);
 
@@ -65,9 +66,9 @@ contract LiquidateTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(liquidator, usdc, 1000e6);
 
-        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         uint256 amount = 15e6;
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 365 days, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 365 days, false);
 
         _setPrice(0.1e18);
 
@@ -87,7 +88,7 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.feeRecipient.borrowATokenBalance,
             _before.feeRecipient.borrowATokenBalance,
-            size.getSwapFee(amount, block.timestamp + 365 days)
+            size.getSwapFee(amount, 365 days)
         );
         assertEq(
             _after.feeRecipient.collateralTokenBalance,
@@ -106,9 +107,9 @@ contract LiquidateTest is BaseTest {
         _deposit(bob, weth, 180e18);
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, usdc, 1_000e6);
-        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
-        _buyCreditLimit(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+        _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         vm.warp(block.timestamp + 365 days + 1);
@@ -163,9 +164,9 @@ contract LiquidateTest is BaseTest {
         _deposit(bob, weth, 1000e18);
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, usdc, 1_000e6);
-        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
-        _buyCreditLimit(candy, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+        _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         vm.warp(block.timestamp + 365 days + 1);
@@ -221,8 +222,8 @@ contract LiquidateTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 170e18);
         _deposit(liquidator, usdc, 1_000e6);
-        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
@@ -250,8 +251,8 @@ contract LiquidateTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 165e18);
         _deposit(liquidator, usdc, 1_000e6);
-        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, block.timestamp + 365 days, false);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         vm.warp(block.timestamp + 365 days + 1);
@@ -291,8 +292,8 @@ contract LiquidateTest is BaseTest {
         _deposit(bob, weth, 200e18);
         _deposit(liquidator, usdc, 1_000e6);
 
-        _buyCreditLimit(alice, block.timestamp + 365 days, 0.03e18);
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, block.timestamp + 365 days, false);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, 365 days, false);
 
         _setPrice(newPrice);
         vm.warp(block.timestamp + interval);
@@ -315,9 +316,9 @@ contract LiquidateTest is BaseTest {
     function test_Liquidate_example() public {
         _setPrice(1e18);
         _deposit(bob, usdc, 150e6);
-        _buyCreditLimit(bob, block.timestamp + 6 days, 0.03e18);
+        _buyCreditLimit(bob, block.timestamp + 6 days, YieldCurveHelper.pointCurve(6 days, 0.03e18));
         _deposit(alice, weth, 200e18);
-        uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, block.timestamp + 6 days, false);
+        uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, 6 days, false);
         assertGe(size.collateralRatio(alice), size.riskConfig().crOpening);
         assertTrue(!size.isUserUnderwater(alice), "borrower should not be underwater");
         vm.warp(block.timestamp + 1 days);
@@ -344,7 +345,7 @@ contract LiquidateTest is BaseTest {
         _deposit(alice, weth, 50e18);
 
         // Alice borrows as market order from Bob
-        _sellCreditMarket(alice, bob, RESERVED_ID, 70e6, block.timestamp + 5 days, false);
+        _sellCreditMarket(alice, bob, RESERVED_ID, 70e6, 5 days, false);
 
         // Move forward the clock as the loan is overdue
         vm.warp(block.timestamp + 6 days);

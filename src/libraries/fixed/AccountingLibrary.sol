@@ -16,6 +16,8 @@ library AccountingLibrary {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
 
+    event L2(uint256 credit, uint256 amount);
+
     /// @notice Converts debt token amount to a value in collateral tokens
     /// @dev Rounds up the debt token amount
     /// @param state The state object
@@ -110,18 +112,19 @@ library AccountingLibrary {
 
     function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount) public {
         CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
+        emit L2(creditPosition.credit, amount);
         creditPosition.credit -= amount;
         state.validateMinimumCredit(creditPosition.credit);
 
         emit Events.UpdateCreditPosition(creditPositionId, creditPosition.credit, creditPosition.forSale);
     }
 
-    function getSwapFeePercent(State storage state, uint256 dueDate) internal view returns (uint256) {
-        return Math.mulDivUp(state.feeConfig.swapFeeAPR, (dueDate - block.timestamp), 365 days);
+    function getSwapFeePercent(State storage state, uint256 tenor) internal view returns (uint256) {
+        return Math.mulDivUp(state.feeConfig.swapFeeAPR, tenor, 365 days);
     }
 
-    function getSwapFee(State storage state, uint256 cash, uint256 dueDate) internal view returns (uint256) {
-        return Math.mulDivUp(cash, getSwapFeePercent(state, dueDate), PERCENT);
+    function getSwapFee(State storage state, uint256 cash, uint256 tenor) internal view returns (uint256) {
+        return Math.mulDivUp(cash, getSwapFeePercent(state, tenor), PERCENT);
     }
 
     function getCashAmountOut(
@@ -129,14 +132,14 @@ library AccountingLibrary {
         uint256 creditAmountIn,
         uint256 maxCredit,
         uint256 ratePerTenor,
-        uint256 dueDate
+        uint256 tenor
     ) internal view returns (uint256 cashAmountOut, uint256 fees) {
         uint256 maxCashAmountOut = Math.mulDivDown(creditAmountIn, PERCENT, PERCENT + ratePerTenor);
 
         if (creditAmountIn == maxCredit) {
             // no credit fractionalization
 
-            fees = getSwapFee(state, maxCashAmountOut, dueDate);
+            fees = getSwapFee(state, maxCashAmountOut, tenor);
 
             if (fees > maxCashAmountOut) {
                 revert Errors.NOT_ENOUGH_CASH(maxCashAmountOut, fees);
@@ -146,7 +149,7 @@ library AccountingLibrary {
         } else if (creditAmountIn < maxCredit) {
             // credit fractionalization
 
-            fees = getSwapFee(state, maxCashAmountOut, dueDate) + state.feeConfig.fragmentationFee;
+            fees = getSwapFee(state, maxCashAmountOut, tenor) + state.feeConfig.fragmentationFee;
 
             if (fees > maxCashAmountOut) {
                 revert Errors.NOT_ENOUGH_CASH(maxCashAmountOut, fees);
@@ -163,9 +166,9 @@ library AccountingLibrary {
         uint256 cashAmountOut,
         uint256 maxCredit,
         uint256 ratePerTenor,
-        uint256 dueDate
+        uint256 tenor
     ) internal view returns (uint256 creditAmountIn, uint256 fees) {
-        uint256 swapFeePercent = getSwapFeePercent(state, dueDate);
+        uint256 swapFeePercent = getSwapFeePercent(state, tenor);
 
         uint256 maxCashAmountOutFragmentation = Math.mulDivDown(
             maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerTenor
@@ -199,7 +202,7 @@ library AccountingLibrary {
         uint256 cashAmountIn,
         uint256 maxCredit,
         uint256 ratePerTenor,
-        uint256 dueDate
+        uint256 tenor
     ) internal view returns (uint256 cashAmountOut, uint256 fees) {
         uint256 maxCashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerTenor);
 
@@ -207,7 +210,7 @@ library AccountingLibrary {
             // no credit fractionalization
 
             cashAmountOut = maxCredit;
-            fees = getSwapFee(state, cashAmountIn, dueDate);
+            fees = getSwapFee(state, cashAmountIn, tenor);
         } else if (cashAmountIn < maxCashAmountIn) {
             // credit fractionalization
 
@@ -218,7 +221,7 @@ library AccountingLibrary {
             uint256 netCashAmountIn = cashAmountIn - state.feeConfig.fragmentationFee;
 
             cashAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerTenor, PERCENT);
-            fees = getSwapFee(state, netCashAmountIn, dueDate) + state.feeConfig.fragmentationFee;
+            fees = getSwapFee(state, netCashAmountIn, tenor) + state.feeConfig.fragmentationFee;
         } else {
             revert Errors.NOT_ENOUGH_CREDIT(maxCashAmountIn, cashAmountIn);
         }
@@ -229,20 +232,20 @@ library AccountingLibrary {
         uint256 creditAmountOut,
         uint256 maxCredit,
         uint256 ratePerTenor,
-        uint256 dueDate
+        uint256 tenor
     ) internal view returns (uint256 cashAmountIn, uint256 fees) {
         if (creditAmountOut == maxCredit) {
             // no credit fractionalization
 
             cashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerTenor);
-            fees = getSwapFee(state, cashAmountIn, dueDate);
+            fees = getSwapFee(state, cashAmountIn, tenor);
         } else if (creditAmountOut < maxCredit) {
             // credit fractionalization
 
             uint256 netCashAmountIn = Math.mulDivUp(creditAmountOut, PERCENT, PERCENT + ratePerTenor);
             cashAmountIn = netCashAmountIn + state.feeConfig.fragmentationFee;
 
-            fees = getSwapFee(state, netCashAmountIn, dueDate) + state.feeConfig.fragmentationFee;
+            fees = getSwapFee(state, netCashAmountIn, tenor) + state.feeConfig.fragmentationFee;
         } else {
             revert Errors.NOT_ENOUGH_CREDIT(creditAmountOut, maxCredit);
         }

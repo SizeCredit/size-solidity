@@ -137,14 +137,14 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         address lender,
         uint256 creditPositionId,
         uint256 amount,
-        uint256 dueDate,
+        uint256 tenor,
         bool exactAmountIn
     ) public getSender checkExpectedErrors(SELL_CREDIT_MARKET_ERRORS) {
         __before();
 
         lender = _getRandomUser(lender);
         amount = between(amount, 0, MAX_AMOUNT_USDC / 100);
-        dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
+        tenor = between(tenor, 0, MAX_DURATION);
 
         hevm.prank(sender);
         (success, returnData) = address(size).call(
@@ -154,7 +154,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
                     lender: lender,
                     creditPositionId: creditPositionId,
                     amount: amount,
-                    dueDate: dueDate,
+                    tenor: tenor,
                     deadline: block.timestamp,
                     maxAPR: type(uint256).max,
                     exactAmountIn: exactAmountIn
@@ -189,11 +189,11 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function buyCreditMarket(address borrower, uint256 dueDate, uint256 amount, bool exactAmountIn) public getSender {
+    function buyCreditMarket(address borrower, uint256 tenor, uint256 amount, bool exactAmountIn) public getSender {
         __before();
 
         borrower = _getRandomUser(borrower);
-        dueDate = between(dueDate, block.timestamp, block.timestamp + MAX_DURATION);
+        tenor = between(tenor, 0, MAX_DURATION);
         amount = between(amount, 0, _before.sender.borrowATokenBalance / 10);
 
         hevm.prank(sender);
@@ -201,7 +201,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             BuyCreditMarketParams({
                 borrower: borrower,
                 creditPositionId: RESERVED_ID,
-                dueDate: dueDate,
+                tenor: tenor,
                 amount: amount,
                 deadline: block.timestamp,
                 minAPR: 0,

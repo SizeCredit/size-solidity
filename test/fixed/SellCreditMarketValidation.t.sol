@@ -5,6 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
@@ -24,13 +25,13 @@ contract SellCreditMarketValidationTest is BaseTest {
         _buyCreditLimit(
             bob, block.timestamp + 5 days, [int256(0.03e18), int256(0.03e18)], [uint256(1 days), uint256(12 days)]
         );
-        _buyCreditLimit(candy, block.timestamp + 10 days, 0.03e18);
-        _buyCreditLimit(james, block.timestamp + 365 days, 0.03e18);
-        uint256 debtPositionId = _sellCreditMarket(alice, candy, RESERVED_ID, 40e6, block.timestamp + 10 days, false);
+        _buyCreditLimit(candy, block.timestamp + 10 days, YieldCurveHelper.pointCurve(10 days, 0.03e18));
+        _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
+        uint256 debtPositionId = _sellCreditMarket(alice, candy, RESERVED_ID, 40e6, 10 days, false);
 
         uint256 deadline = block.timestamp;
         uint256 amount = 50e6;
-        uint256 dueDate = block.timestamp + 10 days;
+        uint256 tenor = 10 days;
         bool exactAmountIn = false;
 
         vm.startPrank(candy);
@@ -40,7 +41,7 @@ contract SellCreditMarketValidationTest is BaseTest {
                 lender: address(0),
                 creditPositionId: RESERVED_ID,
                 amount: amount,
-                dueDate: dueDate,
+                tenor: tenor,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn
@@ -53,20 +54,20 @@ contract SellCreditMarketValidationTest is BaseTest {
                 lender: alice,
                 creditPositionId: RESERVED_ID,
                 amount: 0,
-                dueDate: dueDate,
+                tenor: tenor,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, 0));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_TENOR.selector));
         size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,
                 creditPositionId: RESERVED_ID,
                 amount: 100e6,
-                dueDate: 0,
+                tenor: 0,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn
@@ -83,7 +84,7 @@ contract SellCreditMarketValidationTest is BaseTest {
                 lender: alice,
                 creditPositionId: RESERVED_ID,
                 amount: 20e6,
-                dueDate: block.timestamp + 11 days,
+                tenor: 11 days,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn
@@ -100,7 +101,7 @@ contract SellCreditMarketValidationTest is BaseTest {
                 lender: james,
                 creditPositionId: RESERVED_ID,
                 amount: 1e6,
-                dueDate: block.timestamp + 365 days,
+                tenor: 365 days,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn
@@ -117,7 +118,7 @@ contract SellCreditMarketValidationTest is BaseTest {
                 lender: alice,
                 creditPositionId: creditPositionId,
                 amount: 20e6,
-                dueDate: dueDate,
+                tenor: tenor,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn
@@ -137,7 +138,7 @@ contract SellCreditMarketValidationTest is BaseTest {
                 lender: bob,
                 creditPositionId: creditPositionId,
                 amount: 100e6,
-                dueDate: block.timestamp + 4 days,
+                tenor: 4 days,
                 deadline: deadline,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn
@@ -152,7 +153,7 @@ contract SellCreditMarketValidationTest is BaseTest {
                 lender: james,
                 creditPositionId: creditPositionId,
                 amount: 20e6,
-                dueDate: block.timestamp + 365 days,
+                tenor: 365 days,
                 deadline: deadline,
                 maxAPR: 0.01e18,
                 exactAmountIn: exactAmountIn
@@ -167,7 +168,7 @@ contract SellCreditMarketValidationTest is BaseTest {
                 lender: james,
                 creditPositionId: creditPositionId,
                 amount: 20e6,
-                dueDate: block.timestamp + 365 days,
+                tenor: 365 days,
                 deadline: deadline - 1,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn
@@ -175,9 +176,9 @@ contract SellCreditMarketValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        _buyCreditLimit(bob, block.timestamp + 365 days, 0);
-        _buyCreditLimit(candy, block.timestamp + 365 days, 0);
-        uint256 debtPositionId2 = _sellCreditMarket(alice, candy, RESERVED_ID, 10e6, block.timestamp + 365 days, false);
+        _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
+        _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
+        uint256 debtPositionId2 = _sellCreditMarket(alice, candy, RESERVED_ID, 10e6, 365 days, false);
         creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
         _repay(alice, debtPositionId2);
 
@@ -194,7 +195,7 @@ contract SellCreditMarketValidationTest is BaseTest {
                 lender: bob,
                 creditPositionId: creditPositionId,
                 amount: 10e6,
-                dueDate: block.timestamp + 365 days,
+                tenor: 365 days,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn

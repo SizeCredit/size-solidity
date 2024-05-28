@@ -15,7 +15,7 @@ contract BuyCreditMarketScript is Script, Logger {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         Size size = Size(payable(sizeContractAddress));
 
-        uint256 dueDate = block.timestamp + 30 days; // 30 days from now
+        uint256 tenor = 30 days;
 
         address lender = vm.envAddress("LENDER");
         address borrower = vm.envAddress("BORROWER");
@@ -25,12 +25,12 @@ contract BuyCreditMarketScript is Script, Logger {
 
         uint256 amount = 6e6;
 
-        uint256 apr = size.getBorrowOfferAPR(borrower, dueDate);
+        uint256 apr = size.getBorrowOfferAPR(borrower, tenor);
 
         BuyCreditMarketParams memory params = BuyCreditMarketParams({
             borrower: borrower,
             creditPositionId: RESERVED_ID,
-            dueDate: dueDate,
+            tenor: tenor,
             amount: amount,
             deadline: block.timestamp,
             minAPR: apr,

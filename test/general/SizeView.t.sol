@@ -12,18 +12,18 @@ contract SizeViewTest is BaseTest {
 
         _sellCreditLimit(alice, YieldCurveHelper.marketCurve());
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp - 1));
-        size.getBorrowOfferAPR(alice, block.timestamp - 1);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_TENOR.selector));
+        size.getBorrowOfferAPR(alice, 0);
     }
 
     function test_SizeView_getLoanOfferAPR_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
         size.getLoanOfferAPR(alice, block.timestamp);
 
-        _buyCreditLimit(alice, block.timestamp + 365 days, 1e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DUE_DATE.selector, block.timestamp - 1));
-        size.getLoanOfferAPR(alice, block.timestamp - 1);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_TENOR.selector));
+        size.getLoanOfferAPR(alice, 0);
     }
 
     function test_SizeView_getLoanStatus() public {

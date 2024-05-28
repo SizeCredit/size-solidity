@@ -27,14 +27,13 @@ contract YieldCurveTest is Test, AssertsHelper {
     }
 
     function test_YieldCurve_validateYieldCurve() public {
-        uint256[] memory maturities = new uint256[](0);
+        uint256[] memory tenors = new uint256[](0);
         int256[] memory aprs = new int256[](0);
         uint256[] memory marketRateMultipliers = new uint256[](0);
         uint256 minimumTenor = 90 days;
         uint256 maximumTenor = 5 * 365 days;
 
-        YieldCurve memory curve =
-            YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
+        YieldCurve memory curve = YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
 
         try this.validate(curve, minimumTenor, maximumTenor) {}
         catch (bytes memory err) {
@@ -43,7 +42,7 @@ contract YieldCurveTest is Test, AssertsHelper {
 
         curve.aprs = new int256[](2);
         curve.marketRateMultipliers = new uint256[](2);
-        curve.maturities = new uint256[](1);
+        curve.tenors = new uint256[](1);
         try this.validate(curve, minimumTenor, maximumTenor) {}
         catch (bytes memory err) {
             assertEq(bytes4(err), Errors.ARRAY_LENGTHS_MISMATCH.selector);
@@ -51,10 +50,10 @@ contract YieldCurveTest is Test, AssertsHelper {
 
         curve.aprs = new int256[](2);
         curve.marketRateMultipliers = new uint256[](2);
-        curve.maturities = new uint256[](2);
+        curve.tenors = new uint256[](2);
 
-        curve.maturities[0] = 30 days;
-        curve.maturities[1] = 20 days;
+        curve.tenors[0] = 30 days;
+        curve.tenors[1] = 20 days;
 
         curve.aprs[0] = 0.1e18;
         curve.aprs[1] = 0.2e18;
@@ -64,23 +63,23 @@ contract YieldCurveTest is Test, AssertsHelper {
 
         try this.validate(curve, minimumTenor, maximumTenor) {}
         catch (bytes memory err) {
-            assertEq(bytes4(err), Errors.MATURITIES_NOT_STRICTLY_INCREASING.selector);
+            assertEq(bytes4(err), Errors.TENORS_NOT_STRICTLY_INCREASING.selector);
         }
 
-        curve.maturities[1] = 30 days;
+        curve.tenors[1] = 30 days;
         try this.validate(curve, minimumTenor, maximumTenor) {}
         catch (bytes memory err) {
-            assertEq(bytes4(err), Errors.MATURITIES_NOT_STRICTLY_INCREASING.selector);
+            assertEq(bytes4(err), Errors.TENORS_NOT_STRICTLY_INCREASING.selector);
         }
 
-        curve.maturities[1] = 40 days;
+        curve.tenors[1] = 40 days;
         try this.validate(curve, minimumTenor, maximumTenor) {}
         catch (bytes memory err) {
             assertEq(bytes4(err), Errors.TENOR_BELOW_MINIMUM_TENOR.selector);
         }
 
-        curve.maturities[0] = 150 days;
-        curve.maturities[1] = 180 days;
+        curve.tenors[0] = 150 days;
+        curve.tenors[1] = 180 days;
         YieldCurveLibrary.validateYieldCurve(curve, minimumTenor, maximumTenor);
     }
 
@@ -88,10 +87,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.TENOR_OUT_OF_RANGE.selector,
-                0,
-                curve.maturities[0],
-                curve.maturities[curve.maturities.length - 1]
+                Errors.TENOR_OUT_OF_RANGE.selector, 0, curve.tenors[0], curve.tenors[curve.tenors.length - 1]
             )
         );
         YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, 0);
@@ -99,13 +95,10 @@ contract YieldCurveTest is Test, AssertsHelper {
 
     function test_YieldCurve_getRate_below_bounds() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        uint256 interval = curve.maturities[0] - 1;
+        uint256 interval = curve.tenors[0] - 1;
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.TENOR_OUT_OF_RANGE.selector,
-                interval,
-                curve.maturities[0],
-                curve.maturities[curve.maturities.length - 1]
+                Errors.TENOR_OUT_OF_RANGE.selector, interval, curve.tenors[0], curve.tenors[curve.tenors.length - 1]
             )
         );
         YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
@@ -113,13 +106,10 @@ contract YieldCurveTest is Test, AssertsHelper {
 
     function test_YieldCurve_getRate_after_bounds() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        uint256 interval = curve.maturities[curve.maturities.length - 1] + 1;
+        uint256 interval = curve.tenors[curve.tenors.length - 1] + 1;
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.TENOR_OUT_OF_RANGE.selector,
-                interval,
-                curve.maturities[0],
-                curve.maturities[curve.maturities.length - 1]
+                Errors.TENOR_OUT_OF_RANGE.selector, interval, curve.tenors[0], curve.tenors[curve.tenors.length - 1]
             )
         );
         YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
@@ -127,35 +117,35 @@ contract YieldCurveTest is Test, AssertsHelper {
 
     function test_YieldCurve_getRate_first_point() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        uint256 interval = curve.maturities[0];
+        uint256 interval = curve.tenors[0];
         uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
         assertEq(apr, SafeCast.toUint256(curve.aprs[0]));
     }
 
     function test_YieldCurve_getRate_last_point() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        uint256 interval = curve.maturities[curve.maturities.length - 1];
+        uint256 interval = curve.tenors[curve.tenors.length - 1];
         uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
         assertEq(apr, SafeCast.toUint256(curve.aprs[curve.aprs.length - 1]));
     }
 
     function test_YieldCurve_getRate_middle_point() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        uint256 interval = curve.maturities[2];
+        uint256 interval = curve.tenors[2];
         uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
         assertEq(apr, SafeCast.toUint256(curve.aprs[2]));
     }
 
     function test_YieldCurve_getRate_point_2_out_of_5() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        uint256 interval = curve.maturities[1];
+        uint256 interval = curve.tenors[1];
         uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
         assertEq(apr, SafeCast.toUint256(curve.aprs[1]));
     }
 
     function test_YieldCurve_getRate_point_4_out_of_5() public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        uint256 interval = curve.maturities[3];
+        uint256 interval = curve.tenors[3];
         uint256 apr = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, interval);
         assertEq(apr, SafeCast.toUint256(curve.aprs[3]));
     }
@@ -169,14 +159,14 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 tenorB
     ) public {
         YieldCurve memory curve = YieldCurveHelper.flatCurve();
-        p0 = bound(p0, 0, curve.maturities.length - 1);
-        p1 = bound(p1, p0, curve.maturities.length - 1);
-        tenorA = bound(tenorA, curve.maturities[p0], curve.maturities[p1]);
+        p0 = bound(p0, 0, curve.tenors.length - 1);
+        p1 = bound(p1, p0, curve.tenors.length - 1);
+        tenorA = bound(tenorA, curve.tenors[p0], curve.tenors[p1]);
         uint256 rate0 = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, tenorA);
 
-        q0 = bound(q0, p1, curve.maturities.length - 1);
-        q1 = bound(q1, q0, curve.maturities.length - 1);
-        tenorB = bound(tenorB, curve.maturities[q0], curve.maturities[q1]);
+        q0 = bound(q0, p1, curve.tenors.length - 1);
+        q1 = bound(q1, q0, curve.tenors.length - 1);
+        tenorB = bound(tenorB, curve.tenors[q0], curve.tenors[q1]);
         uint256 rate1 = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, tenorB);
         assertLe(rate0, rate1);
     }
@@ -190,14 +180,14 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 tenorB
     ) public {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        p0 = bound(p0, 0, curve.maturities.length - 1);
-        p1 = bound(p1, p0, curve.maturities.length - 1);
-        tenorA = bound(tenorA, curve.maturities[p0], curve.maturities[p1]);
+        p0 = bound(p0, 0, curve.tenors.length - 1);
+        p1 = bound(p1, p0, curve.tenors.length - 1);
+        tenorA = bound(tenorA, curve.tenors[p0], curve.tenors[p1]);
         uint256 rate0 = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, tenorA);
 
-        q0 = bound(q0, p1, curve.maturities.length - 1);
-        q1 = bound(q1, q0, curve.maturities.length - 1);
-        tenorB = bound(tenorB, curve.maturities[q0], curve.maturities[q1]);
+        q0 = bound(q0, p1, curve.tenors.length - 1);
+        q1 = bound(q1, q0, curve.tenors.length - 1);
+        tenorB = bound(tenorB, curve.tenors[q0], curve.tenors[q1]);
         uint256 rate1 = YieldCurveLibrary.getAPR(curve, variablePoolBorrowRateFeed, tenorB);
         assertLe(rate0, rate1);
     }
@@ -209,9 +199,9 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 interval
     ) public {
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
-        p0 = bound(p0, 0, curve.maturities.length - 1);
-        p1 = bound(p1, p0, curve.maturities.length - 1);
-        interval = bound(interval, curve.maturities[p0], curve.maturities[p1]);
+        p0 = bound(p0, 0, curve.tenors.length - 1);
+        p1 = bound(p1, p0, curve.tenors.length - 1);
+        interval = bound(interval, curve.tenors[p0], curve.tenors[p1]);
         uint256 min = type(uint256).max;
         uint256 max = 0;
         for (uint256 i = 0; i < curve.aprs.length; i++) {

@@ -142,20 +142,20 @@ abstract contract SizeView is SizeStorage {
         );
     }
 
-    function getBorrowOfferAPR(address borrower, uint256 dueDate) external view returns (uint256) {
+    function getBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256) {
         BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
         if (offer.isNull()) {
             revert Errors.NULL_OFFER();
         }
-        return offer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
+        return offer.getAPRByTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
     }
 
-    function getLoanOfferAPR(address lender, uint256 dueDate) external view returns (uint256) {
+    function getLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
         LoanOffer memory offer = state.data.users[lender].loanOffer;
         if (offer.isNull()) {
             revert Errors.NULL_OFFER();
         }
-        return offer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, dueDate);
+        return offer.getAPRByTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
     }
 
     function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
@@ -168,17 +168,17 @@ abstract contract SizeView is SizeStorage {
         return state.getCreditPositionProRataAssignedCollateral(creditPosition);
     }
 
-    function getSwapFeePercent(uint256 dueDate) public view returns (uint256) {
-        if (dueDate < block.timestamp) {
-            revert Errors.PAST_DUE_DATE(dueDate);
+    function getSwapFeePercent(uint256 tenor) public view returns (uint256) {
+        if (tenor == 0) {
+            revert Errors.NULL_TENOR();
         }
-        return state.getSwapFeePercent(dueDate);
+        return state.getSwapFeePercent(tenor);
     }
 
-    function getSwapFee(uint256 cash, uint256 dueDate) public view returns (uint256) {
-        if (dueDate < block.timestamp) {
-            revert Errors.PAST_DUE_DATE(dueDate);
+    function getSwapFee(uint256 cash, uint256 tenor) public view returns (uint256) {
+        if (tenor == 0) {
+            revert Errors.NULL_TENOR();
         }
-        return state.getSwapFee(cash, dueDate);
+        return state.getSwapFee(cash, tenor);
     }
 }

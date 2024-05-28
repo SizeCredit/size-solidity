@@ -18,9 +18,9 @@ contract BuyCreditLimitScript is Script {
 
         uint256 maxDueDate = block.timestamp + 30 days; // timestamp + duedate in seconds
 
-        uint256[] memory maturities = new uint256[](2);
-        maturities[0] = 1 days;
-        maturities[1] = 3 days;
+        uint256[] memory tenors = new uint256[](2);
+        tenors[0] = 1 days;
+        tenors[1] = 3 days;
 
         int256[] memory aprs = new int256[](2);
         aprs[0] = 0.1e18;
@@ -31,7 +31,7 @@ contract BuyCreditLimitScript is Script {
         marketRateMultipliers[1] = 1e18;
 
         YieldCurve memory curveRelativeTime =
-            YieldCurve({maturities: maturities, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
+            YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
 
         BuyCreditLimitParams memory params =
             BuyCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime});

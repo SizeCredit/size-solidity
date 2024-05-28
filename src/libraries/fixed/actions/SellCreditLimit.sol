@@ -35,7 +35,7 @@ library SellCreditLimit {
     function executeSellCreditLimit(State storage state, SellCreditLimitParams calldata params) external {
         state.data.users[msg.sender].borrowOffer = BorrowOffer({curveRelativeTime: params.curveRelativeTime});
         emit Events.SellCreditLimit(
-            params.curveRelativeTime.maturities,
+            params.curveRelativeTime.tenors,
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers
         );

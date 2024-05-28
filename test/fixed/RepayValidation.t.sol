@@ -6,6 +6,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
@@ -19,14 +20,14 @@ contract RepayValidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 100e6);
-        _buyCreditLimit(alice, block.timestamp + 12 days, 0.05e18);
+        _buyCreditLimit(alice, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.05e18));
         uint256 amount = 20e6;
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, block.timestamp + 12 days, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 12 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
-        _buyCreditLimit(candy, block.timestamp + 12 days, 0.03e18);
+        _buyCreditLimit(candy, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
 
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        _sellCreditMarket(alice, candy, creditId, 10e6, block.timestamp + 12 days);
+        _sellCreditMarket(alice, candy, creditId, 10e6, 12 days);
 
         vm.startPrank(bob);
         size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));

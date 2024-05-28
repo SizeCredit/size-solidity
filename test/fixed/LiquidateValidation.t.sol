@@ -5,6 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
@@ -18,15 +19,15 @@ contract LiquidateValidationTest is BaseTest {
         _deposit(candy, usdc, 150e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 150e6);
-        _buyCreditLimit(alice, block.timestamp + 12 days, 0.03e18);
-        _buyCreditLimit(bob, block.timestamp + 12 days, 0.03e18);
-        _buyCreditLimit(candy, block.timestamp + 12 days, 0.03e18);
-        _buyCreditLimit(james, block.timestamp + 12 days, 0.03e18);
-        _sellCreditMarket(bob, candy, RESERVED_ID, 90e6, block.timestamp + 12 days, false);
+        _buyCreditLimit(alice, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
+        _buyCreditLimit(bob, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
+        _buyCreditLimit(candy, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
+        _buyCreditLimit(james, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
+        _sellCreditMarket(bob, candy, RESERVED_ID, 90e6, 12 days, false);
 
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, block.timestamp + 12 days, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 12 days, false);
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
-        _sellCreditMarket(alice, james, creditId, 20e6, block.timestamp + 12 days);
+        _sellCreditMarket(alice, james, creditId, 20e6, 12 days);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
         uint256 minimumCollateralProfit = 0;
 
@@ -50,8 +51,8 @@ contract LiquidateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        _sellCreditMarket(alice, candy, creditId, 10e6, block.timestamp + 12 days);
-        _sellCreditMarket(alice, james, RESERVED_ID, 50e6, block.timestamp + 12 days, false);
+        _sellCreditMarket(alice, candy, creditId, 10e6, 12 days);
+        _sellCreditMarket(alice, james, RESERVED_ID, 50e6, 12 days, false);
 
         // DebtPosition with high CR cannot be liquidated
         vm.startPrank(liquidator);

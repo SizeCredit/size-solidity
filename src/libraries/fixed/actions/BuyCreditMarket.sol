@@ -14,7 +14,7 @@ import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 struct BuyCreditMarketParams {
     address borrower;
     uint256 creditPositionId;
-    uint256 dueDate;
+    uint256 tenor;
     uint256 amount;
     uint256 deadline;
     uint256 minAPR;
@@ -30,15 +30,14 @@ library BuyCreditMarket {
     using RiskLibrary for State;
 
     function validateBuyCreditMarket(State storage state, BuyCreditMarketParams calldata params) external view {
-        BorrowOffer memory borrowOffer = state.data.users[params.borrower].borrowOffer;
-
-        // validate borrower
-        if (borrowOffer.isNull()) {
-            revert Errors.INVALID_BORROW_OFFER(params.borrower);
-        }
+        address borrower;
+        uint256 tenor;
 
         // validate creditPositionId
-        if (params.creditPositionId != RESERVED_ID) {
+        if (params.creditPositionId == RESERVED_ID) {
+            borrower = params.borrower;
+            tenor = params.tenor;
+        } else {
             CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
             if (!state.isCreditPositionTransferrable(params.creditPositionId)) {
@@ -55,17 +54,23 @@ library BuyCreditMarket {
             if (user.allCreditPositionsForSaleDisabled || !creditPosition.forSale) {
                 revert Errors.CREDIT_NOT_FOR_SALE(params.creditPositionId);
             }
-            if (params.dueDate != debtPosition.dueDate) {
-                revert Errors.DUE_DATE_NOT_COMPATIBLE(params.dueDate, debtPosition.dueDate);
+            if (debtPosition.dueDate < block.timestamp) {
+                revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
             }
-            if (params.borrower != creditPosition.lender) {
-                revert Errors.BORROWER_IS_NOT_LENDER(params.borrower, creditPosition.lender);
-            }
+            borrower = creditPosition.lender;
+            tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        // validate dueDate
-        if (params.dueDate < block.timestamp + state.riskConfig.minimumTenor) {
-            revert Errors.PAST_DUE_DATE(params.dueDate);
+        // validate tenor
+        if (tenor < state.riskConfig.minimumTenor) {
+            revert Errors.TENOR_BELOW_MINIMUM_TENOR(tenor, state.riskConfig.minimumTenor);
+        }
+
+        BorrowOffer memory borrowOffer = state.data.users[borrower].borrowOffer;
+
+        // validate borrower
+        if (borrowOffer.isNull()) {
+            revert Errors.INVALID_BORROW_OFFER(borrower);
         }
 
         // validate amount
@@ -79,7 +84,7 @@ library BuyCreditMarket {
         }
 
         // validate minAPR
-        uint256 apr = borrowOffer.getAPRByDueDate(state.oracle.variablePoolBorrowRateFeed, params.dueDate);
+        uint256 apr = borrowOffer.getAPRByTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
@@ -94,9 +99,22 @@ library BuyCreditMarket {
     {
         emit Events.BuyCreditMarket(params.borrower, params.creditPositionId, params.amount, params.exactAmountIn);
 
-        uint256 ratePerTenor = state.data.users[params.borrower].borrowOffer.getRatePerTenorByDueDate(
-            state.oracle.variablePoolBorrowRateFeed, params.dueDate
-        );
+        // slither-disable-next-line uninitialized-local
+        CreditPosition memory creditPosition;
+        uint256 tenor;
+        address borrower;
+        if (params.creditPositionId == RESERVED_ID) {
+            borrower = params.borrower;
+            tenor = params.tenor;
+        } else {
+            DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
+            creditPosition = state.getCreditPosition(params.creditPositionId);
+            borrower = creditPosition.lender;
+            tenor = debtPosition.dueDate - block.timestamp;
+        }
+
+        uint256 ratePerTenor =
+            state.data.users[borrower].borrowOffer.getRatePerTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
 
         uint256 creditAmountOut;
         uint256 fees;
@@ -105,17 +123,19 @@ library BuyCreditMarket {
             cashAmountIn = params.amount;
             (creditAmountOut, fees) = state.getCreditAmountOut({
                 cashAmountIn: cashAmountIn,
-                maxCredit: Math.mulDivDown(cashAmountIn, PERCENT + ratePerTenor, PERCENT),
+                maxCredit: params.creditPositionId == RESERVED_ID
+                    ? Math.mulDivDown(cashAmountIn, PERCENT + ratePerTenor, PERCENT)
+                    : creditPosition.credit,
                 ratePerTenor: ratePerTenor,
-                dueDate: params.dueDate
+                tenor: tenor
             });
         } else {
             creditAmountOut = params.amount;
             (cashAmountIn, fees) = state.getCashAmountIn({
                 creditAmountOut: creditAmountOut,
-                maxCredit: creditAmountOut,
+                maxCredit: params.creditPositionId == RESERVED_ID ? creditAmountOut : creditPosition.credit,
                 ratePerTenor: ratePerTenor,
-                dueDate: params.dueDate
+                tenor: tenor
             });
         }
 
@@ -123,9 +143,9 @@ library BuyCreditMarket {
             // slither-disable-next-line unused-return
             state.createDebtAndCreditPositions({
                 lender: msg.sender,
-                borrower: params.borrower,
+                borrower: borrower,
                 futureValue: creditAmountOut,
-                dueDate: params.dueDate
+                dueDate: block.timestamp + tenor
             });
         } else {
             state.createCreditPosition({
@@ -135,7 +155,7 @@ library BuyCreditMarket {
             });
         }
 
-        state.data.borrowAToken.transferFrom(msg.sender, params.borrower, cashAmountIn - fees);
+        state.data.borrowAToken.transferFrom(msg.sender, borrower, cashAmountIn - fees);
         state.data.borrowAToken.transferFrom(msg.sender, state.feeConfig.feeRecipient, fees);
     }
 }
