@@ -48,10 +48,10 @@ library YieldCurveLibrary {
             lastTenor = self.tenors[i - 1];
         }
         if (self.tenors[0] < minimumTenor) {
-            revert Errors.TENOR_BELOW_MINIMUM_TENOR(self.tenors[0], minimumTenor);
+            revert Errors.TENOR_OUT_OF_RANGE(self.tenors[0], minimumTenor, maximumTenor);
         }
         if (self.tenors[self.tenors.length - 1] > maximumTenor) {
-            revert Errors.TENOR_GREATER_THAN_MAXIMUM_TENOR(self.tenors[self.tenors.length - 1], maximumTenor);
+            revert Errors.TENOR_OUT_OF_RANGE(self.tenors[self.tenors.length - 1], minimumTenor, maximumTenor);
         }
 
         // validate marketRateMultipliers

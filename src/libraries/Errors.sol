@@ -14,8 +14,6 @@ library Errors {
     error NULL_OFFER();
     error INVALID_MSG_VALUE(uint256 value);
     error TENORS_NOT_STRICTLY_INCREASING();
-    error TENOR_BELOW_MINIMUM_TENOR(uint256 tenor, uint256 minimumTenor);
-    error TENOR_GREATER_THAN_MAXIMUM_TENOR(uint256 tenor, uint256 maximumTenor);
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
     error INVALID_KEY(string key);

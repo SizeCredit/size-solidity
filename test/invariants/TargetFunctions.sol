@@ -181,11 +181,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function sellCreditLimit(uint256 yieldCurveSeed)
-        public
-        getSender
-        checkExpectedErrors(BORROW_AS_LIMIT_ORDER_ERRORS)
-    {
+    function sellCreditLimit(uint256 yieldCurveSeed) public getSender checkExpectedErrors(SELL_CREDIT_LIMIT_ERRORS) {
         __before();
 
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
@@ -205,7 +201,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         uint256 tenor,
         uint256 amount,
         bool exactAmountIn
-    ) public getSender {
+    ) public getSender checkExpectedErrors(BUY_CREDIT_MARKET_ERRORS) {
         __before();
 
         borrower = _getRandomUser(borrower);
@@ -243,7 +239,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
     function buyCreditLimit(uint256 maxDueDate, uint256 yieldCurveSeed)
         public
         getSender
-        checkExpectedErrors(LEND_AS_LIMIT_ORDER_ERRORS)
+        checkExpectedErrors(BUY_CREDIT_LIMIT_ERRORS)
     {
         __before();
 

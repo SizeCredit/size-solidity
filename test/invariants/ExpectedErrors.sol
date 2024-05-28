@@ -16,9 +16,9 @@ abstract contract ExpectedErrors is Deploy, Properties {
     bytes4[] internal DEPOSIT_ERRORS;
     bytes4[] internal WITHDRAW_ERRORS;
     bytes4[] internal SELL_CREDIT_MARKET_ERRORS;
-    bytes4[] internal BORROW_AS_LIMIT_ORDER_ERRORS;
-    bytes4[] internal LEND_AS_MARKET_ORDER_ERRORS;
-    bytes4[] internal LEND_AS_LIMIT_ORDER_ERRORS;
+    bytes4[] internal SELL_CREDIT_LIMIT_ERRORS;
+    bytes4[] internal BUY_CREDIT_MARKET_ERRORS;
+    bytes4[] internal BUY_CREDIT_LIMIT_ERRORS;
     bytes4[] internal BORROWER_EXIT_ERRORS;
     bytes4[] internal REPAY_ERRORS;
     bytes4[] internal CLAIM_ERRORS;
@@ -35,6 +35,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         DEPOSIT_ERRORS.push(Errors.INVALID_TOKEN.selector);
         DEPOSIT_ERRORS.push(Errors.NULL_AMOUNT.selector);
         DEPOSIT_ERRORS.push(Errors.NULL_ADDRESS.selector);
+        DEPOSIT_ERRORS.push(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector);
 
         // WITHDRAW_ERRORS
         WITHDRAW_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
@@ -56,22 +57,21 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector);
         SELL_CREDIT_MARKET_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
 
-        // BORROW_AS_LIMIT_ORDER_ERRORS
-        BORROW_AS_LIMIT_ORDER_ERRORS.push(Errors.TENOR_BELOW_MINIMUM_TENOR.selector);
+        SELL_CREDIT_LIMIT_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
 
-        // LEND_AS_MARKET_ORDER_ERRORS
-        LEND_AS_MARKET_ORDER_ERRORS.push(Errors.INVALID_BORROW_OFFER.selector);
-        LEND_AS_MARKET_ORDER_ERRORS.push(Errors.PAST_DUE_DATE.selector);
-        LEND_AS_MARKET_ORDER_ERRORS.push(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector);
-        LEND_AS_MARKET_ORDER_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
-        LEND_AS_MARKET_ORDER_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector);
-        LEND_AS_MARKET_ORDER_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector);
-        LEND_AS_MARKET_ORDER_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector);
-        LEND_AS_MARKET_ORDER_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
+        // BUY_CREDIT_MARKET_ERRORS
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.INVALID_BORROW_OFFER.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.PAST_DUE_DATE.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
 
-        // LEND_AS_LIMIT_ORDER_ERRORS
-        LEND_AS_LIMIT_ORDER_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
-        LEND_AS_LIMIT_ORDER_ERRORS.push(Errors.TENOR_BELOW_MINIMUM_TENOR.selector);
+        // BUY_CREDIT_LIMIT_ERRORS
+        BUY_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
+        BUY_CREDIT_LIMIT_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
 
         // REPAY_ERRORS
         REPAY_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
@@ -98,7 +98,6 @@ abstract contract ExpectedErrors is Deploy, Properties {
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.LOAN_NOT_LIQUIDATABLE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.LOAN_NOT_ACTIVE.selector);
-        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.TENOR_BELOW_MINIMUM_TENOR.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.INVALID_BORROW_OFFER.selector);
 
