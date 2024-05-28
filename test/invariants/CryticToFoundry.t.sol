@@ -37,6 +37,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         deposit(address(0x0), 3454149647212318342190486356561251068327670996371);
         buyCreditMarket(
             address(0x0),
+            type(uint256).max,
             60424391022009849647749574289054431126887902231676242770965473014123,
             148239301701563126448758828532281561859502379527746323751158508008,
             false
@@ -50,7 +51,9 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         sellCreditLimit(0);
         deposit(address(0xdeadbeef), 0);
         deposit(address(0x0), 0);
-        buyCreditMarket(address(0x0), 14883685759233386169554070446227790, 5068531, false);
+        buyCreditMarket(address(0x0), 
+            type(uint256).max,
+        14883685759233386169554070446227790, 5068531, false);
         setPrice(0);
         compensate(0, 0, 0);
     }

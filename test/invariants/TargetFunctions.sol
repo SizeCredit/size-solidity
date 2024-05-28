@@ -145,6 +145,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         __before();
 
         lender = _getRandomUser(lender);
+        creditPositionId = _getCreditPositionId(creditPositionId);
         amount = between(amount, 0, MAX_AMOUNT_USDC / 100);
         tenor = between(tenor, 0, MAX_DURATION);
 
@@ -170,7 +171,9 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             if (lender != sender) {
                 gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
-            if (_after.debtPositionsCount > _before.debtPositionsCount) {
+
+            if (creditPositionId == RESERVED_ID) {
+                eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
                 uint256 debtPositionId = DEBT_POSITION_ID_START + _after.debtPositionsCount - 1;
                 tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
                 t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
@@ -196,10 +199,17 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function buyCreditMarket(address borrower, uint256 tenor, uint256 amount, bool exactAmountIn) public getSender {
+    function buyCreditMarket(
+        address borrower,
+        uint256 creditPositionId,
+        uint256 tenor,
+        uint256 amount,
+        bool exactAmountIn
+    ) public getSender {
         __before();
 
         borrower = _getRandomUser(borrower);
+        creditPositionId = _getCreditPositionId(creditPositionId);
         tenor = between(tenor, 0, MAX_DURATION);
         amount = between(amount, 0, _before.sender.borrowATokenBalance / 10);
 
@@ -207,7 +217,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: borrower,
-                creditPositionId: RESERVED_ID,
+                creditPositionId: creditPositionId,
                 tenor: tenor,
                 amount: amount,
                 deadline: block.timestamp,
@@ -221,9 +231,8 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             if (sender != borrower) {
                 lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
-            eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
-
-            if (_after.debtPositionsCount > _before.debtPositionsCount) {
+            if (creditPositionId == RESERVED_ID) {
+                eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
                 uint256 debtPositionId = DEBT_POSITION_ID_START + _after.debtPositionsCount - 1;
                 tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
                 t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
@@ -399,16 +408,8 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         hasLoans
         checkExpectedErrors(COMPENSATE_ERRORS)
     {
-        creditPositionWithDebtToRepayId = between(
-            creditPositionWithDebtToRepayId,
-            CREDIT_POSITION_ID_START,
-            CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
-        );
-        creditPositionToCompensateId = between(
-            creditPositionToCompensateId,
-            CREDIT_POSITION_ID_START,
-            CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
-        );
+        creditPositionWithDebtToRepayId = _getCreditPositionId(creditPositionWithDebtToRepayId);
+        creditPositionToCompensateId = _getCreditPositionId(creditPositionToCompensateId);
 
         __before(creditPositionWithDebtToRepayId);
 
