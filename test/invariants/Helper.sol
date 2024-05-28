@@ -26,6 +26,8 @@ abstract contract Helper is Deploy, PropertiesConstants {
 
     function _getCreditPositionId(uint256 creditPositionId) internal view returns (uint256) {
         (, uint256 creditPositionsCount) = size.getPositionsCount();
+        if (creditPositionsCount == 0) return RESERVED_ID;
+
         uint256 creditPositionIdIndex = creditPositionId % creditPositionsCount;
         return creditPositionId % PERCENT < PERCENTAGE_OLD_CREDIT
             ? CREDIT_POSITION_ID_START + creditPositionIdIndex
