@@ -26,7 +26,9 @@ contract SellCreditMarketValidationTest is BaseTest {
             bob, block.timestamp + 5 days, [int256(0.03e18), int256(0.03e18)], [uint256(1 days), uint256(12 days)]
         );
         _buyCreditLimit(candy, block.timestamp + 10 days, YieldCurveHelper.pointCurve(10 days, 0.03e18));
-        _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
+        _buyCreditLimit(
+            james, block.timestamp + 365 days, [int256(0.03e18), int256(0.03e18)], [uint256(10 days), uint256(365 days)]
+        );
         uint256 debtPositionId = _sellCreditMarket(alice, candy, RESERVED_ID, 40e6, 10 days, false);
 
         uint256 deadline = block.timestamp;
@@ -35,7 +37,7 @@ contract SellCreditMarketValidationTest is BaseTest {
         bool exactAmountIn = false;
 
         vm.startPrank(candy);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, address(0)));
         size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: address(0),
@@ -61,7 +63,11 @@ contract SellCreditMarketValidationTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_TENOR.selector));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.TENOR_OUT_OF_RANGE.selector, 0, size.riskConfig().minimumTenor, size.riskConfig().maximumTenor
+            )
+        );
         size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,
@@ -126,34 +132,13 @@ contract SellCreditMarketValidationTest is BaseTest {
         );
 
         vm.startPrank(candy);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector,
-                block.timestamp + 4 days,
-                block.timestamp + 10 days
-            )
-        );
-        size.sellCreditMarket(
-            SellCreditMarketParams({
-                lender: bob,
-                creditPositionId: creditPositionId,
-                amount: 100e6,
-                tenor: 4 days,
-                deadline: deadline,
-                maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
-            })
-        );
-        vm.stopPrank();
-
-        vm.startPrank(candy);
         vm.expectRevert(abi.encodeWithSelector(Errors.APR_GREATER_THAN_MAX_APR.selector, 0.03e18, 0.01e18));
         size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: james,
                 creditPositionId: creditPositionId,
                 amount: 20e6,
-                tenor: 365 days,
+                tenor: type(uint256).max,
                 deadline: deadline,
                 maxAPR: 0.01e18,
                 exactAmountIn: exactAmountIn
@@ -168,7 +153,7 @@ contract SellCreditMarketValidationTest is BaseTest {
                 lender: james,
                 creditPositionId: creditPositionId,
                 amount: 20e6,
-                tenor: 365 days,
+                tenor: type(uint256).max,
                 deadline: deadline - 1,
                 maxAPR: type(uint256).max,
                 exactAmountIn: exactAmountIn

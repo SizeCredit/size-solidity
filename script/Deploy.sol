@@ -58,7 +58,7 @@ abstract contract Deploy {
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: 5e6,
             borrowATokenCap: 1_000_000e6,
-            minimumTenor: 1 days,
+            minimumTenor: 1 hours,
             maximumTenor: 5 * 365 days
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});
@@ -114,7 +114,7 @@ abstract contract Deploy {
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: 50e6,
             borrowATokenCap: 1_000_000e6,
-            minimumTenor: 1 days,
+            minimumTenor: 1 hours,
             maximumTenor: 5 * 365 days
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});

@@ -55,9 +55,9 @@ contract BuyCreditLimitValidationTest is BaseTest {
             })
         );
 
-        tenors[0] = 6 hours;
+        tenors[0] = 6 minutes;
         tenors[1] = 1 days;
-        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_BELOW_MINIMUM_TENOR.selector, 6 hours, 24 hours));
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_BELOW_MINIMUM_TENOR.selector, 6 minutes, 1 hours));
         size.buyCreditLimit(
             BuyCreditLimitParams({
                 maxDueDate: maxDueDate,
