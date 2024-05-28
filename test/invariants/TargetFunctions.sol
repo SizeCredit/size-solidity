@@ -491,7 +491,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         string memory key = keys[i];
         size.updateConfig(UpdateConfigParams({key: key, value: value}));
 
-        uint256 borrowRate = between(value, 0, MAX_BORROW_RATE);
+        uint128 borrowRate = uint128(between(value, 0, MAX_BORROW_RATE));
         size.setVariablePoolBorrowRate(borrowRate);
     }
 }
