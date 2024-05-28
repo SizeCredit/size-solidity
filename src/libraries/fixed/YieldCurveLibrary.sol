@@ -73,7 +73,11 @@ library YieldCurveLibrary {
         if (marketRateMultiplier == 0) {
             return SafeCast.toUint256(apr);
         } else if (
-            block.timestamp - params.variablePoolBorrowRateUpdatedAt > params.variablePoolBorrowRateStaleRateInterval
+            params.variablePoolBorrowRateStaleRateInterval == 0
+                || (
+                    block.timestamp - params.variablePoolBorrowRateUpdatedAt
+                        > params.variablePoolBorrowRateStaleRateInterval
+                )
         ) {
             revert Errors.STALE_RATE(params.variablePoolBorrowRateUpdatedAt);
         } else {

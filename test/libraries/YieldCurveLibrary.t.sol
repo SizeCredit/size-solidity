@@ -201,7 +201,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
             variablePoolBorrowRate: 0.31415e18,
             variablePoolBorrowRateUpdatedAt: uint64(block.timestamp),
-            variablePoolBorrowRateStaleRateInterval: 0
+            variablePoolBorrowRateStaleRateInterval: 1
         });
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
         p0 = bound(p0, 0, curve.tenors.length - 1);
@@ -230,7 +230,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
             variablePoolBorrowRate: 0.31415e18,
             variablePoolBorrowRateUpdatedAt: uint64(block.timestamp),
-            variablePoolBorrowRateStaleRateInterval: 0
+            variablePoolBorrowRateStaleRateInterval: 1
         });
 
         assertEq(YieldCurveLibrary.getAPR(curve, params, 60 days), 0.02e18 + 0.31415e18);
@@ -240,7 +240,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
             variablePoolBorrowRate: 0.07e18,
             variablePoolBorrowRateUpdatedAt: uint64(block.timestamp),
-            variablePoolBorrowRateStaleRateInterval: 0
+            variablePoolBorrowRateStaleRateInterval: 1
         });
         YieldCurve memory curve = YieldCurveHelper.customCurve(20 days, -0.001e18, 40 days, -0.002e18);
         curve.marketRateMultipliers[0] = 1e18;
@@ -253,7 +253,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
             variablePoolBorrowRate: 0.07e18,
             variablePoolBorrowRateUpdatedAt: uint64(block.timestamp),
-            variablePoolBorrowRateStaleRateInterval: 0
+            variablePoolBorrowRateStaleRateInterval: 1
         });
         YieldCurve memory curve = YieldCurveHelper.customCurve(20 days, -0.001e18, 40 days, -0.002e18);
         curve.marketRateMultipliers[0] = 2e18;
