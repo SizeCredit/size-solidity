@@ -85,7 +85,9 @@ contract FlashLoanLiquidationTest is BaseTest {
         // Create SwapParams for a 1inch swap
         SwapParams memory swapParams = SwapParams({
             method: SwapMethod.OneInch,
-            data: abi.encode("") // Data is not used in the mock
+            data: abi.encode(""), // Data is not used in the mock
+            minimumReturnAmount: 0,
+            deadline: block.timestamp
         });
 
         // Create ReplacementParams, not used since useReplacement is false
@@ -162,7 +164,9 @@ contract FlashLoanLiquidationTest is BaseTest {
         // Create SwapParams for a 1inch swap
         SwapParams memory swapParams = SwapParams({
             method: SwapMethod.OneInch,
-            data: abi.encode("") // Data is not used in the mock
+            data: abi.encode(""), // Data is not used in the mock
+            minimumReturnAmount: 0,
+            deadline: block.timestamp
         });
 
         // Create ReplacementParams

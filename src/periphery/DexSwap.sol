@@ -15,6 +15,8 @@ enum SwapMethod {
 struct SwapParams {
     SwapMethod method;
     bytes data; // Encoded data for the specific swap method
+    uint256 deadline; // Deadline for the swap to occur
+    uint256 minimumReturnAmount; // Minimum return amount from the swap
 }
 
 contract DexSwap {
@@ -45,46 +47,46 @@ contract DexSwap {
 
     function swapCollateral(SwapParams memory swapParams) internal returns (uint256) {
         if (swapParams.method == SwapMethod.OneInch) {
-            return swapCollateral1Inch(swapParams.data);
+            return swapCollateral1Inch(swapParams.data, swapParams.minimumReturnAmount);
         } else if (swapParams.method == SwapMethod.Unoswap) {
             address pool = abi.decode(swapParams.data, (address));
-            return swapCollateralUnoswap(pool);
+            return swapCollateralUnoswap(pool, swapParams.minimumReturnAmount);
         } else if (swapParams.method == SwapMethod.Uniswap) {
             address[] memory path = abi.decode(swapParams.data, (address[]));
-            return swapCollateralUniswap(path);
+            return swapCollateralUniswap(path, swapParams.deadline, swapParams.minimumReturnAmount);
         } else {
             revert("Invalid swap method");
         }
     }
 
-    function swapCollateral1Inch(bytes memory data) internal returns (uint256) {
+    function swapCollateral1Inch(bytes memory data, uint256 minimumReturnAmount) internal returns (uint256) {
         uint256 swappedAmount = oneInchAggregator.swap(
             collateralToken,
             debtToken,
             IERC20(collateralToken).balanceOf(address(this)),
-            1, // Minimum return amount
+            minimumReturnAmount,
             data
         );
         return swappedAmount;
     }
 
-    function swapCollateralUniswap(address[] memory tokenPaths) internal returns (uint256) {
+    function swapCollateralUniswap(address[] memory tokenPaths, uint256 deadline, uint256 minimumReturnAmount) internal returns (uint256) {
         uint256[] memory amounts = uniswapRouter.swapExactTokensForTokens(
             IERC20(collateralToken).balanceOf(address(this)),
-            1, // Minimum return amount
+            minimumReturnAmount,
             tokenPaths,
             address(this),
-            block.timestamp
+            deadline
         );
         return amounts[amounts.length - 1];
     }
 
-    function swapCollateralUnoswap(address pool) internal returns (uint256) {
+    function swapCollateralUnoswap(address pool, uint256 minimumReturnAmount) internal returns (uint256) {
         uint256 returnAmount = unoswapRouter.unoswapTo(
             address(this),
             collateralToken,
             IERC20(collateralToken).balanceOf(address(this)),
-            1, // Minimum return amount
+            minimumReturnAmount,
             pool
         );
 
