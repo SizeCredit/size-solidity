@@ -17,7 +17,15 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
+import {
+    InitializeFeeConfigParams,
+    InitializeRiskConfigParams,
+    InitializeOracleParams
+} from "@src/libraries/general/actions/Initialize.sol";
+import {DebtPosition, CreditPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
+import {ISizeView} from "@src/interfaces/ISizeView.sol";
+import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
@@ -26,7 +34,7 @@ import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserCo
 /// @notice This interface is the main interface for all user-facing methods of the Size protocol
 /// @dev All functions are `payable` to allow for ETH deposits in a `multicall` pattern.
 ///      See `Multicall.sol`
-interface ISize {
+interface ISize is ISizeView, IMulticall {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always deposited into the Variable Pool,
     ///         Collateral tokens are deposited into the Size contract through the DepositTokenLibrary

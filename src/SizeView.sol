@@ -32,29 +32,12 @@ import {
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
-
-struct UserView {
-    User user;
-    address account;
-    uint256 collateralTokenBalance;
-    uint256 borrowATokenBalance;
-    uint256 debtBalance;
-}
-
-struct DataView {
-    uint256 nextDebtPositionId;
-    uint256 nextCreditPositionId;
-    IERC20Metadata underlyingCollateralToken;
-    IERC20Metadata underlyingBorrowToken;
-    NonTransferrableToken collateralToken;
-    NonTransferrableScaledToken borrowAToken;
-    NonTransferrableToken debtToken;
-    IPool variablePool;
-}
+import {ISizeView} from "@src/interfaces/ISizeView.sol";
+import {DataView, UserView} from "@src/SizeViewStructs.sol";
 
 /// @title SizeView
 /// @notice View methods for the Size protocol
-abstract contract SizeView is SizeStorage {
+abstract contract SizeView is ISizeView, SizeStorage {
     using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
     using LoanLibrary for DebtPosition;
