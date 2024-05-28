@@ -99,6 +99,7 @@ library BuyCreditMarket {
     {
         emit Events.BuyCreditMarket(params.borrower, params.creditPositionId, params.amount, params.exactAmountIn);
 
+        // slither-disable-next-line uninitialized-local
         CreditPosition memory creditPosition;
         uint256 tenor;
         address borrower;
