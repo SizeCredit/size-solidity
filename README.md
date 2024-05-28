@@ -100,23 +100,23 @@ forge test
 | src/SizeView.sol                                         | 78.79% (26/33)     | 80.00% (44/55)     | 62.50% (5/8)     | 85.71% (18/21)   |
 | src/libraries/Math.sol                                   | 95.00% (19/20)     | 93.75% (30/32)     | 100.00% (6/6)    | 88.89% (8/9)     |
 | src/libraries/Multicall.sol                              | 100.00% (10/10)    | 100.00% (16/16)    | 100.00% (0/0)    | 100.00% (1/1)    |
-| src/libraries/fixed/AccountingLibrary.sol                | 79.22% (61/77)     | 80.65% (75/93)     | 42.31% (11/26)   | 100.00% (11/11)  |
+| src/libraries/fixed/AccountingLibrary.sol                | 92.31% (72/78)     | 93.62% (88/94)     | 65.38% (17/26)   | 100.00% (11/11)  |
 | src/libraries/fixed/CapsLibrary.sol                      | 81.82% (9/11)      | 85.71% (12/14)     | 50.00% (4/8)     | 100.00% (3/3)    |
 | src/libraries/fixed/DepositTokenLibrary.sol              | 100.00% (20/20)    | 100.00% (28/28)    | 100.00% (0/0)    | 100.00% (4/4)    |
 | src/libraries/fixed/LoanLibrary.sol                      | 96.97% (32/33)     | 97.87% (46/47)     | 93.75% (15/16)   | 100.00% (9/9)    |
-| src/libraries/fixed/OfferLibrary.sol                     | 100.00% (16/16)    | 94.12% (32/34)     | 75.00% (6/8)     | 100.00% (6/6)    |
+| src/libraries/fixed/OfferLibrary.sol                     | 100.00% (12/12)    | 92.31% (24/26)     | 75.00% (6/8)     | 100.00% (6/6)    |
 | src/libraries/fixed/RiskLibrary.sol                      | 88.46% (23/26)     | 93.48% (43/46)     | 70.00% (7/10)    | 100.00% (9/9)    |
 | src/libraries/fixed/YieldCurveLibrary.sol                | 96.67% (29/30)     | 98.15% (53/54)     | 77.78% (14/18)   | 100.00% (4/4)    |
 | src/libraries/fixed/actions/BuyCreditLimit.sol           | 90.00% (9/10)      | 90.91% (10/11)     | 83.33% (5/6)     | 100.00% (2/2)    |
-| src/libraries/fixed/actions/BuyCreditMarket.sol          | 97.50% (39/40)     | 97.78% (44/45)     | 88.46% (23/26)   | 100.00% (2/2)    |
+| src/libraries/fixed/actions/BuyCreditMarket.sol          | 94.55% (52/55)     | 94.92% (56/59)     | 80.77% (21/26)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Claim.sol                    | 100.00% (11/11)    | 100.00% (16/16)    | 100.00% (4/4)    | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Compensate.sol               | 97.67% (42/43)     | 97.92% (47/48)     | 75.00% (15/20)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/Liquidate.sol                | 100.00% (26/26)    | 100.00% (35/35)    | 83.33% (5/6)     | 100.00% (3/3)    |
-| src/libraries/fixed/actions/LiquidateWithReplacement.sol | 93.94% (31/33)     | 95.12% (39/41)     | 80.00% (8/10)    | 100.00% (3/3)    |
+| src/libraries/fixed/actions/LiquidateWithReplacement.sol | 93.94% (31/33)     | 95.35% (41/43)     | 80.00% (8/10)    | 100.00% (3/3)    |
 | src/libraries/fixed/actions/Repay.sol                    | 100.00% (10/10)    | 100.00% (14/14)    | 75.00% (3/4)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/SelfLiquidate.sol            | 100.00% (15/15)    | 100.00% (21/21)    | 66.67% (4/6)     | 100.00% (2/2)    |
 | src/libraries/fixed/actions/SellCreditLimit.sol          | 100.00% (5/5)      | 100.00% (6/6)      | 100.00% (2/2)    | 100.00% (2/2)    |
-| src/libraries/fixed/actions/SellCreditMarket.sol         | 97.62% (41/42)     | 97.78% (44/45)     | 78.57% (22/28)   | 100.00% (2/2)    |
+| src/libraries/fixed/actions/SellCreditMarket.sol         | 97.62% (41/42)     | 97.87% (46/47)     | 82.14% (23/28)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/SetUserConfiguration.sol     | 93.75% (15/16)     | 95.65% (22/23)     | 33.33% (2/6)     | 100.00% (2/2)    |
 | src/libraries/general/actions/Deposit.sol                | 95.45% (21/22)     | 96.43% (27/28)     | 85.71% (12/14)   | 100.00% (2/2)    |
 | src/libraries/general/actions/Initialize.sol             | 94.12% (64/68)     | 94.81% (73/77)     | 82.35% (28/34)   | 100.00% (11/11)  |
@@ -134,7 +134,7 @@ forge test
 │          (index)           │ Values │
 ├────────────────────────────┼────────┤
 │       BuyCreditLimit       │   4    │
-│      BuyCreditMarket       │   9    │
+│      BuyCreditMarket       │   8    │
 │           Claim            │   10   │
 │         Compensate         │   15   │
 │      CryticToFoundry       │   5    │
