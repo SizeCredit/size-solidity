@@ -61,33 +61,24 @@ contract DexSwap {
 
     function swapCollateral1Inch(bytes memory data, uint256 minimumReturnAmount) internal returns (uint256) {
         uint256 swappedAmount = oneInchAggregator.swap(
-            collateralToken,
-            debtToken,
-            IERC20(collateralToken).balanceOf(address(this)),
-            minimumReturnAmount,
-            data
+            collateralToken, debtToken, IERC20(collateralToken).balanceOf(address(this)), minimumReturnAmount, data
         );
         return swappedAmount;
     }
 
-    function swapCollateralUniswap(address[] memory tokenPaths, uint256 deadline, uint256 minimumReturnAmount) internal returns (uint256) {
+    function swapCollateralUniswap(address[] memory tokenPaths, uint256 deadline, uint256 minimumReturnAmount)
+        internal
+        returns (uint256)
+    {
         uint256[] memory amounts = uniswapRouter.swapExactTokensForTokens(
-            IERC20(collateralToken).balanceOf(address(this)),
-            minimumReturnAmount,
-            tokenPaths,
-            address(this),
-            deadline
+            IERC20(collateralToken).balanceOf(address(this)), minimumReturnAmount, tokenPaths, address(this), deadline
         );
         return amounts[amounts.length - 1];
     }
 
     function swapCollateralUnoswap(address pool, uint256 minimumReturnAmount) internal returns (uint256) {
         uint256 returnAmount = unoswapRouter.unoswapTo(
-            address(this),
-            collateralToken,
-            IERC20(collateralToken).balanceOf(address(this)),
-            minimumReturnAmount,
-            pool
+            address(this), collateralToken, IERC20(collateralToken).balanceOf(address(this)), minimumReturnAmount, pool
         );
 
         return returnAmount;
