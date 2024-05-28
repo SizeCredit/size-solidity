@@ -2,9 +2,9 @@
 pragma solidity 0.8.23;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {I1InchAggregator} from "@src/interfaces/dex/I1InchAggregator.sol";
-import {IUnoswapRouter} from "@src/interfaces/dex/IUnoswapRouter.sol";
-import {IUniswapV2Router02} from "@src/interfaces/dex/IUniswapV2Router02.sol";
+import {I1InchAggregator} from "@src/periphery/interfaces/dex/I1InchAggregator.sol";
+import {IUnoswapRouter} from "@src/periphery/interfaces/dex/IUnoswapRouter.sol";
+import {IUniswapV2Router02} from "@src/periphery/interfaces/dex/IUniswapV2Router02.sol";
 
 enum SwapMethod {
     OneInch,
