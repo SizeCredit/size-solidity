@@ -8,14 +8,10 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
-
-import {VariablePoolBorrowRateFeed} from "@src/oracle/VariablePoolBorrowRateFeed.sol";
 
 import {PriceFeed} from "@src/oracle/PriceFeed.sol";
 
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
-import {VariablePoolBorrowRateFeedMock} from "@test/mocks/VariablePoolBorrowRateFeedMock.sol";
 
 import {Size} from "@src/Size.sol";
 
@@ -35,7 +31,6 @@ abstract contract Deploy {
     ERC1967Proxy internal proxy;
     SizeMock internal size;
     IPriceFeed internal priceFeed;
-    IVariablePoolBorrowRateFeed internal variablePoolBorrowRateFeed;
     WETH internal weth;
     USDC internal usdc;
     InitializeFeeConfigParams internal f;
@@ -46,7 +41,6 @@ abstract contract Deploy {
 
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
-        variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
         variablePool = IPool(address(new PoolMock()));
@@ -67,10 +61,7 @@ abstract contract Deploy {
             minimumTenor: 1 days,
             maximumTenor: 5 * 365 days
         });
-        o = InitializeOracleParams({
-            priceFeed: address(priceFeed),
-            variablePoolBorrowRateFeed: address(variablePoolBorrowRateFeed)
-        });
+        o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});
         d = InitializeDataParams({
             weth: address(weth),
             underlyingCollateralToken: address(weth),
@@ -92,21 +83,15 @@ abstract contract Deploy {
         address _usdc,
         address _variablePool,
         address _wethAggregator,
-        address _usdcAggregator,
-        uint128 borrowRate
+        address _usdcAggregator
     ) internal {
         variablePool = IPool(_variablePool);
 
         if (_wethAggregator == address(0) && _usdcAggregator == address(0)) {
             priceFeed = new PriceFeedMock(_owner);
             PriceFeedMock(address(priceFeed)).setPrice(2468e18);
-
-            variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(_owner);
-            VariablePoolBorrowRateFeedMock(address(variablePoolBorrowRateFeed)).setVariableBorrowRate(0.0724e18);
         } else {
             priceFeed = new PriceFeed(_wethAggregator, _usdcAggregator, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
-
-            variablePoolBorrowRateFeed = new VariablePoolBorrowRateFeed(_owner, 6 hours, borrowRate);
         }
 
         if (_variablePool == address(0)) {
@@ -132,10 +117,7 @@ abstract contract Deploy {
             minimumTenor: 1 days,
             maximumTenor: 5 * 365 days
         });
-        o = InitializeOracleParams({
-            priceFeed: address(priceFeed),
-            variablePoolBorrowRateFeed: address(variablePoolBorrowRateFeed)
-        });
+        o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});
         d = InitializeDataParams({
             weth: address(_weth),
             underlyingCollateralToken: address(_weth),

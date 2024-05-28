@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {VariablePoolBorrowRateParams} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -86,7 +87,14 @@ library SellCreditMarket {
         }
 
         // validate maxAPR
-        uint256 apr = loanOffer.getAPRByTenor(state.oracle.variablePoolBorrowRateFeed, params.tenor);
+        uint256 apr = loanOffer.getAPRByTenor(
+            VariablePoolBorrowRateParams({
+                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+            }),
+            params.tenor
+        );
         if (apr > params.maxAPR) {
             revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
         }
@@ -104,7 +112,12 @@ library SellCreditMarket {
         );
 
         uint256 ratePerTenor = state.data.users[params.lender].loanOffer.getRatePerTenor(
-            state.oracle.variablePoolBorrowRateFeed, params.tenor
+            VariablePoolBorrowRateParams({
+                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+            }),
+            params.tenor
         );
 
         // slither-disable-next-line uninitialized-local

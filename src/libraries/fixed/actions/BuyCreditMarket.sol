@@ -9,7 +9,9 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
+import {VariablePoolBorrowRateParams} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 struct BuyCreditMarketParams {
     address borrower;
@@ -84,7 +86,14 @@ library BuyCreditMarket {
         }
 
         // validate minAPR
-        uint256 apr = borrowOffer.getAPRByTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
+        uint256 apr = borrowOffer.getAPRByTenor(
+            VariablePoolBorrowRateParams({
+                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+            }),
+            tenor
+        );
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
@@ -113,8 +122,14 @@ library BuyCreditMarket {
             tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        uint256 ratePerTenor =
-            state.data.users[borrower].borrowOffer.getRatePerTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
+        uint256 ratePerTenor = state.data.users[borrower].borrowOffer.getRatePerTenor(
+            VariablePoolBorrowRateParams({
+                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+            }),
+            tenor
+        );
 
         uint256 creditAmountOut;
         uint256 fees;

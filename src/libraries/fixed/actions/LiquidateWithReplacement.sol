@@ -7,6 +7,7 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {VariablePoolBorrowRateParams} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -66,7 +67,14 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        uint256 apr = borrowOffer.getAPRByTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
+        uint256 apr = borrowOffer.getAPRByTenor(
+            VariablePoolBorrowRateParams({
+                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+            }),
+            tenor
+        );
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
@@ -105,7 +113,14 @@ library LiquidateWithReplacement {
             })
         );
 
-        uint256 ratePerTenor = borrowOffer.getRatePerTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
+        uint256 ratePerTenor = borrowOffer.getRatePerTenor(
+            VariablePoolBorrowRateParams({
+                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+            }),
+            tenor
+        );
         uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
         uint256 liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 

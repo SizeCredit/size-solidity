@@ -44,11 +44,14 @@ import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
+import {Events} from "@src/libraries/Events.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
+import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
 
-bytes32 constant KEEPER_ROLE = "KEEPER_ROLE";
-bytes32 constant PAUSER_ROLE = "PAUSER_ROLE";
+bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
+bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE");
 
 /// @title Size
 /// @notice See the documentation in {ISize}.
@@ -94,13 +97,27 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
         _grantRole(PAUSER_ROLE, owner);
         _grantRole(KEEPER_ROLE, owner);
+        _grantRole(BORROW_RATE_UPDATER_ROLE, owner);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
-    function updateConfig(UpdateConfigParams calldata params) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    /// @inheritdoc ISizeAdmin
+    function updateConfig(UpdateConfigParams calldata params)
+        external
+        override(ISizeAdmin)
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
         state.validateUpdateConfig(params);
         state.executeUpdateConfig(params);
+    }
+
+    /// @inheritdoc ISizeAdmin
+    function setVariablePoolBorrowRate(uint128 borrowRate) external onlyRole(BORROW_RATE_UPDATER_ROLE) {
+        uint128 oldBorrowRate = state.oracle.variablePoolBorrowRate;
+        state.oracle.variablePoolBorrowRate = borrowRate;
+        state.oracle.variablePoolBorrowRateUpdatedAt = uint64(block.timestamp);
+        emit Events.VariablePoolBorrowRateUpdated(oldBorrowRate, borrowRate);
     }
 
     function pause() public onlyRole(PAUSER_ROLE) {

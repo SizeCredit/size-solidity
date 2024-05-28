@@ -10,7 +10,6 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {Initialize} from "@src/libraries/general/actions/Initialize.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 
 import {
     InitializeDataParams,
@@ -57,7 +56,7 @@ library UpdateConfig {
     function oracleParams(State storage state) public view returns (InitializeOracleParams memory) {
         return InitializeOracleParams({
             priceFeed: address(state.oracle.priceFeed),
-            variablePoolBorrowRateFeed: address(state.oracle.variablePoolBorrowRateFeed)
+            variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
         });
     }
 
@@ -105,8 +104,8 @@ library UpdateConfig {
             state.feeConfig.feeRecipient = address(uint160(params.value));
         } else if (Strings.equal(params.key, "priceFeed")) {
             state.oracle.priceFeed = IPriceFeed(address(uint160(params.value)));
-        } else if (Strings.equal(params.key, "variablePoolBorrowRateFeed")) {
-            state.oracle.variablePoolBorrowRateFeed = IVariablePoolBorrowRateFeed(address(uint160(params.value)));
+        } else if (Strings.equal(params.key, "variablePoolBorrowRateStaleRateInterval")) {
+            state.oracle.variablePoolBorrowRateStaleRateInterval = uint64(params.value);
         } else {
             revert Errors.INVALID_KEY(params.key);
         }

@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SizeStorage, State, User} from "@src/SizeStorage.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {VariablePoolBorrowRateParams} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -147,7 +148,14 @@ abstract contract SizeView is SizeStorage {
         if (offer.isNull()) {
             revert Errors.NULL_OFFER();
         }
-        return offer.getAPRByTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
+        return offer.getAPRByTenor(
+            VariablePoolBorrowRateParams({
+                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+            }),
+            tenor
+        );
     }
 
     function getLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
@@ -155,7 +163,14 @@ abstract contract SizeView is SizeStorage {
         if (offer.isNull()) {
             revert Errors.NULL_OFFER();
         }
-        return offer.getAPRByTenor(state.oracle.variablePoolBorrowRateFeed, tenor);
+        return offer.getAPRByTenor(
+            VariablePoolBorrowRateParams({
+                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+            }),
+            tenor
+        );
     }
 
     function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
