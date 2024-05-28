@@ -32,13 +32,13 @@ contract CompensateValidationTest is BaseTest {
             james, block.timestamp + 12 days, [int256(0.05e18), int256(0.05e18)], [uint256(6 days), uint256(12 days)]
         );
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, 12 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 loanId2 = _sellCreditMarket(candy, bob, RESERVED_ID, 20e6, 12 days, false);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
         uint256 loanId3 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, 12 days, false);
-        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[1];
+        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(loanId3)[0];
         _sellCreditMarket(bob, alice, creditPositionId2, 10e6, 12 days);
-        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(loanId2)[1];
+        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(loanId2)[0];
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.COMPENSATOR_IS_NOT_BORROWER.selector, bob, alice));

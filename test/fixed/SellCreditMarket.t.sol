@@ -97,7 +97,7 @@ contract SellCreditMarketTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
         _buyCreditLimit(candy, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 60e6, 12 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         Vars memory _before = _state();
 
@@ -140,7 +140,7 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _before = _state();
 
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, candy, creditPositionId, tenor);
 
         Vars memory _after = _state();
@@ -169,7 +169,7 @@ contract SellCreditMarketTest is BaseTest {
         Vars memory _before = _state();
         (uint256 debtPositionsCountBefore,) = size.getPositionsCount();
 
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, candy, creditPositionId, 30e6, 12 days);
 
         Vars memory _after = _state();
@@ -251,7 +251,7 @@ contract SellCreditMarketTest is BaseTest {
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, candy, creditPositionId, 365 days);
 
         uint256 credit = size.getCreditPosition(creditPositionId).credit;
@@ -276,9 +276,9 @@ contract SellCreditMarketTest is BaseTest {
         _buyCreditLimit(candy, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0));
         _buyCreditLimit(james, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 12 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, candy, creditPositionId, 49e6, 12 days);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(candy, bob, creditPositionId2, 42e6, 12 days);
 
         assertEq(size.getCreditPosition(creditPositionId).debtPositionId, debtPositionId);
@@ -299,9 +299,9 @@ contract SellCreditMarketTest is BaseTest {
         _buyCreditLimit(candy, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0));
         _buyCreditLimit(james, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 1000e6, 12 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, candy, creditPositionId, 490e6, 12 days, false);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
 
         CreditPosition memory creditBefore1 = size.getCreditPosition(creditPositionId);
         CreditPosition memory creditBefore2 = size.getCreditPosition(creditPositionId2);

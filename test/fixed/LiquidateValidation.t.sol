@@ -26,9 +26,9 @@ contract LiquidateValidationTest is BaseTest {
         _sellCreditMarket(bob, candy, RESERVED_ID, 90e6, 12 days, false);
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 12 days, false);
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, james, creditId, 20e6, 12 days);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         uint256 minimumCollateralProfit = 0;
 
         _deposit(liquidator, usdc, 10_000e6);

@@ -26,7 +26,7 @@ contract RepayValidationTest is BaseTest {
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         _buyCreditLimit(candy, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
 
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, candy, creditId, 10e6, 12 days);
 
         vm.startPrank(bob);

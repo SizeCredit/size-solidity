@@ -16,8 +16,6 @@ library AccountingLibrary {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
 
-    event L2(uint256 credit, uint256 amount);
-
     /// @notice Converts debt token amount to a value in collateral tokens
     /// @dev Rounds up the debt token amount
     /// @param state The state object
@@ -89,7 +87,7 @@ library AccountingLibrary {
         state.data.creditPositions[creditPositionId] = creditPosition;
         state.validateMinimumCreditOpening(creditPosition.credit);
 
-        emit Events.CreateCreditPosition(creditPositionId, lender, RESERVED_ID, debtPositionId, creditPosition.credit);
+        emit Events.CreateCreditPosition(creditPositionId, RESERVED_ID, debtPositionId, lender, creditPosition.credit);
 
         state.data.debtToken.mint(borrower, futureValue);
     }
@@ -97,26 +95,37 @@ library AccountingLibrary {
     function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)
         external
     {
-        uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
-        reduceCredit(state, exitCreditPositionId, credit);
+        CreditPosition storage exitCreditPosition = state.getCreditPosition(exitCreditPositionId);
+        if (exitCreditPosition.credit == credit) {
+            exitCreditPosition.lender = lender;
 
-        CreditPosition memory creditPosition =
-            CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: true});
+            emit Events.UpdateCreditPosition(
+                exitCreditPositionId, lender, exitCreditPosition.credit, exitCreditPosition.forSale
+            );
+        } else {
+            uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
 
-        uint256 creditPositionId = state.data.nextCreditPositionId++;
-        state.data.creditPositions[creditPositionId] = creditPosition;
-        state.validateMinimumCreditOpening(creditPosition.credit);
+            reduceCredit(state, exitCreditPositionId, credit);
 
-        emit Events.CreateCreditPosition(creditPositionId, lender, exitCreditPositionId, debtPositionId, credit);
+            CreditPosition memory creditPosition =
+                CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: true});
+
+            uint256 creditPositionId = state.data.nextCreditPositionId++;
+            state.data.creditPositions[creditPositionId] = creditPosition;
+            state.validateMinimumCreditOpening(creditPosition.credit);
+
+            emit Events.CreateCreditPosition(creditPositionId, exitCreditPositionId, debtPositionId, lender, credit);
+        }
     }
 
     function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount) public {
         CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
-        emit L2(creditPosition.credit, amount);
         creditPosition.credit -= amount;
         state.validateMinimumCredit(creditPosition.credit);
 
-        emit Events.UpdateCreditPosition(creditPositionId, creditPosition.credit, creditPosition.forSale);
+        emit Events.UpdateCreditPosition(
+            creditPositionId, creditPosition.lender, creditPosition.credit, creditPosition.forSale
+        );
     }
 
     function getSwapFeePercent(State storage state, uint256 tenor) internal view returns (uint256) {
