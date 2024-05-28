@@ -38,6 +38,8 @@ import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
+import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
+
 import {KEEPER_ROLE} from "@src/Size.sol";
 
 // import {console2 as console} from "forge-std/console2.sol";
@@ -168,6 +170,11 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             if (lender != sender) {
                 gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
+            if (_after.debtPositionsCount > _before.debtPositionsCount) {
+                uint256 debtPositionId = DEBT_POSITION_ID_START + _after.debtPositionsCount - 1;
+                tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
+                t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
+            }
         }
     }
 
@@ -215,6 +222,12 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
                 lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
             eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
+
+            if (_after.debtPositionsCount > _before.debtPositionsCount) {
+                uint256 debtPositionId = DEBT_POSITION_ID_START + _after.debtPositionsCount - 1;
+                tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
+                t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
+            }
         }
     }
 
@@ -375,6 +388,8 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
                 LIQUIDATE_01
             );
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
+            uint256 tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
+            t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
         }
     }
 
@@ -455,5 +470,28 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             usdc.approve(address(variablePool), supplyAmount);
             variablePool.supply(address(usdc), supplyAmount, address(this), 0);
         }
+    }
+
+    function updateConfig(uint256 i, uint256 value) public {
+        string[12] memory keys = [
+            "crOpening",
+            "crLiquidation",
+            "minimumCreditBorrowAToken",
+            "borrowATokenCap",
+            "minimumTenor",
+            "maximumTenor",
+            "swapFeeAPR",
+            "fragmentationFee",
+            "liquidationRewardPercent",
+            "overdueCollateralProtocolPercent",
+            "collateralProtocolPercent",
+            "variablePoolBorrowRateStaleRateInterval"
+        ];
+        i = between(i, 0, keys.length - 1);
+        string memory key = keys[i];
+        size.updateConfig(UpdateConfigParams({key: key, value: value}));
+
+        uint256 borrowRate = between(value, 0, MAX_BORROW_RATE);
+        size.setVariablePoolBorrowRate(borrowRate);
     }
 }

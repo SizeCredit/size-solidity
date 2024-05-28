@@ -11,10 +11,11 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 abstract contract Helper is Deploy, PropertiesConstants {
     uint256 internal MAX_AMOUNT_USDC = 3 * 100_000e6;
     uint256 internal MAX_AMOUNT_WETH = 3 * 100e18;
-    uint256 internal MAX_DURATION = 400 days;
+    uint256 internal MAX_DURATION = 10 * 365 days;
     uint256 internal MIN_PRICE = 0.01e18;
     uint256 internal MAX_PRICE = 20_000e18;
     uint256 internal MAX_LIQUIDITY_INDEX_INCREASE_PERCENT = 1.05e18;
+    uint256 internal MAX_BORROW_RATE = 2e18;
 
     function _getRandomUser(address user) internal pure returns (address) {
         return uint160(user) % 3 == 0 ? USER1 : uint160(user) % 3 == 1 ? USER2 : USER3;
