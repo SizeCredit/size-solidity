@@ -25,9 +25,10 @@ contract PriceFeedTest is Test, AssertsHelper {
     uint8 public constant USDC_TO_USD_DECIMALS = 8;
 
     function setUp() public {
+        sequencerUptimeFeed = new MockV3Aggregator(0, SEQUENCER_UP);
+        vm.warp(block.timestamp + 1 days);
         ethToUsd = new MockV3Aggregator(ETH_TO_USD_DECIMALS, ETH_TO_USD);
         usdcToUsd = new MockV3Aggregator(USDC_TO_USD_DECIMALS, USDC_TO_USD);
-        sequencerUptimeFeed = new MockV3Aggregator(0, SEQUENCER_UP);
         priceFeed = new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 86400);
     }
 
