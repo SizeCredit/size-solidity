@@ -122,8 +122,6 @@ contract SellCreditMarketTest is BaseTest {
         rate = bound(rate, 0, MAX_RATE);
         tenor = bound(tenor, 1, MAX_TENOR - 1);
 
-        uint256 tenor = tenor;
-
         _deposit(alice, weth, MAX_AMOUNT_WETH);
         _deposit(alice, usdc, MAX_AMOUNT_USDC + size.feeConfig().fragmentationFee);
         _deposit(bob, weth, MAX_AMOUNT_WETH);

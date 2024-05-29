@@ -4,12 +4,17 @@ pragma solidity 0.8.23;
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
-import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 
 struct YieldCurve {
     uint256[] tenors;
     int256[] aprs;
     uint256[] marketRateMultipliers;
+}
+
+struct VariablePoolBorrowRateParams {
+    uint128 variablePoolBorrowRate;
+    uint64 variablePoolBorrowRateUpdatedAt;
+    uint64 variablePoolBorrowRateStaleRateInterval;
 }
 
 /// @title YieldCurveLibrary
@@ -58,22 +63,26 @@ library YieldCurveLibrary {
     ///      Only query the market borrow rate feed oracle if the market rate multiplier is not 0
     /// @param apr The annual percentage rate from the yield curve
     /// @param marketRateMultiplier The market rate multiplier
-    /// @param variablePoolBorrowRateFeed The market borrow rate feed
+    /// @param params The variable pool borrow rate feed params
     /// @return Returns ratePerTenor + marketRate * marketRateMultiplier
-    function getAdjustedAPR(
-        int256 apr,
-        uint256 marketRateMultiplier,
-        IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed
-    ) internal view returns (uint256) {
-        // @audit Check if the result should be capped to 0 instead of reverting
+    function getAdjustedAPR(int256 apr, uint256 marketRateMultiplier, VariablePoolBorrowRateParams memory params)
+        internal
+        view
+        returns (uint256)
+    {
         if (marketRateMultiplier == 0) {
             return SafeCast.toUint256(apr);
+        } else if (
+            params.variablePoolBorrowRateStaleRateInterval == 0
+                || (
+                    block.timestamp - params.variablePoolBorrowRateUpdatedAt
+                        > params.variablePoolBorrowRateStaleRateInterval
+                )
+        ) {
+            revert Errors.STALE_RATE(params.variablePoolBorrowRateUpdatedAt);
         } else {
             return SafeCast.toUint256(
-                apr
-                    + SafeCast.toInt256(
-                        Math.mulDivDown(variablePoolBorrowRateFeed.getVariableBorrowRate(), marketRateMultiplier, PERCENT)
-                    )
+                apr + SafeCast.toInt256(Math.mulDivDown(params.variablePoolBorrowRate, marketRateMultiplier, PERCENT))
             );
         }
     }
@@ -81,29 +90,28 @@ library YieldCurveLibrary {
     /// @notice Get the rate from the yield curve by performing a linear interpolation between two time buckets
     /// @dev Reverts if the due date is in the past or out of range
     /// @param curveRelativeTime The yield curve
-    /// @param variablePoolBorrowRateFeed The variable pool borrow rate feed
+    /// @param params The variable pool borrow rate feed params
     /// @param tenor The tenor
     /// @return The rate from the yield curve per given tenor
-    function getAPR(
-        YieldCurve memory curveRelativeTime,
-        IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
-        uint256 tenor
-    ) external view returns (uint256) {
+    function getAPR(YieldCurve memory curveRelativeTime, VariablePoolBorrowRateParams memory params, uint256 tenor)
+        external
+        view
+        returns (uint256)
+    {
         uint256 length = curveRelativeTime.tenors.length;
         if (tenor < curveRelativeTime.tenors[0] || tenor > curveRelativeTime.tenors[length - 1]) {
             revert Errors.TENOR_OUT_OF_RANGE(tenor, curveRelativeTime.tenors[0], curveRelativeTime.tenors[length - 1]);
         } else {
             (uint256 low, uint256 high) = Math.binarySearch(curveRelativeTime.tenors, tenor);
-            uint256 x0 = curveRelativeTime.tenors[low];
-            uint256 y0 = getAdjustedAPR(
-                curveRelativeTime.aprs[low], curveRelativeTime.marketRateMultipliers[low], variablePoolBorrowRateFeed
-            );
-            uint256 x1 = curveRelativeTime.tenors[high];
-            uint256 y1 = getAdjustedAPR(
-                curveRelativeTime.aprs[high], curveRelativeTime.marketRateMultipliers[high], variablePoolBorrowRateFeed
-            );
+            uint256 y0 =
+                getAdjustedAPR(curveRelativeTime.aprs[low], curveRelativeTime.marketRateMultipliers[low], params);
 
-            if (x1 != x0) {
+            if (low != high) {
+                uint256 x0 = curveRelativeTime.tenors[low];
+                uint256 x1 = curveRelativeTime.tenors[high];
+                uint256 y1 =
+                    getAdjustedAPR(curveRelativeTime.aprs[high], curveRelativeTime.marketRateMultipliers[high], params);
+
                 if (y1 >= y0) {
                     return y0 + Math.mulDivDown(y1 - y0, tenor - x0, x1 - x0);
                 } else {

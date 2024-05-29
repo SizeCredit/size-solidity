@@ -9,7 +9,6 @@ import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol
 import {BorrowOffer, LoanOffer} from "@src/libraries/fixed/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 
 import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
@@ -41,7 +40,9 @@ struct RiskConfig {
 
 struct Oracle {
     IPriceFeed priceFeed; // price feed oracle
-    IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed; // market borrow rate feed oracle
+    uint128 variablePoolBorrowRate; // variable pool borrow rate
+    uint64 variablePoolBorrowRateUpdatedAt; // timestamp of the last update
+    uint64 variablePoolBorrowRateStaleRateInterval; // stale rate interval
 }
 
 struct Data {

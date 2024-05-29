@@ -5,7 +5,6 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {Size} from "@src/Size.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
@@ -72,15 +71,7 @@ abstract contract BaseScript is Script {
 
     function importDeployments()
         internal
-        returns (
-            SizeMock size,
-            IVariablePoolBorrowRateFeed variablePoolBorrowRateFeed,
-            IPriceFeed priceFeed,
-            IPool variablePool,
-            USDC usdc,
-            WETH weth,
-            address owner
-        )
+        returns (SizeMock size, IPriceFeed priceFeed, IPool variablePool, USDC usdc, WETH weth, address owner)
     {
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
@@ -90,8 +81,6 @@ abstract contract BaseScript is Script {
         string memory json = vm.readFile(path);
 
         size = SizeMock(abi.decode(json.parseRaw(".deployments.Size-proxy"), (address)));
-        variablePoolBorrowRateFeed =
-            IVariablePoolBorrowRateFeed(abi.decode(json.parseRaw(".deployments.VariablePoolBorrowRateFeed"), (address)));
         priceFeed = IPriceFeed(abi.decode(json.parseRaw(".deployments.PriceFeed"), (address)));
         variablePool = IPool(abi.decode(json.parseRaw(".deployments.VariablePool"), (address)));
         usdc = USDC(abi.decode(json.parseRaw(".parameters.usdc"), (address)));

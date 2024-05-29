@@ -20,6 +20,7 @@ library Events {
         InitializeDataParams d
     );
     event UpdateConfig(string indexed key, uint256 value);
+    event VariablePoolBorrowRateUpdated(uint128 indexed oldBorrowRate, uint128 indexed newBorrowRate);
 
     // fixed
 

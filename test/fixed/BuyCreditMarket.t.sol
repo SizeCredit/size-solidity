@@ -87,7 +87,8 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _setVariableBorrowRate(0);
+        _setVariablePoolBorrowRate(uint128(bound(seed, 0, 0.1e18)));
+        _updateConfig("variablePoolBorrowRateStaleRateInterval", 1);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
         _sellCreditLimit(alice, curve);
 

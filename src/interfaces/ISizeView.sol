@@ -1,28 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {BorrowAsLimitOrderParams} from "@src/libraries/fixed/actions/BorrowAsLimitOrder.sol";
-
-import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
-
-import {LendAsLimitOrderParams} from "@src/libraries/fixed/actions/LendAsLimitOrder.sol";
-import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
-
-import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
-import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
-
-import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
-import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
-
-import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
+import {DataView, UserView} from "@src/SizeViewData.sol";
+import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {
     InitializeFeeConfigParams,
-    InitializeRiskConfigParams,
-    InitializeOracleParams
+    InitializeOracleParams,
+    InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
-import {DebtPosition, CreditPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
-import {UserView, DataView} from "@src/SizeViewStructs.sol";
 
 /// @title ISizeView
 /// @author Size Lending

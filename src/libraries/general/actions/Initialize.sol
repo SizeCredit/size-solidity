@@ -11,7 +11,6 @@ import {PERCENT} from "@src/libraries/Math.sol";
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {IVariablePoolBorrowRateFeed} from "@src/oracle/IVariablePoolBorrowRateFeed.sol";
 
 import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
@@ -41,7 +40,7 @@ struct InitializeRiskConfigParams {
 
 struct InitializeOracleParams {
     address priceFeed;
-    address variablePoolBorrowRateFeed;
+    uint64 variablePoolBorrowRateStaleRateInterval;
 }
 
 struct InitializeDataParams {
@@ -128,10 +127,8 @@ library Initialize {
         // slither-disable-next-line unused-return
         IPriceFeed(o.priceFeed).getPrice();
 
-        // validate variablePoolBorrowRateFeed
-        if (o.variablePoolBorrowRateFeed == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
+        // validate variablePoolBorrowRateStaleRateInterval
+        // N/A
     }
 
     function validateInitializeDataParams(InitializeDataParams memory d) internal view {
@@ -197,7 +194,7 @@ library Initialize {
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {
         state.oracle.priceFeed = IPriceFeed(o.priceFeed);
-        state.oracle.variablePoolBorrowRateFeed = IVariablePoolBorrowRateFeed(o.variablePoolBorrowRateFeed);
+        state.oracle.variablePoolBorrowRateStaleRateInterval = o.variablePoolBorrowRateStaleRateInterval;
     }
 
     function executeInitializeData(State storage state, InitializeDataParams memory d) internal {

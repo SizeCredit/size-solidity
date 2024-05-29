@@ -8,7 +8,6 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
-import {VariablePoolBorrowRateFeedMock} from "@test/mocks/VariablePoolBorrowRateFeedMock.sol";
 
 import {KEEPER_ROLE} from "@src/Size.sol";
 import {UserView} from "@src/SizeView.sol";
@@ -51,7 +50,6 @@ abstract contract BaseTestGeneral is Test, Deploy {
         vm.label(address(implementation), "size-implementation");
         vm.label(address(size), "size");
         vm.label(address(priceFeed), "priceFeed");
-        vm.label(address(variablePoolBorrowRateFeed), "variablePoolBorrowRateFeed");
         vm.label(address(usdc), "usdc");
         vm.label(address(weth), "weth");
         vm.label(address(variablePool), "variablePool");
@@ -84,9 +82,9 @@ abstract contract BaseTestGeneral is Test, Deploy {
         PriceFeedMock(address(priceFeed)).setPrice(price);
     }
 
-    function _setVariableBorrowRate(uint128 rate) internal {
+    function _setVariablePoolBorrowRate(uint128 rate) internal {
         vm.prank(address(this));
-        VariablePoolBorrowRateFeedMock(address(variablePoolBorrowRateFeed)).setVariableBorrowRate(rate);
+        size.setVariablePoolBorrowRate(rate);
     }
 
     function _updateConfig(string memory key, uint256 value) internal {

@@ -80,7 +80,7 @@ A contract that provides the price of ETH in terms of USDC in 18 decimals. For e
 
 ##### Variable Pool Borrow Rate Feed
 
-In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation on Aave's rate, convert it to 18 decimals, and store it on the oracle. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000.
+In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation on Aave's rate, convert it to 18 decimals, and store it in the contract. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000. If the oracle information is stale, orders relying on the variable rate feed cannot be matched. The admin can disable this feature by setting the stale interval to zero.
 
 ## Test
 

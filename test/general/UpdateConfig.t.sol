@@ -5,7 +5,6 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 import {Errors} from "@src/libraries/Errors.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
-import {VariablePoolBorrowRateFeedMock} from "@test/mocks/VariablePoolBorrowRateFeedMock.sol";
 
 import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
@@ -52,15 +51,5 @@ contract UpdateConfigTest is BaseTest {
         assertTrue(size.oracle().priceFeed != address(newPriceFeed));
         size.updateConfig(UpdateConfigParams({key: "priceFeed", value: uint256(uint160(address(newPriceFeed)))}));
         assertTrue(size.oracle().priceFeed == address(newPriceFeed));
-
-        VariablePoolBorrowRateFeedMock newVariablePoolBorrowRateFeed = new VariablePoolBorrowRateFeedMock(address(this));
-        assertTrue(size.oracle().variablePoolBorrowRateFeed != address(newVariablePoolBorrowRateFeed));
-        size.updateConfig(
-            UpdateConfigParams({
-                key: "variablePoolBorrowRateFeed",
-                value: uint256(uint160(address(newVariablePoolBorrowRateFeed)))
-            })
-        );
-        assertTrue(size.oracle().variablePoolBorrowRateFeed == address(newVariablePoolBorrowRateFeed));
     }
 }

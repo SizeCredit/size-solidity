@@ -18,7 +18,6 @@ contract DeployScript is BaseScript, Addresses, Deploy {
     address feeRecipient;
     address wethAggregator;
     address usdcAggregator;
-    uint128 variableBorrowRate;
     string chainName;
 
     function setUp() public {}
@@ -28,7 +27,6 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         owner = vm.envOr("OWNER", address(0));
         feeRecipient = vm.envOr("FEE_RECIPIENT", address(0));
         chainName = vm.envOr("CHAIN_NAME", TEST_CHAIN_NAME);
-        variableBorrowRate = uint128(vm.envUint("VARIABLE_BORROW_RATE"));
         _;
     }
 
@@ -49,14 +47,12 @@ contract DeployScript is BaseScript, Addresses, Deploy {
             contracts.usdc,
             contracts.variablePool,
             contracts.wethAggregator,
-            contracts.usdcAggregator,
-            variableBorrowRate
+            contracts.usdcAggregator
         );
 
         deployments.push(Deployment({name: "Size-implementation", addr: address(size)}));
         deployments.push(Deployment({name: "Size-proxy", addr: address(proxy)}));
         deployments.push(Deployment({name: "PriceFeed", addr: address(priceFeed)}));
-        deployments.push(Deployment({name: "VariablePoolBorrowRateFeed", addr: address(variablePoolBorrowRateFeed)}));
         parameters.push(Parameter({key: "owner", value: Strings.toHexString(owner)}));
         parameters.push(Parameter({key: "feeRecipient", value: Strings.toHexString(feeRecipient)}));
         parameters.push(Parameter({key: "usdc", value: Strings.toHexString(address(usdc))}));
@@ -64,7 +60,6 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(contracts.wethAggregator)}));
         parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(contracts.usdcAggregator)}));
         parameters.push(Parameter({key: "variablePool", value: Strings.toHexString(address(variablePool))}));
-        parameters.push(Parameter({key: "variableBorrowRate", value: Strings.toString(variableBorrowRate)}));
 
         console.log("[Size v1] deployed\n");
 
