@@ -26,7 +26,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
     event L3(uint256 a, uint256 b, uint256 c);
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
-    function invariant_LOAN() public returns (bool) {
+    function property_LOAN() public returns (bool) {
         (uint256 minimumCreditBorrowAToken,) = size.getCryticVariables();
         (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
         CreditPosition[] memory creditPositions = size.getCreditPositions();
@@ -40,7 +40,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         return true;
     }
 
-    function invariant_UNDERWATER() public returns (bool) {
+    function property_UNDERWATER() public returns (bool) {
         address[3] memory users = [USER1, USER2, USER3];
         for (uint256 i = 0; i < users.length; i++) {
             if (!_before.isUserUnderwater[i] && _after.isUserUnderwater[i]) {
@@ -55,7 +55,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         return true;
     }
 
-    function invariant_TOKENS() public returns (bool) {
+    function property_TOKENS() public returns (bool) {
         (, address feeRecipient) = size.getCryticVariables();
         address[6] memory users = [USER1, USER2, USER3, address(size), address(variablePool), address(feeRecipient)];
 
@@ -74,7 +74,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         return true;
     }
 
-    function invariant_SOLVENCY() public returns (bool) {
+    function property_SOLVENCY() public returns (bool) {
         uint256 outstandingDebt;
         uint256 outstandingCredit;
 
@@ -117,7 +117,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         return true;
     }
 
-    function invariant_FEES() public returns (bool) {
+    function property_FEES() public returns (bool) {
         (, address feeRecipient) = size.getCryticVariables();
 
         if (_after.creditPositionsCount > _before.creditPositionsCount) {

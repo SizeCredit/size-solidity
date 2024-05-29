@@ -46,6 +46,7 @@ import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 import {SizeView} from "@src/SizeView.sol";
 import {Events} from "@src/libraries/Events.sol";
 
+import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
 
@@ -134,10 +135,11 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         _unpause();
     }
 
+    /// @inheritdoc IMulticall
     function multicall(bytes[] calldata _data)
         public
         payable
-        override(ISize)
+        override(IMulticall)
         whenNotPaused
         returns (bytes[] memory results)
     {
