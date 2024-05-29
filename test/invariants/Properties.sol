@@ -138,10 +138,16 @@ abstract contract Properties is Ghosts, PropertiesSpec {
         }
 
         if (
-            _before.sig == TargetFunctions.sellCreditMarket.selector
-                || _before.sig == TargetFunctions.buyCreditMarket.selector
+            (
+                _before.sig == TargetFunctions.sellCreditMarket.selector
+                    || _before.sig == TargetFunctions.buyCreditMarket.selector
+            )
         ) {
-            gte(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
+            if (size.feeConfig().swapFeeAPR > 0) {
+                gt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
+            } else {
+                gte(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
+            }
         }
 
         return true;
