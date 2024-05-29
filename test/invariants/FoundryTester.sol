@@ -37,5 +37,6 @@ contract FoundryTester is Test, PropertiesSpec {
         assertTrue(handler.invariant_UNDERWATER(), UNDERWATER);
         assertTrue(handler.invariant_TOKENS(), TOKENS);
         assertTrue(handler.invariant_SOLVENCY(), SOLVENCY);
+        assertTrue(handler.invariant_FEES(), FEES);
     }
 }

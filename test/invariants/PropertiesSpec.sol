@@ -26,7 +26,7 @@ abstract contract PropertiesSpec {
 
     string internal constant LOAN = "LOAN: Loan properties";
     string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
-    string internal constant LOAN_02 = "LOAN_01: minimumTenor <= loan.tenor <= maximumTenor";
+    string internal constant LOAN_02 = "LOAN_02: minimumTenor <= loan.tenor <= maximumTenor";
 
     string internal constant TOKENS = "TOKENS: Token properties";
     string internal constant TOKENS_01 = "TOKENS_01: The sum of collateral tokens is constant";
