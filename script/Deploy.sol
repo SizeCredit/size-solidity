@@ -83,7 +83,8 @@ abstract contract Deploy {
         address _usdc,
         address _variablePool,
         address _wethAggregator,
-        address _usdcAggregator
+        address _usdcAggregator,
+        address _sequencerUptimeFeed
     ) internal {
         variablePool = IPool(_variablePool);
 
@@ -91,7 +92,9 @@ abstract contract Deploy {
             priceFeed = new PriceFeedMock(_owner);
             PriceFeedMock(address(priceFeed)).setPrice(2468e18);
         } else {
-            priceFeed = new PriceFeed(_wethAggregator, _usdcAggregator, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18);
+            priceFeed = new PriceFeed(
+                _wethAggregator, _usdcAggregator, _sequencerUptimeFeed, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18
+            );
         }
 
         if (_variablePool == address(0)) {

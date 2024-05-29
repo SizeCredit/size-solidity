@@ -47,7 +47,8 @@ contract DeployScript is BaseScript, Addresses, Deploy {
             contracts.usdc,
             contracts.variablePool,
             contracts.wethAggregator,
-            contracts.usdcAggregator
+            contracts.usdcAggregator,
+            contracts.sequencerUptimeFeed
         );
 
         deployments.push(Deployment({name: "Size-implementation", addr: address(size)}));
@@ -59,6 +60,9 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         parameters.push(Parameter({key: "weth", value: Strings.toHexString(address(weth))}));
         parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(contracts.wethAggregator)}));
         parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(contracts.usdcAggregator)}));
+        parameters.push(
+            Parameter({key: "sequencerUptimeFeed", value: Strings.toHexString(contracts.sequencerUptimeFeed)})
+        );
         parameters.push(Parameter({key: "variablePool", value: Strings.toHexString(address(variablePool))}));
 
         console.log("[Size v1] deployed\n");
