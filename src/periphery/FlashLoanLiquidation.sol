@@ -15,6 +15,7 @@ import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/Liqui
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 import {DexSwap, SwapParams} from "@src/periphery/DexSwap.sol";
+import {PeripheryErrors} from "@src/periphery/libraries/PeripheryErrors.sol";
 
 struct ReplacementParams {
     uint256 minAPR;
@@ -63,26 +64,30 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         address initiator,
         bytes calldata params
     ) external override returns (bool) {
-        require(msg.sender == address(POOL), "Can only be called by Aave pool");
-        require(initiator == address(this), "Can only be initiated by this contract");
+        if (msg.sender != address(POOL)) {
+            revert PeripheryErrors.NOT_AAVE_POOL();
+        }
+        if (initiator != address(this)) {
+            revert PeripheryErrors.NOT_INITIATOR();
+        }
 
         OperationParams memory opParams = abi.decode(params, (OperationParams));
 
         if (opParams.useReplacement) {
-            liquidateDebtPositionWithReplacement(
+            _liquidateDebtPositionWithReplacement(
                 amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit, opParams.replacementParams
             );
         } else {
-            liquidateDebtPosition(amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit);
+            _liquidateDebtPosition(amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit);
         }
 
-        swapCollateral(opParams.swapParams);
-        settleFlashLoan(assets, amounts, premiums, opParams.liquidator);
+        _swapCollateral(opParams.swapParams);
+        _settleFlashLoan(assets, amounts, premiums, opParams.liquidator);
 
         return true;
     }
 
-    function liquidateDebtPositionWithReplacement(
+    function _liquidateDebtPositionWithReplacement(
         uint256 debtAmount,
         uint256 debtPositionId,
         uint256 minimumCollateralProfit,
@@ -120,10 +125,11 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         calls[1] = liquidateCall;
         calls[2] = withdrawCall;
 
+        // slither-disable-next-line unused-return
         size.multicall(calls);
     }
 
-    function liquidateDebtPosition(uint256 debtAmount, uint256 debtPositionId, uint256 minimumCollateralProfit)
+    function _liquidateDebtPosition(uint256 debtAmount, uint256 debtPositionId, uint256 minimumCollateralProfit)
         internal
     {
         // Approve USDC to repay the borrower's debt
@@ -152,10 +158,11 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         calls[1] = liquidateCall;
         calls[2] = withdrawCall;
 
+        // slither-disable-next-line unused-return
         size.multicall(calls);
     }
 
-    function settleFlashLoan(
+    function _settleFlashLoan(
         address[] calldata assets,
         uint256[] calldata amounts,
         uint256[] calldata premiums,
@@ -164,7 +171,9 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         uint256 totalDebt = amounts[0] + premiums[0];
         uint256 balance = IERC20(assets[0]).balanceOf(address(this));
 
-        require(balance >= totalDebt, "Insufficient balance to repay flash loan");
+        if (balance < totalDebt) {
+            revert PeripheryErrors.INSUFFICIENT_BALANCE();
+        }
 
         uint256 amountToLiquidator = balance - totalDebt;
         IERC20(assets[0]).transfer(liquidator, amountToLiquidator);
