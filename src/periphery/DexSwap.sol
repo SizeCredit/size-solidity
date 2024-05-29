@@ -1,11 +1,11 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 import {I1InchAggregator} from "@src/periphery/interfaces/dex/I1InchAggregator.sol";
-
 import {IUniswapV2Router02} from "@src/periphery/interfaces/dex/IUniswapV2Router02.sol";
 import {IUnoswapRouter} from "@src/periphery/interfaces/dex/IUnoswapRouter.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 enum SwapMethod {
     OneInch,
@@ -21,11 +21,11 @@ struct SwapParams {
 }
 
 contract DexSwap {
-    I1InchAggregator public oneInchAggregator;
-    IUnoswapRouter public unoswapRouter;
-    IUniswapV2Router02 public uniswapRouter;
-    address public collateralToken;
-    address public debtToken;
+    I1InchAggregator public immutable oneInchAggregator;
+    IUnoswapRouter public immutable unoswapRouter;
+    IUniswapV2Router02 public immutable uniswapRouter;
+    address public immutable collateralToken;
+    address public immutable debtToken;
 
     constructor(
         address _oneInchAggregator,
@@ -34,6 +34,13 @@ contract DexSwap {
         address _collateralToken,
         address _debtToken
     ) {
+        if (
+            _oneInchAggregator == address(0) || _unoswapRouter == address(0) || _uniswapRouter == address(0)
+                || _collateralToken == address(0) || _debtToken == address(0)
+        ) {
+            revert Errors.NULL_ADDRESS();
+        }
+
         oneInchAggregator = I1InchAggregator(_oneInchAggregator);
         unoswapRouter = IUnoswapRouter(_unoswapRouter);
         uniswapRouter = IUniswapV2Router02(_uniswapRouter);

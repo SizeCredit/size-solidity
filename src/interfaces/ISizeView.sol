@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {DataView, UserView} from "@src/SizeViewStructs.sol";
+import {DataView, UserView} from "@src/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 import {
     InitializeFeeConfigParams,

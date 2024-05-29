@@ -1,17 +1,18 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
 import {ISize} from "@src/interfaces/ISize.sol";
 
+import {FlashLoanReceiverBase} from "@aave/flashloan/base/FlashLoanReceiverBase.sol";
+import {IPool} from "@aave/interfaces/IPool.sol";
+import {IPoolAddressesProvider} from "@aave/interfaces/IPoolAddressesProvider.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
 import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 import {DexSwap, SwapParams} from "@src/periphery/DexSwap.sol";
-import {FlashLoanReceiverBase} from "aave-v3-core/contracts/flashloan/base/FlashLoanReceiverBase.sol";
-import {IPool} from "aave-v3-core/contracts/interfaces/IPool.sol";
-import {IPoolAddressesProvider} from "aave-v3-core/contracts/interfaces/IPoolAddressesProvider.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 struct ReplacementParams {
     uint256 minAPR;
@@ -29,7 +30,7 @@ struct OperationParams {
 }
 
 contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
-    ISize public sizeLendingContract;
+    ISize public immutable sizeLendingContract;
 
     constructor(
         address _addressProvider,
@@ -43,6 +44,10 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider))
         DexSwap(_1inchAggregator, _unoswapRouter, _uniswapRouter, _collateralToken, _debtToken)
     {
+        if (_sizeLendingContractAddress == address(0) || _addressProvider == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
         POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
         sizeLendingContract = ISize(_sizeLendingContractAddress);
     }

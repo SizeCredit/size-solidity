@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SizeStorage, State, User} from "@src/SizeStorage.sol";
-import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {VariablePoolBorrowRateParams} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
 import {
@@ -17,15 +15,11 @@ import {
 } from "@src/libraries/fixed/LoanLibrary.sol";
 import {UpdateConfig} from "@src/libraries/general/actions/UpdateConfig.sol";
 
-import {IPool} from "@aave/interfaces/IPool.sol";
-
-import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
-import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
-
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
-import {DataView, UserView} from "@src/SizeViewStructs.sol";
+import {DataView, UserView} from "@src/SizeViewData.sol";
+
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
@@ -38,7 +32,7 @@ import {
 
 /// @title SizeView
 /// @notice View methods for the Size protocol
-abstract contract SizeView is ISizeView, SizeStorage {
+abstract contract SizeView is SizeStorage, ISizeView {
     using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
     using LoanLibrary for DebtPosition;
