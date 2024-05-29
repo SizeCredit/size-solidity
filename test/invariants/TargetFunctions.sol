@@ -88,11 +88,13 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             if (token == address(weth)) {
                 eq(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance + amount, DEPOSIT_01);
                 eq(_after.senderCollateralAmount, _before.senderCollateralAmount - amount, DEPOSIT_01);
+                eq(_after.sizeCollateralAmount, _before.sizeCollateralAmount + amount, DEPOSIT_02);
             } else {
                 if (variablePool.getReserveNormalizedIncome(address(usdc)) == WadRayMath.RAY) {
                     eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance + amount, DEPOSIT_01);
                 }
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
+                eq(_after.sizeCollateralAmount, _before.sizeCollateralAmount + amount, DEPOSIT_02);
             }
         }
     }
@@ -101,9 +103,6 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
 
         __before();
-
-        uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC;
-        amount = between(amount, 0, maxAmount);
 
         hevm.prank(sender);
         (success, returnData) = address(size).call(
@@ -121,6 +120,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
                     WITHDRAW_01
                 );
                 eq(_after.senderCollateralAmount, _before.senderCollateralAmount + withdrawnAmount, WITHDRAW_01);
+                eq(_after.sizeCollateralAmount, _before.sizeCollateralAmount - withdrawnAmount, WITHDRAW_02);
             } else {
                 withdrawnAmount = Math.min(amount, _before.sender.borrowATokenBalance);
                 if (variablePool.getReserveNormalizedIncome(address(usdc)) == WadRayMath.RAY) {
@@ -131,6 +131,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
                     );
                 }
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount + withdrawnAmount, WITHDRAW_01);
+                eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount - withdrawnAmount, WITHDRAW_01);
             }
         }
     }
@@ -272,6 +273,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, REPAY_01);
             gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, REPAY_02);
+            eq(uint256(_after.loanStatus), uint256(LoanStatus.REPAID), REPAY_03);
         }
     }
 
@@ -327,7 +329,8 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
                 lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, LIQUIDATE_02);
             }
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
-            t(_before.isBorrowerLiquidatable || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
+            t(_before.isBorrowerUnderwater || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
+            eq(uint256(_after.loanStatus), uint256(LoanStatus.REPAID), LIQUIDATE_05);
         }
     }
 
