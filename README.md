@@ -168,13 +168,19 @@ forge test
 
 ### Invariants implemented
 
-- Check [`Properties.sol`](./test/invariants/Properties.sol)
+- Check [`PropertiesSpecifications.sol`](./test/invariants/PropertiesSpecifications.sol)
 
 Run Echidna with
 
 ```bash
-echidna . --contract CryticTester --config echidna.yaml --test-mode property
-echidna . --contract CryticTester --config echidna.yaml --test-mode assertion
+yarn echidna-property
+yarn echidna-assertion
+```
+
+Check the coverage report with
+
+```bash
+yarn echidna-coverage
 ```
 
 ## Formal Verification

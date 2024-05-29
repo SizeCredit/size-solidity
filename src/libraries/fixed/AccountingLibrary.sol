@@ -40,16 +40,11 @@ library AccountingLibrary {
     function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount, bool cashReceived) public {
         DebtPosition storage debtPosition = state.getDebtPosition(debtPositionId);
 
-        if (repayAmount == debtPosition.futureValue) {
-            // full repayment
-            state.data.debtToken.burn(debtPosition.borrower, debtPosition.futureValue);
-            debtPosition.futureValue = 0;
-            if (cashReceived) {
-                debtPosition.liquidityIndexAtRepayment = state.data.borrowAToken.liquidityIndex();
-            }
-        } else {
-            state.data.debtToken.burn(debtPosition.borrower, repayAmount);
-            debtPosition.futureValue -= repayAmount;
+        state.data.debtToken.burn(debtPosition.borrower, repayAmount);
+        debtPosition.futureValue -= repayAmount;
+
+        if (debtPosition.futureValue == 0 && cashReceived) {
+            debtPosition.liquidityIndexAtRepayment = state.data.borrowAToken.liquidityIndex();
         }
 
         emit Events.UpdateDebtPosition(
@@ -179,11 +174,12 @@ library AccountingLibrary {
     ) internal view returns (uint256 creditAmountIn, uint256 fees) {
         uint256 swapFeePercent = getSwapFeePercent(state, tenor);
 
-        uint256 maxCashAmountOutFragmentation = Math.mulDivDown(
-            maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerTenor
-        ) - state.feeConfig.fragmentationFee;
-
+        uint256 maxCashAmountOutFragmentation = 0;
         uint256 maxCashAmountOut = Math.mulDivDown(maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerTenor);
+
+        if (maxCashAmountOut >= state.feeConfig.fragmentationFee) {
+            maxCashAmountOutFragmentation = maxCashAmountOut - state.feeConfig.fragmentationFee;
+        }
 
         // slither-disable-next-line incorrect-equality
         if (cashAmountOut == maxCashAmountOut) {

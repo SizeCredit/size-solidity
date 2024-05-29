@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {TargetFunctions} from "./TargetFunctions.sol";
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
 
-import {PropertiesSpec} from "@test/invariants/PropertiesSpec.sol";
+import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract Handler is TargetFunctions, FoundryAsserts {
@@ -24,7 +24,7 @@ contract Handler is TargetFunctions, FoundryAsserts {
     }
 }
 
-contract FoundryTester is Test, PropertiesSpec {
+contract FoundryTester is Test, PropertiesSpecifications {
     Handler public handler;
 
     function setUp() public {
@@ -37,5 +37,6 @@ contract FoundryTester is Test, PropertiesSpec {
         assertTrue(handler.property_UNDERWATER(), UNDERWATER);
         assertTrue(handler.property_TOKENS(), TOKENS);
         assertTrue(handler.property_SOLVENCY(), SOLVENCY);
+        assertTrue(handler.property_FEES(), FEES);
     }
 }

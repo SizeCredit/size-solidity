@@ -114,18 +114,24 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISizeAdmin
-    function setVariablePoolBorrowRate(uint128 borrowRate) external onlyRole(BORROW_RATE_UPDATER_ROLE) {
+    function setVariablePoolBorrowRate(uint128 borrowRate)
+        external
+        override(ISizeAdmin)
+        onlyRole(BORROW_RATE_UPDATER_ROLE)
+    {
         uint128 oldBorrowRate = state.oracle.variablePoolBorrowRate;
         state.oracle.variablePoolBorrowRate = borrowRate;
         state.oracle.variablePoolBorrowRateUpdatedAt = uint64(block.timestamp);
         emit Events.VariablePoolBorrowRateUpdated(oldBorrowRate, borrowRate);
     }
 
-    function pause() public onlyRole(PAUSER_ROLE) {
+    /// @inheritdoc ISizeAdmin
+    function pause() public override(ISizeAdmin) onlyRole(PAUSER_ROLE) {
         _pause();
     }
 
-    function unpause() public onlyRole(PAUSER_ROLE) {
+    /// @inheritdoc ISizeAdmin
+    function unpause() public override(ISizeAdmin) onlyRole(PAUSER_ROLE) {
         _unpause();
     }
 

@@ -3,8 +3,8 @@ pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
 
-import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
-import {PropertiesSpec} from "@test/invariants/PropertiesSpec.sol";
+import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
+import {TargetFunctions} from "@test/invariants/TargetFunctions.sol";
 
 import {UserView} from "@src/SizeView.sol";
 
@@ -18,7 +18,7 @@ import {
 } from "@src/libraries/fixed/LoanLibrary.sol";
 // import {console2 as console} from "forge-std/console2.sol";
 
-abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
+abstract contract Properties is Ghosts, PropertiesSpecifications {
     using LoanLibrary for DebtPosition;
 
     event L1(uint256 a);
@@ -28,17 +28,29 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
 
     function property_LOAN() public returns (bool) {
         (uint256 minimumCreditBorrowAToken,) = size.getCryticVariables();
+        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
         CreditPosition[] memory creditPositions = size.getCreditPositions();
 
         for (uint256 i = 0; i < creditPositions.length; i++) {
             t(creditPositions[i].credit == 0 || creditPositions[i].credit >= minimumCreditBorrowAToken, LOAN_01);
         }
+
+        gte(creditPositionsCount, debtPositionsCount, LOAN_03);
+
         return true;
     }
 
     function property_UNDERWATER() public returns (bool) {
-        t(!(!_before.isSenderLiquidatable && _after.isSenderLiquidatable), UNDERWATER_01);
-        t(!(_before.isSenderLiquidatable && _after.debtPositionsCount > _before.debtPositionsCount), UNDERWATER_02);
+        address[3] memory users = [USER1, USER2, USER3];
+        for (uint256 i = 0; i < users.length; i++) {
+            if (!_before.isUserUnderwater[i] && _after.isUserUnderwater[i]) {
+                t(false, UNDERWATER_01);
+            }
+        }
+
+        if (_before.isSenderUnderwater && _after.debtPositionsCount > _before.debtPositionsCount) {
+            t(false, UNDERWATER_02);
+        }
 
         return true;
     }
@@ -101,6 +113,42 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
         }
 
         eq(totalDebt, size.data().debtToken.totalSupply(), SOLVENCY_04);
+
+        return true;
+    }
+
+    function property_FEES() public returns (bool) {
+        (, address feeRecipient) = size.getCryticVariables();
+
+        if (_after.creditPositionsCount > _before.creditPositionsCount) {
+            if (_before.sig == TargetFunctions.compensate.selector) {
+                eq(
+                    _after.feeRecipient.collateralTokenBalance,
+                    _before.feeRecipient.collateralTokenBalance
+                        + size.debtTokenAmountToCollateralTokenAmount(size.feeConfig().fragmentationFee),
+                    FEES_01
+                );
+            } else {
+                gte(
+                    _after.feeRecipient.borrowATokenBalance,
+                    _before.feeRecipient.borrowATokenBalance + size.feeConfig().fragmentationFee,
+                    FEES_01
+                );
+            }
+        }
+
+        if (
+            (
+                _before.sig == TargetFunctions.sellCreditMarket.selector
+                    || _before.sig == TargetFunctions.buyCreditMarket.selector
+            )
+        ) {
+            if (size.feeConfig().swapFeeAPR > 0) {
+                gt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
+            } else {
+                gte(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
+            }
+        }
 
         return true;
     }

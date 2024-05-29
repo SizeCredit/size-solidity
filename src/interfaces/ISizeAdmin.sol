@@ -19,4 +19,12 @@ interface ISizeAdmin {
     /// @dev The variable pool borrow rate cannot be used if the variablePoolBorrowRateStaleRateInterval is set to zero
     /// @param borrowRate The new borrow rate
     function setVariablePoolBorrowRate(uint128 borrowRate) external;
+
+    /// @notice Pauses the protocol
+    ///         Only callabe by the DEFAULT_ADMIN_ROLE
+    function pause() external;
+
+    /// @notice Unpauses the protocol
+    ///         Only callabe by the DEFAULT_ADMIN_ROLE
+    function unpause() external;
 }

@@ -2,22 +2,29 @@
 pragma solidity 0.8.23;
 
 import {Asserts} from "@chimera/Asserts.sol";
+
+import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 import {UserView} from "@src/SizeView.sol";
 import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Deploy} from "@script/Deploy.sol";
 
-abstract contract Ghosts is Deploy, Asserts {
+abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
     struct Vars {
+        bytes4 sig;
         UserView sender;
         UserView borrower;
         UserView lender;
+        UserView feeRecipient;
         LoanStatus loanStatus;
-        bool isSenderLiquidatable;
-        bool isBorrowerLiquidatable;
+        bool[3] isUserUnderwater;
+        bool isSenderUnderwater;
+        bool isBorrowerUnderwater;
         uint256 senderCollateralAmount;
         uint256 senderBorrowAmount;
+        uint256 sizeCollateralAmount;
+        uint256 sizeBorrowAmount;
         uint256 debtPositionsCount;
         uint256 creditPositionsCount;
         uint256 variablePoolBorrowAmount;
@@ -40,6 +47,8 @@ abstract contract Ghosts is Deploy, Asserts {
     }
 
     function __snapshot(Vars storage vars, uint256 positionId) internal {
+        vars.sig = msg.sig;
+        (, address feeRecipient) = size.getCryticVariables();
         CreditPosition memory c;
         DebtPosition memory d;
         UserView memory e;
@@ -50,19 +59,26 @@ abstract contract Ghosts is Deploy, Asserts {
                 c = size.getCreditPosition(positionId);
                 d = size.getDebtPosition(c.debtPositionId);
                 vars.borrower = size.getUserView(d.borrower);
-                vars.isBorrowerLiquidatable = size.isUserUnderwater(vars.borrower.account);
+                vars.isBorrowerUnderwater = size.isUserUnderwater(vars.borrower.account);
                 vars.lender = size.getUserView(c.lender);
             } else {
                 d = size.getDebtPosition(positionId);
                 vars.borrower = size.getUserView(d.borrower);
-                vars.isBorrowerLiquidatable = size.isUserUnderwater(d.borrower);
+                vars.isBorrowerUnderwater = size.isUserUnderwater(d.borrower);
             }
             vars.loanStatus = size.getLoanStatus(positionId);
         }
         vars.sender = size.getUserView(sender);
-        vars.isSenderLiquidatable = size.isUserUnderwater(sender);
+        vars.feeRecipient = size.getUserView(feeRecipient);
+        vars.isSenderUnderwater = size.isUserUnderwater(sender);
+        address[3] memory users = [USER1, USER2, USER3];
+        for (uint256 i = 0; i < users.length; i++) {
+            vars.isUserUnderwater[i] = size.isUserUnderwater(users[i]);
+        }
         vars.senderCollateralAmount = weth.balanceOf(sender);
         vars.senderBorrowAmount = usdc.balanceOf(sender);
+        vars.sizeCollateralAmount = weth.balanceOf(address(size));
+        vars.sizeBorrowAmount = usdc.balanceOf(address(variablePool));
         (vars.debtPositionsCount, vars.creditPositionsCount) = size.getPositionsCount();
         vars.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowATokenBalance;
         vars.totalDebtAmount = size.data().debtToken.totalSupply();
