@@ -174,11 +174,12 @@ library AccountingLibrary {
     ) internal view returns (uint256 creditAmountIn, uint256 fees) {
         uint256 swapFeePercent = getSwapFeePercent(state, tenor);
 
-        uint256 maxCashAmountOutFragmentation = Math.mulDivDown(
-            maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerTenor
-        ) - state.feeConfig.fragmentationFee;
-
+        uint256 maxCashAmountOutFragmentation;
         uint256 maxCashAmountOut = Math.mulDivDown(maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerTenor);
+
+        if (maxCashAmountOut >= state.feeConfig.fragmentationFee) {
+            maxCashAmountOutFragmentation = maxCashAmountOut - state.feeConfig.fragmentationFee;
+        }
 
         // slither-disable-next-line incorrect-equality
         if (cashAmountOut == maxCashAmountOut) {
