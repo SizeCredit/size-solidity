@@ -426,7 +426,11 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         if (success) {
             __after(creditPositionWithDebtToRepayId);
 
-            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, COMPENSATE_01);
+            if (creditPositionToCompensateId == RESERVED_ID) {
+                eq(_after.borrower.debtBalance, _before.borrower.debtBalance, COMPENSATE_01);
+            } else {
+                lt(_after.borrower.debtBalance, _before.borrower.debtBalance, COMPENSATE_02);
+            }
         }
     }
 
@@ -487,11 +491,26 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             "collateralProtocolPercent",
             "variablePoolBorrowRateStaleRateInterval"
         ];
+        uint256[12] memory maxValues = [
+            MAX_PERCENT,
+            MAX_PERCENT,
+            MAX_AMOUNT_USDC,
+            MAX_AMOUNT_USDC,
+            MAX_DURATION,
+            MAX_DURATION,
+            MAX_PERCENT,
+            MAX_AMOUNT_USDC,
+            MAX_PERCENT,
+            MAX_PERCENT,
+            MAX_PERCENT,
+            MAX_DURATION
+        ];
         i = between(i, 0, keys.length - 1);
         string memory key = keys[i];
+        value = between(value, 0, maxValues[i]);
         size.updateConfig(UpdateConfigParams({key: key, value: value}));
 
-        uint128 borrowRate = uint128(between(value, 0, MAX_BORROW_RATE));
+        uint128 borrowRate = uint128(between(value, 0, MAX_PERCENT));
         size.setVariablePoolBorrowRate(borrowRate);
     }
 }

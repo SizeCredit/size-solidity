@@ -60,6 +60,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.AMOUNT_GREATER_THAN_CREDIT_POSITION_CREDIT.selector);
         SELL_CREDIT_MARKET_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.STALE_RATE.selector);
+        SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
 
         SELL_CREDIT_LIMIT_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
 

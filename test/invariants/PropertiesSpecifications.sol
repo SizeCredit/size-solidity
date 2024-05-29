@@ -44,7 +44,10 @@ abstract contract PropertiesSpecifications {
         "UNDERWATER_01: A user cannot make an operation that leaves any users underwater";
     string internal constant UNDERWATER_02 = "UNDERWATER_02: Underwater users cannot borrow";
 
-    string internal constant COMPENSATE_01 = "COMPENSATE_01: Compensate reduces the borrower debt";
+    string internal constant COMPENSATE_01 =
+        "COMPENSATE_01: Compensate does not change the borrower debt if minting new credit";
+    string internal constant COMPENSATE_02 =
+        "COMPENSATE_02: Compensate reduces the borrower debt if using an existing credit";
 
     string internal constant SOLVENCY = "SOLVENCY: Solvency properties";
     string internal constant SOLVENCY_01 = "SOLVENCY_01: SUM(outstanding credit) == SUM(outstanding debt)";
