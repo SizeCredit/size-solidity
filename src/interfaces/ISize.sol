@@ -17,7 +17,14 @@ import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
 
 import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
+import {
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
+} from "@src/libraries/general/actions/Initialize.sol";
 
+import {IMulticall} from "@src/interfaces/IMulticall.sol";
+import {ISizeView} from "@src/interfaces/ISizeView.sol";
 import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
@@ -28,7 +35,7 @@ import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
 /// @notice This interface is the main interface for all user-facing methods of the Size protocol
 /// @dev All functions are `payable` to allow for ETH deposits in a `multicall` pattern.
 ///      See `Multicall.sol`
-interface ISize is ISizeAdmin {
+interface ISize is ISizeView, ISizeAdmin, IMulticall {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always deposited into the Variable Pool,
     ///         Collateral tokens are deposited into the Size contract through the DepositTokenLibrary
@@ -170,10 +177,4 @@ interface ISize is ISizeAdmin {
     ///     - bool creditPositionIdsForSale: This flag indicates if the creditPositionIds array should be set for sale or not
     ///     - uint256[] creditPositionIds: The id of the credit positions
     function setUserConfiguration(SetUserConfigurationParams calldata params) external payable;
-
-    /// @notice Receives and executes a batch of function calls on this contract.
-    /// @dev Reverts if any of the calls fails.
-    /// @param data The encoded data for all the function calls to execute.
-    /// @return results The results of all the function calls.
-    function multicall(bytes[] calldata data) external payable returns (bytes[] memory results);
 }

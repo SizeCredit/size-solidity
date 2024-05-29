@@ -13,6 +13,9 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         vm.deal(address(USER2), 100e18);
         vm.deal(address(USER3), 100e18);
 
+        vm.warp(1524785992);
+        vm.roll(4370000);
+
         setup();
     }
 
@@ -33,7 +36,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
 
     function test_CryticToFoundry_02() public {
         deposit(0xe11bcd2D4941AA8648b2c1D5e470D915c05CC603, 73899321702418552725334123008022);
-        invariant_TOKENS();
+        property_TOKENS();
     }
 
     function test_CryticToFoundry_03() public {
@@ -42,6 +45,16 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
             115792089237316195423570985008687907853269984665640564039457584007913129639932
         );
         setLiquidityIndex(115792089237316195423570985008687907853269984665640564039457584007913129639934, 3);
-        invariant_TOKENS();
+        property_TOKENS();
+    }
+
+    function test_CryticToFoundry_06() public {
+        deposit(address(0xdeadbeef), 0);
+        buyCreditLimit(627253, 3);
+        deposit(address(0x0), 277173003316296293927);
+        sellCreditMarket(address(0x0), 0, 8364335607247948167695496674283411717220691865669214800699, 605956, false);
+        sellCreditMarket(
+            address(0x0), 0, 17217729, 8089560715892272342403863296103953896773539712036938251612026, false
+        );
     }
 }

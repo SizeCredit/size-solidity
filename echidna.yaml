@@ -1,5 +1,5 @@
 testMode: "assertion"
-prefix: "invariant_"
+prefix: "property_"
 coverage: true
 stopOnFail: true
 corpusDir: "echidna"
