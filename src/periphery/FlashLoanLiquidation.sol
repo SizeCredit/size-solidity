@@ -7,6 +7,8 @@ import {FlashLoanReceiverBase} from "@aave/flashloan/base/FlashLoanReceiverBase.
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/interfaces/IPoolAddressesProvider.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
 import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
@@ -30,26 +32,28 @@ struct OperationParams {
 }
 
 contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
-    ISize public immutable sizeLendingContract;
+    using SafeERC20 for IERC20;
+
+    ISize public immutable size;
 
     constructor(
         address _addressProvider,
-        address _sizeLendingContractAddress,
+        address _size,
         address _1inchAggregator,
         address _unoswapRouter,
         address _uniswapRouter,
         address _collateralToken,
-        address _debtToken
+        address _borrowToken
     )
         FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider))
-        DexSwap(_1inchAggregator, _unoswapRouter, _uniswapRouter, _collateralToken, _debtToken)
+        DexSwap(_1inchAggregator, _unoswapRouter, _uniswapRouter, _collateralToken, _borrowToken)
     {
-        if (_sizeLendingContractAddress == address(0) || _addressProvider == address(0)) {
+        if (_size == address(0) || _addressProvider == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
         POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
-        sizeLendingContract = ISize(_sizeLendingContractAddress);
+        size = ISize(_size);
     }
 
     function executeOperation(
@@ -85,11 +89,11 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         ReplacementParams memory replacementParams
     ) internal {
         // Approve USDC to repay the borrower's debt
-        IERC20(debtToken).approve(address(sizeLendingContract), debtAmount);
+        IERC20(borrowToken).forceApprove(address(size), debtAmount);
 
         // Encode Deposit
         bytes memory depositCall = abi.encodeWithSelector(
-            ISize.deposit.selector, DepositParams({token: debtToken, amount: debtAmount, to: address(this)})
+            ISize.deposit.selector, DepositParams({token: borrowToken, amount: debtAmount, to: address(this)})
         );
 
         // Encode Liquidate with Replacement
@@ -116,18 +120,18 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         calls[1] = liquidateCall;
         calls[2] = withdrawCall;
 
-        sizeLendingContract.multicall(calls);
+        size.multicall(calls);
     }
 
     function liquidateDebtPosition(uint256 debtAmount, uint256 debtPositionId, uint256 minimumCollateralProfit)
         internal
     {
         // Approve USDC to repay the borrower's debt
-        IERC20(debtToken).approve(address(sizeLendingContract), debtAmount);
+        IERC20(borrowToken).forceApprove(address(size), debtAmount);
 
         // Encode Deposit
         bytes memory depositCall = abi.encodeWithSelector(
-            ISize.deposit.selector, DepositParams({token: debtToken, amount: debtAmount, to: address(this)})
+            ISize.deposit.selector, DepositParams({token: borrowToken, amount: debtAmount, to: address(this)})
         );
 
         // Encode Liquidate
@@ -148,7 +152,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         calls[1] = liquidateCall;
         calls[2] = withdrawCall;
 
-        sizeLendingContract.multicall(calls);
+        size.multicall(calls);
     }
 
     function settleFlashLoan(
@@ -166,7 +170,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         IERC20(assets[0]).transfer(liquidator, amountToLiquidator);
 
         // Approve the Pool contract to pull the owed amount
-        IERC20(assets[0]).approve(address(POOL), amounts[0] + premiums[0]);
+        IERC20(assets[0]).forceApprove(address(POOL), amounts[0] + premiums[0]);
     }
 
     function liquidatePositionWithFlashLoan(
@@ -188,9 +192,9 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         bytes memory params = abi.encode(opParams);
 
         address[] memory assets = new address[](1);
-        assets[0] = debtToken;
+        assets[0] = borrowToken;
         uint256[] memory amounts = new uint256[](1);
-        amounts[0] = sizeLendingContract.getDebtPosition(debtPositionId).futureValue;
+        amounts[0] = size.getDebtPosition(debtPositionId).futureValue;
         uint256[] memory modes = new uint256[](1);
         modes[0] = 0;
 
