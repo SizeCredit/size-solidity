@@ -25,6 +25,8 @@ import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
 
+import {DataView, UserView} from "@src/SizeViewStructs.sol";
+import {ISizeView} from "@src/interfaces/ISizeView.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {
@@ -34,28 +36,9 @@ import {
     InitializeRiskConfigParams
 } from "@src/libraries/general/actions/Initialize.sol";
 
-struct UserView {
-    User user;
-    address account;
-    uint256 collateralTokenBalance;
-    uint256 borrowATokenBalance;
-    uint256 debtBalance;
-}
-
-struct DataView {
-    uint256 nextDebtPositionId;
-    uint256 nextCreditPositionId;
-    IERC20Metadata underlyingCollateralToken;
-    IERC20Metadata underlyingBorrowToken;
-    NonTransferrableToken collateralToken;
-    NonTransferrableScaledToken borrowAToken;
-    NonTransferrableToken debtToken;
-    IPool variablePool;
-}
-
 /// @title SizeView
 /// @notice View methods for the Size protocol
-abstract contract SizeView is SizeStorage {
+abstract contract SizeView is ISizeView, SizeStorage {
     using OfferLibrary for LoanOffer;
     using OfferLibrary for BorrowOffer;
     using LoanLibrary for DebtPosition;
