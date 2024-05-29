@@ -26,7 +26,7 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
     event L3(uint256 a, uint256 b, uint256 c);
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
-    function invariant_LOAN() public returns (bool) {
+    function property_LOAN() public returns (bool) {
         (uint256 minimumCreditBorrowAToken,) = size.getCryticVariables();
         CreditPosition[] memory creditPositions = size.getCreditPositions();
 
@@ -36,14 +36,14 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
         return true;
     }
 
-    function invariant_UNDERWATER() public returns (bool) {
+    function property_UNDERWATER() public returns (bool) {
         t(!(!_before.isSenderLiquidatable && _after.isSenderLiquidatable), UNDERWATER_01);
         t(!(_before.isSenderLiquidatable && _after.debtPositionsCount > _before.debtPositionsCount), UNDERWATER_02);
 
         return true;
     }
 
-    function invariant_TOKENS() public returns (bool) {
+    function property_TOKENS() public returns (bool) {
         (, address feeRecipient) = size.getCryticVariables();
         address[6] memory users = [USER1, USER2, USER3, address(size), address(variablePool), address(feeRecipient)];
 
@@ -62,7 +62,7 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
         return true;
     }
 
-    function invariant_SOLVENCY() public returns (bool) {
+    function property_SOLVENCY() public returns (bool) {
         uint256 outstandingDebt;
         uint256 outstandingCredit;
 

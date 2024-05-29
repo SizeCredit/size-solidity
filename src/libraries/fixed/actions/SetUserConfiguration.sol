@@ -59,7 +59,9 @@ library SetUserConfiguration {
         for (uint256 i = 0; i < params.creditPositionIds.length; i++) {
             CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionIds[i]);
             creditPosition.forSale = params.creditPositionIdsForSale;
-            emit Events.UpdateCreditPosition(params.creditPositionIds[i], creditPosition.credit, creditPosition.forSale);
+            emit Events.UpdateCreditPosition(
+                params.creditPositionIds[i], creditPosition.lender, creditPosition.credit, creditPosition.forSale
+            );
         }
 
         emit Events.SetUserConfiguration(

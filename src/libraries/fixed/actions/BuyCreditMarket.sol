@@ -39,6 +39,11 @@ library BuyCreditMarket {
         if (params.creditPositionId == RESERVED_ID) {
             borrower = params.borrower;
             tenor = params.tenor;
+
+            // validate tenor
+            if (tenor < state.riskConfig.minimumTenor || tenor > state.riskConfig.maximumTenor) {
+                revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minimumTenor, state.riskConfig.maximumTenor);
+            }
         } else {
             CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
@@ -59,13 +64,9 @@ library BuyCreditMarket {
             if (debtPosition.dueDate < block.timestamp) {
                 revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
             }
+
             borrower = creditPosition.lender;
             tenor = debtPosition.dueDate - block.timestamp;
-        }
-
-        // validate tenor
-        if (tenor < state.riskConfig.minimumTenor) {
-            revert Errors.TENOR_BELOW_MINIMUM_TENOR(tenor, state.riskConfig.minimumTenor);
         }
 
         BorrowOffer memory borrowOffer = state.data.users[borrower].borrowOffer;
@@ -118,6 +119,7 @@ library BuyCreditMarket {
         } else {
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
             creditPosition = state.getCreditPosition(params.creditPositionId);
+
             borrower = creditPosition.lender;
             tenor = debtPosition.dueDate - block.timestamp;
         }

@@ -15,7 +15,7 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract BuyCreditMarketTest is BaseTest {
-    function test_BuyCreditMarket_parameter_validation() public {
+    function test_BuyCreditMarket_validation() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -63,7 +63,9 @@ contract BuyCreditMarketTest is BaseTest {
         );
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.TENOR_BELOW_MINIMUM_TENOR.selector, 0, size.riskConfig().minimumTenor)
+            abi.encodeWithSelector(
+                Errors.TENOR_OUT_OF_RANGE.selector, 0, size.riskConfig().minimumTenor, size.riskConfig().maximumTenor
+            )
         );
         size.buyCreditMarket(
             BuyCreditMarketParams({

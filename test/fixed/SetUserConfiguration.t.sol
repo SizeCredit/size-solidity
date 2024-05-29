@@ -27,7 +27,7 @@ contract SetUserConfigurationTest is BaseTest {
 
         uint256 tenor = 6 * 30 days;
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, tenor, false);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         uint256 futureValue = size.getDebtPosition(debtPositionId1).futureValue;
 
         CreditPosition memory creditPosition = size.getCreditPosition(creditPositionId1_1);
@@ -55,10 +55,10 @@ contract SetUserConfigurationTest is BaseTest {
 
         uint256 tenor = 6 * 30 days;
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, RESERVED_ID, 975.94e6, tenor, false);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         uint256 futureValue1 = size.getDebtPosition(debtPositionId1).futureValue;
         uint256 debtPositionId2 = _sellCreditMarket(bob, alice, RESERVED_ID, 500e6, tenor, false);
-        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
+        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         uint256 futureValue2 = size.getDebtPosition(debtPositionId2).futureValue;
 
         uint256[] memory creditPositionIds = new uint256[](1);

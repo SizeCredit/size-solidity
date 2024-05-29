@@ -89,7 +89,7 @@ contract BuyCreditLimitTest is BaseTest {
 
         _deposit(bob, weth, 20_000e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 10_000e6, 180 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         assertEqApprox(futureValue, 10_300e6, 100e6);
 

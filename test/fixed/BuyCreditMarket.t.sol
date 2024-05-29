@@ -227,9 +227,9 @@ contract BuyCreditMarketLendTest is BaseTest {
         _sellCreditLimit(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, 975.94e6, 6 * 30 days, false);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         uint256 debtPositionId2 = _sellCreditMarket(james, candy, 1000.004274e6, 7 * 30 days, false);
-        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[1];
+        uint256 creditPositionId2_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
 
         assertEq(size.getDebtPosition(debtPositionId1).futureValue, 1000.004274e6);
         assertEq(_state().alice.borrowATokenBalance, 24.06e6);
@@ -239,7 +239,7 @@ contract BuyCreditMarketLendTest is BaseTest {
 
         assertEqApprox(_state().james.borrowATokenBalance, 2000e6 - 980.66e6, 0.01e6);
 
-        uint256 creditPositionId1_2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[2];
+        uint256 creditPositionId1_2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         _compensate(james, creditPositionId2_1, creditPositionId1_2);
 
         assertEqApprox(_state().alice.borrowATokenBalance, 1004e6, 1e6);
@@ -259,7 +259,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _sellCreditLimit(alice, YieldCurveHelper.pointCurve(365 days, 1e18));
 
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, 100e6, 365 days, false);
-        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
 
         Vars memory _before = _state();
 

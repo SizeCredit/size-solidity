@@ -87,7 +87,7 @@ contract RepayTest is BaseTest {
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(bob, candy, RESERVED_ID, 100e6, 365 days, false);
 
         Vars memory _before = _state();
@@ -120,7 +120,7 @@ contract RepayTest is BaseTest {
         _deposit(bob, weth, 160e18);
         _buyCreditLimit(alice, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, borrowATokenBalance, 12 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         vm.prank(bob);
         try size.repay(RepayParams({debtPositionId: debtPositionId})) {} catch {}

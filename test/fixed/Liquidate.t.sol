@@ -225,7 +225,7 @@ contract LiquidateTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
-        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         vm.warp(block.timestamp + 365 days + 1);
 
@@ -354,7 +354,7 @@ contract LiquidateTest is BaseTest {
         assertEq(size.getLoanStatus(0), LoanStatus.OVERDUE, "Loan should be overdue");
         (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
         assertEq(debtPositionsCount, 1);
-        assertEq(creditPositionsCount, 2);
+        assertEq(creditPositionsCount, 1);
 
         assertGt(size.getDebtPosition(0).futureValue, 0, "Loan should not be repaid before moving to the variable pool");
         uint256 aliceCollateralBefore = _state().alice.collateralTokenBalance;

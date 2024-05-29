@@ -60,7 +60,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
 
     function test_CryticToFoundry_04() public {
         deposit(0xe11bcd2D4941AA8648b2c1D5e470D915c05CC603, 73899321702418552725334123008022);
-        invariant_TOKENS();
+        property_TOKENS();
     }
 
     function test_CryticToFoundry_05() public {
@@ -69,7 +69,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
             115792089237316195423570985008687907853269984665640564039457584007913129639932
         );
         setLiquidityIndex(115792089237316195423570985008687907853269984665640564039457584007913129639934, 3);
-        invariant_TOKENS();
+        property_TOKENS();
     }
 
     function test_CryticToFoundry_06() public {

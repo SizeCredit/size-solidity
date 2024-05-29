@@ -20,7 +20,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
         assertEq(size.getDebtPosition(debtPositionId).futureValue, 100e6);
@@ -64,11 +64,11 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
-        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, candy, creditPositionId1, 70e6, 365 days);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(candy, james, creditPositionId2, 30e6, 365 days);
-        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[3];
+        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 200e18);
         assertEq(size.getDebtPosition(debtPositionId).futureValue, 100e6);
@@ -103,9 +103,9 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, candy, creditPositionId, 365 days);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, james, RESERVED_ID, 100e6, 365 days, false);
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
@@ -143,7 +143,7 @@ contract SelfLiquidateTest is BaseTest {
         _deposit(liquidator, usdc, 10_000e6);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         _setPrice(0.5e18);
         _selfLiquidate(alice, creditPositionId);
@@ -166,7 +166,7 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, 365 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         uint256 credit = 10e6;
         _sellCreditMarket(alice, candy, creditPositionId, credit, 365 days);
         _sellCreditMarket(alice, james, RESERVED_ID, 80e6, 365 days, false);
@@ -196,11 +196,11 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, candy, creditPositionId, 49e6, 365 days);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1];
         _sellCreditMarket(candy, bob, creditPositionId2, 44e6, 365 days);
-        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[3];
+        uint256 creditPositionId3 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[2];
         _sellCreditMarket(alice, james, RESERVED_ID, 60e6, 365 days, false);
         _sellCreditMarket(candy, james, RESERVED_ID, 80e6, 365 days, false);
 
@@ -235,9 +235,9 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, 100e6, 365 days, false);
-        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         _sellCreditMarket(candy, james, creditPositionId1, 30e6, 365 days);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[2];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
 
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId1), 150e18);
         assertEq(size.getDebtPosition(debtPositionId1).futureValue, 100e6);
@@ -268,9 +268,9 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, 100e6, 365 days, false);
-        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         _sellCreditMarket(candy, james, creditPositionId1, 30e6, 365 days);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[2];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
 
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
         _setPrice(0.5e18);
@@ -304,9 +304,9 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);
-        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         _sellCreditMarket(candy, james, creditPositionId1, exitAmount, 365 days);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[2];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
 
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
         _setPrice(0.4e18);
@@ -340,9 +340,9 @@ contract SelfLiquidateTest is BaseTest {
         _sellCreditLimit(james, 0, 365 days);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);
-        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         _sellCreditMarket(candy, james, creditPositionId1, exitAmount, 365 days);
-        uint256 creditPositionId12 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[2];
+        uint256 creditPositionId12 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
 
         _setPrice(0.5e18 - 1);
 
@@ -375,7 +375,7 @@ contract SelfLiquidateTest is BaseTest {
         _sellCreditLimit(james, 0, 365 days);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);
-        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         _sellCreditMarket(candy, james, creditPositionId1, exitAmount, 365 days);
 
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
@@ -407,7 +407,7 @@ contract SelfLiquidateTest is BaseTest {
         _sellCreditLimit(james, 0, 365 days);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);
-        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         _sellCreditMarket(candy, james, creditPositionId1, exitAmount, 365 days);
 
         _setPrice(0.5e18);
@@ -439,9 +439,9 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);
-        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
+        uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
         _sellCreditMarket(candy, james, creditPositionId1, exitAmount, 365 days);
-        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[2];
+        uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[1];
 
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
         _setPrice(0.5e18);
@@ -466,7 +466,7 @@ contract SelfLiquidateTest is BaseTest {
         assertTrue(size.isUserUnderwater(alice));
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
-        _selfLiquidate(bob, size.getCreditPositionIdsByDebtPositionId(debtPositionId)[1]);
+        _selfLiquidate(bob, size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0]);
 
         assertGt(_state().bob.collateralTokenBalance, 0);
         assertEq(size.getDebtPosition(debtPositionId).futureValue, 0);
