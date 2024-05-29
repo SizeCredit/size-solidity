@@ -94,7 +94,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
                     eq(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance + amount, DEPOSIT_01);
                 }
                 eq(_after.senderBorrowAmount, _before.senderBorrowAmount - amount, DEPOSIT_01);
-                eq(_after.sizeCollateralAmount, _before.sizeCollateralAmount + amount, DEPOSIT_02);
+                eq(_after.sizeBorrowAmount, _before.sizeBorrowAmount + amount, DEPOSIT_02);
             }
         }
     }
