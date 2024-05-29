@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-abstract contract PropertiesSpec {
+abstract contract PropertiesSpecifications {
     string internal constant DEPOSIT_01 = "DEPOSIT_01: Deposit credits the sender";
     string internal constant DEPOSIT_02 = "DEPOSIT_02: Deposit transfers tokens to the protocol";
 

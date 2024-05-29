@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
 
-import {PropertiesSpec} from "@test/invariants/PropertiesSpec.sol";
+import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 import {TargetFunctions} from "@test/invariants/TargetFunctions.sol";
 
 import {UserView} from "@src/SizeView.sol";
@@ -18,7 +18,7 @@ import {
 } from "@src/libraries/fixed/LoanLibrary.sol";
 // import {console2 as console} from "forge-std/console2.sol";
 
-abstract contract Properties is Ghosts, PropertiesSpec {
+abstract contract Properties is Ghosts, PropertiesSpecifications {
     using LoanLibrary for DebtPosition;
 
     event L1(uint256 a);
