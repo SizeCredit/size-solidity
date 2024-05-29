@@ -65,7 +65,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         curve.tenors[1] = 40 days;
         try this.validate(curve, minimumTenor, maximumTenor) {}
         catch (bytes memory err) {
-            assertEq(bytes4(err), Errors.TENOR_BELOW_MINIMUM_TENOR.selector);
+            assertEq(bytes4(err), Errors.TENOR_OUT_OF_RANGE.selector);
         }
 
         curve.tenors[0] = 150 days;

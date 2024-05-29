@@ -38,6 +38,8 @@ import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
 
 import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
 
+import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
+
 import {KEEPER_ROLE} from "@src/Size.sol";
 
 // import {console2 as console} from "forge-std/console2.sol";
@@ -143,6 +145,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         __before();
 
         lender = _getRandomUser(lender);
+        creditPositionId = _getCreditPositionId(creditPositionId);
         amount = between(amount, 0, MAX_AMOUNT_USDC / 100);
         tenor = between(tenor, 0, MAX_DURATION);
 
@@ -168,14 +171,17 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             if (lender != sender) {
                 gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
+
+            if (creditPositionId == RESERVED_ID) {
+                eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
+                uint256 debtPositionId = DEBT_POSITION_ID_START + _after.debtPositionsCount - 1;
+                tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
+                t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
+            }
         }
     }
 
-    function sellCreditLimit(uint256 yieldCurveSeed)
-        public
-        getSender
-        checkExpectedErrors(BORROW_AS_LIMIT_ORDER_ERRORS)
-    {
+    function sellCreditLimit(uint256 yieldCurveSeed) public getSender checkExpectedErrors(SELL_CREDIT_LIMIT_ERRORS) {
         __before();
 
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
@@ -189,10 +195,17 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function buyCreditMarket(address borrower, uint256 tenor, uint256 amount, bool exactAmountIn) public getSender {
+    function buyCreditMarket(
+        address borrower,
+        uint256 creditPositionId,
+        uint256 tenor,
+        uint256 amount,
+        bool exactAmountIn
+    ) public getSender checkExpectedErrors(BUY_CREDIT_MARKET_ERRORS) {
         __before();
 
         borrower = _getRandomUser(borrower);
+        creditPositionId = _getCreditPositionId(creditPositionId);
         tenor = between(tenor, 0, MAX_DURATION);
         amount = between(amount, 0, _before.sender.borrowATokenBalance / 10);
 
@@ -200,7 +213,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: borrower,
-                creditPositionId: RESERVED_ID,
+                creditPositionId: creditPositionId,
                 tenor: tenor,
                 amount: amount,
                 deadline: block.timestamp,
@@ -214,14 +227,19 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             if (sender != borrower) {
                 lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
-            eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
+            if (creditPositionId == RESERVED_ID) {
+                eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
+                uint256 debtPositionId = DEBT_POSITION_ID_START + _after.debtPositionsCount - 1;
+                tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
+                t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
+            }
         }
     }
 
     function buyCreditLimit(uint256 maxDueDate, uint256 yieldCurveSeed)
         public
         getSender
-        checkExpectedErrors(LEND_AS_LIMIT_ORDER_ERRORS)
+        checkExpectedErrors(BUY_CREDIT_LIMIT_ERRORS)
     {
         __before();
 
@@ -375,6 +393,8 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
                 LIQUIDATE_01
             );
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
+            uint256 tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
+            t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
         }
     }
 
@@ -384,16 +404,8 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         hasLoans
         checkExpectedErrors(COMPENSATE_ERRORS)
     {
-        creditPositionWithDebtToRepayId = between(
-            creditPositionWithDebtToRepayId,
-            CREDIT_POSITION_ID_START,
-            CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
-        );
-        creditPositionToCompensateId = between(
-            creditPositionToCompensateId,
-            CREDIT_POSITION_ID_START,
-            CREDIT_POSITION_ID_START + _before.creditPositionsCount - 1
-        );
+        creditPositionWithDebtToRepayId = _getCreditPositionId(creditPositionWithDebtToRepayId);
+        creditPositionToCompensateId = _getCreditPositionId(creditPositionToCompensateId);
 
         __before(creditPositionWithDebtToRepayId);
 
@@ -455,5 +467,28 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             usdc.approve(address(variablePool), supplyAmount);
             variablePool.supply(address(usdc), supplyAmount, address(this), 0);
         }
+    }
+
+    function updateConfig(uint256 i, uint256 value) public {
+        string[12] memory keys = [
+            "crOpening",
+            "crLiquidation",
+            "minimumCreditBorrowAToken",
+            "borrowATokenCap",
+            "minimumTenor",
+            "maximumTenor",
+            "swapFeeAPR",
+            "fragmentationFee",
+            "liquidationRewardPercent",
+            "overdueCollateralProtocolPercent",
+            "collateralProtocolPercent",
+            "variablePoolBorrowRateStaleRateInterval"
+        ];
+        i = between(i, 0, keys.length - 1);
+        string memory key = keys[i];
+        size.updateConfig(UpdateConfigParams({key: key, value: value}));
+
+        uint128 borrowRate = uint128(between(value, 0, MAX_BORROW_RATE));
+        size.setVariablePoolBorrowRate(borrowRate);
     }
 }

@@ -53,7 +53,7 @@ contract SellCreditLimitValidationTest is BaseTest {
 
         tenors[0] = 6 minutes;
         tenors[1] = 1 days;
-        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_BELOW_MINIMUM_TENOR.selector, 6 minutes, 1 hours));
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 6 minutes, 1 hours, 5 * 365 days));
         size.sellCreditLimit(
             SellCreditLimitParams({
                 curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
