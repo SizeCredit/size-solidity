@@ -100,7 +100,7 @@ forge test
 | src/SizeView.sol                                         | 75.76% (25/33)     | 76.36% (42/55)     | 62.50% (5/8)     | 80.95% (17/21)   |
 | src/libraries/Math.sol                                   | 95.00% (19/20)     | 93.75% (30/32)     | 100.00% (6/6)    | 88.89% (8/9)     |
 | src/libraries/Multicall.sol                              | 100.00% (10/10)    | 100.00% (16/16)    | 100.00% (0/0)    | 100.00% (1/1)    |
-| src/libraries/fixed/AccountingLibrary.sol                | 93.83% (76/81)     | 94.90% (93/98)     | 71.43% (20/28)   | 100.00% (11/11)  |
+| src/libraries/fixed/AccountingLibrary.sol                | 93.75% (75/80)     | 94.85% (92/97)     | 75.00% (21/28)   | 100.00% (11/11)  |
 | src/libraries/fixed/CapsLibrary.sol                      | 81.82% (9/11)      | 85.71% (12/14)     | 50.00% (4/8)     | 100.00% (3/3)    |
 | src/libraries/fixed/DepositTokenLibrary.sol              | 100.00% (20/20)    | 100.00% (28/28)    | 100.00% (0/0)    | 100.00% (4/4)    |
 | src/libraries/fixed/LoanLibrary.sol                      | 96.97% (32/33)     | 97.87% (46/47)     | 93.75% (15/16)   | 100.00% (9/9)    |
@@ -120,7 +120,7 @@ forge test
 | src/libraries/fixed/actions/SetUserConfiguration.sol     | 93.75% (15/16)     | 95.65% (22/23)     | 33.33% (2/6)     | 100.00% (2/2)    |
 | src/libraries/general/actions/Deposit.sol                | 95.45% (21/22)     | 96.43% (27/28)     | 85.71% (12/14)   | 100.00% (2/2)    |
 | src/libraries/general/actions/Initialize.sol             | 93.94% (62/66)     | 94.59% (70/74)     | 81.25% (26/32)   | 100.00% (11/11)  |
-| src/libraries/general/actions/UpdateConfig.sol           | 85.71% (36/42)     | 85.11% (40/47)     | 76.47% (26/34)   | 100.00% (5/5)    |
+| src/libraries/general/actions/UpdateConfig.sol           | 83.33% (35/42)     | 82.98% (39/47)     | 70.59% (24/34)   | 100.00% (5/5)    |
 | src/libraries/general/actions/Withdraw.sol               | 100.00% (16/16)    | 100.00% (21/21)    | 75.00% (9/12)    | 100.00% (2/2)    |
 | src/oracle/PriceFeed.sol                                 | 93.75% (15/16)     | 96.55% (28/29)     | 80.00% (8/10)    | 100.00% (3/3)    |
 | src/periphery/DexSwap.sol                                | 15.38% (4/26)      | 13.04% (6/46)      | 12.50% (1/8)     | 40.00% (2/5)     |
@@ -138,7 +138,7 @@ forge test
 │     BuyCreditMarket      │   8    │
 │          Claim           │   10   │
 │        Compensate        │   15   │
-│     CryticToFoundry      │   4    │
+│     CryticToFoundry      │   6    │
 │         Deposit          │   5    │
 │   FlashLoanLiquidation   │   2    │
 │        Initialize        │   4    │
