@@ -90,4 +90,7 @@ library Errors {
 
     error NOT_SUPPORTED();
     error NOT_SUPPORTED_EXACT_AMOUNT_OUT(uint256 x, uint256 y, uint256 z);
+
+    error SEQUENCER_DOWN();
+    error GRACE_PERIOD_NOT_OVER();
 }

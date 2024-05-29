@@ -118,9 +118,10 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
     }
 
     function property_FEES() public returns (bool) {
-        (, address feeRecipient) = size.getCryticVariables();
-
-        if (_after.creditPositionsCount > _before.creditPositionsCount) {
+        if (
+            _after.debtPositionsCount == _before.debtPositionsCount
+                && _after.creditPositionsCount > _before.creditPositionsCount
+        ) {
             if (_before.sig == TargetFunctions.compensate.selector) {
                 eq(
                     _after.feeRecipient.collateralTokenBalance,

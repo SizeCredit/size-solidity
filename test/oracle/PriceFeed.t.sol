@@ -14,6 +14,10 @@ contract PriceFeedTest is Test, AssertsHelper {
     PriceFeed public priceFeed;
     MockV3Aggregator public ethToUsd;
     MockV3Aggregator public usdcToUsd;
+    MockV3Aggregator public sequencerUptimeFeed;
+    int256 private constant SEQUENCER_UP = 0;
+    int256 private constant SEQUENCER_DOWN = 1;
+
     // values as of 2023-12-05 08:00:00 UTC
     int256 public constant ETH_TO_USD = 2200.12e8;
     uint8 public constant ETH_TO_USD_DECIMALS = 8;
@@ -21,23 +25,28 @@ contract PriceFeedTest is Test, AssertsHelper {
     uint8 public constant USDC_TO_USD_DECIMALS = 8;
 
     function setUp() public {
+        sequencerUptimeFeed = new MockV3Aggregator(0, SEQUENCER_UP);
+        vm.warp(block.timestamp + 1 days);
         ethToUsd = new MockV3Aggregator(ETH_TO_USD_DECIMALS, ETH_TO_USD);
         usdcToUsd = new MockV3Aggregator(USDC_TO_USD_DECIMALS, USDC_TO_USD);
-        priceFeed = new PriceFeed(address(ethToUsd), address(usdcToUsd), 3600, 86400);
+        priceFeed = new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 86400);
     }
 
     function test_PriceFeed_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new PriceFeed(address(0), address(usdcToUsd), 3600, 86400);
+        new PriceFeed(address(0), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 86400);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new PriceFeed(address(ethToUsd), address(0), 3600, 86400);
+        new PriceFeed(address(ethToUsd), address(0), address(sequencerUptimeFeed), 3600, 86400);
+
+        // do not revert if sequencerUptimeFeed is null
+        new PriceFeed(address(ethToUsd), address(usdcToUsd), address(0), 3600, 86400);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_STALE_PRICE.selector));
-        new PriceFeed(address(ethToUsd), address(usdcToUsd), 0, 86400);
+        new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 0, 86400);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_STALE_PRICE.selector));
-        new PriceFeed(address(ethToUsd), address(usdcToUsd), 3600, 0);
+        new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 0);
     }
 
     function test_PriceFeed_getPrice_success() public {
