@@ -104,4 +104,27 @@ abstract contract Properties is Ghosts, PropertiesConstants, PropertiesSpec {
 
         return true;
     }
+
+    function invariant_FEES() public returns (bool) {
+        (, address feeRecipient) = size.getCryticVariables();
+
+        if (_after.creditPositionsCount > _before.creditPositionsCount) {
+            if (msg.sig == TargetFucntions.compensate.selector) {
+                eq(
+                    _after.feeRecipient.collateralTokenBalance,
+                    _before.feeRecipient.collateralTokenBalance
+                        + state.debtTokenAmountToCollateralTokenAmount(size.feeConfig().fragmentationFee),
+                    FEES_01
+                );
+            } else {
+                gte(
+                    _after.feeRecipient.borrowATokenBalance,
+                    _before.feeRecipient.borrowATokenBalance + size.feeConfig().fragmentationFee,
+                    FEES_01
+                );
+            }
+        }
+
+        return true;
+    }
 }

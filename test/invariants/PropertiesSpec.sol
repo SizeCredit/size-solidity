@@ -45,5 +45,9 @@ abstract contract PropertiesSpec {
     string internal constant SOLVENCY_03 = "SOLVENCY_03: SUM(positions debt) == user total debt, for each user";
     string internal constant SOLVENCY_04 = "SOLVENCY_04: SUM(positions debt) == SUM(debt)";
 
+    string internal constant FEES = "FEES: Fees properties";
+    string internal constant FEES_01 =
+        "FEES_01: Fragmentation fees are applied whenever there is a credit fractionalization";
+
     string internal constant DOS = "DOS: Denial of Service";
 }

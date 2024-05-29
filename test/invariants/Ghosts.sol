@@ -13,6 +13,7 @@ abstract contract Ghosts is Deploy, Asserts {
         UserView sender;
         UserView borrower;
         UserView lender;
+        UserView feeRecipient;
         LoanStatus loanStatus;
         bool isSenderLiquidatable;
         bool isBorrowerLiquidatable;
@@ -40,6 +41,7 @@ abstract contract Ghosts is Deploy, Asserts {
     }
 
     function __snapshot(Vars storage vars, uint256 positionId) internal {
+        (, address feeRecipient) = size.getCryticVariables();
         CreditPosition memory c;
         DebtPosition memory d;
         UserView memory e;
@@ -60,6 +62,7 @@ abstract contract Ghosts is Deploy, Asserts {
             vars.loanStatus = size.getLoanStatus(positionId);
         }
         vars.sender = size.getUserView(sender);
+        vars.feeRecipient = size.getUserView(feeRecipient);
         vars.isSenderLiquidatable = size.isUserUnderwater(sender);
         vars.senderCollateralAmount = weth.balanceOf(sender);
         vars.senderBorrowAmount = usdc.balanceOf(sender);
