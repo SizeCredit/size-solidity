@@ -17,7 +17,7 @@ contract FlashLoanLiquidationTest is BaseTest {
     Mock1InchAggregator public mock1InchAggregator;
     FlashLoanLiquidator public flashLoanLiquidator;
 
-    function test_flashloan_liquidator_liquidate_and_swap_1inch_withdraw() public {
+    function test_FlashLoanLiquidation_liquidator_liquidate_and_swap_1inch_withdraw() public {
         // Initialize mock contracts
         mockAavePool = new MockAavePool();
         mock1InchAggregator = new Mock1InchAggregator(address(priceFeed));
@@ -51,7 +51,7 @@ contract FlashLoanLiquidationTest is BaseTest {
 
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         uint256 amount = 15e6;
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, amount, block.timestamp + 365 days, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, amount, 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         // uint256 futureValue = debtPosition.futureValue;
         // uint256 repayFee = debtPosition.repayFee;
@@ -109,7 +109,7 @@ contract FlashLoanLiquidationTest is BaseTest {
         assertGt(afterLiquidatorUSDC, beforeLiquidatorUSDC, "Liquidator should have more USDC after liquidation");
     }
 
-    function test_flashloan_liquidator_liquidate_with_replacement() public {
+    function test_FlashLoanLiquidation_liquidator_liquidate_with_replacement() public {
         // Initialize mock contracts
         mockAavePool = new MockAavePool();
         mock1InchAggregator = new Mock1InchAggregator(address(priceFeed));
@@ -141,7 +141,7 @@ contract FlashLoanLiquidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         uint256 amount = 15e6;
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, amount, block.timestamp + 365 days, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, amount, 365 days, false);
         _setPrice(0.2e18); // Set a price that makes the position undercollateralized
 
         // Setup replacement borrower
