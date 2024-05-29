@@ -119,10 +119,10 @@ forge test
 | src/libraries/fixed/actions/SellCreditMarket.sol         | 95.92% (47/49)     | 96.43% (54/56)     | 82.14% (23/28)   | 100.00% (2/2)    |
 | src/libraries/fixed/actions/SetUserConfiguration.sol     | 93.75% (15/16)     | 95.65% (22/23)     | 33.33% (2/6)     | 100.00% (2/2)    |
 | src/libraries/general/actions/Deposit.sol                | 95.45% (21/22)     | 96.43% (27/28)     | 85.71% (12/14)   | 100.00% (2/2)    |
-| src/libraries/general/actions/Initialize.sol             | 93.94% (62/66)     | 94.59% (70/74)     | 81.25% (26/32)   | 100.00% (11/11)  |
-| src/libraries/general/actions/UpdateConfig.sol           | 83.33% (35/42)     | 82.98% (39/47)     | 70.59% (24/34)   | 100.00% (5/5)    |
+| src/libraries/general/actions/Initialize.sol             | 95.45% (63/66)     | 95.95% (71/74)     | 84.38% (27/32)   | 100.00% (11/11)  |
+| src/libraries/general/actions/UpdateConfig.sol           | 88.10% (37/42)     | 89.36% (42/47)     | 76.47% (26/34)   | 100.00% (5/5)    |
 | src/libraries/general/actions/Withdraw.sol               | 100.00% (16/16)    | 100.00% (21/21)    | 75.00% (9/12)    | 100.00% (2/2)    |
-| src/oracle/PriceFeed.sol                                 | 93.75% (15/16)     | 96.55% (28/29)     | 80.00% (8/10)    | 100.00% (3/3)    |
+| src/oracle/PriceFeed.sol                                 | 86.96% (20/23)     | 92.50% (37/40)     | 68.75% (11/16)   | 100.00% (3/3)    |
 | src/periphery/DexSwap.sol                                | 15.38% (4/26)      | 13.04% (6/46)      | 12.50% (1/8)     | 40.00% (2/5)     |
 | src/periphery/FlashLoanLiquidation.sol                   | 85.71% (42/49)     | 84.51% (60/71)     | 40.00% (4/10)    | 83.33% (5/6)     |
 | src/token/NonTransferrableScaledToken.sol                | 61.11% (11/18)     | 54.84% (17/31)     | 0.00% (0/2)      | 50.00% (6/12)    |
@@ -138,7 +138,7 @@ forge test
 │     BuyCreditMarket      │   8    │
 │          Claim           │   10   │
 │        Compensate        │   15   │
-│     CryticToFoundry      │   6    │
+│     CryticToFoundry      │   7    │
 │         Deposit          │   5    │
 │   FlashLoanLiquidation   │   2    │
 │        Initialize        │   4    │
