@@ -18,6 +18,8 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         vm.roll(4370000);
 
         setup();
+
+        sender = USER1;
     }
 
     function _setUp(address _user, uint256 _time, uint256 _block) internal {
@@ -28,15 +30,19 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
 
     modifier getSender() override {
         _;
+        _checkProperties();
+    }
+
+    function precondition(bool) internal virtual override(FoundryAsserts, Asserts) {
+        return;
+    }
+
+    function _checkProperties() internal {
         assertTrue(property_LOAN(), LOAN);
         assertTrue(property_UNDERWATER(), UNDERWATER);
         assertTrue(property_TOKENS(), TOKENS);
         assertTrue(property_SOLVENCY(), SOLVENCY);
         assertTrue(property_FEES(), FEES);
-    }
-
-    function precondition(bool) internal virtual override(FoundryAsserts, Asserts) {
-        return;
     }
 
     function test_CryticToFoundry_01() public {
@@ -220,5 +226,24 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
             14811637418840987892471287947634039069460809680860362691965659834838991822764,
             115792089237316195423570985008687907853269984665640564039457584007913120481537
         );
+    }
+
+    function test_CryticToFoundry_17() public {
+        deposit(address(0xdeadbeef), 727891695088401482584375412222945914);
+        buyCreditLimit(494101731645502964337137615587161108821235166340036437, 19256442171330545888);
+        deposit(address(0x0), 75997482007941151961197221752376131800957703291693);
+        sellCreditMarket(
+            address(0x0),
+            112429428586071743252441594592996183959604223522309146848621,
+            538571649109651427164431130745837522007610933891101594830456740549535,
+            490001432456401571129481877721428507551041497532414879280151630114225149258,
+            false
+        );
+        _setUp(USER1, 319950 seconds, 23482);
+        updateConfig(
+            115792089237316195423570985008687907853269984665640564039457584007913113871936,
+            115792089237316195423570985008687907853269984665640564039457569007913129639935
+        );
+        _checkProperties();
     }
 }
