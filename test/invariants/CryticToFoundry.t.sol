@@ -169,4 +169,18 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
             false
         );
     }
+
+    function test_CryticToFoundry_15() public {
+        sellCreditLimit(0);
+        updateConfig(10455664575637708, 9641965869522316328685836252754012794202752092270219282598180270216597502448);
+        updateConfig(565050, 300762674862931283915721957855715841844392646375746650220324626544016160932);
+        updateConfig(1048720, 1);
+        buyCreditMarket(
+            address(0x0),
+            0,
+            477090501081531899408063933373523968049785299678815537068815868336073561,
+            63927355682907553857796166753998362296048752896319060,
+            false
+        );
+    }
 }
