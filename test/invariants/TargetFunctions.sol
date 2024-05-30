@@ -42,9 +42,6 @@ import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.so
 
 import {KEEPER_ROLE} from "@src/Size.sol";
 
-// import {console2 as console} from "forge-std/console2.sol";
-
-import {Errors} from "@src/libraries/Errors.sol";
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -59,20 +56,20 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         users[1] = USER2;
         users[2] = USER3;
         usdc.mint(address(this), MAX_AMOUNT_USDC);
+        hevm.deal(address(this), MAX_AMOUNT_WETH);
         for (uint256 i = 0; i < users.length; i++) {
             address user = users[i];
-            usdc.mint(user, MAX_AMOUNT_USDC / 3);
+            usdc.mint(user, MAX_AMOUNT_USDC);
 
-            hevm.deal(address(this), MAX_AMOUNT_WETH / 3);
-            weth.deposit{value: MAX_AMOUNT_WETH / 3}();
-            weth.transfer(user, MAX_AMOUNT_WETH / 3);
+            hevm.deal(address(this), MAX_AMOUNT_WETH);
+            weth.deposit{value: MAX_AMOUNT_WETH}();
+            weth.transfer(user, MAX_AMOUNT_WETH);
         }
     }
 
     function deposit(address token, uint256 amount) public getSender checkExpectedErrors(DEPOSIT_ERRORS) {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
-        uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH / 3 : MAX_AMOUNT_USDC / 3;
-        amount = between(amount, maxAmount / 2, maxAmount);
+        amount = between(amount, 0, token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC);
 
         __before();
 

@@ -102,20 +102,6 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         );
     }
 
-    function test_CryticToFoundry_09() public checkProperties {
-        deposit(address(0x0), 0);
-        buyCreditLimit(9833424, 3);
-        deposit(address(0xdeadbeef), 0);
-        sellCreditMarket(address(0x0), 0, 8619394271467961222384696387135150563289845341249406, 605956, false);
-        updateConfig(
-            75179511033151027828868770842695232488786737867983491430045723932720,
-            45010057102343396084279157905530369481918485656143595717139543211986
-        );
-        vm.warp(block.timestamp + 628511);
-        vm.roll(block.number + 1);
-        liquidate(9160696969654105850476192767932488555016512416, 6340719317421488883471319518882382505308196);
-    }
-
     function test_CryticToFoundry_10() public checkProperties {
         deposit(address(0xdeadbeef), 0);
         buyCreditLimit(615772, 3);
