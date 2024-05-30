@@ -127,6 +127,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         COMPENSATE_ERRORS.push(Errors.INVALID_CREDIT_POSITION_ID.selector);
         COMPENSATE_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
         COMPENSATE_ERRORS.push(Errors.USER_IS_UNDERWATER.selector);
+        COMPENSATE_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
 
         // BUY_MARKET_CREDIT_ERRORS
         BUY_MARKET_CREDIT_ERRORS.push(Errors.LOAN_NOT_ACTIVE.selector);
