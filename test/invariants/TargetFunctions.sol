@@ -42,9 +42,6 @@ import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.so
 
 import {KEEPER_ROLE} from "@src/Size.sol";
 
-// import {console2 as console} from "forge-std/console2.sol";
-
-import {Errors} from "@src/libraries/Errors.sol";
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
@@ -59,20 +56,20 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         users[1] = USER2;
         users[2] = USER3;
         usdc.mint(address(this), MAX_AMOUNT_USDC);
+        hevm.deal(address(this), MAX_AMOUNT_WETH);
         for (uint256 i = 0; i < users.length; i++) {
             address user = users[i];
-            usdc.mint(user, MAX_AMOUNT_USDC / 3);
+            usdc.mint(user, MAX_AMOUNT_USDC);
 
-            hevm.deal(address(this), MAX_AMOUNT_WETH / 3);
-            weth.deposit{value: MAX_AMOUNT_WETH / 3}();
-            weth.transfer(user, MAX_AMOUNT_WETH / 3);
+            hevm.deal(address(this), MAX_AMOUNT_WETH);
+            weth.deposit{value: MAX_AMOUNT_WETH}();
+            weth.transfer(user, MAX_AMOUNT_WETH);
         }
     }
 
     function deposit(address token, uint256 amount) public getSender checkExpectedErrors(DEPOSIT_ERRORS) {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
-        uint256 maxAmount = token == address(weth) ? MAX_AMOUNT_WETH / 3 : MAX_AMOUNT_USDC / 3;
-        amount = between(amount, maxAmount / 2, maxAmount);
+        amount = between(amount, 0, token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC);
 
         __before();
 
@@ -426,7 +423,11 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         if (success) {
             __after(creditPositionWithDebtToRepayId);
 
-            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, COMPENSATE_01);
+            if (creditPositionToCompensateId == RESERVED_ID) {
+                eq(_after.borrower.debtBalance, _before.borrower.debtBalance, COMPENSATE_01);
+            } else {
+                lt(_after.borrower.debtBalance, _before.borrower.debtBalance, COMPENSATE_02);
+            }
         }
     }
 
@@ -487,11 +488,26 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
             "collateralProtocolPercent",
             "variablePoolBorrowRateStaleRateInterval"
         ];
+        uint256[12] memory maxValues = [
+            MAX_PERCENT,
+            MAX_PERCENT,
+            MAX_AMOUNT_USDC,
+            MAX_AMOUNT_USDC,
+            MAX_DURATION,
+            MAX_DURATION,
+            MAX_PERCENT,
+            MAX_AMOUNT_USDC,
+            MAX_PERCENT,
+            MAX_PERCENT,
+            MAX_PERCENT,
+            MAX_DURATION
+        ];
         i = between(i, 0, keys.length - 1);
         string memory key = keys[i];
+        value = between(value, 0, maxValues[i]);
         size.updateConfig(UpdateConfigParams({key: key, value: value}));
 
-        uint128 borrowRate = uint128(between(value, 0, MAX_BORROW_RATE));
+        uint128 borrowRate = uint128(between(value, 0, MAX_PERCENT));
         size.setVariablePoolBorrowRate(borrowRate);
     }
 }

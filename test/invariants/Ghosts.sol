@@ -13,6 +13,8 @@ import {Deploy} from "@script/Deploy.sol";
 abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
     struct Vars {
         bytes4 sig;
+        uint256 debtPositionId;
+        uint256 creditPositionId;
         UserView sender;
         UserView borrower;
         UserView lender;
@@ -48,6 +50,8 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
 
     function __snapshot(Vars storage vars, uint256 positionId) internal {
         vars.sig = msg.sig;
+        vars.debtPositionId = RESERVED_ID;
+        vars.creditPositionId = RESERVED_ID;
         (, address feeRecipient) = size.getCryticVariables();
         CreditPosition memory c;
         DebtPosition memory d;
@@ -61,10 +65,12 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
                 vars.borrower = size.getUserView(d.borrower);
                 vars.isBorrowerUnderwater = size.isUserUnderwater(vars.borrower.account);
                 vars.lender = size.getUserView(c.lender);
+                vars.debtPositionId = positionId;
             } else {
                 d = size.getDebtPosition(positionId);
                 vars.borrower = size.getUserView(d.borrower);
                 vars.isBorrowerUnderwater = size.isUserUnderwater(d.borrower);
+                vars.creditPositionId = positionId;
             }
             vars.loanStatus = size.getLoanStatus(positionId);
         }

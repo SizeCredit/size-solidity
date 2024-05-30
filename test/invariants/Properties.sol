@@ -16,7 +16,6 @@ import {
     LoanLibrary,
     LoanStatus
 } from "@src/libraries/fixed/LoanLibrary.sol";
-// import {console2 as console} from "forge-std/console2.sol";
 
 abstract contract Properties is Ghosts, PropertiesSpecifications {
     using LoanLibrary for DebtPosition;
@@ -27,15 +26,24 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
     function property_LOAN() public returns (bool) {
-        (uint256 minimumCreditBorrowAToken,) = size.getCryticVariables();
-        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
-        CreditPosition[] memory creditPositions = size.getCreditPositions();
+        // @audit-info Invalid if the admin changes the minimumCreditBorrowAToken. Uncomment if you want to check for this property while also finding false positives.
+        // (uint256 minimumCreditBorrowAToken,) = size.getCryticVariables();
+        // CreditPosition[] memory creditPositions = size.getCreditPositions();
+        // for (uint256 i = 0; i < creditPositions.length; i++) {
+        //     t(creditPositions[i].credit == 0 || creditPositions[i].credit >= minimumCreditBorrowAToken, LOAN_01);
+        // }
 
-        for (uint256 i = 0; i < creditPositions.length; i++) {
-            t(creditPositions[i].credit == 0 || creditPositions[i].credit >= minimumCreditBorrowAToken, LOAN_01);
+        gte(_before.creditPositionsCount, _before.debtPositionsCount, LOAN_03);
+        gte(_after.creditPositionsCount, _after.debtPositionsCount, LOAN_03);
+
+        if (
+            _after.debtPositionsCount > _before.debtPositionsCount
+                || _after.sig == TargetFunctions.liquidateWithReplacement.selector
+        ) {
+            DebtPosition memory debtPosition = size.getDebtPosition(_after.debtPositionId);
+            uint256 tenor = debtPosition.dueDate - block.timestamp;
+            t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_02);
         }
-
-        gte(creditPositionsCount, debtPositionsCount, LOAN_03);
 
         return true;
     }
@@ -82,8 +90,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         address[3] memory users = [USER1, USER2, USER3];
         uint256[3] memory positionsDebt;
 
-        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
-        for (uint256 i = 0; i < creditPositionsCount; ++i) {
+        for (uint256 i = 0; i < _after.creditPositionsCount; ++i) {
             uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
             LoanStatus status = size.getLoanStatus(creditPositionId);
             if (status != LoanStatus.REPAID) {
@@ -91,7 +98,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
             }
         }
 
-        for (uint256 i = 0; i < debtPositionsCount; ++i) {
+        for (uint256 i = 0; i < _after.debtPositionsCount; ++i) {
             uint256 debtPositionId = DEBT_POSITION_ID_START + i;
             DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
             outstandingDebt += debtPosition.futureValue;
