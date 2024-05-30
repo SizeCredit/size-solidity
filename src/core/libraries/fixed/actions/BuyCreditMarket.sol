@@ -107,7 +107,9 @@ library BuyCreditMarket {
         external
         returns (uint256 cashAmountIn)
     {
-        emit Events.BuyCreditMarket(params.borrower, params.creditPositionId, params.amount, params.exactAmountIn);
+        emit Events.BuyCreditMarket(
+            params.borrower, params.creditPositionId, params.tenor, params.amount, params.exactAmountIn
+        );
 
         // slither-disable-next-line uninitialized-local
         CreditPosition memory creditPosition;

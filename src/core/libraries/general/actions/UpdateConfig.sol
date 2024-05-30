@@ -79,19 +79,19 @@ library UpdateConfig {
         } else if (Strings.equal(params.key, "minimumTenor")) {
             state.riskConfig.minimumTenor = params.value;
         } else if (Strings.equal(params.key, "maximumTenor")) {
-            state.riskConfig.maximumTenor = params.value;
             if (params.value >= Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR)) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
                     params.value, Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR)
                 );
             }
+            state.riskConfig.maximumTenor = params.value;
         } else if (Strings.equal(params.key, "swapFeeAPR")) {
-            state.feeConfig.swapFeeAPR = params.value;
-            if (params.value >= Math.mulDivDown(state.riskConfig.maximumTenor, PERCENT, 365 days)) {
+            if (params.value >= Math.mulDivDown(state.riskConfig.minimumTenor, PERCENT, 365 days)) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
-                    params.value, Math.mulDivDown(state.riskConfig.maximumTenor, PERCENT, 365 days)
+                    params.value, Math.mulDivDown(state.riskConfig.minimumTenor, PERCENT, 365 days)
                 );
             }
+            state.feeConfig.swapFeeAPR = params.value;
         } else if (Strings.equal(params.key, "fragmentationFee")) {
             state.feeConfig.fragmentationFee = params.value;
         } else if (Strings.equal(params.key, "liquidationRewardPercent")) {

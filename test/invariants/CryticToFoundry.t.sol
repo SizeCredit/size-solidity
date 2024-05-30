@@ -5,6 +5,8 @@ import {TargetFunctions} from "./TargetFunctions.sol";
 
 import {Asserts} from "@chimera/Asserts.sol";
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
+
+import {Errors} from "@src/core/libraries/Errors.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {

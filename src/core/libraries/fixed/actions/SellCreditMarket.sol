@@ -113,7 +113,7 @@ library SellCreditMarket {
         returns (uint256 cashAmountOut)
     {
         emit Events.SellCreditMarket(
-            params.lender, params.creditPositionId, params.amount, params.tenor, params.exactAmountIn
+            params.lender, params.creditPositionId, params.tenor, params.amount, params.tenor, params.exactAmountIn
         );
 
         // slither-disable-next-line uninitialized-local

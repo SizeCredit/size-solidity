@@ -16,6 +16,8 @@ library AccountingLibrary {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
 
+    event L4(uint256, uint256, uint256, uint256);
+
     /// @notice Converts debt token amount to a value in collateral tokens
     /// @dev Rounds up the debt token amount
     /// @param state The state object
@@ -238,12 +240,13 @@ library AccountingLibrary {
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
-    ) internal view returns (uint256 cashAmountIn, uint256 fees) {
+    ) internal returns (uint256 cashAmountIn, uint256 fees) {
         if (creditAmountOut == maxCredit) {
             // no credit fractionalization
 
             cashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerTenor);
             fees = getSwapFee(state, cashAmountIn, tenor);
+            emit L4(42, cashAmountIn, fees, state.feeConfig.fragmentationFee);
         } else if (creditAmountOut < maxCredit) {
             // credit fractionalization
 
@@ -251,6 +254,8 @@ library AccountingLibrary {
             cashAmountIn = netCashAmountIn + state.feeConfig.fragmentationFee;
 
             fees = getSwapFee(state, netCashAmountIn, tenor) + state.feeConfig.fragmentationFee;
+
+            emit L4(netCashAmountIn, cashAmountIn, fees, state.feeConfig.fragmentationFee);
         } else {
             revert Errors.NOT_ENOUGH_CREDIT(creditAmountOut, maxCredit);
         }
