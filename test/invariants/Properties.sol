@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
 
+import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
@@ -40,7 +41,8 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
             _after.debtPositionsCount > _before.debtPositionsCount
                 || _after.sig == ITargetFunctions.liquidateWithReplacement.selector
         ) {
-            DebtPosition memory debtPosition = size.getDebtPosition(_after.debtPositionId);
+            uint256 debtPositionId = _after.debtPositionsCount - 1;
+            DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
             uint256 tenor = debtPosition.dueDate - block.timestamp;
             t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_02);
         }

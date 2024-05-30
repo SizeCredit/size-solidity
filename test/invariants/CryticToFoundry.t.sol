@@ -6,7 +6,6 @@ import {TargetFunctions} from "./TargetFunctions.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
 
-import {Errors} from "@src/core/libraries/Errors.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
@@ -123,5 +122,40 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         deposit(address(0x0), 0);
         sellCreditMarket(address(0x0), 0, 147058977595679525986423272625702, 605956, false);
         compensate(0, 90537930272888273525, 7551184);
+    }
+
+    function test_CryticToFoundry_11() public checkProperties {
+        deposit(address(0xdeadbeef), 486987982);
+        deposit(address(0x0), 542119798154271826);
+        updateConfig(3476689163798957933627285661408434842686568751617897946215078674744880122, 1);
+        sellCreditLimit(0);
+        setLiquidityIndex(1, 0);
+        buyCreditMarket(
+            address(0x0),
+            0,
+            560297479045200601233239408702471290199352436977548093015982641843298539,
+            22576319848627412381195622757383666471949398566030438813750667,
+            false
+        );
+    }
+
+    function test_CryticToFoundry_12() public checkProperties {
+        deposit(address(0xdeadbeef), 481797977);
+        sellCreditLimit(0);
+        deposit(address(0x0), 542722934120754506);
+        buyCreditMarket(
+            address(0x0),
+            0,
+            308038948465724683836823477037869565199260835768169178060056385273936037,
+            22576319848627412381195622757383666471949398566030438813750667,
+            false
+        );
+    }
+
+    function test_CryticToFoundry_13() public checkProperties {
+        deposit(address(0x0), 309646366057719218);
+        buyCreditLimit(3660, 125725079549898127780212690292168332883405948303381474);
+        deposit(address(0xdeadbeef), 49671462709254420677446753);
+        sellCreditMarket(address(0x0), 0, 122457266127183160707598484974950339, 3613, false);
     }
 }
