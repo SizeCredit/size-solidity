@@ -7,13 +7,13 @@ import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
-import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {IPriceFeed} from "@src/core/oracle/IPriceFeed.sol";
 
-import {PriceFeed} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed} from "@src/core/oracle/PriceFeed.sol";
 
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
-import {Size} from "@src/Size.sol";
+import {Size} from "@src/core/Size.sol";
 
 import {
     Initialize,
@@ -21,7 +21,7 @@ import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
-} from "@src/libraries/general/actions/Initialize.sol";
+} from "@src/core/libraries/general/actions/Initialize.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";

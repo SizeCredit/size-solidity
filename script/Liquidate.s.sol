@@ -2,8 +2,8 @@
 pragma solidity 0.8.23;
 
 import {Logger} from "@script/Logger.sol";
-import {Size} from "@src/Size.sol";
-import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {Size} from "@src/core/Size.sol";
+import {LiquidateParams} from "@src/core/libraries/fixed/actions/Liquidate.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 

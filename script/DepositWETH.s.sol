@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import "../src/Size.sol";
+import "@src/core/Size.sol";
 import "forge-std/Script.sol";
 
 contract DepositWETHScript is Script {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {Math} from "@src/libraries/Math.sol";
+import {Math} from "@src/core/libraries/Math.sol";
 
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 import {Test} from "forge-std/Test.sol";

@@ -5,12 +5,12 @@ import {Test} from "forge-std/Test.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
+import {UpdateConfigParams} from "@src/core/libraries/general/actions/UpdateConfig.sol";
 
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
-import {KEEPER_ROLE} from "@src/Size.sol";
-import {UserView} from "@src/SizeView.sol";
+import {KEEPER_ROLE} from "@src/core/Size.sol";
+import {UserView} from "@src/core/SizeView.sol";
 
 import {Deploy} from "@script/Deploy.sol";
 

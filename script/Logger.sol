@@ -2,16 +2,16 @@
 pragma solidity 0.8.23;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Size} from "@src/Size.sol";
-import {UserView} from "@src/SizeView.sol";
+import {Size} from "@src/core/Size.sol";
+import {UserView} from "@src/core/SizeView.sol";
 import {
     CREDIT_POSITION_ID_START,
     CreditPosition,
     DEBT_POSITION_ID_START,
     DebtPosition,
     LoanLibrary
-} from "@src/libraries/fixed/LoanLibrary.sol";
-import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+} from "@src/core/libraries/fixed/LoanLibrary.sol";
+import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/core/libraries/fixed/OfferLibrary.sol";
 
 import {console2 as console} from "forge-std/console2.sol";
 

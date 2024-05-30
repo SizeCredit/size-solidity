@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/core/libraries/Errors.sol";
 import {I1InchAggregator} from "@src/periphery/interfaces/dex/I1InchAggregator.sol";
 import {IUniswapV2Router02} from "@src/periphery/interfaces/dex/IUniswapV2Router02.sol";
 import {IUnoswapRouter} from "@src/periphery/interfaces/dex/IUnoswapRouter.sol";
