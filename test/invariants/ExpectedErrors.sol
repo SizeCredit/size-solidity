@@ -76,6 +76,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_CASH.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_CREDIT.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.STALE_RATE.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
 
         // BUY_CREDIT_LIMIT_ERRORS
         BUY_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);

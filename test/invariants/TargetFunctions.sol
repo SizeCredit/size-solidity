@@ -209,16 +209,19 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
         amount = between(amount, 0, MAX_AMOUNT_USDC);
 
         hevm.prank(sender);
-        size.buyCreditMarket(
-            BuyCreditMarketParams({
-                borrower: borrower,
-                creditPositionId: creditPositionId,
-                tenor: tenor,
-                amount: amount,
-                deadline: block.timestamp,
-                minAPR: 0,
-                exactAmountIn: exactAmountIn
-            })
+        (success, returnData) = address(size).call(
+            abi.encodeCall(
+                size.buyCreditMarket,
+                BuyCreditMarketParams({
+                    borrower: borrower,
+                    creditPositionId: creditPositionId,
+                    tenor: tenor,
+                    amount: amount,
+                    deadline: block.timestamp,
+                    minAPR: 0,
+                    exactAmountIn: exactAmountIn
+                })
+            )
         );
         if (success) {
             __after();

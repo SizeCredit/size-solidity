@@ -17,6 +17,8 @@ contract NonTransferrableScaledToken is NonTransferrableToken {
     IPool private immutable variablePool;
     IERC20Metadata private immutable underlyingToken;
 
+    event TransferUnscaled(address indexed from, address indexed to, uint256 value);
+
     // solhint-disable-next-line no-empty-blocks
     constructor(
         IPool variablePool_,
@@ -40,6 +42,7 @@ contract NonTransferrableScaledToken is NonTransferrableToken {
 
     function mintScaled(address to, uint256 scaledAmount) external onlyOwner {
         _mint(to, scaledAmount);
+        emit TransferUnscaled(address(0), to, _unscale(scaledAmount));
     }
 
     function burn(address, uint256) external view override onlyOwner {
@@ -48,6 +51,7 @@ contract NonTransferrableScaledToken is NonTransferrableToken {
 
     function burnScaled(address from, uint256 scaledAmount) external onlyOwner {
         _burn(from, scaledAmount);
+        emit TransferUnscaled(from, address(0), _unscale(scaledAmount));
     }
 
     function transferFrom(address from, address to, uint256 value) public virtual override onlyOwner returns (bool) {
@@ -55,6 +59,8 @@ contract NonTransferrableScaledToken is NonTransferrableToken {
 
         _burn(from, scaledAmount);
         _mint(to, scaledAmount);
+
+        emit TransferUnscaled(from, to, value);
 
         return true;
     }
@@ -67,8 +73,12 @@ contract NonTransferrableScaledToken is NonTransferrableToken {
         return super.balanceOf(account);
     }
 
+    function _unscale(uint256 scaledAmount) internal view returns (uint256) {
+        return Math.mulDivDown(scaledAmount, liquidityIndex(), WadRayMath.RAY);
+    }
+
     function balanceOf(address account) public view override returns (uint256) {
-        return Math.mulDivDown(scaledBalanceOf(account), liquidityIndex(), WadRayMath.RAY);
+        return _unscale(scaledBalanceOf(account));
     }
 
     function scaledTotalSupply() public view returns (uint256) {
@@ -76,7 +86,7 @@ contract NonTransferrableScaledToken is NonTransferrableToken {
     }
 
     function totalSupply() public view override returns (uint256) {
-        return Math.mulDivDown(scaledTotalSupply(), liquidityIndex(), WadRayMath.RAY);
+        return _unscale(scaledTotalSupply());
     }
 
     function liquidityIndex() public view returns (uint256) {
