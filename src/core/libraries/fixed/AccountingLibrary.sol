@@ -81,6 +81,7 @@ library AccountingLibrary {
         uint256 creditPositionId = state.data.nextCreditPositionId++;
         state.data.creditPositions[creditPositionId] = creditPosition;
         state.validateMinimumCreditOpening(creditPosition.credit);
+        state.validateTenor(dueDate - block.timestamp);
 
         emit Events.CreateCreditPosition(creditPositionId, RESERVED_ID, debtPositionId, lender, creditPosition.credit);
 

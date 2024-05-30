@@ -24,6 +24,12 @@ library RiskLibrary {
         }
     }
 
+    function validateTenor(State storage state, uint256 tenor) public view {
+        if (tenor < state.riskConfig.minimumTenor || tenor > state.riskConfig.maximumTenor) {
+            revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minimumTenor, state.riskConfig.maximumTenor);
+        }
+    }
+
     function collateralRatio(State storage state, address account) public view returns (uint256) {
         uint256 collateral = state.data.collateralToken.balanceOf(account);
         uint256 debt = state.data.debtToken.balanceOf(account);
