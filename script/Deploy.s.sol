@@ -5,7 +5,7 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {console2 as console} from "forge-std/Script.sol";
 
-import {Size} from "@src/Size.sol";
+import {Size} from "@src/core/Size.sol";
 
 import {Addresses, Contracts} from "./Addresses.sol";
 import {BaseScript, Deployment, Parameter} from "./BaseScript.sol";

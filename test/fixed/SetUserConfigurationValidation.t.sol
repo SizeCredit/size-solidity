@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
+import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
+import {SetUserConfigurationParams} from "@src/core/libraries/fixed/actions/SetUserConfiguration.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/core/libraries/Errors.sol";
 
 contract SetUserConfigurationValidationTest is BaseTest {
     function test_SetUserConfiguration_validation() public {

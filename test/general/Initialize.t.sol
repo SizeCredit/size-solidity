@@ -5,7 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {Size} from "@src/Size.sol";
+import {Size} from "@src/core/Size.sol";
 
 contract InitializeTest is BaseTest {
     function test_Initialize_implementation_cannot_be_initialized() public {

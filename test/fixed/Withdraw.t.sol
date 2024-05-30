@@ -6,13 +6,13 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {UserView} from "@src/SizeView.sol";
-import {Errors} from "@src/libraries/Errors.sol";
+import {UserView} from "@src/core/SizeView.sol";
+import {Errors} from "@src/core/libraries/Errors.sol";
 
-import {Math, PERCENT} from "@src/libraries/Math.sol";
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
-import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+import {Math, PERCENT} from "@src/core/libraries/Math.sol";
+import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
+import {DepositParams} from "@src/core/libraries/general/actions/Deposit.sol";
+import {WithdrawParams} from "@src/core/libraries/general/actions/Withdraw.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract WithdrawTest is BaseTest {

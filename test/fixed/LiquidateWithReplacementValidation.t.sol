@@ -3,10 +3,10 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
+import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
+import {LiquidateWithReplacementParams} from "@src/core/libraries/fixed/actions/LiquidateWithReplacement.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/core/libraries/Errors.sol";
 
 contract LiquidateWithReplacementValidationTest is BaseTest {
     function setUp() public override {

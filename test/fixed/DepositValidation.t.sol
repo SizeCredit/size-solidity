@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {DepositParams} from "@src/core/libraries/general/actions/Deposit.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/core/libraries/Errors.sol";
 
 contract DepositValidationTest is BaseTest {
     function test_Deposit_validation() public {

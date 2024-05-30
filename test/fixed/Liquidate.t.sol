@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.23;
 
-import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {LiquidateParams} from "@src/core/libraries/fixed/actions/Liquidate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
-import {Math} from "@src/libraries/Math.sol";
-import {PERCENT} from "@src/libraries/Math.sol";
-import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {Math} from "@src/core/libraries/Math.sol";
+import {PERCENT} from "@src/core/libraries/Math.sol";
+import {LoanStatus, RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract LiquidateTest is BaseTest {

@@ -9,7 +9,7 @@ import {MockAavePool} from "@test/mocks/MockAavePool.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
-import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
+import {DebtPosition} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract FlashLoanLiquidationTest is BaseTest {

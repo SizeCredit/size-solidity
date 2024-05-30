@@ -5,7 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {CreditPosition, DebtPosition, LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanStatus, RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 
 contract ClaimTest is BaseTest {
     function test_Claim_claim_gets_loan_FV_back() public {

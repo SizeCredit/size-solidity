@@ -6,7 +6,7 @@ import {Ghosts} from "./Ghosts.sol";
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 import {TargetFunctions} from "@test/invariants/TargetFunctions.sol";
 
-import {UserView} from "@src/SizeView.sol";
+import {UserView} from "@src/core/SizeView.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -15,7 +15,7 @@ import {
     DebtPosition,
     LoanLibrary,
     LoanStatus
-} from "@src/libraries/fixed/LoanLibrary.sol";
+} from "@src/core/libraries/fixed/LoanLibrary.sol";
 
 abstract contract Properties is Ghosts, PropertiesSpecifications {
     using LoanLibrary for DebtPosition;

@@ -7,7 +7,7 @@ import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 
 import "@crytic/properties/contracts/util/Hevm.sol";
 
-import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/core/libraries/Math.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
@@ -16,35 +16,37 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {Deploy} from "@script/Deploy.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
-import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/core/libraries/fixed/YieldCurveLibrary.sol";
 
-import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
-import {SellCreditLimitParams} from "@src/libraries/fixed/actions/SellCreditLimit.sol";
-import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
+import {LoanStatus} from "@src/core/libraries/fixed/LoanLibrary.sol";
+import {SellCreditLimitParams} from "@src/core/libraries/fixed/actions/SellCreditLimit.sol";
+import {SellCreditMarketParams} from "@src/core/libraries/fixed/actions/SellCreditMarket.sol";
 
-import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
+import {ClaimParams} from "@src/core/libraries/fixed/actions/Claim.sol";
 
-import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
+import {CompensateParams} from "@src/core/libraries/fixed/actions/Compensate.sol";
 
-import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
-import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
-import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
-import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {BuyCreditLimitParams} from "@src/core/libraries/fixed/actions/BuyCreditLimit.sol";
+import {BuyCreditMarketParams} from "@src/core/libraries/fixed/actions/BuyCreditMarket.sol";
+import {LiquidateParams} from "@src/core/libraries/fixed/actions/Liquidate.sol";
+import {DepositParams} from "@src/core/libraries/general/actions/Deposit.sol";
 
-import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
-import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
-import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+import {LiquidateWithReplacementParams} from "@src/core/libraries/fixed/actions/LiquidateWithReplacement.sol";
+import {RepayParams} from "@src/core/libraries/fixed/actions/Repay.sol";
+import {SelfLiquidateParams} from "@src/core/libraries/fixed/actions/SelfLiquidate.sol";
+import {WithdrawParams} from "@src/core/libraries/general/actions/Withdraw.sol";
 
-import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
+import {SetUserConfigurationParams} from "@src/core/libraries/fixed/actions/SetUserConfiguration.sol";
 
-import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
+import {UpdateConfigParams} from "@src/core/libraries/general/actions/UpdateConfig.sol";
 
-import {KEEPER_ROLE} from "@src/Size.sol";
+import {KEEPER_ROLE} from "@src/core/Size.sol";
 
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 
-import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {
+    CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID
+} from "@src/core/libraries/fixed/LoanLibrary.sol";
 
 abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetFunctions {
     function setup() internal override {

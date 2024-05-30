@@ -4,11 +4,11 @@ pragma solidity 0.8.23;
 import {Test} from "forge-std/Test.sol";
 
 import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
-import {Math} from "@src/libraries/Math.sol";
-import {PriceFeed} from "@src/oracle/PriceFeed.sol";
+import {Math} from "@src/core/libraries/Math.sol";
+import {PriceFeed} from "@src/core/oracle/PriceFeed.sol";
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/core/libraries/Errors.sol";
 
 contract PriceFeedTest is Test, AssertsHelper {
     PriceFeed public priceFeed;
