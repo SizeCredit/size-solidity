@@ -459,12 +459,12 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
         }
     }
 
-    function setPrice(uint256 price) public beforeAfter {
+    function setPrice(uint256 price) public clear {
         price = between(price, MIN_PRICE, MAX_PRICE);
         PriceFeedMock(address(priceFeed)).setPrice(price);
     }
 
-    function setLiquidityIndex(uint256 liquidityIndex, uint256 supplyAmount) public beforeAfter {
+    function setLiquidityIndex(uint256 liquidityIndex, uint256 supplyAmount) public clear {
         uint256 currentLiquidityIndex = variablePool.getReserveNormalizedIncome(address(usdc));
         liquidityIndex =
             (between(liquidityIndex, PERCENT, MAX_LIQUIDITY_INDEX_INCREASE_PERCENT)) * currentLiquidityIndex / PERCENT;
@@ -477,7 +477,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
         }
     }
 
-    function updateConfig(uint256 i, uint256 value) public beforeAfter {
+    function updateConfig(uint256 i, uint256 value) public clear {
         string[12] memory keys = [
             "crOpening",
             "crLiquidation",
