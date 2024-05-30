@@ -94,9 +94,11 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         uint256 outstandingDebt;
         uint256 outstandingCredit;
 
+        if (_after.debtPositionsCount == 0) return true;
+
         uint256 totalDebt;
         address[3] memory users = [USER1, USER2, USER3];
-        uint256[3] memory positionsDebt;
+        uint256[3] memory positionsDebtPerUser;
 
         for (uint256 i = 0; i < _after.creditPositionsCount; ++i) {
             uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
@@ -115,16 +117,16 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
                 ? 0
                 : debtPosition.borrower == USER2 ? 1 : debtPosition.borrower == USER3 ? 2 : type(uint256).max;
 
-            positionsDebt[userIndex] += debtPosition.futureValue;
+            positionsDebtPerUser[userIndex] += debtPosition.futureValue;
         }
 
         eq(outstandingDebt, outstandingCredit, SOLVENCY_01);
 
         gte(size.data().debtToken.totalSupply(), outstandingCredit, SOLVENCY_02);
 
-        for (uint256 i = 0; i < positionsDebt.length; ++i) {
-            totalDebt += positionsDebt[i];
-            eq(size.data().debtToken.balanceOf(users[i]), positionsDebt[i], SOLVENCY_03);
+        for (uint256 i = 0; i < positionsDebtPerUser.length; ++i) {
+            totalDebt += positionsDebtPerUser[i];
+            eq(size.data().debtToken.balanceOf(users[i]), positionsDebtPerUser[i], SOLVENCY_03);
         }
 
         eq(totalDebt, size.data().debtToken.totalSupply(), SOLVENCY_04);
