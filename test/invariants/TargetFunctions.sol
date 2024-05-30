@@ -13,7 +13,6 @@ import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Deploy} from "@script/Deploy.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {YieldCurve} from "@src/core/libraries/fixed/YieldCurveLibrary.sol";
@@ -48,7 +47,7 @@ import {
     CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID
 } from "@src/core/libraries/fixed/LoanLibrary.sol";
 
-abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetFunctions {
+abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions {
     function setup() internal override {
         setupLocal(address(this), address(this));
         size.grantRole(KEEPER_ROLE, USER2);
@@ -146,7 +145,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
 
         lender = _getRandomUser(lender);
         creditPositionId = _getCreditPositionId(creditPositionId);
-        amount = between(amount, 0, MAX_AMOUNT_USDC / 100);
+        amount = between(amount, 0, MAX_AMOUNT_USDC);
         tenor = between(tenor, 0, MAX_DURATION);
 
         hevm.prank(sender);
@@ -207,7 +206,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         borrower = _getRandomUser(borrower);
         creditPositionId = _getCreditPositionId(creditPositionId);
         tenor = between(tenor, 0, MAX_DURATION);
-        amount = between(amount, 0, _before.sender.borrowATokenBalance / 10);
+        amount = between(amount, 0, MAX_AMOUNT_USDC);
 
         hevm.prank(sender);
         size.buyCreditMarket(

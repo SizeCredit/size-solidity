@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {Ghosts} from "./Ghosts.sol";
 
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
-import {TargetFunctions} from "@test/invariants/TargetFunctions.sol";
+import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
 import {UserView} from "@src/core/SizeView.sol";
 
@@ -38,7 +38,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
 
         if (
             _after.debtPositionsCount > _before.debtPositionsCount
-                || _after.sig == TargetFunctions.liquidateWithReplacement.selector
+                || _after.sig == ITargetFunctions.liquidateWithReplacement.selector
         ) {
             DebtPosition memory debtPosition = size.getDebtPosition(_after.debtPositionId);
             uint256 tenor = debtPosition.dueDate - block.timestamp;
@@ -129,7 +129,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
             _after.debtPositionsCount == _before.debtPositionsCount
                 && _after.creditPositionsCount > _before.creditPositionsCount
         ) {
-            if (_before.sig == TargetFunctions.compensate.selector) {
+            if (_before.sig == ITargetFunctions.compensate.selector) {
                 eq(
                     _after.feeRecipient.collateralTokenBalance,
                     _before.feeRecipient.collateralTokenBalance
@@ -147,8 +147,8 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
 
         if (
             (
-                _before.sig == TargetFunctions.sellCreditMarket.selector
-                    || _before.sig == TargetFunctions.buyCreditMarket.selector
+                _before.sig == ITargetFunctions.sellCreditMarket.selector
+                    || _before.sig == ITargetFunctions.buyCreditMarket.selector
             )
         ) {
             if (size.feeConfig().swapFeeAPR > 0) {
