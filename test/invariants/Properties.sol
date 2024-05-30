@@ -3,7 +3,8 @@ pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
 
-import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
+import {console2} from "./../../lib/forge-std/src/console2.sol";
+import {Math, PERCENT} from "@src/core/libraries/Math.sol";
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
@@ -27,7 +28,8 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
     function property_LOAN() public returns (bool) {
-        // @audit-info Invalid if the admin changes the minimumCreditBorrowAToken. Uncomment if you want to check for this property while also finding false positives.
+        // @audit-info Invalid if the admin changes the minimumCreditBorrowAToken.
+        // @audit-info Uncomment this if you want to check for this property while also finding false positives.
         // (uint256 minimumCreditBorrowAToken,) = size.getCryticVariables();
         // CreditPosition[] memory creditPositions = size.getCreditPositions();
         // for (uint256 i = 0; i < creditPositions.length; i++) {
@@ -153,7 +155,13 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
                     || _before.sig == ITargetFunctions.buyCreditMarket.selector
             )
         ) {
-            if (size.feeConfig().swapFeeAPR > 0) {
+            if (
+                Math.mulDivDown(
+                    size.riskConfig().minimumCreditBorrowAToken,
+                    size.riskConfig().minimumTenor * size.feeConfig().swapFeeAPR,
+                    365 * PERCENT
+                ) > 0
+            ) {
                 gt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
             } else {
                 gte(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
