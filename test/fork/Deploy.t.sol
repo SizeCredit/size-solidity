@@ -2,14 +2,13 @@
 pragma solidity 0.8.23;
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
-import {ForkTest} from "@test/ForkTest.sol";
+import {ForkTest} from "@test/fork/ForkTest.sol";
 
 import {DeployScript} from "@script/Deploy.s.sol";
 import {Errors} from "@src/core/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 
 import {SellCreditMarketParams} from "@src/core/libraries/fixed/actions/SellCreditMarket.sol";
-import {ForkTest} from "@test/ForkTest.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract DeployScriptTest is ForkTest {
