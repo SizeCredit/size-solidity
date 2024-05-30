@@ -5,6 +5,8 @@ import {Ghosts} from "./Ghosts.sol";
 
 import {console2} from "./../../lib/forge-std/src/console2.sol";
 import {Math, PERCENT} from "@src/core/libraries/Math.sol";
+
+import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
@@ -43,7 +45,8 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
             _after.debtPositionsCount > _before.debtPositionsCount
                 || _after.sig == ITargetFunctions.liquidateWithReplacement.selector
         ) {
-            uint256 debtPositionId = _after.debtPositionsCount - 1;
+            uint256 debtPositionId =
+                _after.debtPositionId == RESERVED_ID ? _after.debtPositionsCount - 1 : _after.debtPositionId;
             DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
             uint256 tenor = debtPosition.dueDate - block.timestamp;
             t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_02);
