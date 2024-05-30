@@ -45,8 +45,9 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
             _after.debtPositionsCount > _before.debtPositionsCount
                 || _after.sig == ITargetFunctions.liquidateWithReplacement.selector
         ) {
-            uint256 debtPositionId =
-                _after.debtPositionId == RESERVED_ID ? _after.debtPositionsCount - 1 : _after.debtPositionId;
+            uint256 debtPositionId = _after.debtPositionsCount > _before.debtPositionsCount
+                ? _after.debtPositionsCount - 1
+                : _after.debtPositionId;
             DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
             uint256 tenor = debtPosition.dueDate - block.timestamp;
             t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_02);
