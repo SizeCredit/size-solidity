@@ -6,6 +6,8 @@ import {ISize} from "@src/core/interfaces/ISize.sol";
 import {FlashLoanReceiverBase} from "@aave/flashloan/base/FlashLoanReceiverBase.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@aave/interfaces/IPoolAddressesProvider.sol";
+
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -15,6 +17,8 @@ import {LiquidateWithReplacementParams} from "@src/core/libraries/fixed/actions/
 import {DepositParams} from "@src/core/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/core/libraries/general/actions/Withdraw.sol";
 import {DexSwap, SwapParams} from "@src/periphery/DexSwap.sol";
+
+import {TokenRecover} from "@src/periphery/TokenRecover.sol";
 import {PeripheryErrors} from "@src/periphery/libraries/PeripheryErrors.sol";
 
 struct ReplacementParams {
@@ -32,10 +36,11 @@ struct OperationParams {
     ReplacementParams replacementParams;
 }
 
-contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
+contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap, TokenRecover {
     using SafeERC20 for IERC20;
 
     ISize public immutable size;
+    address public feeRecipient;
 
     constructor(
         address _addressProvider,
@@ -46,8 +51,10 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         address _collateralToken,
         address _borrowToken
     )
+        Ownable(msg.sender)
         FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider))
         DexSwap(_1inchAggregator, _unoswapRouter, _uniswapRouter, _collateralToken, _borrowToken)
+        TokenRecover()
     {
         if (_size == address(0) || _addressProvider == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -55,36 +62,6 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
 
         POOL = IPool(IPoolAddressesProvider(_addressProvider).getPool());
         size = ISize(_size);
-    }
-
-    function executeOperation(
-        address[] calldata assets,
-        uint256[] calldata amounts,
-        uint256[] calldata premiums,
-        address initiator,
-        bytes calldata params
-    ) external override returns (bool) {
-        if (msg.sender != address(POOL)) {
-            revert PeripheryErrors.NOT_AAVE_POOL();
-        }
-        if (initiator != address(this)) {
-            revert PeripheryErrors.NOT_INITIATOR();
-        }
-
-        OperationParams memory opParams = abi.decode(params, (OperationParams));
-
-        if (opParams.useReplacement) {
-            _liquidateDebtPositionWithReplacement(
-                amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit, opParams.replacementParams
-            );
-        } else {
-            _liquidateDebtPosition(amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit);
-        }
-
-        _swapCollateral(opParams.swapParams);
-        _settleFlashLoan(assets, amounts, premiums, opParams.liquidator);
-
-        return true;
     }
 
     function _liquidateDebtPositionWithReplacement(
@@ -194,7 +171,7 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
             minimumCollateralProfit: minimumCollateralProfit,
             liquidator: msg.sender,
             swapParams: swapParams,
-            useReplacement: useReplacement,
+            useReplacement: msg.sender == owner() ? useReplacement : false,
             replacementParams: replacementParams
         });
 
@@ -208,5 +185,39 @@ contract FlashLoanLiquidator is FlashLoanReceiverBase, DexSwap {
         modes[0] = 0;
 
         POOL.flashLoan(address(this), assets, amounts, modes, address(this), params, 0);
+    }
+
+    function executeOperation(
+        address[] calldata assets,
+        uint256[] calldata amounts,
+        uint256[] calldata premiums,
+        address initiator,
+        bytes calldata params
+    ) external override returns (bool) {
+        if (msg.sender != address(POOL)) {
+            revert PeripheryErrors.NOT_AAVE_POOL();
+        }
+        if (initiator != address(this)) {
+            revert PeripheryErrors.NOT_INITIATOR();
+        }
+
+        OperationParams memory opParams = abi.decode(params, (OperationParams));
+
+        if (opParams.useReplacement) {
+            _liquidateDebtPositionWithReplacement(
+                amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit, opParams.replacementParams
+            );
+        } else {
+            _liquidateDebtPosition(amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit);
+        }
+
+        _swapCollateral(opParams.swapParams);
+        _settleFlashLoan(assets, amounts, premiums, opParams.liquidator);
+
+        return true;
+    }
+
+    function recover(address token, address to, uint256 amount) external onlyOwner {
+        _recover(IERC20(token), to, amount);
     }
 }
