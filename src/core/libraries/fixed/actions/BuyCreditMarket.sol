@@ -54,19 +54,13 @@ library BuyCreditMarket {
                     state.collateralRatio(debtPosition.borrower)
                 );
             }
-            if (creditPosition.credit == 0) {
-                revert Errors.CREDIT_POSITION_ALREADY_CLAIMED(params.creditPositionId);
-            }
             User storage user = state.data.users[creditPosition.lender];
             if (user.allCreditPositionsForSaleDisabled || !creditPosition.forSale) {
                 revert Errors.CREDIT_NOT_FOR_SALE(params.creditPositionId);
             }
-            if (debtPosition.dueDate < block.timestamp) {
-                revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
-            }
 
             borrower = creditPosition.lender;
-            tenor = debtPosition.dueDate - block.timestamp;
+            tenor = debtPosition.dueDate - block.timestamp; // positive since the credit position is transferrable, so the loan must be ACTIVE
         }
 
         BorrowOffer memory borrowOffer = state.data.users[borrower].borrowOffer;

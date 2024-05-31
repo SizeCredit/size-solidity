@@ -26,7 +26,6 @@ abstract contract ExpectedErrors is Deploy, Properties {
     bytes4[] internal SELF_LIQUIDATE_ERRORS;
     bytes4[] internal LIQUIDATE_WITH_REPLACEMENT_ERRORS;
     bytes4[] internal COMPENSATE_ERRORS;
-    bytes4[] internal BUY_MARKET_CREDIT_ERRORS;
     bytes4[] internal SET_USER_CONFIGURATION_ERRORS;
 
     constructor() {
@@ -46,7 +45,6 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.INVALID_CREDIT_POSITION_ID.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.INVALID_LOAN_OFFER.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.NULL_AMOUNT.selector);
-        SELL_CREDIT_MARKET_ERRORS.push(Errors.PAST_DUE_DATE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.BORROWER_IS_NOT_LENDER.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector);
@@ -66,14 +64,12 @@ abstract contract ExpectedErrors is Deploy, Properties {
 
         // BUY_CREDIT_MARKET_ERRORS
         BUY_CREDIT_MARKET_ERRORS.push(Errors.INVALID_BORROW_OFFER.selector);
-        BUY_CREDIT_MARKET_ERRORS.push(Errors.PAST_DUE_DATE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
-        BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_CASH.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_CREDIT.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_NOT_FOR_SALE.selector);
@@ -128,18 +124,6 @@ abstract contract ExpectedErrors is Deploy, Properties {
         COMPENSATE_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
         COMPENSATE_ERRORS.push(Errors.USER_IS_UNDERWATER.selector);
         COMPENSATE_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
-
-        // BUY_MARKET_CREDIT_ERRORS
-        BUY_MARKET_CREDIT_ERRORS.push(Errors.LOAN_NOT_ACTIVE.selector);
-        BUY_MARKET_CREDIT_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
-        BUY_MARKET_CREDIT_ERRORS.push(Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector);
-        BUY_MARKET_CREDIT_ERRORS.push(Errors.NULL_OFFER.selector);
-        BUY_MARKET_CREDIT_ERRORS.push(Errors.CREDIT_NOT_FOR_SALE.selector);
-        BUY_MARKET_CREDIT_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector);
-        BUY_MARKET_CREDIT_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector);
-        BUY_MARKET_CREDIT_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
-        BUY_MARKET_CREDIT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
-        BUY_MARKET_CREDIT_ERRORS.push(Errors.NOT_ENOUGH_CREDIT.selector);
 
         // SET_USER_CONFIGURATION_ERRORS N/A
     }
