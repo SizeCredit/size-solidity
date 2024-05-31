@@ -142,7 +142,7 @@ contract BuyCreditMarketTest is BaseTest {
         );
         vm.stopPrank();
 
-        uint256 apr = size.getBorrowOfferAPR(james, 10 days);
+        uint256 apr = size.getBorrowOfferAPR(james, 365 days);
 
         vm.startPrank(candy);
         vm.expectRevert(abi.encodeWithSelector(Errors.APR_LOWER_THAN_MIN_APR.selector, apr, apr + 1));
@@ -151,7 +151,7 @@ contract BuyCreditMarketTest is BaseTest {
                 borrower: james,
                 creditPositionId: RESERVED_ID,
                 amount: 20e6,
-                tenor: 10 days,
+                tenor: 365 days,
                 deadline: deadline,
                 minAPR: apr + 1,
                 exactAmountIn: exactAmountIn
