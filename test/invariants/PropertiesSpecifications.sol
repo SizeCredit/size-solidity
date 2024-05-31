@@ -8,15 +8,15 @@ abstract contract PropertiesSpecifications {
     string internal constant WITHDRAW_01 = "WITHDRAW_01: Withdraw deducts from the sender";
     string internal constant WITHDRAW_02 = "WITHDRAW_02: Withdraw removes tokens from the protocol";
 
-    string internal constant BORROW_01 = "BORROW_01: Borrow increases the borrower cash";
+    string internal constant BORROW_01 = "BORROW_01: Borrow increases the borrower's cash";
     string internal constant BORROW_02 = "BORROW_02: Borrow increases the number of loans";
 
-    string internal constant CLAIM_01 = "CLAIM_01: Claim does not decrease the sender cash";
+    string internal constant CLAIM_01 = "CLAIM_01: Claim does not decrease the sender's cash";
     string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for DebtPositions";
 
     string internal constant LIQUIDATE_01 = "LIQUIDATE_01: Liquidate increases the sender collateral";
     string internal constant LIQUIDATE_02 =
-        "LIQUIDATE_02: Liquidate decreases the sender cash if the loan is not overdue";
+        "LIQUIDATE_02: Liquidate decreases the sender's cash if the loan is not overdue";
     string internal constant LIQUIDATE_03 = "LIQUIDATE_03: Liquidate only succeeds if the borrower is liquidatable";
     string internal constant LIQUIDATE_04 = "LIQUIDATE_04: Liquidate decreases the borrower's debt";
     string internal constant LIQUIDATE_05 = "LIQUIDATE_05: Liquidate clears the loan's debt";
@@ -35,10 +35,10 @@ abstract contract PropertiesSpecifications {
     string internal constant TOKENS_01 =
         "TOKENS_01: The sum of collateral deposit tokens is equal to the underlying collateral";
     string internal constant TOKENS_02 =
-        "TOKENS_03: The sum of borrow deposit tokens is equal to the sum of borrow deposit tokens for each user";
+        "TOKENS_02: The sum of borrow deposit tokens is equal to the sum of borrow deposit tokens for each user";
 
     string internal constant UNDERWATER_01 =
-        "UNDERWATER_01: A user cannot make an operation that leaves any users underwater";
+        "UNDERWATER_01: A user cannot make an operation that leaves any user underwater";
     string internal constant UNDERWATER_02 = "UNDERWATER_02: Underwater users cannot borrow";
 
     string internal constant COMPENSATE_01 =
