@@ -216,6 +216,6 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap, TokenRe
     }
 
     function recover(address token, address to, uint256 amount) external onlyOwner {
-        _recover(IERC20(token), to, amount);
+        IERC20(token).safeTransfer(to, amount);
     }
 }
