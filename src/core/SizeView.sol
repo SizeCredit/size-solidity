@@ -155,18 +155,6 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return state.getDebtPositionAssignedCollateral(debtPosition);
     }
 
-    function getCreditPositionProRataAssignedCollateral(uint256 creditPositionId) external view returns (uint256) {
-        CreditPosition memory creditPosition = state.getCreditPosition(creditPositionId);
-        return state.getCreditPositionProRataAssignedCollateral(creditPosition);
-    }
-
-    function getSwapFeePercent(uint256 tenor) public view returns (uint256) {
-        if (tenor == 0) {
-            revert Errors.NULL_TENOR();
-        }
-        return state.getSwapFeePercent(tenor);
-    }
-
     function getSwapFee(uint256 cash, uint256 tenor) public view returns (uint256) {
         if (tenor == 0) {
             revert Errors.NULL_TENOR();

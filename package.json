@@ -7,8 +7,8 @@
     "deploy-sepolia-mocks": "forge script script/Deploy.s.sol --rpc-url sepolia --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account size-testnet-4 --ffi",
     "echidna-property": "echidna . --contract CryticTester --config echidna.yaml --test-mode property",
     "echidna-assertion": "echidna . --contract CryticTester --config echidna.yaml --test-mode assertion",
-    "echidna-coverage": "open $(find echidna -name '*.html' | tail -1)",
-    "coverage": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'src/invariants/*' 'test/*' 'script/*' && genhtml lcov.info -o report --branch-coverage && open report/index.html"
+    "echidna-coverage": "open $(find echidna -name '*.html' | sort | tail -1)",
+    "coverage": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*' 'script/*' && genhtml lcov.info -o report --branch-coverage && open report/index.html"
   },
   "devDependencies": {
     "@typechain/ethers-v5": "^11.1.2",

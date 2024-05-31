@@ -92,6 +92,10 @@ forge test
 
 ## Coverage
 
+```bash
+yarn coverage
+```
+
 <!-- BEGIN_COVERAGE -->
 ### FIles
 
@@ -186,6 +190,7 @@ yarn echidna-coverage
 
 ## Formal Verification
 
+- [`Math.min`](./test/libraries/Math.t.sol)
 - [`Math.binarySearch`](./test/libraries/Math.t.sol)
 
 Run Halmos with

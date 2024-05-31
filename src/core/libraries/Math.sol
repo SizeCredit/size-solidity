@@ -31,10 +31,6 @@ library Math {
         return amount * 10 ** (18 - decimals);
     }
 
-    function ratePerTenorToAPR(uint256 ratePerTenor, uint256 tenor) internal pure returns (uint256) {
-        return mulDivDown(ratePerTenor, 365 days, tenor);
-    }
-
     function aprToRatePerTenor(uint256 apr, uint256 tenor) internal pure returns (uint256) {
         return mulDivDown(apr, tenor, 365 days);
     }

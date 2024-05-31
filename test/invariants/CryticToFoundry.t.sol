@@ -38,11 +38,11 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
     }
 
     function _checkProperties() internal {
-        assertTrue(property_LOAN(), LOAN);
-        assertTrue(property_UNDERWATER(), UNDERWATER);
-        assertTrue(property_TOKENS(), TOKENS);
-        assertTrue(property_SOLVENCY(), SOLVENCY);
-        assertTrue(property_FEES(), FEES);
+        assertTrue(property_LOAN());
+        assertTrue(property_UNDERWATER());
+        assertTrue(property_TOKENS());
+        assertTrue(property_SOLVENCY());
+        assertTrue(property_FEES());
     }
 
     function test_CryticToFoundry_01() public {

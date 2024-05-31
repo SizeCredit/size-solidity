@@ -99,9 +99,4 @@ interface ISizeView {
     /// @param debtPositionId The ID of the debt position
     /// @return The assigned collateral amount
     function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256);
-
-    /// @notice Get the pro-rata assigned collateral for a credit position
-    /// @param creditPositionId The ID of the credit position
-    /// @return The pro-rata assigned collateral amount
-    function getCreditPositionProRataAssignedCollateral(uint256 creditPositionId) external view returns (uint256);
 }
