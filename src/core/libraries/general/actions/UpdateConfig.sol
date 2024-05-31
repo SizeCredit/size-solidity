@@ -77,18 +77,23 @@ library UpdateConfig {
         } else if (Strings.equal(params.key, "borrowATokenCap")) {
             state.riskConfig.borrowATokenCap = params.value;
         } else if (Strings.equal(params.key, "minimumTenor")) {
+            if (params.value >= Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)) {
+                revert Errors.VALUE_GREATER_THAN_MAX(
+                    params.value, Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
+                );
+            }
             state.riskConfig.minimumTenor = params.value;
         } else if (Strings.equal(params.key, "maximumTenor")) {
-            if (params.value >= Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR)) {
+            if (params.value >= Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
-                    params.value, Math.mulDivDown(PERCENT, 365 days, state.feeConfig.swapFeeAPR)
+                    params.value, Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
                 );
             }
             state.riskConfig.maximumTenor = params.value;
         } else if (Strings.equal(params.key, "swapFeeAPR")) {
-            if (params.value >= Math.mulDivDown(state.riskConfig.minimumTenor, PERCENT, 365 days)) {
+            if (params.value >= Math.mulDivDown(PERCENT, 365 days, state.riskConfig.maximumTenor)) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
-                    params.value, Math.mulDivDown(state.riskConfig.minimumTenor, PERCENT, 365 days)
+                    params.value, Math.mulDivDown(PERCENT, 365 days, state.riskConfig.maximumTenor)
                 );
             }
             state.feeConfig.swapFeeAPR = params.value;

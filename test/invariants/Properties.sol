@@ -3,10 +3,8 @@ pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
 
-import {console2} from "./../../lib/forge-std/src/console2.sol";
 import {Math, PERCENT} from "@src/core/libraries/Math.sol";
 
-import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
