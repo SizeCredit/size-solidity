@@ -40,7 +40,6 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap, TokenRe
     using SafeERC20 for IERC20;
 
     ISize public immutable size;
-    address public feeRecipient;
 
     constructor(
         address _addressProvider,
@@ -54,7 +53,6 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap, TokenRe
         Ownable(msg.sender)
         FlashLoanReceiverBase(IPoolAddressesProvider(_addressProvider))
         DexSwap(_1inchAggregator, _unoswapRouter, _uniswapRouter, _collateralToken, _borrowToken)
-        TokenRecover()
     {
         if (_size == address(0) || _addressProvider == address(0)) {
             revert Errors.NULL_ADDRESS();
