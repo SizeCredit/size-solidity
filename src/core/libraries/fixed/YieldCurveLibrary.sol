@@ -88,7 +88,7 @@ library YieldCurveLibrary {
     }
 
     /// @notice Get the rate from the yield curve by performing a linear interpolation between two time buckets
-    /// @dev Reverts if the due date is in the past or out of range
+    /// @dev Reverts if the tenor is out of range
     /// @param curveRelativeTime The yield curve
     /// @param params The variable pool borrow rate feed params
     /// @param tenor The tenor
