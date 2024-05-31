@@ -31,6 +31,7 @@ abstract contract PropertiesSpecifications {
     string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
     string internal constant LOAN_02 = "LOAN_02: minimumTenor <= loan.tenor <= maximumTenor";
     string internal constant LOAN_03 = "LOAN_03: COUNT(credit positions) >= COUNT(debt positions)";
+    string internal constant LOAN_04 = "LOAN_04: loan.credit == 0 <==> loan.status == REPAID";
 
     string internal constant TOKENS_01 =
         "TOKENS_01: The sum of collateral deposit tokens is equal to the underlying collateral";
