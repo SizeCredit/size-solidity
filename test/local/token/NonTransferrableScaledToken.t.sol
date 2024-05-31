@@ -46,4 +46,15 @@ contract NonTransferrableScaledTokenTest is Test {
         vm.expectRevert(abi.encodeWithSelector(Errors.NOT_SUPPORTED.selector));
         token.burn(address(this), 100);
     }
+
+    function test_NonTransferrableScaledToken_transfer() public {
+        vm.prank(owner);
+        token.mintScaled(owner, 100);
+        assertEq(token.balanceOf(address(this)), 0);
+        assertEq(token.balanceOf(owner), 100);
+        vm.prank(owner);
+        token.transfer(address(this), 100);
+        assertEq(token.balanceOf(address(this)), 100);
+        assertEq(token.balanceOf(owner), 0);
+    }
 }

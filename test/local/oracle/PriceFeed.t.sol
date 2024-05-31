@@ -107,6 +107,24 @@ contract PriceFeedTest is Test, AssertsHelper {
         assertEq(priceFeed.getPrice(), (uint256(2200.12e18) * 1e18 * 1e18) / (uint256(0.9999e18) * uint256(1.2e18)));
     }
 
+    function test_PriceFeed_getPrice_reverts_sequencer_down() public {
+        uint256 updatedAt = block.timestamp;
+        vm.warp(updatedAt + 365 days);
+
+        sequencerUptimeFeed.updateAnswer(1);
+        vm.expectRevert(abi.encodeWithSelector(Errors.SEQUENCER_DOWN.selector));
+        priceFeed.getPrice();
+
+        sequencerUptimeFeed.updateAnswer(0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.GRACE_PERIOD_NOT_OVER.selector));
+        priceFeed.getPrice();
+
+        vm.warp(block.timestamp + 3600 + 1);
+        usdcToUsd.updateAnswer(USDC_TO_USD);
+        ethToUsd.updateAnswer(ETH_TO_USD);
+        priceFeed.getPrice();
+    }
+
     function test_PriceFeed_getPrice_is_consistent() public {
         uint256 price_1 = priceFeed.getPrice();
         uint256 price_2 = priceFeed.getPrice();
