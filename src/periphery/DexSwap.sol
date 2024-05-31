@@ -23,7 +23,7 @@ struct SwapParams {
     uint256 minimumReturnAmount; // Minimum return amount from the swap
 }
 
-contract DexSwap {
+abstract contract DexSwap {
     using SafeERC20 for IERC20;
 
     I1InchAggregator public immutable oneInchAggregator;
