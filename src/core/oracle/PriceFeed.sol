@@ -26,7 +26,7 @@ contract PriceFeed is IPriceFeed {
     uint256 public constant decimals = 18;
     AggregatorV3Interface public immutable base;
     AggregatorV3Interface public immutable quote;
-    AggregatorV3Interface internal sequencerUptimeFeed;
+    AggregatorV3Interface internal immutable sequencerUptimeFeed;
     uint256 public immutable baseStalePriceInterval;
     uint256 public immutable quoteStalePriceInterval;
     /* solhint-enable */
