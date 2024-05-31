@@ -156,6 +156,20 @@ contract CompensateValidationTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
         _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
         _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+
+        uint256 dSelf = _sellCreditMarket(bob, bob, RESERVED_ID, 20e6, 365 days, false);
+        uint256 cSelf = size.getCreditPositionIdsByDebtPositionId(dSelf)[0];
+
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_CREDIT_POSITION_ID.selector, cSelf));
+        size.compensate(
+            CompensateParams({
+                creditPositionWithDebtToRepayId: cSelf,
+                creditPositionToCompensateId: cSelf,
+                amount: type(uint256).max
+            })
+        );
+
         _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, 365 days, false);
         uint256 d2 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, 365 days, false);
         uint256 c2 = size.getCreditPositionIdsByDebtPositionId(d2)[0];
