@@ -18,7 +18,7 @@ abstract contract PropertiesSpecifications {
     string internal constant LIQUIDATE_02 =
         "LIQUIDATE_02: Liquidate decreases the sender cash if the loan is not overdue";
     string internal constant LIQUIDATE_03 = "LIQUIDATE_03: Liquidate only succeeds if the borrower is liquidatable";
-    string internal constant LIQUIDATE_04 = "LIQUIDATE_04: Liquidate decreases the borrower debt";
+    string internal constant LIQUIDATE_04 = "LIQUIDATE_04: Liquidate decreases the borrower's debt";
     string internal constant LIQUIDATE_05 = "LIQUIDATE_05: Liquidate clears the loan's debt";
 
     string internal constant SELF_LIQUIDATE_01 = "SELF_LIQUIDATE_01: Self-Liquidate increases the sender collateral";
@@ -42,9 +42,9 @@ abstract contract PropertiesSpecifications {
     string internal constant UNDERWATER_02 = "UNDERWATER_02: Underwater users cannot borrow";
 
     string internal constant COMPENSATE_01 =
-        "COMPENSATE_01: Compensate does not change the borrower debt if minting new credit";
+        "COMPENSATE_01: Compensate does not change the borrower's debt if minting new credit";
     string internal constant COMPENSATE_02 =
-        "COMPENSATE_02: Compensate reduces the borrower debt if using an existing credit";
+        "COMPENSATE_02: Compensate reduces the borrower's debt if using an existing credit";
 
     string internal constant SOLVENCY_01 = "SOLVENCY_01: SUM(outstanding credit) == SUM(outstanding debt)";
     string internal constant SOLVENCY_02 = "SOLVENCY_02: SUM(credit) <= SUM(debt)";
