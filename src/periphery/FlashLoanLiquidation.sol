@@ -18,7 +18,6 @@ import {DepositParams} from "@src/core/libraries/general/actions/Deposit.sol";
 import {WithdrawParams} from "@src/core/libraries/general/actions/Withdraw.sol";
 import {DexSwap, SwapParams} from "@src/periphery/DexSwap.sol";
 
-import {TokenRecover} from "@src/periphery/TokenRecover.sol";
 import {PeripheryErrors} from "@src/periphery/libraries/PeripheryErrors.sol";
 
 struct ReplacementParams {
@@ -36,7 +35,7 @@ struct OperationParams {
     ReplacementParams replacementParams;
 }
 
-contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap, TokenRecover {
+contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
     using SafeERC20 for IERC20;
 
     ISize public immutable size;

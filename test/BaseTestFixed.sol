@@ -131,12 +131,9 @@ abstract contract BaseTestFixed is Test, BaseTestGeneral {
         return _sellCreditMarket(borrower, lender, creditPositionId, amount, tenor, true);
     }
 
-    function _sellCreditMarket(address borrower, address lender, uint256 creditPositionId, uint256 tenor)
-        internal
-        returns (uint256)
-    {
+    function _sellCreditMarket(address borrower, address lender, uint256 creditPositionId) internal returns (uint256) {
         return _sellCreditMarket(
-            borrower, lender, creditPositionId, size.getCreditPosition(creditPositionId).credit, tenor, true
+            borrower, lender, creditPositionId, size.getCreditPosition(creditPositionId).credit, type(uint256).max, true
         );
     }
 

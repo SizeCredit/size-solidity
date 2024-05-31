@@ -44,9 +44,6 @@ library SetUserConfiguration {
             if (state.getLoanStatus(params.creditPositionIds[i]) != LoanStatus.ACTIVE) {
                 revert Errors.LOAN_NOT_ACTIVE(params.creditPositionIds[i]);
             }
-            if (creditPosition.credit == 0) {
-                revert Errors.CREDIT_POSITION_ALREADY_CLAIMED(params.creditPositionIds[i]);
-            }
         }
     }
 

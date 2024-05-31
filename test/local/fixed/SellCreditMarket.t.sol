@@ -144,7 +144,7 @@ contract SellCreditMarketTest is BaseTest {
         Vars memory _before = _state();
 
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _sellCreditMarket(alice, candy, creditPositionId, tenor);
+        _sellCreditMarket(alice, candy, creditPositionId);
 
         Vars memory _after = _state();
         (uint256 debtPositionsCountAfter,) = size.getPositionsCount();
@@ -255,7 +255,7 @@ contract SellCreditMarketTest is BaseTest {
         _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _sellCreditMarket(alice, candy, creditPositionId, 365 days);
+        _sellCreditMarket(alice, candy, creditPositionId);
 
         uint256 credit = size.getCreditPosition(creditPositionId).credit;
         vm.expectRevert();

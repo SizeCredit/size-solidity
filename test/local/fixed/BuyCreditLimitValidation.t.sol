@@ -77,5 +77,13 @@ contract BuyCreditLimitValidationTest is BaseTest {
                 curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
             })
         );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_MAX_DUE_DATE.selector));
+        size.buyCreditLimit(
+            BuyCreditLimitParams({
+                maxDueDate: 0,
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
+            })
+        );
     }
 }

@@ -16,6 +16,7 @@ contract SetUserConfigurationValidationTest is BaseTest {
         _deposit(alice, usdc, 150e6);
         _deposit(bob, weth, 200e18);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
+        _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
@@ -35,9 +36,9 @@ contract SetUserConfigurationValidationTest is BaseTest {
 
         _deposit(bob, usdc, 100e6);
         _repay(bob, debtPositionId);
-        _claim(alice, creditPositionId);
+        _claim(candy, creditPositionId);
 
-        vm.prank(alice);
+        vm.prank(candy);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, creditPositionId));
         size.setUserConfiguration(
             SetUserConfigurationParams({
