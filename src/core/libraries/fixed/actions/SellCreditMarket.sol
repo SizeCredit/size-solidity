@@ -58,11 +58,6 @@ library SellCreditMarket {
             if (msg.sender != creditPosition.lender) {
                 revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, creditPosition.lender);
             }
-            if (debtPosition.dueDate < block.timestamp) {
-                revert Errors.PAST_DUE_DATE(debtPosition.dueDate);
-            }
-            tenor = debtPosition.dueDate - block.timestamp;
-
             if (!state.isCreditPositionTransferrable(params.creditPositionId)) {
                 revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
                     params.creditPositionId,
@@ -70,6 +65,8 @@ library SellCreditMarket {
                     state.collateralRatio(debtPosition.borrower)
                 );
             }
+            tenor = debtPosition.dueDate - block.timestamp; // positive since the credit position is transferrable, so the loan must be ACTIVE
+
             // validate amount
             if (params.amount > creditPosition.credit) {
                 revert Errors.AMOUNT_GREATER_THAN_CREDIT_POSITION_CREDIT(params.amount, creditPosition.credit);
