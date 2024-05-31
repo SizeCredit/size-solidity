@@ -6,6 +6,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {CompensateParams} from "@src/core/libraries/fixed/actions/Compensate.sol";
+import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Errors} from "@src/core/libraries/Errors.sol";
 
@@ -142,5 +143,33 @@ contract CompensateValidationTest is BaseTest {
             })
         );
         vm.stopPrank();
+
+        uint256 minimumTenor = size.riskConfig().minimumTenor;
+        uint256 maximumTenor = size.riskConfig().maximumTenor;
+
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(james, weth, 100e18);
+        _deposit(james, usdc, 100e6);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+        _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+        _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+        _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, 365 days, false);
+        uint256 d2 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, 365 days, false);
+        uint256 c2 = size.getCreditPositionIdsByDebtPositionId(d2)[0];
+
+        vm.warp(block.timestamp + 365 days);
+
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 0, minimumTenor, maximumTenor));
+        size.compensate(
+            CompensateParams({
+                creditPositionWithDebtToRepayId: c2,
+                creditPositionToCompensateId: type(uint256).max,
+                amount: type(uint256).max
+            })
+        );
     }
 }

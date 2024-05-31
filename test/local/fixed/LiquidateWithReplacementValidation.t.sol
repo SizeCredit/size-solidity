@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
+import {YieldCurve} from "@src/core/libraries/fixed/YieldCurveLibrary.sol";
 import {LiquidateWithReplacementParams} from "@src/core/libraries/fixed/actions/LiquidateWithReplacement.sol";
 
 import {Errors} from "@src/core/libraries/Errors.sol";
@@ -36,8 +37,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
 
         _setPrice(0.2e18);
 
-        vm.startPrank(liquidator);
-
+        vm.prank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.APR_LOWER_THAN_MIN_APR.selector, 0.03e18, 1e18));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
@@ -49,22 +49,55 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
             })
         );
 
-        uint256 deadline = block.timestamp;
-        vm.warp(block.timestamp + 365 days);
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DEADLINE.selector, deadline));
+        vm.prank(liquidator);
+        vm.expectRevert(abi.encodeWithSelector(Errors.PAST_DEADLINE.selector, block.timestamp - 1));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
                 borrower: candy,
                 minAPR: 0,
-                deadline: deadline,
+                deadline: block.timestamp - 1,
+                minimumCollateralProfit: minimumCollateralProfit
+            })
+        );
+
+        YieldCurve memory empty;
+        _sellCreditLimit(candy, empty);
+
+        vm.prank(liquidator);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, candy));
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
+                borrower: candy,
+                minAPR: 0,
+                deadline: block.timestamp,
                 minimumCollateralProfit: minimumCollateralProfit
             })
         );
 
         vm.warp(block.timestamp + 365 days * 2);
 
+        uint256 minimumTenor = size.riskConfig().minimumTenor;
+        uint256 maximumTenor = size.riskConfig().maximumTenor;
+
+        _sellCreditLimit(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
+
+        vm.prank(liquidator);
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 0, minimumTenor, maximumTenor));
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
+                borrower: candy,
+                minAPR: 0,
+                deadline: block.timestamp,
+                minimumCollateralProfit: minimumCollateralProfit
+            })
+        );
+
+        vm.warp(block.timestamp + 1);
+
+        vm.prank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, debtPositionId));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({

@@ -165,6 +165,23 @@ contract SellCreditMarketValidationTest is BaseTest {
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         uint256 debtPositionId2 = _sellCreditMarket(alice, candy, RESERVED_ID, 10e6, 365 days, false);
         creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
+        uint256 credit = size.getCreditPosition(creditPositionId).credit;
+
+        vm.startPrank(candy);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_ENOUGH_CREDIT.selector, 1000e6, credit));
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: bob,
+                creditPositionId: creditPositionId,
+                amount: 1000e6,
+                tenor: 365 days,
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max,
+                exactAmountIn: exactAmountIn
+            })
+        );
+        vm.stopPrank();
+
         _repay(alice, debtPositionId2);
 
         uint256 cr = size.collateralRatio(alice);

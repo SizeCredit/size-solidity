@@ -69,7 +69,7 @@ library SellCreditMarket {
 
             // validate amount
             if (params.amount > creditPosition.credit) {
-                revert Errors.AMOUNT_GREATER_THAN_CREDIT_POSITION_CREDIT(params.amount, creditPosition.credit);
+                revert Errors.NOT_ENOUGH_CREDIT(params.amount, creditPosition.credit);
             }
         }
 
