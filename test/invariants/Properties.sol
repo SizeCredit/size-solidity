@@ -158,18 +158,17 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
                 _before.sig == ITargetFunctions.sellCreditMarket.selector
                     || _before.sig == ITargetFunctions.buyCreditMarket.selector
             )
+                && (
+                    Math.mulDivDown(
+                        size.riskConfig().minimumCreditBorrowAToken,
+                        size.riskConfig().minimumTenor * size.feeConfig().swapFeeAPR,
+                        365 days * PERCENT
+                    ) > 0
+                )
         ) {
-            if (
-                Math.mulDivDown(
-                    size.riskConfig().minimumCreditBorrowAToken,
-                    size.riskConfig().minimumTenor * size.feeConfig().swapFeeAPR,
-                    365 * PERCENT
-                ) > 0
-            ) {
-                gt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
-            } else {
-                gte(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
-            }
+            gt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
+        } else {
+            gte(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
         }
 
         return true;

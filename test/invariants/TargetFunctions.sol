@@ -42,12 +42,13 @@ import {UpdateConfigParams} from "@src/core/libraries/general/actions/UpdateConf
 import {KEEPER_ROLE} from "@src/core/Size.sol";
 
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
+import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
 import {
     CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID
 } from "@src/core/libraries/fixed/LoanLibrary.sol";
 
-abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions {
+abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions, ITargetFunctions {
     function setup() internal override {
         setupLocal(address(this), address(this));
         size.grantRole(KEEPER_ROLE, USER2);
