@@ -10,6 +10,23 @@ contract UpdateConfigValidationTest is BaseTest {
     function test_UpdateConfig_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_KEY.selector, "invalid"));
         size.updateConfig(UpdateConfigParams({key: "invalid", value: 1e18}));
+
+        uint256 crLiquidation = size.riskConfig().crLiquidation;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_COLLATERAL_RATIO.selector, crLiquidation + 1));
+        size.updateConfig(UpdateConfigParams({key: "crLiquidation", value: crLiquidation + 1}));
+
+        uint256 maxTenor = 200 * 365 days;
+        vm.expectRevert(abi.encodeWithSelector(Errors.VALUE_GREATER_THAN_MAX.selector, maxTenor + 1, maxTenor));
+        size.updateConfig(UpdateConfigParams({key: "minimumTenor", value: maxTenor + 1}));
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.VALUE_GREATER_THAN_MAX.selector, maxTenor + 1, maxTenor));
+        size.updateConfig(UpdateConfigParams({key: "maximumTenor", value: maxTenor + 1}));
+
+        uint256 maxSwapFeeAPR = 0.2e18;
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.VALUE_GREATER_THAN_MAX.selector, maxSwapFeeAPR + 1, maxSwapFeeAPR)
+        );
+        size.updateConfig(UpdateConfigParams({key: "swapFeeAPR", value: maxSwapFeeAPR + 1}));
     }
 
     function test_UpdateConfig_updateConfig_cannot_update_data() public {

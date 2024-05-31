@@ -25,6 +25,7 @@ contract LiquidateWithReplacementTest is BaseTest {
     {
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
+        _updateConfig("liquidationRewardPercent", 0.1e18);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
