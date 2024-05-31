@@ -15,14 +15,15 @@ Target networks:
 
 ## Audits
 
-- [LightChaserV3](./audits/2024-03-19-LightChaserV3_SizeV2.md)
-- [Solidified](./audits/2024-03-26-Solidified.pdf)
+- [2024-03-19 - LightChaserV3](./audits/2024-03-19-LightChaserV3.md)
+- [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
+- [2024-05-30 - Spearbit (draft)](./audits/2024-05-30-Spearbit-draft.pdf)
 
 ## Documentation
 
 ### Overview, Accounting and Protocol Design
 
-- [Whitepaper](https://size-lending.gitbook.io/size-v2/)
+- [Whitepaper](https://docs.size.cash/)
 
 ### Technical overview
 
@@ -52,7 +53,7 @@ Additional safety features were employed, such as different levels of Access Con
 In order to address donation and reentrancy attacks, the following measures were adopted:
 
 - No withdraws of native ether, only wrapped ether (WETH)
-- Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into protocol tokens via `deposit`, which mints `aUSDC` and `szWETH`, and received back via `withdraw`, which burns protocol tokens 1:1 in exchange of the underlying tokens.
+- Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into deposit tokens via `deposit`, which mints `szaUSDC` and `szWETH`, and received back via `withdraw`, which burns deposit tokens 1:1 in exchange of the underlying tokens.
 
 #### Maths
 

@@ -13,7 +13,6 @@ import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Deploy} from "@script/Deploy.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {YieldCurve} from "@src/core/libraries/fixed/YieldCurveLibrary.sol";
@@ -43,12 +42,13 @@ import {UpdateConfigParams} from "@src/core/libraries/general/actions/UpdateConf
 import {KEEPER_ROLE} from "@src/core/Size.sol";
 
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
+import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
 import {
     CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID
 } from "@src/core/libraries/fixed/LoanLibrary.sol";
 
-abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetFunctions {
+abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions, ITargetFunctions {
     function setup() internal override {
         setupLocal(address(this), address(this));
         size.grantRole(KEEPER_ROLE, USER2);
@@ -146,7 +146,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
 
         lender = _getRandomUser(lender);
         creditPositionId = _getCreditPositionId(creditPositionId);
-        amount = between(amount, 0, MAX_AMOUNT_USDC / 100);
+        amount = between(amount, 0, MAX_AMOUNT_USDC);
         tenor = between(tenor, 0, MAX_DURATION);
 
         hevm.prank(sender);
@@ -207,19 +207,22 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         borrower = _getRandomUser(borrower);
         creditPositionId = _getCreditPositionId(creditPositionId);
         tenor = between(tenor, 0, MAX_DURATION);
-        amount = between(amount, 0, _before.sender.borrowATokenBalance / 10);
+        amount = between(amount, 0, MAX_AMOUNT_USDC);
 
         hevm.prank(sender);
-        size.buyCreditMarket(
-            BuyCreditMarketParams({
-                borrower: borrower,
-                creditPositionId: creditPositionId,
-                tenor: tenor,
-                amount: amount,
-                deadline: block.timestamp,
-                minAPR: 0,
-                exactAmountIn: exactAmountIn
-            })
+        (success, returnData) = address(size).call(
+            abi.encodeCall(
+                size.buyCreditMarket,
+                BuyCreditMarketParams({
+                    borrower: borrower,
+                    creditPositionId: creditPositionId,
+                    tenor: tenor,
+                    amount: amount,
+                    deadline: block.timestamp,
+                    minAPR: 0,
+                    exactAmountIn: exactAmountIn
+                })
+            )
         );
         if (success) {
             __after();
@@ -457,12 +460,12 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function setPrice(uint256 price) public {
+    function setPrice(uint256 price) public clear {
         price = between(price, MIN_PRICE, MAX_PRICE);
         PriceFeedMock(address(priceFeed)).setPrice(price);
     }
 
-    function setLiquidityIndex(uint256 liquidityIndex, uint256 supplyAmount) public {
+    function setLiquidityIndex(uint256 liquidityIndex, uint256 supplyAmount) public clear {
         uint256 currentLiquidityIndex = variablePool.getReserveNormalizedIncome(address(usdc));
         liquidityIndex =
             (between(liquidityIndex, PERCENT, MAX_LIQUIDITY_INDEX_INCREASE_PERCENT)) * currentLiquidityIndex / PERCENT;
@@ -475,7 +478,7 @@ abstract contract TargetFunctions is Deploy, Helper, ExpectedErrors, BaseTargetF
         }
     }
 
-    function updateConfig(uint256 i, uint256 value) public {
+    function updateConfig(uint256 i, uint256 value) public clear {
         string[12] memory keys = [
             "crOpening",
             "crLiquidation",

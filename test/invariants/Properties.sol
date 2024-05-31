@@ -3,8 +3,10 @@ pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
 
+import {Math, PERCENT} from "@src/core/libraries/Math.sol";
+
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
-import {TargetFunctions} from "@test/invariants/TargetFunctions.sol";
+import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
 import {UserView} from "@src/core/SizeView.sol";
 
@@ -26,7 +28,8 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
     event L4(uint256 a, uint256 b, uint256 c, uint256 d);
 
     function property_LOAN() public returns (bool) {
-        // @audit-info Invalid if the admin changes the minimumCreditBorrowAToken. Uncomment if you want to check for this property while also finding false positives.
+        // @audit-info Invalid if the admin changes the minimumCreditBorrowAToken.
+        // @audit-info Uncomment this if you want to check for this property while also finding false positives.
         // (uint256 minimumCreditBorrowAToken,) = size.getCryticVariables();
         // CreditPosition[] memory creditPositions = size.getCreditPositions();
         // for (uint256 i = 0; i < creditPositions.length; i++) {
@@ -38,9 +41,12 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
 
         if (
             _after.debtPositionsCount > _before.debtPositionsCount
-                || _after.sig == TargetFunctions.liquidateWithReplacement.selector
+                || _after.sig == ITargetFunctions.liquidateWithReplacement.selector
         ) {
-            DebtPosition memory debtPosition = size.getDebtPosition(_after.debtPositionId);
+            uint256 debtPositionId = _after.debtPositionsCount > _before.debtPositionsCount
+                ? _after.debtPositionsCount - 1
+                : _after.debtPositionId;
+            DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
             uint256 tenor = debtPosition.dueDate - block.timestamp;
             t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_02);
         }
@@ -86,9 +92,11 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         uint256 outstandingDebt;
         uint256 outstandingCredit;
 
+        if (_after.debtPositionsCount == 0) return true;
+
         uint256 totalDebt;
         address[3] memory users = [USER1, USER2, USER3];
-        uint256[3] memory positionsDebt;
+        uint256[3] memory positionsDebtPerUser;
 
         for (uint256 i = 0; i < _after.creditPositionsCount; ++i) {
             uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
@@ -107,16 +115,16 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
                 ? 0
                 : debtPosition.borrower == USER2 ? 1 : debtPosition.borrower == USER3 ? 2 : type(uint256).max;
 
-            positionsDebt[userIndex] += debtPosition.futureValue;
+            positionsDebtPerUser[userIndex] += debtPosition.futureValue;
         }
 
         eq(outstandingDebt, outstandingCredit, SOLVENCY_01);
 
         gte(size.data().debtToken.totalSupply(), outstandingCredit, SOLVENCY_02);
 
-        for (uint256 i = 0; i < positionsDebt.length; ++i) {
-            totalDebt += positionsDebt[i];
-            eq(size.data().debtToken.balanceOf(users[i]), positionsDebt[i], SOLVENCY_03);
+        for (uint256 i = 0; i < positionsDebtPerUser.length; ++i) {
+            totalDebt += positionsDebtPerUser[i];
+            eq(size.data().debtToken.balanceOf(users[i]), positionsDebtPerUser[i], SOLVENCY_03);
         }
 
         eq(totalDebt, size.data().debtToken.totalSupply(), SOLVENCY_04);
@@ -129,7 +137,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
             _after.debtPositionsCount == _before.debtPositionsCount
                 && _after.creditPositionsCount > _before.creditPositionsCount
         ) {
-            if (_before.sig == TargetFunctions.compensate.selector) {
+            if (_before.sig == ITargetFunctions.compensate.selector) {
                 eq(
                     _after.feeRecipient.collateralTokenBalance,
                     _before.feeRecipient.collateralTokenBalance
@@ -147,15 +155,20 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
 
         if (
             (
-                _before.sig == TargetFunctions.sellCreditMarket.selector
-                    || _before.sig == TargetFunctions.buyCreditMarket.selector
+                _before.sig == ITargetFunctions.sellCreditMarket.selector
+                    || _before.sig == ITargetFunctions.buyCreditMarket.selector
             )
+                && (
+                    Math.mulDivDown(
+                        size.riskConfig().minimumCreditBorrowAToken,
+                        size.riskConfig().minimumTenor * size.feeConfig().swapFeeAPR,
+                        365 days * PERCENT
+                    ) > 0
+                )
         ) {
-            if (size.feeConfig().swapFeeAPR > 0) {
-                gt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
-            } else {
-                gte(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
-            }
+            gt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
+        } else {
+            gte(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_02);
         }
 
         return true;

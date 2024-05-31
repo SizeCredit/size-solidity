@@ -48,6 +48,13 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         _;
     }
 
+    modifier clear() {
+        Vars memory e;
+        _before = e;
+        _after = e;
+        _;
+    }
+
     function __snapshot(Vars storage vars, uint256 positionId) internal {
         vars.sig = msg.sig;
         vars.debtPositionId = RESERVED_ID;

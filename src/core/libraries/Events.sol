@@ -28,7 +28,12 @@ library Events {
     event Withdraw(address indexed token, address indexed to, uint256 indexed amount);
     event MintCredit(uint256 indexed amount, uint256 indexed dueDate);
     event SellCreditMarket(
-        address indexed lender, uint256 indexed creditPositionId, uint256 amount, uint256 dueDate, bool exactAmountIn
+        address indexed lender,
+        uint256 indexed creditPositionId,
+        uint256 indexed tenor,
+        uint256 amount,
+        uint256 dueDate,
+        bool exactAmountIn
     );
     event BorrowAsMarketOrder(
         address indexed lender,
@@ -81,7 +86,11 @@ library Events {
         uint256 indexed amount
     );
     event BuyCreditMarket(
-        address indexed borrower, uint256 indexed creditPositionId, uint256 amount, bool exactAmountIn
+        address indexed borrower,
+        uint256 indexed creditPositionId,
+        uint256 indexed tenor,
+        uint256 amount,
+        bool exactAmountIn
     );
     event SetUserConfiguration(
         uint256 indexed openingLimitBorrowCR,

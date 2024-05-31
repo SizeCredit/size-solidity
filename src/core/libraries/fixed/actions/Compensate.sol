@@ -47,7 +47,14 @@ library Compensate {
         }
 
         // validate creditPositionToCompensateId
-        if (params.creditPositionToCompensateId != RESERVED_ID) {
+        if (params.creditPositionToCompensateId == RESERVED_ID) {
+            uint256 tenor = debtPositionToRepay.dueDate - block.timestamp;
+
+            // validate tenor
+            if (tenor < state.riskConfig.minimumTenor || tenor > state.riskConfig.maximumTenor) {
+                revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minimumTenor, state.riskConfig.maximumTenor);
+            }
+        } else {
             CreditPosition storage creditPositionToCompensate =
                 state.getCreditPosition(params.creditPositionToCompensateId);
             DebtPosition storage debtPositionToCompensate =
