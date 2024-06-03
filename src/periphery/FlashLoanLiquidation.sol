@@ -149,11 +149,21 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
             revert PeripheryErrors.INSUFFICIENT_BALANCE();
         }
 
+        // Send remainder back to liquidator 
         uint256 amountToLiquidator = balance - totalDebt;
-        IERC20(assets[0]).transfer(liquidator, amountToLiquidator);
+        if (liquidator != address(0)) {
+            IERC20(assets[0]).approve(address(size), amountToLiquidator);
+            size.deposit(DepositParams({
+                token: assets[0],
+                amount: amountToLiquidator,
+                to: liquidator
+            }));
+        } else {
+            IERC20(assets[0]).transfer(msg.sender, amountToLiquidator);
+        }
 
         // Approve the Pool contract to pull the owed amount
-        IERC20(assets[0]).forceApprove(address(POOL), amounts[0] + premiums[0]);
+        IERC20(assets[0]).approve(address(POOL), amounts[0] + premiums[0]);
     }
 
     function liquidatePositionWithFlashLoan(
