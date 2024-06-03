@@ -19,6 +19,11 @@ import {Math} from "@src/core/libraries/Math.sol";
 contract BuyCreditMarketLendTest is BaseTest {
     using OfferLibrary for LoanOffer;
 
+    uint256 private constant MAX_RATE = 2e18;
+    uint256 private constant MAX_TENOR = 365 days * 2;
+    uint256 private constant MAX_AMOUNT_USDC = 100e6;
+    uint256 private constant MAX_AMOUNT_WETH = 2e18;
+
     function test_BuyCreditMarket_buyCreditMarket_transfers_to_borrower() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -326,5 +331,34 @@ contract BuyCreditMarketLendTest is BaseTest {
 
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + 79.2e6);
         assertEq(size.getCreditPosition(creditPositionId).lender, candy);
+    }
+
+    function testFuzz_BuyCreditMarket_buyCreditMarket_properties(uint256 futureValue, uint256 tenor, uint256 apr)
+        public
+    {
+        _deposit(alice, usdc, MAX_AMOUNT_USDC);
+        _deposit(bob, weth, MAX_AMOUNT_WETH);
+
+        apr = bound(apr, 0, MAX_RATE);
+        tenor = bound(tenor, size.riskConfig().minimumTenor, MAX_TENOR);
+        futureValue = bound(futureValue, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        uint256 ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
+
+        _sellCreditLimit(bob, YieldCurveHelper.pointCurve(tenor, int256(apr)));
+
+        Vars memory _before = _state();
+
+        _buyCreditMarket(alice, bob, RESERVED_ID, futureValue, tenor, false);
+
+        uint256 swapFeePercent = Math.mulDivUp(size.feeConfig().swapFeeAPR, tenor, 365 days);
+        uint256 cash = Math.mulDivUp(futureValue, PERCENT, ratePerTenor + PERCENT);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - cash);
+        assertEq(
+            _after.bob.borrowATokenBalance,
+            _before.bob.borrowATokenBalance + cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
+        );
     }
 }
