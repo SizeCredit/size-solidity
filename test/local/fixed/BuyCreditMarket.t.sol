@@ -337,4 +337,31 @@ contract BuyCreditMarketLendTest is BaseTest {
             _before.bob.borrowATokenBalance + cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
         );
     }
+
+    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountIn_properties(uint256 cash, uint256 tenor, uint256 apr)
+        public
+    {
+        _deposit(alice, usdc, MAX_AMOUNT_USDC);
+        _deposit(bob, weth, MAX_AMOUNT_WETH);
+
+        apr = bound(apr, 0, MAX_RATE);
+        tenor = bound(tenor, size.riskConfig().minimumTenor, MAX_TENOR);
+        cash = bound(cash, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+
+        _sellCreditLimit(bob, YieldCurveHelper.pointCurve(tenor, int256(apr)));
+
+        Vars memory _before = _state();
+
+        _buyCreditMarket(alice, bob, RESERVED_ID, cash, tenor, true);
+
+        uint256 swapFeePercent = Math.mulDivUp(size.feeConfig().swapFeeAPR, tenor, 365 days);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - cash);
+        assertEq(
+            _after.bob.borrowATokenBalance,
+            _before.bob.borrowATokenBalance + cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
+        );
+    }
 }
