@@ -289,7 +289,7 @@ contract FlashLoanLiquidationTest is BaseTest {
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 50e18);
+        _deposit(bob, weth, 30e18);
         _deposit(bob, usdc, 100e6);
 
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
@@ -298,12 +298,10 @@ contract FlashLoanLiquidationTest is BaseTest {
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
         uint256 debt = debtPosition.futureValue;
 
-        _setPrice(0.01e18);
+        _setPrice(0.00001e18);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
-        Vars memory _before = _state();
-        uint256 beforeLiquidatorUSDC = usdc.balanceOf(liquidator);
 
         // Create SwapParams for a 1inch swap
         SwapParams memory swapParams = SwapParams({
@@ -320,10 +318,15 @@ contract FlashLoanLiquidationTest is BaseTest {
             replacementBorrower: address(0)
         });
 
-        // Call the liquidatePositionWithFlashLoan function
-        uint256 supplementAmount = 5e6;
+        // Setup balance and allowance for unprofitable liquidation
+        uint256 supplementAmount = 14e6;
         _mint(address(usdc), liquidator, supplementAmount);
         _approve(liquidator, address(usdc), address(flashLoanLiquidator), supplementAmount);
+
+        Vars memory _before = _state();
+        uint256 beforeLiquidatorUSDC = usdc.balanceOf(liquidator);
+
+        // Call the liquidatePositionWithFlashLoan function
         vm.prank(liquidator);
         flashLoanLiquidator.liquidatePositionWithFlashLoan(
             false, // useReplacement
@@ -346,6 +349,6 @@ contract FlashLoanLiquidationTest is BaseTest {
             _before.feeRecipient.collateralTokenBalance,
             "feeRecipient should not receive anything as loan underwater"
         );
-        assertGt(afterLiquidatorUSDC, beforeLiquidatorUSDC, "Liquidator should have more USDC after liquidation");
+        assertLt(afterLiquidatorUSDC, beforeLiquidatorUSDC, "Liquidator should have less USDC after unprofitable liquidation");
     }
 }
