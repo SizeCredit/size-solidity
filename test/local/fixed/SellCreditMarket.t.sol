@@ -357,4 +357,32 @@ contract SellCreditMarketTest is BaseTest {
         (uint256 debtPositions,) = size.getPositionsCount();
         assertEq(debtPositions, 0);
     }
+
+    function testFuzz_SellCreditMarket_sellCreditMarket_properties(uint256 futureValue, uint256 tenor, uint256 apr)
+        public
+    {
+        _deposit(alice, usdc, MAX_AMOUNT_USDC);
+        _deposit(bob, weth, MAX_AMOUNT_WETH);
+
+        apr = bound(apr, 0, MAX_RATE);
+        tenor = bound(tenor, size.riskConfig().minimumTenor, MAX_TENOR);
+        futureValue = bound(futureValue, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        uint256 ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
+
+        _buyCreditLimit(alice, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));
+
+        Vars memory _before = _state();
+
+        _sellCreditMarket(bob, alice, RESERVED_ID, futureValue, tenor, true);
+        uint256 swapFeePercent = Math.mulDivUp(size.feeConfig().swapFeeAPR, tenor, 365 days);
+        uint256 cash = Math.mulDivDown(futureValue, PERCENT, ratePerTenor + PERCENT);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - cash);
+        assertEq(
+            _after.bob.borrowATokenBalance,
+            _before.bob.borrowATokenBalance + cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
+        );
+    }
 }
