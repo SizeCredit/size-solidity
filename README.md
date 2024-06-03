@@ -2,7 +2,7 @@
 
 <a href="https://github.com/SizeLending/size-solidity/raw/main/size.png"><img src="https://github.com/SizeLending/size-solidity/raw/main/size.png" width="300" alt="Size"/></a>
 
-Size is an order book based fixed rate lending protocol with an integrated variable pool (Aave v3).
+Size is a credit marketplace with unified liquidity across maturities.
 
 Supported pair:
 
@@ -64,14 +64,9 @@ Decimal amounts are preserved until a conversion is necessary:
 - USDC/aUSDC: 6 decimals
 - WETH/szETH: 18 decimals
 - szDebt: same as borrow token
-- VariablePoolPriceFeed (ETH/USDC or USDC/ETH): 18 decimals
-- MarketBorrowRateFeed (USDC or ETH): 18 decimals
+- Price feeds: 18 decimals
 
 All percentages are expressed in 18 decimals. For example, a 150% liquidation collateral ratio is represented as 1500000000000000000.
-
-#### Variable Pool
-
-In order to interact with Aave v3, a library is used to track scaled deposits of users, which represent the deposits of underlying borrow tokens divided by the liquidity index at each time.
 
 #### Oracles
 

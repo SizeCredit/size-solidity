@@ -205,13 +205,13 @@ library AccountingLibrary {
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
-    ) internal view returns (uint256 cashAmountOut, uint256 fees) {
+    ) internal view returns (uint256 creditAmountOut, uint256 fees) {
         uint256 maxCashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerTenor);
 
         if (cashAmountIn == maxCashAmountIn) {
             // no credit fractionalization
 
-            cashAmountOut = maxCredit;
+            creditAmountOut = maxCredit;
             fees = getSwapFee(state, cashAmountIn, tenor);
         } else if (cashAmountIn < maxCashAmountIn) {
             // credit fractionalization
@@ -222,7 +222,7 @@ library AccountingLibrary {
 
             uint256 netCashAmountIn = cashAmountIn - state.feeConfig.fragmentationFee;
 
-            cashAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerTenor, PERCENT);
+            creditAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerTenor, PERCENT);
             fees = getSwapFee(state, netCashAmountIn, tenor) + state.feeConfig.fragmentationFee;
         } else {
             revert Errors.NOT_ENOUGH_CREDIT(maxCashAmountIn, cashAmountIn);
