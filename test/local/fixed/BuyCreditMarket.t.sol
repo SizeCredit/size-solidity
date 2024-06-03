@@ -272,9 +272,33 @@ contract BuyCreditMarketLendTest is BaseTest {
         uint256 swapFee = size.getSwapFee(amountIn - fragmentationFee, 365 days);
         assertEq(_after.james.borrowATokenBalance, _before.james.borrowATokenBalance - amountIn);
         assertEq(
-            _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance + amountIn - swapFee - fragmentationFee,
-            "b"
+            _after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + amountIn - swapFee - fragmentationFee
         );
+    }
+
+    function test_BuyCreditMarket_buyCreditMarket_numberic_example() public {
+        _setPrice(1e18);
+
+        _deposit(alice, usdc, 200e6);
+        _deposit(bob, weth, 200e18);
+        _deposit(candy, usdc, 200e6);
+
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
+        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(365 days, 0.1e18));
+        _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
+
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+
+        Vars memory _before = _state();
+
+        _buyCreditMarket(candy, creditPositionId, 80e6, true);
+
+        Vars memory _after = _state();
+
+        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + 5e6 + 0.375e6);
+        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance - 80e6);
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 80e6 - 5.375e6);
+        assertEq(size.getCreditPositionsByDebtPositionId(debtPositionId)[1].credit, 82.5e6);
     }
 }
