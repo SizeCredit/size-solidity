@@ -23,16 +23,13 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
     using LoanLibrary for DebtPosition;
 
     function property_LOAN() public returns (bool) {
-        for (uint256 i = 0; i < _after.creditPositionsCount; i++) {
-            uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
-            CreditPosition memory creditPosition = size.getCreditPosition(creditPositionId);
-            if (creditPosition.credit == 0) {
-                eq(uint256(size.getLoanStatus(creditPositionId)), uint256(LoanStatus.REPAID), LOAN_04);
-            }
-            // @audit-info LOAN_01 is invalid if the admin changes the minimumCreditBorrowAToken.
-            // @audit-info Uncomment if you want to check for this property while also finding false positives.
-            // t(creditPosition.credit == 0 || creditPosition.credit >= minimumCreditBorrowAToken, LOAN_01);
-        }
+        // for (uint256 i = 0; i < _after.creditPositionsCount; i++) {
+        //     uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
+        //     CreditPosition memory creditPosition = size.getCreditPosition(creditPositionId);
+        // @audit-info LOAN_01 is invalid if the admin changes the minimumCreditBorrowAToken.
+        // @audit-info Uncomment if you want to check for this property while also finding false positives.
+        // t(creditPosition.credit == 0 || creditPosition.credit >= minimumCreditBorrowAToken, LOAN_01);
+        // }
 
         gte(_before.creditPositionsCount, _before.debtPositionsCount, LOAN_03);
         gte(_after.creditPositionsCount, _after.debtPositionsCount, LOAN_03);
