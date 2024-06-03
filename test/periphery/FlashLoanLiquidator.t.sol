@@ -12,6 +12,8 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 import {DebtPosition} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
+import "forge-std/console.sol";
+
 contract FlashLoanLiquidationTest is BaseTest {
     MockAavePool public mockAavePool;
     Mock1InchAggregator public mock1InchAggregator;
@@ -24,9 +26,9 @@ contract FlashLoanLiquidationTest is BaseTest {
 
         // Fund the mock aggregator and pool with WETH and USDC
         _mint(address(weth), address(mock1InchAggregator), 100_000e18);
-        _mint(address(usdc), address(mock1InchAggregator), 10_000_000_000_000e18);
+        _mint(address(usdc), address(mock1InchAggregator), 100_000e18);
         _mint(address(weth), address(mockAavePool), 100_000e18);
-        _mint(address(usdc), address(mockAavePool), 1_000_000e6);
+        _mint(address(usdc), address(mockAavePool), 100_000e6);
 
         // Initialize the FlashLoanLiquidator contract
         flashLoanLiquidator = new FlashLoanLiquidator(
@@ -53,19 +55,11 @@ contract FlashLoanLiquidationTest is BaseTest {
         uint256 amount = 15e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, amount, 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
-        // uint256 futureValue = debtPosition.futureValue;
-        // uint256 repayFee = debtPosition.repayFee;
-        // uint256 debt = futureValue + repayFee + size.feeConfig().overdueLiquidatorReward;
         uint256 debt = debtPosition.futureValue;
 
         _setPrice(0.2e18);
 
-        // uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
-
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
-
-        // _mint(address(usdc), address(flashLoanLiquidator), futureValue);
-        // _approve(address(flashLoanLiquidator), address(usdc), address(size), futureValue);
 
         Vars memory _before = _state();
         uint256 beforeLiquidatorUSDC = usdc.balanceOf(liquidator);
@@ -87,12 +81,15 @@ contract FlashLoanLiquidationTest is BaseTest {
 
         // Call the liquidatePositionWithFlashLoan function
         vm.prank(liquidator);
+        console.log("liquidating from liquidator", liquidator);
         flashLoanLiquidator.liquidatePositionWithFlashLoan(
             false, // useReplacement
             replacementParams, // Replacement parameters, not used here
             debtPositionId,
             0, // minimumCollateralProfit
-            swapParams // Pass the swapParams
+            swapParams, // Pass the swapParams
+            0, // supplementAmount
+            address(0)
         );
 
         Vars memory _after = _state();
@@ -169,7 +166,9 @@ contract FlashLoanLiquidationTest is BaseTest {
             replacementParams,
             debtPositionId,
             0, // minimumCollateralProfit
-            swapParams
+            swapParams,
+            0,
+            address(0)
         );
 
         // Assertions to verify the state after liquidation
