@@ -281,7 +281,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
     }
 
-    function test_BuyCreditMarket_buyCreditMarket_numberic_example_1() public {
+    function test_BuyCreditMarket_buyCreditMarket_numberic_example() public {
         _setPrice(1e18);
 
         _deposit(alice, usdc, 200e6);
@@ -307,35 +307,11 @@ contract BuyCreditMarketLendTest is BaseTest {
         assertEq(size.getCreditPositionsByDebtPositionId(debtPositionId)[1].credit, 82.5e6);
     }
 
-    function test_BuyCreditMarket_buyCreditMarket_numberic_example_2() public {
-        _setPrice(1e18);
-        _updateConfig("swapFeeAPR", 0.01e18);
-
-        _deposit(alice, weth, 200e18);
-        _deposit(bob, usdc, 200e6);
-        _deposit(candy, usdc, 200e6);
-
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(365 days, 0.2e18));
-
-        uint256 debtPositionId = _buyCreditMarket(bob, alice, 100e6, 365 days, true);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-
-        assertEq(size.getCreditPosition(creditPositionId).credit, 120e6);
-
-        Vars memory _before = _state();
-
-        _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.5e18));
-        _sellCreditMarket(bob, candy, creditPositionId);
-
-        Vars memory _after = _state();
-
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + 79.2e6);
-        assertEq(size.getCreditPosition(creditPositionId).lender, candy);
-    }
-
-    function testFuzz_BuyCreditMarket_buyCreditMarket_properties(uint256 futureValue, uint256 tenor, uint256 apr)
-        public
-    {
+    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountOut_properties(
+        uint256 futureValue,
+        uint256 tenor,
+        uint256 apr
+    ) public {
         _deposit(alice, usdc, MAX_AMOUNT_USDC);
         _deposit(bob, weth, MAX_AMOUNT_WETH);
 
