@@ -31,8 +31,10 @@ struct OperationParams {
     uint256 minimumCollateralProfit;
     address liquidator;
     SwapParams swapParams;
+    bool depositProfits;
     bool useReplacement;
     ReplacementParams replacementParams;
+    uint256 debtAmount;
 }
 
 contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
@@ -140,7 +142,8 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
         address[] calldata assets,
         uint256[] calldata amounts,
         uint256[] calldata premiums,
-        address liquidator
+        address liquidator,
+        bool depositProfits
     ) internal {
         uint256 totalDebt = amounts[0] + premiums[0];
         uint256 balance = IERC20(assets[0]).balanceOf(address(this));
@@ -151,7 +154,7 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
 
         // Send remainder back to liquidator 
         uint256 amountToLiquidator = balance - totalDebt;
-        if (liquidator != address(0)) {
+        if (depositProfits) {
             IERC20(assets[0]).forceApprove(address(size), amountToLiquidator);
             size.deposit(DepositParams({
                 token: assets[0],
@@ -159,7 +162,7 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
                 to: liquidator
             }));
         } else {
-            IERC20(assets[0]).transfer(msg.sender, amountToLiquidator);
+            IERC20(assets[0]).transfer(liquidator, amountToLiquidator);
         }
 
         // Approve the Pool contract to pull the owed amount
@@ -172,20 +175,24 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
         uint256 debtPositionId,
         uint256 minimumCollateralProfit,
         SwapParams memory swapParams,
-        uint256 supplementAmount
+        uint256 supplementAmount,
+        address recipient
     ) external {
         if (supplementAmount > 0) {
             IERC20(borrowToken).transferFrom(msg.sender, address(this), supplementAmount);
         }
+        uint256 debtAmount = size.getDebtPosition(debtPositionId).futureValue;
 
+        bool depositProfits = recipient != address(0);
         OperationParams memory opParams = OperationParams({
             debtPositionId: debtPositionId,
             minimumCollateralProfit: minimumCollateralProfit,
-            liquidator: msg.sender,
+            liquidator: depositProfits ? recipient : msg.sender,
+            depositProfits: depositProfits,
             swapParams: swapParams,
             useReplacement: msg.sender == owner() ? useReplacement : false,
             replacementParams: replacementParams,
-            supplementAmount: supplementAmount // Include the supplement amount in the operation parameters
+            debtAmount: debtAmount
         });
 
         bytes memory params = abi.encode(opParams);
@@ -193,7 +200,7 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
         address[] memory assets = new address[](1);
         assets[0] = borrowToken;
         uint256[] memory amounts = new uint256[](1);
-        amounts[0] = size.getDebtPosition(debtPositionId).futureValue - supplementAmount;
+        amounts[0] = debtAmount - supplementAmount;
         uint256[] memory modes = new uint256[](1);
         modes[0] = 0;
 
@@ -215,17 +222,16 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
         }
 
         OperationParams memory opParams = abi.decode(params, (OperationParams));
-
         if (opParams.useReplacement) {
             _liquidateDebtPositionWithReplacement(
-                amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit, opParams.replacementParams
+                opParams.debtAmount, opParams.debtPositionId, opParams.minimumCollateralProfit, opParams.replacementParams
             );
         } else {
-            _liquidateDebtPosition(amounts[0], opParams.debtPositionId, opParams.minimumCollateralProfit);
+            _liquidateDebtPosition(opParams.debtAmount, opParams.debtPositionId, opParams.minimumCollateralProfit);
         }
 
         _swapCollateral(opParams.swapParams);
-        _settleFlashLoan(assets, amounts, premiums, opParams.liquidator);
+        _settleFlashLoan(assets, amounts, premiums, opParams.liquidator, opParams.depositProfits);
 
         return true;
     }
