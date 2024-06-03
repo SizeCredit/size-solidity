@@ -152,7 +152,7 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
         // Send remainder back to liquidator 
         uint256 amountToLiquidator = balance - totalDebt;
         if (liquidator != address(0)) {
-            IERC20(assets[0]).approve(address(size), amountToLiquidator);
+            IERC20(assets[0]).forceApprove(address(size), amountToLiquidator);
             size.deposit(DepositParams({
                 token: assets[0],
                 amount: amountToLiquidator,
@@ -163,7 +163,7 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
         }
 
         // Approve the Pool contract to pull the owed amount
-        IERC20(assets[0]).approve(address(POOL), amounts[0] + premiums[0]);
+        IERC20(assets[0]).forceApprove(address(POOL), amounts[0] + premiums[0]);
     }
 
     function liquidatePositionWithFlashLoan(
@@ -171,15 +171,21 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
         ReplacementParams memory replacementParams,
         uint256 debtPositionId,
         uint256 minimumCollateralProfit,
-        SwapParams memory swapParams
+        SwapParams memory swapParams,
+        uint256 supplementAmount
     ) external {
+        if (supplementAmount > 0) {
+            IERC20(borrowToken).transferFrom(msg.sender, address(this), supplementAmount);
+        }
+
         OperationParams memory opParams = OperationParams({
             debtPositionId: debtPositionId,
             minimumCollateralProfit: minimumCollateralProfit,
             liquidator: msg.sender,
             swapParams: swapParams,
             useReplacement: msg.sender == owner() ? useReplacement : false,
-            replacementParams: replacementParams
+            replacementParams: replacementParams,
+            supplementAmount: supplementAmount // Include the supplement amount in the operation parameters
         });
 
         bytes memory params = abi.encode(opParams);
@@ -187,7 +193,7 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
         address[] memory assets = new address[](1);
         assets[0] = borrowToken;
         uint256[] memory amounts = new uint256[](1);
-        amounts[0] = size.getDebtPosition(debtPositionId).futureValue;
+        amounts[0] = size.getDebtPosition(debtPositionId).futureValue - supplementAmount;
         uint256[] memory modes = new uint256[](1);
         modes[0] = 0;
 
