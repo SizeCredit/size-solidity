@@ -48,11 +48,7 @@ library AccountingLibrary {
         }
 
         emit Events.UpdateDebtPosition(
-            debtPositionId,
-            debtPosition.borrower,
-            debtPosition.futureValue,
-            debtPosition.dueDate,
-            debtPosition.liquidityIndexAtRepayment
+            debtPositionId, debtPosition.borrower, debtPosition.futureValue, debtPosition.liquidityIndexAtRepayment
         );
     }
 

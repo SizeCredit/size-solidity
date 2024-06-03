@@ -77,14 +77,20 @@ library UpdateConfig {
         } else if (Strings.equal(params.key, "borrowATokenCap")) {
             state.riskConfig.borrowATokenCap = params.value;
         } else if (Strings.equal(params.key, "minimumTenor")) {
-            if (params.value >= Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)) {
+            if (
+                state.feeConfig.swapFeeAPR != 0
+                    && params.value >= Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
+            ) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
                     params.value, Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
                 );
             }
             state.riskConfig.minimumTenor = params.value;
         } else if (Strings.equal(params.key, "maximumTenor")) {
-            if (params.value >= Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)) {
+            if (
+                state.feeConfig.swapFeeAPR != 0
+                    && params.value >= Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
+            ) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
                     params.value, Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
                 );

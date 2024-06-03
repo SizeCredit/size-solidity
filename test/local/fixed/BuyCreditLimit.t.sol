@@ -98,9 +98,7 @@ contract BuyCreditLimitTest is BaseTest {
         _buyCreditLimit(
             candy, block.timestamp + 180 days - 14 days, YieldCurveHelper.pointCurve(180 days - 14 days, 0.045e18)
         );
-        _sellCreditMarket(
-            alice, candy, creditPositionId, size.getDebtPosition(debtPositionId).dueDate - block.timestamp
-        );
+        _sellCreditMarket(alice, candy, creditPositionId);
 
         assertEqApprox(_state().alice.borrowATokenBalance, 10_091e6, 10e6);
         assertEq(_state().alice.debtBalance, 0);

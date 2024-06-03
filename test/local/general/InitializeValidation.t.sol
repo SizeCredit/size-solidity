@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {Test} from "forge-std/Test.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {YAMv2} from "@test/mocks/YAMv2.sol";
 
 import {Size} from "@src/core/Size.sol";
 import {BaseTest} from "@test/BaseTest.sol";
@@ -58,6 +59,18 @@ contract InitializeValidationTest is Test, BaseTest {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         r.minimumCreditBorrowAToken = 5e6;
 
+        r.minimumTenor = 0;
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        r.minimumTenor = 1 hours;
+
+        r.minimumTenor = 5 days;
+        r.maximumTenor = 4 days;
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MAXIMUM_TENOR.selector, 4 days));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        r.minimumTenor = 1 hours;
+        r.maximumTenor = 365 days;
+
         o.priceFeed = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
@@ -68,8 +81,18 @@ contract InitializeValidationTest is Test, BaseTest {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         d.underlyingCollateralToken = address(weth);
 
+        d.underlyingCollateralToken = address(new YAMv2());
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DECIMALS.selector, 24));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        d.underlyingCollateralToken = address(weth);
+
         d.underlyingBorrowToken = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        d.underlyingBorrowToken = address(usdc);
+
+        d.underlyingBorrowToken = address(new YAMv2());
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DECIMALS.selector, 24));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         d.underlyingBorrowToken = address(usdc);
 

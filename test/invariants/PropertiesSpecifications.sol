@@ -8,17 +8,17 @@ abstract contract PropertiesSpecifications {
     string internal constant WITHDRAW_01 = "WITHDRAW_01: Withdraw deducts from the sender";
     string internal constant WITHDRAW_02 = "WITHDRAW_02: Withdraw removes tokens from the protocol";
 
-    string internal constant BORROW_01 = "BORROW_01: Borrow increases the borrower cash";
+    string internal constant BORROW_01 = "BORROW_01: Borrow increases the borrower's cash";
     string internal constant BORROW_02 = "BORROW_02: Borrow increases the number of loans";
 
-    string internal constant CLAIM_01 = "CLAIM_01: Claim does not decrease the sender cash";
+    string internal constant CLAIM_01 = "CLAIM_01: Claim does not decrease the sender's cash";
     string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for DebtPositions";
 
     string internal constant LIQUIDATE_01 = "LIQUIDATE_01: Liquidate increases the sender collateral";
     string internal constant LIQUIDATE_02 =
-        "LIQUIDATE_02: Liquidate decreases the sender cash if the loan is not overdue";
+        "LIQUIDATE_02: Liquidate decreases the sender's cash if the loan is not overdue";
     string internal constant LIQUIDATE_03 = "LIQUIDATE_03: Liquidate only succeeds if the borrower is liquidatable";
-    string internal constant LIQUIDATE_04 = "LIQUIDATE_04: Liquidate decreases the borrower debt";
+    string internal constant LIQUIDATE_04 = "LIQUIDATE_04: Liquidate decreases the borrower's debt";
     string internal constant LIQUIDATE_05 = "LIQUIDATE_05: Liquidate clears the loan's debt";
 
     string internal constant SELF_LIQUIDATE_01 = "SELF_LIQUIDATE_01: Self-Liquidate increases the sender collateral";
@@ -28,34 +28,29 @@ abstract contract PropertiesSpecifications {
     string internal constant REPAY_02 = "REPAY_02: Repay decreases the borrower's debt";
     string internal constant REPAY_03 = "REPAY_02: Repay clears the loan's debt";
 
-    string internal constant LOAN = "LOAN: Loan properties";
     string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
     string internal constant LOAN_02 = "LOAN_02: minimumTenor <= loan.tenor <= maximumTenor";
     string internal constant LOAN_03 = "LOAN_03: COUNT(credit positions) >= COUNT(debt positions)";
 
-    string internal constant TOKENS = "TOKENS: Token properties";
     string internal constant TOKENS_01 =
         "TOKENS_01: The sum of collateral deposit tokens is equal to the underlying collateral";
     string internal constant TOKENS_02 =
-        "TOKENS_03: The sum of borrow deposit tokens is equal to the sum of borrow deposit tokens for each user";
+        "TOKENS_02: The sum of borrow deposit tokens is equal to the sum of borrow deposit tokens for each user";
 
-    string internal constant UNDERWATER = "UNDERWATER: Underwater properties";
     string internal constant UNDERWATER_01 =
-        "UNDERWATER_01: A user cannot make an operation that leaves any users underwater";
+        "UNDERWATER_01: A user cannot make an operation that leaves any user underwater";
     string internal constant UNDERWATER_02 = "UNDERWATER_02: Underwater users cannot borrow";
 
     string internal constant COMPENSATE_01 =
-        "COMPENSATE_01: Compensate does not change the borrower debt if minting new credit";
+        "COMPENSATE_01: Compensate does not change the borrower's debt if minting new credit";
     string internal constant COMPENSATE_02 =
-        "COMPENSATE_02: Compensate reduces the borrower debt if using an existing credit";
+        "COMPENSATE_02: Compensate reduces the borrower's debt if using an existing credit";
 
-    string internal constant SOLVENCY = "SOLVENCY: Solvency properties";
     string internal constant SOLVENCY_01 = "SOLVENCY_01: SUM(outstanding credit) == SUM(outstanding debt)";
     string internal constant SOLVENCY_02 = "SOLVENCY_02: SUM(credit) <= SUM(debt)";
     string internal constant SOLVENCY_03 = "SOLVENCY_03: SUM(positions debt) == user total debt, for each user";
     string internal constant SOLVENCY_04 = "SOLVENCY_04: SUM(positions debt) == SUM(debt)";
 
-    string internal constant FEES = "FEES: Fees properties";
     string internal constant FEES_01 =
         "FEES_01: Fragmentation fees are applied whenever there is a credit fractionalization";
     string internal constant FEES_02 = "FEES_02: Cash swap operations increase the fee recipient balance";

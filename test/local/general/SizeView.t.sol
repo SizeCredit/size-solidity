@@ -30,4 +30,13 @@ contract SizeViewTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_POSITION_ID.selector, 0));
         size.getLoanStatus(0);
     }
+
+    function test_SizeView_getSwapFee_validation() public {
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_TENOR.selector));
+        size.getSwapFee(100e6, 0);
+    }
+
+    function test_SizeView_isDebtPositionId_no_loans() public {
+        assertEq(size.isDebtPositionId(0), false);
+    }
 }

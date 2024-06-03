@@ -92,6 +92,10 @@ forge test
 
 ## Coverage
 
+```bash
+yarn coverage
+```
+
 <!-- BEGIN_COVERAGE -->
 ### FIles
 
@@ -186,6 +190,7 @@ yarn echidna-coverage
 
 ## Formal Verification
 
+- [`Math.min`](./test/libraries/Math.t.sol)
 - [`Math.binarySearch`](./test/libraries/Math.t.sol)
 
 Run Halmos with
@@ -201,13 +206,12 @@ for i in {0..5}; do halmos --loop $i; done
 - The protocol does not support tokens with more than 18 decimals
 - The protocol only supports tokens compliant with the IERC20Metadata interface
 - The protocol only supports pre-vetted tokens
-- The protocol owner, KEEPER_ROLE, and PAUSER_ROLE are trusted
+- The protocol owner, KEEPER_ROLE, PAUSER_ROLE, and BORROW_RATE_UPDATER_ROLE are trusted
 - The protocol does not have any fallback oracles.
-- Price feeds must be redeployed and updated in case any Chainlink configuration changes (stale price timeouts, decimals)
+- Price feeds must be redeployed and updated in case any Chainlink configuration changes (stale price timeouts, decimals, etc)
 - In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues
 - In case the protocol is paused, the price of the collateral may change during the unpause event. This may cause unforseen liquidations, among other issues
-- Users blocklisted by underlying tokens (e.g. USDC) may be unable to withdraw or interact with the protocol
-- Protocol fees may prevent self liquidations
+- Users blocklisted by underlying tokens (e.g. USDC) may be unable to withdraw
 - All issues acknowledged on previous audits
 
 ## Deployment

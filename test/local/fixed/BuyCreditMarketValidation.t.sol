@@ -142,6 +142,23 @@ contract BuyCreditMarketTest is BaseTest {
         );
         vm.stopPrank();
 
+        uint256 apr = size.getBorrowOfferAPR(james, 365 days);
+
+        vm.startPrank(candy);
+        vm.expectRevert(abi.encodeWithSelector(Errors.APR_LOWER_THAN_MIN_APR.selector, apr, apr + 1));
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: james,
+                creditPositionId: RESERVED_ID,
+                amount: 20e6,
+                tenor: 365 days,
+                deadline: deadline,
+                minAPR: apr + 1,
+                exactAmountIn: exactAmountIn
+            })
+        );
+        vm.stopPrank();
+
         _sellCreditLimit(bob, 0, 365 days);
         _sellCreditLimit(candy, 0, 365 days);
         uint256 debtPositionId2 = _buyCreditMarket(alice, candy, RESERVED_ID, 10e6, 365 days, false);

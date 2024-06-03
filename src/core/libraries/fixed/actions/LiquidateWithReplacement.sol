@@ -132,7 +132,6 @@ library LiquidateWithReplacement {
             params.debtPositionId,
             debtPosition.borrower,
             debtPosition.futureValue,
-            debtPosition.dueDate,
             debtPosition.liquidityIndexAtRepayment
         );
 

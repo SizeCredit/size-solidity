@@ -26,7 +26,6 @@ library Events {
 
     event Deposit(address indexed token, address indexed to, uint256 indexed amount);
     event Withdraw(address indexed token, address indexed to, uint256 indexed amount);
-    event MintCredit(uint256 indexed amount, uint256 indexed dueDate);
     event SellCreditMarket(
         address indexed lender,
         uint256 indexed creditPositionId,
@@ -35,17 +34,17 @@ library Events {
         uint256 dueDate,
         bool exactAmountIn
     );
-    event BorrowAsMarketOrder(
-        address indexed lender,
-        uint256 indexed amount,
-        uint256 indexed dueDate,
-        bool exactAmountIn,
-        uint256[] receivableCreditPositionIds
-    );
     event SellCreditLimit(
         uint256[] curveRelativeTimetenors,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
+    );
+    event BuyCreditMarket(
+        address indexed borrower,
+        uint256 indexed creditPositionId,
+        uint256 indexed tenor,
+        uint256 amount,
+        bool exactAmountIn
     );
     event BuyCreditLimit(
         uint256 indexed maxDueDate,
@@ -85,13 +84,6 @@ library Events {
         uint256 indexed creditPositionToCompensateId,
         uint256 indexed amount
     );
-    event BuyCreditMarket(
-        address indexed borrower,
-        uint256 indexed creditPositionId,
-        uint256 indexed tenor,
-        uint256 amount,
-        bool exactAmountIn
-    );
     event SetUserConfiguration(
         uint256 indexed openingLimitBorrowCR,
         bool indexed allCreditPositionsForSaleDisabled,
@@ -102,11 +94,7 @@ library Events {
     // updates
 
     event UpdateDebtPosition(
-        uint256 indexed debtPositionId,
-        address indexed borrower,
-        uint256 futureValue,
-        uint256 dueDate,
-        uint256 liquidityIndexAtRepayment
+        uint256 indexed debtPositionId, address indexed borrower, uint256 futureValue, uint256 liquidityIndexAtRepayment
     );
     event UpdateCreditPosition(uint256 indexed creditPositionId, address indexed lender, uint256 credit, bool forSale);
 }

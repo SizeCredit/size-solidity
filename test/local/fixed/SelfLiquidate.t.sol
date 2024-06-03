@@ -104,7 +104,7 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _sellCreditMarket(alice, candy, creditPositionId, 365 days);
+        _sellCreditMarket(alice, candy, creditPositionId);
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
         _sellCreditMarket(alice, james, RESERVED_ID, 100e6, 365 days, false);
 

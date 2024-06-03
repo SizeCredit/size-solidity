@@ -146,6 +146,14 @@ contract MathTest is Test, AssertsHelper {
         Math.amountToWad(amount, decimals);
     }
 
+    function check_Math_min(uint256 x, uint256 y, uint256 z) public {
+        uint256 min = type(uint256).max;
+        if (x < min) min = x;
+        if (y < min) min = y;
+        if (z < min) min = z;
+        assertEq(Math.min(x, y, z), min);
+    }
+
     function check_Math_binarySearch(uint256[] memory array, uint256 value) public {
         // array is strictly increasing
         for (uint256 i = 0; i < array.length - 1; i++) {

@@ -121,6 +121,7 @@ contract FlashLoanLiquidationTest is BaseTest {
         _mint(address(usdc), address(mockAavePool), 1_000_000e6);
 
         // Initialize the FlashLoanLiquidator contract
+        vm.prank(liquidator);
         flashLoanLiquidator = new FlashLoanLiquidator(
             address(mockAavePool),
             address(size),

@@ -3,7 +3,7 @@
 set -ux
 
 j=$((0x10)); 
-SOLIDITY_FILES=$(find src/libraries test/helpers/libraries -type f | sed 's/.*\///' | sed 's/\.sol//')
+SOLIDITY_FILES=$(find src/core/libraries test/helpers/libraries -type f | sed 's/.*\///' | sed 's/\.sol//')
 
 rm COMPILE_LIBRARIES.txt || true
 rm DEPLOY_CONTRACTS.txt || true

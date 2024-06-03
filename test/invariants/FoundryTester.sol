@@ -33,10 +33,10 @@ contract FoundryTester is Test, PropertiesSpecifications {
     }
 
     function invariant() public {
-        assertTrue(handler.property_LOAN(), LOAN);
-        assertTrue(handler.property_UNDERWATER(), UNDERWATER);
-        assertTrue(handler.property_TOKENS(), TOKENS);
-        assertTrue(handler.property_SOLVENCY(), SOLVENCY);
-        assertTrue(handler.property_FEES(), FEES);
+        assertTrue(handler.property_LOAN());
+        assertTrue(handler.property_UNDERWATER());
+        assertTrue(handler.property_TOKENS());
+        assertTrue(handler.property_SOLVENCY());
+        assertTrue(handler.property_FEES());
     }
 }
