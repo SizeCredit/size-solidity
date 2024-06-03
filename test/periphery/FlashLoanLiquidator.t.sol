@@ -302,7 +302,6 @@ contract FlashLoanLiquidationTest is BaseTest {
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
-
         // Create SwapParams for a 1inch swap
         SwapParams memory swapParams = SwapParams({
             method: SwapMethod.OneInch,
@@ -349,6 +348,8 @@ contract FlashLoanLiquidationTest is BaseTest {
             _before.feeRecipient.collateralTokenBalance,
             "feeRecipient should not receive anything as loan underwater"
         );
-        assertLt(afterLiquidatorUSDC, beforeLiquidatorUSDC, "Liquidator should have less USDC after unprofitable liquidation");
+        assertLt(
+            afterLiquidatorUSDC, beforeLiquidatorUSDC, "Liquidator should have less USDC after unprofitable liquidation"
+        );
     }
 }
