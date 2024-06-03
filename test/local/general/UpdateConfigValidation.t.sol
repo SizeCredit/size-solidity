@@ -17,10 +17,10 @@ contract UpdateConfigValidationTest is BaseTest {
 
         uint256 maxTenor = 200 * 365 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.VALUE_GREATER_THAN_MAX.selector, maxTenor + 1, maxTenor));
-        size.updateConfig(UpdateConfigParams({key: "minimumTenor", value: maxTenor + 1}));
+        size.updateConfig(UpdateConfigParams({key: "minTenor", value: maxTenor + 1}));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.VALUE_GREATER_THAN_MAX.selector, maxTenor + 1, maxTenor));
-        size.updateConfig(UpdateConfigParams({key: "maximumTenor", value: maxTenor + 1}));
+        size.updateConfig(UpdateConfigParams({key: "maxTenor", value: maxTenor + 1}));
 
         uint256 maxSwapFeeAPR = 0.2e18;
         vm.expectRevert(

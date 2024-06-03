@@ -28,7 +28,7 @@ library YieldCurveLibrary {
         return self.tenors.length == 0 && self.aprs.length == 0 && self.marketRateMultipliers.length == 0;
     }
 
-    function validateYieldCurve(YieldCurve memory self, uint256 minimumTenor, uint256 maximumTenor) internal pure {
+    function validateYieldCurve(YieldCurve memory self, uint256 minTenor, uint256 maxTenor) internal pure {
         if (self.tenors.length == 0 || self.aprs.length == 0 || self.marketRateMultipliers.length == 0) {
             revert Errors.NULL_ARRAY();
         }
@@ -47,11 +47,11 @@ library YieldCurveLibrary {
             }
             lastTenor = self.tenors[i - 1];
         }
-        if (self.tenors[0] < minimumTenor) {
-            revert Errors.TENOR_OUT_OF_RANGE(self.tenors[0], minimumTenor, maximumTenor);
+        if (self.tenors[0] < minTenor) {
+            revert Errors.TENOR_OUT_OF_RANGE(self.tenors[0], minTenor, maxTenor);
         }
-        if (self.tenors[self.tenors.length - 1] > maximumTenor) {
-            revert Errors.TENOR_OUT_OF_RANGE(self.tenors[self.tenors.length - 1], minimumTenor, maximumTenor);
+        if (self.tenors[self.tenors.length - 1] > maxTenor) {
+            revert Errors.TENOR_OUT_OF_RANGE(self.tenors[self.tenors.length - 1], minTenor, maxTenor);
         }
 
         // validate marketRateMultipliers

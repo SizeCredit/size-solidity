@@ -34,8 +34,8 @@ struct RiskConfig {
     uint256 crLiquidation; // maximum collateral ratio for liquidation
     uint256 minimumCreditBorrowAToken; // minimum credit value of loans
     uint256 borrowATokenCap; // maximum amount of deposited borrowed aTokens
-    uint256 minimumTenor; // minimum tenor for a loan
-    uint256 maximumTenor; // maximum tenor for a loan
+    uint256 minTenor; // minimum tenor for a loan
+    uint256 maxTenor; // maximum tenor for a loan
 }
 
 struct Oracle {

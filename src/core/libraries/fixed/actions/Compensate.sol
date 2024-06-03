@@ -51,8 +51,8 @@ library Compensate {
             uint256 tenor = debtPositionToRepay.dueDate - block.timestamp;
 
             // validate tenor
-            if (tenor < state.riskConfig.minimumTenor || tenor > state.riskConfig.maximumTenor) {
-                revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minimumTenor, state.riskConfig.maximumTenor);
+            if (tenor < state.riskConfig.minTenor || tenor > state.riskConfig.maxTenor) {
+                revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minTenor, state.riskConfig.maxTenor);
             }
         } else {
             CreditPosition storage creditPositionToCompensate =

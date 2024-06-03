@@ -144,8 +144,8 @@ contract CompensateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        uint256 minimumTenor = size.riskConfig().minimumTenor;
-        uint256 maximumTenor = size.riskConfig().maximumTenor;
+        uint256 minTenor = size.riskConfig().minTenor;
+        uint256 maxTenor = size.riskConfig().maxTenor;
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -177,7 +177,7 @@ contract CompensateValidationTest is BaseTest {
         vm.warp(block.timestamp + 365 days);
 
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 0, minimumTenor, maximumTenor));
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 0, minTenor, maxTenor));
         size.compensate(
             CompensateParams({
                 creditPositionWithDebtToRepayId: c2,

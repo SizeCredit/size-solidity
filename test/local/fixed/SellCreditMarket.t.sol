@@ -57,7 +57,7 @@ contract SellCreditMarketTest is BaseTest {
     function testFuzz_SellCreditMarket_sellCreditMarket_used_to_borrow(uint256 amount, uint256 apr, uint256 tenor)
         public
     {
-        _updateConfig("minimumTenor", 1);
+        _updateConfig("minTenor", 1);
         amount = bound(amount, MAX_AMOUNT_USDC / 20, MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
         apr = bound(apr, 0, MAX_RATE);
         tenor = bound(tenor, 1, MAX_TENOR - 1);
@@ -120,7 +120,7 @@ contract SellCreditMarketTest is BaseTest {
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_exit_full(uint256 amount, uint256 rate, uint256 tenor) public {
-        _updateConfig("minimumTenor", 1);
+        _updateConfig("minTenor", 1);
         amount = bound(amount, MAX_AMOUNT_USDC / 10, 2 * MAX_AMOUNT_USDC / 10); // arbitrary divisor so that user does not get unhealthy
         rate = bound(rate, 0, MAX_RATE);
         tenor = bound(tenor, 1, MAX_TENOR - 1);
@@ -419,7 +419,7 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(bob, weth, MAX_AMOUNT_WETH);
 
         apr = bound(apr, 0, MAX_RATE);
-        tenor = bound(tenor, size.riskConfig().minimumTenor, MAX_TENOR);
+        tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
         futureValue = bound(futureValue, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
         uint256 ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
 
@@ -449,7 +449,7 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(bob, weth, MAX_AMOUNT_WETH);
 
         apr = bound(apr, 0, MAX_RATE);
-        tenor = bound(tenor, size.riskConfig().minimumTenor, MAX_TENOR);
+        tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
         cash = bound(cash, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
 
         _buyCreditLimit(alice, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));

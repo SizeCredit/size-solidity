@@ -34,8 +34,8 @@ struct InitializeRiskConfigParams {
     uint256 crLiquidation;
     uint256 minimumCreditBorrowAToken;
     uint256 borrowATokenCap;
-    uint256 minimumTenor;
-    uint256 maximumTenor;
+    uint256 minTenor;
+    uint256 maxTenor;
 }
 
 struct InitializeOracleParams {
@@ -109,13 +109,13 @@ library Initialize {
         // validate underlyingBorrowTokenCap
         // N/A
 
-        // validate minimumTenor
-        if (r.minimumTenor == 0) {
+        // validate minTenor
+        if (r.minTenor == 0) {
             revert Errors.NULL_AMOUNT();
         }
 
-        if (r.maximumTenor <= r.minimumTenor) {
-            revert Errors.INVALID_MAXIMUM_TENOR(r.maximumTenor);
+        if (r.maxTenor <= r.minTenor) {
+            revert Errors.INVALID_MAXIMUM_TENOR(r.maxTenor);
         }
     }
 
@@ -188,8 +188,8 @@ library Initialize {
 
         state.riskConfig.borrowATokenCap = r.borrowATokenCap;
 
-        state.riskConfig.minimumTenor = r.minimumTenor;
-        state.riskConfig.maximumTenor = r.maximumTenor;
+        state.riskConfig.minTenor = r.minTenor;
+        state.riskConfig.maxTenor = r.maxTenor;
     }
 
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {

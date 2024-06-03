@@ -27,7 +27,7 @@ library SellCreditLimit {
 
             // validate curveRelativeTime
             YieldCurveLibrary.validateYieldCurve(
-                params.curveRelativeTime, state.riskConfig.minimumTenor, state.riskConfig.maximumTenor
+                params.curveRelativeTime, state.riskConfig.minTenor, state.riskConfig.maxTenor
             );
         }
     }

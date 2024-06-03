@@ -78,13 +78,13 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
 
         vm.warp(block.timestamp + 365 days * 2);
 
-        uint256 minimumTenor = size.riskConfig().minimumTenor;
-        uint256 maximumTenor = size.riskConfig().maximumTenor;
+        uint256 minTenor = size.riskConfig().minTenor;
+        uint256 maxTenor = size.riskConfig().maxTenor;
 
         _sellCreditLimit(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
 
         vm.prank(liquidator);
-        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 0, minimumTenor, maximumTenor));
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 0, minTenor, maxTenor));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,

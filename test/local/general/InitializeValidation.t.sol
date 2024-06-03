@@ -59,17 +59,17 @@ contract InitializeValidationTest is Test, BaseTest {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         r.minimumCreditBorrowAToken = 5e6;
 
-        r.minimumTenor = 0;
+        r.minTenor = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        r.minimumTenor = 1 hours;
+        r.minTenor = 1 hours;
 
-        r.minimumTenor = 5 days;
-        r.maximumTenor = 4 days;
+        r.minTenor = 5 days;
+        r.maxTenor = 4 days;
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MAXIMUM_TENOR.selector, 4 days));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        r.minimumTenor = 1 hours;
-        r.maximumTenor = 365 days;
+        r.minTenor = 1 hours;
+        r.maxTenor = 365 days;
 
         o.priceFeed = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));

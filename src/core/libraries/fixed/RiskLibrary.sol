@@ -25,8 +25,8 @@ library RiskLibrary {
     }
 
     function validateTenor(State storage state, uint256 tenor) public view {
-        if (tenor < state.riskConfig.minimumTenor || tenor > state.riskConfig.maximumTenor) {
-            revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minimumTenor, state.riskConfig.maximumTenor);
+        if (tenor < state.riskConfig.minTenor || tenor > state.riskConfig.maxTenor) {
+            revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minTenor, state.riskConfig.maxTenor);
         }
     }
 

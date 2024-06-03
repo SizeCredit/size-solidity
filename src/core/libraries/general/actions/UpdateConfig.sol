@@ -48,8 +48,8 @@ library UpdateConfig {
             crLiquidation: state.riskConfig.crLiquidation,
             minimumCreditBorrowAToken: state.riskConfig.minimumCreditBorrowAToken,
             borrowATokenCap: state.riskConfig.borrowATokenCap,
-            minimumTenor: state.riskConfig.minimumTenor,
-            maximumTenor: state.riskConfig.maximumTenor
+            minTenor: state.riskConfig.minTenor,
+            maxTenor: state.riskConfig.maxTenor
         });
     }
 
@@ -76,7 +76,7 @@ library UpdateConfig {
             state.riskConfig.minimumCreditBorrowAToken = params.value;
         } else if (Strings.equal(params.key, "borrowATokenCap")) {
             state.riskConfig.borrowATokenCap = params.value;
-        } else if (Strings.equal(params.key, "minimumTenor")) {
+        } else if (Strings.equal(params.key, "minTenor")) {
             if (
                 state.feeConfig.swapFeeAPR != 0
                     && params.value >= Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
@@ -85,8 +85,8 @@ library UpdateConfig {
                     params.value, Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
                 );
             }
-            state.riskConfig.minimumTenor = params.value;
-        } else if (Strings.equal(params.key, "maximumTenor")) {
+            state.riskConfig.minTenor = params.value;
+        } else if (Strings.equal(params.key, "maxTenor")) {
             if (
                 state.feeConfig.swapFeeAPR != 0
                     && params.value >= Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
@@ -95,11 +95,11 @@ library UpdateConfig {
                     params.value, Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
                 );
             }
-            state.riskConfig.maximumTenor = params.value;
+            state.riskConfig.maxTenor = params.value;
         } else if (Strings.equal(params.key, "swapFeeAPR")) {
-            if (params.value >= Math.mulDivDown(PERCENT, 365 days, state.riskConfig.maximumTenor)) {
+            if (params.value >= Math.mulDivDown(PERCENT, 365 days, state.riskConfig.maxTenor)) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
-                    params.value, Math.mulDivDown(PERCENT, 365 days, state.riskConfig.maximumTenor)
+                    params.value, Math.mulDivDown(PERCENT, 365 days, state.riskConfig.maxTenor)
                 );
             }
             state.feeConfig.swapFeeAPR = params.value;

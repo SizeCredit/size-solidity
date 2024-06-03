@@ -176,7 +176,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
                 eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
                 uint256 debtPositionId = DEBT_POSITION_ID_START + _after.debtPositionsCount - 1;
                 tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
-                t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
+                t(size.riskConfig().minTenor <= tenor && tenor <= size.riskConfig().maxTenor, LOAN_01);
             }
         }
     }
@@ -234,7 +234,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
                 eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
                 uint256 debtPositionId = DEBT_POSITION_ID_START + _after.debtPositionsCount - 1;
                 tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
-                t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
+                t(size.riskConfig().minTenor <= tenor && tenor <= size.riskConfig().maxTenor, LOAN_01);
             }
         }
     }
@@ -399,7 +399,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
             );
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
             uint256 tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
-            t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_01);
+            t(size.riskConfig().minTenor <= tenor && tenor <= size.riskConfig().maxTenor, LOAN_01);
         }
     }
 
@@ -484,8 +484,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
             "crLiquidation",
             "minimumCreditBorrowAToken",
             "borrowATokenCap",
-            "minimumTenor",
-            "maximumTenor",
+            "minTenor",
+            "maxTenor",
             "swapFeeAPR",
             "fragmentationFee",
             "liquidationRewardPercent",

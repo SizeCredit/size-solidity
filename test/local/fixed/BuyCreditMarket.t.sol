@@ -87,7 +87,7 @@ contract BuyCreditMarketLendTest is BaseTest {
     }
 
     function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountIn(uint256 amountIn, uint256 seed) public {
-        _updateConfig("minimumTenor", 1);
+        _updateConfig("minTenor", 1);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -342,7 +342,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(bob, weth, MAX_AMOUNT_WETH);
 
         apr = bound(apr, 0, MAX_RATE);
-        tenor = bound(tenor, size.riskConfig().minimumTenor, MAX_TENOR);
+        tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
         futureValue = bound(futureValue, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
         uint256 ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
 
@@ -371,7 +371,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(bob, weth, MAX_AMOUNT_WETH);
 
         apr = bound(apr, 0, MAX_RATE);
-        tenor = bound(tenor, size.riskConfig().minimumTenor, MAX_TENOR);
+        tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
         cash = bound(cash, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
 
         _sellCreditLimit(bob, YieldCurveHelper.pointCurve(tenor, int256(apr)));

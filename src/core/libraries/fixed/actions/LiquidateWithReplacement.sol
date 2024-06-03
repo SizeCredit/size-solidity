@@ -52,8 +52,8 @@ library LiquidateWithReplacement {
             revert Errors.LOAN_NOT_ACTIVE(params.debtPositionId);
         }
         uint256 tenor = debtPosition.dueDate - block.timestamp;
-        if (tenor < state.riskConfig.minimumTenor || tenor > state.riskConfig.maximumTenor) {
-            revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minimumTenor, state.riskConfig.maximumTenor);
+        if (tenor < state.riskConfig.minTenor || tenor > state.riskConfig.maxTenor) {
+            revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minTenor, state.riskConfig.maxTenor);
         }
 
         // validate borrower

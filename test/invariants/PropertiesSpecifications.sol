@@ -29,7 +29,7 @@ abstract contract PropertiesSpecifications {
     string internal constant REPAY_03 = "REPAY_02: Repay clears the loan's debt";
 
     string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
-    string internal constant LOAN_02 = "LOAN_02: minimumTenor <= loan.tenor <= maximumTenor";
+    string internal constant LOAN_02 = "LOAN_02: minTenor <= loan.tenor <= maxTenor";
     string internal constant LOAN_03 = "LOAN_03: COUNT(credit positions) >= COUNT(debt positions)";
 
     string internal constant TOKENS_01 =

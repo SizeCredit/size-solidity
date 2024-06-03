@@ -19,7 +19,7 @@ library Errors {
     error INVALID_KEY(string key);
     error INVALID_COLLATERAL_RATIO(uint256 cr);
     error INVALID_COLLATERAL_PERCENTAGE_PREMIUM(uint256 percentage);
-    error INVALID_MAXIMUM_TENOR(uint256 maximumTenor);
+    error INVALID_MAXIMUM_TENOR(uint256 maxTenor);
     error VALUE_GREATER_THAN_MAX(uint256 value, uint256 max);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error PAST_DUE_DATE(uint256 dueDate);

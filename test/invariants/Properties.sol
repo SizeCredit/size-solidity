@@ -43,7 +43,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
                 : _after.debtPositionId;
             DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
             uint256 tenor = debtPosition.dueDate - block.timestamp;
-            t(size.riskConfig().minimumTenor <= tenor && tenor <= size.riskConfig().maximumTenor, LOAN_02);
+            t(size.riskConfig().minTenor <= tenor && tenor <= size.riskConfig().maxTenor, LOAN_02);
         }
 
         return true;
@@ -156,7 +156,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
                 && (
                     Math.mulDivDown(
                         size.riskConfig().minimumCreditBorrowAToken,
-                        size.riskConfig().minimumTenor * size.feeConfig().swapFeeAPR,
+                        size.riskConfig().minTenor * size.feeConfig().swapFeeAPR,
                         365 days * PERCENT
                     ) > 0
                 )

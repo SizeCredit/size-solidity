@@ -16,20 +16,20 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract YieldCurveTest is Test, AssertsHelper {
-    function validate(YieldCurve memory curve, uint256 minimumTenor, uint256 maximumTenor) external pure {
-        YieldCurveLibrary.validateYieldCurve(curve, minimumTenor, maximumTenor);
+    function validate(YieldCurve memory curve, uint256 minTenor, uint256 maxTenor) external pure {
+        YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
     }
 
     function test_YieldCurve_validateYieldCurve() public {
         uint256[] memory tenors = new uint256[](0);
         int256[] memory aprs = new int256[](0);
         uint256[] memory marketRateMultipliers = new uint256[](0);
-        uint256 minimumTenor = 90 days;
-        uint256 maximumTenor = 5 * 365 days;
+        uint256 minTenor = 90 days;
+        uint256 maxTenor = 5 * 365 days;
 
         YieldCurve memory curve = YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
 
-        try this.validate(curve, minimumTenor, maximumTenor) {}
+        try this.validate(curve, minTenor, maxTenor) {}
         catch (bytes memory err) {
             assertEq(bytes4(err), Errors.NULL_ARRAY.selector);
         }
@@ -37,7 +37,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         curve.aprs = new int256[](2);
         curve.marketRateMultipliers = new uint256[](2);
         curve.tenors = new uint256[](1);
-        try this.validate(curve, minimumTenor, maximumTenor) {}
+        try this.validate(curve, minTenor, maxTenor) {}
         catch (bytes memory err) {
             assertEq(bytes4(err), Errors.ARRAY_LENGTHS_MISMATCH.selector);
         }
@@ -55,26 +55,26 @@ contract YieldCurveTest is Test, AssertsHelper {
         curve.marketRateMultipliers[0] = 1e18;
         curve.marketRateMultipliers[1] = 2e18;
 
-        try this.validate(curve, minimumTenor, maximumTenor) {}
+        try this.validate(curve, minTenor, maxTenor) {}
         catch (bytes memory err) {
             assertEq(bytes4(err), Errors.TENORS_NOT_STRICTLY_INCREASING.selector);
         }
 
         curve.tenors[1] = 30 days;
-        try this.validate(curve, minimumTenor, maximumTenor) {}
+        try this.validate(curve, minTenor, maxTenor) {}
         catch (bytes memory err) {
             assertEq(bytes4(err), Errors.TENORS_NOT_STRICTLY_INCREASING.selector);
         }
 
         curve.tenors[1] = 40 days;
-        try this.validate(curve, minimumTenor, maximumTenor) {}
+        try this.validate(curve, minTenor, maxTenor) {}
         catch (bytes memory err) {
             assertEq(bytes4(err), Errors.TENOR_OUT_OF_RANGE.selector);
         }
 
         curve.tenors[0] = 150 days;
         curve.tenors[1] = 180 days;
-        YieldCurveLibrary.validateYieldCurve(curve, minimumTenor, maximumTenor);
+        YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
     }
 
     function test_YieldCurve_getRate_zero_tenor() public {

@@ -65,7 +65,7 @@ contract SellCreditMarketValidationTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.TENOR_OUT_OF_RANGE.selector, 0, size.riskConfig().minimumTenor, size.riskConfig().maximumTenor
+                Errors.TENOR_OUT_OF_RANGE.selector, 0, size.riskConfig().minTenor, size.riskConfig().maxTenor
             )
         );
         size.sellCreditMarket(
