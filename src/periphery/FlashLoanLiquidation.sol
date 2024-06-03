@@ -152,15 +152,11 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
             revert PeripheryErrors.INSUFFICIENT_BALANCE();
         }
 
-        // Send remainder back to liquidator 
+        // Send remainder back to liquidator
         uint256 amountToLiquidator = balance - totalDebt;
         if (depositProfits) {
             IERC20(assets[0]).forceApprove(address(size), amountToLiquidator);
-            size.deposit(DepositParams({
-                token: assets[0],
-                amount: amountToLiquidator,
-                to: liquidator
-            }));
+            size.deposit(DepositParams({token: assets[0], amount: amountToLiquidator, to: liquidator}));
         } else {
             IERC20(assets[0]).transfer(liquidator, amountToLiquidator);
         }
@@ -224,7 +220,10 @@ contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
         OperationParams memory opParams = abi.decode(params, (OperationParams));
         if (opParams.useReplacement) {
             _liquidateDebtPositionWithReplacement(
-                opParams.debtAmount, opParams.debtPositionId, opParams.minimumCollateralProfit, opParams.replacementParams
+                opParams.debtAmount,
+                opParams.debtPositionId,
+                opParams.minimumCollateralProfit,
+                opParams.replacementParams
             );
         } else {
             _liquidateDebtPosition(opParams.debtAmount, opParams.debtPositionId, opParams.minimumCollateralProfit);

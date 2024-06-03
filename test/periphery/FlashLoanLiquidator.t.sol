@@ -12,7 +12,6 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 import {DebtPosition} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-
 contract FlashLoanLiquidationTest is BaseTest {
     MockAavePool public mockAavePool;
     Mock1InchAggregator public mock1InchAggregator;
