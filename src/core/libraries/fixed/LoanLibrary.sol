@@ -29,10 +29,9 @@ struct CreditPosition {
 // When tenor is reached, it is in OVERDUE status and subject to liquidation
 // When the loan is repaid either by the borrower or by the liquidator, it is in REPAID status
 enum LoanStatus {
-    ACTIVE, // not yet due
-    OVERDUE, // eligible to liquidation
-    REPAID // by borrower or liquidator
-
+    ACTIVE,
+    OVERDUE,
+    REPAID
 }
 
 /// @title LoanLibrary
