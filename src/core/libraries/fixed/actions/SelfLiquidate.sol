@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {AccountingLibrary} from "@src/core/libraries/fixed/AccountingLibrary.sol";
