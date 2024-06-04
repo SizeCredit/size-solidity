@@ -7,15 +7,6 @@ import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract MathTest is Test, AssertsHelper {
-    function test_Math_min() public {
-        assertEq(Math.min(4, 5, 6), 4);
-        assertEq(Math.min(4, 6, 5), 4);
-        assertEq(Math.min(5, 4, 6), 4);
-        assertEq(Math.min(5, 6, 4), 4);
-        assertEq(Math.min(6, 4, 5), 4);
-        assertEq(Math.min(6, 5, 4), 4);
-    }
-
     function test_Math_mulDivUp() public {
         assertEq(Math.mulDivUp(3, 5, 4), 4);
         assertEq(Math.mulDivUp(4, 5, 4), 5);
@@ -144,14 +135,6 @@ contract MathTest is Test, AssertsHelper {
 
         vm.expectRevert();
         Math.amountToWad(amount, decimals);
-    }
-
-    function check_Math_min(uint256 x, uint256 y, uint256 z) public {
-        uint256 min = type(uint256).max;
-        if (x < min) min = x;
-        if (y < min) min = y;
-        if (z < min) min = z;
-        assertEq(Math.min(x, y, z), min);
     }
 
     function check_Math_binarySearch(uint256[] memory array, uint256 value) public {

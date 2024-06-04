@@ -5,7 +5,7 @@ import {State} from "@src/core/SizeStorage.sol";
 
 import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
-import {Math, PERCENT} from "@src/core/libraries/Math.sol";
+import {Math, PERCENT, YEAR} from "@src/core/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/core/libraries/fixed/RiskLibrary.sol";
@@ -121,7 +121,7 @@ library AccountingLibrary {
     }
 
     function getSwapFeePercent(State storage state, uint256 tenor) internal view returns (uint256) {
-        return Math.mulDivUp(state.feeConfig.swapFeeAPR, tenor, 365 days);
+        return Math.mulDivUp(state.feeConfig.swapFeeAPR, tenor, YEAR);
     }
 
     function getSwapFee(State storage state, uint256 cash, uint256 tenor) internal view returns (uint256) {
@@ -205,13 +205,13 @@ library AccountingLibrary {
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
-    ) internal view returns (uint256 cashAmountOut, uint256 fees) {
+    ) internal view returns (uint256 creditAmountOut, uint256 fees) {
         uint256 maxCashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerTenor);
 
         if (cashAmountIn == maxCashAmountIn) {
             // no credit fractionalization
 
-            cashAmountOut = maxCredit;
+            creditAmountOut = maxCredit;
             fees = getSwapFee(state, cashAmountIn, tenor);
         } else if (cashAmountIn < maxCashAmountIn) {
             // credit fractionalization
@@ -222,7 +222,7 @@ library AccountingLibrary {
 
             uint256 netCashAmountIn = cashAmountIn - state.feeConfig.fragmentationFee;
 
-            cashAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerTenor, PERCENT);
+            creditAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerTenor, PERCENT);
             fees = getSwapFee(state, netCashAmountIn, tenor) + state.feeConfig.fragmentationFee;
         } else {
             revert Errors.NOT_ENOUGH_CREDIT(maxCashAmountIn, cashAmountIn);

@@ -101,7 +101,6 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
 
     /// @notice Repay a debt position by transferring the amount due of borrow tokens to the protocol, which are deposited to the Variable Pool for the lenders to claim
     ///         Partial repayment are currently unsupported
-    ///         The protocol repay fee is applied upon repayment
     /// @dev The Variable Pool liquidity index is snapshotted at the time of the repayment in order to calculate the accrued interest for lenders to claim
     ///      The liquidator overdue reward is cleared from the borrower debt upon repayment
     /// @param params RepayParams struct containing the following fields:
@@ -119,7 +118,6 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
     ///         In case of a protifable liquidation, part of the collateral remainder is split between the protocol and the liquidator
     ///         The split is capped by the crLiquidation parameter (otherwise, the split for overdue loans could be too much)
     ///         If the loan is overdue, a liquidator is charged from the borrower
-    ///         The protocol repayment fee is charged from the borrower
     /// @param params LiquidateParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
@@ -132,11 +130,6 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
     /// @notice Self liquidate a credit position that is undercollateralized
     ///         The lender cancels an amount of debt equivalent to their credit and a percentage of the protocol fees
     /// @dev The user is prevented to self liquidate if a regular liquidation would be profitable
-    ///      Example:
-    ///               Alice borrows $100 due 1 year with a 0.5% APR repay fee. Her debt is $100.50.
-    ///               The first lender exits to another lender, and now there are two credit positions, $94.999999 and $5.000001.
-    ///               If the first lender self liquidates, the pro-rata repay fee will be $0.475, and the borrower's debt will be updated to $5.025001.
-    ///               Then, on the second lender self liquidation, the pro-rata repay fee will be $0.025001 due to rounding up, and the borrower's debt would underflow due to the reduction of $5.000001 + $0.025001 = $5.025002.
     /// @param params SelfLiquidateParams struct containing the following fields:
     ///     - uint256 creditPositionId: The id of the credit position to self-liquidate
     function selfLiquidate(SelfLiquidateParams calldata params) external payable;

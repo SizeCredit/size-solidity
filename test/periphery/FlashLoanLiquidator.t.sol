@@ -98,7 +98,7 @@ contract FlashLoanLiquidationTest is BaseTest {
         assertGt(
             _after.feeRecipient.collateralTokenBalance,
             _before.feeRecipient.collateralTokenBalance,
-            "feeRecipient has repayFee and liquidation split"
+            "feeRecipient has liquidation split"
         );
         assertGt(afterLiquidatorUSDC, beforeLiquidatorUSDC, "Liquidator should have more USDC after liquidation");
     }

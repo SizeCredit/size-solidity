@@ -25,6 +25,7 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         bool isBorrowerUnderwater;
         uint256 senderCollateralAmount;
         uint256 senderBorrowAmount;
+        uint256 borrowerCR;
         uint256 sizeCollateralAmount;
         uint256 sizeBorrowAmount;
         uint256 debtPositionsCount;
@@ -69,16 +70,15 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
             if (size.isCreditPositionId(positionId)) {
                 c = size.getCreditPosition(positionId);
                 d = size.getDebtPosition(c.debtPositionId);
-                vars.borrower = size.getUserView(d.borrower);
-                vars.isBorrowerUnderwater = size.isUserUnderwater(vars.borrower.account);
                 vars.lender = size.getUserView(c.lender);
                 vars.debtPositionId = positionId;
             } else {
                 d = size.getDebtPosition(positionId);
-                vars.borrower = size.getUserView(d.borrower);
-                vars.isBorrowerUnderwater = size.isUserUnderwater(d.borrower);
                 vars.creditPositionId = positionId;
             }
+            vars.borrower = size.getUserView(d.borrower);
+            vars.isBorrowerUnderwater = size.isUserUnderwater(d.borrower);
+            vars.borrowerCR = size.collateralRatio(d.borrower);
             vars.loanStatus = size.getLoanStatus(positionId);
         }
         vars.sender = size.getUserView(sender);
