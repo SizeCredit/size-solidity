@@ -6,7 +6,7 @@ import {State} from "@src/core/SizeStorage.sol";
 import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
 
-import {Math, PERCENT} from "@src/core/libraries/Math.sol";
+import {Math, PERCENT, YEAR} from "@src/core/libraries/Math.sol";
 import {Initialize} from "@src/core/libraries/general/actions/Initialize.sol";
 
 import {IPriceFeed} from "@src/core/oracle/IPriceFeed.sol";
@@ -79,27 +79,27 @@ library UpdateConfig {
         } else if (Strings.equal(params.key, "minTenor")) {
             if (
                 state.feeConfig.swapFeeAPR != 0
-                    && params.value >= Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
+                    && params.value >= Math.mulDivDown(YEAR, PERCENT, state.feeConfig.swapFeeAPR)
             ) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
-                    params.value, Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
+                    params.value, Math.mulDivDown(YEAR, PERCENT, state.feeConfig.swapFeeAPR)
                 );
             }
             state.riskConfig.minTenor = params.value;
         } else if (Strings.equal(params.key, "maxTenor")) {
             if (
                 state.feeConfig.swapFeeAPR != 0
-                    && params.value >= Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
+                    && params.value >= Math.mulDivDown(YEAR, PERCENT, state.feeConfig.swapFeeAPR)
             ) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
-                    params.value, Math.mulDivDown(365 days, PERCENT, state.feeConfig.swapFeeAPR)
+                    params.value, Math.mulDivDown(YEAR, PERCENT, state.feeConfig.swapFeeAPR)
                 );
             }
             state.riskConfig.maxTenor = params.value;
         } else if (Strings.equal(params.key, "swapFeeAPR")) {
-            if (params.value >= Math.mulDivDown(PERCENT, 365 days, state.riskConfig.maxTenor)) {
+            if (params.value >= Math.mulDivDown(PERCENT, YEAR, state.riskConfig.maxTenor)) {
                 revert Errors.VALUE_GREATER_THAN_MAX(
-                    params.value, Math.mulDivDown(PERCENT, 365 days, state.riskConfig.maxTenor)
+                    params.value, Math.mulDivDown(PERCENT, YEAR, state.riskConfig.maxTenor)
                 );
             }
             state.feeConfig.swapFeeAPR = params.value;

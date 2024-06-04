@@ -5,7 +5,7 @@ import {State} from "@src/core/SizeStorage.sol";
 
 import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
-import {Math, PERCENT} from "@src/core/libraries/Math.sol";
+import {Math, PERCENT, YEAR} from "@src/core/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {RiskLibrary} from "@src/core/libraries/fixed/RiskLibrary.sol";
@@ -121,7 +121,7 @@ library AccountingLibrary {
     }
 
     function getSwapFeePercent(State storage state, uint256 tenor) internal view returns (uint256) {
-        return Math.mulDivUp(state.feeConfig.swapFeeAPR, tenor, 365 days);
+        return Math.mulDivUp(state.feeConfig.swapFeeAPR, tenor, YEAR);
     }
 
     function getSwapFee(State storage state, uint256 cash, uint256 tenor) internal view returns (uint256) {

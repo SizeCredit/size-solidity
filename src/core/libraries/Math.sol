@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 
 uint256 constant PERCENT = 1e18;
+uint256 constant YEAR = 365 days;
 
 /// @title Math
 library Math {
@@ -13,10 +14,6 @@ library Math {
 
     function max(uint256 a, uint256 b) internal pure returns (uint256) {
         return FixedPointMathLib.max(a, b);
-    }
-
-    function min(uint256 a, uint256 b, uint256 c) internal pure returns (uint256) {
-        return FixedPointMathLib.min(FixedPointMathLib.min(a, b), c);
     }
 
     function mulDivUp(uint256 x, uint256 y, uint256 z) internal pure returns (uint256) {
@@ -32,7 +29,7 @@ library Math {
     }
 
     function aprToRatePerTenor(uint256 apr, uint256 tenor) internal pure returns (uint256) {
-        return mulDivDown(apr, tenor, 365 days);
+        return mulDivDown(apr, tenor, YEAR);
     }
 
     /// @notice Find the index of `value` in the sorted list `array`
