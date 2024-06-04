@@ -6,14 +6,20 @@ import {Errors} from "@src/core/libraries/Errors.sol";
 import {Math, PERCENT} from "@src/core/libraries/Math.sol";
 
 struct YieldCurve {
+    // array of tenors in seconds
     uint256[] tenors;
+    // array of APRs, or constant factor to add to the market rate
     int256[] aprs;
+    // array of market rate multipliers
     uint256[] marketRateMultipliers;
 }
 
 struct VariablePoolBorrowRateParams {
+    // The variable pool borrow rate
     uint128 variablePoolBorrowRate;
+    // The timestamp when the variable pool borrow rate was last updated
     uint64 variablePoolBorrowRateUpdatedAt;
+    // The interval after which the variable pool borrow rate is considered stale
     uint64 variablePoolBorrowRateStaleRateInterval;
 }
 
@@ -26,10 +32,21 @@ struct VariablePoolBorrowRateParams {
 ///         for all t in `tenors`, with `marketRate` defined by an external oracle
 /// @dev The final rate per tenor is an unsigned integer, as it is a percentage
 library YieldCurveLibrary {
+    /// @notice Check if the yield curve is null
+    /// @param self The yield curve
+    /// @return True if the yield curve is null, false otherwise
     function isNull(YieldCurve memory self) internal pure returns (bool) {
         return self.tenors.length == 0 && self.aprs.length == 0 && self.marketRateMultipliers.length == 0;
     }
 
+    /// @notice Validate the yield curve
+    /// @dev Reverts if the yield curve is invalid:
+    ///      - The arrays are empty or have different lengths
+    ///      - The tenors are not strictly increasing
+    ///      - The tenors are out of range defined by minTenor and maxTenor
+    /// @param self The yield curve
+    /// @param minTenor The minimum tenor
+    /// @param maxTenor The maximum tenor
     function validateYieldCurve(YieldCurve memory self, uint256 minTenor, uint256 maxTenor) internal pure {
         if (self.tenors.length == 0 || self.aprs.length == 0 || self.marketRateMultipliers.length == 0) {
             revert Errors.NULL_ARRAY();
@@ -62,7 +79,7 @@ library YieldCurveLibrary {
 
     /// @notice Get the APR from the yield curve adjusted by the variable pool borrow rate
     /// @dev Reverts if the final result is negative
-    ///      Only query the market borrow rate feed oracle if the market rate multiplier is not 0
+    ///      Only query the market borrow rate if the rate multiplier is not 0
     /// @param apr The annual percentage rate from the yield curve
     /// @param marketRateMultiplier The market rate multiplier
     /// @param params The variable pool borrow rate feed params
