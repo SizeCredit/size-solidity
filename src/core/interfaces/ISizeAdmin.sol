@@ -1,9 +1,11 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {UpdateConfigParams} from "@src/core/libraries/general/actions/UpdateConfig.sol";
 
 /// @title ISizeAdmin
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice The interface for admin acitons
 interface ISizeAdmin {
     /// @notice Updates the configuration of the protocol

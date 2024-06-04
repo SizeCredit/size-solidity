@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {State} from "@src/core/SizeStorage.sol";
@@ -15,6 +15,9 @@ struct RepayParams {
     uint256 debtPositionId;
 }
 
+/// @title Repay
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library Repay {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;

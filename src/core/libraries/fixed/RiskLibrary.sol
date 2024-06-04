@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {State} from "@src/core/SizeStorage.sol";
@@ -9,6 +9,8 @@ import {Math} from "@src/core/libraries/Math.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/core/libraries/fixed/LoanLibrary.sol";
 
 /// @title RiskLibrary
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library RiskLibrary {
     using LoanLibrary for State;
 

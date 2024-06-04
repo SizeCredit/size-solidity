@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
@@ -11,6 +11,8 @@ import {NonTransferrableToken} from "@src/core/token/NonTransferrableToken.sol";
 import {Errors} from "@src/core/libraries/Errors.sol";
 
 /// @title NonTransferrableScaledToken
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice An ERC-20 that is not transferrable from outside of the protocol
 /// @dev The contract owner (i.e. the Size contract) can still mint, burn, and transfer tokens
 contract NonTransferrableScaledToken is NonTransferrableToken {

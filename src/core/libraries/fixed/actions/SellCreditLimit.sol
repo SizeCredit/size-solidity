@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {State} from "@src/core/SizeStorage.sol";
@@ -11,6 +11,9 @@ struct SellCreditLimitParams {
     YieldCurve curveRelativeTime;
 }
 
+/// @title SellCreditLimit
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library SellCreditLimit {
     using OfferLibrary for BorrowOffer;
 

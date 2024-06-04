@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {State} from "@src/core/SizeStorage.sol";
@@ -25,6 +25,9 @@ struct CompensateParams {
     uint256 amount;
 }
 
+/// @title Compensate
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library Compensate {
     using AccountingLibrary for State;
     using LoanLibrary for State;

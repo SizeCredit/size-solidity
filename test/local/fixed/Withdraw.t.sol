@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {LiquidateParams} from "@src/core/libraries/fixed/actions/Liquidate.sol";

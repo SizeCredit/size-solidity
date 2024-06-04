@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {ISize} from "@src/core/interfaces/ISize.sol";
@@ -37,6 +37,10 @@ struct OperationParams {
     uint256 debtAmount;
 }
 
+/// @title FlashLoanLiquidator
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
+/// @notice A contract that liquidates debt positions using flash loans
 contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
     using SafeERC20 for IERC20;
 

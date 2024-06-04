@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {Errors} from "@src/core/libraries/Errors.sol";
@@ -19,6 +19,8 @@ struct BorrowOffer {
 }
 
 /// @title OfferLibrary
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library OfferLibrary {
     using YieldCurveLibrary for YieldCurve;
 

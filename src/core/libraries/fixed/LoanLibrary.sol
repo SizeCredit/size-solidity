@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {State} from "@src/core/SizeStorage.sol";
@@ -35,6 +35,8 @@ enum LoanStatus {
 }
 
 /// @title LoanLibrary
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library LoanLibrary {
     using AccountingLibrary for State;
 

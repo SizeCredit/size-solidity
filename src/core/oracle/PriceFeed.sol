@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
@@ -9,6 +9,8 @@ import {IPriceFeed} from "./IPriceFeed.sol";
 import {Errors} from "@src/core/libraries/Errors.sol";
 
 /// @title PriceFeed
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice A contract that provides the price of a `base` asset in terms of a `quote` asset, using an intermediate asset, scaled to 18 decimals
 /// @dev The price is calculated as `base / quote`. Example configuration:
 ///      _base: ETH/USD feed

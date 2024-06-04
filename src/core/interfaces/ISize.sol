@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {SellCreditLimitParams} from "@src/core/libraries/fixed/actions/SellCreditLimit.sol";
@@ -31,7 +31,8 @@ import {SetUserConfigurationParams} from "@src/core/libraries/fixed/actions/SetU
 import {ISizeAdmin} from "@src/core/interfaces/ISizeAdmin.sol";
 
 /// @title ISize
-/// @author Size Lending
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice This interface is the main interface for all user-facing methods of the Size protocol
 /// @dev All functions are `payable` to allow for ETH deposits in a `multicall` pattern.
 ///      See `Multicall.sol`

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -24,6 +24,8 @@ struct UpdateConfigParams {
 }
 
 /// @title UpdateConfig
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice Contains the logic to update the configuration of the protocol
 /// @dev The input validation is performed using the Initialize library
 ///      A `key` string is used to identify the configuration parameter to update and a `value` uint256 is used to set the new value

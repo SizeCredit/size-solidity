@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
@@ -8,6 +8,8 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {State} from "@src/core/SizeStorage.sol";
 
 /// @title DepositTokenLibrary
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice Contains functions for interacting with underlying tokens
 /// @dev Mints and burns 1:1 Size deposit tokens in exchange for underlying tokens
 library DepositTokenLibrary {

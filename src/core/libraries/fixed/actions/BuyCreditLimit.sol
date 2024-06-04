@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {LoanOffer, OfferLibrary} from "@src/core/libraries/fixed/OfferLibrary.sol";
@@ -14,6 +14,9 @@ struct BuyCreditLimitParams {
     YieldCurve curveRelativeTime;
 }
 
+/// @title BuyCreditLimit
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library BuyCreditLimit {
     using OfferLibrary for LoanOffer;
 

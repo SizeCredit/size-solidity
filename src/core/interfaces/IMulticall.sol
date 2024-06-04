@@ -1,7 +1,9 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 /// @title Multicall
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 interface IMulticall {
     /// @notice Executes multiple calls in a single transaction
     /// @dev This function allows for batch processing of multiple interactions with the protocol in a single transaction.

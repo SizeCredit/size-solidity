@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {Math, PERCENT} from "@src/core/libraries/Math.sol";
@@ -24,6 +24,9 @@ struct SellCreditMarketParams {
     bool exactAmountIn;
 }
 
+/// @title SellCreditMarket
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library SellCreditMarket {
     using OfferLibrary for LoanOffer;
     using LoanLibrary for DebtPosition;

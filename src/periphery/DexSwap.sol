@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -23,6 +23,10 @@ struct SwapParams {
     uint256 minimumReturnAmount; // Minimum return amount from the swap
 }
 
+/// @title DexSwap
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
+/// @notice A contract that swaps tokens using different DEXs
 abstract contract DexSwap {
     using SafeERC20 for IERC20;
 

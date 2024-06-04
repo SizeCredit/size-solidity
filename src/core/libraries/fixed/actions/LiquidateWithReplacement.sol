@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {Math} from "@src/core/libraries/Math.sol";
@@ -24,6 +24,9 @@ struct LiquidateWithReplacementParams {
     uint256 minAPR;
 }
 
+/// @title LiquidateWithReplacement
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library LiquidateWithReplacement {
     using LoanLibrary for CreditPosition;
     using OfferLibrary for BorrowOffer;

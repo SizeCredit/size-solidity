@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
@@ -18,6 +18,8 @@ struct VariablePoolBorrowRateParams {
 }
 
 /// @title YieldCurveLibrary
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice A library for working with yield curves
 ///         The yield curve is defined as following:
 ///         R[t] = aprs[t] + marketRateMultipliers[t] * marketRate,
