@@ -98,7 +98,7 @@ yarn coverage
 |---------------------------------------------------------------|--------------------|--------------------|------------------|------------------|
 | src/core/Size.sol                                             | 100.00% (56/56)    | 100.00% (58/58)    | 100.00% (0/0)    | 100.00% (21/21)  |
 | src/core/SizeView.sol                                         | 100.00% (28/28)    | 100.00% (47/47)    | 100.00% (6/6)    | 100.00% (19/19)  |
-| src/core/libraries/Math.sol                                   | 100.00% (19/19)    | 100.00% (30/30)    | 100.00% (6/6)    | 100.00% (8/8)    |
+| src/core/libraries/Math.sol                                   | 100.00% (18/18)    | 100.00% (28/28)    | 100.00% (6/6)    | 100.00% (7/7)    |
 | src/core/libraries/Multicall.sol                              | 100.00% (10/10)    | 100.00% (16/16)    | 100.00% (0/0)    | 100.00% (1/1)    |
 | src/core/libraries/fixed/AccountingLibrary.sol                | 91.57% (76/83)     | 93.00% (93/100)    | 70.00% (21/30)   | 100.00% (11/11)  |
 | src/core/libraries/fixed/CapsLibrary.sol                      | 81.82% (9/11)      | 85.71% (12/14)     | 50.00% (4/8)     | 100.00% (3/3)    |
@@ -144,7 +144,7 @@ yarn coverage
 │         Initialize          │   4    │
 │  LiquidateWithReplacement   │   6    │
 │          Liquidate          │   10   │
-│            Math             │   10   │
+│            Math             │   9    │
 │          Multicall          │   7    │
 │ NonTransferrableScaledToken │   4    │
 │    NonTransferrableToken    │   7    │
