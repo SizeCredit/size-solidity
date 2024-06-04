@@ -51,6 +51,8 @@ struct InitializeDataParams {
 }
 
 /// @title Initialize
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice Contains the logic to initialize the protocol
 /// @dev The collateralToken (e.g. szETH) and debtToken (e.g. szDebt) are created in the `executeInitialize` function
 ///      The borrowAToken (e.g. aUSDC) is deployed on the Variable Pool (Aave v3)

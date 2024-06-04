@@ -10,6 +10,8 @@ import {
 } from "@src/core/libraries/general/actions/Initialize.sol";
 
 /// @title ISizeView
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @author Size Lending
 /// @notice View methods for the Size protocol
 interface ISizeView {

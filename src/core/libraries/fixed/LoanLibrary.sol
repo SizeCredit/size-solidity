@@ -35,6 +35,8 @@ enum LoanStatus {
 }
 
 /// @title LoanLibrary
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library LoanLibrary {
     using AccountingLibrary for State;
 

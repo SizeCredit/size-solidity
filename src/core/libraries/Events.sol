@@ -10,6 +10,8 @@ import {
 } from "@src/core/libraries/general/actions/Initialize.sol";
 
 /// @title Events
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library Events {
     // general
 

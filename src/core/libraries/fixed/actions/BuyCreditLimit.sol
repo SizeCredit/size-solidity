@@ -14,6 +14,9 @@ struct BuyCreditLimitParams {
     YieldCurve curveRelativeTime;
 }
 
+/// @title BuyCreditLimit
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library BuyCreditLimit {
     using OfferLibrary for LoanOffer;
 

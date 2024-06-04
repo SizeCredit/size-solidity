@@ -15,6 +15,9 @@ struct ClaimParams {
     uint256 creditPositionId;
 }
 
+/// @title Claim
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library Claim {
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;

@@ -35,6 +35,10 @@ struct OperationParams {
     ReplacementParams replacementParams;
 }
 
+/// @title FlashLoanLiquidator
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
+/// @notice A contract that liquidates debt positions using flash loans
 contract FlashLoanLiquidator is Ownable, FlashLoanReceiverBase, DexSwap {
     using SafeERC20 for IERC20;
 

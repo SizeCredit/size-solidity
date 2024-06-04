@@ -16,6 +16,9 @@ struct SelfLiquidateParams {
     uint256 creditPositionId;
 }
 
+/// @title SelfLiquidate
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library SelfLiquidate {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;

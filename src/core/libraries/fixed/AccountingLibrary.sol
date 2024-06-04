@@ -11,6 +11,8 @@ import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/core/
 import {RiskLibrary} from "@src/core/libraries/fixed/RiskLibrary.sol";
 
 /// @title AccountingLibrary
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library AccountingLibrary {
     using RiskLibrary for State;
     using LoanLibrary for DebtPosition;

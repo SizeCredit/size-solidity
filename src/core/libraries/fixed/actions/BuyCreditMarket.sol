@@ -23,6 +23,9 @@ struct BuyCreditMarketParams {
     bool exactAmountIn;
 }
 
+/// @title BuyCreditMarket
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library BuyCreditMarket {
     using OfferLibrary for BorrowOffer;
     using AccountingLibrary for State;

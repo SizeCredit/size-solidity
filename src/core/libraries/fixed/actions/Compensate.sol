@@ -25,6 +25,9 @@ struct CompensateParams {
     uint256 amount;
 }
 
+/// @title Compensate
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library Compensate {
     using AccountingLibrary for State;
     using LoanLibrary for State;

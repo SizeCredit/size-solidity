@@ -15,6 +15,9 @@ struct RepayParams {
     uint256 debtPositionId;
 }
 
+/// @title Repay
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library Repay {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;

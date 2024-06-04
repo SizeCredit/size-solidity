@@ -4,6 +4,8 @@ pragma solidity 0.8.23;
 import {LoanStatus} from "@src/core/libraries/fixed/LoanLibrary.sol";
 
 /// @title Errors
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library Errors {
     error USER_IS_UNDERWATER(address account, uint256 cr);
     error NULL_ADDRESS();

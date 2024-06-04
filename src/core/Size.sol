@@ -58,6 +58,8 @@ bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE");
 
 /// @title Size
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISize}.
 contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using Initialize for State;

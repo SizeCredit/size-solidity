@@ -15,6 +15,9 @@ struct SetUserConfigurationParams {
     uint256[] creditPositionIds;
 }
 
+/// @title SetUserConfiguration
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library SetUserConfiguration {
     using LoanLibrary for State;
 

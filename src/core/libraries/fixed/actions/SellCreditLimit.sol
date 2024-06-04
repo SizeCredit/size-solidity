@@ -11,6 +11,9 @@ struct SellCreditLimitParams {
     YieldCurve curveRelativeTime;
 }
 
+/// @title SellCreditLimit
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library SellCreditLimit {
     using OfferLibrary for BorrowOffer;
 

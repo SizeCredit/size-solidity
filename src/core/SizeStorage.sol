@@ -69,6 +69,8 @@ struct State {
 }
 
 /// @title SizeStorage
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice Storage for the Size protocol
 /// @dev WARNING: Changing the order of the variables or inner structs in this contract may break the storage layout
 abstract contract SizeStorage {

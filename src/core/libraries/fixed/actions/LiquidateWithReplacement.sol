@@ -24,6 +24,9 @@ struct LiquidateWithReplacementParams {
     uint256 minAPR;
 }
 
+/// @title LiquidateWithReplacement
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library LiquidateWithReplacement {
     using LoanLibrary for CreditPosition;
     using OfferLibrary for BorrowOffer;

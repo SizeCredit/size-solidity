@@ -31,6 +31,8 @@ import {
 } from "@src/core/libraries/general/actions/Initialize.sol";
 
 /// @title SizeView
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice View methods for the Size protocol
 abstract contract SizeView is SizeStorage, ISizeView {
     using OfferLibrary for LoanOffer;

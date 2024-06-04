@@ -5,6 +5,8 @@ import {State} from "@src/core/SizeStorage.sol";
 import {Errors} from "@src/core/libraries/Errors.sol";
 
 /// @title CapsLibrary
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 /// @notice Contains functions for validating the cap of minted protocol-controlled tokens
 library CapsLibrary {
     function validateBorrowATokenIncreaseLteDebtTokenDecrease(

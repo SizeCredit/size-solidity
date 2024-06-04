@@ -20,6 +20,9 @@ struct LiquidateParams {
     uint256 minimumCollateralProfit;
 }
 
+/// @title Liquidate
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
 library Liquidate {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
