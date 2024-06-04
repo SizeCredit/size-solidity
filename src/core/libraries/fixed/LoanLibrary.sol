@@ -129,7 +129,6 @@ library LoanLibrary {
     }
 
     /// @notice Get the amount of collateral assigned to a CreditPosition, pro-rata to the DebtPosition's futureValue
-    /// @dev Takes into account the total debt of the user, which includes the repayment fee
     /// @param state The state struct
     /// @param creditPosition The CreditPosition
     /// @return The amount of collateral assigned to the CreditPosition

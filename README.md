@@ -53,7 +53,7 @@ Additional safety features were employed, such as different levels of Access Con
 In order to address donation and reentrancy attacks, the following measures were adopted:
 
 - No withdraws of native ether, only wrapped ether (WETH)
-- Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into deposit tokens via `deposit`, which mints `szaUSDC` and `szWETH`, and received back via `withdraw`, which burns deposit tokens 1:1 in exchange of the underlying tokens.
+- Underlying borrow and collateral tokens, such as USDC and WETH, are converted 1:1 into deposit tokens via `deposit`, which mints `szaUSDC` and `szWETH`, and received back via `withdraw`, which burns deposit tokens 1:1 in exchange for the underlying tokens.
 
 #### Maths
 

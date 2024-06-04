@@ -53,14 +53,9 @@ contract FlashLoanLiquidationTest is BaseTest {
         uint256 amount = 15e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, amount, 365 days, false);
         DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
-        // uint256 futureValue = debtPosition.futureValue;
-        // uint256 repayFee = debtPosition.repayFee;
-        // uint256 debt = futureValue + repayFee + size.feeConfig().overdueLiquidatorReward;
         uint256 debt = debtPosition.futureValue;
 
         _setPrice(0.2e18);
-
-        // uint256 repayFeeCollateral = size.debtTokenAmountToCollateralTokenAmount(repayFee);
 
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
@@ -104,7 +99,7 @@ contract FlashLoanLiquidationTest is BaseTest {
         assertGt(
             _after.feeRecipient.collateralTokenBalance,
             _before.feeRecipient.collateralTokenBalance,
-            "feeRecipient has repayFee and liquidation split"
+            "feeRecipient has liquidation split"
         );
         assertGt(afterLiquidatorUSDC, beforeLiquidatorUSDC, "Liquidator should have more USDC after liquidation");
     }

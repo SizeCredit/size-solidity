@@ -281,9 +281,7 @@ contract SelfLiquidateTest is BaseTest {
         _selfLiquidate(james, creditPositionId2);
     }
 
-    function testFuzz_SelfLiquidate_selfliquidateLoan_insufficient_debt_token_repay_fee_no_fees(uint256 exitAmount)
-        public
-    {
+    function testFuzz_SelfLiquidate_selfliquidateLoan_insufficient_debt_token_no_fees(uint256 exitAmount) public {
         _updateConfig("fragmentationFee", 0);
         _setPrice(1e18);
         _deposit(alice, weth, 200e18);
