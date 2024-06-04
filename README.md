@@ -96,9 +96,9 @@ yarn coverage
 
 | File                                                          | % Lines            | % Statements       | % Branches       | % Funcs          |
 |---------------------------------------------------------------|--------------------|--------------------|------------------|------------------|
-| src/core/Size.sol                                             | 98.21% (55/56)     | 98.28% (57/58)     | 100.00% (0/0)    | 95.24% (20/21)   |
-| src/core/SizeView.sol                                         | 78.79% (26/33)     | 80.00% (44/55)     | 62.50% (5/8)     | 85.71% (18/21)   |
-| src/core/libraries/Math.sol                                   | 95.00% (19/20)     | 93.75% (30/32)     | 100.00% (6/6)    | 88.89% (8/9)     |
+| src/core/Size.sol                                             | 100.00% (56/56)    | 100.00% (58/58)    | 100.00% (0/0)    | 100.00% (21/21)  |
+| src/core/SizeView.sol                                         | 100.00% (28/28)    | 100.00% (47/47)    | 100.00% (6/6)    | 100.00% (19/19)  |
+| src/core/libraries/Math.sol                                   | 100.00% (19/19)    | 100.00% (30/30)    | 100.00% (6/6)    | 100.00% (8/8)    |
 | src/core/libraries/Multicall.sol                              | 100.00% (10/10)    | 100.00% (16/16)    | 100.00% (0/0)    | 100.00% (1/1)    |
 | src/core/libraries/fixed/AccountingLibrary.sol                | 91.57% (76/83)     | 93.00% (93/100)    | 70.00% (21/30)   | 100.00% (11/11)  |
 | src/core/libraries/fixed/CapsLibrary.sol                      | 81.82% (9/11)      | 85.71% (12/14)     | 50.00% (4/8)     | 100.00% (3/3)    |
@@ -107,60 +107,61 @@ yarn coverage
 | src/core/libraries/fixed/OfferLibrary.sol                     | 100.00% (10/10)    | 100.00% (22/22)    | 100.00% (4/4)    | 100.00% (6/6)    |
 | src/core/libraries/fixed/RiskLibrary.sol                      | 89.29% (25/28)     | 94.00% (47/50)     | 75.00% (9/12)    | 100.00% (10/10)  |
 | src/core/libraries/fixed/YieldCurveLibrary.sol                | 94.12% (32/34)     | 96.49% (55/57)     | 75.00% (15/20)   | 100.00% (4/4)    |
-| src/core/libraries/fixed/actions/BuyCreditLimit.sol           | 90.00% (9/10)      | 90.91% (10/11)     | 83.33% (5/6)     | 100.00% (2/2)    |
-| src/core/libraries/fixed/actions/BuyCreditMarket.sol          | 94.44% (51/54)     | 95.08% (58/61)     | 80.77% (21/26)   | 100.00% (2/2)    |
+| src/core/libraries/fixed/actions/BuyCreditLimit.sol           | 100.00% (10/10)    | 100.00% (11/11)    | 100.00% (6/6)    | 100.00% (2/2)    |
+| src/core/libraries/fixed/actions/BuyCreditMarket.sol          | 100.00% (50/50)    | 100.00% (57/57)    | 90.91% (20/22)   | 100.00% (2/2)    |
 | src/core/libraries/fixed/actions/Claim.sol                    | 100.00% (11/11)    | 100.00% (16/16)    | 100.00% (4/4)    | 100.00% (2/2)    |
-| src/core/libraries/fixed/actions/Compensate.sol               | 95.65% (44/46)     | 96.30% (52/54)     | 72.73% (16/22)   | 100.00% (2/2)    |
+| src/core/libraries/fixed/actions/Compensate.sol               | 100.00% (46/46)    | 100.00% (54/54)    | 86.36% (19/22)   | 100.00% (2/2)    |
 | src/core/libraries/fixed/actions/Liquidate.sol                | 100.00% (26/26)    | 100.00% (35/35)    | 83.33% (5/6)     | 100.00% (3/3)    |
-| src/core/libraries/fixed/actions/LiquidateWithReplacement.sol | 93.94% (31/33)     | 95.56% (43/45)     | 80.00% (8/10)    | 100.00% (3/3)    |
+| src/core/libraries/fixed/actions/LiquidateWithReplacement.sol | 100.00% (33/33)    | 100.00% (45/45)    | 100.00% (10/10)  | 100.00% (3/3)    |
 | src/core/libraries/fixed/actions/Repay.sol                    | 100.00% (10/10)    | 100.00% (14/14)    | 75.00% (3/4)     | 100.00% (2/2)    |
 | src/core/libraries/fixed/actions/SelfLiquidate.sol            | 100.00% (15/15)    | 100.00% (21/21)    | 66.67% (4/6)     | 100.00% (2/2)    |
 | src/core/libraries/fixed/actions/SellCreditLimit.sol          | 100.00% (5/5)      | 100.00% (6/6)      | 100.00% (2/2)    | 100.00% (2/2)    |
-| src/core/libraries/fixed/actions/SellCreditMarket.sol         | 95.92% (47/49)     | 96.43% (54/56)     | 82.14% (23/28)   | 100.00% (2/2)    |
-| src/core/libraries/fixed/actions/SetUserConfiguration.sol     | 93.75% (15/16)     | 95.65% (22/23)     | 33.33% (2/6)     | 100.00% (2/2)    |
-| src/core/libraries/general/actions/Deposit.sol                | 95.45% (21/22)     | 96.43% (27/28)     | 85.71% (12/14)   | 100.00% (2/2)    |
-| src/core/libraries/general/actions/Initialize.sol             | 93.94% (62/66)     | 94.59% (70/74)     | 81.25% (26/32)   | 100.00% (11/11)  |
-| src/core/libraries/general/actions/UpdateConfig.sol           | 95.45% (42/44)     | 96.00% (48/50)     | 88.89% (32/36)   | 100.00% (5/5)    |
+| src/core/libraries/fixed/actions/SellCreditMarket.sol         | 100.00% (47/47)    | 100.00% (54/54)    | 92.31% (24/26)   | 100.00% (2/2)    |
+| src/core/libraries/fixed/actions/SetUserConfiguration.sol     | 100.00% (14/14)    | 100.00% (21/21)    | 50.00% (2/4)     | 100.00% (2/2)    |
+| src/core/libraries/general/actions/Deposit.sol                | 100.00% (22/22)    | 100.00% (28/28)    | 92.86% (13/14)   | 100.00% (2/2)    |
+| src/core/libraries/general/actions/Initialize.sol             | 100.00% (66/66)    | 100.00% (74/74)    | 93.75% (30/32)   | 100.00% (11/11)  |
+| src/core/libraries/general/actions/UpdateConfig.sol           | 100.00% (46/46)    | 100.00% (54/54)    | 100.00% (36/36)  | 100.00% (5/5)    |
 | src/core/libraries/general/actions/Withdraw.sol               | 100.00% (16/16)    | 100.00% (21/21)    | 75.00% (9/12)    | 100.00% (2/2)    |
-| src/core/oracle/PriceFeed.sol                                 | 86.96% (20/23)     | 92.50% (37/40)     | 68.75% (11/16)   | 100.00% (3/3)    |
-| src/core/token/NonTransferrableScaledToken.sol                | 68.18% (15/22)     | 61.11% (22/36)     | 0.00% (0/2)      | 53.85% (7/13)    |
+| src/core/oracle/PriceFeed.sol                                 | 95.65% (22/23)     | 97.50% (39/40)     | 87.50% (14/16)   | 100.00% (3/3)    |
+| src/core/token/NonTransferrableScaledToken.sol                | 81.82% (18/22)     | 72.22% (26/36)     | 0.00% (0/2)      | 76.92% (10/13)   |
 | src/core/token/NonTransferrableToken.sol                      | 91.67% (11/12)     | 92.31% (12/13)     | 50.00% (1/2)     | 100.00% (8/8)    |
 | src/periphery/DexSwap.sol                                     | 15.38% (4/26)      | 13.04% (6/46)      | 12.50% (1/8)     | 40.00% (2/5)     |
-| src/periphery/FlashLoanLiquidation.sol                        | 85.71% (42/49)     | 84.51% (60/71)     | 40.00% (4/10)    | 83.33% (5/6)     |
+| src/periphery/FlashLoanLiquidation.sol                        | 85.96% (49/57)     | 85.00% (68/80)     | 50.00% (7/14)    | 71.43% (5/7)     |
 
 ### Tests per file
 
 ```markdown
-┌──────────────────────────┬────────┐
-│         (index)          │ Values │
-├──────────────────────────┼────────┤
-│      BuyCreditLimit      │   4    │
-│     BuyCreditMarket      │   8    │
-│          Claim           │   10   │
-│        Compensate        │   15   │
-│     CryticToFoundry      │   18   │
-│         Deposit          │   5    │
-│   FlashLoanLiquidation   │   2    │
-│        Initialize        │   4    │
-│ LiquidateWithReplacement │   6    │
-│        Liquidate         │   10   │
-│           Math           │   10   │
-│        Multicall         │   7    │
-│  NonTransferrableToken   │   7    │
-│       OfferLibrary       │   1    │
-│          Pause           │   2    │
-│        PriceFeed         │   6    │
-│          Repay           │   7    │
-│      SelfLiquidate       │   10   │
-│     SellCreditLimit      │   5    │
-│     SellCreditMarket     │   10   │
-│   SetUserConfiguration   │   3    │
-│         SizeView         │   3    │
-│       UpdateConfig       │   7    │
-│         Upgrade          │   2    │
-│         Withdraw         │   8    │
-│        YieldCurve        │   14   │
-└──────────────────────────┴────────┘
+┌─────────────────────────────┬────────┐
+│           (index)           │ Values │
+├─────────────────────────────┼────────┤
+│       BuyCreditLimit        │   4    │
+│       BuyCreditMarket       │   10   │
+│            Claim            │   10   │
+│         Compensate          │   15   │
+│       CryticToFoundry       │   18   │
+│           Deposit           │   5    │
+│    FlashLoanLiquidation     │   4    │
+│         Initialize          │   4    │
+│  LiquidateWithReplacement   │   6    │
+│          Liquidate          │   10   │
+│            Math             │   10   │
+│          Multicall          │   7    │
+│ NonTransferrableScaledToken │   4    │
+│    NonTransferrableToken    │   7    │
+│        OfferLibrary         │   1    │
+│            Pause            │   2    │
+│          PriceFeed          │   7    │
+│            Repay            │   7    │
+│        SelfLiquidate        │   10   │
+│       SellCreditLimit       │   5    │
+│      SellCreditMarket       │   12   │
+│    SetUserConfiguration     │   3    │
+│          SizeView           │   5    │
+│        UpdateConfig         │   7    │
+│           Upgrade           │   2    │
+│          Withdraw           │   8    │
+│         YieldCurve          │   14   │
+└─────────────────────────────┴────────┘
 ```
 <!-- END_COVERAGE -->
 
