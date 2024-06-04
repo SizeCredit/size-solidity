@@ -27,7 +27,7 @@ contract Mock1InchAggregator {
 
         // Calculate the amount of toToken to return based on the price feed
         uint256 price = priceFeed.getPrice();
-        uint256 toTokenAmount = (amount * price) / 1e12; // Adjust for WETH/USDC decimals
+        uint256 toTokenAmount = (amount * price) / 1e26; // Adjust for WETH/USDC decimals
 
         // Ensure the aggregator has enough toToken balance
         require(IERC20(toToken).balanceOf(address(this)) >= toTokenAmount, "Insufficient toToken balance");
