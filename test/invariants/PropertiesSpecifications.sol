@@ -12,7 +12,7 @@ abstract contract PropertiesSpecifications {
     string internal constant BORROW_02 = "BORROW_02: Borrow increases the number of loans";
 
     string internal constant CLAIM_01 = "CLAIM_01: Claim does not decrease the sender's cash";
-    string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for DebtPositions";
+    string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for CreditPositions";
 
     string internal constant LIQUIDATE_01 = "LIQUIDATE_01: Liquidate increases the sender collateral";
     string internal constant LIQUIDATE_02 =

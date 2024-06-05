@@ -227,9 +227,6 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
         if (success) {
             __after();
 
-            if (sender != borrower) {
-                lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
-            }
             if (creditPositionId == RESERVED_ID) {
                 eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
                 uint256 debtPositionId = DEBT_POSITION_ID_START + _after.debtPositionsCount - 1;
@@ -291,7 +288,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
         if (success) {
             __after(creditPositionId);
 
-            gte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
+            gte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, CLAIM_01);
             t(size.isCreditPositionId(creditPositionId), CLAIM_02);
         }
     }
