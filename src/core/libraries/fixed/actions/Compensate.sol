@@ -20,14 +20,20 @@ import {
 import {RiskLibrary} from "@src/core/libraries/fixed/RiskLibrary.sol";
 
 struct CompensateParams {
+    // The credit position ID with debt to repay
     uint256 creditPositionWithDebtToRepayId;
+    // The credit position ID to compensate
+    // If RESERVED_ID, a new credit position will be created
     uint256 creditPositionToCompensateId;
+    // The amount to compensate
+    // The maximum amount to compensate is the minimum of the credits
     uint256 amount;
 }
 
 /// @title Compensate
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+/// @notice Contains the logic for compensating a credit position
 library Compensate {
     using AccountingLibrary for State;
     using LoanLibrary for State;
@@ -36,6 +42,9 @@ library Compensate {
 
     using RiskLibrary for State;
 
+    /// @notice Validates the input parameters for compensating a credit position
+    /// @param state The state
+    /// @param params The input parameters for compensating a credit position
     function validateCompensate(State storage state, CompensateParams calldata params) external view {
         CreditPosition storage creditPositionWithDebtToRepay =
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);
@@ -97,6 +106,9 @@ library Compensate {
         }
     }
 
+    /// @notice Executes the compensating of a credit position
+    /// @param state The state
+    /// @param params The input parameters for compensating a credit position
     function executeCompensate(State storage state, CompensateParams calldata params) external {
         emit Events.Compensate(
             params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId, params.amount
