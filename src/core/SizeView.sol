@@ -44,34 +44,42 @@ abstract contract SizeView is SizeStorage, ISizeView {
     using AccountingLibrary for State;
     using UpdateConfig for State;
 
+    /// @inheritdoc ISizeView
     function collateralRatio(address user) external view returns (uint256) {
         return state.collateralRatio(user);
     }
 
+    /// @inheritdoc ISizeView
     function isUserUnderwater(address user) external view returns (bool) {
         return state.isUserUnderwater(user);
     }
 
+    /// @inheritdoc ISizeView
     function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool) {
         return state.isDebtPositionLiquidatable(debtPositionId);
     }
 
+    /// @inheritdoc ISizeView
     function debtTokenAmountToCollateralTokenAmount(uint256 borrowATokenAmount) external view returns (uint256) {
         return state.debtTokenAmountToCollateralTokenAmount(borrowATokenAmount);
     }
 
+    /// @inheritdoc ISizeView
     function feeConfig() external view returns (InitializeFeeConfigParams memory) {
         return state.feeConfigParams();
     }
 
+    /// @inheritdoc ISizeView
     function riskConfig() external view returns (InitializeRiskConfigParams memory) {
         return state.riskConfigParams();
     }
 
+    /// @inheritdoc ISizeView
     function oracle() external view returns (InitializeOracleParams memory) {
         return state.oracleParams();
     }
 
+    /// @inheritdoc ISizeView
     function data() external view returns (DataView memory) {
         return DataView({
             nextDebtPositionId: state.data.nextDebtPositionId,
@@ -85,6 +93,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
         });
     }
 
+    /// @inheritdoc ISizeView
     function getUserView(address user) external view returns (UserView memory) {
         return UserView({
             user: state.data.users[user],
@@ -95,26 +104,32 @@ abstract contract SizeView is SizeStorage, ISizeView {
         });
     }
 
+    /// @inheritdoc ISizeView
     function isDebtPositionId(uint256 debtPositionId) external view returns (bool) {
         return state.isDebtPositionId(debtPositionId);
     }
 
+    /// @inheritdoc ISizeView
     function isCreditPositionId(uint256 creditPositionId) external view returns (bool) {
         return state.isCreditPositionId(creditPositionId);
     }
 
+    /// @inheritdoc ISizeView
     function getDebtPosition(uint256 debtPositionId) external view returns (DebtPosition memory) {
         return state.getDebtPosition(debtPositionId);
     }
 
+    /// @inheritdoc ISizeView
     function getCreditPosition(uint256 creditPositionId) external view returns (CreditPosition memory) {
         return state.getCreditPosition(creditPositionId);
     }
 
+    /// @inheritdoc ISizeView
     function getLoanStatus(uint256 positionId) external view returns (LoanStatus) {
         return state.getLoanStatus(positionId);
     }
 
+    /// @inheritdoc ISizeView
     function getPositionsCount() external view returns (uint256, uint256) {
         return (
             state.data.nextDebtPositionId - DEBT_POSITION_ID_START,
@@ -122,6 +137,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
         );
     }
 
+    /// @inheritdoc ISizeView
     function getBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256) {
         BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
         if (offer.isNull()) {
@@ -137,6 +153,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
         );
     }
 
+    /// @inheritdoc ISizeView
     function getLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
         LoanOffer memory offer = state.data.users[lender].loanOffer;
         if (offer.isNull()) {
@@ -152,11 +169,13 @@ abstract contract SizeView is SizeStorage, ISizeView {
         );
     }
 
+    /// @inheritdoc ISizeView
     function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256) {
         DebtPosition memory debtPosition = state.getDebtPosition(debtPositionId);
         return state.getDebtPositionAssignedCollateral(debtPosition);
     }
 
+    /// @inheritdoc ISizeView
     function getSwapFee(uint256 cash, uint256 tenor) public view returns (uint256) {
         if (tenor == 0) {
             revert Errors.NULL_TENOR();
