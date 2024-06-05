@@ -10,11 +10,19 @@ import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
 
 struct WithdrawParams {
+    // The token to withdraw
     address token;
+    // The amount to withdraw
+    // The actual withdrawn amount is capped to the sender's balance
     uint256 amount;
+    // The account to withdraw the tokens to
     address to;
 }
 
+/// @title Withdraw
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
+/// @notice Contains the logic for withdrawing tokens from the protocol
 library Withdraw {
     using DepositTokenLibrary for State;
 

@@ -14,57 +14,94 @@ import {NonTransferrableScaledToken} from "@src/core/token/NonTransferrableScale
 import {NonTransferrableToken} from "@src/core/token/NonTransferrableToken.sol";
 
 struct User {
+    // The user's loan offer
     LoanOffer loanOffer;
+    // The user's borrow offer
     BorrowOffer borrowOffer;
+    // The user-defined opening limit CR. If not set, the protocol's crOpening is used.
     uint256 openingLimitBorrowCR;
+    // Whether the user has disabled all credit positions for sale
     bool allCreditPositionsForSaleDisabled;
 }
 
 struct FeeConfig {
-    uint256 swapFeeAPR; // annual percentage rate of the protocol swap fee
-    uint256 fragmentationFee; // fee for fractionalizing credit positions
-    uint256 liquidationRewardPercent; // percent of the futureValue to be given to the liquidator
-    uint256 overdueCollateralProtocolPercent; // percent of collateral remainder to be split with protocol on profitable liquidations for overdue loans
-    uint256 collateralProtocolPercent; // percent of collateral to be split with protocol on profitable liquidations
-    address feeRecipient; // address to receive protocol fees
+    // annual percentage rate of the protocol swap fee
+    uint256 swapFeeAPR;
+    // fee for fractionalizing credit positions
+    uint256 fragmentationFee;
+    // percent of the futureValue to be given to the liquidator
+    uint256 liquidationRewardPercent;
+    // percent of collateral remainder to be split with protocol on profitable liquidations for overdue loans
+    uint256 overdueCollateralProtocolPercent;
+    // percent of collateral to be split with protocol on profitable liquidations
+    uint256 collateralProtocolPercent;
+    // address to receive protocol fees
+    address feeRecipient;
 }
 
 struct RiskConfig {
-    uint256 crOpening; // minimum collateral ratio for opening a loan
-    uint256 crLiquidation; // maximum collateral ratio for liquidation
-    uint256 minimumCreditBorrowAToken; // minimum credit value of loans
-    uint256 borrowATokenCap; // maximum amount of deposited borrowed aTokens
-    uint256 minTenor; // minimum tenor for a loan
-    uint256 maxTenor; // maximum tenor for a loan
+    // minimum collateral ratio for opening a loan
+    uint256 crOpening;
+    // maximum collateral ratio for liquidation
+    uint256 crLiquidation;
+    // minimum credit value of loans
+    uint256 minimumCreditBorrowAToken;
+    // maximum amount of deposited borrowed aTokens
+    uint256 borrowATokenCap;
+    // minimum tenor for a loan
+    uint256 minTenor;
+    // maximum tenor for a loan
+    uint256 maxTenor;
 }
 
 struct Oracle {
-    IPriceFeed priceFeed; // price feed oracle
-    uint128 variablePoolBorrowRate; // variable pool borrow rate
-    uint64 variablePoolBorrowRateUpdatedAt; // timestamp of the last update
-    uint64 variablePoolBorrowRateStaleRateInterval; // stale rate interval
+    // price feed oracle
+    IPriceFeed priceFeed;
+    // variable pool borrow rate
+    uint128 variablePoolBorrowRate;
+    // timestamp of the last update
+    uint64 variablePoolBorrowRateUpdatedAt;
+    // stale rate interval
+    uint64 variablePoolBorrowRateStaleRateInterval;
 }
 
 struct Data {
-    mapping(address => User) users; // mapping of User structs
-    mapping(uint256 => DebtPosition) debtPositions; // mapping of DebtPosition structs
-    mapping(uint256 => CreditPosition) creditPositions; // mapping of CreditPosition structs
-    uint256 nextDebtPositionId; // next debt position id
-    uint256 nextCreditPositionId; // next credit position id
-    IWETH weth; // Wrapped Ether contract address
-    IERC20Metadata underlyingCollateralToken; // the token used by borrowers to collateralize their loans
-    IERC20Metadata underlyingBorrowToken; // the token lent from lenders to borrowers
-    NonTransferrableToken collateralToken; // Size deposit underlying collateral token
-    NonTransferrableScaledToken borrowAToken; // Size deposit underlying borrow aToken
-    NonTransferrableToken debtToken; // Size tokenized debt
-    IPool variablePool; // Variable Pool (Aave v3)
-    bool isMulticall; // Multicall lock to check if multicall is in progress
+    // mapping of User structs
+    mapping(address => User) users;
+    // mapping of DebtPosition structs
+    mapping(uint256 => DebtPosition) debtPositions;
+    // mapping of CreditPosition structs
+    mapping(uint256 => CreditPosition) creditPositions;
+    // next debt position id
+    uint256 nextDebtPositionId;
+    // next credit position id
+    uint256 nextCreditPositionId;
+    // Wrapped Ether contract address
+    IWETH weth;
+    // the token used by borrowers to collateralize their loans
+    IERC20Metadata underlyingCollateralToken;
+    // the token lent from lenders to borrowers
+    IERC20Metadata underlyingBorrowToken;
+    // Size deposit underlying collateral token
+    NonTransferrableToken collateralToken;
+    // Size deposit underlying borrow aToken
+    NonTransferrableScaledToken borrowAToken;
+    // Size tokenized debt
+    NonTransferrableToken debtToken;
+    // Variable Pool (Aave v3)
+    IPool variablePool;
+    // Multicall lock to check if multicall is in progress
+    bool isMulticall;
 }
 
 struct State {
+    // the fee configuration struct
     FeeConfig feeConfig;
+    // the risk configuration struct
     RiskConfig riskConfig;
+    // the oracle configuration struct
     Oracle oracle;
+    // the protocol data (cannot be updated)
     Data data;
 }
 

@@ -12,17 +12,22 @@ import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
 
 struct ClaimParams {
+    // The credit position ID to claim
     uint256 creditPositionId;
 }
 
 /// @title Claim
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+/// @notice Contains the logic for claiming a credit position
 library Claim {
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
     using AccountingLibrary for State;
 
+    /// @notice Validates the input parameters for claiming a credit position
+    /// @param state The state
+    /// @param params The input parameters for claiming a credit position
     function validateClaim(State storage state, ClaimParams calldata params) external view {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         // validate msg.sender
@@ -37,6 +42,9 @@ library Claim {
         }
     }
 
+    /// @notice Executes the claiming of a credit position
+    /// @param state The state
+    /// @param params The input parameters for claiming a credit position
     function executeClaim(State storage state, ClaimParams calldata params) external {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
@@ -44,7 +52,6 @@ library Claim {
         uint256 claimAmount = Math.mulDivDown(
             creditPosition.credit, state.data.borrowAToken.liquidityIndex(), debtPosition.liquidityIndexAtRepayment
         );
-        // slither-disable-next-line unused-return
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
         state.data.borrowAToken.transferFrom(address(this), creditPosition.lender, claimAmount);
 

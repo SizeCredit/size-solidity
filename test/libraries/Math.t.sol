@@ -145,27 +145,22 @@ contract MathTest is Test, AssertsHelper {
         (uint256 low, uint256 high) = Math.binarySearch(array, value);
         if (value < array[0] || value > array[array.length - 1]) {
             // not found
-            assertEq(low, type(uint256).max);
-            assertEq(high, type(uint256).max);
+            assertEq(low, type(uint256).max, "not found");
+            assertEq(high, type(uint256).max, "not found");
         } else {
-            // low is within bounds
-            assertGe(low, 0);
-            assertLe(low, array.length - 1);
+            assertGe(low, 0, "low is within bounds");
+            assertLe(low, array.length - 1, "low is within bounds");
 
-            // high is within bounds
-            assertGe(high, 0);
-            assertLe(high, array.length - 1);
+            assertGe(high, 0, "high is within bounds");
+            assertLe(high, array.length - 1, "high is within bounds");
 
-            // low <= high
-            assertLe(low, high);
+            assertLe(low, high, "low <= high");
 
-            // array[low] <= value <= array[high]
-            assertLe(array[low], value);
-            assertLe(value, array[high]);
+            assertLe(array[low], value, "array[low] <= value <= array[high]");
+            assertLe(value, array[high], "array[low] <= value <= array[high]");
 
-            // value is in the array
             if (value == array[low]) {
-                assertEq(low, high);
+                assertEq(low, high, "low == high if the value is in the array");
             }
         }
     }

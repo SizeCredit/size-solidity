@@ -35,6 +35,8 @@ library AccountingLibrary {
     }
 
     /// @notice Repays a debt position
+    /// @dev Upon repayment, the debt position future value and the borrower's total debt tracker are updated.
+    ///      If this is a cash operation, and the debt has been cleared, the liquidity index is updated.
     /// @param state The state object
     /// @param debtPositionId The debt position id
     /// @param repayAmount The amount to repay
@@ -54,6 +56,20 @@ library AccountingLibrary {
         );
     }
 
+    /// @dev Repays a debt position in a cash operation
+    function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount) public {
+        return repayDebt(state, debtPositionId, repayAmount, true);
+    }
+
+    /// @notice Creates a debt and credit position
+    /// @dev Updates the borrower's total debt tracker.
+    ///      The debt position future value and the credit position amount are created with the same value.
+    /// @param state The state object
+    /// @param lender The lender address
+    /// @param borrower The borrower address
+    /// @param futureValue The future value of the debt
+    /// @param dueDate The due date of the debt
+    /// @return creditPosition The created credit position
     function createDebtAndCreditPositions(
         State storage state,
         address lender,
@@ -86,6 +102,15 @@ library AccountingLibrary {
         state.data.debtToken.mint(borrower, futureValue);
     }
 
+    /// @notice Creates a credit position by exiting an existing credit position
+    /// @dev If the credit amount is the same, the existing credit position is updated with the new lender.
+    ///      If the credit amount is different, the existing credit position is reduced and a new credit position is created.
+    ///      The exit process can only be done with loans in the ACTIVE status.
+    ///        It guarantees that the sum of credit positions keeps equal to the debt position future value.
+    /// @param state The state object
+    /// @param exitCreditPositionId The credit position id to exit
+    /// @param lender The lender address
+    /// @param credit The credit amount
     function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)
         external
     {
@@ -97,7 +122,7 @@ library AccountingLibrary {
                 exitCreditPositionId, lender, exitCreditPosition.credit, exitCreditPosition.forSale
             );
         } else {
-            uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
+            uint256 debtPositionId = exitCreditPosition.debtPositionId;
 
             reduceCredit(state, exitCreditPositionId, credit);
 
@@ -112,6 +137,14 @@ library AccountingLibrary {
         }
     }
 
+    /// @notice Reduces the credit amount of a credit position
+    /// @dev The credit position is updated with the new credit amount.
+    ///      The credit amount cannot be reduced below the minimum credit.
+    ///      This operation breaks the initial sum of credit equal to the debt position future value.
+    ///        If the loan is in REPAID status, this is expected, as lenders grdually claim their credit.
+    ///        If the loan is in ACTIVE status, a debt reduction must be performed together with a credit reduction (See reduceDebtAndCredit).
+    /// @param state The state object
+    /// @param creditPositionId The credit position id
     function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount) public {
         CreditPosition storage creditPosition = state.getCreditPosition(creditPositionId);
         creditPosition.credit -= amount;
@@ -122,14 +155,45 @@ library AccountingLibrary {
         );
     }
 
+    /// @notice Reduces the debt and credit amounts of a debt and credit position
+    /// @dev The debt and credit positions are reduced with the same amount.
+    ///      This is a cashless operation, and the liquidity index is not updated.
+    /// @param state The state object
+    /// @param debtPositionId The debt position id
+    /// @param creditPositionId The credit position id
+    /// @param amount The amount to reduce
+    function reduceDebtAndCredit(State storage state, uint256 debtPositionId, uint256 creditPositionId, uint256 amount)
+        internal
+    {
+        repayDebt(state, debtPositionId, amount, false);
+        reduceCredit(state, creditPositionId, amount);
+    }
+
+    /// @notice Get the swap fee percent for a given tenor
+    /// @param state The state object
+    /// @param tenor The tenor
+    /// @return swapFeePercent The swap fee percent
     function getSwapFeePercent(State storage state, uint256 tenor) internal view returns (uint256) {
         return Math.mulDivUp(state.feeConfig.swapFeeAPR, tenor, YEAR);
     }
 
+    /// @notice Get the swap fee for a given cash amount and tenor
+    /// @param state The state object
+    /// @param cash The cash amount
+    /// @param tenor The tenor
+    /// @return swapFee The swap fee
     function getSwapFee(State storage state, uint256 cash, uint256 tenor) internal view returns (uint256) {
         return Math.mulDivUp(cash, getSwapFeePercent(state, tenor), PERCENT);
     }
 
+    /// @notice Get the cash amount out for a given credit amount in
+    /// @param state The state object
+    /// @param creditAmountIn The credit amount in
+    /// @param maxCredit The maximum credit
+    /// @param ratePerTenor The rate per tenor
+    /// @param tenor The tenor
+    /// @return cashAmountOut The cash amount out
+    /// @return fees The fees
     function getCashAmountOut(
         State storage state,
         uint256 creditAmountIn,
@@ -164,6 +228,14 @@ library AccountingLibrary {
         }
     }
 
+    /// @notice Get the credit amount in for a given cash amount out
+    /// @param state The state object
+    /// @param cashAmountOut The cash amount out
+    /// @param maxCredit The maximum credit
+    /// @param ratePerTenor The rate per tenor
+    /// @param tenor The tenor
+    /// @return creditAmountIn The credit amount in
+    /// @return fees The fees
     function getCreditAmountIn(
         State storage state,
         uint256 cashAmountOut,
@@ -201,6 +273,14 @@ library AccountingLibrary {
         }
     }
 
+    /// @notice Get the credit amount out for a given cash amount in
+    /// @param state The state object
+    /// @param cashAmountIn The cash amount in
+    /// @param maxCredit The maximum credit
+    /// @param ratePerTenor The rate per tenor
+    /// @param tenor The tenor
+    /// @return creditAmountOut The credit amount out
+    /// @return fees The fees
     function getCreditAmountOut(
         State storage state,
         uint256 cashAmountIn,
@@ -231,6 +311,14 @@ library AccountingLibrary {
         }
     }
 
+    /// @notice Get the cash amount in for a given credit amount out
+    /// @param state The state object
+    /// @param creditAmountOut The credit amount out
+    /// @param maxCredit The maximum credit
+    /// @param ratePerTenor The rate per tenor
+    /// @param tenor The tenor
+    /// @return cashAmountIn The cash amount in
+    /// @return fees The fees
     function getCashAmountIn(
         State storage state,
         uint256 creditAmountOut,

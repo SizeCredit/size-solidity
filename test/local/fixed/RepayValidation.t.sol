@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {RepayParams} from "@src/core/libraries/fixed/actions/Repay.sol";
 import {WithdrawParams} from "@src/core/libraries/general/actions/Withdraw.sol";
@@ -32,7 +33,7 @@ contract RepayValidationTest is BaseTest {
         vm.startPrank(bob);
         size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, bob, 20e6, futureValue)
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, bob, amount, futureValue)
         );
         size.repay(RepayParams({debtPositionId: debtPositionId}));
         vm.stopPrank();
@@ -53,7 +54,7 @@ contract RepayValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DEBT_POSITION_ID.selector, creditId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditId));
         size.repay(RepayParams({debtPositionId: creditId}));
         vm.stopPrank();
     }

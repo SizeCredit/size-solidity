@@ -9,9 +9,13 @@ import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
 
 struct SetUserConfigurationParams {
+    // The opening limit borrow CR
     uint256 openingLimitBorrowCR;
+    // Whether all credit positions for sale are disabled
     bool allCreditPositionsForSaleDisabled;
+    // Whether credit position IDs array are for sale
     bool creditPositionIdsForSale;
+    // The credit position IDs array
     uint256[] creditPositionIds;
 }
 
@@ -21,6 +25,9 @@ struct SetUserConfigurationParams {
 library SetUserConfiguration {
     using LoanLibrary for State;
 
+    /// @notice Validates the input parameters for setting user configuration
+    /// @param state The state
+    /// @param params The input parameters for setting user configuration
     function validateSetUserConfiguration(State storage state, SetUserConfigurationParams calldata params)
         external
         view
@@ -50,6 +57,9 @@ library SetUserConfiguration {
         }
     }
 
+    /// @notice Executes the setting of user configuration
+    /// @param state The state
+    /// @param params The input parameters for setting user configuration
     function executeSetUserConfiguration(State storage state, SetUserConfigurationParams calldata params) external {
         User storage user = state.data.users[msg.sender];
 

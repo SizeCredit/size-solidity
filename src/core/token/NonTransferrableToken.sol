@@ -40,8 +40,7 @@ contract NonTransferrableToken is Ownable, ERC20 {
     }
 
     function transfer(address to, uint256 value) public virtual override onlyOwner returns (bool) {
-        _transfer(msg.sender, to, value);
-        return true;
+        return transferFrom(msg.sender, to, value);
     }
 
     function allowance(address, address spender) public view virtual override returns (uint256) {

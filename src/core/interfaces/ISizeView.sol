@@ -101,4 +101,10 @@ interface ISizeView {
     /// @param debtPositionId The ID of the debt position
     /// @return The assigned collateral amount
     function getDebtPositionAssignedCollateral(uint256 debtPositionId) external view returns (uint256);
+
+    /// @notice Get the swap fee for a given cash and tenor
+    /// @param cash The cash amount
+    /// @param tenor The tenor of the loan
+    /// @return The swap fee
+    function getSwapFee(uint256 cash, uint256 tenor) external view returns (uint256);
 }

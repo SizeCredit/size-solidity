@@ -12,7 +12,7 @@ abstract contract PropertiesSpecifications {
     string internal constant BORROW_02 = "BORROW_02: Borrow increases the number of loans";
 
     string internal constant CLAIM_01 = "CLAIM_01: Claim does not decrease the sender's cash";
-    string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for DebtPositions";
+    string internal constant CLAIM_02 = "CLAIM_02: Claim is only valid for CreditPositions";
 
     string internal constant LIQUIDATE_01 = "LIQUIDATE_01: Liquidate increases the sender collateral";
     string internal constant LIQUIDATE_02 =
@@ -23,7 +23,8 @@ abstract contract PropertiesSpecifications {
 
     string internal constant SELF_LIQUIDATE_01 = "SELF_LIQUIDATE_01: Self-Liquidate increases the sender collateral";
     string internal constant SELF_LIQUIDATE_02 = "SELF_LIQUIDATE_02: Self-Liquidate decreases the borrower's debt";
-    string internal constant SELF_LIQUIDATE_03 = "SELF_LIQUIDATE_03: Self-Liquidate does not change the borrower's CR";
+    string internal constant SELF_LIQUIDATE_03 =
+        "SELF_LIQUIDATE_03: Self-Liquidate does not change a the borrower's CR (up to a precision)"; // TODO
 
     string internal constant REPAY_01 = "REPAY_01: Repay transfers cash from the sender to the protocol";
     string internal constant REPAY_02 = "REPAY_02: Repay decreases the borrower's debt";
@@ -32,6 +33,8 @@ abstract contract PropertiesSpecifications {
     string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
     string internal constant LOAN_02 = "LOAN_02: minTenor <= loan.tenor <= maxTenor";
     string internal constant LOAN_03 = "LOAN_03: COUNT(credit positions) >= COUNT(debt positions)";
+    string internal constant LOAN_04 = "LOAN_04: loan.liquidityIndexAtRepayment > 0 => loan.loanStatus == REPAID";
+    string internal constant LOAN_05 = "LOAN_05: A CreditPosition's debtPositionId is never updated"; // TODO
 
     string internal constant TOKENS_01 =
         "TOKENS_01: The sum of collateral deposit tokens is equal to the underlying collateral";

@@ -13,12 +13,14 @@ import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
 
 struct SelfLiquidateParams {
+    // The credit position ID
     uint256 creditPositionId;
 }
 
 /// @title SelfLiquidate
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+/// @notice Contains the logic for self-liquidating a credit position
 library SelfLiquidate {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
@@ -26,6 +28,9 @@ library SelfLiquidate {
     using AccountingLibrary for State;
     using RiskLibrary for State;
 
+    /// @notice Validates the input parameters for self-liquidating a credit position
+    /// @param state The state
+    /// @param params The input parameters for self-liquidating a credit position
     function validateSelfLiquidate(State storage state, SelfLiquidateParams calldata params) external view {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
@@ -48,6 +53,9 @@ library SelfLiquidate {
         }
     }
 
+    /// @notice Executes the self-liquidation of a credit position
+    /// @param state The state
+    /// @param params The input parameters for self-liquidating a credit position
     function executeSelfLiquidate(State storage state, SelfLiquidateParams calldata params) external {
         emit Events.SelfLiquidate(params.creditPositionId);
 
@@ -56,10 +64,8 @@ library SelfLiquidate {
 
         uint256 assignedCollateral = state.getCreditPositionProRataAssignedCollateral(creditPosition);
 
-        state.repayDebt(creditPosition.debtPositionId, creditPosition.credit, false);
-
-        // slither-disable-next-line unused-return
-        state.reduceCredit(params.creditPositionId, creditPosition.credit);
+        // debt and credit reduction
+        state.reduceDebtAndCredit(creditPosition.debtPositionId, params.creditPositionId, creditPosition.credit);
 
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, assignedCollateral);
     }

@@ -17,16 +17,22 @@ import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
 
 struct LiquidateWithReplacementParams {
+    // The debt position ID to liquidate
     uint256 debtPositionId;
+    // The borrower
     address borrower;
+    // The minimum profit in collateral tokens expected by the liquidator
     uint256 minimumCollateralProfit;
+    // The deadline for the transaction
     uint256 deadline;
+    // The minimum APR for the loan
     uint256 minAPR;
 }
 
 /// @title LiquidateWithReplacement
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+/// @notice Contains the logic for liquidating a debt position with a replacement borrower
 library LiquidateWithReplacement {
     using LoanLibrary for CreditPosition;
     using OfferLibrary for BorrowOffer;
@@ -35,6 +41,9 @@ library LiquidateWithReplacement {
     using Liquidate for State;
     using LoanLibrary for DebtPosition;
 
+    /// @notice Validates the input parameters for liquidating a debt position with a replacement borrower
+    /// @param state The state
+    /// @param params The input parameters for liquidating a debt position with a replacement borrower
     function validateLiquidateWithReplacement(State storage state, LiquidateWithReplacementParams calldata params)
         external
         view
@@ -83,6 +92,10 @@ library LiquidateWithReplacement {
         }
     }
 
+    /// @notice Validates the minimum profit in collateral tokens expected by the liquidator
+    /// @param state The state
+    /// @param params The input parameters for liquidating a debt position with a replacement borrower
+    /// @param liquidatorProfitCollateralToken The profit in collateral tokens expected by the liquidator
     function validateMinimumCollateralProfit(
         State storage state,
         LiquidateWithReplacementParams calldata params,
@@ -98,9 +111,15 @@ library LiquidateWithReplacement {
         );
     }
 
+    /// @notice Executes the liquidation of a debt position with a replacement borrower
+    /// @param state The state
+    /// @param params The input parameters for liquidating a debt position with a replacement borrower
+    /// @return issuanceValue The issuance value
+    /// @return liquidatorProfitCollateralToken The profit in collateral tokens expected by the liquidator
+    /// @return liquidatorProfitBorrowToken The profit in borrow tokens expected by the liquidator
     function executeLiquidateWithReplacement(State storage state, LiquidateWithReplacementParams calldata params)
         external
-        returns (uint256, uint256, uint256)
+        returns (uint256 issuanceValue, uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
     {
         emit Events.LiquidateWithReplacement(params.debtPositionId, params.borrower, params.minimumCollateralProfit);
 
@@ -109,7 +128,7 @@ library LiquidateWithReplacement {
         BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
         uint256 tenor = debtPositionCopy.dueDate - block.timestamp;
 
-        uint256 liquidatorProfitCollateralToken = state.executeLiquidate(
+        liquidatorProfitCollateralToken = state.executeLiquidate(
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
                 minimumCollateralProfit: params.minimumCollateralProfit
@@ -124,8 +143,8 @@ library LiquidateWithReplacement {
             }),
             tenor
         );
-        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
-        uint256 liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
+        issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
+        liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 
         debtPosition.borrower = params.borrower;
         debtPosition.futureValue = debtPositionCopy.futureValue;
@@ -141,7 +160,5 @@ library LiquidateWithReplacement {
         state.data.debtToken.mint(params.borrower, debtPosition.futureValue);
         state.data.borrowAToken.transferFrom(address(this), params.borrower, issuanceValue);
         state.data.borrowAToken.transferFrom(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowToken);
-
-        return (issuanceValue, liquidatorProfitCollateralToken, liquidatorProfitBorrowToken);
     }
 }
