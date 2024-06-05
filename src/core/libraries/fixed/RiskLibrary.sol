@@ -96,7 +96,7 @@ library RiskLibrary {
     }
 
     /// @notice Check if a debt position is liquidatable
-    /// @dev A debt position is liquidatable if the user is underwater and the loan is not REPAID (ie, ACTIVE or OVERDUE) or 
+    /// @dev A debt position is liquidatable if the user is underwater and the loan is not REPAID (ie, ACTIVE or OVERDUE) or
     ///        if the loan is OVERDUE.
     /// @param state The state
     /// @param debtPositionId The debt position ID
