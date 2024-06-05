@@ -81,7 +81,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
 
         // REPAY_ERRORS
         REPAY_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
-        REPAY_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector);
+        REPAY_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
 
         // CLAIM_ERRORS
         CLAIM_ERRORS.push(Errors.LOAN_NOT_REPAID.selector);
@@ -100,7 +100,6 @@ abstract contract ExpectedErrors is Deploy, Properties {
         // LIQUIDATE_WITH_REPLACEMENT_ERRORS
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(IAccessControl.AccessControlUnauthorizedAccount.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector);
-        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.LOAN_NOT_LIQUIDATABLE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.LOAN_NOT_ACTIVE.selector);

@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {RepayParams} from "@src/core/libraries/fixed/actions/Repay.sol";
 import {WithdrawParams} from "@src/core/libraries/general/actions/Withdraw.sol";
@@ -23,7 +24,6 @@ contract RepayValidationTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.05e18));
         uint256 amount = 20e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 12 days, false);
-        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         _buyCreditLimit(candy, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
 
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -31,9 +31,7 @@ contract RepayValidationTest is BaseTest {
 
         vm.startPrank(bob);
         size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE.selector, bob, 20e6, futureValue)
-        );
+        vm.expectRevert(IERC20Errors.ERC20InsufficientBalance.selector);
         size.repay(RepayParams({debtPositionId: debtPositionId}));
         vm.stopPrank();
 

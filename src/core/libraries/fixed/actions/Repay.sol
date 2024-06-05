@@ -20,6 +20,7 @@ struct RepayParams {
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic for repaying a debt position
 ///         This method can only repay in full. For partial repayments, check Compensate
+/// @dev Anyone can repay a debt position
 library Repay {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
@@ -30,19 +31,13 @@ library Repay {
     /// @param state The state
     /// @param params The input parameters for repaying a debt position
     function validateRepay(State storage state, RepayParams calldata params) external view {
-        DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
-
         // validate debtPositionId
         if (state.getLoanStatus(params.debtPositionId) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.debtPositionId);
         }
 
         // validate msg.sender
-        if (state.data.borrowAToken.balanceOf(msg.sender) < debtPosition.futureValue) {
-            revert Errors.NOT_ENOUGH_BORROW_ATOKEN_BALANCE(
-                msg.sender, state.data.borrowAToken.balanceOf(msg.sender), debtPosition.futureValue
-            );
-        }
+        // N/A
     }
 
     /// @notice Executes the repayment of a debt position
