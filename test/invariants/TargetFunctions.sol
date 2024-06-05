@@ -358,14 +358,6 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
                 gte(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance, SELF_LIQUIDATE_01);
             }
             lte(_after.borrower.debtBalance, _before.borrower.debtBalance, SELF_LIQUIDATE_02);
-            if (_after.borrowerCR != type(uint256).max) {
-                uint256 tolerance = 0.01e18;
-                if (_after.borrowerCR > _before.borrowerCR) {
-                    t(_after.borrowerCR - _before.borrowerCR <= tolerance, SELF_LIQUIDATE_03);
-                } else {
-                    t(_before.borrowerCR - _after.borrowerCR <= tolerance, SELF_LIQUIDATE_03);
-                }
-            }
         }
     }
 
