@@ -14,18 +14,29 @@ import {RiskLibrary} from "@src/core/libraries/fixed/RiskLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/core/libraries/fixed/YieldCurveLibrary.sol";
 
 struct BuyCreditMarketParams {
+    // The borrower
+    // If creditPositionId is not RESERVED_ID, this value is ignored and the owner of the existing credit is used
     address borrower;
+    // The credit position ID to buy
+    // If RESERVED_ID, a new credit position will be created
     uint256 creditPositionId;
-    uint256 tenor;
+    // The amount of credit to buy
     uint256 amount;
+    // The tenor of the loan
+    // If creditPositionId is not RESERVED_ID, this value is ignored and the tenor of the existing loan is used
+    uint256 tenor;
+    // The deadline for the transaction
     uint256 deadline;
+    // The minimum APR for the loan
     uint256 minAPR;
+    // Whether amount means cash or credit
     bool exactAmountIn;
 }
 
 /// @title BuyCreditMarket
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+/// @notice Contains the logic for buying credit (lending) as a market order
 library BuyCreditMarket {
     using OfferLibrary for BorrowOffer;
     using AccountingLibrary for State;
@@ -34,6 +45,9 @@ library BuyCreditMarket {
     using LoanLibrary for CreditPosition;
     using RiskLibrary for State;
 
+    /// @notice Validates the input parameters for buying credit as a market order
+    /// @param state The state
+    /// @param params The input parameters for buying credit as a market order
     function validateBuyCreditMarket(State storage state, BuyCreditMarketParams calldata params) external view {
         address borrower;
         uint256 tenor;
@@ -100,6 +114,10 @@ library BuyCreditMarket {
         // N/A
     }
 
+    /// @notice Executes the buying of credit as a market order
+    /// @param state The state
+    /// @param params The input parameters for buying credit as a market order
+    /// @return cashAmountIn The amount of cash paid for the credit
     function executeBuyCreditMarket(State storage state, BuyCreditMarketParams memory params)
         external
         returns (uint256 cashAmountIn)

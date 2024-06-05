@@ -15,18 +15,28 @@ import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
 
 struct SellCreditMarketParams {
+    // The lender
     address lender;
+    // The credit position ID to sell
+    // If RESERVED_ID, a new credit position will be created
     uint256 creditPositionId;
+    // The amount of credit to sell
     uint256 amount;
+    // The tenor of the loan
+    // If creditPositionId is not RESERVED_ID, this value is ignored and the tenor of the existing loan is used
     uint256 tenor;
+    // The deadline for the transaction
     uint256 deadline;
+    // The maximum APR for the loan
     uint256 maxAPR;
+    // Whether amount means credit or cash
     bool exactAmountIn;
 }
 
 /// @title SellCreditMarket
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+/// @notice Contains the logic for selling credit (borrowing) as a market order
 library SellCreditMarket {
     using OfferLibrary for LoanOffer;
     using LoanLibrary for DebtPosition;
@@ -35,6 +45,9 @@ library SellCreditMarket {
     using RiskLibrary for State;
     using AccountingLibrary for State;
 
+    /// @notice Validates the input parameters for selling credit as a market order
+    /// @param state The state
+    /// @param params The input parameters for selling credit as a market order
     function validateSellCreditMarket(State storage state, SellCreditMarketParams calldata params) external view {
         LoanOffer memory loanOffer = state.data.users[params.lender].loanOffer;
         uint256 tenor;
@@ -108,6 +121,9 @@ library SellCreditMarket {
         // N/A
     }
 
+    /// @notice Executes the selling of credit as a market order
+    /// @param state The state
+    /// @param params The input parameters for selling credit as a market order
     function executeSellCreditMarket(State storage state, SellCreditMarketParams calldata params)
         external
         returns (uint256 cashAmountOut)

@@ -19,7 +19,7 @@ struct BuyCreditLimitParams {
 /// @title BuyCreditLimit
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-/// @notice Contains the logic for buying credit as a limit order
+/// @notice Contains the logic for buying credit (lending) as a limit order
 library BuyCreditLimit {
     using OfferLibrary for LoanOffer;
 
