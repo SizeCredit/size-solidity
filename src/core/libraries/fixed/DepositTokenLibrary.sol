@@ -15,12 +15,22 @@ import {State} from "@src/core/SizeStorage.sol";
 library DepositTokenLibrary {
     using SafeERC20 for IERC20Metadata;
 
+    /// @notice Deposit underlying collateral token to the Size protocol
+    /// @param state The state struct
+    /// @param from The address from which the underlying collateral token is transferred
+    /// @param to The address to which the Size deposit token is minted
+    /// @param amount The amount of underlying collateral token to deposit
     function depositUnderlyingCollateralToken(State storage state, address from, address to, uint256 amount) external {
         IERC20Metadata underlyingCollateralToken = IERC20Metadata(state.data.underlyingCollateralToken);
         underlyingCollateralToken.safeTransferFrom(from, address(this), amount);
         state.data.collateralToken.mint(to, amount);
     }
 
+    /// @notice Withdraw underlying collateral token from the Size protocol
+    /// @param state The state struct
+    /// @param from The address from which the Size deposit token is burned
+    /// @param to The address to which the underlying collateral token is transferred
+    /// @param amount The amount of underlying collateral token to withdraw
     function withdrawUnderlyingCollateralToken(State storage state, address from, address to, uint256 amount)
         external
     {
@@ -29,6 +39,13 @@ library DepositTokenLibrary {
         underlyingCollateralToken.safeTransfer(to, amount);
     }
 
+    /// @notice Deposit underlying borrow token to the Size protocol
+    /// @dev The underlying borrow token is deposited to the Variable Pool,
+    ///        and the corresponding Size borrow token is minted in scaled amounts.
+    /// @param state The state struct
+    /// @param from The address from which the underlying borrow token is transferred
+    /// @param to The address to which the Size borrow token is minted
+    /// @param amount The amount of underlying borrow token to deposit
     function depositUnderlyingBorrowTokenToVariablePool(State storage state, address from, address to, uint256 amount)
         external
     {
@@ -47,6 +64,13 @@ library DepositTokenLibrary {
         state.data.borrowAToken.mintScaled(to, scaledAmount);
     }
 
+    /// @notice Withdraw underlying borrow token from the Size protocol
+    /// @dev The underlying borrow token is withdrawn from the Variable Pool,
+    ///        and the corresponding Size borrow token is burned in scaled amounts.
+    /// @param state The state struct
+    /// @param from The address from which the Size borrow token is burned
+    /// @param to The address to which the underlying borrow token is transferred
+    /// @param amount The amount of underlying borrow token to withdraw
     function withdrawUnderlyingTokenFromVariablePool(State storage state, address from, address to, uint256 amount)
         external
     {
