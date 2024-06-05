@@ -122,12 +122,10 @@ library Compensate {
             amountToCompensate = Math.min(amountToCompensate, creditPositionToCompensate.credit);
         }
 
-        // debt reduction
-        state.repayDebt(creditPositionWithDebtToRepay.debtPositionId, amountToCompensate, false);
-
-        // credit reduction
-        // slither-disable-next-line unused-return
-        state.reduceCredit(params.creditPositionWithDebtToRepayId, amountToCompensate);
+        // debt reduction and credit reduction
+        state.reduceDebtAndCredit(
+            creditPositionWithDebtToRepay.debtPositionId, params.creditPositionWithDebtToRepayId, amountToCompensate
+        );
 
         uint256 exiterCreditRemaining = creditPositionToCompensate.credit - amountToCompensate;
 
