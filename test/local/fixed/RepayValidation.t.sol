@@ -24,6 +24,7 @@ contract RepayValidationTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.05e18));
         uint256 amount = 20e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 12 days, false);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         _buyCreditLimit(candy, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
 
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -31,7 +32,9 @@ contract RepayValidationTest is BaseTest {
 
         vm.startPrank(bob);
         size.withdraw(WithdrawParams({token: address(usdc), amount: 100e6, to: bob}));
-        vm.expectRevert(IERC20Errors.ERC20InsufficientBalance.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, bob, amount, futureValue)
+        );
         size.repay(RepayParams({debtPositionId: debtPositionId}));
         vm.stopPrank();
 
@@ -51,7 +54,7 @@ contract RepayValidationTest is BaseTest {
         vm.stopPrank();
 
         vm.startPrank(bob);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DEBT_POSITION_ID.selector, creditId));
+        vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditId));
         size.repay(RepayParams({debtPositionId: creditId}));
         vm.stopPrank();
     }
