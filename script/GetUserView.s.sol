@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {SizeView} from "@src/core/SizeView.sol";
 
-import {Logger} from "@script/Logger.sol";
+import {Logger} from "@test/Logger.sol";
 
 import {LoanOffer, OfferLibrary} from "@src/core/libraries/fixed/OfferLibrary.sol";
 import {Script} from "forge-std/Script.sol";

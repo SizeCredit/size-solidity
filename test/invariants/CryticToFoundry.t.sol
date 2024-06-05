@@ -6,9 +6,11 @@ import {TargetFunctions} from "./TargetFunctions.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
 
+import {Logger} from "@test/Logger.sol";
+
 import {Test} from "forge-std/Test.sol";
 
-contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
+contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
     function setUp() public {
         vm.deal(address(USER1), 100e18);
         vm.deal(address(USER2), 100e18);

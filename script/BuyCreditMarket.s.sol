@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Logger} from "@script/Logger.sol";
 import {Size} from "@src/core/Size.sol";
+import {Logger} from "@test/Logger.sol";
 
 import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
 import {BuyCreditMarketParams} from "@src/core/libraries/fixed/actions/BuyCreditMarket.sol";
