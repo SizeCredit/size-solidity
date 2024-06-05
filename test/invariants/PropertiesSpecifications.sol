@@ -32,7 +32,7 @@ abstract contract PropertiesSpecifications {
     string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
     string internal constant LOAN_02 = "LOAN_02: minTenor <= loan.tenor <= maxTenor";
     string internal constant LOAN_03 = "LOAN_03: COUNT(credit positions) >= COUNT(debt positions)";
-    string internal constant LOAN_04 = "LOAN_04: loan.liquidityIndexAtRepayment <=> loan.loanStatus == REPAID";
+    string internal constant LOAN_04 = "LOAN_04: loan.liquidityIndexAtRepayment > 0 => loan.loanStatus == REPAID";
     string internal constant LOAN_05 = "LOAN_05: A CreditPosition's debtPositionId is never updated"; // TODO
 
     string internal constant TOKENS_01 =

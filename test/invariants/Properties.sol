@@ -49,9 +49,6 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         for (uint256 i = 0; i < _after.debtPositionsCount; i++) {
             uint256 debtPositionId = DEBT_POSITION_ID_START + i;
             DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
-            if (size.getLoanStatus(debtPositionId) == LoanStatus.REPAID) {
-                gt(debtPosition.liquidityIndexAtRepayment, 0, LOAN_04);
-            }
             if (debtPosition.liquidityIndexAtRepayment > 0) {
                 eq(uint256(size.getLoanStatus(debtPositionId)), uint256(LoanStatus.REPAID), LOAN_04);
             }

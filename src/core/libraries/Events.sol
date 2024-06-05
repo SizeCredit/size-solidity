@@ -16,18 +16,15 @@ library Events {
     // general
 
     event Initialize(
-        InitializeFeeConfigParams indexed f,
-        InitializeRiskConfigParams indexed r,
-        InitializeOracleParams indexed o,
-        InitializeDataParams d
+        InitializeFeeConfigParams f, InitializeRiskConfigParams r, InitializeOracleParams o, InitializeDataParams d
     );
+    event Deposit(address indexed token, address indexed to, uint256 amount);
+    event Withdraw(address indexed token, address indexed to, uint256 amount);
     event UpdateConfig(string indexed key, uint256 value);
     event VariablePoolBorrowRateUpdated(uint128 indexed oldBorrowRate, uint128 indexed newBorrowRate);
 
     // fixed
 
-    event Deposit(address indexed token, address indexed to, uint256 indexed amount);
-    event Withdraw(address indexed token, address indexed to, uint256 indexed amount);
     event SellCreditMarket(
         address indexed lender,
         uint256 indexed creditPositionId,
@@ -54,6 +51,27 @@ library Events {
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
+    event Repay(uint256 indexed debtPositionId);
+    event Claim(uint256 indexed creditPositionId, uint256 indexed debtPositionId);
+    event Liquidate(
+        uint256 indexed debtPositionId, uint256 minimumCollateralProfit, uint256 collateralRatio, LoanStatus loanStatus
+    );
+    event SelfLiquidate(uint256 indexed creditPositionId);
+    event LiquidateWithReplacement(
+        uint256 indexed debtPositionId, address indexed borrower, uint256 minimumCollateralProfit
+    );
+    event Compensate(
+        uint256 indexed creditPositionWithDebtToRepayId, uint256 indexed creditPositionToCompensateId, uint256 amount
+    );
+    event SetUserConfiguration(
+        uint256 indexed openingLimitBorrowCR,
+        bool indexed allCreditPositionsForSaleDisabled,
+        bool indexed creditPositionIdsForSale,
+        uint256[] creditPositionIds
+    );
+
+    // creates
+
     event CreateDebtPosition(
         uint256 indexed debtPositionId,
         address indexed lender,
@@ -67,30 +85,6 @@ library Events {
         uint256 indexed debtPositionId,
         address lender,
         uint256 credit
-    );
-    event BorrowerExit(uint256 indexed debtPositionId, address indexed borrowerExitedTo);
-    event Repay(uint256 indexed debtPositionId);
-    event Claim(uint256 indexed creditPositionId, uint256 indexed debtPositionId);
-    event Liquidate(
-        uint256 indexed debtPositionId,
-        uint256 indexed minimumCollateralProfit,
-        uint256 indexed collateralRatio,
-        LoanStatus loanStatus
-    );
-    event SelfLiquidate(uint256 indexed creditPositionId);
-    event LiquidateWithReplacement(
-        uint256 indexed debtPositionId, address indexed borrower, uint256 indexed minimumCollateralProfit
-    );
-    event Compensate(
-        uint256 indexed creditPositionWithDebtToRepayId,
-        uint256 indexed creditPositionToCompensateId,
-        uint256 indexed amount
-    );
-    event SetUserConfiguration(
-        uint256 indexed openingLimitBorrowCR,
-        bool indexed allCreditPositionsForSaleDisabled,
-        bool indexed creditPositionIdsForSale,
-        uint256[] creditPositionIds
     );
 
     // updates

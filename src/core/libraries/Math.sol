@@ -3,7 +3,9 @@ pragma solidity 0.8.23;
 
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 
+// 100% in 18 decimals
 uint256 constant PERCENT = 1e18;
+// 1 year in seconds
 uint256 constant YEAR = 365 days;
 
 /// @title Math
@@ -30,6 +32,11 @@ library Math {
         return amount * 10 ** (18 - decimals);
     }
 
+    /// @notice Convert an APR to an absolute rate for a given tenor
+    /// @dev The formula is `apr * tenor / YEAR`
+    /// @param apr The APR to convert
+    /// @param tenor The tenor
+    /// @return The absolute rate
     function aprToRatePerTenor(uint256 apr, uint256 tenor) internal pure returns (uint256) {
         return mulDivDown(apr, tenor, YEAR);
     }

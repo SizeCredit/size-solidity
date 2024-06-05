@@ -47,7 +47,6 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.NULL_AMOUNT.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.BORROWER_IS_NOT_LENDER.selector);
-        SELL_CREDIT_MARKET_ERRORS.push(Errors.DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector);

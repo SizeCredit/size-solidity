@@ -24,19 +24,16 @@ library Errors {
     error INVALID_MAXIMUM_TENOR(uint256 maxTenor);
     error VALUE_GREATER_THAN_MAX(uint256 value, uint256 max);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
-    error PAST_DUE_DATE(uint256 dueDate);
     error PAST_DEADLINE(uint256 deadline);
     error PAST_MAX_DUE_DATE(uint256 maxDueDate);
     error APR_LOWER_THAN_MIN_APR(uint256 apr, uint256 minAPR);
     error APR_GREATER_THAN_MAX_APR(uint256 apr, uint256 maxAPR);
-    error DUE_DATE_LOWER_THAN_DEBT_POSITION_DUE_DATE(uint256 dueDate, uint256 debtPositionDueDate);
     error DUE_DATE_NOT_COMPATIBLE(uint256 dueDate1, uint256 dueDate2);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error TENOR_OUT_OF_RANGE(uint256 tenor, uint256 minTenor, uint256 maxTenor);
     error INVALID_POSITION_ID(uint256 positionId);
     error INVALID_DEBT_POSITION_ID(uint256 debtPositionId);
     error INVALID_CREDIT_POSITION_ID(uint256 creditPositionId);
-    error INVALID_BORROWER(address account);
     error INVALID_LENDER(address account);
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);
@@ -48,19 +45,11 @@ library Errors {
     error BORROWER_IS_NOT_LENDER(address borrower, address lender);
     error COMPENSATOR_IS_NOT_BORROWER(address compensator, address borrower);
     error LIQUIDATOR_IS_NOT_LENDER(address liquidator, address lender);
-    error EXITER_IS_NOT_BORROWER(address exiter, address borrower);
 
     error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(address account, uint256 balance, uint256 required);
     error NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(uint256 liquidity, uint256 required);
-    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 futureValue, uint256 minimumCreditBorrowAToken);
-    error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 futureValue, uint256 minimumCreditBorrowAToken);
-
-    error ONLY_DEBT_POSITION_CAN_BE_REPAID(uint256 positionId);
-    error ONLY_DEBT_POSITION_CAN_BE_EXITED(uint256 positionId);
-    error ONLY_DEBT_POSITION_CAN_BE_LIQUIDATED(uint256 positionId);
-    error ONLY_CREDIT_POSITION_CAN_BE_CLAIMED(uint256 positionId);
-    error ONLY_CREDIT_POSITION_CAN_BE_COMPENSATED(uint256 positionId);
-    error ONLY_CREDIT_POSITION_CAN_BE_SELF_LIQUIDATED(uint256 positionId);
+    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 credit, uint256 minimumCreditBorrowAToken);
+    error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 credit, uint256 minimumCreditBorrowAToken);
 
     error CREDIT_POSITION_ALREADY_CLAIMED(uint256 positionId);
 
@@ -89,7 +78,6 @@ library Errors {
     error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
 
     error NOT_SUPPORTED();
-    error NOT_SUPPORTED_EXACT_AMOUNT_OUT(uint256 x, uint256 y, uint256 z);
 
     error SEQUENCER_DOWN();
     error GRACE_PERIOD_NOT_OVER();

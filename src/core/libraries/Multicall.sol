@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 import {State} from "@src/core/SizeStorage.sol";
-import {IMulticall} from "@src/core/interfaces/IMulticall.sol";
 import {CapsLibrary} from "@src/core/libraries/fixed/CapsLibrary.sol";
 import {RiskLibrary} from "@src/core/libraries/fixed/RiskLibrary.sol";
 
