@@ -134,7 +134,7 @@ library Compensate {
             amountToCompensate = Math.min(amountToCompensate, creditPositionToCompensate.credit);
         }
 
-        // debt reduction and credit reduction
+        // debt and credit reduction
         state.reduceDebtAndCredit(
             creditPositionWithDebtToRepay.debtPositionId, params.creditPositionWithDebtToRepayId, amountToCompensate
         );
