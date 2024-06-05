@@ -24,7 +24,7 @@ abstract contract PropertiesSpecifications {
     string internal constant SELF_LIQUIDATE_01 = "SELF_LIQUIDATE_01: Self-Liquidate increases the sender collateral";
     string internal constant SELF_LIQUIDATE_02 = "SELF_LIQUIDATE_02: Self-Liquidate decreases the borrower's debt";
     string internal constant SELF_LIQUIDATE_03 =
-        "SELF_LIQUIDATE_03: Self-Liquidate does not change a the borrower's CR (up to a precision)";
+        "SELF_LIQUIDATE_03: Self-Liquidate does not change a the borrower's CR (up to a precision)"; // TODO
 
     string internal constant REPAY_01 = "REPAY_01: Repay transfers cash from the sender to the protocol";
     string internal constant REPAY_02 = "REPAY_02: Repay decreases the borrower's debt";
