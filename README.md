@@ -125,8 +125,6 @@ yarn coverage
 | src/core/oracle/PriceFeed.sol                                 | 95.65% (22/23)     | 97.50% (39/40)     | 87.50% (14/16)   | 100.00% (3/3)    |
 | src/core/token/NonTransferrableScaledToken.sol                | 81.82% (18/22)     | 72.22% (26/36)     | 0.00% (0/2)      | 76.92% (10/13)   |
 | src/core/token/NonTransferrableToken.sol                      | 91.67% (11/12)     | 92.31% (12/13)     | 50.00% (1/2)     | 100.00% (8/8)    |
-| src/periphery/DexSwap.sol                                     | 15.38% (4/26)      | 13.04% (6/46)      | 12.50% (1/8)     | 40.00% (2/5)     |
-| src/periphery/FlashLoanLiquidation.sol                        | 85.96% (49/57)     | 85.00% (68/80)     | 50.00% (7/14)    | 71.43% (5/7)     |
 
 ### Tests per file
 
@@ -140,7 +138,6 @@ yarn coverage
 │         Compensate          │   15   │
 │       CryticToFoundry       │   18   │
 │           Deposit           │   5    │
-│    FlashLoanLiquidation     │   4    │
 │         Initialize          │   4    │
 │  LiquidateWithReplacement   │   6    │
 │          Liquidate          │   10   │
