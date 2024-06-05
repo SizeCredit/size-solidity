@@ -20,6 +20,7 @@ import {State} from "@src/core/SizeStorage.sol";
 import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
 
+// See SizeStorage.sol for the definitions of the structs below
 struct InitializeFeeConfigParams {
     uint256 swapFeeAPR;
     uint256 fragmentationFee;
@@ -54,15 +55,18 @@ struct InitializeDataParams {
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic to initialize the protocol
-/// @dev The collateralToken (e.g. szETH) and debtToken (e.g. szDebt) are created in the `executeInitialize` function
-///      The borrowAToken (e.g. aUSDC) is deployed on the Variable Pool (Aave v3)
+/// @dev The collateralToken (e.g. szETH), borrowAToken (e.g. szaUSDC), and debtToken (e.g. szDebt) are created in the `executeInitialize` function
 library Initialize {
+    /// @notice Validates the owner address
+    /// @param owner The owner address
     function validateOwner(address owner) internal pure {
         if (owner == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
     }
 
+    /// @notice Validates the parameters for the fee configuration
+    /// @param f The fee configuration parameters
     function validateInitializeFeeConfigParams(InitializeFeeConfigParams memory f) internal pure {
         // validate swapFeeAPR
         // N/A
@@ -89,6 +93,8 @@ library Initialize {
         }
     }
 
+    /// @notice Validates the parameters for the risk configuration
+    /// @param r The risk configuration parameters
     function validateInitializeRiskConfigParams(InitializeRiskConfigParams memory r) internal pure {
         // validate crOpening
         if (r.crOpening < PERCENT) {
@@ -121,6 +127,8 @@ library Initialize {
         }
     }
 
+    /// @notice Validates the parameters for the oracle configuration
+    /// @param o The oracle configuration parameters
     function validateInitializeOracleParams(InitializeOracleParams memory o) internal view {
         // validate priceFeed
         if (o.priceFeed == address(0)) {
@@ -133,6 +141,8 @@ library Initialize {
         // N/A
     }
 
+    /// @notice Validates the parameters for the data configuration
+    /// @param d The data configuration parameters
     function validateInitializeDataParams(InitializeDataParams memory d) internal view {
         // validate underlyingCollateralToken
         if (d.underlyingCollateralToken == address(0)) {
@@ -156,6 +166,12 @@ library Initialize {
         }
     }
 
+    /// @notice Validates the parameters for the initialization
+    /// @param owner The owner address
+    /// @param f The fee configuration parameters
+    /// @param r The risk configuration parameters
+    /// @param o The oracle configuration parameters
+    /// @param d The data configuration parameters
     function validateInitialize(
         State storage,
         address owner,
@@ -171,6 +187,9 @@ library Initialize {
         validateInitializeDataParams(d);
     }
 
+    /// @notice Executes the initialization of the fee configuration
+    /// @param state The state
+    /// @param f The fee configuration parameters
     function executeInitializeFeeConfig(State storage state, InitializeFeeConfigParams memory f) internal {
         state.feeConfig.swapFeeAPR = f.swapFeeAPR;
         state.feeConfig.fragmentationFee = f.fragmentationFee;
@@ -182,6 +201,9 @@ library Initialize {
         state.feeConfig.feeRecipient = f.feeRecipient;
     }
 
+    /// @notice Executes the initialization of the risk configuration
+    /// @param state The state
+    /// @param r The risk configuration parameters
     function executeInitializeRiskConfig(State storage state, InitializeRiskConfigParams memory r) internal {
         state.riskConfig.crOpening = r.crOpening;
         state.riskConfig.crLiquidation = r.crLiquidation;
@@ -194,11 +216,17 @@ library Initialize {
         state.riskConfig.maxTenor = r.maxTenor;
     }
 
+    /// @notice Executes the initialization of the oracle configuration
+    /// @param state The state
+    /// @param o The oracle configuration parameters
     function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {
         state.oracle.priceFeed = IPriceFeed(o.priceFeed);
         state.oracle.variablePoolBorrowRateStaleRateInterval = o.variablePoolBorrowRateStaleRateInterval;
     }
 
+    /// @notice Executes the initialization of the data configuration
+    /// @param state The state
+    /// @param d The data configuration parameters
     function executeInitializeData(State storage state, InitializeDataParams memory d) internal {
         state.data.nextDebtPositionId = DEBT_POSITION_ID_START;
         state.data.nextCreditPositionId = CREDIT_POSITION_ID_START;
@@ -230,6 +258,12 @@ library Initialize {
         );
     }
 
+    /// @notice Executes the initialization of the protocol
+    /// @param state The state
+    /// @param f The fee configuration parameters
+    /// @param r The risk configuration parameters
+    /// @param o The oracle configuration parameters
+    /// @param d The data configuration parameters
     function executeInitialize(
         State storage state,
         InitializeFeeConfigParams memory f,

@@ -19,7 +19,10 @@ import {
 } from "@src/core/libraries/general/actions/Initialize.sol";
 
 struct UpdateConfigParams {
+    // The key of the configuration parameter to update
     string key;
+    // The new value of the configuration parameter
+    // When updating an address, the value is converted to uint160 and then to address
     uint256 value;
 }
 
@@ -33,6 +36,9 @@ struct UpdateConfigParams {
 library UpdateConfig {
     using Initialize for State;
 
+    /// @notice Returns the current fee configuration parameters
+    /// @param state The state of the protocol
+    /// @return The current fee configuration parameters
     function feeConfigParams(State storage state) public view returns (InitializeFeeConfigParams memory) {
         return InitializeFeeConfigParams({
             swapFeeAPR: state.feeConfig.swapFeeAPR,
@@ -44,6 +50,9 @@ library UpdateConfig {
         });
     }
 
+    /// @notice Returns the current risk configuration parameters
+    /// @param state The state of the protocol
+    /// @return The current risk configuration parameters
     function riskConfigParams(State storage state) public view returns (InitializeRiskConfigParams memory) {
         return InitializeRiskConfigParams({
             crOpening: state.riskConfig.crOpening,
@@ -55,6 +64,9 @@ library UpdateConfig {
         });
     }
 
+    /// @notice Returns the current oracle configuration parameters
+    /// @param state The state of the protocol
+    /// @return The current oracle configuration parameters
     function oracleParams(State storage state) public view returns (InitializeOracleParams memory) {
         return InitializeOracleParams({
             priceFeed: address(state.oracle.priceFeed),
@@ -62,10 +74,15 @@ library UpdateConfig {
         });
     }
 
+    /// @dev Validation is done at execution
+    ///      We purposefuly leave this function empty for documentation purposes
     function validateUpdateConfig(State storage, UpdateConfigParams calldata) external pure {
         // validation is done at execution
     }
 
+    /// @notice Updates the configuration of the protocol
+    /// @param state The state of the protocol
+    /// @param params The parameters to update the configuration
     function executeUpdateConfig(State storage state, UpdateConfigParams calldata params) external {
         if (Strings.equal(params.key, "crOpening")) {
             state.riskConfig.crOpening = params.value;

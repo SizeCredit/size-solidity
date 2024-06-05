@@ -14,11 +14,18 @@ import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
 
 struct DepositParams {
+    // The token to deposit
     address token;
+    // The amount to deposit
     uint256 amount;
+    // The account to deposit the tokens to
     address to;
 }
 
+/// @title Deposit
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
+/// @notice Contains the logic for depositing tokens into the protocol
 library Deposit {
     using SafeERC20 for IERC20Metadata;
     using SafeERC20 for IWETH;
@@ -68,6 +75,8 @@ library Deposit {
 
         if (params.token == address(state.data.underlyingBorrowToken)) {
             state.depositUnderlyingBorrowTokenToVariablePool(from, params.to, amount);
+            // borrow aToken cap is not validated in multicall,
+            //   since users must be able to deposit more tokens to repay debt
             if (!state.data.isMulticall) {
                 state.validateBorrowATokenCap();
             }
