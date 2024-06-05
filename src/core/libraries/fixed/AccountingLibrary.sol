@@ -97,7 +97,7 @@ library AccountingLibrary {
                 exitCreditPositionId, lender, exitCreditPosition.credit, exitCreditPosition.forSale
             );
         } else {
-            uint256 debtPositionId = state.getDebtPositionIdByCreditPositionId(exitCreditPositionId);
+            uint256 debtPositionId = exitCreditPosition.debtPositionId;
 
             reduceCredit(state, exitCreditPositionId, credit);
 
