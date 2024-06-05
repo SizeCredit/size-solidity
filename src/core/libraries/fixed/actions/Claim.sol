@@ -44,7 +44,6 @@ library Claim {
         uint256 claimAmount = Math.mulDivDown(
             creditPosition.credit, state.data.borrowAToken.liquidityIndex(), debtPosition.liquidityIndexAtRepayment
         );
-        // slither-disable-next-line unused-return
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
         state.data.borrowAToken.transferFrom(address(this), creditPosition.lender, claimAmount);
 
