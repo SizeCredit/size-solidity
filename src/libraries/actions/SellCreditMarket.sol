@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
-import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {VariablePoolBorrowRateParams} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
+import {AccountingLibrary} from "@src/libraries/AccountingLibrary.sol";
+import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";

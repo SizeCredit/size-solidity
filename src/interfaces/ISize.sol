@@ -1,32 +1,32 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {SellCreditLimitParams} from "@src/libraries/fixed/actions/SellCreditLimit.sol";
-import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
+import {SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
+import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
-import {ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
+import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 
-import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
-import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
+import {LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
 
-import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
-import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
-import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
-import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/actions/LiquidateWithReplacement.sol";
+import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {SelfLiquidateParams} from "@src/libraries/actions/SelfLiquidate.sol";
 
-import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
+import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
-} from "@src/libraries/general/actions/Initialize.sol";
+} from "@src/libraries/actions/Initialize.sol";
 
 import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
-import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
-import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
+import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
+import {SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
 
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
 

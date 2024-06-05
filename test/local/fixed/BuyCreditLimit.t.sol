@@ -4,15 +4,15 @@ pragma solidity 0.8.23;
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
-import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
+import {BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
 
-import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
+import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
 contract BuyCreditLimitTest is BaseTest {
     using OfferLibrary for LoanOffer;

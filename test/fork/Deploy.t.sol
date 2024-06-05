@@ -6,9 +6,9 @@ import {ForkTest} from "@test/fork/ForkTest.sol";
 
 import {DeployScript} from "@script/Deploy.s.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 
-import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
+import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract DeployScriptTest is ForkTest {

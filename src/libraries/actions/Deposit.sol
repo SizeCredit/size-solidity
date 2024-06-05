@@ -4,11 +4,11 @@ pragma solidity 0.8.23;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
-import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
+import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {DepositTokenLibrary} from "@src/libraries/fixed/DepositTokenLibrary.sol";
+import {DepositTokenLibrary} from "@src/libraries/DepositTokenLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";

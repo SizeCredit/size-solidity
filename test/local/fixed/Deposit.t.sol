@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {UserView} from "@src/SizeView.sol";
-import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract DepositTest is BaseTest {

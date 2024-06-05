@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
-import {VariablePoolBorrowRateParams, YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {VariablePoolBorrowRateParams, YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
 struct LoanOffer {
     // The maximum due date of the loan offer

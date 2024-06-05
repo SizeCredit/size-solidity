@@ -3,15 +3,15 @@ pragma solidity 0.8.23;
 
 import {State, User} from "@src/SizeStorage.sol";
 
+import {AccountingLibrary} from "@src/libraries/AccountingLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
+import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
-import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
-import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
-import {VariablePoolBorrowRateParams} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
+import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
 
 struct BuyCreditMarketParams {
     // The borrower

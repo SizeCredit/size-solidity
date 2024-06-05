@@ -5,8 +5,8 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
 
-import {CreditPosition, DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
-import {BorrowOffer, LoanOffer} from "@src/libraries/fixed/OfferLibrary.sol";
+import {CreditPosition, DebtPosition} from "@src/libraries/LoanLibrary.sol";
+import {BorrowOffer, LoanOffer} from "@src/libraries/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 

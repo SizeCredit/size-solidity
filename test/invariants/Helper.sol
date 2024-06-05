@@ -2,10 +2,10 @@
 pragma solidity 0.8.23;
 
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
-import {CREDIT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CREDIT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 
 import {Deploy} from "@script/Deploy.sol";
-import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {Bounds} from "@test/invariants/Bounds.sol";
 

@@ -4,8 +4,8 @@ pragma solidity 0.8.23;
 import {Size} from "@src/Size.sol";
 import {Logger} from "@test/Logger.sol";
 
-import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
-import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
+import {DebtPosition} from "@src/libraries/LoanLibrary.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/actions/LiquidateWithReplacement.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 

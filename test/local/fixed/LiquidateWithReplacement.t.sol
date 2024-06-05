@@ -4,13 +4,13 @@ pragma solidity 0.8.23;
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
+import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {DebtPosition} from "@src/libraries/LoanLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/actions/LiquidateWithReplacement.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

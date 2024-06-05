@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {Size} from "@src/Size.sol";
 
-import {DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 

@@ -3,9 +3,9 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
+import {AccountingLibrary} from "@src/libraries/AccountingLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
-import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
 
 uint256 constant DEBT_POSITION_ID_START = 0;
 uint256 constant CREDIT_POSITION_ID_START = type(uint256).max / 2;

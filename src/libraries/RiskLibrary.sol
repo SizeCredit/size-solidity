@@ -5,8 +5,8 @@ import {State} from "@src/SizeStorage.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
+import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
-import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 /// @title RiskLibrary
 /// @custom:security-contact security@size.credit

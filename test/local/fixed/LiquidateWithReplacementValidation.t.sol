@@ -3,9 +3,9 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {LiquidateWithReplacementParams} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
+import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {LiquidateWithReplacementParams} from "@src/libraries/actions/LiquidateWithReplacement.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

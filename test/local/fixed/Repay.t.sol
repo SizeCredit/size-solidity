@@ -6,9 +6,9 @@ import {Vars} from "@test/BaseTestGeneral.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
-import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract RepayTest is BaseTest {

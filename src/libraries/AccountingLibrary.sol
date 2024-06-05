@@ -7,8 +7,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {Math, PERCENT, YEAR} from "@src/libraries/Math.sol";
 
-import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
 /// @title AccountingLibrary
 /// @custom:security-contact security@size.credit

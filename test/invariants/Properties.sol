@@ -17,7 +17,7 @@ import {
     DebtPosition,
     LoanLibrary,
     LoanStatus
-} from "@src/libraries/fixed/LoanLibrary.sol";
+} from "@src/libraries/LoanLibrary.sol";
 
 abstract contract Properties is Ghosts, PropertiesSpecifications {
     using LoanLibrary for DebtPosition;

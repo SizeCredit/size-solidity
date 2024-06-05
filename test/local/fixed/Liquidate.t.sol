@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 
+import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract LiquidateTest is BaseTest {

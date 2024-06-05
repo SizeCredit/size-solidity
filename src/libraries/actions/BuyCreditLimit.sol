@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 

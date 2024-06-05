@@ -3,10 +3,10 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
-import {SellCreditLimitParams} from "@src/libraries/fixed/actions/SellCreditLimit.sol";
+import {SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

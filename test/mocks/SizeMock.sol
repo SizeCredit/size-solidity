@@ -11,7 +11,7 @@ import {
     DebtPosition,
     LoanLibrary,
     LoanStatus
-} from "@src/libraries/fixed/LoanLibrary.sol";
+} from "@src/libraries/LoanLibrary.sol";
 
 contract SizeMock is Size {
     using LoanLibrary for DebtPosition;

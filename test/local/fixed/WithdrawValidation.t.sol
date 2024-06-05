@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";

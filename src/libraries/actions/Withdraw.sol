@@ -3,8 +3,8 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
+import {DepositTokenLibrary} from "@src/libraries/DepositTokenLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";
-import {DepositTokenLibrary} from "@src/libraries/fixed/DepositTokenLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";

@@ -5,13 +5,13 @@ import {Math} from "@src/libraries/Math.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
-import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
-import {VariablePoolBorrowRateParams} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Liquidate, LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {Liquidate, LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";

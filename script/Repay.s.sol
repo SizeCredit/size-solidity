@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Size} from "@src/Size.sol";
-import {RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
+import {RepayParams} from "@src/libraries/actions/Repay.sol";
 import {Logger} from "@test/Logger.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";

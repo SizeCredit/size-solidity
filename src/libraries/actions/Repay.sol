@@ -3,10 +3,10 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
+import {AccountingLibrary} from "@src/libraries/AccountingLibrary.sol";
+import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
-import {DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";

@@ -4,8 +4,8 @@ pragma solidity 0.8.23;
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 import {State} from "@src/SizeStorage.sol";
-import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
-import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
+import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
+import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
 /// @notice Provides a function to batch together multiple calls in a single external call.
 /// @custom:security-contact security@size.credit

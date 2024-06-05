@@ -7,8 +7,8 @@ import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
+import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 

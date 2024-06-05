@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {State, User} from "@src/SizeStorage.sol";
 
-import {CreditPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";

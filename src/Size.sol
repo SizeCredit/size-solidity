@@ -13,35 +13,35 @@ import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
-} from "@src/libraries/general/actions/Initialize.sol";
-import {UpdateConfig, UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
+} from "@src/libraries/actions/Initialize.sol";
+import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
-import {SellCreditLimit, SellCreditLimitParams} from "@src/libraries/fixed/actions/SellCreditLimit.sol";
-import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
+import {SellCreditLimit, SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
+import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
-import {Claim, ClaimParams} from "@src/libraries/fixed/actions/Claim.sol";
-import {Deposit, DepositParams} from "@src/libraries/general/actions/Deposit.sol";
+import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
+import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
 
-import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
-import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
+import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
 
-import {BuyCreditLimit, BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
-import {Liquidate, LiquidateParams} from "@src/libraries/fixed/actions/Liquidate.sol";
+import {BuyCreditLimit, BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
+import {Liquidate, LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
 
 import {Multicall} from "@src/libraries/Multicall.sol";
-import {Compensate, CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
+import {Compensate, CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {
     LiquidateWithReplacement,
     LiquidateWithReplacementParams
-} from "@src/libraries/fixed/actions/LiquidateWithReplacement.sol";
-import {Repay, RepayParams} from "@src/libraries/fixed/actions/Repay.sol";
-import {SelfLiquidate, SelfLiquidateParams} from "@src/libraries/fixed/actions/SelfLiquidate.sol";
-import {Withdraw, WithdrawParams} from "@src/libraries/general/actions/Withdraw.sol";
+} from "@src/libraries/actions/LiquidateWithReplacement.sol";
+import {Repay, RepayParams} from "@src/libraries/actions/Repay.sol";
+import {SelfLiquidate, SelfLiquidateParams} from "@src/libraries/actions/SelfLiquidate.sol";
+import {Withdraw, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {CapsLibrary} from "@src/libraries/fixed/CapsLibrary.sol";
-import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
+import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
+import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 import {Events} from "@src/libraries/Events.sol";

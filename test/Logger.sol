@@ -10,8 +10,8 @@ import {
     DEBT_POSITION_ID_START,
     DebtPosition,
     LoanLibrary
-} from "@src/libraries/fixed/LoanLibrary.sol";
-import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+} from "@src/libraries/LoanLibrary.sol";
+import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 import {console2 as console} from "forge-std/console2.sol";
 

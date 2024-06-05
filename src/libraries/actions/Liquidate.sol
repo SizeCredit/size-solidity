@@ -5,10 +5,10 @@ import {Math} from "@src/libraries/Math.sol";
 
 import {PERCENT} from "@src/libraries/Math.sol";
 
-import {DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
-import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
+import {AccountingLibrary} from "@src/libraries/AccountingLibrary.sol";
+import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 

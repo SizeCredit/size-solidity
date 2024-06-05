@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
-} from "@src/libraries/general/actions/Initialize.sol";
+} from "@src/libraries/actions/Initialize.sol";
 
 /// @title Events
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 library Events {
-    // general
+    // actions
 
     event Initialize(
         InitializeFeeConfigParams f, InitializeRiskConfigParams r, InitializeOracleParams o, InitializeDataParams d
@@ -22,9 +22,6 @@ library Events {
     event Withdraw(address indexed token, address indexed to, uint256 amount);
     event UpdateConfig(string indexed key, uint256 value);
     event VariablePoolBorrowRateUpdated(uint128 indexed oldBorrowRate, uint128 indexed newBorrowRate);
-
-    // fixed
-
     event SellCreditMarket(
         address indexed lender,
         uint256 indexed creditPositionId,

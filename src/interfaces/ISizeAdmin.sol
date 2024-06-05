@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
+import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
 /// @title ISizeAdmin
 /// @custom:security-contact security@size.credit

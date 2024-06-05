@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
+import {AccountingLibrary} from "@src/libraries/AccountingLibrary.sol";
 
+import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
-import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/fixed/LoanLibrary.sol";
-import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
+import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 

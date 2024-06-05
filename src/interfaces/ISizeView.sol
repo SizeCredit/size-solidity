@@ -2,12 +2,12 @@
 pragma solidity 0.8.23;
 
 import {DataView, UserView} from "@src/SizeViewData.sol";
-import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
-} from "@src/libraries/general/actions/Initialize.sol";
+} from "@src/libraries/actions/Initialize.sol";
 
 /// @title ISizeView
 /// @custom:security-contact security@size.credit

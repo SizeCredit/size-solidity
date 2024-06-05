@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
+import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";

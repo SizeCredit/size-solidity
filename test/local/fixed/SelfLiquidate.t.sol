@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";

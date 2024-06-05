@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {SetUserConfigurationParams} from "@src/libraries/fixed/actions/SetUserConfiguration.sol";
+import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

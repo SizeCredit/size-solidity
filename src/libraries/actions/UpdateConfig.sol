@@ -7,7 +7,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 import {Math, PERCENT, YEAR} from "@src/libraries/Math.sol";
-import {Initialize} from "@src/libraries/general/actions/Initialize.sol";
+import {Initialize} from "@src/libraries/actions/Initialize.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
@@ -16,7 +16,7 @@ import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
-} from "@src/libraries/general/actions/Initialize.sol";
+} from "@src/libraries/actions/Initialize.sol";
 
 struct UpdateConfigParams {
     // The key of the configuration parameter to update

@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {SizeStorage, State, User} from "@src/SizeStorage.sol";
-import {VariablePoolBorrowRateParams} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -12,23 +12,23 @@ import {
     LoanLibrary,
     LoanStatus,
     RESERVED_ID
-} from "@src/libraries/fixed/LoanLibrary.sol";
-import {UpdateConfig} from "@src/libraries/general/actions/UpdateConfig.sol";
+} from "@src/libraries/LoanLibrary.sol";
+import {UpdateConfig} from "@src/libraries/actions/UpdateConfig.sol";
 
-import {AccountingLibrary} from "@src/libraries/fixed/AccountingLibrary.sol";
-import {RiskLibrary} from "@src/libraries/fixed/RiskLibrary.sol";
+import {AccountingLibrary} from "@src/libraries/AccountingLibrary.sol";
+import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
 import {DataView, UserView} from "@src/SizeViewData.sol";
 
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
-} from "@src/libraries/general/actions/Initialize.sol";
+} from "@src/libraries/actions/Initialize.sol";
 
 /// @title SizeView
 /// @custom:security-contact security@size.credit

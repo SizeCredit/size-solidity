@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Size} from "@src/Size.sol";
-import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
+import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 

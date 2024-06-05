@@ -2,14 +2,14 @@
 pragma solidity 0.8.23;
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
-import {DebtPosition} from "@src/libraries/fixed/LoanLibrary.sol";
-import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
+import {DebtPosition} from "@src/libraries/LoanLibrary.sol";
+import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
-import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 contract SellCreditLimitTest is BaseTest {
     using OfferLibrary for BorrowOffer;

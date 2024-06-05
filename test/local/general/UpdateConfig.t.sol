@@ -6,7 +6,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
-import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
+import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
 import {Size} from "@src/Size.sol";
 
