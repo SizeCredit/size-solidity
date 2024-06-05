@@ -16,19 +16,24 @@ import {Errors} from "@src/core/libraries/Errors.sol";
 import {Events} from "@src/core/libraries/Events.sol";
 
 struct LiquidateParams {
+    // The debt position ID to liquidate
     uint256 debtPositionId;
+    // The minimum profit in collateral tokens expected by the liquidator
     uint256 minimumCollateralProfit;
 }
 
 /// @title Liquidate
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+/// @notice Contains the logic for liquidating a debt position
 library Liquidate {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for State;
     using RiskLibrary for State;
     using AccountingLibrary for State;
 
+    /// @notice Validates the input parameters for liquidating a debt position
+    /// @param state The state
     function validateLiquidate(State storage state, LiquidateParams calldata params) external view {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
@@ -48,6 +53,9 @@ library Liquidate {
         // N/A
     }
 
+    /// @notice Validates the minimum profit in collateral tokens expected by the liquidator
+    /// @param params The input parameters for liquidating a debt position
+    /// @param liquidatorProfitCollateralToken The profit in collateral tokens expected by the liquidator
     function validateMinimumCollateralProfit(
         State storage,
         LiquidateParams calldata params,
@@ -60,6 +68,10 @@ library Liquidate {
         }
     }
 
+    /// @notice Executes the liquidation of a debt position
+    /// @param state The state
+    /// @param params The input parameters for liquidating a debt position
+    /// @return liquidatorProfitCollateralToken The profit in collateral tokens expected by the liquidator
     function executeLiquidate(State storage state, LiquidateParams calldata params)
         external
         returns (uint256 liquidatorProfitCollateralToken)
@@ -70,7 +82,7 @@ library Liquidate {
 
         emit Events.Liquidate(params.debtPositionId, params.minimumCollateralProfit, collateralRatio, loanStatus);
 
-        // if the loan is both underwater and overdue, the protocol fee related to underwater liquidations take precedence
+        // if the loan is both underwater and overdue, the protocol fee related to underwater liquidations takes precedence
         uint256 collateralProtocolPercent = state.isUserUnderwater(debtPosition.borrower)
             ? state.feeConfig.collateralProtocolPercent
             : state.feeConfig.overdueCollateralProtocolPercent;
@@ -90,7 +102,8 @@ library Liquidate {
             // split the remaining collateral between the protocol and the borrower, capped by the crLiquidation
             uint256 collateralRemainder = assignedCollateral - liquidatorProfitCollateralToken;
 
-            // cap the collateral remainder to the liquidation ratio (otherwise, the split for overdue loans could be too much)
+            // cap the collateral remainder to the liquidation collateral ratio
+            //   otherwise, the split for non-underwater overdue loans could be too much
             uint256 collateralRemainderCap =
                 Math.mulDivDown(debtInCollateralToken, state.riskConfig.crLiquidation, PERCENT);
 
@@ -108,6 +121,6 @@ library Liquidate {
             debtPosition.borrower, state.feeConfig.feeRecipient, protocolProfitCollateralToken
         );
 
-        state.repayDebt(params.debtPositionId, debtPosition.futureValue, true);
+        state.repayDebt(params.debtPositionId, debtPosition.futureValue);
     }
 }

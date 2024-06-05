@@ -56,6 +56,11 @@ library AccountingLibrary {
         );
     }
 
+    /// @dev Repays a debt position in a cash operation
+    function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount) public {
+        return repayDebt(state, debtPositionId, repayAmount, true);
+    }
+
     /// @notice Creates a debt and credit position
     /// @dev Updates the borrower's total debt tracker.
     ///      The debt position future value and the credit position amount are created with the same value.

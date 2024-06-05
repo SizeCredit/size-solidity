@@ -45,7 +45,7 @@ library Repay {
         uint256 futureValue = debtPosition.futureValue;
 
         state.data.borrowAToken.transferFrom(msg.sender, address(this), futureValue);
-        state.repayDebt(params.debtPositionId, futureValue, true);
+        state.repayDebt(params.debtPositionId, futureValue);
 
         emit Events.Repay(params.debtPositionId);
     }
