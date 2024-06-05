@@ -2,13 +2,13 @@
 pragma solidity 0.8.23;
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
-import {Errors} from "@src/core/libraries/Errors.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
-import {UpdateConfigParams} from "@src/core/libraries/general/actions/UpdateConfig.sol";
+import {UpdateConfigParams} from "@src/libraries/general/actions/UpdateConfig.sol";
 
-import {Size} from "@src/core/Size.sol";
+import {Size} from "@src/Size.sol";
 
 contract UpdateConfigTest is BaseTest {
     function test_UpdateConfig_updateConfig_reverts_if_not_owner() public {

@@ -4,9 +4,9 @@ pragma solidity 0.8.23;
 import {Asserts} from "@chimera/Asserts.sol";
 
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
-import {UserView} from "@src/core/SizeView.sol";
-import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
-import {CreditPosition, DebtPosition, LoanStatus} from "@src/core/libraries/fixed/LoanLibrary.sol";
+import {UserView} from "@src/SizeView.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/fixed/LoanLibrary.sol";
 
 import {Deploy} from "@script/Deploy.sol";
 

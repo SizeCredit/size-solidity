@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Size} from "@src/core/Size.sol";
-import {State} from "@src/core/SizeStorage.sol";
+import {Size} from "@src/Size.sol";
+import {State} from "@src/SizeStorage.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -11,7 +11,7 @@ import {
     DebtPosition,
     LoanLibrary,
     LoanStatus
-} from "@src/core/libraries/fixed/LoanLibrary.sol";
+} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract SizeMock is Size {
     using LoanLibrary for DebtPosition;

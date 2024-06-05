@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import "@src/core/Size.sol";
+import "@src/Size.sol";
 import "forge-std/Script.sol";
 
 contract DepositWETHScript is Script {

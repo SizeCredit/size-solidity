@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Math} from "@src/core/libraries/Math.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {Errors} from "@src/core/libraries/Errors.sol";
-import {PERCENT} from "@src/core/libraries/Math.sol";
+import {Errors} from "@src/libraries/Errors.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
 
-import {LoanStatus, RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
-import {LoanOffer, OfferLibrary} from "@src/core/libraries/fixed/OfferLibrary.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/core/libraries/fixed/YieldCurveLibrary.sol";
-import {BuyCreditMarketParams} from "@src/core/libraries/fixed/actions/BuyCreditMarket.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

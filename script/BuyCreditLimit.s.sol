@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Size} from "@src/core/Size.sol";
+import {Size} from "@src/Size.sol";
 
-import {YieldCurve} from "@src/core/libraries/fixed/YieldCurveLibrary.sol";
-import {BuyCreditLimitParams} from "@src/core/libraries/fixed/actions/BuyCreditLimit.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
+import {BuyCreditLimitParams} from "@src/libraries/fixed/actions/BuyCreditLimit.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 

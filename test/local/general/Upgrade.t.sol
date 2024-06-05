@@ -8,7 +8,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 
-import {Size} from "@src/core/Size.sol";
+import {Size} from "@src/Size.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract UpgradeTest is Test, BaseTest {

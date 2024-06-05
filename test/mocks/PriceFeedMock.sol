@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@src/core/oracle/IPriceFeed.sol";
+import "@src/oracle/IPriceFeed.sol";
 
 contract PriceFeedMock is IPriceFeed, Ownable {
     uint256 public price;

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.19;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
-import {Size} from "@src/core/Size.sol";
+import {Size} from "@src/Size.sol";
 
-import {IPriceFeed} from "@src/core/oracle/IPriceFeed.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";

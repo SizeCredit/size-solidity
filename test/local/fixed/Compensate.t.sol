@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Size} from "@src/core/Size.sol";
+import {Size} from "@src/Size.sol";
 
-import {YieldCurve} from "@src/core/libraries/fixed/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
-import {RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
-import {SellCreditMarketParams} from "@src/core/libraries/fixed/actions/SellCreditMarket.sol";
+import {RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 
-import {BuyCreditMarketParams} from "@src/core/libraries/fixed/actions/BuyCreditMarket.sol";
-import {CompensateParams} from "@src/core/libraries/fixed/actions/Compensate.sol";
+import {BuyCreditMarketParams} from "@src/libraries/fixed/actions/BuyCreditMarket.sol";
+import {CompensateParams} from "@src/libraries/fixed/actions/Compensate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTestGeneral.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Errors} from "@src/core/libraries/Errors.sol";
-import {CreditPosition, DebtPosition, RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
+import {Errors} from "@src/libraries/Errors.sol";
+import {CreditPosition, DebtPosition, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
 
 contract CompensateTest is BaseTest {
     function test_Compensate_compensate_reduces_repaid_loan_debt_and_compensated_loan_credit() public {

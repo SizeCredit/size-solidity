@@ -5,13 +5,13 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import {NonTransferrableScaledToken} from "@src/core/token/NonTransferrableScaledToken.sol";
+import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 
 import {Test} from "forge-std/Test.sol";
 
-import {Errors} from "@src/core/libraries/Errors.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 contract NonTransferrableScaledTokenTest is Test {
     NonTransferrableScaledToken public token;

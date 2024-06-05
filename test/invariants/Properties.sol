@@ -3,12 +3,12 @@ pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
 
-import {Math, PERCENT} from "@src/core/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
-import {UserView} from "@src/core/SizeView.sol";
+import {UserView} from "@src/SizeView.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -17,7 +17,7 @@ import {
     DebtPosition,
     LoanLibrary,
     LoanStatus
-} from "@src/core/libraries/fixed/LoanLibrary.sol";
+} from "@src/libraries/fixed/LoanLibrary.sol";
 
 abstract contract Properties is Ghosts, PropertiesSpecifications {
     using LoanLibrary for DebtPosition;

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {SizeView} from "@src/core/SizeView.sol";
+import {SizeView} from "@src/SizeView.sol";
 
 import {Logger} from "@test/Logger.sol";
 
-import {LoanOffer, OfferLibrary} from "@src/core/libraries/fixed/OfferLibrary.sol";
+import {LoanOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 import {console2 as console} from "forge-std/console2.sol";

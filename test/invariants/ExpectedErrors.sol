@@ -6,7 +6,7 @@ import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.so
 
 import {Deploy} from "@script/Deploy.sol";
 
-import {Errors} from "@src/core/libraries/Errors.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 import {Properties} from "@test/invariants/Properties.sol";
 
 abstract contract ExpectedErrors is Deploy, Properties {

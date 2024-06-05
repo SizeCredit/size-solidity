@@ -3,11 +3,11 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {LoanStatus, RESERVED_ID} from "@src/core/libraries/fixed/LoanLibrary.sol";
-import {SellCreditMarketParams} from "@src/core/libraries/fixed/actions/SellCreditMarket.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/fixed/LoanLibrary.sol";
+import {SellCreditMarketParams} from "@src/libraries/fixed/actions/SellCreditMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Errors} from "@src/core/libraries/Errors.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 contract SellCreditMarketValidationTest is BaseTest {
     function test_SellCreditMarket_validation() public {

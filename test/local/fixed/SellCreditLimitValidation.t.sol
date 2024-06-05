@@ -3,12 +3,12 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {BorrowOffer, OfferLibrary} from "@src/core/libraries/fixed/OfferLibrary.sol";
-import {YieldCurve} from "@src/core/libraries/fixed/YieldCurveLibrary.sol";
+import {BorrowOffer, OfferLibrary} from "@src/libraries/fixed/OfferLibrary.sol";
+import {YieldCurve} from "@src/libraries/fixed/YieldCurveLibrary.sol";
 
-import {SellCreditLimitParams} from "@src/core/libraries/fixed/actions/SellCreditLimit.sol";
+import {SellCreditLimitParams} from "@src/libraries/fixed/actions/SellCreditLimit.sol";
 
-import {Errors} from "@src/core/libraries/Errors.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 contract SellCreditLimitValidationTest is BaseTest {
     using OfferLibrary for BorrowOffer;
