@@ -72,7 +72,7 @@ library AccountingLibrary {
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;
 
-        emit Events.CreateDebtPosition(debtPositionId, borrower, futureValue, dueDate);
+        emit Events.CreateDebtPosition(debtPositionId, borrower, lender, futureValue, dueDate);
 
         creditPosition = CreditPosition({
             lender: lender,
