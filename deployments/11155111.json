@@ -1,9 +1,9 @@
 {
-  "commit": "04b2a3b",
+  "commit": "99c2b9d",
   "deployments": {
-    "PriceFeed": "0x0cB230032327e25Cbf2cA02567A65431320d8cBa",
-    "Size-implementation": "0x8ADd866ED1DFA66EDf167C8c0D61cA133F6a149a",
-    "Size-proxy": "0x8ADd866ED1DFA66EDf167C8c0D61cA133F6a149a"
+    "PriceFeed": "0x9f4D6Ed446054958ffC33e80c4862c0DEC9f1D67",
+    "Size-implementation": "0x0B92ff356930aA70a69D0a36176e2157e5401f41",
+    "Size-proxy": "0x0B92ff356930aA70a69D0a36176e2157e5401f41"
   },
   "networkName": "sepolia",
   "parameters": {
