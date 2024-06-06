@@ -83,7 +83,7 @@ library AccountingLibrary {
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;
 
-        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, futureValue, dueDate);
+        emit Events.CreateDebtPosition(debtPositionId, borrower, futureValue, dueDate);
 
         creditPosition = CreditPosition({
             lender: lender,
@@ -97,7 +97,7 @@ library AccountingLibrary {
         state.validateMinimumCreditOpening(creditPosition.credit);
         state.validateTenor(dueDate - block.timestamp);
 
-        emit Events.CreateCreditPosition(creditPositionId, RESERVED_ID, debtPositionId, lender, creditPosition.credit);
+        emit Events.CreateCreditPosition(creditPositionId, lender, debtPositionId, RESERVED_ID, creditPosition.credit);
 
         state.data.debtToken.mint(borrower, futureValue);
     }
@@ -133,7 +133,7 @@ library AccountingLibrary {
             state.data.creditPositions[creditPositionId] = creditPosition;
             state.validateMinimumCreditOpening(creditPosition.credit);
 
-            emit Events.CreateCreditPosition(creditPositionId, exitCreditPositionId, debtPositionId, lender, credit);
+            emit Events.CreateCreditPosition(creditPositionId, lender, debtPositionId, exitCreditPositionId, credit);
         }
     }
 
