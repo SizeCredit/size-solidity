@@ -1,19 +1,19 @@
 {
-  "commit": "99c2b9d",
+  "commit": "59d80c5",
   "deployments": {
-    "PriceFeed": "0x9f4D6Ed446054958ffC33e80c4862c0DEC9f1D67",
-    "Size-implementation": "0x0B92ff356930aA70a69D0a36176e2157e5401f41",
-    "Size-proxy": "0x0B92ff356930aA70a69D0a36176e2157e5401f41"
+    "PriceFeed": "0xBB4d49534a4F8B7Ae2C4bf7938C9B2c519C32838",
+    "Size-implementation": "0xb38b433F7511ea8EA849322981e8244Ae6D742d6",
+    "Size-proxy": "0xb38b433F7511ea8EA849322981e8244Ae6D742d6"
   },
-  "networkName": "sepolia",
+  "networkName": "sepolia-mocks",
   "parameters": {
-    "feeRecipient": "0x023953117d262271d70dd5d8c96a8dd327a7a594",
-    "owner": "0x023953117d262271d70dd5d8c96a8dd327a7a594",
+    "feeRecipient": "0xf0c7f57f5f889d546f032e50fba953bd7c026350",
+    "owner": "0xf0c7f57f5f889d546f032e50fba953bd7c026350",
     "sequencerUptimeFeed": "0x0000000000000000000000000000000000000000",
-    "usdc": "0x0000000000000000000000000000000000000000",
-    "usdcAggregator": "0xa2f78ab2355fe2f984d808b5cee7fd0a93d5270e",
-    "variablePool": "0x6ae43d3271ff6888e7fc43fd7321a503ff738951",
-    "weth": "0x0000000000000000000000000000000000000000",
-    "wethAggregator": "0x694aa1769357215de4fac081bf1f309adc325306"
+    "usdc": "0x94a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8",
+    "usdcAggregator": "0x0000000000000000000000000000000000000000",
+    "variablePool": "0x9f1344c012008cff779ea4ba095c9576be7b323f",
+    "weth": "0xfff9976782d46cc05630d1f6ebab18b2324d6b14",
+    "wethAggregator": "0x0000000000000000000000000000000000000000"
   }
 }

@@ -55,8 +55,8 @@ contract DeployScript is BaseScript, Addresses, Deploy {
         deployments.push(Deployment({name: "PriceFeed", addr: address(priceFeed)}));
         parameters.push(Parameter({key: "owner", value: Strings.toHexString(owner)}));
         parameters.push(Parameter({key: "feeRecipient", value: Strings.toHexString(feeRecipient)}));
-        parameters.push(Parameter({key: "usdc", value: Strings.toHexString(address(usdc))}));
-        parameters.push(Parameter({key: "weth", value: Strings.toHexString(address(weth))}));
+        parameters.push(Parameter({key: "usdc", value: Strings.toHexString(address(contracts.usdc))}));
+        parameters.push(Parameter({key: "weth", value: Strings.toHexString(address(contracts.weth))}));
         parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(contracts.wethAggregator)}));
         parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(contracts.usdcAggregator)}));
         parameters.push(
