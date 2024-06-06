@@ -265,6 +265,7 @@ library AccountingLibrary {
     /// @notice Get the credit amount out for a given cash amount in
     /// @param state The state object
     /// @param cashAmountIn The cash amount in
+    /// @param maxCashAmountIn The maximum cash amount in
     /// @param maxCredit The maximum credit
     /// @param ratePerTenor The rate per tenor
     /// @param tenor The tenor
@@ -273,12 +274,11 @@ library AccountingLibrary {
     function getCreditAmountOut(
         State storage state,
         uint256 cashAmountIn,
+        uint256 maxCashAmountIn,
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
     ) internal view returns (uint256 creditAmountOut, uint256 fees) {
-        uint256 maxCashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerTenor);
-
         if (cashAmountIn == maxCashAmountIn) {
             // no credit fractionalization
 

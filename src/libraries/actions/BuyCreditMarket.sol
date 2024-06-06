@@ -157,6 +157,9 @@ library BuyCreditMarket {
             cashAmountIn = params.amount;
             (creditAmountOut, fees) = state.getCreditAmountOut({
                 cashAmountIn: cashAmountIn,
+                maxCashAmountIn: params.creditPositionId == RESERVED_ID
+                    ? cashAmountIn
+                    : Math.mulDivUp(creditPosition.credit, PERCENT, PERCENT + ratePerTenor),
                 maxCredit: params.creditPositionId == RESERVED_ID
                     ? Math.mulDivDown(cashAmountIn, PERCENT + ratePerTenor, PERCENT)
                     : creditPosition.credit,

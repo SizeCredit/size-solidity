@@ -364,6 +364,37 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
     }
 
+    // function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountOut_parametric(
+    //     uint256 futureValue,
+    //     uint256 tenor,
+    //     uint256 apr
+    // ) public {
+    //     _deposit(alice, usdc, MAX_AMOUNT_USDC);
+    //     _deposit(bob, weth, MAX_AMOUNT_WETH);
+
+    //     apr = bound(apr, 0, MAX_RATE);
+    //     tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
+    //     futureValue = bound(futureValue, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+    //     uint256 ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
+
+    //     _sellCreditLimit(bob, YieldCurveHelper.pointCurve(tenor, int256(apr)));
+
+    //     Vars memory _before = _state();
+
+    //     _buyCreditMarket(alice, bob, RESERVED_ID, futureValue, tenor, false);
+
+    //     uint256 swapFeePercent = Math.mulDivUp(size.feeConfig().swapFeeAPR, tenor, 365 days);
+    //     uint256 cash = Math.mulDivUp(futureValue, PERCENT, ratePerTenor + PERCENT);
+
+    //     Vars memory _after = _state();
+
+    //     assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - cash);
+    //     assertEq(
+    //         _after.bob.borrowATokenBalance,
+    //         _before.bob.borrowATokenBalance + cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
+    //     );
+    // }
+
     function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountIn_properties(uint256 cash, uint256 tenor, uint256 apr)
         public
     {
