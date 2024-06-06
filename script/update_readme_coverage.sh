@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -eux
 
 forge coverage > COVERAGE.txt
 forge test > TEST.txt

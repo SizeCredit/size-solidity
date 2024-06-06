@@ -490,6 +490,8 @@ contract SellCreditMarketTest is BaseTest {
 
             assertGe(V2, _after.alice.borrowATokenBalance - _before.alice.borrowATokenBalance);
             assertEqApprox(V2, _after.alice.borrowATokenBalance - _before.alice.borrowATokenBalance, 1e6);
+            uint256 credit = size.getCreditPositionsByDebtPositionId(debtPositionId)[A2 == A1 ? 0 : 1].credit;
+            assertEq(A2, credit);
         } catch (bytes memory err) {
             assertIn(bytes4(err), [Errors.NOT_ENOUGH_CASH.selector, Errors.NOT_ENOUGH_CREDIT.selector]);
         }
@@ -516,6 +518,7 @@ contract SellCreditMarketTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + deltaT1, YieldCurveHelper.pointCurve(deltaT1, int256(apr1)));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, A1, deltaT1, true);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 V1 = size.getCreditPosition(creditPositionId).credit;
 
         deltaT2 = size.riskConfig().minTenor + bound(deltaT2, 0, deltaT1);
         vm.assume(deltaT1 >= deltaT2);
@@ -523,12 +526,10 @@ contract SellCreditMarketTest is BaseTest {
         vm.warp(block.timestamp + (deltaT1 - deltaT2));
         apr2 = bound(apr2, 0, MAX_RATE);
         uint256 r2 = Math.aprToRatePerTenor(apr2, deltaT2);
-        V2 = bound(
-            V2,
-            size.riskConfig().minimumCreditBorrowAToken,
-            size.getCreditPositionsByDebtPositionId(debtPositionId)[0].credit
-        );
+        V2 = bound(V2, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
         _buyCreditLimit(candy, block.timestamp + deltaT2, YieldCurveHelper.pointCurve(deltaT2, int256(apr2)));
+
+        Vars memory _before = _state();
 
         vm.prank(alice);
         try size.sellCreditMarket(
@@ -542,25 +543,42 @@ contract SellCreditMarketTest is BaseTest {
                 exactAmountIn: false
             })
         ) {
-            uint256 kDeltaT2 = Math.mulDivUp(size.feeConfig().swapFeeAPR, /* k */ deltaT2, PERCENT);
+            Vars memory _after = _state();
+            uint256 kDeltaT2 = Math.mulDivUp(size.feeConfig().swapFeeAPR, /* k */ deltaT2, YEAR);
 
-            uint256 Amax = Math.mulDivUp(Math.mulDivUp(V2, PERCENT + r2, PERCENT - kDeltaT2), PERCENT, YEAR * PERCENT);
+            uint256 Amax = Math.mulDivDown(V1, PERCENT - kDeltaT2, PERCENT + r2);
 
             uint256 A2 = Math.mulDivDown(
-                V2
-                    + (
-                        V2 == Math.mulDivDown(Amax, PERCENT - kDeltaT2, YEAR * PERCENT)
-                            ? 0
-                            : size.feeConfig().fragmentationFee
-                    ), /* f */
-                PERCENT + r2,
-                PERCENT - Math.mulDivUp(kDeltaT2, PERCENT, YEAR * PERCENT)
+                V2 + (V2 == Amax ? 0 : size.feeConfig().fragmentationFee), /* f */ PERCENT + r2, PERCENT - kDeltaT2
             );
 
-            uint256 credit = size.getCreditPositionsByDebtPositionId(debtPositionId)[A2 == Amax ? 0 : 1].credit;
-            assertEqApprox(A2, credit, 1e6);
+            if (V2 == Amax) {
+                assertEq(size.getCreditPosition(creditPositionId).lender, candy);
+                assertEq(
+                    V1,
+                    size.getCreditPositionsByDebtPositionId(debtPositionId)[size.getCreditPositionsByDebtPositionId(
+                        debtPositionId
+                    ).length - 1].credit
+                );
+            } else {
+                assertEqApprox(
+                    A2,
+                    size.getCreditPositionsByDebtPositionId(debtPositionId)[size.getCreditPositionsByDebtPositionId(
+                        debtPositionId
+                    ).length - 1].credit,
+                    1e6
+                );
+            }
+            assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + V2);
         } catch (bytes memory err) {
-            assertIn(bytes4(err), [Errors.NOT_ENOUGH_CASH.selector, Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector]);
+            assertIn(
+                bytes4(err),
+                [
+                    Errors.NOT_ENOUGH_CASH.selector,
+                    Errors.NOT_ENOUGH_CREDIT.selector,
+                    Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector
+                ]
+            );
         }
     }
 

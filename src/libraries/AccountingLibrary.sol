@@ -220,6 +220,7 @@ library AccountingLibrary {
     /// @param state The state object
     /// @param cashAmountOut The cash amount out
     /// @param maxCredit The maximum credit
+    /// @param maxCredit The maximum cash amount out
     /// @param ratePerTenor The rate per tenor
     /// @param tenor The tenor
     /// @return creditAmountIn The credit amount in
@@ -227,6 +228,7 @@ library AccountingLibrary {
     function getCreditAmountIn(
         State storage state,
         uint256 cashAmountOut,
+        uint256 maxCashAmountOut,
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
@@ -234,7 +236,6 @@ library AccountingLibrary {
         uint256 swapFeePercent = getSwapFeePercent(state, tenor);
 
         uint256 maxCashAmountOutFragmentation = 0;
-        uint256 maxCashAmountOut = Math.mulDivDown(maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerTenor);
 
         if (maxCashAmountOut >= state.feeConfig.fragmentationFee) {
             maxCashAmountOutFragmentation = maxCashAmountOut - state.feeConfig.fragmentationFee;
