@@ -206,7 +206,10 @@ for i in {0..5}; do halmos --loop $i; done
 - It is not possible to pause individual functions. Nevertheless, BORROW_RATE_UPDATER_ROLE and admin functions are enabled even if the protocol is paused
 - Users blacklisted by underlying tokens (e.g. USDC) may be unable to withdraw
 - If the Variable Pool (Aave v3) fails to `supply` or `withdraw` for any reason, such as supply caps, Size's `deposit` and `withdraw` may be prevented
+- Centralization risk related to integrations (USDC, Aave v3, Chainlink) are out of scope
 - The Variable Pool Borrow Rate feed is trusted and users of rate hook adopt oracle risk of buying/selling credit at unsatisfactory prices
+- The insurance fund (out of scope for this project) may not be able to make all lenders whole, maybe unfair, and may be manipulated
+- LiquidateWithReplacement might not be available for the big enough debt positions
 - All issues acknowledged on previous audits and automated findings
 
 ## Deployment
