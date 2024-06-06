@@ -193,9 +193,9 @@ for i in {0..5}; do halmos --loop $i; done
 
 ## Known limitations
 
-- The protocol does not support rebasing tokens
-- The protocol does not support fee-on-transfer tokens
-- The protocol does not support tokens with more than 18 decimals
+- The protocol currently supports only a single market (USDC/ETH for borrow/collateral tokens)
+- The protocol does not support rebasing/fee-on-transfer tokens
+- The protocol does not support tokens with different decimals than the current market
 - The protocol only supports tokens compliant with the IERC20Metadata interface
 - The protocol only supports pre-vetted tokens
 - The protocol owner, KEEPER_ROLE, PAUSER_ROLE, and BORROW_RATE_UPDATER_ROLE are trusted
@@ -203,9 +203,11 @@ for i in {0..5}; do halmos --loop $i; done
 - Price feeds must be redeployed and updated in case any Chainlink configuration changes (stale price timeouts, decimals, etc)
 - In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues
 - In case the protocol is paused, the price of the collateral may change during the unpause event. This may cause unforseen liquidations, among other issues
-- It is not possible to pause individual functions. Nevertheless, BORROW_RATE_UPDATER_ROLE and admin functions are enabled even if the protocol is paused.
-- Users blocklisted by underlying tokens (e.g. USDC) may be unable to withdraw
-- All issues acknowledged on previous audits
+- It is not possible to pause individual functions. Nevertheless, BORROW_RATE_UPDATER_ROLE and admin functions are enabled even if the protocol is paused
+- Users blacklisted by underlying tokens (e.g. USDC) may be unable to withdraw
+- If the Variable Pool (Aave v3) fails to `supply` or `withdraw` for any reason, such as supply caps, Size's `deposit` and `withdraw` may be prevented
+- The Variable Pool Borrow Rate feed is trusted and users of rate hook adopt oracle risk of buying/selling credit at unsatisfactory prices
+- All issues acknowledged on previous audits and automated findings
 
 ## Deployment
 
