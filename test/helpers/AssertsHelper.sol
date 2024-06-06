@@ -75,6 +75,23 @@ abstract contract AssertsHelper is Test {
         assertTrue(a == array[0] || a == array[1] || a == array[2], reason);
     }
 
+    function assertIn(bytes4 a, bytes4[4] memory array) internal {
+        string memory arrayStr = string.concat(
+            "[",
+            Strings.toHexString(uint256(uint32(array[0])), 4),
+            ", ",
+            Strings.toHexString(uint256(uint32(array[1])), 4),
+            ", ",
+            Strings.toHexString(uint256(uint32(array[2])), 4),
+            ", ",
+            Strings.toHexString(uint256(uint32(array[3])), 4),
+            "]"
+        );
+        string memory reason =
+            string.concat("Value ", Strings.toHexString(uint256(uint32(a)), 4), " not in array ", arrayStr);
+        assertTrue(a == array[0] || a == array[1] || a == array[2] || a == array[3], reason);
+    }
+
     function assertEqApprox(uint256 a, uint256 b, uint256 tolerance, string memory reason) internal {
         reason = string.concat(
             bytes(reason).length > 0 ? string.concat(reason, "\n") : "",
