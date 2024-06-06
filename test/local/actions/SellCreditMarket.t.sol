@@ -5,7 +5,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
+import {Vars} from "@test/BaseTest.sol";
 
 import {CREDIT_POSITION_ID_START, CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT} from "@src/libraries/Math.sol";

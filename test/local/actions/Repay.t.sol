@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
+import {Vars} from "@test/BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 

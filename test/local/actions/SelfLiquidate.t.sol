@@ -5,7 +5,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
+import {Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract SelfLiquidateTest is BaseTest {

@@ -5,7 +5,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {UserView} from "@src/SizeView.sol";
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
+import {Vars} from "@test/BaseTest.sol";
 import {Test} from "forge-std/Test.sol";
 
 abstract contract AssertsHelper is Test {

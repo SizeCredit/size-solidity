@@ -2,6 +2,9 @@
 pragma solidity 0.8.23;
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
+
+import {BaseTest} from "@test/BaseTest.sol";
+import {BaseTestVariablePool} from "@test/BaseTestVariablePool.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";
 
 import {DeployScript} from "@script/Deploy.s.sol";
@@ -11,8 +14,12 @@ import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 import {Test} from "forge-std/Test.sol";
 
-contract DeployScriptTest is ForkTest {
+contract DeployScriptTest is ForkTest, BaseTestVariablePool {
     DeployScript deployScript;
+
+    function setUp() public override(ForkTest, BaseTest) {
+        super.setUp();
+    }
 
     function testFork_Deploy_size_is_configured() public {
         assertTrue(address(size.data().variablePool) != address(0));

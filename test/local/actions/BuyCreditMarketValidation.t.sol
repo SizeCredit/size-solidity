@@ -11,7 +11,7 @@ import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
+import {Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract BuyCreditMarketTest is BaseTest {

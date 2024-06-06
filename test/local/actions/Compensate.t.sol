@@ -11,7 +11,7 @@ import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.so
 import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
+import {Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
