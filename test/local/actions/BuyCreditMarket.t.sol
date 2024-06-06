@@ -14,7 +14,7 @@ import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.so
 import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT, YEAR} from "@src/libraries/Math.sol";
 
 contract BuyCreditMarketLendTest is BaseTest {
     using OfferLibrary for LoanOffer;
@@ -364,36 +364,69 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
     }
 
-    // function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountOut_parametric(
-    //     uint256 futureValue,
-    //     uint256 tenor,
-    //     uint256 apr
-    // ) public {
-    //     _deposit(alice, usdc, MAX_AMOUNT_USDC);
-    //     _deposit(bob, weth, MAX_AMOUNT_WETH);
+    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountOut_parametric(
+        uint256 A1,
+        uint256 A2,
+        uint256 deltaT1,
+        uint256 deltaT2,
+        uint256 apr1,
+        uint256 apr2
+    ) public {
+        vm.warp(123 days);
 
-    //     apr = bound(apr, 0, MAX_RATE);
-    //     tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
-    //     futureValue = bound(futureValue, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
-    //     uint256 ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
+        _deposit(alice, weth, MAX_AMOUNT_WETH);
+        _deposit(bob, usdc, 2 * MAX_AMOUNT_USDC);
+        _deposit(candy, usdc, 2 * MAX_AMOUNT_USDC);
 
-    //     _sellCreditLimit(bob, YieldCurveHelper.pointCurve(tenor, int256(apr)));
+        apr1 = bound(apr1, 0, MAX_RATE);
+        deltaT1 = bound(deltaT1, size.riskConfig().minTenor, MAX_TENOR);
+        A1 = bound(A1, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
 
-    //     Vars memory _before = _state();
+        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(deltaT1, int256(apr1)));
 
-    //     _buyCreditMarket(alice, bob, RESERVED_ID, futureValue, tenor, false);
+        uint256 debtPositionId = _buyCreditMarket(bob, alice, RESERVED_ID, A1, deltaT1, false);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 V1 = size.getCreditPosition(creditPositionId).credit;
 
-    //     uint256 swapFeePercent = Math.mulDivUp(size.feeConfig().swapFeeAPR, tenor, 365 days);
-    //     uint256 cash = Math.mulDivUp(futureValue, PERCENT, ratePerTenor + PERCENT);
+        deltaT2 = size.riskConfig().minTenor + bound(deltaT2, 0, deltaT1);
+        vm.assume(deltaT1 >= deltaT2);
 
-    //     Vars memory _after = _state();
+        vm.warp(block.timestamp + (deltaT1 - deltaT2));
+        apr2 = bound(apr2, 0, MAX_RATE);
+        uint256 r2 = Math.aprToRatePerTenor(apr2, deltaT2);
+        A2 = bound(A2, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        _sellCreditLimit(bob, YieldCurveHelper.pointCurve(deltaT2, int256(apr2)));
 
-    //     assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - cash);
-    //     assertEq(
-    //         _after.bob.borrowATokenBalance,
-    //         _before.bob.borrowATokenBalance + cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
-    //     );
-    // }
+        Vars memory _before = _state();
+
+        vm.prank(candy);
+        try size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: address(0),
+                creditPositionId: creditPositionId,
+                amount: A2,
+                tenor: type(uint256).max,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: false
+            })
+        ) {
+            Vars memory _after = _state();
+
+            uint256 V2 = Math.mulDivDown(A2, PERCENT, PERCENT + r2) + (A2 == V1 ? 0 : size.feeConfig().fragmentationFee); /* f */
+
+            assertEqApprox(V2, _before.candy.borrowATokenBalance - _after.candy.borrowATokenBalance, 1e6);
+        } catch (bytes memory err) {
+            assertIn(
+                bytes4(err),
+                [
+                    Errors.NOT_ENOUGH_CASH.selector,
+                    Errors.NOT_ENOUGH_CREDIT.selector,
+                    Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector
+                ]
+            );
+        }
+    }
 
     function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountIn_properties(uint256 cash, uint256 tenor, uint256 apr)
         public
