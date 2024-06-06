@@ -35,30 +35,19 @@ library AccountingLibrary {
     }
 
     /// @notice Repays a debt position
-    /// @dev Upon repayment, the debt position future value and the borrower's total debt tracker are updated.
-    ///      If this is a cash operation, and the debt has been cleared, the liquidity index is updated.
+    /// @dev Upon repayment, the debt position future value and the borrower's total debt tracker are updated
     /// @param state The state object
     /// @param debtPositionId The debt position id
     /// @param repayAmount The amount to repay
-    /// @param cashReceived Whether this is a cash operation
-    function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount, bool cashReceived) public {
+    function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount) public {
         DebtPosition storage debtPosition = state.getDebtPosition(debtPositionId);
 
         state.data.debtToken.burn(debtPosition.borrower, repayAmount);
         debtPosition.futureValue -= repayAmount;
 
-        if (debtPosition.futureValue == 0 && cashReceived) {
-            debtPosition.liquidityIndexAtRepayment = state.data.borrowAToken.liquidityIndex();
-        }
-
         emit Events.UpdateDebtPosition(
             debtPositionId, debtPosition.borrower, debtPosition.futureValue, debtPosition.liquidityIndexAtRepayment
         );
-    }
-
-    /// @dev Repays a debt position in a cash operation
-    function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount) public {
-        return repayDebt(state, debtPositionId, repayAmount, true);
     }
 
     /// @notice Creates a debt and credit position
@@ -157,7 +146,6 @@ library AccountingLibrary {
 
     /// @notice Reduces the debt and credit amounts of a debt and credit position
     /// @dev The debt and credit positions are reduced with the same amount.
-    ///      This is a cashless operation, and the liquidity index is not updated.
     /// @param state The state object
     /// @param debtPositionId The debt position id
     /// @param creditPositionId The credit position id
@@ -165,7 +153,7 @@ library AccountingLibrary {
     function reduceDebtAndCredit(State storage state, uint256 debtPositionId, uint256 creditPositionId, uint256 amount)
         internal
     {
-        repayDebt(state, debtPositionId, amount, false);
+        repayDebt(state, debtPositionId, amount);
         reduceCredit(state, creditPositionId, amount);
     }
 
