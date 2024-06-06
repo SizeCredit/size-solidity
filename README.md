@@ -211,5 +211,5 @@ for i in {0..5}; do halmos --loop $i; done
 
 ```bash
 source .env
-CHAIN_NAME=$CHAIN_NAME DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS yarn deploy --broadcast
+CHAIN_NAME=$CHAIN_NAME DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS yarn deploy-sepolia-mocks --broadcast
 ```
