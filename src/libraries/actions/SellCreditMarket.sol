@@ -170,6 +170,9 @@ library SellCreditMarket {
 
             (creditAmountIn, fees) = state.getCreditAmountIn({
                 cashAmountOut: cashAmountOut,
+                maxCashAmountOut: params.creditPositionId == RESERVED_ID
+                    ? cashAmountOut
+                    : Math.mulDivDown(creditPosition.credit, PERCENT - state.getSwapFeePercent(tenor), PERCENT + ratePerTenor),
                 maxCredit: params.creditPositionId == RESERVED_ID
                     ? Math.mulDivUp(cashAmountOut, PERCENT + ratePerTenor, PERCENT - state.getSwapFeePercent(tenor))
                     : creditPosition.credit,
