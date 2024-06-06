@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
+import {Vars} from "@test/BaseTest.sol";
 
 import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {DebtPosition} from "@src/libraries/LoanLibrary.sol";

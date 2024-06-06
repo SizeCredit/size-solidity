@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
+import {Vars} from "@test/BaseTest.sol";
 
 import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Math} from "@src/libraries/Math.sol";

@@ -35,30 +35,19 @@ library AccountingLibrary {
     }
 
     /// @notice Repays a debt position
-    /// @dev Upon repayment, the debt position future value and the borrower's total debt tracker are updated.
-    ///      If this is a cash operation, and the debt has been cleared, the liquidity index is updated.
+    /// @dev Upon repayment, the debt position future value and the borrower's total debt tracker are updated
     /// @param state The state object
     /// @param debtPositionId The debt position id
     /// @param repayAmount The amount to repay
-    /// @param cashReceived Whether this is a cash operation
-    function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount, bool cashReceived) public {
+    function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount) public {
         DebtPosition storage debtPosition = state.getDebtPosition(debtPositionId);
 
         state.data.debtToken.burn(debtPosition.borrower, repayAmount);
         debtPosition.futureValue -= repayAmount;
 
-        if (debtPosition.futureValue == 0 && cashReceived) {
-            debtPosition.liquidityIndexAtRepayment = state.data.borrowAToken.liquidityIndex();
-        }
-
         emit Events.UpdateDebtPosition(
             debtPositionId, debtPosition.borrower, debtPosition.futureValue, debtPosition.liquidityIndexAtRepayment
         );
-    }
-
-    /// @dev Repays a debt position in a cash operation
-    function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount) public {
-        return repayDebt(state, debtPositionId, repayAmount, true);
     }
 
     /// @notice Creates a debt and credit position
@@ -83,7 +72,7 @@ library AccountingLibrary {
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;
 
-        emit Events.CreateDebtPosition(debtPositionId, lender, borrower, futureValue, dueDate);
+        emit Events.CreateDebtPosition(debtPositionId, borrower, lender, futureValue, dueDate);
 
         creditPosition = CreditPosition({
             lender: lender,
@@ -97,7 +86,7 @@ library AccountingLibrary {
         state.validateMinimumCreditOpening(creditPosition.credit);
         state.validateTenor(dueDate - block.timestamp);
 
-        emit Events.CreateCreditPosition(creditPositionId, RESERVED_ID, debtPositionId, lender, creditPosition.credit);
+        emit Events.CreateCreditPosition(creditPositionId, lender, debtPositionId, RESERVED_ID, creditPosition.credit);
 
         state.data.debtToken.mint(borrower, futureValue);
     }
@@ -133,7 +122,7 @@ library AccountingLibrary {
             state.data.creditPositions[creditPositionId] = creditPosition;
             state.validateMinimumCreditOpening(creditPosition.credit);
 
-            emit Events.CreateCreditPosition(creditPositionId, exitCreditPositionId, debtPositionId, lender, credit);
+            emit Events.CreateCreditPosition(creditPositionId, lender, debtPositionId, exitCreditPositionId, credit);
         }
     }
 
@@ -157,7 +146,6 @@ library AccountingLibrary {
 
     /// @notice Reduces the debt and credit amounts of a debt and credit position
     /// @dev The debt and credit positions are reduced with the same amount.
-    ///      This is a cashless operation, and the liquidity index is not updated.
     /// @param state The state object
     /// @param debtPositionId The debt position id
     /// @param creditPositionId The credit position id
@@ -165,7 +153,7 @@ library AccountingLibrary {
     function reduceDebtAndCredit(State storage state, uint256 debtPositionId, uint256 creditPositionId, uint256 amount)
         internal
     {
-        repayDebt(state, debtPositionId, amount, false);
+        repayDebt(state, debtPositionId, amount);
         reduceCredit(state, creditPositionId, amount);
     }
 
@@ -232,6 +220,7 @@ library AccountingLibrary {
     /// @param state The state object
     /// @param cashAmountOut The cash amount out
     /// @param maxCredit The maximum credit
+    /// @param maxCredit The maximum cash amount out
     /// @param ratePerTenor The rate per tenor
     /// @param tenor The tenor
     /// @return creditAmountIn The credit amount in
@@ -239,6 +228,7 @@ library AccountingLibrary {
     function getCreditAmountIn(
         State storage state,
         uint256 cashAmountOut,
+        uint256 maxCashAmountOut,
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
@@ -246,7 +236,6 @@ library AccountingLibrary {
         uint256 swapFeePercent = getSwapFeePercent(state, tenor);
 
         uint256 maxCashAmountOutFragmentation = 0;
-        uint256 maxCashAmountOut = Math.mulDivDown(maxCredit, PERCENT - swapFeePercent, PERCENT + ratePerTenor);
 
         if (maxCashAmountOut >= state.feeConfig.fragmentationFee) {
             maxCashAmountOutFragmentation = maxCashAmountOut - state.feeConfig.fragmentationFee;
@@ -276,6 +265,7 @@ library AccountingLibrary {
     /// @notice Get the credit amount out for a given cash amount in
     /// @param state The state object
     /// @param cashAmountIn The cash amount in
+    /// @param maxCashAmountIn The maximum cash amount in
     /// @param maxCredit The maximum credit
     /// @param ratePerTenor The rate per tenor
     /// @param tenor The tenor
@@ -284,12 +274,11 @@ library AccountingLibrary {
     function getCreditAmountOut(
         State storage state,
         uint256 cashAmountIn,
+        uint256 maxCashAmountIn,
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
     ) internal view returns (uint256 creditAmountOut, uint256 fees) {
-        uint256 maxCashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerTenor);
-
         if (cashAmountIn == maxCashAmountIn) {
             // no credit fractionalization
 

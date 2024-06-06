@@ -71,16 +71,16 @@ library Events {
 
     event CreateDebtPosition(
         uint256 indexed debtPositionId,
-        address indexed lender,
         address indexed borrower,
+        address indexed lender,
         uint256 futureValue,
         uint256 dueDate
     );
     event CreateCreditPosition(
         uint256 indexed creditPositionId,
-        uint256 indexed exitPositionId,
+        address indexed lender,
         uint256 indexed debtPositionId,
-        address lender,
+        uint256 exitPositionId,
         uint256 credit
     );
 

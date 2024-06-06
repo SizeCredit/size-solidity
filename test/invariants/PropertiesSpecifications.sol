@@ -60,4 +60,6 @@ abstract contract PropertiesSpecifications {
     string internal constant FEES_02 = "FEES_02: Cash swap operations increase the fee recipient balance";
 
     string internal constant DOS = "DOS: Denial of Service";
+
+    string internal constant REVERTS = "REVERTS: Actions behave as expected under dependency reverts"; // TODO
 }

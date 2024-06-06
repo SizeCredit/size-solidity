@@ -5,7 +5,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {UserView} from "@src/SizeView.sol";
 import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {Vars} from "@test/BaseTestGeneral.sol";
+import {Vars} from "@test/BaseTest.sol";
 import {Test} from "forge-std/Test.sol";
 
 abstract contract AssertsHelper is Test {
@@ -40,6 +40,13 @@ abstract contract AssertsHelper is Test {
         assertEq(a.debtBalance, b.debtBalance, "debtBalance");
     }
 
+    function assertIn(bytes4 a, bytes4[1] memory array) internal {
+        string memory arrayStr = string.concat("[", Strings.toHexString(uint256(uint32(array[0])), 4), "]");
+        string memory reason =
+            string.concat("Value ", Strings.toHexString(uint256(uint32(a)), 4), " not in array ", arrayStr);
+        assertTrue(a == array[0], reason);
+    }
+
     function assertIn(bytes4 a, bytes4[2] memory array) internal {
         string memory arrayStr = string.concat(
             "[",
@@ -66,6 +73,23 @@ abstract contract AssertsHelper is Test {
         string memory reason =
             string.concat("Value ", Strings.toHexString(uint256(uint32(a)), 4), " not in array ", arrayStr);
         assertTrue(a == array[0] || a == array[1] || a == array[2], reason);
+    }
+
+    function assertIn(bytes4 a, bytes4[4] memory array) internal {
+        string memory arrayStr = string.concat(
+            "[",
+            Strings.toHexString(uint256(uint32(array[0])), 4),
+            ", ",
+            Strings.toHexString(uint256(uint32(array[1])), 4),
+            ", ",
+            Strings.toHexString(uint256(uint32(array[2])), 4),
+            ", ",
+            Strings.toHexString(uint256(uint32(array[3])), 4),
+            "]"
+        );
+        string memory reason =
+            string.concat("Value ", Strings.toHexString(uint256(uint32(a)), 4), " not in array ", arrayStr);
+        assertTrue(a == array[0] || a == array[1] || a == array[2] || a == array[3], reason);
     }
 
     function assertEqApprox(uint256 a, uint256 b, uint256 tolerance, string memory reason) internal {

@@ -9,7 +9,7 @@ contract ForkTest is BaseTest, BaseScript {
     address public owner;
     IAToken public aToken;
 
-    function setUp() public override {
+    function setUp() public virtual override {
         _labels();
         vm.createSelectFork("sepolia");
         vm.rollFork(5395350);
