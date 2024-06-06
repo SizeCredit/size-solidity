@@ -497,6 +497,34 @@ contract SellCreditMarketTest is BaseTest {
         }
     }
 
+    function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountOut_properties(
+        uint256 cash,
+        uint256 tenor,
+        uint256 apr
+    ) public {
+        _deposit(alice, usdc, 2 * MAX_AMOUNT_USDC);
+        _deposit(bob, weth, MAX_AMOUNT_WETH);
+
+        apr = bound(apr, 0, MAX_RATE);
+        tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
+        cash = bound(cash, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+
+        _buyCreditLimit(alice, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));
+
+        Vars memory _before = _state();
+
+        _sellCreditMarket(bob, alice, RESERVED_ID, cash, tenor, false);
+        uint256 swapFeePercent = Math.mulDivUp(size.feeConfig().swapFeeAPR, tenor, 365 days);
+
+        Vars memory _after = _state();
+
+        assertEq(
+            _after.alice.borrowATokenBalance,
+            _before.alice.borrowATokenBalance - cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
+        );
+        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + cash);
+    }
+
     function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountOut_specification(
         uint256 A1,
         uint256 V2,
@@ -580,33 +608,5 @@ contract SellCreditMarketTest is BaseTest {
                 ]
             );
         }
-    }
-
-    function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountOut_properties(
-        uint256 cash,
-        uint256 tenor,
-        uint256 apr
-    ) public {
-        _deposit(alice, usdc, 2 * MAX_AMOUNT_USDC);
-        _deposit(bob, weth, MAX_AMOUNT_WETH);
-
-        apr = bound(apr, 0, MAX_RATE);
-        tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
-        cash = bound(cash, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
-
-        _buyCreditLimit(alice, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));
-
-        Vars memory _before = _state();
-
-        _sellCreditMarket(bob, alice, RESERVED_ID, cash, tenor, false);
-        uint256 swapFeePercent = Math.mulDivUp(size.feeConfig().swapFeeAPR, tenor, 365 days);
-
-        Vars memory _after = _state();
-
-        assertEq(
-            _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance - cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
-        );
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + cash);
     }
 }
