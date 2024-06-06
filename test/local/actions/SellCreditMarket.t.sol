@@ -495,6 +495,75 @@ contract SellCreditMarketTest is BaseTest {
         }
     }
 
+    function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountOut_specification(
+        uint256 A1,
+        uint256 V2,
+        uint256 deltaT1,
+        uint256 deltaT2,
+        uint256 apr1,
+        uint256 apr2
+    ) public {
+        vm.warp(123 days);
+
+        _deposit(alice, usdc, MAX_AMOUNT_USDC);
+        _deposit(candy, usdc, MAX_AMOUNT_USDC);
+        _deposit(bob, weth, MAX_AMOUNT_WETH);
+
+        apr1 = bound(apr1, 0, MAX_RATE);
+        deltaT1 = bound(deltaT1, size.riskConfig().minTenor, MAX_TENOR);
+        A1 = bound(A1, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+
+        _buyCreditLimit(alice, block.timestamp + deltaT1, YieldCurveHelper.pointCurve(deltaT1, int256(apr1)));
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, A1, deltaT1, true);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+
+        deltaT2 = size.riskConfig().minTenor + bound(deltaT2, 0, deltaT1);
+        vm.assume(deltaT1 >= deltaT2);
+
+        vm.warp(block.timestamp + (deltaT1 - deltaT2));
+        apr2 = bound(apr2, 0, MAX_RATE);
+        uint256 r2 = Math.aprToRatePerTenor(apr2, deltaT2);
+        V2 = bound(
+            V2,
+            size.riskConfig().minimumCreditBorrowAToken,
+            size.getCreditPositionsByDebtPositionId(debtPositionId)[0].credit
+        );
+        _buyCreditLimit(candy, block.timestamp + deltaT2, YieldCurveHelper.pointCurve(deltaT2, int256(apr2)));
+
+        vm.prank(alice);
+        try size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: candy,
+                creditPositionId: creditPositionId,
+                amount: V2,
+                tenor: type(uint256).max,
+                deadline: block.timestamp,
+                maxAPR: type(uint256).max,
+                exactAmountIn: false
+            })
+        ) {
+            uint256 kDeltaT2 = Math.mulDivUp(size.feeConfig().swapFeeAPR, /* k */ deltaT2, PERCENT);
+
+            uint256 Amax = Math.mulDivUp(Math.mulDivUp(V2, PERCENT + r2, PERCENT - kDeltaT2), PERCENT, YEAR * PERCENT);
+
+            uint256 A2 = Math.mulDivDown(
+                V2
+                    + (
+                        V2 == Math.mulDivDown(Amax, PERCENT - kDeltaT2, YEAR * PERCENT)
+                            ? 0
+                            : size.feeConfig().fragmentationFee
+                    ), /* f */
+                PERCENT + r2,
+                PERCENT - Math.mulDivUp(kDeltaT2, PERCENT, YEAR * PERCENT)
+            );
+
+            uint256 credit = size.getCreditPositionsByDebtPositionId(debtPositionId)[A2 == Amax ? 0 : 1].credit;
+            assertEqApprox(A2, credit, 1e6);
+        } catch (bytes memory err) {
+            assertIn(bytes4(err), [Errors.NOT_ENOUGH_CASH.selector, Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector]);
+        }
+    }
+
     function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountOut_properties(
         uint256 cash,
         uint256 tenor,
