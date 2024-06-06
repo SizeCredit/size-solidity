@@ -31,7 +31,7 @@ library Events {
         bool exactAmountIn
     );
     event SellCreditLimit(
-        uint256[] curveRelativeTimetenors,
+        uint256[] curveRelativeTimeTenors,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
@@ -44,7 +44,7 @@ library Events {
     );
     event BuyCreditLimit(
         uint256 indexed maxDueDate,
-        uint256[] curveRelativeTimetenors,
+        uint256[] curveRelativeTimeTenors,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
