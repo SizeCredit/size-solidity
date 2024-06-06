@@ -6,6 +6,7 @@ import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/acce
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 
 import {
     Initialize,
@@ -177,7 +178,9 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateBuyCreditMarket(params);
         uint256 amount = state.executeBuyCreditMarket(params);
-        state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
+        if (params.creditPositionId == RESERVED_ID) {
+            state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
+        }
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
