@@ -116,6 +116,7 @@ library Compensate {
         uint256 amountToCompensate = Math.min(params.amount, creditPositionWithDebtToRepay.credit);
 
         CreditPosition memory creditPositionToCompensate;
+        bool shouldChargeFragmentationFee;
         if (params.creditPositionToCompensateId == RESERVED_ID) {
             creditPositionToCompensate = state.createDebtAndCreditPositions({
                 lender: msg.sender,
@@ -123,17 +124,17 @@ library Compensate {
                 futureValue: amountToCompensate,
                 dueDate: debtPositionToRepay.dueDate
             });
+            shouldChargeFragmentationFee = amountToCompensate != creditPositionWithDebtToRepay.credit;
         } else {
             creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
             amountToCompensate = Math.min(amountToCompensate, creditPositionToCompensate.credit);
+            shouldChargeFragmentationFee = amountToCompensate != creditPositionToCompensate.credit;
         }
 
         // debt and credit reduction
         state.reduceDebtAndCredit(
             creditPositionWithDebtToRepay.debtPositionId, params.creditPositionWithDebtToRepayId, amountToCompensate
         );
-
-        uint256 exiterCreditRemaining = creditPositionToCompensate.credit - amountToCompensate;
 
         // credit emission
         state.createCreditPosition({
@@ -143,7 +144,7 @@ library Compensate {
             lender: creditPositionWithDebtToRepay.lender,
             credit: amountToCompensate
         });
-        if (exiterCreditRemaining > 0) {
+        if (shouldChargeFragmentationFee) {
             // charge the fragmentation fee in collateral tokens, capped by the user balance
             uint256 fragmentationFeeInCollateral = Math.min(
                 state.debtTokenAmountToCollateralTokenAmount(state.feeConfig.fragmentationFee),
