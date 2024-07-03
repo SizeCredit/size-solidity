@@ -161,9 +161,10 @@ library LoanLibrary {
     }
 
     /// @notice Get the pro-rata collateral assigned to a CreditPosition
-    ///         The amount of collateral assigned to a CreditPosition is the amount of collateral assigned to the
-    ///         DebtPosition pro-rata to the CreditPosition's credit and the DebtPosition's futureValue
-    /// @dev If the DebtPosition's futureValue is 0, the amount of collateral assigned to the CreditPosition is 0
+    ///         The amount of collateral assigned to a CreditPosition is equal to
+    ///             the total borrower collateral pro-rata to the CreditPosition's credit
+    ///             and the total borrower debt, because of the auto-assigned collateral to individual loans
+    /// @dev If the borrower's debt is 0, the amount of collateral assigned to the CreditPosition is 0
     /// @param state The state struct
     /// @param creditPosition The CreditPosition
     /// @return The amount of collateral assigned to the CreditPosition
@@ -174,12 +175,11 @@ library LoanLibrary {
     {
         DebtPosition storage debtPosition = getDebtPosition(state, creditPosition.debtPositionId);
 
-        uint256 debtPositionCollateral = getDebtPositionAssignedCollateral(state, debtPosition);
-        uint256 creditPositionCredit = creditPosition.credit;
-        uint256 debtPositionFutureValue = debtPosition.futureValue;
+        uint256 debt = state.data.debtToken.balanceOf(debtPosition.borrower);
+        uint256 collateral = state.data.collateralToken.balanceOf(debtPosition.borrower);
 
-        if (debtPositionFutureValue != 0) {
-            return Math.mulDivDown(debtPositionCollateral, creditPositionCredit, debtPositionFutureValue);
+        if (debt != 0) {
+            return Math.mulDivDown(collateral, creditPosition.credit, debt);
         } else {
             return 0;
         }
