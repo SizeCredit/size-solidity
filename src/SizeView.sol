@@ -22,7 +22,7 @@ import {DataView, UserView} from "@src/SizeViewData.sol";
 
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
@@ -35,8 +35,7 @@ import {
 /// @author Size (https://size.credit/)
 /// @notice View methods for the Size protocol
 abstract contract SizeView is SizeStorage, ISizeView {
-    using OfferLibrary for LoanOffer;
-    using OfferLibrary for BorrowOffer;
+    using OfferLibrary for LimitOrder;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
@@ -139,7 +138,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
 
     /// @inheritdoc ISizeView
     function getBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256) {
-        BorrowOffer memory offer = state.data.users[borrower].borrowOffer;
+        LimitOrder memory offer = state.data.users[borrower].borrowOffer;
         if (offer.isNull()) {
             revert Errors.NULL_OFFER();
         }
@@ -155,7 +154,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
 
     /// @inheritdoc ISizeView
     function getLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
-        LoanOffer memory offer = state.data.users[lender].loanOffer;
+        LimitOrder memory offer = state.data.users[lender].loanOffer;
         if (offer.isNull()) {
             revert Errors.NULL_OFFER();
         }

@@ -8,7 +8,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
-import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
@@ -38,7 +38,7 @@ struct BuyCreditMarketParams {
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic for buying credit (lending) as a market order
 library BuyCreditMarket {
-    using OfferLibrary for BorrowOffer;
+    using OfferLibrary for LimitOrder;
     using AccountingLibrary for State;
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
@@ -80,7 +80,7 @@ library BuyCreditMarket {
             tenor = debtPosition.dueDate - block.timestamp; // positive since the credit position is transferrable, so the loan must be ACTIVE
         }
 
-        BorrowOffer memory borrowOffer = state.data.users[borrower].borrowOffer;
+        LimitOrder memory borrowOffer = state.data.users[borrower].borrowOffer;
 
         // validate borrower
         if (borrowOffer.isNull()) {
@@ -90,6 +90,11 @@ library BuyCreditMarket {
         // validate amount
         if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
             revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+        }
+
+        // validate tenor
+        if (block.timestamp + tenor > borrowOffer.maxDueDate) {
+            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, borrowOffer.maxDueDate);
         }
 
         // validate deadline
