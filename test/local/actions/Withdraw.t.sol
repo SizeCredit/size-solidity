@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IAToken} from "@aave/interfaces/IAToken.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -57,8 +57,7 @@ contract WithdrawTest is BaseTest {
 
     function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
         _updateConfig("borrowATokenCap", type(uint256).max);
-        IAToken aToken =
-            IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
+        IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
 
         valueUSDC = bound(valueUSDC, 1, type(uint96).max);
         valueWETH = bound(valueWETH, 1, type(uint256).max);
@@ -93,8 +92,7 @@ contract WithdrawTest is BaseTest {
         uint256 index
     ) public {
         _updateConfig("borrowATokenCap", type(uint256).max);
-        IAToken aToken =
-            IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
+        IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
         index = bound(index, WadRayMath.RAY, WadRayMath.RAY * 2);
         _setLiquidityIndex(index);
 
