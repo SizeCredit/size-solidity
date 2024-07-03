@@ -338,7 +338,11 @@ contract LiquidateTest is BaseTest {
 
         vm.prank(liquidator);
         try size.liquidate(
-            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
+            LiquidateParams({
+                debtPositionId: debtPositionId,
+                minimumCollateralProfit: minimumCollateralProfit,
+                deadline: type(uint256).max
+            })
         ) returns (uint256 liquidatorProfitCollateralToken) {
             Vars memory _after = _state();
 

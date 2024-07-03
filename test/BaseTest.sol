@@ -335,16 +335,20 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     }
 
     function _liquidate(address user, uint256 debtPositionId) internal returns (uint256) {
-        return _liquidate(user, debtPositionId, 0);
+        return _liquidate(user, debtPositionId, 0, type(uint256).max);
     }
 
-    function _liquidate(address user, uint256 debtPositionId, uint256 minimumCollateralProfit)
+    function _liquidate(address user, uint256 debtPositionId, uint256 minimumCollateralProfit, uint256 deadline)
         internal
         returns (uint256)
     {
         vm.prank(user);
         return size.liquidate(
-            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
+            LiquidateParams({
+                debtPositionId: debtPositionId,
+                minimumCollateralProfit: minimumCollateralProfit,
+                deadline: deadline
+            })
         );
     }
 

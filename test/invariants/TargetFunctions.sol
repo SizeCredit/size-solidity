@@ -316,7 +316,11 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
         (success, returnData) = address(size).call(
             abi.encodeCall(
                 size.liquidate,
-                LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
+                LiquidateParams({
+                    debtPositionId: debtPositionId,
+                    minimumCollateralProfit: minimumCollateralProfit,
+                    deadline: type(uint256).max
+                })
             )
         );
         if (success) {

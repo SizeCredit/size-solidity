@@ -142,7 +142,8 @@ contract MulticallTest is BaseTest {
             abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: futureValue, to: liquidator}));
         // liquidate profitably (but does not enforce CR)
         data[1] = abi.encodeCall(
-            size.liquidate, LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: 0})
+            size.liquidate,
+            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: 0, deadline: type(uint256).max})
         );
         // withdraw everything
         data[2] = abi.encodeCall(
