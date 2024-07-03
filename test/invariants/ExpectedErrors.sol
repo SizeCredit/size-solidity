@@ -94,7 +94,6 @@ abstract contract ExpectedErrors is Deploy, Properties {
 
         // SELF_LIQUIDATE_ERRORS
         SELF_LIQUIDATE_ERRORS.push(Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector);
-        SELF_LIQUIDATE_ERRORS.push(Errors.LIQUIDATION_NOT_AT_LOSS.selector);
         SELF_LIQUIDATE_ERRORS.push(Errors.LIQUIDATOR_IS_NOT_LENDER.selector);
 
         // LIQUIDATE_WITH_REPLACEMENT_ERRORS

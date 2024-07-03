@@ -155,6 +155,7 @@ contract MathTest is Test, AssertsHelper {
             assertLe(high, array.length - 1, "high is within bounds");
 
             assertLe(low, high, "low <= high");
+            assertLe(low, high + 1, "low <= high + 1");
 
             assertLe(array[low], value, "array[low] <= value <= array[high]");
             assertLe(value, array[high], "array[low] <= value <= array[high]");

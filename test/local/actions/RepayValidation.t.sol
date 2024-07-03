@@ -14,6 +14,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract RepayValidationTest is BaseTest {
     function test_Repay_validation() public {
         _updateConfig("swapFeeAPR", 0);
+        _updateConfig("fragmentationFee", 1e6);
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 300e6);

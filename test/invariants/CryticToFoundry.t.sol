@@ -112,7 +112,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
     function test_CryticToFoundry_09() public {
         deposit(address(0xdeadbeef), 6650265435768735282694896341184603990418320173531048);
-        sellCreditLimit(0);
+        sellCreditLimit(block.timestamp + 365 days, 0);
         deposit(address(0x0), 14110947487286576);
         buyCreditMarket(
             address(0x0),
@@ -135,7 +135,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         deposit(address(0xdeadbeef), 486987982);
         deposit(address(0x0), 542119798154271826);
         updateConfig(3476689163798957933627285661408434842686568751617897946215078674744880122, 1);
-        sellCreditLimit(0);
+        sellCreditLimit(block.timestamp + 365 days, 0);
         setLiquidityIndex(1, 0);
         buyCreditMarket(
             address(0x0),
@@ -148,7 +148,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
     function test_CryticToFoundry_12() public {
         deposit(address(0xdeadbeef), 481797977);
-        sellCreditLimit(0);
+        sellCreditLimit(block.timestamp + 365 days, 0);
         deposit(address(0x0), 542722934120754506);
         buyCreditMarket(
             address(0x0),
@@ -170,7 +170,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         deposit(address(0xdeadbeef), 486987982);
         deposit(address(0x0), 542119798154271826);
         updateConfig(3476689163798957933627285661408434842686568751617897946215078674744880122, 1);
-        sellCreditLimit(0);
+        sellCreditLimit(block.timestamp + 365 days, 0);
         setLiquidityIndex(1, 0);
         buyCreditMarket(
             address(0x0),
@@ -187,7 +187,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         _setUp(0x0000000000000000000000000000000000030000, 599944 seconds, 44);
         setPrice(53041679552025056960350439062206622489044312390915125528741382084316446848209);
         _setUp(0x0000000000000000000000000000000000010000, 604796 seconds, 12382);
-        sellCreditLimit(120000001);
+        sellCreditLimit(block.timestamp + 365 days, 120000001);
         _setUp(0x0000000000000000000000000000000000030000, 553872 seconds, 59522);
         deposit(address(0x636f6e736f6c652e6c6f67), 1300000000000000000);
         _setUp(0x0000000000000000000000000000000000010000, 122098 seconds, 8537);
@@ -237,7 +237,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
 
     function test_CryticToFoundry_18() public {
         deposit(address(0xdeadbeef), 206844940486);
-        sellCreditLimit(0);
+        sellCreditLimit(block.timestamp + 365 days, 0);
         deposit(address(0x0), 2096225315717814455);
         buyCreditMarket(
             address(0x0),
@@ -304,5 +304,26 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         );
         setPrice(0);
         selfLiquidate(0);
+    }
+
+    function test_CryticToFoundry_23() public {
+        deposit(address(0xdeadbeef), 153061138);
+        deposit(address(0x0), 32206716064976759515506730950);
+        sellCreditLimit(block.timestamp + 365 days, 1158088527381210533895115363106426155);
+        buyCreditMarket(
+            address(0x0),
+            26189833411396725481776162706072748294814554872160036126875434055275,
+            10855877590960237497587309726937818818523821252845129895149409077587346889659,
+            346849952445745110224397552578749626750938035523378926500285586611475279057,
+            false
+        );
+        buyCreditLimit(1150971281321076252120372341636290708838077407, 732919526025001040686075401367603283679132813308);
+        updateConfig(44403998962614087378936458640045159306808189755934133735775514252696997342, 1);
+        updateConfig(5, 53272389541550468998524231495554213931535354675872544579553587611547756068029);
+        updateConfig(
+            32443037445401376527959883768083708906893044152733957436551516245553282815386,
+            2211186247407213273680871110148807189326067499600070275884279229677703437
+        );
+        sellCreditMarket(address(0x0), 0, 1, 35988792354460757875445074184694814404688696852, false);
     }
 }

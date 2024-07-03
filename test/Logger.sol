@@ -11,14 +11,14 @@ import {
     DebtPosition,
     LoanLibrary
 } from "@src/libraries/LoanLibrary.sol";
-import {BorrowOffer, LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 import {console2 as console} from "forge-std/console2.sol";
 
 abstract contract Logger {
     using LoanLibrary for DebtPosition;
-    using OfferLibrary for LoanOffer;
-    using OfferLibrary for BorrowOffer;
+    using OfferLibrary for LimitOrder;
+    using OfferLibrary for LimitOrder;
 
     function _log(UserView memory userView) internal pure {
         console.log("account", userView.account);

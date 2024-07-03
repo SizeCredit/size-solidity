@@ -66,14 +66,13 @@ contract PoolMock is Ownable {
 
     function supply(address asset, uint256 amount, address onBehalfOf, uint16) external {
         Data memory data = datas[asset];
-        IERC20Metadata(asset).transferFrom(msg.sender, address(this), amount);
+        IERC20Metadata(asset).safeTransferFrom(msg.sender, address(data.aToken), amount);
         data.aToken.mint(address(this), onBehalfOf, amount, data.reserveIndex);
     }
 
     function withdraw(address asset, uint256 amount, address to) external returns (uint256) {
         Data memory data = datas[asset];
-        data.aToken.burn(msg.sender, address(data.aToken), amount, data.reserveIndex);
-        IERC20Metadata(asset).safeTransfer(to, amount);
+        data.aToken.burn(msg.sender, to, amount, data.reserveIndex);
         return amount;
     }
 

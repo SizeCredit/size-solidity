@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 
@@ -56,6 +57,8 @@ contract WithdrawTest is BaseTest {
 
     function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
         _updateConfig("borrowATokenCap", type(uint256).max);
+        IAToken aToken =
+            IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
 
         valueUSDC = bound(valueUSDC, 1, type(uint96).max);
         valueWETH = bound(valueWETH, 1, type(uint256).max);
@@ -72,13 +75,13 @@ contract WithdrawTest is BaseTest {
         size.deposit(DepositParams({token: address(usdc), amount: valueUSDC, to: alice}));
         size.deposit(DepositParams({token: address(weth), amount: valueWETH, to: alice}));
 
-        assertEq(usdc.balanceOf(address(variablePool)), valueUSDC);
+        assertEq(usdc.balanceOf(address(aToken)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), valueWETH);
 
         size.withdraw(WithdrawParams({token: address(usdc), amount: valueUSDC, to: bob}));
         size.withdraw(WithdrawParams({token: address(weth), amount: valueWETH, to: bob}));
 
-        assertEq(usdc.balanceOf(address(variablePool)), 0);
+        assertEq(usdc.balanceOf(address(aToken)), 0);
         assertEq(usdc.balanceOf(address(bob)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), 0);
         assertEq(weth.balanceOf(address(bob)), valueWETH);
@@ -90,6 +93,8 @@ contract WithdrawTest is BaseTest {
         uint256 index
     ) public {
         _updateConfig("borrowATokenCap", type(uint256).max);
+        IAToken aToken =
+            IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
         index = bound(index, WadRayMath.RAY, WadRayMath.RAY * 2);
         _setLiquidityIndex(index);
 
@@ -108,13 +113,13 @@ contract WithdrawTest is BaseTest {
         size.deposit(DepositParams({token: address(usdc), amount: valueUSDC, to: alice}));
         size.deposit(DepositParams({token: address(weth), amount: valueWETH, to: alice}));
 
-        assertEq(usdc.balanceOf(address(variablePool)), valueUSDC);
+        assertEq(usdc.balanceOf(address(aToken)), valueUSDC);
         assertEq(weth.balanceOf(address(size)), valueWETH);
 
         size.withdraw(WithdrawParams({token: address(usdc), amount: valueUSDC, to: bob}));
         size.withdraw(WithdrawParams({token: address(weth), amount: valueWETH, to: bob}));
 
-        assertEqApprox(usdc.balanceOf(address(variablePool)), 0, 1);
+        assertEqApprox(usdc.balanceOf(address(aToken)), 0, 1);
         assertEqApprox(usdc.balanceOf(address(bob)), valueUSDC, 1);
         assertEq(weth.balanceOf(address(size)), 0);
         assertEq(weth.balanceOf(address(bob)), valueWETH);
@@ -130,6 +135,25 @@ contract WithdrawTest is BaseTest {
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
         size.withdraw(WithdrawParams({token: address(weth), amount: 150e18, to: bob}));
+    }
+
+    function test_Withdraw_user_can_always_withdraw_cash_regardless_of_underwater() public {
+        _setPrice(1e18);
+        _deposit(alice, usdc, 150e6);
+        _deposit(bob, weth, 150e18);
+        _deposit(bob, usdc, 1000e6);
+        _buyCreditLimit(alice, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0));
+        _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, 12 days, false);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, bob, 0, 1.5e18));
+        vm.prank(bob);
+        size.withdraw(WithdrawParams({token: address(weth), amount: 150e18, to: bob}));
+
+        _setPrice(0.01e18);
+
+        vm.prank(bob);
+        size.withdraw(WithdrawParams({token: address(usdc), amount: type(uint256).max, to: bob}));
+        assertEq(usdc.balanceOf(address(bob)), 1000e6 + 50e6);
     }
 
     function test_Withdraw_withdraw_everything_general() public {
@@ -206,7 +230,7 @@ contract WithdrawTest is BaseTest {
 
         _deposit(alice, usdc, 100e6);
         _deposit(alice, weth, 160e18);
-        _sellCreditLimit(alice, 1e18, 12 days);
+        _sellCreditLimit(alice, block.timestamp + 365 days, 1e18, 12 days);
         _buyCreditMarket(alice, alice, 100e6, 12 days);
         _withdraw(alice, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());
@@ -218,7 +242,7 @@ contract WithdrawTest is BaseTest {
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 160e18);
-        _sellCreditLimit(bob, 1e18, 12 days);
+        _sellCreditLimit(bob, block.timestamp + 365 days, 1e18, 12 days);
         _buyCreditMarket(alice, bob, 100e6, 12 days);
         _withdraw(bob, usdc, 10e6);
         assertLt(size.data().borrowAToken.totalSupply(), size.data().debtToken.totalSupply());

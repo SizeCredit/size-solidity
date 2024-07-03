@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {Asserts} from "@chimera/Asserts.sol";
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 import {UserView} from "@src/SizeView.sol";
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
@@ -57,6 +58,7 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
     }
 
     function __snapshot(Vars storage vars, uint256 positionId) internal {
+        IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
         vars.sig = msg.sig;
         vars.debtPositionId = RESERVED_ID;
         vars.creditPositionId = RESERVED_ID;
@@ -91,7 +93,7 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         vars.senderCollateralAmount = weth.balanceOf(sender);
         vars.senderBorrowAmount = usdc.balanceOf(sender);
         vars.sizeCollateralAmount = weth.balanceOf(address(size));
-        vars.sizeBorrowAmount = usdc.balanceOf(address(variablePool));
+        vars.sizeBorrowAmount = usdc.balanceOf(address(aToken));
         (vars.debtPositionsCount, vars.creditPositionsCount) = size.getPositionsCount();
         vars.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowATokenBalance;
         vars.totalDebtAmount = size.data().debtToken.totalSupply();

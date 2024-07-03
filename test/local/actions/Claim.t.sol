@@ -32,6 +32,7 @@ contract ClaimTest is BaseTest {
     }
 
     function test_Claim_claim_of_exited_loan_gets_credit_back() public {
+        _updateConfig("fragmentationFee", 1e6);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 120e6);
         _deposit(bob, weth, 100e18);

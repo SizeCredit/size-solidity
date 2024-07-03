@@ -9,5 +9,6 @@ abstract contract Bounds {
     uint256 internal MAX_PRICE = 20_000e18;
     uint256 internal MAX_LIQUIDITY_INDEX_INCREASE_PERCENT = 1.1e18;
     uint256 internal MAX_PERCENT = 10 * 1e18;
+    uint256 internal MAX_PERCENT_SWAP_FEE_APR = 1 * 1e18;
     uint256 internal PERCENTAGE_OLD_CREDIT = 0.6e18;
 }

@@ -1,21 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Math} from "@src/libraries/Math.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
-import {PERCENT} from "@src/libraries/Math.sol";
 
 import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
-import {Vars} from "@test/BaseTest.sol";
-import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract BuyCreditMarketTest is BaseTest {
     function test_BuyCreditMarket_validation() public {
+        _updateConfig("fragmentationFee", 1e6);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -24,10 +21,10 @@ contract BuyCreditMarketTest is BaseTest {
         _deposit(candy, usdc, 100e6);
         _deposit(james, weth, 100e18);
         _deposit(james, usdc, 100e6);
-        _sellCreditLimit(alice, 0.03e18, 10 days);
-        _sellCreditLimit(bob, 0.03e18, 10 days);
-        _sellCreditLimit(candy, 0.03e18, 10 days);
-        _sellCreditLimit(james, 0.03e18, 365 days);
+        _sellCreditLimit(alice, block.timestamp + 365 days, 0.03e18, 10 days);
+        _sellCreditLimit(bob, block.timestamp + 365 days, 0.03e18, 10 days);
+        _sellCreditLimit(candy, block.timestamp + 365 days, 0.03e18, 10 days);
+        _sellCreditLimit(james, block.timestamp + 365 days, 0.03e18, 365 days);
         uint256 debtPositionId = _buyCreditMarket(alice, candy, RESERVED_ID, 40e6, 10 days, false);
 
         uint256 deadline = block.timestamp;
@@ -49,7 +46,7 @@ contract BuyCreditMarketTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 0, 5e6));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: alice,
@@ -81,7 +78,9 @@ contract BuyCreditMarketTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 1e6, size.riskConfig().minimumCreditBorrowAToken
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                1e6,
+                size.riskConfig().minimumCreditBorrowAToken
             )
         );
         size.buyCreditMarket(
@@ -159,8 +158,8 @@ contract BuyCreditMarketTest is BaseTest {
         );
         vm.stopPrank();
 
-        _sellCreditLimit(bob, 0, 365 days);
-        _sellCreditLimit(candy, 0, 365 days);
+        _sellCreditLimit(bob, block.timestamp + 365 days, 0, 365 days);
+        _sellCreditLimit(candy, block.timestamp + 365 days, 0, 365 days);
         uint256 debtPositionId2 = _buyCreditMarket(alice, candy, RESERVED_ID, 10e6, 365 days, false);
         creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _repay(candy, debtPositionId2);
@@ -185,5 +184,28 @@ contract BuyCreditMarketTest is BaseTest {
             })
         );
         vm.stopPrank();
+
+        vm.warp(block.timestamp + 123 days);
+
+        _sellCreditLimit(james, block.timestamp + 30 days, 0.03e18, 120 days);
+        vm.prank(candy);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector,
+                block.timestamp + 120 days,
+                block.timestamp + 30 days
+            )
+        );
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: james,
+                creditPositionId: RESERVED_ID,
+                amount: 10e6,
+                tenor: 120 days,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: exactAmountIn
+            })
+        );
     }
 }

@@ -11,6 +11,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 contract SellCreditMarketValidationTest is BaseTest {
     function test_SellCreditMarket_validation() public {
+        _updateConfig("fragmentationFee", 1e6);
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -50,7 +52,7 @@ contract SellCreditMarketValidationTest is BaseTest {
             })
         );
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 0, 5e6));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,
@@ -99,7 +101,9 @@ contract SellCreditMarketValidationTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, 1e6, size.riskConfig().minimumCreditBorrowAToken
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                1.03e6,
+                size.riskConfig().minimumCreditBorrowAToken
             )
         );
         size.sellCreditMarket(

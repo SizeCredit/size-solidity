@@ -9,14 +9,14 @@ import {Vars} from "@test/BaseTest.sol";
 
 import {CREDIT_POSITION_ID_START, CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT, YEAR} from "@src/libraries/Math.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
 contract SellCreditMarketTest is BaseTest {
-    using OfferLibrary for LoanOffer;
+    using OfferLibrary for LimitOrder;
 
     uint256 private constant MAX_RATE = 2e18;
     uint256 private constant MAX_TENOR = 365 days * 2;
@@ -328,7 +328,9 @@ contract SellCreditMarketTest is BaseTest {
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, amount, size.riskConfig().minimumCreditBorrowAToken
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                amount + 1,
+                size.riskConfig().minimumCreditBorrowAToken
             )
         );
         size.sellCreditMarket(
@@ -361,7 +363,7 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(bob, usdc, 200e6);
         _deposit(candy, usdc, 200e6);
 
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(365 days, 0.2e18));
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.2e18));
 
         uint256 debtPositionId = _buyCreditMarket(bob, alice, 100e6, 365 days, true);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -387,7 +389,7 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(bob, usdc, 200e6);
         _deposit(candy, usdc, 200e6);
 
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(365 days, 0.2e18));
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.2e18));
 
         uint256 debtPositionId = _buyCreditMarket(bob, alice, 100e6, 365 days, true);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -402,7 +404,8 @@ contract SellCreditMarketTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + 50e6);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance - 50e6 - 0.5e6 - 5e6);
+        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance - 50e6 - 0.555556e6 - 5e6);
+        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + 0.555556e6 + 5e6);
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountIn_properties(
@@ -594,7 +597,7 @@ contract SellCreditMarketTest is BaseTest {
                     size.getCreditPositionsByDebtPositionId(debtPositionId)[size.getCreditPositionsByDebtPositionId(
                         debtPositionId
                     ).length - 1].credit,
-                    1e6
+                    0.00001e6
                 );
             }
             assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + V2);
