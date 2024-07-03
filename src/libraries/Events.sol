@@ -81,7 +81,8 @@ library Events {
         address indexed lender,
         uint256 indexed debtPositionId,
         uint256 exitPositionId,
-        uint256 credit
+        uint256 credit,
+        bool forSale
     );
 
     // updates

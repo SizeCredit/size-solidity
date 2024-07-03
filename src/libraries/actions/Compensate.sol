@@ -141,7 +141,8 @@ library Compensate {
                 ? state.data.nextCreditPositionId - 1
                 : params.creditPositionToCompensateId,
             lender: creditPositionWithDebtToRepay.lender,
-            credit: amountToCompensate
+            credit: amountToCompensate,
+            forSale: creditPositionWithDebtToRepay.forSale
         });
         if (exiterCreditRemaining > 0) {
             // charge the fragmentation fee in collateral tokens, capped by the user balance
