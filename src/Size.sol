@@ -50,6 +50,7 @@ import {Events} from "@src/libraries/Events.sol";
 import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
