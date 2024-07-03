@@ -5,7 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -15,7 +15,7 @@ import {BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
 import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
 contract BuyCreditLimitTest is BaseTest {
-    using OfferLibrary for LoanOffer;
+    using OfferLibrary for LimitOrder;
 
     function test_BuyCreditLimit_buyCreditLimit_adds_loanOffer_to_orderbook() public {
         _deposit(alice, weth, 100e18);
@@ -38,7 +38,7 @@ contract BuyCreditLimitTest is BaseTest {
         tenors[1] = 60 days;
         int256[] memory aprs = new int256[](2);
         aprs[0] = 0.15e18;
-        aprs[0] = 0.12e18;
+        aprs[1] = 0.12e18;
 
         vm.prank(alice);
         size.buyCreditLimit(

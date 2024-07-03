@@ -180,14 +180,22 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
         }
     }
 
-    function sellCreditLimit(uint256 yieldCurveSeed) public getSender checkExpectedErrors(SELL_CREDIT_LIMIT_ERRORS) {
+    function sellCreditLimit(uint256 maxDueDate, uint256 yieldCurveSeed)
+        public
+        getSender
+        checkExpectedErrors(SELL_CREDIT_LIMIT_ERRORS)
+    {
         __before();
 
+        maxDueDate = between(maxDueDate, block.timestamp, block.timestamp + MAX_DURATION);
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
         hevm.prank(sender);
         (success, returnData) = address(size).call(
-            abi.encodeCall(size.sellCreditLimit, SellCreditLimitParams({curveRelativeTime: curveRelativeTime}))
+            abi.encodeCall(
+                size.sellCreditLimit,
+                SellCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
+            )
         );
         if (success) {
             __after();
@@ -496,7 +504,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
             MAX_AMOUNT_USDC,
             MAX_DURATION,
             MAX_DURATION,
-            MAX_PERCENT,
+            MAX_PERCENT_SWAP_FEE_APR,
             MAX_AMOUNT_USDC,
             MAX_PERCENT,
             MAX_PERCENT,

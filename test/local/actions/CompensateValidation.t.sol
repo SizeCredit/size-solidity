@@ -12,6 +12,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 contract CompensateValidationTest is BaseTest {
     function test_Compensate_validation() public {
+        _updateConfig("fragmentationFee", 1e6);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);

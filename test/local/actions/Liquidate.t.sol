@@ -34,6 +34,34 @@ contract LiquidateTest is BaseTest {
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
     }
 
+    function test_Liquidate_liquidate_pays_liquidator_reward() public {
+        _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
+
+        _deposit(alice, usdc, 80e6);
+        _deposit(bob, weth, 150e18);
+        _deposit(liquidator, usdc, 1_000e6);
+
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.25e18));
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 80e6, 365 days, false);
+
+        assertEq(_state().bob.debtBalance, 100e6);
+
+        _setPrice(0.8e18);
+        assertEq(size.collateralRatio(bob), 1.2e18);
+
+        Vars memory _before = _state();
+
+        _liquidate(liquidator, debtPositionId);
+
+        Vars memory _after = _state();
+
+        assertEq(
+            _after.liquidator.collateralTokenBalance,
+            _before.liquidator.collateralTokenBalance + Math.mulDivUp(105e18, 1e18, 0.8e18)
+        );
+    }
+
     function test_Liquidate_liquidate_reduces_borrower_debt() public {
         _setPrice(1e18);
 
@@ -107,7 +135,7 @@ contract LiquidateTest is BaseTest {
         _updateConfig("crLiquidation", 1.2e18);
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
-        _deposit(bob, weth, 180e18);
+        _deposit(bob, weth, 150e18);
         _deposit(candy, usdc, 100e6);
         _deposit(liquidator, usdc, 1_000e6);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
@@ -120,19 +148,20 @@ contract LiquidateTest is BaseTest {
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
         assertGt(size.getDebtPosition(debtPositionId).futureValue, 0);
-
-        uint256 assignedCollateral = _before.bob.collateralTokenBalance;
-        assertEq(assignedCollateral, 180e18);
+        assertTrue(!size.isUserUnderwater(bob));
+        assertEq(size.collateralRatio(bob), 1.5e18);
 
         uint256 debtInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(futureValue);
         uint256 liquidatorReward = Math.min(
-            _state().bob.collateralTokenBalance - debtInCollateralToken,
-            Math.mulDivUp(futureValue, size.feeConfig().liquidationRewardPercent, PERCENT)
+            _before.bob.collateralTokenBalance - debtInCollateralToken,
+            Math.mulDivUp(debtInCollateralToken, size.feeConfig().liquidationRewardPercent, PERCENT)
         );
         uint256 liquidatorProfitCollateralToken = debtInCollateralToken + liquidatorReward;
 
-        uint256 protocolSplit = (assignedCollateral - liquidatorProfitCollateralToken)
-            * size.feeConfig().overdueCollateralProtocolPercent / PERCENT;
+        uint256 protocolSplit = Math.min(
+            _before.bob.collateralTokenBalance - liquidatorProfitCollateralToken,
+            debtInCollateralToken * (size.riskConfig().crLiquidation - PERCENT) / PERCENT
+        ) * size.feeConfig().overdueCollateralProtocolPercent / PERCENT;
 
         assertTrue(!size.isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
@@ -162,6 +191,7 @@ contract LiquidateTest is BaseTest {
 
     function test_Liquidate_liquidate_overdue_very_high_CR() public {
         _updateConfig("minTenor", 1);
+        _updateConfig("swapFeeAPR", 0);
         _setPrice(1e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 1000e18);
@@ -176,22 +206,21 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
-        assertGt(size.getDebtPosition(debtPositionId).futureValue, 0);
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, 100e6);
+        assertEq(size.collateralRatio(bob), 10e18);
 
         uint256 assignedCollateral = _before.bob.collateralTokenBalance;
 
         uint256 debtInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(futureValue);
         uint256 liquidatorReward = Math.min(
             _state().bob.collateralTokenBalance - debtInCollateralToken,
-            Math.mulDivUp(futureValue, size.feeConfig().liquidationRewardPercent, PERCENT)
+            Math.mulDivUp(debtInCollateralToken, size.feeConfig().liquidationRewardPercent, PERCENT)
         );
         uint256 liquidatorProfitCollateralToken = debtInCollateralToken + liquidatorReward;
 
         uint256 collateralRemainder = Math.min(
             assignedCollateral - liquidatorProfitCollateralToken,
-            Math.mulDivDown(
-                size.debtTokenAmountToCollateralTokenAmount(futureValue), size.riskConfig().crLiquidation, PERCENT
-            )
+            Math.mulDivDown(debtInCollateralToken, size.riskConfig().crLiquidation - PERCENT, PERCENT)
         );
 
         uint256 protocolSplit = collateralRemainder * size.feeConfig().overdueCollateralProtocolPercent / PERCENT;
@@ -210,6 +239,8 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance + protocolSplit
         );
+        assertEq(liquidatorProfitCollateralToken, (100 + 5) * 1e18);
+        assertEq(protocolSplit, 0.3e18, 0.01e18 * 30e18 / 1e18);
         assertEq(
             _after.liquidator.collateralTokenBalance,
             _before.liquidator.collateralTokenBalance + liquidatorProfitCollateralToken
@@ -266,7 +297,7 @@ contract LiquidateTest is BaseTest {
         uint256 debtInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(futureValue);
         uint256 liquidatorReward = Math.min(
             _state().bob.collateralTokenBalance - debtInCollateralToken,
-            Math.mulDivUp(futureValue, size.feeConfig().liquidationRewardPercent, PERCENT)
+            Math.mulDivUp(debtInCollateralToken, size.feeConfig().liquidationRewardPercent, PERCENT)
         );
         uint256 liquidatorProfitCollateralToken = debtInCollateralToken + liquidatorReward;
 

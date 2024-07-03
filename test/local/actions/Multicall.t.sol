@@ -57,7 +57,11 @@ contract MulticallTest is BaseTest {
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
         data[1] = abi.encodeCall(
-            size.sellCreditLimit, SellCreditLimitParams({curveRelativeTime: YieldCurveHelper.flatCurve()})
+            size.sellCreditLimit,
+            SellCreditLimitParams({
+                maxDueDate: block.timestamp + 365 days,
+                curveRelativeTime: YieldCurveHelper.flatCurve()
+            })
         );
         size.multicall{value: amount}(data);
 
@@ -204,5 +208,22 @@ contract MulticallTest is BaseTest {
         size.multicall(data);
 
         assertEq(_state().bob.debtBalance, 0);
+    }
+
+    function test_Multicall_multicall_cannot_bypass_cap_if_it_is_not_to_reduce_debt() public {
+        _setPrice(1e18);
+        uint256 cap = 100e6;
+        _mint(address(usdc), alice, cap + 1);
+        _approve(alice, address(usdc), address(size), cap + 1);
+        _updateConfig("borrowATokenCap", cap);
+
+        // should not go over cap
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: cap + 1, to: alice}));
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE.selector, cap + 1, 0)
+        );
+        size.multicall(data);
     }
 }

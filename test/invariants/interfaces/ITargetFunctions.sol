@@ -14,7 +14,7 @@ interface ITargetFunctions {
         bool exactAmountIn
     ) external;
 
-    function sellCreditLimit(uint256 yieldCurveSeed) external;
+    function sellCreditLimit(uint256 maxDueDate, uint256 yieldCurveSeed) external;
 
     function buyCreditMarket(
         address borrower,

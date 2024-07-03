@@ -30,7 +30,12 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
             [int256(0.03e18), int256(0.03e18)],
             [uint256(365 days), uint256(365 days * 2)]
         );
-        _sellCreditLimit(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
+        _sellCreditLimit(
+            candy,
+            block.timestamp + 365 days,
+            [int256(0.03e18), int256(0.03e18)],
+            [uint256(365 days), uint256(365 days * 2)]
+        );
         uint256 tenor = 365 days * 2;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, tenor, false);
         uint256 minimumCollateralProfit = 0;
@@ -62,7 +67,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         );
 
         YieldCurve memory empty;
-        _sellCreditLimit(candy, empty);
+        _sellCreditLimit(candy, 0, empty);
 
         vm.prank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, candy));
@@ -81,7 +86,12 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         uint256 minTenor = size.riskConfig().minTenor;
         uint256 maxTenor = size.riskConfig().maxTenor;
 
-        _sellCreditLimit(candy, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]);
+        _sellCreditLimit(
+            candy,
+            block.timestamp + 365 days,
+            [int256(0.03e18), int256(0.03e18)],
+            [uint256(365 days), uint256(365 days * 2)]
+        );
 
         vm.prank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 0, minTenor, maxTenor));
