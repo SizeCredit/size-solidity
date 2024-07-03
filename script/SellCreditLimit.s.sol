@@ -32,7 +32,8 @@ contract SellCreditLimitScript is Script, Logger {
         YieldCurve memory curveRelativeTime =
             YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
 
-        SellCreditLimitParams memory params = SellCreditLimitParams({curveRelativeTime: curveRelativeTime});
+        SellCreditLimitParams memory params =
+            SellCreditLimitParams({maxDueDate: block.timestamp + 365 days, curveRelativeTime: curveRelativeTime});
 
         vm.startBroadcast(deployerPrivateKey);
         size.sellCreditLimit(params);
