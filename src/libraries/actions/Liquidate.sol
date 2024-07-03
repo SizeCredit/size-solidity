@@ -20,6 +20,8 @@ struct LiquidateParams {
     uint256 debtPositionId;
     // The minimum profit in collateral tokens expected by the liquidator
     uint256 minimumCollateralProfit;
+    // The deadline for the transaction
+    uint256 deadline;
 }
 
 /// @title Liquidate
@@ -51,6 +53,11 @@ library Liquidate {
 
         // validate minimumCollateralProfit
         // N/A
+
+        // validate deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
     }
 
     /// @notice Validates the minimum profit in collateral tokens expected by the liquidator
