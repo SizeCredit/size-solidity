@@ -99,13 +99,13 @@ library Liquidate {
             );
             liquidatorProfitCollateralToken = debtInCollateralToken + liquidatorReward;
 
-            // split the remaining collateral between the protocol and the borrower, capped by the crLiquidation
+            // the protocol earns a portion of the collateral remainder
             uint256 collateralRemainder = assignedCollateral - liquidatorProfitCollateralToken;
 
-            // cap the collateral remainder to the liquidation collateral ratio
+            // cap the collateral remainder to FV * (1 - crLiquidation)
             //   otherwise, the split for non-underwater overdue loans could be too much
             uint256 collateralRemainderCap =
-                Math.mulDivDown(debtInCollateralToken, state.riskConfig.crLiquidation, PERCENT);
+                Math.mulDivDown(debtInCollateralToken, state.riskConfig.crLiquidation - PERCENT, PERCENT);
 
             collateralRemainder = Math.min(collateralRemainder, collateralRemainderCap);
 
