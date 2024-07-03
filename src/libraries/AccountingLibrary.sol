@@ -131,7 +131,7 @@ library AccountingLibrary {
     ///      The credit amount cannot be reduced below the minimum credit.
     ///      This operation breaks the initial sum of credit equal to the debt position future value.
     ///        If the loan is in REPAID status, this is expected, as lenders grdually claim their credit.
-    ///        If the loan is in ACTIVE status, a debt reduction must be performed together with a credit reduction (See reduceDebtAndCredit).
+    ///        If the loan is in ACTIVE/OVERDUE status, a debt reduction must be performed together with a credit reduction (See reduceDebtAndCredit).
     /// @param state The state object
     /// @param creditPositionId The credit position id
     function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount) public {
