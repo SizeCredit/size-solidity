@@ -17,7 +17,7 @@ Target networks:
 
 - [2024-03-19 - LightChaserV3](./audits/2024-03-19-LightChaserV3.md)
 - [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
-- [2024-05-30 - Spearbit (draft)](./audits/2024-05-30-Spearbit-draft.pdf)
+- [2024-06-08 - Spearbit](./audits/2024-06-08-Spearbit.pdf)
 
 ## Documentation
 
