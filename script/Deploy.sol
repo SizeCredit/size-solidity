@@ -15,6 +15,7 @@ import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {Size} from "@src/Size.sol";
 
+import {NetworkParams} from "@script/Networks.sol";
 import {
     Initialize,
     InitializeDataParams,
@@ -76,32 +77,27 @@ abstract contract Deploy {
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
 
-    function setupProduction(
-        address _owner,
-        address _feeRecipient,
-        address _weth,
-        address _usdc,
-        address _variablePool,
-        address _wethAggregator,
-        address _usdcAggregator,
-        address _sequencerUptimeFeed
-    ) internal {
-        variablePool = IPool(_variablePool);
+    function setupProduction(address _owner, address _feeRecipient, NetworkParams memory _networkParams) internal {
+        variablePool = IPool(_networkParams.variablePool);
 
-        if (_wethAggregator == address(0) && _usdcAggregator == address(0)) {
+        if (_networkParams.wethAggregator == address(0) && _networkParams.usdcAggregator == address(0)) {
             priceFeed = new PriceFeedMock(_owner);
             PriceFeedMock(address(priceFeed)).setPrice(2468e18);
         } else {
             priceFeed = new PriceFeed(
-                _wethAggregator, _usdcAggregator, _sequencerUptimeFeed, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18
+                _networkParams.wethAggregator,
+                _networkParams.usdcAggregator,
+                _networkParams.sequencerUptimeFeed,
+                _networkParams.wethHeartbeat,
+                _networkParams.usdcHeartbeat
             );
         }
 
-        if (_variablePool == address(0)) {
+        if (_networkParams.variablePool == address(0)) {
             variablePool = IPool(address(new PoolMock()));
-            PoolMock(address(variablePool)).setLiquidityIndex(address(_usdc), WadRayMath.RAY);
+            PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.usdc), WadRayMath.RAY);
         } else {
-            variablePool = IPool(_variablePool);
+            variablePool = IPool(_networkParams.variablePool);
         }
 
         f = InitializeFeeConfigParams({
@@ -122,9 +118,9 @@ abstract contract Deploy {
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});
         d = InitializeDataParams({
-            weth: address(_weth),
-            underlyingCollateralToken: address(_weth),
-            underlyingBorrowToken: address(_usdc),
+            weth: address(_networkParams.weth),
+            underlyingCollateralToken: address(_networkParams.weth),
+            underlyingBorrowToken: address(_networkParams.usdc),
             variablePool: address(variablePool) // Aave v3
         });
         implementation = address(new Size());
