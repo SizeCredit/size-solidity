@@ -58,7 +58,7 @@ abstract contract Networks {
                 variablePool: 0xA238Dd80C259a72e81d7e4664a9801593F98d1c5,
                 wethAggregator: 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70,
                 usdcAggregator: 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B,
-                sequencerUptimeFeed: address(0),
+                sequencerUptimeFeed: 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433,
                 wethHeartbeat: 1200 * 1.1e18 / 1e18,
                 usdcHeartbeat: 86400 * 1.1e18 / 1e18
             });
