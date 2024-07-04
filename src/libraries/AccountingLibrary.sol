@@ -166,6 +166,8 @@ library AccountingLibrary {
     }
 
     /// @notice Get the swap fee for a given cash amount and tenor
+    /// @dev The intention for the swap fee is to for it to be charged on the "issuance value" of the credit and it is a predefined APR
+    ///      The issuance value is defined as the amount of credit sold discounted by the chosen rate
     /// @param state The state object
     /// @param cash The cash amount
     /// @param tenor The tenor
