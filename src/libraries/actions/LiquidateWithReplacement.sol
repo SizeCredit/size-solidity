@@ -55,7 +55,8 @@ library LiquidateWithReplacement {
         state.validateLiquidate(
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
-                minimumCollateralProfit: params.minimumCollateralProfit
+                minimumCollateralProfit: params.minimumCollateralProfit,
+                deadline: params.deadline
             })
         );
 
@@ -105,7 +106,8 @@ library LiquidateWithReplacement {
             state,
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
-                minimumCollateralProfit: params.minimumCollateralProfit
+                minimumCollateralProfit: params.minimumCollateralProfit,
+                deadline: params.deadline
             }),
             liquidatorProfitCollateralToken
         );
@@ -131,7 +133,8 @@ library LiquidateWithReplacement {
         liquidatorProfitCollateralToken = state.executeLiquidate(
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
-                minimumCollateralProfit: params.minimumCollateralProfit
+                minimumCollateralProfit: params.minimumCollateralProfit,
+                deadline: params.deadline
             })
         );
 
