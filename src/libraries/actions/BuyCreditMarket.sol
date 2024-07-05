@@ -117,10 +117,9 @@ library BuyCreditMarket {
     /// @notice Executes the buying of credit as a market order
     /// @param state The state
     /// @param params The input parameters for buying credit as a market order
-    /// @return cashAmountIn The amount of cash paid for the credit
     function executeBuyCreditMarket(State storage state, BuyCreditMarketParams memory params)
         external
-        returns (uint256 cashAmountIn)
+        returns (uint256 netCashAmountIn)
     {
         emit Events.BuyCreditMarket(
             params.borrower, params.creditPositionId, params.tenor, params.amount, params.exactAmountIn
@@ -150,6 +149,7 @@ library BuyCreditMarket {
             tenor
         );
 
+        uint256 cashAmountIn;
         uint256 creditAmountOut;
         uint256 fees;
 
@@ -195,5 +195,7 @@ library BuyCreditMarket {
 
         state.data.borrowAToken.transferFrom(msg.sender, borrower, cashAmountIn - fees);
         state.data.borrowAToken.transferFrom(msg.sender, state.feeConfig.feeRecipient, fees);
+
+        return cashAmountIn - fees;
     }
 }
