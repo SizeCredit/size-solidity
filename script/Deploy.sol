@@ -45,6 +45,7 @@ abstract contract Deploy {
         weth = new WETH();
         usdc = new USDC(owner);
         variablePool = IPool(address(new PoolMock()));
+        PoolMock(address(variablePool)).setLiquidityIndex(address(weth), WadRayMath.RAY);
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -95,6 +96,7 @@ abstract contract Deploy {
 
         if (_networkParams.variablePool == address(0)) {
             variablePool = IPool(address(new PoolMock()));
+            PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.weth), WadRayMath.RAY);
             PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.usdc), WadRayMath.RAY);
         } else {
             variablePool = IPool(_networkParams.variablePool);

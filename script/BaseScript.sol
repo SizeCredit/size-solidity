@@ -82,7 +82,7 @@ abstract contract BaseScript is Script {
 
         size = SizeMock(abi.decode(json.parseRaw(".deployments.Size-proxy"), (address)));
         priceFeed = IPriceFeed(abi.decode(json.parseRaw(".deployments.PriceFeed"), (address)));
-        variablePool = IPool(abi.decode(json.parseRaw(".deployments.VariablePool"), (address)));
+        variablePool = IPool(abi.decode(json.parseRaw(".parameters.variablePool"), (address)));
         usdc = USDC(abi.decode(json.parseRaw(".parameters.usdc"), (address)));
         weth = WETH(abi.decode(json.parseRaw(".parameters.weth"), (address)));
         owner = address(abi.decode(json.parseRaw(".parameters.owner"), (address)));

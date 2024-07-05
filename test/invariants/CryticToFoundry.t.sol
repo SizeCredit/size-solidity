@@ -39,14 +39,6 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts, Logger {
         return;
     }
 
-    function _checkProperties() internal {
-        assertTrue(property_LOAN());
-        assertTrue(property_UNDERWATER());
-        assertTrue(property_TOKENS());
-        assertTrue(property_SOLVENCY());
-        assertTrue(property_FEES());
-    }
-
     function test_CryticToFoundry_01() public {
         deposit(address(0x1fffffffe), 4);
     }

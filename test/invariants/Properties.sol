@@ -176,4 +176,12 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
 
         return true;
     }
+
+    function _checkProperties() internal {
+        property_LOAN();
+        property_UNDERWATER();
+        property_TOKENS();
+        property_SOLVENCY();
+        property_FEES();
+    }
 }
