@@ -50,6 +50,7 @@ import {Events} from "@src/libraries/Events.sol";
 import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 
 bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
@@ -105,6 +106,16 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+
+    /// @notice Validate that the user has not put themselves in underwater state
+    modifier shouldNotEndUpUnderwater() {
+        bool isUserUnderwaterBefore = state.isUserUnderwater(msg.sender);
+        _;
+        bool isUserUnderwaterAfter = state.isUserUnderwater(msg.sender);
+        if (!isUserUnderwaterBefore && isUserUnderwaterAfter) {
+            revert Errors.USER_IS_UNDERWATER(msg.sender, state.collateralRatio(msg.sender));
+        }
+    }
 
     /// @inheritdoc ISizeAdmin
     function updateConfig(UpdateConfigParams calldata params)
@@ -243,10 +254,15 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function compensate(CompensateParams calldata params) external payable override(ISize) whenNotPaused {
+    function compensate(CompensateParams calldata params)
+        external
+        payable
+        override(ISize)
+        whenNotPaused
+        shouldNotEndUpUnderwater
+    {
         state.validateCompensate(params);
         state.executeCompensate(params);
-        state.validateUserIsNotUnderwater(msg.sender);
     }
 
     /// @inheritdoc ISize
