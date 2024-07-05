@@ -73,8 +73,8 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
     }
 
     function property_TOKENS() public returns (bool) {
-        (, address feeRecipient) = size.getCryticVariables();
-        address[6] memory users = [USER1, USER2, USER3, address(size), address(variablePool), address(feeRecipient)];
+        address[6] memory users =
+            [USER1, USER2, USER3, address(size), address(variablePool), address(_before.feeRecipient.account)];
 
         uint256 borrowATokenBalance;
         uint256 collateralTokenBalance;

@@ -62,7 +62,6 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         vars.sig = msg.sig;
         vars.debtPositionId = RESERVED_ID;
         vars.creditPositionId = RESERVED_ID;
-        (, address feeRecipient) = size.getCryticVariables();
         CreditPosition memory c;
         DebtPosition memory d;
         UserView memory e;
@@ -84,7 +83,7 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
             vars.loanStatus = size.getLoanStatus(positionId);
         }
         vars.sender = size.getUserView(sender);
-        vars.feeRecipient = size.getUserView(feeRecipient);
+        vars.feeRecipient = size.getUserView(size.feeConfig().feeRecipient);
         vars.isSenderUnderwater = size.isUserUnderwater(sender);
         address[3] memory users = [USER1, USER2, USER3];
         for (uint256 i = 0; i < users.length; i++) {

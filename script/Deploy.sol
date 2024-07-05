@@ -34,11 +34,11 @@ abstract contract Deploy {
     IPriceFeed internal priceFeed;
     WETH internal weth;
     USDC internal usdc;
+    IPool internal variablePool;
     InitializeFeeConfigParams internal f;
     InitializeRiskConfigParams internal r;
     InitializeOracleParams internal o;
     InitializeDataParams internal d;
-    IPool internal variablePool;
 
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
@@ -128,5 +128,15 @@ abstract contract Deploy {
         implementation = address(new Size());
         proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
         size = SizeMock(payable(proxy));
+    }
+
+    function setupFork(address _size, address _priceFeed, address _variablePool, address _weth, address _usdc)
+        internal
+    {
+        size = SizeMock(_size);
+        priceFeed = IPriceFeed(_priceFeed);
+        variablePool = IPool(_variablePool);
+        weth = WETH(payable(_weth));
+        usdc = USDC(_usdc);
     }
 }

@@ -33,8 +33,8 @@ abstract contract BaseScript is Script {
 
     string root;
     string path;
-    Deployment[] public deployments;
-    Parameter[] public parameters;
+    Deployment[] internal deployments;
+    Parameter[] internal parameters;
 
     modifier broadcast() {
         vm.startBroadcast();
@@ -88,7 +88,7 @@ abstract contract BaseScript is Script {
         owner = address(abi.decode(json.parseRaw(".parameters.owner"), (address)));
     }
 
-    function getCommitHash() public returns (string memory) {
+    function getCommitHash() internal returns (string memory) {
         string[] memory inputs = new string[](4);
 
         inputs[0] = "git";
@@ -100,7 +100,7 @@ abstract contract BaseScript is Script {
         return string(res);
     }
 
-    function findChainName() public returns (string memory) {
+    function findChainName() internal returns (string memory) {
         uint256 thisChainId = block.chainid;
         string[2][] memory allRpcUrls = vm.rpcUrls();
         for (uint256 i = 0; i < allRpcUrls.length; i++) {
