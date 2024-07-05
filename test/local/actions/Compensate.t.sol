@@ -9,6 +9,7 @@ import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
 
+import {Math} from "@src/libraries/Math.sol";
 import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
@@ -444,14 +445,15 @@ contract CompensateTest is BaseTest {
         uint256 tenor = 73 days;
         uint256 dueDate = startDate + 73 days;
         uint256 amount = 1000e6;
-        uint256 swapFee1 = size.getSwapFee(amount, tenor);
         uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, amount, tenor, false);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
+        uint256 apr = size.getLoanOfferAPR(bob, tenor);
+        uint256 r = Math.aprToRatePerTenor(apr, tenor);
+        uint256 swapFee1 = size.getSwapFee(Math.mulDivUp(futureValue, 1e18, 1e18 + r), tenor);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         assertEq(_state().feeRecipient.borrowATokenBalance, swapFee1);
         assertEq(_state().alice.borrowATokenBalance, amount);
-
-        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         uint256 aliceCollateralBefore = _state().alice.collateralTokenBalance;
 

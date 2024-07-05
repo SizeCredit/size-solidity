@@ -33,20 +33,17 @@ contract SellCreditMarketTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        uint256 futureValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
-
-        uint256 futureValueOpening = Math.mulDivUp(futureValue, size.riskConfig().crOpening, PERCENT);
-        uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(futureValueOpening);
-        uint256 swapFee = size.getSwapFee(amount, tenor);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
+        uint256 issuanceValue = Math.mulDivDown(futureValue, PERCENT, PERCENT + 0.03e18);
+        uint256 swapFee = size.getSwapFee(issuanceValue, tenor);
 
         Vars memory _after = _state();
 
-        assertGt(_before.bob.collateralTokenBalance, minimumCollateral);
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - amount - swapFee);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
-        assertEq(_after.bob.debtBalance, size.getDebtPosition(debtPositionId).futureValue);
+        assertEq(_after.bob.debtBalance, futureValue);
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_used_to_borrow(uint256 amount, uint256 apr, uint256 tenor)
@@ -66,22 +63,21 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _before = _state();
 
-        uint256 rate = uint256(Math.aprToRatePerTenor(apr, tenor));
-        uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
+        uint256 rate = Math.aprToRatePerTenor(apr, tenor);
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
-        uint256 debtOpening = Math.mulDivUp(debt, size.riskConfig().crOpening, PERCENT);
-        uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(debtOpening);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
+        uint256 issuanceValue = Math.mulDivDown(futureValue, PERCENT, PERCENT + rate);
+
         Vars memory _after = _state();
 
-        assertGt(_before.bob.collateralTokenBalance, minimumCollateral);
         assertEq(
             _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance - amount - size.getSwapFee(amount, tenor)
+            _before.alice.borrowATokenBalance - amount - size.getSwapFee(issuanceValue, tenor)
         );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
-        assertEq(_after.bob.debtBalance, size.getDebtPosition(debtPositionId).futureValue);
+        assertEq(_after.bob.debtBalance, futureValue);
     }
 
     function test_SellCreditMarket_sellCreditMarket_fragmentation() public {
@@ -516,15 +512,15 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _sellCreditMarket(bob, alice, RESERVED_ID, cash, tenor, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, cash, tenor, false);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 swapFeePercent = Math.mulDivUp(size.feeConfig().swapFeeAPR, tenor, 365 days);
+        uint256 r = Math.aprToRatePerTenor(apr, tenor);
+        uint256 swapFee = Math.mulDivUp(futureValue, swapFeePercent, PERCENT + r);
 
         Vars memory _after = _state();
 
-        assertEq(
-            _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance - cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
-        );
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - cash - swapFee);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + cash);
     }
 

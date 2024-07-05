@@ -366,7 +366,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
     }
 
-    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountOut_parametric(
+    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountOut_specification(
         uint256 A1,
         uint256 A2,
         uint256 deltaT1,
@@ -457,7 +457,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
     }
 
-    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountIn_parametric(
+    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountIn_specification(
         uint256 V1,
         uint256 V2,
         uint256 deltaT1,
