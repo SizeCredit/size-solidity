@@ -9,6 +9,8 @@ import {Math} from "@src/libraries/Math.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
+import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
+
 struct WithdrawParams {
     // The token to withdraw
     address token;
@@ -25,6 +27,7 @@ struct WithdrawParams {
 /// @notice Contains the logic for withdrawing tokens from the protocol
 library Withdraw {
     using DepositTokenLibrary for State;
+    using RiskLibrary for State;
 
     function validateWithdraw(State storage state, WithdrawParams calldata params) external view {
         // validte msg.sender
@@ -61,6 +64,7 @@ library Withdraw {
             if (amount > 0) {
                 state.withdrawUnderlyingCollateralToken(msg.sender, params.to, amount);
             }
+            state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
         }
 
         emit Events.Withdraw(params.token, params.to, amount);
