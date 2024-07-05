@@ -124,11 +124,47 @@ jobs:
           ./script/prepare_crytic.sh
           ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
 
-  abi-coverage:
+  abi:
     strategy:
       fail-fast: true
 
-    name: ABI/Coverage
+    name: ABI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: ABI
+        run: |
+          forge build --build-info
+
+      - name: Archive ABI
+        uses: actions/upload-artifact@v4
+        with:
+          name: abi
+          path: |
+            out/Size.sol/Size.json
+            out/IPriceFeed.sol/IPriceFeed.json
+            out/IPool.sol/IPool.json
+            out/WETH.sol/WETH.json
+            out/USDC.sol/USDC.json
+            out/Errors.sol/Errors.json
+            out/Events.sol/Events.json
+
+  coverage:
+    strategy:
+      fail-fast: true
+
+    name: Coverage
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
@@ -154,24 +190,6 @@ jobs:
           ./script/update_readme_coverage.sh
           git add README.md
           git commit -m "Update coverage [skip ci]" || true
-
-      - name: ABI
-        run: |
-          forge build --build-info
-
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: abi
-          path: |
-            out/Size.sol/Size.json
-            out/PriceFeed.sol/PriceFeed.json
-            out/VariablePoolBorrowRateFeed.sol/VariablePoolBorrowRateFeed.json
-            out/PoolMock.sol/PoolMock.json
-            out/WETH.sol/WETH.json
-            out/USDC.sol/USDC.json
-            out/Errors.sol/Errors.json
-            out/Events.sol/Events.json
 
       - name: Push
         run: |
