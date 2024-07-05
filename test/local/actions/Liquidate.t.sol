@@ -97,6 +97,7 @@ contract LiquidateTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         uint256 amount = 15e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 365 days, false);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
 
         _setPrice(0.1e18);
 
@@ -107,7 +108,7 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _before = _state();
 
-        uint256 liquidatorProfit = _liquidate(liquidator, debtPositionId, 0);
+        uint256 liquidatorProfit = _liquidate(liquidator, debtPositionId);
 
         Vars memory _after = _state();
 
@@ -116,7 +117,7 @@ contract LiquidateTest is BaseTest {
         assertEq(
             _after.feeRecipient.borrowATokenBalance,
             _before.feeRecipient.borrowATokenBalance,
-            size.getSwapFee(amount, 365 days)
+            size.getSwapFee(Math.mulDivUp(futureValue, 1e18, 1.03e18), 365 days)
         );
         assertEq(
             _after.feeRecipient.collateralTokenBalance,

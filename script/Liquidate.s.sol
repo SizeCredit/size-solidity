@@ -16,7 +16,8 @@ contract LiquidateScript is Script, Logger {
 
         Size size = Size(payable(sizeContractAddress));
 
-        LiquidateParams memory params = LiquidateParams({debtPositionId: 0, minimumCollateralProfit: 0});
+        LiquidateParams memory params =
+            LiquidateParams({debtPositionId: 0, minimumCollateralProfit: 0, deadline: block.timestamp});
 
         vm.startBroadcast(deployerPrivateKey);
         size.liquidate(params);

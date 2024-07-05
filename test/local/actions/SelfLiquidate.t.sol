@@ -35,7 +35,7 @@ contract SelfLiquidateTest is BaseTest {
             size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).futureValue);
 
         vm.expectRevert();
-        _liquidate(liquidator, debtPositionId, debtInCollateralToken);
+        _liquidate(liquidator, debtPositionId, debtInCollateralToken, block.timestamp);
 
         Vars memory _before = _state();
 
@@ -133,7 +133,7 @@ contract SelfLiquidateTest is BaseTest {
             size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).futureValue);
 
         vm.expectRevert();
-        _liquidate(liquidator, debtPositionId, futureValueInCollateralToken);
+        _liquidate(liquidator, debtPositionId, futureValueInCollateralToken, block.timestamp);
 
         Vars memory _before = _state();
 

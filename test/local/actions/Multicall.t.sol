@@ -175,8 +175,9 @@ contract MulticallTest is BaseTest {
 
     function test_Multicall_multicall_bypasses_cap_if_it_is_to_reduce_debt() public {
         _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
         uint256 amount = 100e6;
-        uint256 cap = amount + size.getSwapFee(100e6, 365 days);
+        uint256 cap = amount;
         _updateConfig("borrowATokenCap", cap);
 
         _deposit(alice, usdc, cap);
