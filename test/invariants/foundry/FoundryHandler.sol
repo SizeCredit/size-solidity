@@ -2,9 +2,11 @@
 pragma solidity 0.8.23;
 
 import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
+
+import {SetupLocal} from "@test/invariants/SetupLocal.sol";
 import {TargetFunctions} from "@test/invariants/TargetFunctions.sol";
 
-contract FoundryHandler is TargetFunctions, FoundryAsserts {
+contract FoundryHandler is TargetFunctions, SetupLocal, FoundryAsserts {
     constructor() {
         vm.deal(address(USER1), 100e18);
         vm.deal(address(USER2), 100e18);

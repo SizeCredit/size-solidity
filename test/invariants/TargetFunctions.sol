@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {Helper} from "./Helper.sol";
 import {Properties} from "./Properties.sol";
-import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 
 import "@crytic/properties/contracts/util/Hevm.sol";
 
@@ -40,34 +39,12 @@ import {SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfigur
 
 import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
-import {KEEPER_ROLE} from "@src/Size.sol";
-
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 
-abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions, ITargetFunctions {
-    function setup() internal override {
-        setupLocal(address(this), address(this));
-        size.grantRole(KEEPER_ROLE, USER2);
-
-        address[] memory users = new address[](3);
-        users[0] = USER1;
-        users[1] = USER2;
-        users[2] = USER3;
-        usdc.mint(address(this), MAX_AMOUNT_USDC);
-        hevm.deal(address(this), MAX_AMOUNT_WETH);
-        for (uint256 i = 0; i < users.length; i++) {
-            address user = users[i];
-            usdc.mint(user, MAX_AMOUNT_USDC);
-
-            hevm.deal(address(this), MAX_AMOUNT_WETH);
-            weth.deposit{value: MAX_AMOUNT_WETH}();
-            weth.transfer(user, MAX_AMOUNT_WETH);
-        }
-    }
-
+abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
     function deposit(address token, uint256 amount) public getSender checkExpectedErrors(DEPOSIT_ERRORS) {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
         amount = between(amount, 0, token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC);
