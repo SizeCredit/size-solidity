@@ -258,14 +258,15 @@ library AccountingLibrary {
             // no credit fractionalization
 
             creditAmountIn = maxCredit;
-            fees = Math.mulDivUp(cashAmountOut, swapFeePercent, PERCENT);
+            fees = Math.mulDivUp(creditAmountIn, swapFeePercent, PERCENT + ratePerTenor);
         } else if (cashAmountOut < maxCashAmountOutFragmentation) {
             // credit fractionalization
 
             creditAmountIn = Math.mulDivUp(
                 cashAmountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerTenor, PERCENT - swapFeePercent
             );
-            fees = Math.mulDivUp(cashAmountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
+            fees =
+                Math.mulDivUp(creditAmountIn, swapFeePercent, PERCENT + ratePerTenor) + state.feeConfig.fragmentationFee;
         } else {
             // for maxCashAmountOutFragmentation < cashAmountOut < maxCashAmountOut we are in an inconsistent situation
             //   where charging the swap fee would require to sell a credit that exceeds the max possible credit
