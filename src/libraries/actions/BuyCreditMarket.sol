@@ -188,7 +188,8 @@ library BuyCreditMarket {
             state.createCreditPosition({
                 exitCreditPositionId: params.creditPositionId,
                 lender: msg.sender,
-                credit: creditAmountOut
+                credit: creditAmountOut,
+                forSale: true
             });
         }
 
