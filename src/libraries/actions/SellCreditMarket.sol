@@ -90,8 +90,8 @@ library SellCreditMarket {
         }
 
         // validate amount
-        if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+        if (params.amount == 0) {
+            revert Errors.NULL_AMOUNT();
         }
 
         // validate tenor
