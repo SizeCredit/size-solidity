@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -38,7 +38,7 @@ struct SellCreditMarketParams {
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic for selling credit (borrowing) as a market order
 library SellCreditMarket {
-    using OfferLibrary for LoanOffer;
+    using OfferLibrary for LimitOrder;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
@@ -49,7 +49,7 @@ library SellCreditMarket {
     /// @param state The state
     /// @param params The input parameters for selling credit as a market order
     function validateSellCreditMarket(State storage state, SellCreditMarketParams calldata params) external view {
-        LoanOffer memory loanOffer = state.data.users[params.lender].loanOffer;
+        LimitOrder memory loanOffer = state.data.users[params.lender].loanOffer;
         uint256 tenor;
 
         // validate msg.sender

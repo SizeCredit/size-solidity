@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -21,14 +21,14 @@ struct BuyCreditLimitParams {
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic for buying credit (lending) as a limit order
 library BuyCreditLimit {
-    using OfferLibrary for LoanOffer;
+    using OfferLibrary for LimitOrder;
 
     /// @notice Validates the input parameters for buying credit as a limit order
     /// @param state The state
     /// @param params The input parameters for buying credit as a limit order
     function validateBuyCreditLimit(State storage state, BuyCreditLimitParams calldata params) external view {
-        LoanOffer memory loanOffer =
-            LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
+        LimitOrder memory loanOffer =
+            LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
         // a null offer mean clearing their limit order
         if (!loanOffer.isNull()) {
@@ -56,7 +56,7 @@ library BuyCreditLimit {
     /// @dev A null offer means clearing a user's loan limit order
     function executeBuyCreditLimit(State storage state, BuyCreditLimitParams calldata params) external {
         state.data.users[msg.sender].loanOffer =
-            LoanOffer({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
+            LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
         emit Events.BuyCreditLimit(
             params.maxDueDate,
             params.curveRelativeTime.tenors,

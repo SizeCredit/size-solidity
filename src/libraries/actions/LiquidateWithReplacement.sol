@@ -6,7 +6,7 @@ import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -35,7 +35,7 @@ struct LiquidateWithReplacementParams {
 /// @notice Contains the logic for liquidating a debt position with a replacement borrower
 library LiquidateWithReplacement {
     using LoanLibrary for CreditPosition;
-    using OfferLibrary for BorrowOffer;
+    using OfferLibrary for LimitOrder;
 
     using LoanLibrary for State;
     using Liquidate for State;
@@ -49,7 +49,7 @@ library LiquidateWithReplacement {
         view
     {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
-        BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
+        LimitOrder storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
         // validate liquidate
         state.validateLiquidate(
@@ -127,7 +127,7 @@ library LiquidateWithReplacement {
 
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         DebtPosition memory debtPositionCopy = debtPosition;
-        BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
+        LimitOrder storage borrowOffer = state.data.users[params.borrower].borrowOffer;
         uint256 tenor = debtPositionCopy.dueDate - block.timestamp;
 
         liquidatorProfitCollateralToken = state.executeLiquidate(
