@@ -141,7 +141,7 @@ library AccountingLibrary {
     ///      The credit amount cannot be reduced below the minimum credit.
     ///      This operation breaks the initial sum of credit equal to the debt position future value.
     ///        If the loan is in REPAID status, this is expected, as lenders grdually claim their credit.
-    ///        If the loan is in ACTIVE status, a debt reduction must be performed together with a credit reduction (See reduceDebtAndCredit).
+    ///        If the loan is in ACTIVE/OVERDUE status, a debt reduction must be performed together with a credit reduction (See reduceDebtAndCredit).
     /// @param state The state object
     /// @param creditPositionId The credit position id
     function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount) public {
@@ -176,6 +176,8 @@ library AccountingLibrary {
     }
 
     /// @notice Get the swap fee for a given cash amount and tenor
+    /// @dev The intention for the swap fee is to for it to be charged on the "issuance value" of the credit and it is a predefined APR
+    ///      The issuance value is defined as the amount of credit sold discounted by the chosen rate
     /// @param state The state object
     /// @param cash The cash amount
     /// @param tenor The tenor
@@ -265,7 +267,7 @@ library AccountingLibrary {
             );
             fees = Math.mulDivUp(cashAmountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
         } else {
-            // for maxCashAmountOutFragmentation < amountOut < maxCashAmountOut we are in an inconsistent situation
+            // for maxCashAmountOutFragmentation < cashAmountOut < maxCashAmountOut we are in an inconsistent situation
             //   where charging the swap fee would require to sell a credit that exceeds the max possible credit
 
             revert Errors.NOT_ENOUGH_CASH(maxCashAmountOutFragmentation, cashAmountOut);
@@ -306,7 +308,7 @@ library AccountingLibrary {
             creditAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerTenor, PERCENT);
             fees = getSwapFee(state, netCashAmountIn, tenor) + state.feeConfig.fragmentationFee;
         } else {
-            revert Errors.NOT_ENOUGH_CREDIT(maxCashAmountIn, cashAmountIn);
+            revert Errors.NOT_ENOUGH_CASH(maxCashAmountIn, cashAmountIn);
         }
     }
 

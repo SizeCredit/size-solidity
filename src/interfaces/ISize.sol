@@ -103,7 +103,6 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
     /// @notice Repay a debt position by transferring the amount due of borrow tokens to the protocol, which are deposited to the Variable Pool for the lenders to claim
     ///         Partial repayment are currently unsupported
     /// @dev The Variable Pool liquidity index is snapshotted at the time of the repayment in order to calculate the accrued interest for lenders to claim
-    ///      The liquidator overdue reward is cleared from the borrower debt upon repayment
     /// @param params RepayParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to repay
     function repay(RepayParams calldata params) external payable;
@@ -122,7 +121,7 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
     /// @param params LiquidateParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to liquidate
     ///     - uint256 minimumCollateralProfit: The minimum collateral profit that the liquidator is willing to accept from the borrower (keepers might choose to pass a value below 100% of the cash they bring and take the risk of liquidating unprofitably)
-    /// @return liquidatorProfitCollateralToken The amount of collateral tokens the liquidator received from the liquidation
+    /// @return liquidatorProfitCollateralToken The amount of collateral tokens the the fee recipient received from the liquidation
     function liquidate(LiquidateParams calldata params)
         external
         payable
@@ -137,7 +136,7 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
 
     /// @notice Liquidate a debt position with a replacement borrower
     /// @dev This function works exactly like `liquidate`, with an added logic of replacing the borrower on the storage
-    ///         When liquidating with replacement, nothing changes from the lender's perspective, but a spread is created between the previous borrower rate and the new borrower rate.
+    ///         When liquidating with replacement, nothing changes from the lenders' perspective, but a spread is created between the previous borrower rate and the new borrower rate.
     ///         As a result of the spread of these borrow aprs, the protocol is able to profit from the liquidation. Since the choice of the borrower impacts on the protocol's profit, this method is permissioned
     /// @param params LiquidateWithReplacementParams struct containing the following fields:
     ///     - uint256 debtPositionId: The id of the debt position to liquidate
@@ -153,10 +152,10 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
         returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken);
 
     /// @notice Compensate a borrower's debt with his credit in another loan
-    ///         The compensation can not exceed both 1) the credit the lender of `debtPositionToRepayId` to the borrower and 2) the credit the lender of `creditPositionToCompensateId`
+    ///         The compensation can not exceed both 1) the credit the lender of `creditPositionWithDebtToRepayId` to the borrower and 2) the credit the lender of `creditPositionToCompensateId`
     // @dev The caller may pass type(uint256).max as the creditPositionId in order to represent "mint a new DebtPosition/CreditPosition pair"
     /// @param params CompensateParams struct containing the following fields:
-    ///     - uint256 debtPositionToRepayId: The id of the debt position to repay
+    ///     - uint256 creditPositionWithDebtToRepayId: The id of the credit position ID with debt to repay
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     function compensate(CompensateParams calldata params) external payable;
