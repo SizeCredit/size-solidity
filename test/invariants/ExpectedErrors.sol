@@ -70,6 +70,8 @@ abstract contract ExpectedErrors is Deploy, Properties {
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_CASH.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.NULL_AMOUNT.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_CREDIT.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_NOT_FOR_SALE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.STALE_RATE.selector);
