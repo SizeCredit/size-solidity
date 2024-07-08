@@ -21,7 +21,6 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         UserView feeRecipient;
         LoanStatus loanStatus;
         bool[3] isUserUnderwater;
-        bool isSenderUnderwater;
         bool isBorrowerUnderwater;
         uint256 senderCollateralAmount;
         uint256 senderBorrowAmount;
@@ -83,7 +82,6 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         }
         vars.sender = size.getUserView(sender);
         vars.feeRecipient = size.getUserView(size.feeConfig().feeRecipient);
-        vars.isSenderUnderwater = size.isUserUnderwater(sender);
         address[3] memory users = [USER1, USER2, USER3];
         for (uint256 i = 0; i < users.length; i++) {
             vars.isUserUnderwater[i] = size.isUserUnderwater(users[i]);
