@@ -49,7 +49,7 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         _;
     }
 
-    modifier clear() {
+    modifier clear() virtual {
         Vars memory e;
         _before = e;
         _after = e;

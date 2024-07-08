@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import {console2 as console} from "forge-std/console2.sol";
 
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
@@ -78,8 +79,8 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
     }
 
     function property_TOKENS() public returns (bool) {
-        address[6] memory users =
-            [USER1, USER2, USER3, address(size), address(variablePool), address(_before.feeRecipient.account)];
+        address feeRecipient = size.feeConfig().feeRecipient;
+        address[5] memory users = [USER1, USER2, USER3, address(size), address(feeRecipient)];
 
         uint256 borrowATokenBalance;
         uint256 collateralTokenBalance;
