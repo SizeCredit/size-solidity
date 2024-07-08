@@ -16,6 +16,7 @@ contract DeployScriptTest is ForkTest, BaseTestVariablePool {
 
     function setUp() public override(ForkTest, BaseTest) {
         super.setUp();
+        vm.rollFork(6252509);
     }
 
     function testFork_Deploy_size_is_configured() public {

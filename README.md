@@ -218,3 +218,10 @@ for i in {0..5}; do halmos --loop $i; done
 source .env
 CHAIN_NAME=$CHAIN_NAME DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS yarn deploy-sepolia-mocks --broadcast
 ```
+
+## Onchain
+
+```bash
+source .env
+FOUNDRY_PROFILE=fork FOUNDRY_INVARIANT_RUNS=0 FOUNDRY_INVARIANT_DEPTH=0 forge test --mc FoundryForkTester -vvvvv --ffi
+```

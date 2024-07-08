@@ -33,7 +33,11 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
 
     modifier getSender() override {
         _;
-        _checkProperties();
+        assertTrue(property_LOAN());
+        assertTrue(property_UNDERWATER());
+        assertTrue(property_TOKENS());
+        assertTrue(property_SOLVENCY());
+        assertTrue(property_FEES());
     }
 
     function precondition(bool) internal virtual override(FoundryAsserts, Asserts) {
@@ -225,7 +229,6 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
             115792089237316195423570985008687907853269984665640564039457584007913113871936,
             115792089237316195423570985008687907853269984665640564039457569007913129639935
         );
-        _checkProperties();
     }
 
     function test_CryticToFoundry_18() public {
@@ -240,7 +243,6 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
             false
         );
         setPrice(0);
-        _checkProperties();
     }
 
     function test_CryticToFoundry_19() public {
@@ -259,7 +261,6 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
         deposit(0xD46B656c565DaeE4cd3Df82CD6fAf380d02850C7, 240164310623208855283514273872052000299846518);
         sender = 0x0000000000000000000000000000000000003713;
         sellCreditMarket(0x0000000000000000000000000000000000001150, 6294, 4557, 4638, true);
-        _checkProperties();
     }
 
     function test_CryticToFoundry_20() public {

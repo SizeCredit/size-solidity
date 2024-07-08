@@ -89,6 +89,7 @@ jobs:
   invariants:
     needs: [test, slither, solhint]
     strategy:
+      fail-fast: true
       matrix:
         mode: [assertion, property]
 

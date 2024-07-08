@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 
@@ -21,6 +22,10 @@ import {
 
 abstract contract Properties is Ghosts, PropertiesSpecifications {
     using LoanLibrary for DebtPosition;
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
+
+    EnumerableMap.AddressToUintMap[] internal positionsDebtPerUserArray;
+    uint256 internal positionsDebtPerUserArrayIndex;
 
     function property_LOAN() public returns (bool) {
         // for (uint256 i = 0; i < _after.creditPositionsCount; i++) {
@@ -92,16 +97,19 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
     }
 
     function property_SOLVENCY() public returns (bool) {
+        positionsDebtPerUserArray.push();
+        EnumerableMap.AddressToUintMap storage positionsDebtPerUser =
+            positionsDebtPerUserArray[positionsDebtPerUserArray.length - 1];
+
         uint256 outstandingDebt;
         uint256 outstandingCredit;
 
-        if (_after.debtPositionsCount == 0) return true;
+        (uint256 debtPositionsCount, uint256 creditPositionsCount) = size.getPositionsCount();
+
+        if (debtPositionsCount == 0) return true;
 
         uint256 totalDebt;
-        address[3] memory users = [USER1, USER2, USER3];
-        uint256[3] memory positionsDebtPerUser;
-
-        for (uint256 i = 0; i < _after.creditPositionsCount; ++i) {
+        for (uint256 i = 0; i < creditPositionsCount; ++i) {
             uint256 creditPositionId = CREDIT_POSITION_ID_START + i;
             LoanStatus status = size.getLoanStatus(creditPositionId);
             if (status != LoanStatus.REPAID) {
@@ -109,25 +117,24 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
             }
         }
 
-        for (uint256 i = 0; i < _after.debtPositionsCount; ++i) {
+        for (uint256 i = 0; i < debtPositionsCount; ++i) {
             uint256 debtPositionId = DEBT_POSITION_ID_START + i;
             DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
             outstandingDebt += debtPosition.futureValue;
 
-            uint256 userIndex = debtPosition.borrower == USER1
-                ? 0
-                : debtPosition.borrower == USER2 ? 1 : debtPosition.borrower == USER3 ? 2 : type(uint256).max;
-
-            positionsDebtPerUser[userIndex] += debtPosition.futureValue;
+            (bool success, uint256 value) = positionsDebtPerUser.tryGet(debtPosition.borrower);
+            if (!success) positionsDebtPerUser.set(debtPosition.borrower, debtPosition.futureValue);
+            else positionsDebtPerUser.set(debtPosition.borrower, value + debtPosition.futureValue);
         }
 
         eq(outstandingDebt, outstandingCredit, SOLVENCY_01);
 
         gte(size.data().debtToken.totalSupply(), outstandingCredit, SOLVENCY_02);
 
-        for (uint256 i = 0; i < positionsDebtPerUser.length; ++i) {
-            totalDebt += positionsDebtPerUser[i];
-            eq(size.data().debtToken.balanceOf(users[i]), positionsDebtPerUser[i], SOLVENCY_03);
+        for (uint256 i = 0; i < positionsDebtPerUser.length(); ++i) {
+            (address user, uint256 debt) = positionsDebtPerUser.at(i);
+            totalDebt += debt;
+            eq(size.data().debtToken.balanceOf(user), debt, SOLVENCY_03);
         }
 
         eq(totalDebt, size.data().debtToken.totalSupply(), SOLVENCY_04);
@@ -175,13 +182,5 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         }
 
         return true;
-    }
-
-    function _checkProperties() internal {
-        property_LOAN();
-        property_UNDERWATER();
-        property_TOKENS();
-        property_SOLVENCY();
-        property_FEES();
     }
 }

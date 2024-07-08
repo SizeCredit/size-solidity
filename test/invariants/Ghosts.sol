@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Asserts} from "@chimera/Asserts.sol";
-
 import {IAToken} from "@aave/interfaces/IAToken.sol";
+import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 import {UserView} from "@src/SizeView.sol";
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";

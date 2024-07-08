@@ -11,7 +11,6 @@ contract ForkTest is BaseTest, BaseScript {
 
     function setUp() public virtual override {
         vm.createSelectFork("sepolia");
-        vm.rollFork(6252509);
         (size, priceFeed, variablePool, usdc, weth, owner) = importDeployments();
         _labels();
         aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
