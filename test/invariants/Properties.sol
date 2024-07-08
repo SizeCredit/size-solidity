@@ -71,7 +71,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         }
 
         if (_before.isSenderUnderwater && _after.debtPositionsCount > _before.debtPositionsCount) {
-            t(false, UNDERWATER_02);
+            t(_before.sig == ITargetFunctions.compensate.selector, UNDERWATER_02);
         }
 
         return true;
