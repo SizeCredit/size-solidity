@@ -21,6 +21,7 @@
 
 [rpc_endpoints]
   sepolia = "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+  base_sepolia = "https://base-sepolia.infura.io/v3/${API_KEY_INFURA}"
   anvil = "http://127.0.0.1:8545"
 
 [etherscan]

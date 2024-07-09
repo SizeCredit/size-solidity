@@ -216,7 +216,7 @@ for i in {0..5}; do halmos --loop $i; done
 
 ```bash
 source .env
-CHAIN_NAME=$CHAIN_NAME DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS yarn deploy-testnet --broadcast
+RCP_URL=$RPC_URL CHAIN_NAME=$CHAIN_NAME DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS yarn deploy-testnet --broadcast
 ```
 
 ## Onchain
