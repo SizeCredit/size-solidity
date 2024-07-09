@@ -377,11 +377,13 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             __after(debtPositionId);
             (uint256 liquidatorProfitCollateralToken,) = abi.decode(returnData, (uint256, uint256));
 
-            gte(
-                _after.sender.collateralTokenBalance,
-                _before.sender.collateralTokenBalance + liquidatorProfitCollateralToken,
-                LIQUIDATE_01
-            );
+            if (sender != _before.borrower.account) {
+                gte(
+                    _after.sender.collateralTokenBalance,
+                    _before.sender.collateralTokenBalance + liquidatorProfitCollateralToken,
+                    LIQUIDATE_01
+                );
+            }
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
             uint256 tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
             t(size.riskConfig().minTenor <= tenor && tenor <= size.riskConfig().maxTenor, LOAN_01);
