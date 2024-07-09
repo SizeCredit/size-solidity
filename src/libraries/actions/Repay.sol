@@ -39,7 +39,7 @@ library Repay {
 
         // validate borrower
         if (state.getDebtPosition(params.debtPositionId).borrower != params.borrower) {
-            revert Errors.INVALID_LENDER(params.borrower);
+            revert Errors.INVALID_BORROWER(params.borrower);
         }
 
         // validate msg.sender
