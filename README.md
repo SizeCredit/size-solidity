@@ -175,6 +175,13 @@ yarn echidna-property
 yarn echidna-assertion
 ```
 
+### Onchain fuzzing
+
+```bash
+source .env
+FOUNDRY_PROFILE=fork FOUNDRY_INVARIANT_RUNS=0 FOUNDRY_INVARIANT_DEPTH=0 forge test --mc FoundryForkTester -vvvvv --ffi
+```
+
 Check the coverage report with
 
 ```bash
@@ -219,9 +226,10 @@ source .env
 RPC_URL=$RPC_URL CHAIN_NAME=$CHAIN_NAME DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS yarn deploy-testnet --broadcast
 ```
 
-## Onchain
+### Deployment checklist
 
-```bash
-source .env
-FOUNDRY_PROFILE=fork FOUNDRY_INVARIANT_RUNS=0 FOUNDRY_INVARIANT_DEPTH=0 forge test --mc FoundryForkTester -vvvvv --ffi
-```
+1. Deploy
+2. Transfer `LINK` tokens to `PriceFeed` contract
+3. Grant `KEEPER_ROLE` to keeper bot
+4. Grant `BORROW_RATE_UPDATER_ROLE` to updater bot
+5. Grant `PAUSER_ROLE` to pauser bot
