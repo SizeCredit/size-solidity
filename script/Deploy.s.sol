@@ -51,7 +51,7 @@ contract DeployScript is BaseScript, Networks, Deploy {
         parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(networkParams.wethAggregator)}));
         parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(networkParams.usdcAggregator)}));
         parameters.push(Parameter({key: "wethHeartbeat", value: Strings.toString(networkParams.wethHeartbeat)}));
-        parameters.push(Parameter({key: "usdcHeartbeat", value: Strings.toString(networkParams.wethHeartbeat)}));
+        parameters.push(Parameter({key: "usdcHeartbeat", value: Strings.toString(networkParams.usdcHeartbeat)}));
         parameters.push(
             Parameter({key: "sequencerUptimeFeed", value: Strings.toHexString(networkParams.sequencerUptimeFeed)})
         );
