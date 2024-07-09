@@ -40,6 +40,17 @@ abstract contract Networks {
                 wethHeartbeat: 0,
                 usdcHeartbeat: 0
             });
+        } else if (Strings.equal(chain, "base-sepolia")) {
+            return NetworkParams({
+                weth: 0x4200000000000000000000000000000000000006,
+                usdc: 0x036CbD53842c5426634e7929541eC2318f3dCF7e,
+                variablePool: 0x07eA79F68B2B3df564D0A34F8e19D9B1e339814b,
+                wethAggregator: 0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1,
+                usdcAggregator: 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165,
+                sequencerUptimeFeed: address(0),
+                wethHeartbeat: 1200 * 1.1e18 / 1e18,
+                usdcHeartbeat: 86400 * 1.1e18 / 1e18
+            });
         } else if (Strings.equal(chain, "mainnet")) {
             return NetworkParams({
                 weth: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,

@@ -5,6 +5,7 @@
     "solhint": "solhint \"src/**/*.sol\"  --max-warnings 0",
     "get-libraries": "(j=$((0x10)); find src/libraries test/helpers/libraries -type f | sed 's/.*\\///' | sed 's/.sol//' | while read i; do echo -n \"($i,$(printf \"0x%x\" $j))\\n\";j=$((j+1));done) | paste -sd, -",
     "deploy-sepolia-mocks": "forge script script/Deploy.s.sol --rpc-url sepolia --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account size-testnet-4 --ffi --verify",
+    "deploy-base-sepolia": "forge script script/Deploy.s.sol --rpc-url sepolia --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account size-testnet-5 --ffi --verify",
     "echidna-property": "echidna . --contract CryticTester --config echidna.yaml --test-mode property",
     "echidna-assertion": "echidna . --contract CryticTester --config echidna.yaml --test-mode assertion",
     "echidna-coverage": "open $(find echidna -name '*.html' | sort | tail -1)",
