@@ -5,7 +5,7 @@ import {Size} from "@src/Size.sol";
 
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {CREDIT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
 
@@ -926,5 +926,45 @@ contract CompensateTest is BaseTest {
         assertEq(size.getCreditPosition(newCreditPositionId).credit, newAmount);
         assertEq(size.getCreditPosition(creditPositionId).lender, bob);
         assertFalse(size.getCreditPosition(newCreditPositionId).forSale);
+    }
+
+    function test_Compensate_compensate_frontrunning_can_incur_in_fragmentationFee() public {
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 100e18);
+        _deposit(bob, usdc, 100e6);
+        _deposit(candy, weth, 100e18);
+        _deposit(candy, usdc, 100e6);
+        _deposit(james, weth, 100e18);
+        _deposit(james, usdc, 100e6);
+
+        _sellCreditLimit(alice, block.timestamp + 365 days, 0.03e18, 365 days);
+        _buyCreditMarket(bob, alice, 100e6, 365 days, false);
+
+        (, uint256 creditPositionCount) = size.getPositionsCount();
+        uint256 creditPositionWithDebtToRepayId = CREDIT_POSITION_ID_START + creditPositionCount - 1;
+
+        _sellCreditLimit(candy, block.timestamp + 365 days, 0.04e18, 365 days);
+        _buyCreditMarket(alice, candy, 100e6, 365 days, false);
+        (, creditPositionCount) = size.getPositionsCount();
+        uint256 creditPositionToCompensateId = CREDIT_POSITION_ID_START + creditPositionCount - 1;
+
+        uint256 snapshot = vm.snapshot();
+        {
+            uint256 beforeBalance = _state().alice.collateralTokenBalance;
+            _compensate(alice, creditPositionWithDebtToRepayId, creditPositionToCompensateId);
+            uint256 afterBalance = _state().alice.collateralTokenBalance;
+            assertEq(afterBalance, beforeBalance);
+        }
+
+        vm.revertTo(snapshot);
+        _sellCreditLimit(bob, block.timestamp + 365 days, 0.04e18, 365 days);
+        _buyCreditMarket(james, creditPositionWithDebtToRepayId, 50e6, false);
+        {
+            uint256 beforeBalance = _state().alice.collateralTokenBalance;
+            _compensate(alice, creditPositionWithDebtToRepayId, creditPositionToCompensateId);
+            uint256 afterBalance = _state().alice.collateralTokenBalance;
+            assertLt(afterBalance, beforeBalance);
+        }
     }
 }
