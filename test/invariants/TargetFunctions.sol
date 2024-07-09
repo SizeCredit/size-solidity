@@ -248,8 +248,11 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         __before(debtPositionId);
 
         hevm.prank(sender);
-        (success, returnData) =
-            address(size).call(abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId})));
+        (success, returnData) = address(size).call(
+            abi.encodeCall(
+                size.repay, RepayParams({debtPositionId: debtPositionId, borrower: _before.borrower.account})
+            )
+        );
         if (success) {
             __after(debtPositionId);
 

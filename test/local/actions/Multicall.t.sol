@@ -205,7 +205,7 @@ contract MulticallTest is BaseTest {
         // debt reduction is allowed to go over cap
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: remaining, to: bob}));
-        data[1] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId}));
+        data[1] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId, borrower: bob}));
         vm.prank(bob);
         size.multicall(data);
 

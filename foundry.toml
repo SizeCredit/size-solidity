@@ -4,6 +4,7 @@
   libs = ["lib"]
   fs_permissions = [{access = "read-write", path = "./deployments"}]
   no_match_contract = 'CryticTester|FoundryHandler|Deploy'
+  no_match_test = 'testFork'
 
 [profile.fork]
   src = "src"

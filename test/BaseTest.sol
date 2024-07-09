@@ -324,9 +324,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         return DEBT_POSITION_ID_START + debtPositionsCount - 1;
     }
 
-    function _repay(address user, uint256 debtPositionId) internal {
+    function _repay(address user, uint256 debtPositionId, address borrower) internal {
         vm.prank(user);
-        size.repay(RepayParams({debtPositionId: debtPositionId}));
+        size.repay(RepayParams({debtPositionId: debtPositionId, borrower: borrower}));
     }
 
     function _claim(address user, uint256 creditPositionId) internal {

@@ -181,12 +181,12 @@ contract SellCreditMarketValidationTest is BaseTest {
                 tenor: 365 days,
                 deadline: block.timestamp,
                 maxAPR: type(uint256).max,
-                exactAmountIn: exactAmountIn
+                exactAmountIn: true
             })
         );
         vm.stopPrank();
 
-        _repay(alice, debtPositionId2);
+        _repay(alice, debtPositionId2, alice);
 
         uint256 cr = size.collateralRatio(alice);
 

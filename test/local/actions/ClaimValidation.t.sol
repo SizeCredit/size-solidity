@@ -27,7 +27,7 @@ contract ClaimValidationTest is BaseTest {
         size.claim(ClaimParams({creditPositionId: creditPositionId}));
 
         vm.startPrank(bob);
-        size.repay(RepayParams({debtPositionId: debtPositionId}));
+        size.repay(RepayParams({debtPositionId: debtPositionId, borrower: bob}));
         size.claim(ClaimParams({creditPositionId: creditPositionId}));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_POSITION_ALREADY_CLAIMED.selector, creditPositionId));
