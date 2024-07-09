@@ -52,7 +52,7 @@ contract SelfLiquidateValidationTest is BaseTest {
 
         _setPrice(0.75e18);
 
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
         _setPrice(0.25e18);
 
         vm.startPrank(alice);

@@ -94,7 +94,7 @@ contract LiquidateValidationTest is BaseTest {
         vm.stopPrank();
 
         _setPrice(100e18);
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
         _withdraw(bob, weth, 98e18);
 
         _setPrice(0.2e18);

@@ -15,7 +15,7 @@ contract RepayScript is Script, Logger {
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         Size size = Size(payable(sizeContractAddress));
 
-        RepayParams memory params = RepayParams({debtPositionId: 0});
+        RepayParams memory params = RepayParams({debtPositionId: 0, borrower: address(0)});
 
         vm.startBroadcast(deployerPrivateKey);
         size.repay(params);

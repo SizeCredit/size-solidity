@@ -162,7 +162,7 @@ contract BuyCreditMarketTest is BaseTest {
         _sellCreditLimit(candy, block.timestamp + 365 days, 0, 365 days);
         uint256 debtPositionId2 = _buyCreditMarket(alice, candy, RESERVED_ID, 10e6, 365 days, false);
         creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
-        _repay(candy, debtPositionId2);
+        _repay(candy, debtPositionId2, candy);
 
         uint256 cr = size.collateralRatio(candy);
 

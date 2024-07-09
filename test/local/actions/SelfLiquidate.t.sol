@@ -394,7 +394,7 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18);
 
         _selfLiquidate(candy, creditPositionId1);
-        _repay(alice, debtPositionId1);
+        _repay(alice, debtPositionId1, alice);
     }
 
     function testFuzz_SelfLiquidate_selfliquidateLoan_liquidate(uint256 exitAmount) public {

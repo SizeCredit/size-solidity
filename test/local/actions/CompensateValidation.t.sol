@@ -75,7 +75,7 @@ contract CompensateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
 
         vm.startPrank(alice);
         uint256 cr = size.collateralRatio(bob);
@@ -93,7 +93,7 @@ contract CompensateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        _repay(alice, loanId3);
+        _repay(alice, loanId3, alice);
 
         vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, creditPositionId3));

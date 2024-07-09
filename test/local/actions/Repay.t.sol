@@ -26,7 +26,7 @@ contract RepayTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
 
         Vars memory _after = _state();
 
@@ -63,7 +63,7 @@ contract RepayTest is BaseTest {
         assertGt(size.getDebtPosition(debtPositionId).futureValue, 0);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.OVERDUE);
 
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
 
         Vars memory _after = _state();
 
@@ -92,7 +92,7 @@ contract RepayTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
         _claim(alice, creditId);
 
         Vars memory _after = _state();
@@ -103,7 +103,7 @@ contract RepayTest is BaseTest {
         assertEq(_after.size.borrowATokenBalance, _before.size.borrowATokenBalance, 0);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, debtPositionId));
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
     }
 
     function test_Repay_repay_partial_cannot_leave_loan_below_minimumCreditBorrowAToken() internal {}
@@ -120,10 +120,11 @@ contract RepayTest is BaseTest {
         _deposit(bob, weth, 160e18);
         _buyCreditLimit(alice, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, borrowATokenBalance, 12 days, false);
+        address borrower = bob;
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         vm.prank(bob);
-        try size.repay(RepayParams({debtPositionId: debtPositionId})) {} catch {}
+        try size.repay(RepayParams({debtPositionId: debtPositionId, borrower: borrower})) {} catch {}
         assertGe(size.getCreditPosition(creditPositionId).credit, size.riskConfig().minimumCreditBorrowAToken);
     }
 
@@ -140,7 +141,7 @@ contract RepayTest is BaseTest {
         vm.warp(block.timestamp + 365 days);
 
         _deposit(bob, usdc, futureValue - amount);
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
     }
 
     function test_Repay_repay_fee_change_fee_after_borrow() public {
@@ -166,10 +167,10 @@ contract RepayTest is BaseTest {
         vm.warp(block.timestamp + 365 days);
 
         _deposit(bob, usdc, futureValue - amount);
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
 
         _deposit(candy, usdc, futureValue2 - amount);
-        _repay(candy, loanId2);
+        _repay(candy, loanId2, candy);
 
         assertEq(size.getUserView(feeRecipient).collateralTokenBalance, 0);
         assertEq(_state().bob.collateralTokenBalance, _state().candy.collateralTokenBalance);
@@ -182,9 +183,9 @@ contract RepayTest is BaseTest {
         _sellCreditLimit(
             bob, block.timestamp + 365 days, [int256(0.03e18), int256(0.03e18)], [uint256(30 days), uint256(60 days)]
         );
-        _buyCreditMarket(alice, bob, 100e6, 40 days);
+        uint256 debtPositionId = _buyCreditMarket(alice, bob, 100e6, 40 days);
         _buyCreditMarket(alice, bob, 200e6, 50 days);
         _setPrice(0.0001e18);
-        _repay(bob, 0);
+        _repay(bob, debtPositionId, bob);
     }
 }
