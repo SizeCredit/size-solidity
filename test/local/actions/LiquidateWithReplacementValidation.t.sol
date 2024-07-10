@@ -16,6 +16,8 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
     }
 
     function test_LiquidateWithReplacement_validation() public {
+        vm.warp(42 days);
+
         _setPrice(1e18);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -24,23 +26,42 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         _deposit(bob, usdc, 100e6);
         _deposit(liquidator, weth, 100e18);
         _deposit(liquidator, usdc, 100e6);
+        uint256 maxDueDate1 = block.timestamp + 365 days * 2;
         _buyCreditLimit(
-            alice,
-            block.timestamp + 365 days * 2,
-            [int256(0.03e18), int256(0.03e18)],
-            [uint256(365 days), uint256(365 days * 2)]
+            alice, maxDueDate1, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]
         );
+        uint256 maxDueDate2 = block.timestamp + 365 days;
         _sellCreditLimit(
-            candy,
-            block.timestamp + 365 days,
-            [int256(0.03e18), int256(0.03e18)],
-            [uint256(365 days), uint256(365 days * 2)]
+            candy, maxDueDate2, [int256(0.03e18), int256(0.03e18)], [uint256(365 days), uint256(365 days * 2)]
         );
         uint256 tenor = 365 days * 2;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 15e6, tenor, false);
         uint256 minimumCollateralProfit = 0;
 
         _setPrice(0.2e18);
+
+        vm.prank(liquidator);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector, block.timestamp + tenor, maxDueDate2
+            )
+        );
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
+                borrower: candy,
+                minAPR: 1e18,
+                deadline: block.timestamp,
+                minimumCollateralProfit: minimumCollateralProfit
+            })
+        );
+
+        _sellCreditLimit(
+            candy,
+            block.timestamp + 3 * 365 days,
+            [int256(0.03e18), int256(0.03e18)],
+            [uint256(365 days), uint256(365 days * 2)]
+        );
 
         vm.prank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(Errors.APR_LOWER_THAN_MIN_APR.selector, 0.03e18, 1e18));
