@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {BaseScript} from "@script/BaseScript.sol";
 import {BaseTest} from "@test/BaseTest.sol";
+import {SizeMock} from "@test/mocks/SizeMock.sol";
 
 contract ForkTest is BaseTest, BaseScript {
     address public owner;
@@ -11,7 +12,8 @@ contract ForkTest is BaseTest, BaseScript {
 
     function setUp() public virtual override {
         vm.createSelectFork("sepolia");
-        (size, priceFeed, variablePool, usdc, weth, owner) = importDeployments();
+        (isize, priceFeed, variablePool, usdc, weth, owner) = importDeployments();
+        size = SizeMock(isize);
         _labels();
         aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
     }
