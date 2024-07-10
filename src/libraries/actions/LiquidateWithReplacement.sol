@@ -74,11 +74,6 @@ library LiquidateWithReplacement {
             revert Errors.INVALID_BORROW_OFFER(params.borrower);
         }
 
-        // validate deadline
-        if (params.deadline < block.timestamp) {
-            revert Errors.PAST_DEADLINE(params.deadline);
-        }
-
         // validate minAPR
         uint256 apr = borrowOffer.getAPRByTenor(
             VariablePoolBorrowRateParams({
