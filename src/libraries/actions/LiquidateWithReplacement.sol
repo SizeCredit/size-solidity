@@ -59,6 +59,11 @@ library LiquidateWithReplacement {
             })
         );
 
+        // validate borrower
+        if (borrowOffer.isNull()) {
+            revert Errors.INVALID_BORROW_OFFER(params.borrower);
+        }
+
         // validate debtPositionId
         if (state.getLoanStatus(params.debtPositionId) != LoanStatus.ACTIVE) {
             revert Errors.LOAN_NOT_ACTIVE(params.debtPositionId);
@@ -67,10 +72,8 @@ library LiquidateWithReplacement {
         if (tenor < state.riskConfig.minTenor || tenor > state.riskConfig.maxTenor) {
             revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minTenor, state.riskConfig.maxTenor);
         }
-
-        // validate borrower
-        if (borrowOffer.isNull()) {
-            revert Errors.INVALID_BORROW_OFFER(params.borrower);
+        if (block.timestamp + tenor > borrowOffer.maxDueDate) {
+            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, borrowOffer.maxDueDate);
         }
 
         // validate deadline
