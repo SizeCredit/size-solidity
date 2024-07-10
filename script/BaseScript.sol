@@ -89,29 +89,15 @@ abstract contract BaseScript is Script {
     }
 
     function getCommitHash() internal returns (string memory) {
-        string[] memory inputs = new string[](4);
+        string[] memory inputs = new string[](3);
 
         inputs[0] = "git";
         inputs[1] = "rev-parse";
-        inputs[2] = "--short";
-        inputs[3] = "HEAD";
+        inputs[2] = "HEAD";
 
         bytes memory res = vm.ffi(inputs);
-        return string(res);
-    }
+        string memory output = abi.decode(res, (string));
 
-    function findChainName() internal returns (string memory) {
-        uint256 thisChainId = block.chainid;
-        string[2][] memory allRpcUrls = vm.rpcUrls();
-        for (uint256 i = 0; i < allRpcUrls.length; i++) {
-            try vm.createSelectFork(allRpcUrls[i][1]) {
-                if (block.chainid == thisChainId) {
-                    return allRpcUrls[i][0];
-                }
-            } catch {
-                continue;
-            }
-        }
-        revert InvalidChainId(thisChainId);
+        return output;
     }
 }
