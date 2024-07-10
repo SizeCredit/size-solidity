@@ -31,7 +31,7 @@ contract UpgradeScript is BaseScript, Networks, Deploy {
         (ISize proxy,,,,,) = importDeployments();
 
         Size upgrade = new Size();
-        Size(proxy).upgradeToAndCall(address(upgrade), "");
+        Size(address(proxy)).upgradeToAndCall(address(upgrade), "");
 
         console.log("[Size v1] upgrade:     ", address(upgrade));
 
