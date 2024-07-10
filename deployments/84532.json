@@ -1,8 +1,8 @@
 {
-  "commit": "1c16b0e",
+  "commit": "97b667392ffc9031ca70d02dcb869354a568893b",
   "deployments": {
     "PriceFeed": "0x97B848F22Eed0278a32b1F471aAe2EcfD87038Ec",
-    "Size-implementation": "0xf1C5f1DAB5D081128D11b6cc0303141D735c1A05",
+    "Size-implementation": "0xaa486B5f939Eb8bf2876DaDE7d911F2f9D072886",
     "Size-proxy": "0xc2C923bBfD83d3B3a8888F80a9Aab193eE5449b6"
   },
   "networkName": "base-sepolia",
