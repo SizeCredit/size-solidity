@@ -144,6 +144,11 @@ library Initialize {
     /// @notice Validates the parameters for the data configuration
     /// @param d The data configuration parameters
     function validateInitializeDataParams(InitializeDataParams memory d) internal view {
+        // validate weth
+        if (d.weth == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
         // validate underlyingCollateralToken
         if (d.underlyingCollateralToken == address(0)) {
             revert Errors.NULL_ADDRESS();
