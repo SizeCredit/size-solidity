@@ -31,7 +31,7 @@ library OfferLibrary {
     /// @param self The limit order
     /// @param minTenor The minimum tenor
     /// @param maxTenor The maximum tenor
-    function validateLimitOrder(LimitOrder memory self, uint256 minTenor, uint256 maxTenor) internal pure {
+    function validateLimitOrder(LimitOrder memory self, uint256 minTenor, uint256 maxTenor) internal view {
         // validate maxDueDate
         if (self.maxDueDate == 0) {
             revert Errors.NULL_MAX_DUE_DATE();
