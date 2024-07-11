@@ -230,7 +230,7 @@ library AccountingLibrary {
     /// @notice Get the credit amount in for a given cash amount out
     /// @param state The state object
     /// @param cashAmountOut The cash amount out
-    /// @param maxCredit The maximum credit
+    /// @param maxCashAmountOut The maximum cash amount out
     /// @param maxCredit The maximum cash amount out
     /// @param ratePerTenor The rate per tenor
     /// @param tenor The tenor
