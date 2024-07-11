@@ -27,6 +27,23 @@ library OfferLibrary {
         return self.maxDueDate == 0 && self.curveRelativeTime.isNull();
     }
 
+    /// @notice Validate the limit order
+    /// @param self The limit order
+    /// @param minTenor The minimum tenor
+    /// @param maxTenor The maximum tenor
+    function validateLimitOrder(LimitOrder memory self, uint256 minTenor, uint256 maxTenor) internal pure {
+        // validate maxDueDate
+        if (self.maxDueDate == 0) {
+            revert Errors.NULL_MAX_DUE_DATE();
+        }
+        if (self.maxDueDate < block.timestamp + minTenor) {
+            revert Errors.PAST_MAX_DUE_DATE(self.maxDueDate);
+        }
+
+        // validate curveRelativeTime
+        YieldCurveLibrary.validateYieldCurve(self.curveRelativeTime, minTenor, maxTenor);
+    }
+
     /// @notice Get the APR by tenor of a limit order
     /// @param self The limit order
     /// @param params The variable pool borrow rate params
