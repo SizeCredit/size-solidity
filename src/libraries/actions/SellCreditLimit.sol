@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {Events} from "@src/libraries/Events.sol";
 
@@ -33,10 +33,8 @@ library SellCreditLimit {
             // validate msg.sender
             // N/A
 
-            // validate curveRelativeTime
-            YieldCurveLibrary.validateYieldCurve(
-                params.curveRelativeTime, state.riskConfig.minTenor, state.riskConfig.maxTenor
-            );
+            // validate borrowOffer
+            borrowOffer.validateLimitOrder(state.riskConfig.minTenor, state.riskConfig.maxTenor);
         }
     }
 

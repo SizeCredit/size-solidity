@@ -2,11 +2,10 @@
 pragma solidity 0.8.23;
 
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct BuyCreditLimitParams {
@@ -35,18 +34,8 @@ library BuyCreditLimit {
             // validate msg.sender
             // N/A
 
-            // validate maxDueDate
-            if (params.maxDueDate == 0) {
-                revert Errors.NULL_MAX_DUE_DATE();
-            }
-            if (params.maxDueDate < block.timestamp + state.riskConfig.minTenor) {
-                revert Errors.PAST_MAX_DUE_DATE(params.maxDueDate);
-            }
-
-            // validate curveRelativeTime
-            YieldCurveLibrary.validateYieldCurve(
-                params.curveRelativeTime, state.riskConfig.minTenor, state.riskConfig.maxTenor
-            );
+            // validate loanOffer
+            loanOffer.validateLimitOrder(state.riskConfig.minTenor, state.riskConfig.maxTenor);
         }
     }
 
