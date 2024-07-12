@@ -59,6 +59,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
 
         // SELL_CREDIT_LIMIT_ERRORS
+        SELL_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
         SELL_CREDIT_LIMIT_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
 
         // BUY_CREDIT_MARKET_ERRORS
@@ -107,6 +108,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.INVALID_BORROW_OFFER.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.STALE_RATE.selector);
+        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
 
         // COMPENSATE_ERRORS

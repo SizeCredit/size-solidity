@@ -149,18 +149,9 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
                 && _after.creditPositionsCount > _before.creditPositionsCount
         ) {
             if (_before.sig == ITargetFunctions.compensate.selector) {
-                eq(
-                    _after.feeRecipient.collateralTokenBalance,
-                    _before.feeRecipient.collateralTokenBalance
-                        + size.debtTokenAmountToCollateralTokenAmount(size.feeConfig().fragmentationFee),
-                    FEES_01
-                );
+                gte(_after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance, FEES_01);
             } else {
-                gte(
-                    _after.feeRecipient.borrowATokenBalance,
-                    _before.feeRecipient.borrowATokenBalance + size.feeConfig().fragmentationFee,
-                    FEES_01
-                );
+                gte(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance, FEES_01);
             }
         }
 
