@@ -315,11 +315,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     LIQUIDATE_01
                 );
             }
-            if (_before.loanStatus != LoanStatus.OVERDUE) {
-                lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, LIQUIDATE_02);
-            }
-            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
+            lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, LIQUIDATE_02);
             t(_before.isBorrowerUnderwater || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
+            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_04);
             eq(uint256(_after.loanStatus), uint256(LoanStatus.REPAID), LIQUIDATE_05);
         }
     }
@@ -387,7 +385,10 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                     LIQUIDATE_01
                 );
             }
-            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
+            t(_before.isBorrowerUnderwater || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
+            if (borrower != _before.borrower.account) {
+                lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_04);
+            }
             uint256 tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
             t(size.riskConfig().minTenor <= tenor && tenor <= size.riskConfig().maxTenor, LOAN_01);
         }
