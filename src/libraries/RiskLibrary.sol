@@ -122,16 +122,6 @@ library RiskLibrary {
         return collateralRatio(state, account) < state.riskConfig.crLiquidation;
     }
 
-    /// @notice Validate that the user is not underwater
-    /// @dev Reverts if the user is underwater
-    /// @param state The state
-    /// @param account The account
-    function validateUserIsNotUnderwater(State storage state, address account) external view {
-        if (isUserUnderwater(state, account)) {
-            revert Errors.USER_IS_UNDERWATER(account, collateralRatio(state, account));
-        }
-    }
-
     /// @notice Validate that the user is not below the opening limit borrow CR
     /// @dev Reverts if the user is below the opening limit borrow CR
     ///      The user can set a custom opening limit borrow CR using SetUserConfiguration
