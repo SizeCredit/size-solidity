@@ -77,11 +77,6 @@ library LiquidateWithReplacement {
             revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, borrowOffer.maxDueDate);
         }
 
-        // validate deadline
-        if (params.deadline < block.timestamp) {
-            revert Errors.PAST_DEADLINE(params.deadline);
-        }
-
         // validate minAPR
         uint256 apr = borrowOffer.getAPRByTenor(
             VariablePoolBorrowRateParams({
