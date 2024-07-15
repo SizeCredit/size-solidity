@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: true
 
-    name: Foundry
+    name: Fmt
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: true
 
-    name: Foundry
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -80,7 +80,7 @@ jobs:
     strategy:
       fail-fast: true
 
-    name: Foundry
+    name: Test Fork
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
