@@ -62,7 +62,9 @@ library CapsLibrary {
     /// @dev Reverts if the Variable Pool does not have enough liquidity
     ///      This safety mechanism prevents takers from matching orders that could not be withdrawn from the Variable Pool.
     ///        Nevertheless, the Variable Pool may still fail to withdraw the cash due to other factors (such as a pause, etc),
-    ///        which is understood as an acceptable risk.
+    ///        which is understood as an acceptable risk, since it can be mitigated by a multicall.
+    ///      This check can be bypassed with a sandwitch attack that supplies just enough to make the pool liquid again,
+    ///        which we understand as an acceptable risk, since it can be mitigated by a multicall.
     /// @param state The state struct
     /// @param amount The amount of cash to withdraw
     function validateVariablePoolHasEnoughLiquidity(State storage state, uint256 amount) public view {
