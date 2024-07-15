@@ -13,6 +13,7 @@ import {Events} from "@src/libraries/Events.sol";
 
 struct RepayParams {
     uint256 debtPositionId;
+    address borrower;
 }
 
 /// @title Repay
@@ -34,6 +35,11 @@ library Repay {
         // validate debtPositionId
         if (state.getLoanStatus(params.debtPositionId) == LoanStatus.REPAID) {
             revert Errors.LOAN_ALREADY_REPAID(params.debtPositionId);
+        }
+
+        // validate borrower
+        if (state.getDebtPosition(params.debtPositionId).borrower != params.borrower) {
+            revert Errors.INVALID_BORROWER(params.borrower);
         }
 
         // validate msg.sender

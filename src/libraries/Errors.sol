@@ -35,6 +35,7 @@ library Errors {
     error INVALID_DEBT_POSITION_ID(uint256 debtPositionId);
     error INVALID_CREDIT_POSITION_ID(uint256 creditPositionId);
     error INVALID_LENDER(address account);
+    error INVALID_BORROWER(address account);
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);
 
