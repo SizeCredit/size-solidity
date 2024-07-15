@@ -11,13 +11,15 @@ Supported pair:
 Target networks:
 
 - Ethereum mainnet
-- Base
+- [Base](./deployments/8453.json)
 
 ## Audits
 
 - [2024-03-19 - LightChaserV3](./audits/2024-03-19-LightChaserV3.md)
 - [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
 - [2024-06-08 - Spearbit](./audits/2024-06-08-Spearbit.pdf)
+
+For bug reports, please refer to our [Bug Bounty Program](https://size.credit/)
 
 ## Documentation
 
@@ -222,14 +224,20 @@ for i in {0..5}; do halmos --loop $i; done
 ## Deployment
 
 ```bash
-source .env
-RPC_URL=$RPC_URL CHAIN_NAME=$CHAIN_NAME DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS yarn deploy-testnet --broadcast
+source .env.base_sepolia
+forge script script/Deploy.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify
 ```
 
 ### Deployment checklist
 
 1. Deploy
-2. Transfer `LINK` tokens to `PriceFeed` contract
-3. Grant `KEEPER_ROLE` to keeper bot
-4. Grant `BORROW_RATE_UPDATER_ROLE` to updater bot
-5. Grant `PAUSER_ROLE` to pauser bot
+2. Grant `KEEPER_ROLE` to keeper bot
+3. Grant `BORROW_RATE_UPDATER_ROLE` to updater bot
+4. Grant `PAUSER_ROLE` to pauser bot
+
+## Upgrade
+
+```bash
+source .env.sepolia
+forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify
+```

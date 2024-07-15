@@ -88,15 +88,14 @@ abstract contract BaseScript is Script {
     }
 
     function getCommitHash() internal returns (string memory) {
-        string[] memory inputs = new string[](3);
+        string[] memory inputs = new string[](4);
 
         inputs[0] = "git";
         inputs[1] = "rev-parse";
-        inputs[2] = "HEAD";
+        inputs[2] = "--short";
+        inputs[3] = "HEAD";
 
         bytes memory res = vm.ffi(inputs);
-        string memory output = abi.decode(res, (string));
-
-        return output;
+        return string(res);
     }
 }
