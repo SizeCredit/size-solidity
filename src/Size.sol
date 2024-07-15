@@ -159,7 +159,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     function withdraw(WithdrawParams calldata params) external payable override(ISize) whenNotPaused {
         state.validateWithdraw(params);
         state.executeWithdraw(params);
-        state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
     }
 
     /// @inheritdoc ISize
