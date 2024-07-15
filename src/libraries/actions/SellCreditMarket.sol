@@ -82,16 +82,11 @@ library SellCreditMarket {
                 );
             }
             tenor = debtPosition.dueDate - block.timestamp; // positive since the credit position is transferrable, so the loan must be ACTIVE
-
-            // validate amount
-            if (params.amount > creditPosition.credit) {
-                revert Errors.NOT_ENOUGH_CREDIT(params.amount, creditPosition.credit);
-            }
         }
 
         // validate amount
-        if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+        if (params.amount == 0) {
+            revert Errors.NULL_AMOUNT();
         }
 
         // validate tenor
