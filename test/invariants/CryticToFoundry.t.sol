@@ -32,6 +32,9 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
     }
 
     modifier getSender() override {
+        Vars memory e;
+        _before = e;
+        _after = e;
         _;
         assertTrue(property_LOAN());
         assertTrue(property_UNDERWATER());
@@ -451,5 +454,30 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
         sellCreditMarket(address(0x0), 0, 8474006695743451680011881010275008915614345497988616, 0, false);
         uint256 borrowATokenBalanceAfter = size.data().borrowAToken.balanceOf(size.feeConfig().feeRecipient);
         gte(borrowATokenBalanceAfter, borrowATokenBalanceBefore, FEES_01);
+    }
+
+    function test_CryticToFoundry_29() public {
+        deposit(address(0xdeadbeef), 82884843379321);
+        buyCreditLimit(4305533, 0);
+        deposit(address(0x0), 380069590193786762408919);
+        sellCreditMarket(
+            address(0x0),
+            384780137452210506870144766914975498468396,
+            1787768905302357633547406772069613228098500991636248273656105386,
+            9260835743654862575618531157252067610959118087743672797945111639051248578,
+            false
+        );
+        sellCreditLimit(329177432561635, 376940057707383526459702254135599039434);
+        setPrice(1597210518522842308194013676573110276589723222207467441275982233799228675);
+        selfLiquidate(0);
+        emit log_uint(size.collateralRatio(USER1));
+        buyCreditMarket(
+            address(0x0),
+            626656572686000650,
+            3662,
+            2991762417369416771160685518913972856410196735809630668388191357908948,
+            false
+        );
+        emit log_uint(size.collateralRatio(USER1));
     }
 }

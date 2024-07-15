@@ -39,6 +39,9 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
 
     modifier getSender() virtual {
         sender = msg.sender;
+        Vars memory e;
+        _before = e;
+        _after = e;
         _;
     }
 
