@@ -65,7 +65,7 @@ contract PriceFeed is IPriceFeed {
             // slither-disable-next-line unused-return
             (, int256 answer, uint256 startedAt,,) = sequencerUptimeFeed.latestRoundData();
 
-            if (answer == 1) {
+            if (startedAt == 0 || answer == 1) {
                 // sequencer is down
                 revert Errors.SEQUENCER_DOWN();
             }
