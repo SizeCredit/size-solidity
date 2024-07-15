@@ -15,9 +15,10 @@ Target networks:
 
 ## Audits
 
-- [2024-03-19 - LightChaserV3](./audits/2024-03-19-LightChaserV3.md)
-- [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
+- [2024-06-10 - Code4rena (WIP)](https://code4rena.com/reports/2024-06-size)
 - [2024-06-08 - Spearbit](./audits/2024-06-08-Spearbit.pdf)
+- [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
+- [2024-03-19 - LightChaserV3](./audits/2024-03-19-LightChaserV3.md)
 
 For bug reports, please refer to our [Bug Bounty Program](https://size.credit/)
 
