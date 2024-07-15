@@ -3,8 +3,8 @@
   out = "out"
   libs = ["lib"]
   fs_permissions = [{access = "read-write", path = "./deployments"}]
-  no_match_contract = 'CryticTester|FoundryHandler|Deploy'
-  no_match_test = 'testFork'
+  no_match_contract = 'CryticTester|FoundryHandler'
+  no_match_test = 'testFork_'
 
 [profile.fork]
   src = "src"
@@ -13,7 +13,8 @@
   fs_permissions = [{access = "read-write", path = "./deployments"}]
   no_match_contract = 'CryticTester|FoundryHandler'
   ffi = true
-  match_test = 'testFork'
+  match_test = 'testFork_'
+  no_match_test = 'test_'
 
 [invariant]
   runs = 1000

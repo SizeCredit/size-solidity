@@ -12,7 +12,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  sizes:
+    strategy:
+      fail-fast: true
+
+    name: Foundry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Contract sizes
+        run: |
+          forge --version
+          forge build --sizes --skip CryticTester
+        id: build
+
+  fmt:
     strategy:
       fail-fast: true
 
@@ -33,18 +55,50 @@ jobs:
           forge fmt --check
         id: fmt
 
-      - name: Contract sizes
-        run: |
-          forge --version
-          forge build --sizes --skip CryticTester
-        id: build
+  test:
+    strategy:
+      fail-fast: true
+
+    name: Foundry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
       - name: Test
         run: |
           forge test -vvv
         id: test
+
+  testFork:
+    strategy:
+      fail-fast: true
+
+    name: Foundry
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Test Fork
+        run: |
+          forge test -vvv
+        id: test
         env:
-          API_KEY_INFURA: ${{ secrets.API_KEY_INFURA }} 
+          API_KEY_INFURA: ${{ secrets.API_KEY_INFURA }}
+          FOUNDRY_PROFILE: fork
 
   slither:
     strategy:
@@ -87,7 +141,7 @@ jobs:
         run: npm run solhint
 
   invariants:
-    needs: [test, slither, solhint]
+    needs: [sizes, fmt, test, testFork, slither, solhint]
     strategy:
       fail-fast: true
       matrix:
