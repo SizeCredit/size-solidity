@@ -22,7 +22,7 @@ contract DeployScript is BaseScript, Networks, Deploy {
     function setUp() public {}
 
     modifier parseEnv() {
-        deployer = vm.addr(vm.envOr("DEPLOYER_PRIVATE_KEY", vm.deriveKey(TEST_MNEMONIC, 0)));
+        deployer = vm.envOr("DEPLOYER_ADDRESS", vm.addr(vm.deriveKey(TEST_MNEMONIC, 0)));
         owner = vm.envOr("OWNER", address(0));
         feeRecipient = vm.envOr("FEE_RECIPIENT", address(0));
         chainName = vm.envOr("CHAIN_NAME", TEST_CHAIN_NAME);
@@ -51,7 +51,7 @@ contract DeployScript is BaseScript, Networks, Deploy {
         parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(networkParams.wethAggregator)}));
         parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(networkParams.usdcAggregator)}));
         parameters.push(Parameter({key: "wethHeartbeat", value: Strings.toString(networkParams.wethHeartbeat)}));
-        parameters.push(Parameter({key: "usdcHeartbeat", value: Strings.toString(networkParams.wethHeartbeat)}));
+        parameters.push(Parameter({key: "usdcHeartbeat", value: Strings.toString(networkParams.usdcHeartbeat)}));
         parameters.push(
             Parameter({key: "sequencerUptimeFeed", value: Strings.toHexString(networkParams.sequencerUptimeFeed)})
         );

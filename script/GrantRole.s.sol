@@ -9,14 +9,13 @@ contract GrantRoleScript is Script {
     function run() external {
         console.log("GrantRole...");
 
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         address sizeContractAddress = vm.envAddress("SIZE_CONTRACT_ADDRESS");
         address account = vm.envAddress("ACCOUNT");
-        bytes32 role = vm.envBytes32("ROLE");
+        bytes32 role = keccak256(abi.encodePacked(vm.envString("ROLE")));
 
         Size size = Size(payable(sizeContractAddress));
 
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast();
         size.grantRole(role, account);
         vm.stopBroadcast();
     }

@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {TargetFunctions} from "./TargetFunctions.sol";
 import {CryticAsserts} from "@chimera/CryticAsserts.sol";
+
+import {SetupLocal} from "@test/invariants/SetupLocal.sol";
+import {TargetFunctions} from "@test/invariants/TargetFunctions.sol";
 
 // echidna . --contract CryticTester --config echidna.yaml
 // medusa fuzz
-contract CryticTester is TargetFunctions, CryticAsserts {
+contract CryticTester is TargetFunctions, SetupLocal, CryticAsserts {
     constructor() {
         setup();
     }

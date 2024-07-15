@@ -34,17 +34,18 @@ abstract contract Deploy {
     IPriceFeed internal priceFeed;
     WETH internal weth;
     USDC internal usdc;
+    IPool internal variablePool;
     InitializeFeeConfigParams internal f;
     InitializeRiskConfigParams internal r;
     InitializeOracleParams internal o;
     InitializeDataParams internal d;
-    IPool internal variablePool;
 
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
         variablePool = IPool(address(new PoolMock()));
+        PoolMock(address(variablePool)).setLiquidityIndex(address(weth), WadRayMath.RAY);
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -95,6 +96,7 @@ abstract contract Deploy {
 
         if (_networkParams.variablePool == address(0)) {
             variablePool = IPool(address(new PoolMock()));
+            PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.weth), WadRayMath.RAY);
             PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.usdc), WadRayMath.RAY);
         } else {
             variablePool = IPool(_networkParams.variablePool);
@@ -126,5 +128,15 @@ abstract contract Deploy {
         implementation = address(new Size());
         proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
         size = SizeMock(payable(proxy));
+    }
+
+    function setupFork(address _size, address _priceFeed, address _variablePool, address _weth, address _usdc)
+        internal
+    {
+        size = SizeMock(_size);
+        priceFeed = IPriceFeed(_priceFeed);
+        variablePool = IPool(_variablePool);
+        weth = WETH(payable(_weth));
+        usdc = USDC(_usdc);
     }
 }

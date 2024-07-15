@@ -415,4 +415,22 @@ contract LiquidateTest is BaseTest {
             "Alice should have lost some collateral after the overdue liquidation"
         );
     }
+
+    function test_Liquidate_round_up_should_not_DoS(uint256 price, uint256 collateral) public {
+        collateral = bound(collateral, 0, 100e18);
+        price = bound(price, 0.1e18, 1e18);
+        _setPrice(1e18);
+        _deposit(bob, usdc, 150e6);
+        _buyCreditLimit(bob, block.timestamp + 6 days, YieldCurveHelper.pointCurve(6 days, 0.03e18));
+        _deposit(alice, weth, 200e18 + collateral);
+        uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, 6 days, false);
+        assertGe(size.collateralRatio(alice), size.riskConfig().crOpening);
+        assertTrue(!size.isUserUnderwater(alice), "borrower should not be underwater");
+        _setPrice(price);
+
+        if (size.isUserUnderwater(alice)) {
+            _deposit(liquidator, usdc, 10_000e6);
+            _liquidate(liquidator, debtPositionId);
+        }
+    }
 }
