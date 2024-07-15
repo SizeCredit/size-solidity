@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {AccountingLibrary} from "@src/libraries/AccountingLibrary.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
-import {PERCENT} from "@src/libraries/Math.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -42,9 +41,6 @@ library SelfLiquidate {
                 state.collateralRatio(debtPosition.borrower),
                 state.getLoanStatus(params.creditPositionId)
             );
-        }
-        if (state.collateralRatio(debtPosition.borrower) >= PERCENT) {
-            revert Errors.LIQUIDATION_NOT_AT_LOSS(params.creditPositionId, state.collateralRatio(debtPosition.borrower));
         }
 
         // validate msg.sender

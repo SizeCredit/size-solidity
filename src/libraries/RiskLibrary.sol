@@ -6,7 +6,7 @@ import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {Math} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 
 /// @title RiskLibrary
 /// @custom:security-contact security@size.credit
@@ -64,7 +64,7 @@ library RiskLibrary {
     }
 
     /// @notice Check if a credit position is self-liquidatable
-    /// @dev A credit position is self-liquidatable if the user is underwater and the loan is not REPAID (ie, ACTIVE or OVERDUE)
+    /// @dev A credit position is self-liquidatable if the user is severely underwater and the loan is not REPAID (ie, ACTIVE or OVERDUE)
     /// @param state The state
     /// @param creditPositionId The credit position ID
     /// @return True if the credit position is self-liquidatable, false otherwise
@@ -78,7 +78,8 @@ library RiskLibrary {
         LoanStatus status = state.getLoanStatus(creditPositionId);
         // Only CreditPositions can be self liquidated
         return state.isCreditPositionId(creditPositionId)
-            && (isUserUnderwater(state, debtPosition.borrower) && status != LoanStatus.REPAID);
+        // the user must be severly underwater (CR < 100%) and the loan is not REPAID
+        && (collateralRatio(state, debtPosition.borrower) < PERCENT && status != LoanStatus.REPAID);
     }
 
     /// @notice Check if a credit position is transferrable
