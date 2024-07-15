@@ -55,7 +55,8 @@ library LiquidateWithReplacement {
         state.validateLiquidate(
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
-                minimumCollateralProfit: params.minimumCollateralProfit
+                minimumCollateralProfit: params.minimumCollateralProfit,
+                deadline: params.deadline
             })
         );
 
@@ -71,11 +72,6 @@ library LiquidateWithReplacement {
         // validate borrower
         if (borrowOffer.isNull()) {
             revert Errors.INVALID_BORROW_OFFER(params.borrower);
-        }
-
-        // validate deadline
-        if (params.deadline < block.timestamp) {
-            revert Errors.PAST_DEADLINE(params.deadline);
         }
 
         // validate minAPR
@@ -105,7 +101,8 @@ library LiquidateWithReplacement {
             state,
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
-                minimumCollateralProfit: params.minimumCollateralProfit
+                minimumCollateralProfit: params.minimumCollateralProfit,
+                deadline: params.deadline
             }),
             liquidatorProfitCollateralToken
         );
@@ -131,7 +128,8 @@ library LiquidateWithReplacement {
         liquidatorProfitCollateralToken = state.executeLiquidate(
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
-                minimumCollateralProfit: params.minimumCollateralProfit
+                minimumCollateralProfit: params.minimumCollateralProfit,
+                deadline: params.deadline
             })
         );
 
