@@ -86,7 +86,9 @@ library AccountingLibrary {
         state.validateMinimumCreditOpening(creditPosition.credit);
         state.validateTenor(dueDate - block.timestamp);
 
-        emit Events.CreateCreditPosition(creditPositionId, lender, debtPositionId, RESERVED_ID, creditPosition.credit);
+        emit Events.CreateCreditPosition(
+            creditPositionId, lender, debtPositionId, RESERVED_ID, creditPosition.credit, creditPosition.forSale
+        );
 
         state.data.debtToken.mint(borrower, futureValue);
     }
@@ -100,12 +102,18 @@ library AccountingLibrary {
     /// @param exitCreditPositionId The credit position id to exit
     /// @param lender The lender address
     /// @param credit The credit amount
-    function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)
-        external
-    {
+    /// @param forSale Whether the credit is for sale
+    function createCreditPosition(
+        State storage state,
+        uint256 exitCreditPositionId,
+        address lender,
+        uint256 credit,
+        bool forSale
+    ) external {
         CreditPosition storage exitCreditPosition = state.getCreditPosition(exitCreditPositionId);
         if (exitCreditPosition.credit == credit) {
             exitCreditPosition.lender = lender;
+            exitCreditPosition.forSale = forSale;
 
             emit Events.UpdateCreditPosition(
                 exitCreditPositionId, lender, exitCreditPosition.credit, exitCreditPosition.forSale
@@ -116,13 +124,15 @@ library AccountingLibrary {
             reduceCredit(state, exitCreditPositionId, credit);
 
             CreditPosition memory creditPosition =
-                CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: true});
+                CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: forSale});
 
             uint256 creditPositionId = state.data.nextCreditPositionId++;
             state.data.creditPositions[creditPositionId] = creditPosition;
             state.validateMinimumCreditOpening(creditPosition.credit);
 
-            emit Events.CreateCreditPosition(creditPositionId, lender, debtPositionId, exitCreditPositionId, credit);
+            emit Events.CreateCreditPosition(
+                creditPositionId, lender, debtPositionId, exitCreditPositionId, credit, forSale
+            );
         }
     }
 

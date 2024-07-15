@@ -191,7 +191,8 @@ library SellCreditMarket {
                 ? state.data.nextCreditPositionId - 1
                 : params.creditPositionId,
             lender: params.lender,
-            credit: creditAmountIn
+            credit: creditAmountIn,
+            forSale: true
         });
         state.data.borrowAToken.transferFrom(params.lender, msg.sender, cashAmountOut);
         state.data.borrowAToken.transferFrom(params.lender, state.feeConfig.feeRecipient, fees);
