@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
@@ -65,7 +66,9 @@ library CapsLibrary {
     /// @param state The state struct
     /// @param amount The amount of cash to withdraw
     function validateVariablePoolHasEnoughLiquidity(State storage state, uint256 amount) public view {
-        uint256 liquidity = state.data.underlyingBorrowToken.balanceOf(address(state.data.variablePool));
+        IAToken aToken =
+            IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
+        uint256 liquidity = state.data.underlyingBorrowToken.balanceOf(address(aToken));
         if (liquidity < amount) {
             revert Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(liquidity, amount);
         }
