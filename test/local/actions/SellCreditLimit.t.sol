@@ -9,10 +9,10 @@ import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol"
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 
 contract SellCreditLimitTest is BaseTest {
-    using OfferLibrary for BorrowOffer;
+    using OfferLibrary for LimitOrder;
 
     function test_SellCreditLimit_sellCreditLimit_adds_borrowOffer_to_orderbook() public {
         _deposit(alice, weth, 100e18);
@@ -24,7 +24,11 @@ contract SellCreditLimitTest is BaseTest {
         aprs[1] = 1.02e18;
         uint256[] memory marketRateMultipliers = new uint256[](2);
         assertTrue(_state().alice.user.borrowOffer.isNull());
-        _sellCreditLimit(alice, YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers}));
+        _sellCreditLimit(
+            alice,
+            block.timestamp + 365 days,
+            YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers})
+        );
 
         assertTrue(!_state().alice.user.borrowOffer.isNull());
     }
@@ -41,7 +45,11 @@ contract SellCreditLimitTest is BaseTest {
             tenors[i] = (i + 1) * 1 days;
             aprs[i] = int256(bound(uint256(keccak256(abi.encode(seed, i))), 0, 10e18));
         }
-        _sellCreditLimit(alice, YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers}));
+        _sellCreditLimit(
+            alice,
+            block.timestamp + 365 days,
+            YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers})
+        );
     }
 
     function test_SellCreditLimit_sellCreditLimit_cant_be_placed_if_cr_is_below_openingLimitBorrowCR() public {
@@ -56,7 +64,11 @@ contract SellCreditLimitTest is BaseTest {
         aprs[1] = 1e18;
         uint256[] memory marketRateMultipliers = new uint256[](2);
         _setUserConfiguration(alice, 1.7e18, false, false, new uint256[](0));
-        _sellCreditLimit(alice, YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers}));
+        _sellCreditLimit(
+            alice,
+            block.timestamp + 365 days,
+            YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers})
+        );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.5e18, 1.7e18));
         vm.prank(bob);
@@ -86,7 +98,11 @@ contract SellCreditLimitTest is BaseTest {
         aprs[1] = 1e18;
         uint256[] memory marketRateMultipliers = new uint256[](2);
         _setUserConfiguration(alice, 1.3e18, false, false, new uint256[](0));
-        _sellCreditLimit(alice, YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers}));
+        _sellCreditLimit(
+            alice,
+            block.timestamp + 365 days,
+            YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers})
+        );
         vm.expectRevert(abi.encodeWithSelector(Errors.CR_BELOW_OPENING_LIMIT_BORROW_CR.selector, alice, 1.4e18, 1.5e18));
         vm.prank(bob);
         size.buyCreditMarket(
@@ -112,7 +128,7 @@ contract SellCreditLimitTest is BaseTest {
         _updateConfig("swapFeeAPR", 0);
 
         _deposit(bob, weth, 20_000e18);
-        _sellCreditLimit(bob, [int256(0.02e18)], [uint256(120 days)]);
+        _sellCreditLimit(bob, block.timestamp + 365 days, [int256(0.02e18)], [uint256(120 days)]);
 
         _deposit(candy, usdc, 20_000e6);
         uint256 debtPositionId = _buyCreditMarket(candy, bob, 12_000e6, 120 days, true);
@@ -123,7 +139,7 @@ contract SellCreditLimitTest is BaseTest {
         vm.warp(block.timestamp + 14 days);
 
         _deposit(james, weth, 20_000e18);
-        _sellCreditLimit(james, [int256(0.035e18)], [uint256(120 days - 14 days)]);
+        _sellCreditLimit(james, block.timestamp + 365 days, [int256(0.035e18)], [uint256(120 days - 14 days)]);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
         uint256 debtPositionId2 =

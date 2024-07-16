@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {Errors} from "@src/libraries/Errors.sol";
 
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -35,7 +35,7 @@ contract SelfLiquidateTest is BaseTest {
             size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).futureValue);
 
         vm.expectRevert();
-        _liquidate(liquidator, debtPositionId, debtInCollateralToken);
+        _liquidate(liquidator, debtPositionId, debtInCollateralToken, block.timestamp);
 
         Vars memory _before = _state();
 
@@ -78,11 +78,23 @@ contract SelfLiquidateTest is BaseTest {
 
         _setPrice(0.6e18);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId1, 1.2e18));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, creditPositionId1, 1.2e18, LoanStatus.ACTIVE
+            )
+        );
         _selfLiquidate(alice, creditPositionId1);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId2, 1.2e18));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, creditPositionId2, 1.2e18, LoanStatus.ACTIVE
+            )
+        );
         _selfLiquidate(candy, creditPositionId2);
-        vm.expectRevert(abi.encodeWithSelector(Errors.LIQUIDATION_NOT_AT_LOSS.selector, creditPositionId3, 1.2e18));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector, creditPositionId3, 1.2e18, LoanStatus.ACTIVE
+            )
+        );
         _selfLiquidate(james, creditPositionId3);
     }
 
@@ -121,7 +133,7 @@ contract SelfLiquidateTest is BaseTest {
             size.debtTokenAmountToCollateralTokenAmount(size.getDebtPosition(debtPositionId).futureValue);
 
         vm.expectRevert();
-        _liquidate(liquidator, debtPositionId, futureValueInCollateralToken);
+        _liquidate(liquidator, debtPositionId, futureValueInCollateralToken, block.timestamp);
 
         Vars memory _before = _state();
 
@@ -167,7 +179,7 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(james, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 50e6, 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 credit = 10e6;
+        uint256 credit = 20e6;
         _sellCreditMarket(alice, candy, creditPositionId, credit, 365 days);
         _sellCreditMarket(alice, james, RESERVED_ID, 80e6, 365 days, false);
         _sellCreditMarket(bob, james, RESERVED_ID, 40e6, 365 days, false);
@@ -317,6 +329,7 @@ contract SelfLiquidateTest is BaseTest {
 
     function testFuzz_SelfLiquidate_selfliquidateLoan_compensate_used_to_borrower_exit(uint256 exitAmount) public {
         _setPrice(1e18);
+        _updateConfig("fragmentationFee", 1e6);
 
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 150e6);
@@ -335,7 +348,7 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
         _buyCreditLimit(candy, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
         _buyCreditLimit(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
-        _sellCreditLimit(james, 0, 365 days);
+        _sellCreditLimit(james, block.timestamp + 365 days, 0, 365 days);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);
         uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
@@ -353,6 +366,7 @@ contract SelfLiquidateTest is BaseTest {
 
     function testFuzz_SelfLiquidate_selfliquidateLoan_repay(uint256 exitAmount) public {
         _setPrice(1e18);
+        _updateConfig("fragmentationFee", 1e6);
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 150e6);
         _deposit(james, weth, 200e18);
@@ -370,7 +384,7 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
         _buyCreditLimit(candy, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
         _buyCreditLimit(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
-        _sellCreditLimit(james, 0, 365 days);
+        _sellCreditLimit(james, block.timestamp + 365 days, 0, 365 days);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);
         uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
@@ -380,11 +394,12 @@ contract SelfLiquidateTest is BaseTest {
         _setPrice(0.5e18);
 
         _selfLiquidate(candy, creditPositionId1);
-        _repay(alice, debtPositionId1);
+        _repay(alice, debtPositionId1, alice);
     }
 
     function testFuzz_SelfLiquidate_selfliquidateLoan_liquidate(uint256 exitAmount) public {
         _setPrice(1e18);
+        _updateConfig("fragmentationFee", 1e6);
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 150e6);
         _deposit(james, weth, 200e18);
@@ -402,7 +417,7 @@ contract SelfLiquidateTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
         _buyCreditLimit(candy, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
         _buyCreditLimit(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
-        _sellCreditLimit(james, 0, 365 days);
+        _sellCreditLimit(james, block.timestamp + 365 days, 0, 365 days);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);
         uint256 creditPositionId1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
@@ -419,6 +434,7 @@ contract SelfLiquidateTest is BaseTest {
         public
     {
         _setPrice(1e18);
+        _updateConfig("fragmentationFee", 1e6);
         _deposit(alice, weth, 200e18);
         _deposit(candy, usdc, 150e6);
         _deposit(james, usdc, 150e6);

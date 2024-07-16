@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -38,7 +38,7 @@ struct SellCreditMarketParams {
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic for selling credit (borrowing) as a market order
 library SellCreditMarket {
-    using OfferLibrary for LoanOffer;
+    using OfferLibrary for LimitOrder;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
@@ -49,7 +49,7 @@ library SellCreditMarket {
     /// @param state The state
     /// @param params The input parameters for selling credit as a market order
     function validateSellCreditMarket(State storage state, SellCreditMarketParams calldata params) external view {
-        LoanOffer memory loanOffer = state.data.users[params.lender].loanOffer;
+        LimitOrder memory loanOffer = state.data.users[params.lender].loanOffer;
         uint256 tenor;
 
         // validate msg.sender
@@ -82,16 +82,11 @@ library SellCreditMarket {
                 );
             }
             tenor = debtPosition.dueDate - block.timestamp; // positive since the credit position is transferrable, so the loan must be ACTIVE
-
-            // validate amount
-            if (params.amount > creditPosition.credit) {
-                revert Errors.NOT_ENOUGH_CREDIT(params.amount, creditPosition.credit);
-            }
         }
 
         // validate amount
-        if (params.amount < state.riskConfig.minimumCreditBorrowAToken) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(params.amount, state.riskConfig.minimumCreditBorrowAToken);
+        if (params.amount == 0) {
+            revert Errors.NULL_AMOUNT();
         }
 
         // validate tenor
@@ -196,7 +191,8 @@ library SellCreditMarket {
                 ? state.data.nextCreditPositionId - 1
                 : params.creditPositionId,
             lender: params.lender,
-            credit: creditAmountIn
+            credit: creditAmountIn,
+            forSale: true
         });
         state.data.borrowAToken.transferFrom(params.lender, msg.sender, cashAmountOut);
         state.data.borrowAToken.transferFrom(params.lender, state.feeConfig.feeRecipient, fees);

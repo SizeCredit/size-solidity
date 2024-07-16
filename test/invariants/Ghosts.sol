@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {Asserts} from "@chimera/Asserts.sol";
-
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 import {UserView} from "@src/SizeView.sol";
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
@@ -21,7 +21,6 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         UserView feeRecipient;
         LoanStatus loanStatus;
         bool[3] isUserUnderwater;
-        bool isSenderUnderwater;
         bool isBorrowerUnderwater;
         uint256 senderCollateralAmount;
         uint256 senderBorrowAmount;
@@ -40,6 +39,9 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
 
     modifier getSender() virtual {
         sender = msg.sender;
+        Vars memory e;
+        _before = e;
+        _after = e;
         _;
     }
 
@@ -49,7 +51,7 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         _;
     }
 
-    modifier clear() {
+    modifier clear() virtual {
         Vars memory e;
         _before = e;
         _after = e;
@@ -57,10 +59,10 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
     }
 
     function __snapshot(Vars storage vars, uint256 positionId) internal {
+        IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
         vars.sig = msg.sig;
         vars.debtPositionId = RESERVED_ID;
         vars.creditPositionId = RESERVED_ID;
-        (, address feeRecipient) = size.getCryticVariables();
         CreditPosition memory c;
         DebtPosition memory d;
         UserView memory e;
@@ -82,8 +84,7 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
             vars.loanStatus = size.getLoanStatus(positionId);
         }
         vars.sender = size.getUserView(sender);
-        vars.feeRecipient = size.getUserView(feeRecipient);
-        vars.isSenderUnderwater = size.isUserUnderwater(sender);
+        vars.feeRecipient = size.getUserView(size.feeConfig().feeRecipient);
         address[3] memory users = [USER1, USER2, USER3];
         for (uint256 i = 0; i < users.length; i++) {
             vars.isUserUnderwater[i] = size.isUserUnderwater(users[i]);
@@ -91,7 +92,7 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
         vars.senderCollateralAmount = weth.balanceOf(sender);
         vars.senderBorrowAmount = usdc.balanceOf(sender);
         vars.sizeCollateralAmount = weth.balanceOf(address(size));
-        vars.sizeBorrowAmount = usdc.balanceOf(address(variablePool));
+        vars.sizeBorrowAmount = usdc.balanceOf(address(aToken));
         (vars.debtPositionsCount, vars.creditPositionsCount) = size.getPositionsCount();
         vars.variablePoolBorrowAmount = size.getUserView(address(variablePool)).borrowATokenBalance;
         vars.totalDebtAmount = size.data().debtToken.totalSupply();

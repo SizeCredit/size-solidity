@@ -6,7 +6,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {CreditPosition, DebtPosition} from "@src/libraries/LoanLibrary.sol";
-import {BorrowOffer, LoanOffer} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder} from "@src/libraries/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
@@ -15,9 +15,9 @@ import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 
 struct User {
     // The user's loan offer
-    LoanOffer loanOffer;
+    LimitOrder loanOffer;
     // The user's borrow offer
-    BorrowOffer borrowOffer;
+    LimitOrder borrowOffer;
     // The user-defined opening limit CR. If not set, the protocol's crOpening is used.
     uint256 openingLimitBorrowCR;
     // Whether the user has disabled all credit positions for sale

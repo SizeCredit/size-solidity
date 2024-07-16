@@ -14,6 +14,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 contract RepayValidationTest is BaseTest {
     function test_Repay_validation() public {
         _updateConfig("swapFeeAPR", 0);
+        _updateConfig("fragmentationFee", 1e6);
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 300e6);
@@ -25,6 +26,7 @@ contract RepayValidationTest is BaseTest {
         uint256 amount = 20e6;
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 12 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
+        address borrower = bob;
         _buyCreditLimit(candy, block.timestamp + 12 days, YieldCurveHelper.pointCurve(12 days, 0.03e18));
 
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -35,27 +37,31 @@ contract RepayValidationTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, bob, amount, futureValue)
         );
-        size.repay(RepayParams({debtPositionId: debtPositionId}));
+        size.repay(RepayParams({debtPositionId: debtPositionId, borrower: borrower}));
         vm.stopPrank();
 
         _deposit(bob, usdc, 100e6);
 
         vm.startPrank(bob);
-        size.repay(RepayParams({debtPositionId: debtPositionId}));
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROWER.selector, alice));
+        size.repay(RepayParams({debtPositionId: debtPositionId, borrower: alice}));
+
+        size.repay(RepayParams({debtPositionId: debtPositionId, borrower: borrower}));
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, debtPositionId));
-        size.repay(RepayParams({debtPositionId: debtPositionId}));
+        size.repay(RepayParams({debtPositionId: debtPositionId, borrower: borrower}));
         vm.stopPrank();
 
         _claim(bob, creditId);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, debtPositionId));
-        size.repay(RepayParams({debtPositionId: debtPositionId}));
+        size.repay(RepayParams({debtPositionId: debtPositionId, borrower: borrower}));
         vm.stopPrank();
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_ALREADY_REPAID.selector, creditId));
-        size.repay(RepayParams({debtPositionId: creditId}));
+        size.repay(RepayParams({debtPositionId: creditId, borrower: borrower}));
         vm.stopPrank();
     }
 }

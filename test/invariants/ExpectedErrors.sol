@@ -59,6 +59,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
 
         // SELL_CREDIT_LIMIT_ERRORS
+        SELL_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
         SELL_CREDIT_LIMIT_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
 
         // BUY_CREDIT_MARKET_ERRORS
@@ -70,6 +71,8 @@ abstract contract ExpectedErrors is Deploy, Properties {
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_CASH.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.NULL_AMOUNT.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.NOT_ENOUGH_CREDIT.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_NOT_FOR_SALE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.STALE_RATE.selector);
@@ -94,7 +97,6 @@ abstract contract ExpectedErrors is Deploy, Properties {
 
         // SELF_LIQUIDATE_ERRORS
         SELF_LIQUIDATE_ERRORS.push(Errors.LOAN_NOT_SELF_LIQUIDATABLE.selector);
-        SELF_LIQUIDATE_ERRORS.push(Errors.LIQUIDATION_NOT_AT_LOSS.selector);
         SELF_LIQUIDATE_ERRORS.push(Errors.LIQUIDATOR_IS_NOT_LENDER.selector);
 
         // LIQUIDATE_WITH_REPLACEMENT_ERRORS
@@ -106,6 +108,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.INVALID_BORROW_OFFER.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.STALE_RATE.selector);
+        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
 
         // COMPENSATE_ERRORS

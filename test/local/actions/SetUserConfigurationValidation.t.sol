@@ -34,7 +34,7 @@ contract SetUserConfigurationValidationTest is BaseTest {
         );
 
         _deposit(bob, usdc, 100e6);
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
         _claim(alice, creditPositionId);
 
         vm.prank(alice);

@@ -2,10 +2,9 @@
 pragma solidity ^0.8.19;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
-import {Size} from "@src/Size.sol";
+import {ISize} from "@src/interfaces/ISize.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 import {Script} from "forge-std/Script.sol";
@@ -33,8 +32,8 @@ abstract contract BaseScript is Script {
 
     string root;
     string path;
-    Deployment[] public deployments;
-    Parameter[] public parameters;
+    Deployment[] internal deployments;
+    Parameter[] internal parameters;
 
     modifier broadcast() {
         vm.startBroadcast();
@@ -71,7 +70,7 @@ abstract contract BaseScript is Script {
 
     function importDeployments()
         internal
-        returns (SizeMock size, IPriceFeed priceFeed, IPool variablePool, USDC usdc, WETH weth, address owner)
+        returns (ISize size, IPriceFeed priceFeed, IPool variablePool, USDC usdc, WETH weth, address owner)
     {
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
@@ -80,15 +79,15 @@ abstract contract BaseScript is Script {
 
         string memory json = vm.readFile(path);
 
-        size = SizeMock(abi.decode(json.parseRaw(".deployments.Size-proxy"), (address)));
+        size = ISize(abi.decode(json.parseRaw(".deployments.Size-proxy"), (address)));
         priceFeed = IPriceFeed(abi.decode(json.parseRaw(".deployments.PriceFeed"), (address)));
-        variablePool = IPool(abi.decode(json.parseRaw(".deployments.VariablePool"), (address)));
+        variablePool = IPool(abi.decode(json.parseRaw(".parameters.variablePool"), (address)));
         usdc = USDC(abi.decode(json.parseRaw(".parameters.usdc"), (address)));
         weth = WETH(abi.decode(json.parseRaw(".parameters.weth"), (address)));
         owner = address(abi.decode(json.parseRaw(".parameters.owner"), (address)));
     }
 
-    function getCommitHash() public returns (string memory) {
+    function getCommitHash() internal returns (string memory) {
         string[] memory inputs = new string[](4);
 
         inputs[0] = "git";
@@ -98,20 +97,5 @@ abstract contract BaseScript is Script {
 
         bytes memory res = vm.ffi(inputs);
         return string(res);
-    }
-
-    function findChainName() public returns (string memory) {
-        uint256 thisChainId = block.chainid;
-        string[2][] memory allRpcUrls = vm.rpcUrls();
-        for (uint256 i = 0; i < allRpcUrls.length; i++) {
-            try vm.createSelectFork(allRpcUrls[i][1]) {
-                if (block.chainid == thisChainId) {
-                    return allRpcUrls[i][0];
-                }
-            } catch {
-                continue;
-            }
-        }
-        revert InvalidChainId(thisChainId);
     }
 }

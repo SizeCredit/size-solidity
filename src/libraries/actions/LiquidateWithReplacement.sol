@@ -6,7 +6,7 @@ import {Math} from "@src/libraries/Math.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
-import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
@@ -35,7 +35,7 @@ struct LiquidateWithReplacementParams {
 /// @notice Contains the logic for liquidating a debt position with a replacement borrower
 library LiquidateWithReplacement {
     using LoanLibrary for CreditPosition;
-    using OfferLibrary for BorrowOffer;
+    using OfferLibrary for LimitOrder;
 
     using LoanLibrary for State;
     using Liquidate for State;
@@ -49,15 +49,21 @@ library LiquidateWithReplacement {
         view
     {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
-        BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
+        LimitOrder storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
         // validate liquidate
         state.validateLiquidate(
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
-                minimumCollateralProfit: params.minimumCollateralProfit
+                minimumCollateralProfit: params.minimumCollateralProfit,
+                deadline: params.deadline
             })
         );
+
+        // validate borrower
+        if (borrowOffer.isNull()) {
+            revert Errors.INVALID_BORROW_OFFER(params.borrower);
+        }
 
         // validate debtPositionId
         if (state.getLoanStatus(params.debtPositionId) != LoanStatus.ACTIVE) {
@@ -67,15 +73,8 @@ library LiquidateWithReplacement {
         if (tenor < state.riskConfig.minTenor || tenor > state.riskConfig.maxTenor) {
             revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minTenor, state.riskConfig.maxTenor);
         }
-
-        // validate borrower
-        if (borrowOffer.isNull()) {
-            revert Errors.INVALID_BORROW_OFFER(params.borrower);
-        }
-
-        // validate deadline
-        if (params.deadline < block.timestamp) {
-            revert Errors.PAST_DEADLINE(params.deadline);
+        if (block.timestamp + tenor > borrowOffer.maxDueDate) {
+            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, borrowOffer.maxDueDate);
         }
 
         // validate minAPR
@@ -105,7 +104,8 @@ library LiquidateWithReplacement {
             state,
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
-                minimumCollateralProfit: params.minimumCollateralProfit
+                minimumCollateralProfit: params.minimumCollateralProfit,
+                deadline: params.deadline
             }),
             liquidatorProfitCollateralToken
         );
@@ -125,13 +125,14 @@ library LiquidateWithReplacement {
 
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         DebtPosition memory debtPositionCopy = debtPosition;
-        BorrowOffer storage borrowOffer = state.data.users[params.borrower].borrowOffer;
+        LimitOrder storage borrowOffer = state.data.users[params.borrower].borrowOffer;
         uint256 tenor = debtPositionCopy.dueDate - block.timestamp;
 
         liquidatorProfitCollateralToken = state.executeLiquidate(
             LiquidateParams({
                 debtPositionId: params.debtPositionId,
-                minimumCollateralProfit: params.minimumCollateralProfit
+                minimumCollateralProfit: params.minimumCollateralProfit,
+                deadline: params.deadline
             })
         );
 

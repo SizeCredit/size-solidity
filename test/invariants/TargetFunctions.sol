@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {Helper} from "./Helper.sol";
 import {Properties} from "./Properties.sol";
-import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 
 import "@crytic/properties/contracts/util/Hevm.sol";
 
@@ -40,34 +39,12 @@ import {SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfigur
 
 import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
-import {KEEPER_ROLE} from "@src/Size.sol";
-
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 
-abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions, ITargetFunctions {
-    function setup() internal override {
-        setupLocal(address(this), address(this));
-        size.grantRole(KEEPER_ROLE, USER2);
-
-        address[] memory users = new address[](3);
-        users[0] = USER1;
-        users[1] = USER2;
-        users[2] = USER3;
-        usdc.mint(address(this), MAX_AMOUNT_USDC);
-        hevm.deal(address(this), MAX_AMOUNT_WETH);
-        for (uint256 i = 0; i < users.length; i++) {
-            address user = users[i];
-            usdc.mint(user, MAX_AMOUNT_USDC);
-
-            hevm.deal(address(this), MAX_AMOUNT_WETH);
-            weth.deposit{value: MAX_AMOUNT_WETH}();
-            weth.transfer(user, MAX_AMOUNT_WETH);
-        }
-    }
-
+abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
     function deposit(address token, uint256 amount) public getSender checkExpectedErrors(DEPOSIT_ERRORS) {
         token = uint160(token) % 2 == 0 ? address(weth) : address(usdc);
         amount = between(amount, 0, token == address(weth) ? MAX_AMOUNT_WETH : MAX_AMOUNT_USDC);
@@ -180,14 +157,22 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
         }
     }
 
-    function sellCreditLimit(uint256 yieldCurveSeed) public getSender checkExpectedErrors(SELL_CREDIT_LIMIT_ERRORS) {
+    function sellCreditLimit(uint256 maxDueDate, uint256 yieldCurveSeed)
+        public
+        getSender
+        checkExpectedErrors(SELL_CREDIT_LIMIT_ERRORS)
+    {
         __before();
 
+        maxDueDate = between(maxDueDate, block.timestamp, block.timestamp + MAX_DURATION);
         YieldCurve memory curveRelativeTime = _getRandomYieldCurve(yieldCurveSeed);
 
         hevm.prank(sender);
         (success, returnData) = address(size).call(
-            abi.encodeCall(size.sellCreditLimit, SellCreditLimitParams({curveRelativeTime: curveRelativeTime}))
+            abi.encodeCall(
+                size.sellCreditLimit,
+                SellCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
+            )
         );
         if (success) {
             __after();
@@ -263,8 +248,11 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
         __before(debtPositionId);
 
         hevm.prank(sender);
-        (success, returnData) =
-            address(size).call(abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId})));
+        (success, returnData) = address(size).call(
+            abi.encodeCall(
+                size.repay, RepayParams({debtPositionId: debtPositionId, borrower: _before.borrower.account})
+            )
+        );
         if (success) {
             __after(debtPositionId);
 
@@ -308,7 +296,11 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
         (success, returnData) = address(size).call(
             abi.encodeCall(
                 size.liquidate,
-                LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
+                LiquidateParams({
+                    debtPositionId: debtPositionId,
+                    minimumCollateralProfit: minimumCollateralProfit,
+                    deadline: type(uint256).max
+                })
             )
         );
         if (success) {
@@ -323,11 +315,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
                     LIQUIDATE_01
                 );
             }
-            if (_before.loanStatus != LoanStatus.OVERDUE) {
-                lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, LIQUIDATE_02);
-            }
-            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
+            lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, LIQUIDATE_02);
             t(_before.isBorrowerUnderwater || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
+            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_04);
             eq(uint256(_after.loanStatus), uint256(LoanStatus.REPAID), LIQUIDATE_05);
         }
     }
@@ -388,12 +378,17 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
             __after(debtPositionId);
             (uint256 liquidatorProfitCollateralToken,) = abi.decode(returnData, (uint256, uint256));
 
-            gte(
-                _after.sender.collateralTokenBalance,
-                _before.sender.collateralTokenBalance + liquidatorProfitCollateralToken,
-                LIQUIDATE_01
-            );
-            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_02);
+            if (sender != _before.borrower.account) {
+                gte(
+                    _after.sender.collateralTokenBalance,
+                    _before.sender.collateralTokenBalance + liquidatorProfitCollateralToken,
+                    LIQUIDATE_01
+                );
+            }
+            t(_before.isBorrowerUnderwater || _before.loanStatus == LoanStatus.OVERDUE, LIQUIDATE_03);
+            if (borrower != _before.borrower.account) {
+                lt(_after.borrower.debtBalance, _before.borrower.debtBalance, LIQUIDATE_04);
+            }
             uint256 tenor = size.getDebtPosition(debtPositionId).dueDate - block.timestamp;
             t(size.riskConfig().minTenor <= tenor && tenor <= size.riskConfig().maxTenor, LOAN_01);
         }
@@ -496,7 +491,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, BaseTargetFunctions
             MAX_AMOUNT_USDC,
             MAX_DURATION,
             MAX_DURATION,
-            MAX_PERCENT,
+            MAX_PERCENT_SWAP_FEE_APR,
             MAX_AMOUNT_USDC,
             MAX_PERCENT,
             MAX_PERCENT,

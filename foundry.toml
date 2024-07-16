@@ -3,7 +3,17 @@
   out = "out"
   libs = ["lib"]
   fs_permissions = [{access = "read-write", path = "./deployments"}]
-  no_match_contract = 'CryticTester|Handler|Deploy'
+  no_match_contract = 'CryticTester|FoundryHandler|FoundryForkTester'
+  no_match_test = 'testFork_'
+
+[profile.fork]
+  src = "src"
+  out = "out"
+  libs = ["lib"]
+  fs_permissions = [{access = "read-write", path = "./deployments"}]
+  no_match_contract = 'CryticTester|FoundryHandler'
+  ffi = true
+  no_match_test = 'test_|testFuzz_'
 
 [invariant]
   runs = 1000
@@ -11,10 +21,14 @@
 
 [rpc_endpoints]
   sepolia = "https://sepolia.infura.io/v3/${API_KEY_INFURA}"
+  base_sepolia = "https://base-sepolia.g.alchemy.com/v2/${API_KEY_ALCHEMY}"
+  base = "https://base-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}"
   anvil = "http://127.0.0.1:8545"
 
 [etherscan]
   sepolia = { key = "${API_KEY_ETHERSCAN}" }
+  base_sepolia = { key = "${API_KEY_ETHERSCAN}" }
+  base = { key = "${API_KEY_ETHERSCAN}" }
 
 [fmt]
   sort_imports = true

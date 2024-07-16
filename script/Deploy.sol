@@ -15,6 +15,7 @@ import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {Size} from "@src/Size.sol";
 
+import {NetworkParams} from "@script/Networks.sol";
 import {
     Initialize,
     InitializeDataParams,
@@ -33,17 +34,18 @@ abstract contract Deploy {
     IPriceFeed internal priceFeed;
     WETH internal weth;
     USDC internal usdc;
+    IPool internal variablePool;
     InitializeFeeConfigParams internal f;
     InitializeRiskConfigParams internal r;
     InitializeOracleParams internal o;
     InitializeDataParams internal d;
-    IPool internal variablePool;
 
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
         weth = new WETH();
         usdc = new USDC(owner);
         variablePool = IPool(address(new PoolMock()));
+        PoolMock(address(variablePool)).setLiquidityIndex(address(weth), WadRayMath.RAY);
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -76,37 +78,33 @@ abstract contract Deploy {
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
 
-    function setupProduction(
-        address _owner,
-        address _feeRecipient,
-        address _weth,
-        address _usdc,
-        address _variablePool,
-        address _wethAggregator,
-        address _usdcAggregator,
-        address _sequencerUptimeFeed
-    ) internal {
-        variablePool = IPool(_variablePool);
+    function setupProduction(address _owner, address _feeRecipient, NetworkParams memory _networkParams) internal {
+        variablePool = IPool(_networkParams.variablePool);
 
-        if (_wethAggregator == address(0) && _usdcAggregator == address(0)) {
+        if (_networkParams.wethAggregator == address(0) && _networkParams.usdcAggregator == address(0)) {
             priceFeed = new PriceFeedMock(_owner);
             PriceFeedMock(address(priceFeed)).setPrice(2468e18);
         } else {
             priceFeed = new PriceFeed(
-                _wethAggregator, _usdcAggregator, _sequencerUptimeFeed, 3600 * 1.1e18 / 1e18, 86400 * 1.1e18 / 1e18
+                _networkParams.wethAggregator,
+                _networkParams.usdcAggregator,
+                _networkParams.sequencerUptimeFeed,
+                _networkParams.wethHeartbeat,
+                _networkParams.usdcHeartbeat
             );
         }
 
-        if (_variablePool == address(0)) {
+        if (_networkParams.variablePool == address(0)) {
             variablePool = IPool(address(new PoolMock()));
-            PoolMock(address(variablePool)).setLiquidityIndex(address(_usdc), WadRayMath.RAY);
+            PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.weth), WadRayMath.RAY);
+            PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.usdc), WadRayMath.RAY);
         } else {
-            variablePool = IPool(_variablePool);
+            variablePool = IPool(_networkParams.variablePool);
         }
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
-            fragmentationFee: 5e6,
+            fragmentationFee: 1e6,
             liquidationRewardPercent: 0.05e18,
             overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
@@ -122,13 +120,23 @@ abstract contract Deploy {
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});
         d = InitializeDataParams({
-            weth: address(_weth),
-            underlyingCollateralToken: address(_weth),
-            underlyingBorrowToken: address(_usdc),
+            weth: address(_networkParams.weth),
+            underlyingCollateralToken: address(_networkParams.weth),
+            underlyingBorrowToken: address(_networkParams.usdc),
             variablePool: address(variablePool) // Aave v3
         });
         implementation = address(new Size());
         proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
         size = SizeMock(payable(proxy));
+    }
+
+    function setupFork(address _size, address _priceFeed, address _variablePool, address _weth, address _usdc)
+        internal
+    {
+        size = SizeMock(_size);
+        priceFeed = IPriceFeed(_priceFeed);
+        variablePool = IPool(_variablePool);
+        weth = WETH(payable(_weth));
+        usdc = USDC(_usdc);
     }
 }

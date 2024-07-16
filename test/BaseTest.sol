@@ -61,8 +61,8 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     address internal feeRecipient = address(0x70000);
 
     function setUp() public virtual {
-        _labels();
         setupLocal(address(this), feeRecipient);
+        _labels();
     }
 
     function _labels() internal {
@@ -73,13 +73,17 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.label(liquidator, "liquidator");
         vm.label(feeRecipient, "feeRecipient");
 
-        vm.label(address(proxy), "size-proxy");
-        vm.label(address(implementation), "size-implementation");
-        vm.label(address(size), "size");
-        vm.label(address(priceFeed), "priceFeed");
-        vm.label(address(usdc), "usdc");
-        vm.label(address(weth), "weth");
-        vm.label(address(variablePool), "variablePool");
+        vm.label(address(proxy), "Size-proxy");
+        vm.label(address(implementation), "Size-implementation");
+        vm.label(address(size), "Size");
+        vm.label(address(priceFeed), "PriceFeed");
+        vm.label(address(usdc), "USDC");
+        vm.label(address(weth), "WETH");
+        vm.label(address(variablePool), "VariablePool");
+
+        vm.label(address(size.data().collateralToken), "szWETH");
+        vm.label(address(size.data().borrowAToken), "szaUSDC");
+        vm.label(address(size.data().debtToken), "szDebtUSDC");
 
         vm.label(address(0), "address(0)");
     }
@@ -230,12 +234,17 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         return _sellCreditMarket(borrower, lender, RESERVED_ID, amount, tenor, exactAmountIn);
     }
 
-    function _sellCreditLimit(address borrower, YieldCurve memory curveRelativeTime) internal {
+    function _sellCreditLimit(address borrower, uint256 maxDueDate, YieldCurve memory curveRelativeTime) internal {
         vm.prank(borrower);
-        size.sellCreditLimit(SellCreditLimitParams({curveRelativeTime: curveRelativeTime}));
+        size.sellCreditLimit(SellCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
     }
 
-    function _sellCreditLimit(address borrower, int256[1] memory ratesArray, uint256[1] memory tenorsArray) internal {
+    function _sellCreditLimit(
+        address borrower,
+        uint256 maxDueDate,
+        int256[1] memory ratesArray,
+        uint256[1] memory tenorsArray
+    ) internal {
         int256[] memory aprs = new int256[](1);
         uint256[] memory tenors = new uint256[](1);
         uint256[] memory marketRateMultipliers = new uint256[](1);
@@ -243,10 +252,15 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         tenors[0] = tenorsArray[0];
         YieldCurve memory curveRelativeTime =
             YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
-        return _sellCreditLimit(borrower, curveRelativeTime);
+        return _sellCreditLimit(borrower, maxDueDate, curveRelativeTime);
     }
 
-    function _sellCreditLimit(address borrower, int256[2] memory ratesArray, uint256[2] memory tenorsArray) internal {
+    function _sellCreditLimit(
+        address borrower,
+        uint256 maxDueDate,
+        int256[2] memory ratesArray,
+        uint256[2] memory tenorsArray
+    ) internal {
         int256[] memory aprs = new int256[](2);
         uint256[] memory tenors = new uint256[](2);
         uint256[] memory marketRateMultipliers = new uint256[](2);
@@ -256,12 +270,12 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         tenors[1] = tenorsArray[1];
         YieldCurve memory curveRelativeTime =
             YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs});
-        return _sellCreditLimit(borrower, curveRelativeTime);
+        return _sellCreditLimit(borrower, maxDueDate, curveRelativeTime);
     }
 
-    function _sellCreditLimit(address borrower, int256 rate, uint256 tenor) internal {
+    function _sellCreditLimit(address borrower, uint256 maxDueDate, int256 rate, uint256 tenor) internal {
         YieldCurve memory curveRelativeTime = YieldCurveHelper.pointCurve(tenor, rate);
-        return _sellCreditLimit(borrower, curveRelativeTime);
+        return _sellCreditLimit(borrower, maxDueDate, curveRelativeTime);
     }
 
     function _buyCreditMarket(address lender, uint256 creditPositionId, uint256 amount, bool exactAmountIn)
@@ -310,9 +324,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         return DEBT_POSITION_ID_START + debtPositionsCount - 1;
     }
 
-    function _repay(address user, uint256 debtPositionId) internal {
+    function _repay(address user, uint256 debtPositionId, address borrower) internal {
         vm.prank(user);
-        size.repay(RepayParams({debtPositionId: debtPositionId}));
+        size.repay(RepayParams({debtPositionId: debtPositionId, borrower: borrower}));
     }
 
     function _claim(address user, uint256 creditPositionId) internal {
@@ -321,16 +335,20 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     }
 
     function _liquidate(address user, uint256 debtPositionId) internal returns (uint256) {
-        return _liquidate(user, debtPositionId, 0);
+        return _liquidate(user, debtPositionId, 0, type(uint256).max);
     }
 
-    function _liquidate(address user, uint256 debtPositionId, uint256 minimumCollateralProfit)
+    function _liquidate(address user, uint256 debtPositionId, uint256 minimumCollateralProfit, uint256 deadline)
         internal
         returns (uint256)
     {
         vm.prank(user);
         return size.liquidate(
-            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: minimumCollateralProfit})
+            LiquidateParams({
+                debtPositionId: debtPositionId,
+                minimumCollateralProfit: minimumCollateralProfit,
+                deadline: deadline
+            })
         );
     }
 

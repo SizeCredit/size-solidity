@@ -35,6 +35,7 @@ library Errors {
     error INVALID_DEBT_POSITION_ID(uint256 debtPositionId);
     error INVALID_CREDIT_POSITION_ID(uint256 creditPositionId);
     error INVALID_LENDER(address account);
+    error INVALID_BORROWER(address account);
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);
 
@@ -65,7 +66,6 @@ library Errors {
         uint256 liquidatorProfitCollateralToken, uint256 minimumCollateralProfit
     );
     error CR_BELOW_OPENING_LIMIT_BORROW_CR(address account, uint256 cr, uint256 riskCollateralRatio);
-    error LIQUIDATION_NOT_AT_LOSS(uint256 positionId, uint256 cr);
 
     error INVALID_DECIMALS(uint8 decimals);
     error INVALID_PRICE(address aggregator, int256 price);

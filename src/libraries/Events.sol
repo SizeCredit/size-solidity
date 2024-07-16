@@ -31,6 +31,7 @@ library Events {
         bool exactAmountIn
     );
     event SellCreditLimit(
+        uint256 indexed maxDueDate,
         uint256[] curveRelativeTimeTenors,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
@@ -81,7 +82,8 @@ library Events {
         address indexed lender,
         uint256 indexed debtPositionId,
         uint256 exitPositionId,
-        uint256 credit
+        uint256 credit,
+        bool forSale
     );
 
     // updates

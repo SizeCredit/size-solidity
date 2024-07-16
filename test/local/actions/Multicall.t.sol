@@ -57,7 +57,11 @@ contract MulticallTest is BaseTest {
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: amount, to: alice})));
         data[1] = abi.encodeCall(
-            size.sellCreditLimit, SellCreditLimitParams({curveRelativeTime: YieldCurveHelper.flatCurve()})
+            size.sellCreditLimit,
+            SellCreditLimitParams({
+                maxDueDate: block.timestamp + 365 days,
+                curveRelativeTime: YieldCurveHelper.flatCurve()
+            })
         );
         size.multicall{value: amount}(data);
 
@@ -138,7 +142,8 @@ contract MulticallTest is BaseTest {
             abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: futureValue, to: liquidator}));
         // liquidate profitably (but does not enforce CR)
         data[1] = abi.encodeCall(
-            size.liquidate, LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: 0})
+            size.liquidate,
+            LiquidateParams({debtPositionId: debtPositionId, minimumCollateralProfit: 0, deadline: type(uint256).max})
         );
         // withdraw everything
         data[2] = abi.encodeCall(
@@ -170,8 +175,9 @@ contract MulticallTest is BaseTest {
 
     function test_Multicall_multicall_bypasses_cap_if_it_is_to_reduce_debt() public {
         _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0);
         uint256 amount = 100e6;
-        uint256 cap = amount + size.getSwapFee(100e6, 365 days);
+        uint256 cap = amount;
         _updateConfig("borrowATokenCap", cap);
 
         _deposit(alice, usdc, cap);
@@ -199,10 +205,27 @@ contract MulticallTest is BaseTest {
         // debt reduction is allowed to go over cap
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: remaining, to: bob}));
-        data[1] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId}));
+        data[1] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId, borrower: bob}));
         vm.prank(bob);
         size.multicall(data);
 
         assertEq(_state().bob.debtBalance, 0);
+    }
+
+    function test_Multicall_multicall_cannot_bypass_cap_if_it_is_not_to_reduce_debt() public {
+        _setPrice(1e18);
+        uint256 cap = 100e6;
+        _mint(address(usdc), alice, cap + 1);
+        _approve(alice, address(usdc), address(size), cap + 1);
+        _updateConfig("borrowATokenCap", cap);
+
+        // should not go over cap
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: cap + 1, to: alice}));
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE.selector, cap + 1, 0)
+        );
+        size.multicall(data);
     }
 }

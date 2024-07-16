@@ -9,7 +9,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {PERCENT} from "@src/libraries/Math.sol";
 
 import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
 import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -17,7 +17,7 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {Math, PERCENT, YEAR} from "@src/libraries/Math.sol";
 
 contract BuyCreditMarketLendTest is BaseTest {
-    using OfferLibrary for LoanOffer;
+    using OfferLibrary for LimitOrder;
 
     uint256 private constant MAX_RATE = 2e18;
     uint256 private constant MAX_TENOR = 365 days * 2;
@@ -30,7 +30,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
         uint256 rate = 0.03e18;
-        _sellCreditLimit(alice, int256(rate), 365 days);
+        _sellCreditLimit(alice, block.timestamp + 365 days, int256(rate), 365 days);
 
         uint256 issuanceValue = 10e6;
         uint256 futureValue = Math.mulDivUp(issuanceValue, PERCENT + rate, PERCENT);
@@ -61,7 +61,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
         _deposit(bob, usdc, 100e6);
-        _sellCreditLimit(alice, 0.03e18, 365 days);
+        _sellCreditLimit(alice, block.timestamp + 365 days, 0.03e18, 365 days);
 
         uint256 amountIn = 10e6;
         uint256 tenor = 365 days;
@@ -95,7 +95,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _setVariablePoolBorrowRate(uint128(bound(seed, 0, 0.1e18)));
         _updateConfig("variablePoolBorrowRateStaleRateInterval", 1);
         YieldCurve memory curve = YieldCurveHelper.getRandomYieldCurve(seed);
-        _sellCreditLimit(alice, curve);
+        _sellCreditLimit(alice, block.timestamp + 365 days, curve);
 
         amountIn = bound(amountIn, 5e6, 100e6);
         uint256 tenor = (curve.tenors[0] + curve.tenors[1]) / 2;
@@ -125,7 +125,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _setPrice(1e18);
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
-        _sellCreditLimit(alice, 0, 365 days);
+        _sellCreditLimit(alice, block.timestamp + 365 days, 0, 365 days);
 
         vm.startPrank(bob);
         vm.expectRevert(
@@ -149,7 +149,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(alice, weth, 150e18);
         _deposit(bob, usdc, 200e6);
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
-        _sellCreditLimit(alice, curve);
+        _sellCreditLimit(alice, block.timestamp + 365 days, curve);
 
         vm.startPrank(bob);
         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 6 days, 30 days, 150 days));
@@ -197,7 +197,9 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(alice, weth, 200e18);
 
         // Alice places a borrow limit order
-        _sellCreditLimit(alice, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]);
+        _sellCreditLimit(
+            alice, block.timestamp + 365 days, [int256(0.03e18), int256(0.03e18)], [uint256(5 days), uint256(12 days)]
+        );
 
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
@@ -229,7 +231,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(candy, usdc, 1200e6);
         _buyCreditLimit(alice, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(6 * 30 days, 0.05e18));
         _buyCreditLimit(candy, block.timestamp + 12 * 30 days, YieldCurveHelper.pointCurve(7 * 30 days, 0));
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(6 * 30 days, 0.04e18));
 
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, 975.94e6, 6 * 30 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
@@ -261,7 +263,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(candy, usdc, 1200e6);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(365 days, 1e18));
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
 
         uint256 debtPositionId1 = _sellCreditMarket(bob, alice, 100e6, 365 days, false);
         uint256 creditPositionId1_1 = size.getCreditPositionIdsByDebtPositionId(debtPositionId1)[0];
@@ -289,7 +291,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(candy, usdc, 200e6);
 
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(365 days, 0.1e18));
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days);
@@ -315,7 +317,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         _deposit(candy, usdc, 200e6);
 
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(365 days, 0.1e18));
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days);
@@ -346,7 +348,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         futureValue = bound(futureValue, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
         uint256 ratePerTenor = Math.aprToRatePerTenor(apr, tenor);
 
-        _sellCreditLimit(bob, YieldCurveHelper.pointCurve(tenor, int256(apr)));
+        _sellCreditLimit(bob, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));
 
         Vars memory _before = _state();
 
@@ -364,7 +366,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
     }
 
-    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountOut_parametric(
+    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountOut_specification(
         uint256 A1,
         uint256 A2,
         uint256 deltaT1,
@@ -382,7 +384,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         deltaT1 = bound(deltaT1, size.riskConfig().minTenor, MAX_TENOR);
         A1 = bound(A1, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
 
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(deltaT1, int256(apr1)));
+        _sellCreditLimit(alice, block.timestamp + deltaT1, YieldCurveHelper.pointCurve(deltaT1, int256(apr1)));
 
         uint256 debtPositionId = _buyCreditMarket(bob, alice, RESERVED_ID, A1, deltaT1, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -395,7 +397,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         apr2 = bound(apr2, 0, MAX_RATE);
         uint256 r2 = Math.aprToRatePerTenor(apr2, deltaT2);
         A2 = bound(A2, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
-        _sellCreditLimit(bob, YieldCurveHelper.pointCurve(deltaT2, int256(apr2)));
+        _sellCreditLimit(bob, block.timestamp + deltaT2, YieldCurveHelper.pointCurve(deltaT2, int256(apr2)));
 
         Vars memory _before = _state();
 
@@ -438,7 +440,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         tenor = bound(tenor, size.riskConfig().minTenor, MAX_TENOR);
         cash = bound(cash, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
 
-        _sellCreditLimit(bob, YieldCurveHelper.pointCurve(tenor, int256(apr)));
+        _sellCreditLimit(bob, block.timestamp + tenor, YieldCurveHelper.pointCurve(tenor, int256(apr)));
 
         Vars memory _before = _state();
 
@@ -455,7 +457,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         );
     }
 
-    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountIn_parametric(
+    function testFuzz_BuyCreditMarket_buyCreditMarket_exactAmountIn_specification(
         uint256 V1,
         uint256 V2,
         uint256 deltaT1,
@@ -473,7 +475,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         deltaT1 = bound(deltaT1, size.riskConfig().minTenor, MAX_TENOR);
         V1 = bound(V1, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
 
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(deltaT1, int256(apr1)));
+        _sellCreditLimit(alice, block.timestamp + deltaT1, YieldCurveHelper.pointCurve(deltaT1, int256(apr1)));
 
         uint256 debtPositionId = _buyCreditMarket(bob, alice, RESERVED_ID, V1, deltaT1, true);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -486,7 +488,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         apr2 = bound(apr2, 0, MAX_RATE);
         uint256 r2 = Math.aprToRatePerTenor(apr2, deltaT2);
         V2 = bound(V2, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
-        _sellCreditLimit(bob, YieldCurveHelper.pointCurve(deltaT2, int256(apr2)));
+        _sellCreditLimit(bob, block.timestamp + deltaT2, YieldCurveHelper.pointCurve(deltaT2, int256(apr2)));
 
         Vars memory _before = _state();
 
@@ -504,7 +506,7 @@ contract BuyCreditMarketLendTest is BaseTest {
         ) {
             Vars memory _after = _state();
 
-            uint256 Vmax = Math.mulDivDown(A1, PERCENT, PERCENT + r2);
+            uint256 Vmax = Math.mulDivUp(A1, PERCENT, PERCENT + r2);
 
             uint256 A2 = Math.mulDivDown(
                 V2 - (V2 == Vmax ? 0 : size.feeConfig().fragmentationFee), /* f */ PERCENT + r2, PERCENT

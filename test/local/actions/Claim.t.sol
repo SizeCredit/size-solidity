@@ -18,7 +18,7 @@ contract ClaimTest is BaseTest {
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amountLoanId1, 365 days, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 creditId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
         assertEq(size.getLoanStatus(debtPositionId), LoanStatus.REPAID);
 
         Vars memory _before = _state();
@@ -32,6 +32,7 @@ contract ClaimTest is BaseTest {
     }
 
     function test_Claim_claim_of_exited_loan_gets_credit_back() public {
+        _updateConfig("fragmentationFee", 1e6);
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 120e6);
         _deposit(bob, weth, 100e18);
@@ -46,7 +47,7 @@ contract ClaimTest is BaseTest {
 
         uint256 futureValueExited = 10e6;
         _sellCreditMarket(alice, candy, creditId, futureValueExited, 365 days);
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
 
         Vars memory _before = _state();
 
@@ -79,7 +80,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
         _claim(candy, creditId2);
 
         Vars memory _after = _state();
@@ -103,7 +104,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
         _claim(bob, creditId);
 
         Vars memory _after = _state();
@@ -130,7 +131,7 @@ contract ClaimTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _repay(bob, debtPositionId);
+        _repay(bob, debtPositionId, bob);
         _claim(alice, creditId);
 
         Vars memory _after = _state();
@@ -186,7 +187,7 @@ contract ClaimTest is BaseTest {
         assertEq(_s1.size.borrowATokenBalance, 0, "Size has 0");
 
         _setLiquidityIndex(2e27);
-        _repay(alice, debtPositionId);
+        _repay(alice, debtPositionId, alice);
 
         Vars memory _s2 = _state();
 
@@ -247,7 +248,7 @@ contract ClaimTest is BaseTest {
         vm.expectRevert();
         _claim(bob, creditPositionId);
 
-        _repay(alice, debtPositionId);
+        _repay(alice, debtPositionId, alice);
 
         returnDatas = size.multicall(data);
         isClaimable = abi.decode(returnDatas[0], (LoanStatus)) == LoanStatus.REPAID
@@ -284,7 +285,7 @@ contract ClaimTest is BaseTest {
 
         _deposit(james, usdc, debtPosition.futureValue);
 
-        _repay(james, debtPositionId);
+        _repay(james, debtPositionId, james);
         assertEq(size.getDebtPosition(debtPositionId).futureValue, 0);
 
         _claim(alice, creditPositionId);

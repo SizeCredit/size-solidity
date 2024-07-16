@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {UserView} from "@src/SizeView.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract DepositTest is BaseTest {
     function test_Deposit_deposit_increases_user_balance() public {
+        IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
         _deposit(alice, usdc, 1e6);
         UserView memory aliceUser = size.getUserView(alice);
         assertEq(aliceUser.borrowATokenBalance, 1e6);
         assertEq(aliceUser.collateralTokenBalance, 0);
-        assertEq(usdc.balanceOf(address(variablePool)), 1e6);
+        assertEq(usdc.balanceOf(address(aToken)), 1e6);
 
         _deposit(alice, weth, 2e18);
         aliceUser = size.getUserView(alice);
@@ -48,6 +50,7 @@ contract DepositTest is BaseTest {
     }
 
     function testFuzz_Deposit_deposit_increases_user_balance(uint256 x, uint256 y) public {
+        IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
         _updateConfig("borrowATokenCap", type(uint256).max);
         x = bound(x, 1, type(uint128).max);
         y = bound(y, 1, type(uint128).max);
@@ -56,7 +59,7 @@ contract DepositTest is BaseTest {
         UserView memory aliceUser = size.getUserView(alice);
         assertEq(aliceUser.borrowATokenBalance, x);
         assertEq(aliceUser.collateralTokenBalance, 0);
-        assertEq(usdc.balanceOf(address(variablePool)), x);
+        assertEq(usdc.balanceOf(address(aToken)), x);
 
         _deposit(alice, weth, y);
         aliceUser = size.getUserView(alice);

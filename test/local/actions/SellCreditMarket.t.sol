@@ -9,14 +9,14 @@ import {Vars} from "@test/BaseTest.sol";
 
 import {CREDIT_POSITION_ID_START, CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT, YEAR} from "@src/libraries/Math.sol";
-import {LoanOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Math} from "@src/libraries/Math.sol";
 
 contract SellCreditMarketTest is BaseTest {
-    using OfferLibrary for LoanOffer;
+    using OfferLibrary for LimitOrder;
 
     uint256 private constant MAX_RATE = 2e18;
     uint256 private constant MAX_TENOR = 365 days * 2;
@@ -33,20 +33,17 @@ contract SellCreditMarketTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        uint256 futureValue = Math.mulDivUp(amount, (PERCENT + 0.03e18), PERCENT);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
-
-        uint256 futureValueOpening = Math.mulDivUp(futureValue, size.riskConfig().crOpening, PERCENT);
-        uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(futureValueOpening);
-        uint256 swapFee = size.getSwapFee(amount, tenor);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
+        uint256 issuanceValue = Math.mulDivDown(futureValue, PERCENT, PERCENT + 0.03e18);
+        uint256 swapFee = size.getSwapFee(issuanceValue, tenor);
 
         Vars memory _after = _state();
 
-        assertGt(_before.bob.collateralTokenBalance, minimumCollateral);
         assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - amount - swapFee);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
-        assertEq(_after.bob.debtBalance, size.getDebtPosition(debtPositionId).futureValue);
+        assertEq(_after.bob.debtBalance, futureValue);
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_used_to_borrow(uint256 amount, uint256 apr, uint256 tenor)
@@ -66,22 +63,21 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _before = _state();
 
-        uint256 rate = uint256(Math.aprToRatePerTenor(apr, tenor));
-        uint256 debt = Math.mulDivUp(amount, (PERCENT + rate), PERCENT);
+        uint256 rate = Math.aprToRatePerTenor(apr, tenor);
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
-        uint256 debtOpening = Math.mulDivUp(debt, size.riskConfig().crOpening, PERCENT);
-        uint256 minimumCollateral = size.debtTokenAmountToCollateralTokenAmount(debtOpening);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
+        uint256 issuanceValue = Math.mulDivDown(futureValue, PERCENT, PERCENT + rate);
+
         Vars memory _after = _state();
 
-        assertGt(_before.bob.collateralTokenBalance, minimumCollateral);
         assertEq(
             _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance - amount - size.getSwapFee(amount, tenor)
+            _before.alice.borrowATokenBalance - amount - size.getSwapFee(issuanceValue, tenor)
         );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
-        assertEq(_after.bob.debtBalance, size.getDebtPosition(debtPositionId).futureValue);
+        assertEq(_after.bob.debtBalance, futureValue);
     }
 
     function test_SellCreditMarket_sellCreditMarket_fragmentation() public {
@@ -328,7 +324,9 @@ contract SellCreditMarketTest is BaseTest {
         vm.startPrank(bob);
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector, amount, size.riskConfig().minimumCreditBorrowAToken
+                Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING.selector,
+                amount + 1,
+                size.riskConfig().minimumCreditBorrowAToken
             )
         );
         size.sellCreditMarket(
@@ -361,7 +359,7 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(bob, usdc, 200e6);
         _deposit(candy, usdc, 200e6);
 
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(365 days, 0.2e18));
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.2e18));
 
         uint256 debtPositionId = _buyCreditMarket(bob, alice, 100e6, 365 days, true);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -387,7 +385,7 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(bob, usdc, 200e6);
         _deposit(candy, usdc, 200e6);
 
-        _sellCreditLimit(alice, YieldCurveHelper.pointCurve(365 days, 0.2e18));
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.2e18));
 
         uint256 debtPositionId = _buyCreditMarket(bob, alice, 100e6, 365 days, true);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
@@ -402,7 +400,8 @@ contract SellCreditMarketTest is BaseTest {
         Vars memory _after = _state();
 
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + 50e6);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance - 50e6 - 0.5e6 - 5e6);
+        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance - 50e6 - 0.555556e6 - 5e6);
+        assertEq(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance + 0.555556e6 + 5e6);
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountIn_properties(
@@ -513,15 +512,15 @@ contract SellCreditMarketTest is BaseTest {
 
         Vars memory _before = _state();
 
-        _sellCreditMarket(bob, alice, RESERVED_ID, cash, tenor, false);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, cash, tenor, false);
+        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 swapFeePercent = Math.mulDivUp(size.feeConfig().swapFeeAPR, tenor, 365 days);
+        uint256 r = Math.aprToRatePerTenor(apr, tenor);
+        uint256 swapFee = Math.mulDivUp(futureValue, swapFeePercent, PERCENT + r);
 
         Vars memory _after = _state();
 
-        assertEq(
-            _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance - cash - Math.mulDivUp(cash, swapFeePercent, PERCENT)
-        );
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - cash - swapFee);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + cash);
     }
 
@@ -594,7 +593,7 @@ contract SellCreditMarketTest is BaseTest {
                     size.getCreditPositionsByDebtPositionId(debtPositionId)[size.getCreditPositionsByDebtPositionId(
                         debtPositionId
                     ).length - 1].credit,
-                    1e6
+                    0.00001e6
                 );
             }
             assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + V2);

@@ -20,6 +20,8 @@ struct LiquidateParams {
     uint256 debtPositionId;
     // The minimum profit in collateral tokens expected by the liquidator
     uint256 minimumCollateralProfit;
+    // The deadline for the transaction
+    uint256 deadline;
 }
 
 /// @title Liquidate
@@ -51,6 +53,11 @@ library Liquidate {
 
         // validate minimumCollateralProfit
         // N/A
+
+        // validate deadline
+        if (params.deadline < block.timestamp) {
+            revert Errors.PAST_DEADLINE(params.deadline);
+        }
     }
 
     /// @notice Validates the minimum profit in collateral tokens expected by the liquidator
@@ -95,17 +102,17 @@ library Liquidate {
         if (assignedCollateral > debtInCollateralToken) {
             uint256 liquidatorReward = Math.min(
                 assignedCollateral - debtInCollateralToken,
-                Math.mulDivUp(debtPosition.futureValue, state.feeConfig.liquidationRewardPercent, PERCENT)
+                Math.mulDivUp(debtInCollateralToken, state.feeConfig.liquidationRewardPercent, PERCENT)
             );
             liquidatorProfitCollateralToken = debtInCollateralToken + liquidatorReward;
 
-            // split the remaining collateral between the protocol and the borrower, capped by the crLiquidation
+            // the protocol earns a portion of the collateral remainder
             uint256 collateralRemainder = assignedCollateral - liquidatorProfitCollateralToken;
 
-            // cap the collateral remainder to the liquidation collateral ratio
+            // cap the collateral remainder to FV * (1 - crLiquidation)
             //   otherwise, the split for non-underwater overdue loans could be too much
             uint256 collateralRemainderCap =
-                Math.mulDivDown(debtInCollateralToken, state.riskConfig.crLiquidation, PERCENT);
+                Math.mulDivDown(debtInCollateralToken, state.riskConfig.crLiquidation - PERCENT, PERCENT);
 
             collateralRemainder = Math.min(collateralRemainder, collateralRemainderCap);
 

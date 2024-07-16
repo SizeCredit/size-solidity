@@ -86,7 +86,9 @@ library AccountingLibrary {
         state.validateMinimumCreditOpening(creditPosition.credit);
         state.validateTenor(dueDate - block.timestamp);
 
-        emit Events.CreateCreditPosition(creditPositionId, lender, debtPositionId, RESERVED_ID, creditPosition.credit);
+        emit Events.CreateCreditPosition(
+            creditPositionId, lender, debtPositionId, RESERVED_ID, creditPosition.credit, creditPosition.forSale
+        );
 
         state.data.debtToken.mint(borrower, futureValue);
     }
@@ -100,12 +102,18 @@ library AccountingLibrary {
     /// @param exitCreditPositionId The credit position id to exit
     /// @param lender The lender address
     /// @param credit The credit amount
-    function createCreditPosition(State storage state, uint256 exitCreditPositionId, address lender, uint256 credit)
-        external
-    {
+    /// @param forSale Whether the credit is for sale
+    function createCreditPosition(
+        State storage state,
+        uint256 exitCreditPositionId,
+        address lender,
+        uint256 credit,
+        bool forSale
+    ) external {
         CreditPosition storage exitCreditPosition = state.getCreditPosition(exitCreditPositionId);
         if (exitCreditPosition.credit == credit) {
             exitCreditPosition.lender = lender;
+            exitCreditPosition.forSale = forSale;
 
             emit Events.UpdateCreditPosition(
                 exitCreditPositionId, lender, exitCreditPosition.credit, exitCreditPosition.forSale
@@ -116,13 +124,15 @@ library AccountingLibrary {
             reduceCredit(state, exitCreditPositionId, credit);
 
             CreditPosition memory creditPosition =
-                CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: true});
+                CreditPosition({lender: lender, credit: credit, debtPositionId: debtPositionId, forSale: forSale});
 
             uint256 creditPositionId = state.data.nextCreditPositionId++;
             state.data.creditPositions[creditPositionId] = creditPosition;
             state.validateMinimumCreditOpening(creditPosition.credit);
 
-            emit Events.CreateCreditPosition(creditPositionId, lender, debtPositionId, exitCreditPositionId, credit);
+            emit Events.CreateCreditPosition(
+                creditPositionId, lender, debtPositionId, exitCreditPositionId, credit, forSale
+            );
         }
     }
 
@@ -131,7 +141,7 @@ library AccountingLibrary {
     ///      The credit amount cannot be reduced below the minimum credit.
     ///      This operation breaks the initial sum of credit equal to the debt position future value.
     ///        If the loan is in REPAID status, this is expected, as lenders grdually claim their credit.
-    ///        If the loan is in ACTIVE status, a debt reduction must be performed together with a credit reduction (See reduceDebtAndCredit).
+    ///        If the loan is in ACTIVE/OVERDUE status, a debt reduction must be performed together with a credit reduction (See reduceDebtAndCredit).
     /// @param state The state object
     /// @param creditPositionId The credit position id
     function reduceCredit(State storage state, uint256 creditPositionId, uint256 amount) public {
@@ -166,6 +176,8 @@ library AccountingLibrary {
     }
 
     /// @notice Get the swap fee for a given cash amount and tenor
+    /// @dev The intention for the swap fee is to for it to be charged on the "issuance value" of the credit and it is a predefined APR
+    ///      The issuance value is defined as the amount of credit sold discounted by the chosen rate
     /// @param state The state object
     /// @param cash The cash amount
     /// @param tenor The tenor
@@ -190,11 +202,10 @@ library AccountingLibrary {
         uint256 tenor
     ) internal view returns (uint256 cashAmountOut, uint256 fees) {
         uint256 maxCashAmountOut = Math.mulDivDown(creditAmountIn, PERCENT, PERCENT + ratePerTenor);
+        fees = getSwapFee(state, maxCashAmountOut, tenor);
 
         if (creditAmountIn == maxCredit) {
             // no credit fractionalization
-
-            fees = getSwapFee(state, maxCashAmountOut, tenor);
 
             if (fees > maxCashAmountOut) {
                 revert Errors.NOT_ENOUGH_CASH(maxCashAmountOut, fees);
@@ -204,7 +215,7 @@ library AccountingLibrary {
         } else if (creditAmountIn < maxCredit) {
             // credit fractionalization
 
-            fees = getSwapFee(state, maxCashAmountOut, tenor) + state.feeConfig.fragmentationFee;
+            fees += state.feeConfig.fragmentationFee;
 
             if (fees > maxCashAmountOut) {
                 revert Errors.NOT_ENOUGH_CASH(maxCashAmountOut, fees);
@@ -219,7 +230,7 @@ library AccountingLibrary {
     /// @notice Get the credit amount in for a given cash amount out
     /// @param state The state object
     /// @param cashAmountOut The cash amount out
-    /// @param maxCredit The maximum credit
+    /// @param maxCashAmountOut The maximum cash amount out
     /// @param maxCredit The maximum cash amount out
     /// @param ratePerTenor The rate per tenor
     /// @param tenor The tenor
@@ -246,16 +257,17 @@ library AccountingLibrary {
             // no credit fractionalization
 
             creditAmountIn = maxCredit;
-            fees = Math.mulDivUp(cashAmountOut, swapFeePercent, PERCENT);
+            fees = Math.mulDivUp(creditAmountIn, swapFeePercent, PERCENT + ratePerTenor);
         } else if (cashAmountOut < maxCashAmountOutFragmentation) {
             // credit fractionalization
 
             creditAmountIn = Math.mulDivUp(
                 cashAmountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerTenor, PERCENT - swapFeePercent
             );
-            fees = Math.mulDivUp(cashAmountOut, swapFeePercent, PERCENT) + state.feeConfig.fragmentationFee;
+            fees =
+                Math.mulDivUp(creditAmountIn, swapFeePercent, PERCENT + ratePerTenor) + state.feeConfig.fragmentationFee;
         } else {
-            // for maxCashAmountOutFragmentation < amountOut < maxCashAmountOut we are in an inconsistent situation
+            // for maxCashAmountOutFragmentation < cashAmountOut < maxCashAmountOut we are in an inconsistent situation
             //   where charging the swap fee would require to sell a credit that exceeds the max possible credit
 
             revert Errors.NOT_ENOUGH_CASH(maxCashAmountOutFragmentation, cashAmountOut);
@@ -296,7 +308,7 @@ library AccountingLibrary {
             creditAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerTenor, PERCENT);
             fees = getSwapFee(state, netCashAmountIn, tenor) + state.feeConfig.fragmentationFee;
         } else {
-            revert Errors.NOT_ENOUGH_CREDIT(maxCashAmountIn, cashAmountIn);
+            revert Errors.NOT_ENOUGH_CASH(maxCashAmountIn, cashAmountIn);
         }
     }
 

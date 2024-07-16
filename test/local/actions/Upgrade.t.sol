@@ -12,7 +12,7 @@ import {Size} from "@src/Size.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract UpgradeTest is Test, BaseTest {
-    function test_Upgrade_proxy_can_be_upgraded_with_uups_castingeneralConfig() public {
+    function test_Upgrade_proxy_can_be_upgraded_with_uups_casting() public {
         address owner = address(this);
         Size v1 = new Size();
         ERC1967Proxy proxy = new ERC1967Proxy(address(v1), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));

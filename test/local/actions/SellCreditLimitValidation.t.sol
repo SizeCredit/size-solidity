@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {BorrowOffer, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
@@ -11,7 +11,7 @@ import {SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol"
 import {Errors} from "@src/libraries/Errors.sol";
 
 contract SellCreditLimitValidationTest is BaseTest {
-    using OfferLibrary for BorrowOffer;
+    using OfferLibrary for LimitOrder;
 
     function test_SellCreditLimit_validation() public {
         _deposit(alice, weth, 100e18);
@@ -25,6 +25,7 @@ contract SellCreditLimitValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
         size.sellCreditLimit(
             SellCreditLimitParams({
+                maxDueDate: block.timestamp + 365 days,
                 curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: rates1})
             })
         );
@@ -34,6 +35,7 @@ contract SellCreditLimitValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
         size.sellCreditLimit(
             SellCreditLimitParams({
+                maxDueDate: block.timestamp + 365 days,
                 curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: empty})
             })
         );
@@ -47,6 +49,7 @@ contract SellCreditLimitValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.TENORS_NOT_STRICTLY_INCREASING.selector));
         size.sellCreditLimit(
             SellCreditLimitParams({
+                maxDueDate: block.timestamp + 365 days,
                 curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
             })
         );
@@ -56,6 +59,7 @@ contract SellCreditLimitValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 6 minutes, 1 hours, 5 * 365 days));
         size.sellCreditLimit(
             SellCreditLimitParams({
+                maxDueDate: block.timestamp + 365 days,
                 curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs})
             })
         );

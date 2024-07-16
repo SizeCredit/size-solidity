@@ -11,13 +11,16 @@ Supported pair:
 Target networks:
 
 - Ethereum mainnet
-- Base
+- [Base](./deployments/8453.json)
 
 ## Audits
 
-- [2024-03-19 - LightChaserV3](./audits/2024-03-19-LightChaserV3.md)
+- [2024-06-10 - Code4rena (WIP)](https://code4rena.com/reports/2024-06-size)
+- [2024-06-08 - Spearbit](./audits/2024-06-08-Spearbit.pdf)
 - [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
-- [2024-05-30 - Spearbit (draft)](./audits/2024-05-30-Spearbit-draft.pdf)
+- [2024-03-19 - LightChaserV3](./audits/2024-03-19-LightChaserV3.md)
+
+For bug reports, please refer to our [Bug Bounty Program](https://size.credit/)
 
 ## Documentation
 
@@ -175,6 +178,13 @@ yarn echidna-property
 yarn echidna-assertion
 ```
 
+### Onchain fuzzing
+
+```bash
+source .env
+FOUNDRY_PROFILE=fork FOUNDRY_INVARIANT_RUNS=0 FOUNDRY_INVARIANT_DEPTH=0 forge test --mc FoundryForkTester -vvvvv --ffi
+```
+
 Check the coverage report with
 
 ```bash
@@ -215,6 +225,20 @@ for i in {0..5}; do halmos --loop $i; done
 ## Deployment
 
 ```bash
-source .env
-CHAIN_NAME=$CHAIN_NAME DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS yarn deploy-sepolia-mocks --broadcast
+source .env.base_sepolia
+forge script script/Deploy.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify
+```
+
+### Deployment checklist
+
+1. Deploy
+2. Grant `KEEPER_ROLE` to keeper bot
+3. Grant `BORROW_RATE_UPDATER_ROLE` to updater bot
+4. Grant `PAUSER_ROLE` to pauser bot
+
+## Upgrade
+
+```bash
+source .env.sepolia
+forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify
 ```

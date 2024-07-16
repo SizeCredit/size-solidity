@@ -10,8 +10,8 @@ out/
 # Docs
 docs/
 
-# Dotenv file
-.env
+# Dotenv files
+.env*
 
 # plots
 plots/*.csv
