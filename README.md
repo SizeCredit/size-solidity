@@ -229,7 +229,7 @@ for i in {0..5}; do halmos --loop $i; done
 
 Ensure your `.env` file in the root directory of your project contains the following variables:
 
-```bash
+```
 API_KEY_ALCHEMY=<Your Alchemy API Key>
 API_KEY_ETHERSCAN=<Your Etherscan API Key>
 DEPLOYER_ADDRESS=<Deployer's Ethereum Address>
