@@ -145,7 +145,7 @@ yarn coverage
 │  LiquidateWithReplacement   │   6    │
 │          Liquidate          │   12   │
 │            Math             │   9    │
-│          Multicall          │   8    │
+│          Multicall          │   9    │
 │ NonTransferrableScaledToken │   4    │
 │    NonTransferrableToken    │   7    │
 │        OfferLibrary         │   1    │
