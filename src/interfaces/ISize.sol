@@ -41,7 +41,7 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
     ///         Borrow tokens are always deposited into the Variable Pool,
     ///         Collateral tokens are deposited into the Size contract through the DepositTokenLibrary
     /// @dev The caller must approve the transfer of the token to the protocol.
-    ///      This function mints 1:1 Size Tokens (e.g. aUSDC, szETH) in exchange of the deposited tokens
+    ///      This function mints 1:1 Deposit Tokens (e.g. szaUSDC, szETH) in exchange of the deposited tokens
     /// @param params DepositParams struct containing the following fields:
     ///     - address token: The address of the token to deposit
     ///     - uint256 amount: The amount of tokens to deposit
@@ -51,7 +51,7 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
     /// @notice Withdraw underlying borrow/collateral tokens from the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always withdrawn from the Variable Pool
     ///         Collateral tokens are withdrawn from the Size contract through the DepositTokenLibrary
-    /// @dev This function burns 1:1 Size Tokens (e.g. aUSDC, szETH) in exchange of the withdrawn tokens
+    /// @dev This function burns 1:1 Deposit Tokens (e.g. szaUSDC, szETH) in exchange of the withdrawn tokens
     /// @param params WithdrawParams struct containing the following fields:
     ///     - address token: The address of the token to withdraw
     ///     - uint256 amount: The amount of tokens to withdraw (in decimals, e.g. 1_000e6 for 1000 USDC or 10e18 for 10 WETH)

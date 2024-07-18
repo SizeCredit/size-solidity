@@ -1,11 +1,11 @@
 {
-  "commit": "echo -n 'commit-' && git rev-parse HEAD",
+  "commit": "d1ed03741036715cb5a0d5bac31e7e621ac82674",
   "deployments": {
     "PriceFeed": "0xd6938E55cc5f4B553948Cc153d360E8a8FA0de72",
     "Size-implementation": "0xCd6CA4ac60C932937EE209aB8B7Af2941708724A",
     "Size-proxy": "0xC2a429681CAd7C1ce36442fbf7A4a68B11eFF940"
   },
-  "networkName": "base",
+  "chainId": "8453",
   "parameters": {
     "feeRecipient": "0x12328ea44ab6d7b18aa9cc030714763734b625db",
     "owner": "0x462b545e8bbb6f9e5860928748bfe9ecc712c3a7",

@@ -11,7 +11,7 @@ Supported pair:
 Target networks:
 
 - Ethereum mainnet
-- [Base](./deployments/8453.json)
+- [Base](./deployments/base-production.json)
 
 ## Audits
 
@@ -226,7 +226,7 @@ for i in {0..5}; do halmos --loop $i; done
 
 ```bash
 source .env.base_sepolia
-forge script script/Deploy.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify
+forge script script/Deploy.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
 ```
 
 ### Deployment checklist
@@ -240,5 +240,5 @@ forge script script/Deploy.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sende
 
 ```bash
 source .env.sepolia
-forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify
+forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
 ```

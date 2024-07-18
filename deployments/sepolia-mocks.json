@@ -5,7 +5,7 @@
     "Size-implementation": "0x6D4F2F365f0a091103809890E43D77dC908Fd260",
     "Size-proxy": "0x12FE37B7730a55153E6da7b6c0E5aC93450BA231"
   },
-  "networkName": "sepolia-mocks",
+  "chainId": "11155111",
   "parameters": {
     "feeRecipient": "0xf0c7f57f5f889d546f032e50fba953bd7c026350",
     "owner": "0xf0c7f57f5f889d546f032e50fba953bd7c026350",

@@ -16,8 +16,10 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
 
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+
 import {LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
 import {SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
+import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -227,5 +229,43 @@ contract MulticallTest is BaseTest {
             abi.encodeWithSelector(Errors.BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE.selector, cap + 1, 0)
         );
         size.multicall(data);
+    }
+
+    function test_Multicall_repay_when_borrowAToken_cap(uint256 index, uint256 amount) public {
+        IERC20Metadata debtToken = IERC20Metadata(address(size.data().debtToken));
+
+        index = bound(index, 1e27, 2e27);
+        amount = bound(amount, 100e6, 200e6);
+
+        _setLiquidityIndex(index);
+        uint256 cap = 1000e6;
+        _updateConfig("borrowATokenCap", cap);
+
+        uint256 tenor = 365 days;
+        _deposit(alice, usdc, cap);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(tenor, 0.03e18));
+
+        _deposit(bob, weth, 100e18);
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
+
+        _withdraw(bob, usdc, size.getUserView(bob).borrowATokenBalance);
+
+        uint256 debtAmount = debtToken.balanceOf(bob);
+        uint256 currentDeposit = size.getUserView(bob).borrowATokenBalance;
+        uint256 depositRequiredToRepay = debtAmount - currentDeposit;
+        _mint(address(usdc), bob, depositRequiredToRepay);
+        _approve(bob, address(usdc), address(size), depositRequiredToRepay);
+
+        bytes[] memory data = new bytes[](3);
+        data[0] =
+            abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: depositRequiredToRepay, to: bob}));
+        data[1] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId, borrower: bob}));
+        data[2] =
+            abi.encodeCall(size.withdraw, WithdrawParams({token: address(usdc), amount: type(uint256).max, to: bob}));
+
+        vm.prank(bob);
+        size.multicall(data);
+
+        assertEq(debtToken.balanceOf(bob), 0);
     }
 }

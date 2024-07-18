@@ -2,10 +2,10 @@
   "commit": "e92524b67942d5df4ff4d7157a2bb9ab414e0241",
   "deployments": {
     "PriceFeed": "0x97B848F22Eed0278a32b1F471aAe2EcfD87038Ec",
-    "Size-implementation": "0xFB0b2996061d2b297c21BF8e5f324Ce013Ea8C19",
+    "Size-implementation": "0xD4b50C0a206c04B4666B2C99B5dfC15B132CA18e",
     "Size-proxy": "0xc2C923bBfD83d3B3a8888F80a9Aab193eE5449b6"
   },
-  "networkName": "base-sepolia",
+  "chainId": "84532",
   "parameters": {
     "feeRecipient": "0xf7164d2fc05350c75387fa6c0cc4f97634ca9451",
     "owner": "0xf7164d2fc05350c75387fa6c0cc4f97634ca9451",

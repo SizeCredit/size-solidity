@@ -12,14 +12,14 @@ import {Networks} from "@script/Networks.sol";
 
 contract UpgradeScript is BaseScript, Networks, Deploy {
     address deployer;
-    string chainName;
+    string networkConfiguration;
     bool shouldUpgrade;
 
     function setUp() public {}
 
     modifier parseEnv() {
         deployer = vm.envOr("DEPLOYER_ADDRESS", vm.addr(vm.deriveKey(TEST_MNEMONIC, 0)));
-        chainName = vm.envOr("CHAIN_NAME", TEST_CHAIN_NAME);
+        networkConfiguration = vm.envOr("NETWORK_CONFIGURATION", TEST_NETWORK_CONFIGURATION);
         shouldUpgrade = vm.envOr("SHOULD_UPGRADE", false);
         _;
     }
@@ -27,13 +27,13 @@ contract UpgradeScript is BaseScript, Networks, Deploy {
     function run() public parseEnv broadcast {
         console.log("[Size v1] upgrading...\n");
 
-        console.log("[Size v1] chain:       ", chainName);
-        console.log("[Size v1] deployer:    ", deployer);
+        console.log("[Size v1] networkConfiguration", networkConfiguration);
+        console.log("[Size v1] deployer", deployer);
 
-        (ISize proxy,,,,,) = importDeployments();
+        (ISize proxy,,,,,) = importDeployments(networkConfiguration);
 
         Size upgrade = new Size();
-        console.log("[Size v1] new impl:    ", address(upgrade));
+        console.log("[Size v1] new implementation", address(upgrade));
 
         if (shouldUpgrade) {
             Size(address(proxy)).upgradeToAndCall(address(upgrade), "");
