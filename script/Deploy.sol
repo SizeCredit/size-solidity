@@ -15,7 +15,7 @@ import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {Size} from "@src/Size.sol";
 
-import {NetworkParams} from "@script/Networks.sol";
+import {NetworkConfiguration} from "@script/Networks.sol";
 import {
     Initialize,
     InitializeDataParams,
@@ -78,7 +78,9 @@ abstract contract Deploy {
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
 
-    function setupProduction(address _owner, address _feeRecipient, NetworkParams memory _networkParams) internal {
+    function setupProduction(address _owner, address _feeRecipient, NetworkConfiguration memory _networkParams)
+        internal
+    {
         variablePool = IPool(_networkParams.variablePool);
 
         if (_networkParams.wethAggregator == address(0) && _networkParams.usdcAggregator == address(0)) {

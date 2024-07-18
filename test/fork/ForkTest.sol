@@ -15,7 +15,7 @@ contract ForkTest is BaseTest, BaseScript {
     function setUp() public virtual override {
         vm.createSelectFork("sepolia");
         ISize isize;
-        (isize, priceFeed, variablePool, usdc, weth, owner) = importDeployments();
+        (isize, priceFeed, variablePool, usdc, weth, owner) = importDeployments("sepolia-mocks");
         size = SizeMock(address(isize));
         _labels();
         aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);

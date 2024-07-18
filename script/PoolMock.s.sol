@@ -11,7 +11,7 @@ import {console2 as console} from "forge-std/console2.sol";
 contract PoolMockScript is BaseTest, BaseScript {
     function run() external broadcast {
         console.log("PoolMock...");
-        (,, variablePool,, weth,) = importDeployments();
+        (,, variablePool,, weth,) = importDeployments("sepolia-mocks");
 
         PoolMock(address(variablePool)).setLiquidityIndex(address(weth), WadRayMath.RAY);
     }

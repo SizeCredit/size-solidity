@@ -11,7 +11,7 @@ Supported pair:
 Target networks:
 
 - Ethereum mainnet
-- [Base](./deployments/8453.json)
+- [Base](./deployments/base-production.json)
 
 ## Audits
 
@@ -224,43 +224,41 @@ for i in {0..5}; do halmos --loop $i; done
 
 ## Deployment
 
-
 ### Environment Setup
 
 Ensure your `.env` file in the root directory of your project contains the following variables:
 
-```
+```bash
 API_KEY_ALCHEMY=<Your Alchemy API Key>
 API_KEY_ETHERSCAN=<Your Etherscan API Key>
 DEPLOYER_ADDRESS=<Deployer's Ethereum Address>
 DEPLOYER_ACCOUNT=<Name of the Deployer's Account in Foundry>
 OWNER=<Owner's Address>
 FEE_RECIPIENT=<Fee Recipient's Address>
-CHAIN_NAME=<Network Name>
+NETWORK_CONFIGURATION=<Network Configuration>
 RPC_URL=<Network Name>
 ```
 
 ### Account Management
 
-The `DEPLOYER_ACCOUNT` is a reference to the name of an account managed by Foundry's `cast wallet` feature. To import an external wallet using a private key, use the following command:
+The `DEPLOYER_ACCOUNT` is a reference to the name of an account managed by Foundry's `cast wallet` feature. To create and import a new deployer wallet using a private key, use the following command:
 
 ```bash
-cast wallet import <Your Private Key>
+cast wallet import DEPLOYER_ACCOUNT_NAME --private-key $(cast wallet new | grep Private | awk -F 'Private key: ' '{print $2}')
 ```
 
 ### Network Configuration
 
-Ensure that the `CHAIN_NAME` and `RPC_URL` are set according to the network you are deploying to. You can see the available networks in `script/Networks.sol`.
+Ensure that the `NETWORK_CONFIGURATION` is set according to the network options you are deploying to. For example, you can create a configuration `base-mocks` and another `base-production` without mocks. Also, ensure that `RPC_URL` is set according to the network you are deploying to. In the previous case, both would be equal to `base` as in your `foundry.toml`. You can see the available network configuration in `script/Networks.sol`.
+
 You can set relevant `NetworkParams` to `address(0)` if you are deploying with mock contracts or require specific network parameters.
-
-
-## Deployment
-
 
 ```bash
 source .env
-forge script script/Deploy.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify
+forge script script/Deploy.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
 ```
+
+If it does not work, try removing `--verify`
 
 ### Deployment checklist
 
@@ -273,5 +271,5 @@ forge script script/Deploy.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sende
 
 ```bash
 source .env.sepolia
-forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify
+forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
 ```

@@ -28,7 +28,7 @@ abstract contract BaseScript is Script {
     error InvalidPrivateKey(string privateKey);
 
     string constant TEST_MNEMONIC = "test test test test test test test test test test test junk";
-    string constant TEST_CHAIN_NAME = "anvil";
+    string constant TEST_NETWORK_CONFIGURATION = "anvil";
 
     string root;
     string path;
@@ -41,12 +41,11 @@ abstract contract BaseScript is Script {
         vm.stopBroadcast();
     }
 
-    function exportDeployments(string memory networkName) internal {
+    function exportDeployments(string memory networkConfiguration) internal {
         // fetch already existing contracts
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
-        string memory chainIdStr = vm.toString(block.chainid);
-        path = string.concat(path, string.concat(chainIdStr, ".json"));
+        path = string.concat(path, string.concat(networkConfiguration, ".json"));
 
         string memory finalObject;
         string memory deploymentsObject;
@@ -60,22 +59,21 @@ abstract contract BaseScript is Script {
         finalObject = vm.serializeString(".", "deployments", deploymentsObject);
         finalObject = vm.serializeString(".", "parameters", parametersObject);
 
-        finalObject = vm.serializeString(".", "networkName", networkName);
+        finalObject = vm.serializeString(".", "networkConfiguration", networkConfiguration);
 
-        string memory commit = getCommitHash();
-        finalObject = vm.serializeString(".", "commit", commit);
+        finalObject = vm.serializeString(".", "commit", getCommitHash());
+        finalObject = vm.serializeString(".", "chainId", vm.toString(block.chainid));
 
         vm.writeJson(finalObject, path);
     }
 
-    function importDeployments()
+    function importDeployments(string memory networkConfiguration)
         internal
         returns (ISize size, IPriceFeed priceFeed, IPool variablePool, USDC usdc, WETH weth, address owner)
     {
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
-        string memory chainIdStr = vm.toString(block.chainid);
-        path = string.concat(path, string.concat(chainIdStr, ".json"));
+        path = string.concat(path, string.concat(networkConfiguration, ".json"));
 
         string memory json = vm.readFile(path);
 
