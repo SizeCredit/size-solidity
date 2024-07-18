@@ -1,22 +1,22 @@
 {
-  "chainId": "8453",
-  "commit": "bb8eb5d",
+  "chainId": 8453,
+  "commit": "bb5b95a",
   "deployments": {
-    "PriceFeed": "0x2e9Ab61c2AeCfcB9519F884FE93d7e395BE3CB47",
-    "Size-implementation": "0xd04193B1EBd88E9A84572E232e9f25973930A446",
-    "Size-proxy": "0x0D6a734011103A249C3c1727BD209B382d803cb3"
+    "PriceFeed": "0x20Bd0068db3CA2404088426Cb97C35Dcf40BE38f",
+    "Size-implementation": "0xA1D8260B18f5E71E6a0bF75575Fe945F0214CC5A",
+    "Size-proxy": "0xe1464c395d53B85d3C0502D09f5EB650ACfa8d31"
   },
   "networkConfiguration": "base-mocks",
   "parameters": {
-    "feeRecipient": "0x38199bdd622237cbe8e0f85edf597ec2790c4a78",
-    "owner": "0x38199bdd622237cbe8e0f85edf597ec2790c4a78",
+    "feeRecipient": "0x023953117d262271d70dd5d8c96a8dd327a7a594",
+    "owner": "0x023953117d262271d70dd5d8c96a8dd327a7a594",
     "sequencerUptimeFeed": "0x0000000000000000000000000000000000000000",
     "usdc": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
     "usdcAggregator": "0x0000000000000000000000000000000000000000",
-    "usdcHeartbeat": "0",
-    "variablePool": "0xfe28e26d5027a28ed95b0836cd796846b4ef2312",
+    "usdcHeartbeat": 0,
+    "variablePool": "0x43e39428103db069dd889392aedf31e3958b4f2f",
     "weth": "0x4200000000000000000000000000000000000006",
     "wethAggregator": "0x0000000000000000000000000000000000000000",
-    "wethHeartbeat": "0"
+    "wethHeartbeat": 0
   }
 }
