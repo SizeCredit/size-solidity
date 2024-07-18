@@ -224,7 +224,6 @@ for i in {0..5}; do halmos --loop $i; done
 
 ## Deployment
 
-
 ### Environment Setup
 
 Ensure your `.env` file in the root directory of your project contains the following variables:
@@ -236,7 +235,7 @@ DEPLOYER_ADDRESS=<Deployer's Ethereum Address>
 DEPLOYER_ACCOUNT=<Name of the Deployer's Account in Foundry>
 OWNER=<Owner's Address>
 FEE_RECIPIENT=<Fee Recipient's Address>
-CHAIN_NAME=<Network Name>
+NETWORK_CONFIGURATION=<Network Configuration>
 RPC_URL=<Network Name>
 ```
 
@@ -250,12 +249,9 @@ cast wallet import <Your Private Key>
 
 ### Network Configuration
 
-Ensure that the `CHAIN_NAME` and `RPC_URL` are set according to the network you are deploying to. You can see the available networks in `script/Networks.sol`.
+Ensure that the `NETWORK_CONFIGURATION` is set according to the network options you are deploying to. For example, you can create a configuration `base-mocks` and another `base-production` without mocks. Also, ensure that `RPC_URL` is set according to the network you are deploying to. In the previous case, both would be equal to `base` as in your `foundry.toml`. You can see the available network configuration in `script/Networks.sol`.
+
 You can set relevant `NetworkParams` to `address(0)` if you are deploying with mock contracts or require specific network parameters.
-
-
-## Deployment
-
 
 ```bash
 source .env
