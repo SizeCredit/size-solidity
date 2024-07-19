@@ -1,10 +1,10 @@
 {
   "chainId": 8453,
-  "commit": "bb5b95a",
+  "commit": "bfdfef1",
   "deployments": {
-    "PriceFeed": "0x20Bd0068db3CA2404088426Cb97C35Dcf40BE38f",
-    "Size-implementation": "0xA1D8260B18f5E71E6a0bF75575Fe945F0214CC5A",
-    "Size-proxy": "0xe1464c395d53B85d3C0502D09f5EB650ACfa8d31"
+    "PriceFeed": "0xCd9Be13a381Be3106E4aBafE468d6003c489796F",
+    "Size-implementation": "0x69943cCB4198436e60a08bFdE93Bff4c692E9c46",
+    "Size-proxy": "0x44f269A2A520F18aF6215038a8FE1d660ed5986E"
   },
   "networkConfiguration": "base-mocks",
   "parameters": {
@@ -14,7 +14,7 @@
     "usdc": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
     "usdcAggregator": "0x0000000000000000000000000000000000000000",
     "usdcHeartbeat": 0,
-    "variablePool": "0x43e39428103db069dd889392aedf31e3958b4f2f",
+    "variablePool": "0x64b68c0ef85e4a6b538e7a68bbb7a2aa20a43798",
     "weth": "0x4200000000000000000000000000000000000006",
     "wethAggregator": "0x0000000000000000000000000000000000000000",
     "wethHeartbeat": 0
