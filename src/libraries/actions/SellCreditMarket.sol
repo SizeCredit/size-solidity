@@ -186,15 +186,18 @@ library SellCreditMarket {
             });
         }
 
+        uint256 exitCreditPositionId =
+            params.creditPositionId == RESERVED_ID ? state.data.nextCreditPositionId - 1 : params.creditPositionId;
+
         state.createCreditPosition({
-            exitCreditPositionId: params.creditPositionId == RESERVED_ID
-                ? state.data.nextCreditPositionId - 1
-                : params.creditPositionId,
+            exitCreditPositionId: exitCreditPositionId,
             lender: params.lender,
             credit: creditAmountIn,
             forSale: true
         });
         state.data.borrowAToken.transferFrom(params.lender, msg.sender, cashAmountOut);
         state.data.borrowAToken.transferFrom(params.lender, state.feeConfig.feeRecipient, fees);
+
+        emit Events.AnalyticsAPR(exitCreditPositionId, msg.sender, params.lender, cashAmountOut, creditAmountIn, tenor);
     }
 }

@@ -92,4 +92,15 @@ library Events {
         uint256 indexed debtPositionId, address indexed borrower, uint256 futureValue, uint256 liquidityIndexAtRepayment
     );
     event UpdateCreditPosition(uint256 indexed creditPositionId, address indexed lender, uint256 credit, bool forSale);
+
+    // analytics
+
+    event AnalyticsAPR(
+        uint256 indexed creditPositionId,
+        address indexed borrower,
+        address indexed lender,
+        uint256 cash,
+        uint256 credit,
+        uint256 tenor
+    );
 }

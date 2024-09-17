@@ -201,6 +201,13 @@ library BuyCreditMarket {
         state.data.borrowAToken.transferFrom(msg.sender, borrower, cashAmountIn - fees);
         state.data.borrowAToken.transferFrom(msg.sender, state.feeConfig.feeRecipient, fees);
 
+        uint256 exitCreditPositionId =
+            params.creditPositionId == RESERVED_ID ? state.data.nextCreditPositionId - 1 : params.creditPositionId;
+
+        emit Events.AnalyticsAPR(
+            exitCreditPositionId, borrower, msg.sender, cashAmountIn - fees, creditAmountOut, tenor
+        );
+
         return cashAmountIn - fees;
     }
 }
