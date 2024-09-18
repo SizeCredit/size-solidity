@@ -135,6 +135,7 @@ library SellCreditMarket {
             params.lender, params.creditPositionId, params.tenor, params.amount, params.tenor, params.exactAmountIn
         );
 
+        // slither-disable-next-line uninitialized-local
         SwapDataSellCreditMarket memory swapData;
 
         // slither-disable-next-line uninitialized-local

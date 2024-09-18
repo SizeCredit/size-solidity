@@ -138,6 +138,7 @@ library BuyCreditMarket {
             params.borrower, params.creditPositionId, params.tenor, params.amount, params.exactAmountIn
         );
 
+        // slither-disable-next-line uninitialized-local
         SwapDataBuyCreditMarket memory swapData;
 
         // slither-disable-next-line uninitialized-local
