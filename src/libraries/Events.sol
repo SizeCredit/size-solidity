@@ -95,12 +95,15 @@ library Events {
 
     // analytics
 
-    event AnalyticsAPR(
+    event SwapData(
         uint256 indexed creditPositionId,
         address indexed borrower,
         address indexed lender,
-        uint256 cash,
         uint256 credit,
+        uint256 cashIn,
+        uint256 cashOut,
+        uint256 swapFee,
+        uint256 fragmentationFee,
         uint256 tenor
     );
 }
