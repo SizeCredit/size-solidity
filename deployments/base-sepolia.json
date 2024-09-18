@@ -1,9 +1,9 @@
 {
   "chainId": "84532",
-  "commit": "af254f5",
+  "commit": "0386d48",
   "deployments": {
     "PriceFeed": "0x56A5CD8bADd94E5d46e3cc028393Bdb4A91b66eD",
-    "Size-implementation": "0xb2b90c9E5A9C95fe2d1014785F18ed7216Ab5936",
+    "Size-implementation": "0xEd45C92666130471270DB1261F9b0d727AF31DB5",
     "Size-proxy": "0x3AE40a5126b3E37dfcB172bbF485b1E2A6DBD882"
   },
   "networkConfiguration": "base-sepolia",
