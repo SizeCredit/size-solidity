@@ -67,18 +67,23 @@ contract SellCreditMarketTest is BaseTest {
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
-        uint256 issuanceValue = Math.mulDivDown(futureValue, PERCENT, PERCENT + rate);
+        uint256 swapFeePercent = Math.mulDivUp(size.feeConfig().swapFeeAPR, tenor, YEAR);
+        uint256 swapFee = Math.mulDivUp(futureValue, swapFeePercent, PERCENT + rate);
 
         Vars memory _after = _state();
 
-        assertEq(
-            _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance - amount - size.getSwapFee(issuanceValue, tenor),
-            "debug"
-        );
+        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - amount - swapFee);
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.bob.debtBalance, futureValue);
+    }
+
+    function test_SellCreditMarket_sellCreditMarket_used_to_borrow_concrete() public {
+        testFuzz_SellCreditMarket_sellCreditMarket_used_to_borrow(
+            63879253,
+            887422528065484171654413923981153269667370909771441795,
+            802878271596939100267780996779310916827971573654995165443520547875051
+        );
     }
 
     function test_SellCreditMarket_sellCreditMarket_fragmentation() public {
