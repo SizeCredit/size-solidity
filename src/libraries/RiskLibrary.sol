@@ -52,12 +52,13 @@ library RiskLibrary {
     /// @return The collateral ratio
     function collateralRatio(State storage state, address account) public view returns (uint256) {
         uint256 collateral = state.data.collateralToken.balanceOf(account);
+        uint256 collateralWad = Math.amountToWad(collateral, state.data.underlyingCollateralToken.decimals());
         uint256 debt = state.data.debtToken.balanceOf(account);
         uint256 debtWad = Math.amountToWad(debt, state.data.underlyingBorrowToken.decimals());
         uint256 price = state.oracle.priceFeed.getPrice();
 
         if (debt != 0) {
-            return Math.mulDivDown(collateral, price, debtWad);
+            return Math.mulDivDown(collateralWad, price, debtWad);
         } else {
             return type(uint256).max;
         }
