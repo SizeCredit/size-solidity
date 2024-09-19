@@ -73,7 +73,8 @@ contract SellCreditMarketTest is BaseTest {
 
         assertEq(
             _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance - amount - size.getSwapFee(issuanceValue, tenor)
+            _before.alice.borrowATokenBalance - amount - size.getSwapFee(issuanceValue, tenor),
+            "debug"
         );
         assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);

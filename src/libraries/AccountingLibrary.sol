@@ -28,12 +28,11 @@ library AccountingLibrary {
         view
         returns (uint256 collateralTokenAmount)
     {
-        uint256 debtTokenAmountWad = Math.amountToWad(debtTokenAmount, state.data.underlyingBorrowToken.decimals());
-        uint256 collateralTokenAmountWad = Math.mulDivUp(
-            debtTokenAmountWad, 10 ** state.oracle.priceFeed.decimals(), state.oracle.priceFeed.getPrice()
+        collateralTokenAmount = Math.mulDivUp(
+            debtTokenAmount * 10 ** state.oracle.priceFeed.decimals(),
+            10 ** state.data.underlyingCollateralToken.decimals(),
+            state.oracle.priceFeed.getPrice() * 10 ** state.data.underlyingBorrowToken.decimals()
         );
-        collateralTokenAmount =
-            Math.wadToAmount(collateralTokenAmountWad, state.data.underlyingCollateralToken.decimals());
     }
 
     /// @notice Repays a debt position

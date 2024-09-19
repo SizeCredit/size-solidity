@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 
+import {Math} from "@src/libraries/Math.sol";
 import {Vars} from "@test/BaseTest.sol";
 import {BaseTestGenericMarket} from "@test/BaseTestGenericMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -20,7 +21,7 @@ contract GenericMarketParamsTest is BaseTestGenericMarket {
     }
 
     function test_GenericMarketParams_debtTokenAmountToCollateralTokenAmount() public {
-        assertEq(size.debtTokenAmountToCollateralTokenAmount(1e8), 60576e6);
+        assertEq(size.debtTokenAmountToCollateralTokenAmount(1e8), 60576e6 + 1);
     }
 
     function test_GenericMarketParams_deposit_eth_reverts() public {
@@ -62,8 +63,11 @@ contract GenericMarketParamsTest is BaseTestGenericMarket {
         assertEq(
             _after.liquidator.collateralTokenBalance,
             _before.liquidator.collateralTokenBalance
-                + (0.6e8 * 10 ** priceFeed.decimals() * 10 ** collateralToken.decimals())
-                    / (priceFeed.getPrice() * 10 ** borrowToken.decimals())
+                + Math.mulDivUp(
+                    0.6e8 * 10 ** priceFeed.decimals(),
+                    10 ** collateralToken.decimals(),
+                    priceFeed.getPrice() * 10 ** borrowToken.decimals()
+                )
         );
     }
 }

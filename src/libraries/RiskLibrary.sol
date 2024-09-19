@@ -47,18 +47,21 @@ library RiskLibrary {
     /// @notice Calculate the collateral ratio of an account
     /// @dev The collateral ratio is the ratio of the collateral to the debt
     ///      If the debt is 0, the collateral ratio is type(uint256).max
+    ///      Note: the calculation is simplified since the collateral ratio is expressed in the same decimals as the price feed (18)
     /// @param state The state
     /// @param account The account
     /// @return The collateral ratio
     function collateralRatio(State storage state, address account) public view returns (uint256) {
         uint256 collateral = state.data.collateralToken.balanceOf(account);
-        uint256 collateralWad = Math.amountToWad(collateral, state.data.underlyingCollateralToken.decimals());
         uint256 debt = state.data.debtToken.balanceOf(account);
-        uint256 debtWad = Math.amountToWad(debt, state.data.underlyingBorrowToken.decimals());
         uint256 price = state.oracle.priceFeed.getPrice();
 
         if (debt != 0) {
-            return Math.mulDivDown(collateralWad, price, debtWad);
+            return Math.mulDivDown(
+                collateral * 10 ** state.data.underlyingBorrowToken.decimals(),
+                price,
+                debt * 10 ** state.data.underlyingCollateralToken.decimals()
+            );
         } else {
             return type(uint256).max;
         }
