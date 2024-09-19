@@ -4,10 +4,6 @@
 
 Size is a credit marketplace with unified liquidity across maturities.
 
-Supported pair:
-
-- (W)ETH/USDC: Collateral/Borrow token
-
 Target networks:
 
 - Ethereum mainnet

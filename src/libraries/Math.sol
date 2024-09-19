@@ -32,6 +32,10 @@ library Math {
         return amount * 10 ** (18 - decimals);
     }
 
+    function wadToAmount(uint256 wad, uint8 decimals) internal pure returns (uint256) {
+        return wad / 10 ** (18 - decimals);
+    }
+
     /// @notice Convert an APR to an absolute rate for a given tenor
     /// @dev The formula is `apr * tenor / YEAR`
     /// @param apr The APR to convert
