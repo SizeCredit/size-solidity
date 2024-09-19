@@ -5,6 +5,9 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
@@ -39,6 +42,9 @@ abstract contract Deploy {
     InitializeRiskConfigParams internal r;
     InitializeOracleParams internal o;
     InitializeDataParams internal d;
+
+    MockERC20 internal collateralToken;
+    MockERC20 internal borrowToken;
 
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
@@ -76,6 +82,60 @@ abstract contract Deploy {
         size = SizeMock(payable(proxy));
 
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
+    }
+
+    function setupLocalGenericMarket(
+        address owner,
+        address feeRecipient,
+        uint256 collateralTokenPriceUSD,
+        uint256 borrowTokenPriceUSD,
+        uint8 collateralTokenDecimals,
+        uint8 borrowTokenDecimals
+    ) internal {
+        priceFeed = new PriceFeedMock(owner);
+        uint256 price = Math.mulDivDown(collateralTokenPriceUSD, 10 ** priceFeed.decimals(), borrowTokenPriceUSD);
+
+        weth = new WETH();
+        collateralToken = new MockERC20("CollateralToken", "CTK", collateralTokenDecimals);
+        borrowToken = new MockERC20("BorrowToken", "BTK", borrowTokenDecimals);
+        variablePool = IPool(address(new PoolMock()));
+        PoolMock(address(variablePool)).setLiquidityIndex(address(borrowToken), 1.234567e27);
+
+        f = InitializeFeeConfigParams({
+            swapFeeAPR: 0.005e18,
+            fragmentationFee: Math.mulDivDown(
+                5 * 10 ** priceFeed.decimals(), 10 ** borrowToken.decimals(), borrowTokenPriceUSD
+            ),
+            liquidationRewardPercent: 0.05e18,
+            overdueCollateralProtocolPercent: 0.01e18,
+            collateralProtocolPercent: 0.1e18,
+            feeRecipient: feeRecipient
+        });
+        r = InitializeRiskConfigParams({
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            minimumCreditBorrowAToken: Math.mulDivDown(
+                5 * 10 ** priceFeed.decimals(), 10 ** borrowToken.decimals(), borrowTokenPriceUSD
+            ),
+            borrowATokenCap: Math.mulDivDown(
+                1_000_000 * 10 ** priceFeed.decimals(), 10 ** borrowToken.decimals(), borrowTokenPriceUSD
+            ),
+            minTenor: 1 hours,
+            maxTenor: 5 * 365 days
+        });
+        o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});
+        d = InitializeDataParams({
+            weth: address(weth),
+            underlyingCollateralToken: address(collateralToken),
+            underlyingBorrowToken: address(borrowToken),
+            variablePool: address(variablePool)
+        });
+
+        implementation = address(new SizeMock());
+        proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        size = SizeMock(payable(proxy));
+
+        PriceFeedMock(address(priceFeed)).setPrice(price);
     }
 
     function setupProduction(address _owner, address _feeRecipient, NetworkConfiguration memory _networkParams)
