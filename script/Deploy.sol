@@ -104,7 +104,7 @@ abstract contract Deploy {
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
             fragmentationFee: Math.mulDivDown(
-                5 * 10 ** priceFeed.decimals(), 10 ** borrowToken.decimals(), borrowTokenPriceUSD
+                5 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
             ),
             liquidationRewardPercent: 0.05e18,
             overdueCollateralProtocolPercent: 0.01e18,
@@ -115,10 +115,10 @@ abstract contract Deploy {
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: Math.mulDivDown(
-                5 * 10 ** priceFeed.decimals(), 10 ** borrowToken.decimals(), borrowTokenPriceUSD
+                5 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
             ),
             borrowATokenCap: Math.mulDivDown(
-                1_000_000 * 10 ** priceFeed.decimals(), 10 ** borrowToken.decimals(), borrowTokenPriceUSD
+                1_000_000 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
             ),
             minTenor: 1 hours,
             maxTenor: 5 * 365 days
