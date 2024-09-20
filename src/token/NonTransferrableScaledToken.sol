@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
@@ -19,7 +20,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 /// @dev The contract owner (i.e. the Size contract) can still mint, burn, and transfer tokens
 ///      Enables the owner to mint and burn scaled amounts.
 ///      For backward compatibility, emits the TransferUnscaled event representing the actual unscaled amount
-contract NonTransferrableScaledToken is Ownable, IERC20Metadata {
+contract NonTransferrableScaledToken is Ownable, IERC20Metadata, IERC20Errors {
     IPool private immutable variablePool;
     IERC20Metadata private immutable underlyingToken;
 
@@ -79,6 +80,10 @@ contract NonTransferrableScaledToken is Ownable, IERC20Metadata {
     /// @dev Emits a TransferUnscaled event representing the actual unscaled amount
     ///      Re-implements `_burn` logic from solmate's ERC20.sol
     function burnScaled(address from, uint256 scaledAmount) external onlyOwner {
+        if (_balanceOf[from] < scaledAmount) {
+            revert ERC20InsufficientBalance(from, _balanceOf[from], scaledAmount);
+        }
+
         _balanceOf[from] -= scaledAmount;
 
         // Cannot underflow because a user's balance
@@ -102,6 +107,10 @@ contract NonTransferrableScaledToken is Ownable, IERC20Metadata {
     /// @return True if the transfer was successful
     function transferFrom(address from, address to, uint256 value) public virtual onlyOwner returns (bool) {
         uint256 scaledAmount = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
+
+        if (_balanceOf[from] < scaledAmount) {
+            revert ERC20InsufficientBalance(from, _balanceOf[from], scaledAmount);
+        }
 
         _balanceOf[from] -= scaledAmount;
         _balanceOf[to] += scaledAmount;
