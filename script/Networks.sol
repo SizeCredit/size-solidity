@@ -126,6 +126,15 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6
             });
+        } else if (Strings.equal(chain, "base-production-cbbtc-usdc")) {
+            // TODO
+            revert InvalidChain(chain);
+        } else if (Strings.equal(chain, "base-production-wsteth-eth")) {
+            // TODO
+            revert InvalidChain(chain);
+        } else if (Strings.equal(chain, "arbitrum-production-susde-usdc")) {
+            // TODO
+            revert InvalidChain(chain);
         } else {
             revert InvalidChain(chain);
         }
