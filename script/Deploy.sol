@@ -115,7 +115,7 @@ abstract contract Deploy {
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: Math.mulDivDown(
-                5 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
+                10 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
             ),
             borrowATokenCap: Math.mulDivDown(
                 1_000_000 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD

@@ -24,6 +24,12 @@ contract GenericMarket_USDT_cbBTC_Test is BaseTestGenericMarket {
         assertEq(size.debtTokenAmountToCollateralTokenAmount(1e8), 60576e6 + 1);
     }
 
+    function test_GenericMarket_USDT_cbBTC_config() public {
+        assertEqApprox(size.feeConfig().fragmentationFee, 0.00008254e8, 1);
+        assertEqApprox(size.riskConfig().minimumCreditBorrowAToken, 0.00016508e8, 1);
+        assertEqApprox(size.riskConfig().borrowATokenCap, 16.5e8, 0.1e8);
+    }
+
     function test_GenericMarket_USDT_cbBTC_deposit_eth_reverts() public {
         vm.deal(alice, 1 ether);
 
