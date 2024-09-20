@@ -9,22 +9,22 @@ import {Vars} from "@test/BaseTest.sol";
 import {BaseTestGenericMarket} from "@test/BaseTestGenericMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-contract GenericMarketParamsTest is BaseTestGenericMarket {
+contract GenericMarket_USDT_cbBTC_Test is BaseTestGenericMarket {
     function setUp() public virtual override {
         this.setUp_USDT_cbBTC();
     }
 
-    function test_GenericMarketParams_decimals() public {
+    function test_GenericMarket_USDT_cbBTC_decimals() public {
         assertEq(size.data().collateralToken.decimals(), 6);
         assertEq(size.data().borrowAToken.decimals(), 8);
         assertEq(size.data().debtToken.decimals(), 8);
     }
 
-    function test_GenericMarketParams_debtTokenAmountToCollateralTokenAmount() public {
+    function test_GenericMarket_USDT_cbBTC_debtTokenAmountToCollateralTokenAmount() public {
         assertEq(size.debtTokenAmountToCollateralTokenAmount(1e8), 60576e6 + 1);
     }
 
-    function test_GenericMarketParams_deposit_eth_reverts() public {
+    function test_GenericMarket_USDT_cbBTC_deposit_eth_reverts() public {
         vm.deal(alice, 1 ether);
 
         assertEq(address(alice).balance, 1 ether);
@@ -37,7 +37,7 @@ contract GenericMarketParamsTest is BaseTestGenericMarket {
         size.deposit{value: 1 ether}(DepositParams({token: address(weth), amount: 1 ether, to: alice}));
     }
 
-    function test_GenericMarketParams_collateralRatio() public {
+    function test_GenericMarket_USDT_cbBTC_collateralRatio() public {
         _updateConfig("swapFeeAPR", 0);
         _updateConfig("liquidationRewardPercent", 0);
 

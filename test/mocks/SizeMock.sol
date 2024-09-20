@@ -22,7 +22,7 @@ contract SizeMock is Size {
     // https://github.com/foundry-rs/foundry/issues/4615
     bool public IS_TEST = true;
 
-    function version() public pure returns (uint256) {
+    function v() public pure returns (uint256) {
         return 2;
     }
 

@@ -106,4 +106,8 @@ interface ISizeView {
     /// @param tenor The tenor of the loan
     /// @return The swap fee
     function getSwapFee(uint256 cash, uint256 tenor) external view returns (uint256);
+
+    /// @notice Get the version of the Size protocol
+    /// @return The version of the Size protocol
+    function version() external view returns (string memory);
 }
