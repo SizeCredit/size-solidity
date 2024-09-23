@@ -90,7 +90,9 @@ abstract contract Deploy {
         uint256 collateralTokenPriceUSD,
         uint256 borrowTokenPriceUSD,
         uint8 collateralTokenDecimals,
-        uint8 borrowTokenDecimals
+        uint8 borrowTokenDecimals,
+        bool collateralTokenIsWETH,
+        bool borrowTokenIsWETH
     ) internal {
         priceFeed = new PriceFeedMock(owner);
         uint256 price = Math.mulDivDown(collateralTokenPriceUSD, 10 ** priceFeed.decimals(), borrowTokenPriceUSD);
@@ -98,6 +100,13 @@ abstract contract Deploy {
         weth = new WETH();
         collateralToken = new MockERC20("CollateralToken", "CTK", collateralTokenDecimals);
         borrowToken = new MockERC20("BorrowToken", "BTK", borrowTokenDecimals);
+        if (collateralTokenIsWETH) {
+            collateralToken = MockERC20(address(weth));
+        }
+        if (borrowTokenIsWETH) {
+            borrowToken = MockERC20(address(weth));
+        }
+
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(borrowToken), 1.234567e27);
 
