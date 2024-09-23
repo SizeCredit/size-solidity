@@ -104,7 +104,7 @@ abstract contract Deploy {
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
             fragmentationFee: Math.mulDivDown(
-                5 * 10 ** priceFeed.decimals(), 10 ** borrowToken.decimals(), borrowTokenPriceUSD
+                5 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
             ),
             liquidationRewardPercent: 0.05e18,
             overdueCollateralProtocolPercent: 0.01e18,
@@ -115,10 +115,10 @@ abstract contract Deploy {
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
             minimumCreditBorrowAToken: Math.mulDivDown(
-                5 * 10 ** priceFeed.decimals(), 10 ** borrowToken.decimals(), borrowTokenPriceUSD
+                10 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
             ),
             borrowATokenCap: Math.mulDivDown(
-                1_000_000 * 10 ** priceFeed.decimals(), 10 ** borrowToken.decimals(), borrowTokenPriceUSD
+                1_000_000 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
             ),
             minTenor: 1 hours,
             maxTenor: 5 * 365 days
@@ -143,48 +143,55 @@ abstract contract Deploy {
     {
         variablePool = IPool(_networkParams.variablePool);
 
-        if (_networkParams.wethAggregator == address(0) && _networkParams.usdcAggregator == address(0)) {
+        if (
+            _networkParams.underlyingCollateralTokenAggregator == address(0)
+                && _networkParams.underlyingBorrowTokenAggregator == address(0)
+        ) {
             priceFeed = new PriceFeedMock(_owner);
             PriceFeedMock(address(priceFeed)).setPrice(2468e18);
         } else {
             priceFeed = new PriceFeed(
-                _networkParams.wethAggregator,
-                _networkParams.usdcAggregator,
+                _networkParams.underlyingCollateralTokenAggregator,
+                _networkParams.underlyingBorrowTokenAggregator,
                 _networkParams.sequencerUptimeFeed,
-                _networkParams.wethHeartbeat,
-                _networkParams.usdcHeartbeat
+                _networkParams.underlyingCollateralTokenHeartbeat,
+                _networkParams.underlyingBorrowTokenHeartbeat
             );
         }
 
         if (_networkParams.variablePool == address(0)) {
             variablePool = IPool(address(new PoolMock()));
-            PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.weth), WadRayMath.RAY);
-            PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.usdc), WadRayMath.RAY);
+            PoolMock(address(variablePool)).setLiquidityIndex(
+                address(_networkParams.underlyingCollateralToken), WadRayMath.RAY
+            );
+            PoolMock(address(variablePool)).setLiquidityIndex(
+                address(_networkParams.underlyingBorrowToken), WadRayMath.RAY
+            );
         } else {
             variablePool = IPool(_networkParams.variablePool);
         }
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
-            fragmentationFee: 1e6,
+            fragmentationFee: _networkParams.fragmentationFee,
             liquidationRewardPercent: 0.05e18,
             overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
             feeRecipient: _feeRecipient
         });
         r = InitializeRiskConfigParams({
-            crOpening: 1.5e18,
-            crLiquidation: 1.3e18,
-            minimumCreditBorrowAToken: 50e6,
-            borrowATokenCap: 1_000_000e6,
+            crOpening: _networkParams.crOpening,
+            crLiquidation: _networkParams.crLiquidation,
+            minimumCreditBorrowAToken: _networkParams.minimumCreditBorrowAToken,
+            borrowATokenCap: _networkParams.borrowATokenCap,
             minTenor: 1 hours,
             maxTenor: 5 * 365 days
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});
         d = InitializeDataParams({
             weth: address(_networkParams.weth),
-            underlyingCollateralToken: address(_networkParams.weth),
-            underlyingBorrowToken: address(_networkParams.usdc),
+            underlyingCollateralToken: address(_networkParams.underlyingCollateralToken),
+            underlyingBorrowToken: address(_networkParams.underlyingBorrowToken),
             variablePool: address(variablePool) // Aave v3
         });
         implementation = address(new Size());

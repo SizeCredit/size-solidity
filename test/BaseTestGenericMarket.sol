@@ -32,7 +32,7 @@ contract BaseTestGenericMarket is BaseTest {
     }
 
     function setUp_wstETH_ETH() public {
-        setupLocalGenericMarket(address(this), feeRecipient, 2729e18, 2314e18, 18, 18);
+        setupLocalGenericMarket(address(this), feeRecipient, 2538e18, 2536e18, 18, 18);
 
         _labels();
         vm.label(address(collateralToken), "CTK (wstETH)");
@@ -42,13 +42,13 @@ contract BaseTestGenericMarket is BaseTest {
         vm.label(address(size.data().debtToken), "szDebtBTK (szDebtETH)");
     }
 
-    function setUp_SUSDe_USDC() public {
+    function setUp_sUSDe_USDC() public {
         setupLocalGenericMarket(address(this), feeRecipient, 1.1e18, 0.9999e18, 18, 6);
 
         _labels();
-        vm.label(address(collateralToken), "CTK (SUSDe)");
+        vm.label(address(collateralToken), "CTK (sUSDe)");
         vm.label(address(borrowToken), "BTK (USDC)");
-        vm.label(address(size.data().collateralToken), "szCTK (szSUSDe)");
+        vm.label(address(size.data().collateralToken), "szCTK (szsUSDe)");
         vm.label(address(size.data().borrowAToken), "szaBTK (szaUSDC)");
         vm.label(address(size.data().debtToken), "szDebtBTK (szDebtUSDC)");
     }
