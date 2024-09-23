@@ -10,7 +10,7 @@ contract BaseTestGenericMarket is BaseTest {
     }
 
     function setUp_USDT_cbBTC() public {
-        setupLocalGenericMarket(address(this), feeRecipient, 1e18, 60576e18, 6, 8);
+        setupLocalGenericMarket(address(this), feeRecipient, 1e18, 60576e18, 6, 8, false, false);
 
         _labels();
         vm.label(address(collateralToken), "CTK (USDT)");
@@ -21,7 +21,7 @@ contract BaseTestGenericMarket is BaseTest {
     }
 
     function setUp_cbBTC_USDC() public {
-        setupLocalGenericMarket(address(this), feeRecipient, 60576e18, 0.9999e18, 8, 6);
+        setupLocalGenericMarket(address(this), feeRecipient, 60576e18, 0.9999e18, 8, 6, false, false);
 
         _labels();
         vm.label(address(collateralToken), "CTK (cbBTC)");
@@ -32,7 +32,7 @@ contract BaseTestGenericMarket is BaseTest {
     }
 
     function setUp_wstETH_ETH() public {
-        setupLocalGenericMarket(address(this), feeRecipient, 2538e18, 2536e18, 18, 18);
+        setupLocalGenericMarket(address(this), feeRecipient, 2538e18, 2536e18, 18, 18, false, true);
 
         _labels();
         vm.label(address(collateralToken), "CTK (wstETH)");
@@ -43,7 +43,7 @@ contract BaseTestGenericMarket is BaseTest {
     }
 
     function setUp_sUSDe_USDC() public {
-        setupLocalGenericMarket(address(this), feeRecipient, 1.1e18, 0.9999e18, 18, 6);
+        setupLocalGenericMarket(address(this), feeRecipient, 1.1e18, 0.9999e18, 18, 6, false, false);
 
         _labels();
         vm.label(address(collateralToken), "CTK (sUSDe)");

@@ -70,6 +70,7 @@ library Errors {
     error INVALID_DECIMALS(uint8 decimals);
     error INVALID_PRICE(address aggregator, int256 price);
     error STALE_PRICE(address aggregator, uint256 updatedAt);
+    error INVALID_STALE_PRICE_INTERVAL(uint256 a, uint256 b);
     error NULL_STALE_PRICE();
     error NULL_STALE_RATE();
     error STALE_RATE(uint128 updatedAt);

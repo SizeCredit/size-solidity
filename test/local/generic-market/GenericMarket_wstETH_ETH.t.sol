@@ -29,17 +29,21 @@ contract GenericMarket_wstETH_ETH_Test is BaseTestGenericMarket {
         assertEqApprox(size.debtTokenAmountToCollateralTokenAmount(1e18), 0.999e18, 0.001e18);
     }
 
-    function test_GenericMarket_wstETH_ETH_deposit_eth_reverts() public {
+    function test_GenericMarket_wstETH_ETH_deposit_eth_does_not_revert() public {
+        _setLiquidityIndex(address(weth), 1e27);
+
         vm.deal(alice, 1 ether);
 
         assertEq(address(alice).balance, 1 ether);
         assertEq(_state().alice.borrowATokenBalance, 0);
         assertEq(_state().alice.collateralTokenBalance, 0);
 
-        vm.startPrank(alice);
-
-        vm.expectRevert();
+        vm.prank(alice);
         size.deposit{value: 1 ether}(DepositParams({token: address(weth), amount: 1 ether, to: alice}));
+
+        assertEq(address(alice).balance, 0);
+        assertEq(_state().alice.borrowATokenBalance, 1 ether);
+        assertEq(_state().alice.collateralTokenBalance, 0);
     }
 
     function test_GenericMarket_wstETH_ETH_collateralRatio() public {
