@@ -92,23 +92,6 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6
             });
-        } else if (Strings.equal(chain, "base-production")) {
-            return NetworkConfiguration({
-                weth: 0x4200000000000000000000000000000000000006,
-                underlyingCollateralToken: 0x4200000000000000000000000000000000000006,
-                underlyingBorrowToken: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913,
-                variablePool: 0xA238Dd80C259a72e81d7e4664a9801593F98d1c5,
-                underlyingCollateralTokenAggregator: 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70,
-                underlyingBorrowTokenAggregator: 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B,
-                sequencerUptimeFeed: 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433,
-                underlyingCollateralTokenHeartbeat: 1200 * 1.1e18 / 1e18,
-                underlyingBorrowTokenHeartbeat: 86400 * 1.1e18 / 1e18,
-                fragmentationFee: 1e6,
-                crOpening: 1.5e18,
-                crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6
-            });
         } else if (Strings.equal(chain, "base-mocks")) {
             return NetworkConfiguration({
                 weth: 0x4200000000000000000000000000000000000006,
@@ -126,15 +109,74 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6
             });
+        } else if (Strings.equal(chain, "base-production-eth-usdc")) {
+            return NetworkConfiguration({
+                weth: 0x4200000000000000000000000000000000000006,
+                underlyingCollateralToken: 0x4200000000000000000000000000000000000006,
+                underlyingBorrowToken: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913,
+                variablePool: 0xA238Dd80C259a72e81d7e4664a9801593F98d1c5,
+                underlyingCollateralTokenAggregator: 0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70,
+                underlyingBorrowTokenAggregator: 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B,
+                sequencerUptimeFeed: 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433,
+                underlyingCollateralTokenHeartbeat: 1200 * 1.1e18 / 1e18,
+                underlyingBorrowTokenHeartbeat: 86400 * 1.1e18 / 1e18,
+                fragmentationFee: 1e6,
+                crOpening: 1.5e18,
+                crLiquidation: 1.3e18,
+                minimumCreditBorrowAToken: 10e6,
+                borrowATokenCap: 1_000_000e6
+            });
         } else if (Strings.equal(chain, "base-production-cbbtc-usdc")) {
-            // TODO
-            revert InvalidChain(chain);
+            return NetworkConfiguration({
+                weth: 0x4200000000000000000000000000000000000006,
+                underlyingCollateralToken: 0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf,
+                underlyingBorrowToken: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913,
+                variablePool: 0xA238Dd80C259a72e81d7e4664a9801593F98d1c5,
+                underlyingCollateralTokenAggregator: 0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D,
+                underlyingBorrowTokenAggregator: 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B,
+                sequencerUptimeFeed: 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433,
+                underlyingCollateralTokenHeartbeat: 86400 * 1.1e18 / 1e18,
+                underlyingBorrowTokenHeartbeat: 86400 * 1.1e18 / 1e18,
+                fragmentationFee: 1e6,
+                crOpening: 1.5e18,
+                crLiquidation: 1.3e18,
+                minimumCreditBorrowAToken: 10e6,
+                borrowATokenCap: 1_000_000e6
+            });
         } else if (Strings.equal(chain, "base-production-wsteth-eth")) {
-            // TODO
-            revert InvalidChain(chain);
+            return NetworkConfiguration({
+                weth: 0x4200000000000000000000000000000000000006,
+                underlyingCollateralToken: 0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452,
+                underlyingBorrowToken: 0x4200000000000000000000000000000000000006,
+                variablePool: 0xA238Dd80C259a72e81d7e4664a9801593F98d1c5,
+                underlyingCollateralTokenAggregator: 0xf586d0728a47229e747d824a939000Cf21dEF5A0,
+                underlyingBorrowTokenAggregator: 0xf586d0728a47229e747d824a939000Cf21dEF5A0,
+                sequencerUptimeFeed: 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433,
+                underlyingCollateralTokenHeartbeat: 86400 * 1.1e18 / 1e18,
+                underlyingBorrowTokenHeartbeat: 86400 * 1.1e18 / 1e18,
+                fragmentationFee: 0.0005e18,
+                crOpening: 1.3e18,
+                crLiquidation: 1.1e18,
+                minimumCreditBorrowAToken: 0.005e18,
+                borrowATokenCap: 500e18
+            });
         } else if (Strings.equal(chain, "arbitrum-production-susde-usdc")) {
-            // TODO
-            revert InvalidChain(chain);
+            return NetworkConfiguration({
+                weth: 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1,
+                underlyingCollateralToken: 0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2,
+                underlyingBorrowToken: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831,
+                variablePool: 0x794a61358D6845594F94dc1DB02A252b5b4814aD,
+                underlyingCollateralTokenAggregator: 0xf2215b9c35b1697B5f47e407c917a40D055E68d7,
+                underlyingBorrowTokenAggregator: 0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3,
+                sequencerUptimeFeed: 0xFdB631F5EE196F0ed6FAa767959853A9F217697D,
+                underlyingCollateralTokenHeartbeat: 86400 * 1.1e18 / 1e18,
+                underlyingBorrowTokenHeartbeat: 86400 * 1.1e18 / 1e18,
+                fragmentationFee: 1e6,
+                crOpening: 1.3e18,
+                crLiquidation: 1.1e18,
+                minimumCreditBorrowAToken: 10e6,
+                borrowATokenCap: 1_000_000e6
+            });
         } else {
             revert InvalidChain(chain);
         }
