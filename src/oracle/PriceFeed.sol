@@ -92,7 +92,7 @@ contract PriceFeed is IPriceFeed {
         }
 
         if (address(base) == address(quote)) {
-            return _getPrice(base, baseStalePriceInterval) * 10 ** decimals / base.decimals();
+            return _getPrice(base, baseStalePriceInterval) * 10 ** decimals / 10 ** base.decimals();
         } else {
             return Math.mulDivDown(
                 _getPrice(base, baseStalePriceInterval), 10 ** decimals, _getPrice(quote, quoteStalePriceInterval)
