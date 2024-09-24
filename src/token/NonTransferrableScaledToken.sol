@@ -80,8 +80,9 @@ contract NonTransferrableScaledToken is Ownable, IERC20Metadata, IERC20Errors {
     /// @dev Emits a TransferUnscaled event representing the actual unscaled amount
     ///      Re-implements `_burn` logic from solmate's ERC20.sol
     function burnScaled(address from, uint256 scaledAmount) external onlyOwner {
+        uint256 unscaledAmount = _unscale(scaledAmount);
         if (_balanceOf[from] < scaledAmount) {
-            revert ERC20InsufficientBalance(from, _balanceOf[from], scaledAmount);
+            revert ERC20InsufficientBalance(from, balanceOf(from), unscaledAmount);
         }
 
         _balanceOf[from] -= scaledAmount;
@@ -92,7 +93,6 @@ contract NonTransferrableScaledToken is Ownable, IERC20Metadata, IERC20Errors {
             _totalSupply -= scaledAmount;
         }
 
-        uint256 unscaledAmount = _unscale(scaledAmount);
         emit Transfer(from, address(0), unscaledAmount);
         emit TransferUnscaled(from, address(0), unscaledAmount);
         emit TransferScaled(from, address(0), scaledAmount);
@@ -109,7 +109,7 @@ contract NonTransferrableScaledToken is Ownable, IERC20Metadata, IERC20Errors {
         uint256 scaledAmount = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
 
         if (_balanceOf[from] < scaledAmount) {
-            revert ERC20InsufficientBalance(from, _balanceOf[from], scaledAmount);
+            revert ERC20InsufficientBalance(from, balanceOf(from), value);
         }
 
         _balanceOf[from] -= scaledAmount;
