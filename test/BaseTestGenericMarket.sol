@@ -32,7 +32,7 @@ contract BaseTestGenericMarket is BaseTest {
     }
 
     function setUp_wstETH_ETH() public {
-        setupLocalGenericMarket(address(this), feeRecipient, 2538e18, 2536e18, 18, 18, false, true);
+        setupLocalGenericMarket(address(this), feeRecipient, 3127e18, 2653e18, 18, 18, false, true);
 
         _labels();
         vm.label(address(collateralToken), "CTK (wstETH)");
