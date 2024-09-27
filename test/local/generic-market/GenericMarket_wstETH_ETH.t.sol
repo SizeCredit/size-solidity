@@ -21,12 +21,12 @@ contract GenericMarket_wstETH_ETH_Test is BaseTestGenericMarket {
 
     function test_GenericMarket_wstETH_ETH_config() public {
         assertEqApprox(size.feeConfig().fragmentationFee, 0.00197e18, 0.0001e18);
-        assertEqApprox(size.riskConfig().minimumCreditBorrowAToken, 0.00394e18, 0.0001e18);
-        assertEqApprox(size.riskConfig().borrowATokenCap, 394e18, 1e18);
+        assertEqApprox(size.riskConfig().minimumCreditBorrowAToken, 0.00377e18, 0.0001e18);
+        assertEqApprox(size.riskConfig().borrowATokenCap, 377e18, 1e18);
     }
 
     function test_GenericMarket_wstETH_ETH_debtTokenAmountToCollateralTokenAmount() public {
-        assertEqApprox(size.debtTokenAmountToCollateralTokenAmount(1e18), 0.999e18, 0.001e18);
+        assertEqApprox(size.debtTokenAmountToCollateralTokenAmount(1e18), 0.848e18, 0.001e18);
     }
 
     function test_GenericMarket_wstETH_ETH_deposit_eth_does_not_revert() public {
@@ -56,12 +56,12 @@ contract GenericMarket_wstETH_ETH_Test is BaseTestGenericMarket {
 
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 0.5e18, 365 days, false);
-        assertEqApprox(size.collateralRatio(bob), 2e18, 0.01e18);
+        assertEqApprox(size.collateralRatio(bob), 2.36e18, 0.01e18);
 
         assertEq(_state().bob.debtBalance, 1e18);
 
         _setPrice(priceFeed.getPrice() / 5);
-        assertEqApprox(size.collateralRatio(bob), 0.4e18, 0.01e18);
+        assertEqApprox(size.collateralRatio(bob), 0.47e18, 0.01e18);
 
         Vars memory _before = _state();
 
