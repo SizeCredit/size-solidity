@@ -45,6 +45,14 @@ library BuyCreditMarket {
     using LoanLibrary for CreditPosition;
     using RiskLibrary for State;
 
+    struct SwapDataBuyCreditMarket {
+        uint256 creditAmountOut;
+        uint256 cashAmountIn;
+        uint256 swapFee;
+        uint256 fragmentationFee;
+        uint256 tenor;
+    }
+
     /// @notice Validates the input parameters for buying credit as a market order
     /// @param state The state
     /// @param params The input parameters for buying credit as a market order
@@ -131,18 +139,20 @@ library BuyCreditMarket {
         );
 
         // slither-disable-next-line uninitialized-local
+        SwapDataBuyCreditMarket memory swapData;
+
+        // slither-disable-next-line uninitialized-local
         CreditPosition memory creditPosition;
-        uint256 tenor;
         address borrower;
         if (params.creditPositionId == RESERVED_ID) {
             borrower = params.borrower;
-            tenor = params.tenor;
+            swapData.tenor = params.tenor;
         } else {
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
             creditPosition = state.getCreditPosition(params.creditPositionId);
 
             borrower = creditPosition.lender;
-            tenor = debtPosition.dueDate - block.timestamp;
+            swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
         uint256 ratePerTenor = state.data.users[borrower].borrowOffer.getRatePerTenor(
@@ -151,33 +161,29 @@ library BuyCreditMarket {
                 variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
                 variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
             }),
-            tenor
+            swapData.tenor
         );
 
-        uint256 cashAmountIn;
-        uint256 creditAmountOut;
-        uint256 fees;
-
         if (params.exactAmountIn) {
-            cashAmountIn = params.amount;
-            (creditAmountOut, fees) = state.getCreditAmountOut({
-                cashAmountIn: cashAmountIn,
+            swapData.cashAmountIn = params.amount;
+            (swapData.creditAmountOut, swapData.swapFee, swapData.fragmentationFee) = state.getCreditAmountOut({
+                cashAmountIn: swapData.cashAmountIn,
                 maxCashAmountIn: params.creditPositionId == RESERVED_ID
-                    ? cashAmountIn
+                    ? swapData.cashAmountIn
                     : Math.mulDivUp(creditPosition.credit, PERCENT, PERCENT + ratePerTenor),
                 maxCredit: params.creditPositionId == RESERVED_ID
-                    ? Math.mulDivDown(cashAmountIn, PERCENT + ratePerTenor, PERCENT)
+                    ? Math.mulDivDown(swapData.cashAmountIn, PERCENT + ratePerTenor, PERCENT)
                     : creditPosition.credit,
                 ratePerTenor: ratePerTenor,
-                tenor: tenor
+                tenor: swapData.tenor
             });
         } else {
-            creditAmountOut = params.amount;
-            (cashAmountIn, fees) = state.getCashAmountIn({
-                creditAmountOut: creditAmountOut,
-                maxCredit: params.creditPositionId == RESERVED_ID ? creditAmountOut : creditPosition.credit,
+            swapData.creditAmountOut = params.amount;
+            (swapData.cashAmountIn, swapData.swapFee, swapData.fragmentationFee) = state.getCashAmountIn({
+                creditAmountOut: swapData.creditAmountOut,
+                maxCredit: params.creditPositionId == RESERVED_ID ? swapData.creditAmountOut : creditPosition.credit,
                 ratePerTenor: ratePerTenor,
-                tenor: tenor
+                tenor: swapData.tenor
             });
         }
 
@@ -186,21 +192,40 @@ library BuyCreditMarket {
             state.createDebtAndCreditPositions({
                 lender: msg.sender,
                 borrower: borrower,
-                futureValue: creditAmountOut,
-                dueDate: block.timestamp + tenor
+                futureValue: swapData.creditAmountOut,
+                dueDate: block.timestamp + swapData.tenor
             });
         } else {
             state.createCreditPosition({
                 exitCreditPositionId: params.creditPositionId,
                 lender: msg.sender,
-                credit: creditAmountOut,
+                credit: swapData.creditAmountOut,
                 forSale: true
             });
         }
 
-        state.data.borrowAToken.transferFrom(msg.sender, borrower, cashAmountIn - fees);
-        state.data.borrowAToken.transferFrom(msg.sender, state.feeConfig.feeRecipient, fees);
+        state.data.borrowAToken.transferFrom(
+            msg.sender, borrower, swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee
+        );
+        state.data.borrowAToken.transferFrom(
+            msg.sender, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
+        );
 
-        return cashAmountIn - fees;
+        uint256 exitCreditPositionId =
+            params.creditPositionId == RESERVED_ID ? state.data.nextCreditPositionId - 1 : params.creditPositionId;
+
+        emit Events.SwapData(
+            exitCreditPositionId,
+            borrower,
+            msg.sender,
+            swapData.creditAmountOut,
+            swapData.cashAmountIn,
+            swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee,
+            swapData.swapFee,
+            swapData.fragmentationFee,
+            swapData.tenor
+        );
+
+        return swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee;
     }
 }

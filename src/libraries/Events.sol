@@ -92,4 +92,18 @@ library Events {
         uint256 indexed debtPositionId, address indexed borrower, uint256 futureValue, uint256 liquidityIndexAtRepayment
     );
     event UpdateCreditPosition(uint256 indexed creditPositionId, address indexed lender, uint256 credit, bool forSale);
+
+    // analytics
+
+    event SwapData(
+        uint256 indexed creditPositionId,
+        address indexed borrower,
+        address indexed lender,
+        uint256 credit,
+        uint256 cashIn,
+        uint256 cashOut,
+        uint256 swapFee,
+        uint256 fragmentationFee,
+        uint256 tenor
+    );
 }

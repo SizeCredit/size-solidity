@@ -19,7 +19,7 @@ contract UpgradeTest is Test, BaseTest {
         Size v2 = new SizeMock();
 
         UUPSUpgradeable(address(proxy)).upgradeToAndCall(address(v2), "");
-        assertEq(SizeMock(payable(proxy)).version(), 2);
+        assertEq(SizeMock(payable(proxy)).v(), 2);
     }
 
     function test_Upgrade_proxy_can_be_upgraded_directly() public {
@@ -29,6 +29,6 @@ contract UpgradeTest is Test, BaseTest {
         Size v2 = new SizeMock();
 
         Size(payable(proxy)).upgradeToAndCall(address(v2), "");
-        assertEq(SizeMock(payable(proxy)).version(), 2);
+        assertEq(SizeMock(payable(proxy)).v(), 2);
     }
 }

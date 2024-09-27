@@ -193,35 +193,36 @@ library AccountingLibrary {
     /// @param ratePerTenor The rate per tenor
     /// @param tenor The tenor
     /// @return cashAmountOut The cash amount out
-    /// @return fees The fees
+    /// @return swapFee The swap fee
+    /// @return fragmentationFee The fragmentation fee
     function getCashAmountOut(
         State storage state,
         uint256 creditAmountIn,
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
-    ) internal view returns (uint256 cashAmountOut, uint256 fees) {
+    ) internal view returns (uint256 cashAmountOut, uint256 swapFee, uint256 fragmentationFee) {
         uint256 maxCashAmountOut = Math.mulDivDown(creditAmountIn, PERCENT, PERCENT + ratePerTenor);
-        fees = getSwapFee(state, maxCashAmountOut, tenor);
+        swapFee = getSwapFee(state, maxCashAmountOut, tenor);
 
         if (creditAmountIn == maxCredit) {
             // no credit fractionalization
 
-            if (fees > maxCashAmountOut) {
-                revert Errors.NOT_ENOUGH_CASH(maxCashAmountOut, fees);
+            if (swapFee > maxCashAmountOut) {
+                revert Errors.NOT_ENOUGH_CASH(maxCashAmountOut, swapFee);
             }
 
-            cashAmountOut = maxCashAmountOut - fees;
+            cashAmountOut = maxCashAmountOut - swapFee;
         } else if (creditAmountIn < maxCredit) {
             // credit fractionalization
 
-            fees += state.feeConfig.fragmentationFee;
+            fragmentationFee = state.feeConfig.fragmentationFee;
 
-            if (fees > maxCashAmountOut) {
-                revert Errors.NOT_ENOUGH_CASH(maxCashAmountOut, fees);
+            if (swapFee + fragmentationFee > maxCashAmountOut) {
+                revert Errors.NOT_ENOUGH_CASH(maxCashAmountOut, swapFee + fragmentationFee);
             }
 
-            cashAmountOut = maxCashAmountOut - fees;
+            cashAmountOut = maxCashAmountOut - swapFee - fragmentationFee;
         } else {
             revert Errors.NOT_ENOUGH_CREDIT(creditAmountIn, maxCredit);
         }
@@ -235,7 +236,8 @@ library AccountingLibrary {
     /// @param ratePerTenor The rate per tenor
     /// @param tenor The tenor
     /// @return creditAmountIn The credit amount in
-    /// @return fees The fees
+    /// @return swapFee The swap fee
+    /// @return fragmentationFee The fragmentation fee
     function getCreditAmountIn(
         State storage state,
         uint256 cashAmountOut,
@@ -243,7 +245,7 @@ library AccountingLibrary {
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
-    ) internal view returns (uint256 creditAmountIn, uint256 fees) {
+    ) internal view returns (uint256 creditAmountIn, uint256 swapFee, uint256 fragmentationFee) {
         uint256 swapFeePercent = getSwapFeePercent(state, tenor);
 
         uint256 maxCashAmountOutFragmentation = 0;
@@ -257,15 +259,15 @@ library AccountingLibrary {
             // no credit fractionalization
 
             creditAmountIn = maxCredit;
-            fees = Math.mulDivUp(creditAmountIn, swapFeePercent, PERCENT + ratePerTenor);
+            swapFee = Math.mulDivUp(creditAmountIn, swapFeePercent, PERCENT + ratePerTenor);
         } else if (cashAmountOut < maxCashAmountOutFragmentation) {
             // credit fractionalization
 
             creditAmountIn = Math.mulDivUp(
                 cashAmountOut + state.feeConfig.fragmentationFee, PERCENT + ratePerTenor, PERCENT - swapFeePercent
             );
-            fees =
-                Math.mulDivUp(creditAmountIn, swapFeePercent, PERCENT + ratePerTenor) + state.feeConfig.fragmentationFee;
+            swapFee = Math.mulDivUp(creditAmountIn, swapFeePercent, PERCENT + ratePerTenor);
+            fragmentationFee = state.feeConfig.fragmentationFee;
         } else {
             // for maxCashAmountOutFragmentation < cashAmountOut < maxCashAmountOut we are in an inconsistent situation
             //   where charging the swap fee would require to sell a credit that exceeds the max possible credit
@@ -282,7 +284,8 @@ library AccountingLibrary {
     /// @param ratePerTenor The rate per tenor
     /// @param tenor The tenor
     /// @return creditAmountOut The credit amount out
-    /// @return fees The fees
+    /// @return swapFee The swap fee
+    /// @return fragmentationFee The fragmentation fee
     function getCreditAmountOut(
         State storage state,
         uint256 cashAmountIn,
@@ -290,12 +293,12 @@ library AccountingLibrary {
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
-    ) internal view returns (uint256 creditAmountOut, uint256 fees) {
+    ) internal view returns (uint256 creditAmountOut, uint256 swapFee, uint256 fragmentationFee) {
         if (cashAmountIn == maxCashAmountIn) {
             // no credit fractionalization
 
             creditAmountOut = maxCredit;
-            fees = getSwapFee(state, cashAmountIn, tenor);
+            swapFee = getSwapFee(state, cashAmountIn, tenor);
         } else if (cashAmountIn < maxCashAmountIn) {
             // credit fractionalization
 
@@ -306,7 +309,8 @@ library AccountingLibrary {
             uint256 netCashAmountIn = cashAmountIn - state.feeConfig.fragmentationFee;
 
             creditAmountOut = Math.mulDivDown(netCashAmountIn, PERCENT + ratePerTenor, PERCENT);
-            fees = getSwapFee(state, netCashAmountIn, tenor) + state.feeConfig.fragmentationFee;
+            swapFee = getSwapFee(state, netCashAmountIn, tenor);
+            fragmentationFee = state.feeConfig.fragmentationFee;
         } else {
             revert Errors.NOT_ENOUGH_CASH(maxCashAmountIn, cashAmountIn);
         }
@@ -319,32 +323,34 @@ library AccountingLibrary {
     /// @param ratePerTenor The rate per tenor
     /// @param tenor The tenor
     /// @return cashAmountIn The cash amount in
-    /// @return fees The fees
+    /// @return swapFee The swap fee
+    /// @return fragmentationFee The fragmentation fee
     function getCashAmountIn(
         State storage state,
         uint256 creditAmountOut,
         uint256 maxCredit,
         uint256 ratePerTenor,
         uint256 tenor
-    ) internal view returns (uint256 cashAmountIn, uint256 fees) {
+    ) internal view returns (uint256 cashAmountIn, uint256 swapFee, uint256 fragmentationFee) {
         if (creditAmountOut == maxCredit) {
             // no credit fractionalization
 
             cashAmountIn = Math.mulDivUp(maxCredit, PERCENT, PERCENT + ratePerTenor);
-            fees = getSwapFee(state, cashAmountIn, tenor);
+            swapFee = getSwapFee(state, cashAmountIn, tenor);
         } else if (creditAmountOut < maxCredit) {
             // credit fractionalization
 
             uint256 netCashAmountIn = Math.mulDivUp(creditAmountOut, PERCENT, PERCENT + ratePerTenor);
             cashAmountIn = netCashAmountIn + state.feeConfig.fragmentationFee;
 
-            fees = getSwapFee(state, netCashAmountIn, tenor) + state.feeConfig.fragmentationFee;
+            swapFee = getSwapFee(state, netCashAmountIn, tenor);
+            fragmentationFee = state.feeConfig.fragmentationFee;
         } else {
             revert Errors.NOT_ENOUGH_CREDIT(creditAmountOut, maxCredit);
         }
 
-        if (fees > cashAmountIn) {
-            revert Errors.NOT_ENOUGH_CASH(cashAmountIn, fees);
+        if (swapFee + fragmentationFee > cashAmountIn) {
+            revert Errors.NOT_ENOUGH_CASH(cashAmountIn, swapFee + fragmentationFee);
         }
     }
 }

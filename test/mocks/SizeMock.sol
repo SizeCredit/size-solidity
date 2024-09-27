@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {Size} from "@src/Size.sol";
 import {State} from "@src/SizeStorage.sol";
+import {Math, PERCENT, YEAR} from "@src/libraries/Math.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -21,7 +22,7 @@ contract SizeMock is Size {
     // https://github.com/foundry-rs/foundry/issues/4615
     bool public IS_TEST = true;
 
-    function version() public pure returns (uint256) {
+    function v() public pure returns (uint256) {
         return 2;
     }
 
@@ -93,5 +94,9 @@ contract SizeMock is Size {
         returns (CreditPosition[] memory creditPositions)
     {
         return getCreditPositions(getCreditPositionIdsByDebtPositionId(debtPositionId));
+    }
+
+    function getAPR(uint256 cash, uint256 credit, uint256 tenor) external pure returns (uint256) {
+        return Math.mulDivDown(credit - cash, YEAR * PERCENT, cash * tenor);
     }
 }

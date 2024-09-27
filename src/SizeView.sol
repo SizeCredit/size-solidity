@@ -181,4 +181,9 @@ abstract contract SizeView is SizeStorage, ISizeView {
         }
         return state.getSwapFee(cash, tenor);
     }
+
+    /// @inheritdoc ISizeView
+    function version() public pure returns (string memory) {
+        return "v1.1.1";
+    }
 }
