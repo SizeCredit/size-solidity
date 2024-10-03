@@ -11,8 +11,6 @@ import {USDC} from "@test/mocks/USDC.sol";
 
 import {Test} from "forge-std/Test.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
-
 contract NonTransferrableScaledTokenTest is Test {
     NonTransferrableScaledToken public token;
     address owner = address(0x2);
