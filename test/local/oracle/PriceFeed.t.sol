@@ -12,8 +12,10 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 contract PriceFeedTest is Test, AssertsHelper {
     PriceFeed public priceFeed;
+    PriceFeed public priceFeedStethToEth;
     MockV3Aggregator public ethToUsd;
     MockV3Aggregator public usdcToUsd;
+    MockV3Aggregator public stethToEth;
     MockV3Aggregator public sequencerUptimeFeed;
     int256 private constant SEQUENCER_UP = 0;
     int256 private constant SEQUENCER_DOWN = 1;
@@ -23,13 +25,18 @@ contract PriceFeedTest is Test, AssertsHelper {
     uint8 public constant ETH_TO_USD_DECIMALS = 8;
     int256 public constant USDC_TO_USD = 0.9999e8;
     uint8 public constant USDC_TO_USD_DECIMALS = 8;
+    int256 public constant STETH_TO_ETH = 0.9997e18;
+    uint8 public constant STETH_TO_ETH_DECIMALS = 18;
 
     function setUp() public {
         sequencerUptimeFeed = new MockV3Aggregator(0, SEQUENCER_UP);
         vm.warp(block.timestamp + 1 days);
         ethToUsd = new MockV3Aggregator(ETH_TO_USD_DECIMALS, ETH_TO_USD);
         usdcToUsd = new MockV3Aggregator(USDC_TO_USD_DECIMALS, USDC_TO_USD);
+        stethToEth = new MockV3Aggregator(STETH_TO_ETH_DECIMALS, STETH_TO_ETH);
         priceFeed = new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 86400);
+        priceFeedStethToEth =
+            new PriceFeed(address(stethToEth), address(stethToEth), address(sequencerUptimeFeed), 86400, 86400);
     }
 
     function test_PriceFeed_validation() public {
@@ -47,6 +54,9 @@ contract PriceFeedTest is Test, AssertsHelper {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_STALE_PRICE.selector));
         new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 0);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_STALE_PRICE_INTERVAL.selector, 3600, 86400));
+        new PriceFeed(address(stethToEth), address(stethToEth), address(sequencerUptimeFeed), 3600, 86400);
     }
 
     function test_PriceFeed_getPrice_success() public {
@@ -123,6 +133,19 @@ contract PriceFeedTest is Test, AssertsHelper {
         usdcToUsd.updateAnswer(USDC_TO_USD);
         ethToUsd.updateAnswer(ETH_TO_USD);
         priceFeed.getPrice();
+    }
+
+    function test_PriceFeed_getPrice_direct() public {
+        assertEq(priceFeedStethToEth.getPrice(), uint256(0.9997e18));
+        assertEq(priceFeedStethToEth.decimals(), 18);
+    }
+
+    function test_PriceFeed_getPrice_different_decimals() public {
+        stethToEth = new MockV3Aggregator(8, 0.9997e8);
+        priceFeedStethToEth =
+            new PriceFeed(address(stethToEth), address(stethToEth), address(sequencerUptimeFeed), 86400, 86400);
+        assertEq(priceFeedStethToEth.getPrice(), uint256(0.9997e18));
+        assertEq(priceFeedStethToEth.decimals(), 18);
     }
 
     function test_PriceFeed_getPrice_is_consistent() public {

@@ -11,8 +11,6 @@ import {USDC} from "@test/mocks/USDC.sol";
 
 import {Test} from "forge-std/Test.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
-
 contract NonTransferrableScaledTokenTest is Test {
     NonTransferrableScaledToken public token;
     address owner = address(0x2);
@@ -33,18 +31,6 @@ contract NonTransferrableScaledTokenTest is Test {
         assertEq(token.totalSupply(), 0);
         assertEq(token.owner(), owner);
         assertEq(token.balanceOf(address(this)), 0);
-    }
-
-    function test_NonTransferrableScaledToken_mint_reverts() public {
-        vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_SUPPORTED.selector));
-        token.mint(address(this), 100);
-    }
-
-    function test_NonTransferrableScaledToken_burn_reverts() public {
-        vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_SUPPORTED.selector));
-        token.burn(address(this), 100);
     }
 
     function test_NonTransferrableScaledToken_transfer() public {

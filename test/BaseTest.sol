@@ -132,6 +132,10 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         _deposit(user, address(token), amount, user);
     }
 
+    function _deposit(address user, address token, uint256 amount) internal {
+        _deposit(user, token, amount, user);
+    }
+
     function _deposit(address user, address token, uint256 amount, address to) internal {
         _mint(token, user, amount);
         _approve(user, token, address(size), amount);
@@ -141,6 +145,10 @@ contract BaseTest is Test, Deploy, AssertsHelper {
 
     function _withdraw(address user, IERC20Metadata token, uint256 amount) internal {
         _withdraw(user, address(token), amount, user);
+    }
+
+    function _withdraw(address user, address token, uint256 amount) internal {
+        _withdraw(user, token, amount, user);
     }
 
     function _withdraw(address user, address token, uint256 amount, address to) internal {
@@ -422,8 +430,12 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         );
     }
 
-    function _setLiquidityIndex(uint256 index) internal {
+    function _setLiquidityIndex(address token, uint256 index) internal {
         vm.prank(address(this));
-        PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), index);
+        PoolMock(address(variablePool)).setLiquidityIndex(token, index);
+    }
+
+    function _setLiquidityIndex(uint256 index) internal {
+        _setLiquidityIndex(address(usdc), index);
     }
 }

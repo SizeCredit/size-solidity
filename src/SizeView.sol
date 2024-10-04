@@ -184,6 +184,6 @@ abstract contract SizeView is SizeStorage, ISizeView {
 
     /// @inheritdoc ISizeView
     function version() public pure returns (string memory) {
-        return "v1.1.1";
+        return "v1.2";
     }
 }

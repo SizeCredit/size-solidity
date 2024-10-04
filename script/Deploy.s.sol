@@ -15,8 +15,6 @@ contract DeployScript is BaseScript, Networks, Deploy {
     address deployer;
     address owner;
     address feeRecipient;
-    address wethAggregator;
-    address usdcAggregator;
     string networkConfiguration;
 
     function setUp() public {}
@@ -46,14 +44,50 @@ contract DeployScript is BaseScript, Networks, Deploy {
         deployments.push(Deployment({name: "PriceFeed", addr: address(priceFeed)}));
         parameters.push(Parameter({key: "owner", value: Strings.toHexString(owner)}));
         parameters.push(Parameter({key: "feeRecipient", value: Strings.toHexString(feeRecipient)}));
-        parameters.push(Parameter({key: "usdc", value: Strings.toHexString(address(params.usdc))}));
         parameters.push(Parameter({key: "weth", value: Strings.toHexString(address(params.weth))}));
-        parameters.push(Parameter({key: "wethAggregator", value: Strings.toHexString(params.wethAggregator)}));
-        parameters.push(Parameter({key: "usdcAggregator", value: Strings.toHexString(params.usdcAggregator)}));
-        parameters.push(Parameter({key: "wethHeartbeat", value: Strings.toString(params.wethHeartbeat)}));
-        parameters.push(Parameter({key: "usdcHeartbeat", value: Strings.toString(params.usdcHeartbeat)}));
+        parameters.push(
+            Parameter({
+                key: "underlyingCollateralToken",
+                value: Strings.toHexString(address(params.underlyingCollateralToken))
+            })
+        );
+        parameters.push(
+            Parameter({key: "underlyingBorrowToken", value: Strings.toHexString(address(params.underlyingBorrowToken))})
+        );
+        parameters.push(
+            Parameter({
+                key: "underlyingCollateralTokenAggregator",
+                value: Strings.toHexString(params.underlyingCollateralTokenAggregator)
+            })
+        );
+        parameters.push(
+            Parameter({
+                key: "underlyingBorrowTokenAggregator",
+                value: Strings.toHexString(params.underlyingBorrowTokenAggregator)
+            })
+        );
+        parameters.push(
+            Parameter({
+                key: "underlyingCollateralTokenHeartbeat",
+                value: Strings.toString(params.underlyingCollateralTokenHeartbeat)
+            })
+        );
+        parameters.push(
+            Parameter({
+                key: "underlyingBorrowTokenHeartbeat",
+                value: Strings.toString(params.underlyingBorrowTokenHeartbeat)
+            })
+        );
         parameters.push(Parameter({key: "sequencerUptimeFeed", value: Strings.toHexString(params.sequencerUptimeFeed)}));
         parameters.push(Parameter({key: "variablePool", value: Strings.toHexString(address(variablePool))}));
+
+        parameters.push(Parameter({key: "fragmentationFee", value: Strings.toString(params.fragmentationFee)}));
+        parameters.push(Parameter({key: "crOpening", value: Strings.toString(params.crOpening)}));
+        parameters.push(Parameter({key: "crLiquidation", value: Strings.toString(params.crLiquidation)}));
+        parameters.push(
+            Parameter({key: "minimumCreditBorrowAToken", value: Strings.toString(params.minimumCreditBorrowAToken)})
+        );
+        parameters.push(Parameter({key: "borrowATokenCap", value: Strings.toString(params.borrowATokenCap)}));
 
         console.log("[Size v1] deployed\n");
 
