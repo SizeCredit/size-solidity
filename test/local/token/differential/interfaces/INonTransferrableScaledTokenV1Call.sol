@@ -14,7 +14,5 @@ interface INonTransferrableScaledTokenV1Call {
 
     function transfer(address to, uint256 value) external;
 
-    function allowance(address, address spender) external returns (uint256);
-
     function approve(address, uint256) external returns (bool);
 }
