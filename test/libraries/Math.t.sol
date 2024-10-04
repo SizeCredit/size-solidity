@@ -91,52 +91,6 @@ contract MathTest is Test, AssertsHelper {
         assertEqApprox((Math.aprToRatePerTenor(uint256(0.01e18), 30 days)), 0.000821917808219178e18, 1);
     }
 
-    function test_Math_amountToWad_18_decimals() public {
-        uint256 amount = 1e6;
-        uint8 decimals = 18;
-
-        uint256 wad = Math.amountToWad(amount, decimals);
-        assertEq(wad, amount);
-    }
-
-    function testFuzz_Math_amountToWad_18_decimals(uint256 amount) public {
-        uint8 decimals = 18;
-
-        uint256 wad = Math.amountToWad(amount, decimals);
-        assertEq(wad, amount);
-    }
-
-    function test_Math_amountToWad_lt_18() public {
-        uint256 amount = 1e6;
-        uint8 decimals = 6;
-
-        uint256 wad = Math.amountToWad(amount, decimals);
-        assertEq(wad, 1e18);
-    }
-
-    function testFuzz_Math_amountToWad_lt_18(uint256 amount) public {
-        amount = bound(amount, 0, type(uint256).max / 1e18);
-        uint8 decimals = 6;
-
-        uint256 wad = Math.amountToWad(amount, decimals);
-        assertEq(wad, amount * 1e12);
-    }
-
-    function test_Math_amountToWad_gt_18() public {
-        uint256 amount = 1e24;
-        uint8 decimals = 24;
-
-        vm.expectRevert();
-        Math.amountToWad(amount, decimals);
-    }
-
-    function testFuzz_Math_amountToWad_gt_18(uint256 amount) public {
-        uint8 decimals = 24;
-
-        vm.expectRevert();
-        Math.amountToWad(amount, decimals);
-    }
-
     function check_Math_binarySearch(uint256[] memory array, uint256 value) public {
         // array is strictly increasing
         for (uint256 i = 0; i < array.length - 1; i++) {

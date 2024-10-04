@@ -4,10 +4,6 @@
 
 Size is a credit marketplace with unified liquidity across maturities.
 
-Supported pair:
-
-- (W)ETH/USDC: Collateral/Borrow token
-
 Target networks:
 
 - Ethereum mainnet
@@ -15,7 +11,7 @@ Target networks:
 
 ## Audits
 
-- [2024-06-10 - Code4rena (WIP)](https://code4rena.com/reports/2024-06-size)
+- [2024-06-10 - Code4rena](https://code4rena.com/reports/2024-06-size)
 - [2024-06-08 - Spearbit](./audits/2024-06-08-Spearbit.pdf)
 - [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
 - [2024-03-19 - LightChaserV3](./audits/2024-03-19-LightChaserV3.md)
@@ -101,7 +97,7 @@ yarn coverage
 |----------------------------------------------------|--------------------|--------------------|------------------|------------------|
 | src/Size.sol                                       | 100.00% (60/60)    | 100.00% (65/65)    | 100.00% (3/3)    | 100.00% (22/22)  |
 | src/SizeView.sol                                   | 96.55% (28/29)     | 97.83% (45/46)     | 100.00% (3/3)    | 95.00% (19/20)   |
-| src/libraries/AccountingLibrary.sol                | 97.59% (81/83)     | 97.96% (96/98)     | 91.30% (21/23)   | 100.00% (12/12)  |
+| src/libraries/AccountingLibrary.sol                | 96.39% (80/83)     | 96.94% (95/98)     | 86.96% (20/23)   | 100.00% (12/12)  |
 | src/libraries/CapsLibrary.sol                      | 91.67% (11/12)     | 93.33% (14/15)     | 75.00% (3/4)     | 100.00% (3/3)    |
 | src/libraries/DepositTokenLibrary.sol              | 100.00% (18/18)    | 100.00% (24/24)    | 100.00% (0/0)    | 100.00% (4/4)    |
 | src/libraries/LoanLibrary.sol                      | 96.77% (30/31)     | 97.83% (45/46)     | 93.33% (14/15)   | 100.00% (8/8)    |

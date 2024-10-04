@@ -5,6 +5,9 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
+import {Math} from "@src/libraries/Math.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
@@ -39,6 +42,9 @@ abstract contract Deploy {
     InitializeRiskConfigParams internal r;
     InitializeOracleParams internal o;
     InitializeDataParams internal d;
+
+    MockERC20 internal collateralToken;
+    MockERC20 internal borrowToken;
 
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
@@ -78,53 +84,123 @@ abstract contract Deploy {
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
 
+    function setupLocalGenericMarket(
+        address owner,
+        address feeRecipient,
+        uint256 collateralTokenPriceUSD,
+        uint256 borrowTokenPriceUSD,
+        uint8 collateralTokenDecimals,
+        uint8 borrowTokenDecimals,
+        bool collateralTokenIsWETH,
+        bool borrowTokenIsWETH
+    ) internal {
+        priceFeed = new PriceFeedMock(owner);
+        uint256 price = Math.mulDivDown(collateralTokenPriceUSD, 10 ** priceFeed.decimals(), borrowTokenPriceUSD);
+
+        weth = new WETH();
+        collateralToken = new MockERC20("CollateralToken", "CTK", collateralTokenDecimals);
+        borrowToken = new MockERC20("BorrowToken", "BTK", borrowTokenDecimals);
+        if (collateralTokenIsWETH) {
+            collateralToken = MockERC20(address(weth));
+        }
+        if (borrowTokenIsWETH) {
+            borrowToken = MockERC20(address(weth));
+        }
+
+        variablePool = IPool(address(new PoolMock()));
+        PoolMock(address(variablePool)).setLiquidityIndex(address(borrowToken), 1.234567e27);
+
+        f = InitializeFeeConfigParams({
+            swapFeeAPR: 0.005e18,
+            fragmentationFee: Math.mulDivDown(
+                5 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
+            ),
+            liquidationRewardPercent: 0.05e18,
+            overdueCollateralProtocolPercent: 0.01e18,
+            collateralProtocolPercent: 0.1e18,
+            feeRecipient: feeRecipient
+        });
+        r = InitializeRiskConfigParams({
+            crOpening: 1.5e18,
+            crLiquidation: 1.3e18,
+            minimumCreditBorrowAToken: Math.mulDivDown(
+                10 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
+            ),
+            borrowATokenCap: Math.mulDivDown(
+                1_000_000 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
+            ),
+            minTenor: 1 hours,
+            maxTenor: 5 * 365 days
+        });
+        o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});
+        d = InitializeDataParams({
+            weth: address(weth),
+            underlyingCollateralToken: address(collateralToken),
+            underlyingBorrowToken: address(borrowToken),
+            variablePool: address(variablePool)
+        });
+
+        implementation = address(new SizeMock());
+        proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        size = SizeMock(payable(proxy));
+
+        PriceFeedMock(address(priceFeed)).setPrice(price);
+    }
+
     function setupProduction(address _owner, address _feeRecipient, NetworkConfiguration memory _networkParams)
         internal
     {
         variablePool = IPool(_networkParams.variablePool);
 
-        if (_networkParams.wethAggregator == address(0) && _networkParams.usdcAggregator == address(0)) {
+        if (
+            _networkParams.underlyingCollateralTokenAggregator == address(0)
+                && _networkParams.underlyingBorrowTokenAggregator == address(0)
+        ) {
             priceFeed = new PriceFeedMock(_owner);
             PriceFeedMock(address(priceFeed)).setPrice(2468e18);
         } else {
             priceFeed = new PriceFeed(
-                _networkParams.wethAggregator,
-                _networkParams.usdcAggregator,
+                _networkParams.underlyingCollateralTokenAggregator,
+                _networkParams.underlyingBorrowTokenAggregator,
                 _networkParams.sequencerUptimeFeed,
-                _networkParams.wethHeartbeat,
-                _networkParams.usdcHeartbeat
+                _networkParams.underlyingCollateralTokenHeartbeat,
+                _networkParams.underlyingBorrowTokenHeartbeat
             );
         }
 
         if (_networkParams.variablePool == address(0)) {
             variablePool = IPool(address(new PoolMock()));
-            PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.weth), WadRayMath.RAY);
-            PoolMock(address(variablePool)).setLiquidityIndex(address(_networkParams.usdc), WadRayMath.RAY);
+            PoolMock(address(variablePool)).setLiquidityIndex(
+                address(_networkParams.underlyingCollateralToken), WadRayMath.RAY
+            );
+            PoolMock(address(variablePool)).setLiquidityIndex(
+                address(_networkParams.underlyingBorrowToken), WadRayMath.RAY
+            );
         } else {
             variablePool = IPool(_networkParams.variablePool);
         }
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
-            fragmentationFee: 1e6,
+            fragmentationFee: _networkParams.fragmentationFee,
             liquidationRewardPercent: 0.05e18,
             overdueCollateralProtocolPercent: 0.01e18,
             collateralProtocolPercent: 0.1e18,
             feeRecipient: _feeRecipient
         });
         r = InitializeRiskConfigParams({
-            crOpening: 1.5e18,
-            crLiquidation: 1.3e18,
-            minimumCreditBorrowAToken: 50e6,
-            borrowATokenCap: 1_000_000e6,
+            crOpening: _networkParams.crOpening,
+            crLiquidation: _networkParams.crLiquidation,
+            minimumCreditBorrowAToken: _networkParams.minimumCreditBorrowAToken,
+            borrowATokenCap: _networkParams.borrowATokenCap,
             minTenor: 1 hours,
             maxTenor: 5 * 365 days
         });
         o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});
         d = InitializeDataParams({
             weth: address(_networkParams.weth),
-            underlyingCollateralToken: address(_networkParams.weth),
-            underlyingBorrowToken: address(_networkParams.usdc),
+            underlyingCollateralToken: address(_networkParams.underlyingCollateralToken),
+            underlyingBorrowToken: address(_networkParams.underlyingBorrowToken),
             variablePool: address(variablePool) // Aave v3
         });
         implementation = address(new Size());
