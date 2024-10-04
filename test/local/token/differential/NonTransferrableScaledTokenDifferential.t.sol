@@ -8,8 +8,9 @@ import {SymTest} from "halmos-cheatcodes/SymTest.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableScaledTokenV1} from "@test/local/token/differential/NonTransferrableScaledTokenV1.sol";
-import {USDC} from "@test/mocks/USDC.sol";
+
 import {SimplePool} from "@test/local/token/differential/mocks/SimplePool.sol";
+import {USDC} from "@test/mocks/USDC.sol";
 
 import {Test} from "forge-std/Test.sol";
 
