@@ -8,8 +8,8 @@ import {SymTest} from "halmos-cheatcodes/SymTest.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableScaledTokenV1} from "@test/local/token/differential/NonTransferrableScaledTokenV1.sol";
-import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
+import {SimplePool} from "@test/local/token/differential/mocks/SimplePool.sol";
 
 import {Test} from "forge-std/Test.sol";
 
@@ -24,8 +24,7 @@ contract NonTransferrableScaledTokenDifferentialTest is Test, SymTest {
 
     function setUp() public {
         underlying = new USDC(address(this));
-        pool = IPool(address(new PoolMock()));
-        PoolMock(address(pool)).setLiquidityIndex(address(underlying), WadRayMath.RAY);
+        pool = IPool(address(new SimplePool(WadRayMath.RAY)));
         v1 = new NonTransferrableScaledTokenV1(pool, IERC20Metadata(underlying), owner, "Test", "TEST", 18);
         v2 = new NonTransferrableScaledToken(pool, IERC20Metadata(underlying), owner, "Test", "TEST", 18);
     }
