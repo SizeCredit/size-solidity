@@ -81,4 +81,30 @@ contract SwapDataTest is BaseTest {
         assertEq(lenderAPR, size.getAPR(cashIn, credit, tenor));
         assertEqApprox(borrowerAPR, size.getAPR(cashOut, credit, tenor), 0.001e18);
     }
+
+    function test_SwapData_buyCreditMarket() public {
+        _setPrice(1e18);
+
+        _deposit(alice, usdc, 200e6);
+        _deposit(bob, weth, 200e18);
+        _deposit(candy, usdc, 200e6);
+
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
+        _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
+
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+
+        uint256 credit = 88e6;
+        uint256 cashIn = 80e6 + 5e6;
+        uint256 cashOut = 80e6 - 0.4e6;
+        uint256 swapFee = 0.4e6;
+        uint256 fragmentationFee = 5e6;
+        uint256 tenor = 365 days;
+
+        vm.expectEmit();
+        emit Events.SwapData(creditPositionId, alice, candy, credit, cashIn, cashOut, swapFee, fragmentationFee, tenor);
+        _buyCreditMarket(candy, creditPositionId, credit, false);
+    }
 }
