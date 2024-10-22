@@ -46,6 +46,7 @@ library SellCreditMarket {
     using AccountingLibrary for State;
 
     struct SwapDataSellCreditMarket {
+        CreditPosition creditPosition;
         uint256 creditAmountIn;
         uint256 cashAmountOut;
         uint256 swapFee;
@@ -124,27 +125,20 @@ library SellCreditMarket {
         // N/A
     }
 
-    /// @notice Executes the selling of credit as a market order
+    /// @notice Returns the swap data for selling credit as a market order
     /// @param state The state
     /// @param params The input parameters for selling credit as a market order
-    function executeSellCreditMarket(State storage state, SellCreditMarketParams calldata params)
-        external
-        returns (uint256 cashAmountOut)
+    /// @return swapData The swap data for selling credit as a market order
+    function getSwapData(State storage state, SellCreditMarketParams memory params)
+        public
+        view
+        returns (SwapDataSellCreditMarket memory swapData)
     {
-        emit Events.SellCreditMarket(
-            params.lender, params.creditPositionId, params.tenor, params.amount, params.tenor, params.exactAmountIn
-        );
-
-        // slither-disable-next-line uninitialized-local
-        SwapDataSellCreditMarket memory swapData;
-
-        // slither-disable-next-line uninitialized-local
-        CreditPosition memory creditPosition;
         if (params.creditPositionId == RESERVED_ID) {
             swapData.tenor = params.tenor;
         } else {
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
-            creditPosition = state.getCreditPosition(params.creditPositionId);
+            swapData.creditPosition = state.getCreditPosition(params.creditPositionId);
 
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
@@ -161,29 +155,47 @@ library SellCreditMarket {
         if (params.exactAmountIn) {
             swapData.creditAmountIn = params.amount;
 
-            (cashAmountOut, swapData.swapFee, swapData.fragmentationFee) = state.getCashAmountOut({
+            (swapData.cashAmountOut, swapData.swapFee, swapData.fragmentationFee) = state.getCashAmountOut({
                 creditAmountIn: swapData.creditAmountIn,
-                maxCredit: params.creditPositionId == RESERVED_ID ? swapData.creditAmountIn : creditPosition.credit,
+                maxCredit: params.creditPositionId == RESERVED_ID ? swapData.creditAmountIn : swapData.creditPosition.credit,
                 ratePerTenor: ratePerTenor,
                 tenor: swapData.tenor
             });
         } else {
-            cashAmountOut = params.amount;
+            swapData.cashAmountOut = params.amount;
 
             (swapData.creditAmountIn, swapData.swapFee, swapData.fragmentationFee) = state.getCreditAmountIn({
-                cashAmountOut: cashAmountOut,
+                cashAmountOut: swapData.cashAmountOut,
                 maxCashAmountOut: params.creditPositionId == RESERVED_ID
-                    ? cashAmountOut
+                    ? swapData.cashAmountOut
                     : Math.mulDivDown(
-                        creditPosition.credit, PERCENT - state.getSwapFeePercent(swapData.tenor), PERCENT + ratePerTenor
+                        swapData.creditPosition.credit,
+                        PERCENT - state.getSwapFeePercent(swapData.tenor),
+                        PERCENT + ratePerTenor
                     ),
                 maxCredit: params.creditPositionId == RESERVED_ID
-                    ? Math.mulDivUp(cashAmountOut, PERCENT + ratePerTenor, PERCENT - state.getSwapFeePercent(swapData.tenor))
-                    : creditPosition.credit,
+                    ? Math.mulDivUp(
+                        swapData.cashAmountOut, PERCENT + ratePerTenor, PERCENT - state.getSwapFeePercent(swapData.tenor)
+                    )
+                    : swapData.creditPosition.credit,
                 ratePerTenor: ratePerTenor,
                 tenor: swapData.tenor
             });
         }
+    }
+
+    /// @notice Executes the selling of credit as a market order
+    /// @param state The state
+    /// @param params The input parameters for selling credit as a market order
+    function executeSellCreditMarket(State storage state, SellCreditMarketParams calldata params)
+        external
+        returns (uint256)
+    {
+        emit Events.SellCreditMarket(
+            params.lender, params.creditPositionId, params.tenor, params.amount, params.tenor, params.exactAmountIn
+        );
+
+        SwapDataSellCreditMarket memory swapData = getSwapData(state, params);
 
         if (params.creditPositionId == RESERVED_ID) {
             // slither-disable-next-line unused-return
@@ -204,7 +216,7 @@ library SellCreditMarket {
             credit: swapData.creditAmountIn,
             forSale: true
         });
-        state.data.borrowAToken.transferFrom(params.lender, msg.sender, cashAmountOut);
+        state.data.borrowAToken.transferFrom(params.lender, msg.sender, swapData.cashAmountOut);
         state.data.borrowAToken.transferFrom(
             params.lender, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
         );
@@ -214,11 +226,13 @@ library SellCreditMarket {
             msg.sender,
             params.lender,
             swapData.creditAmountIn,
-            cashAmountOut + swapData.swapFee + swapData.fragmentationFee,
-            cashAmountOut,
+            swapData.cashAmountOut + swapData.swapFee + swapData.fragmentationFee,
+            swapData.cashAmountOut,
             swapData.swapFee,
             swapData.fragmentationFee,
             swapData.tenor
         );
+
+        return swapData.cashAmountOut;
     }
 }

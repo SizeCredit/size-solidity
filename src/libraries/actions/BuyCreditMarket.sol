@@ -46,6 +46,8 @@ library BuyCreditMarket {
     using RiskLibrary for State;
 
     struct SwapDataBuyCreditMarket {
+        CreditPosition creditPosition;
+        address borrower;
         uint256 creditAmountOut;
         uint256 cashAmountIn;
         uint256 swapFee;
@@ -127,35 +129,27 @@ library BuyCreditMarket {
         // N/A
     }
 
-    /// @notice Executes the buying of credit as a market order
+    /// @notice Gets the swap data for buying credit as a market order
     /// @param state The state
     /// @param params The input parameters for buying credit as a market order
-    function executeBuyCreditMarket(State storage state, BuyCreditMarketParams memory params)
-        external
-        returns (uint256 netCashAmountIn)
+    /// @return swapData The swap data for buying credit as a market order
+    function getSwapData(State storage state, BuyCreditMarketParams memory params)
+        public
+        view
+        returns (SwapDataBuyCreditMarket memory swapData)
     {
-        emit Events.BuyCreditMarket(
-            params.borrower, params.creditPositionId, params.tenor, params.amount, params.exactAmountIn
-        );
-
-        // slither-disable-next-line uninitialized-local
-        SwapDataBuyCreditMarket memory swapData;
-
-        // slither-disable-next-line uninitialized-local
-        CreditPosition memory creditPosition;
-        address borrower;
         if (params.creditPositionId == RESERVED_ID) {
-            borrower = params.borrower;
+            swapData.borrower = params.borrower;
             swapData.tenor = params.tenor;
         } else {
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
-            creditPosition = state.getCreditPosition(params.creditPositionId);
+            swapData.creditPosition = state.getCreditPosition(params.creditPositionId);
 
-            borrower = creditPosition.lender;
+            swapData.borrower = swapData.creditPosition.lender;
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        uint256 ratePerTenor = state.data.users[borrower].borrowOffer.getRatePerTenor(
+        uint256 ratePerTenor = state.data.users[swapData.borrower].borrowOffer.getRatePerTenor(
             VariablePoolBorrowRateParams({
                 variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
                 variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
@@ -170,10 +164,10 @@ library BuyCreditMarket {
                 cashAmountIn: swapData.cashAmountIn,
                 maxCashAmountIn: params.creditPositionId == RESERVED_ID
                     ? swapData.cashAmountIn
-                    : Math.mulDivUp(creditPosition.credit, PERCENT, PERCENT + ratePerTenor),
+                    : Math.mulDivUp(swapData.creditPosition.credit, PERCENT, PERCENT + ratePerTenor),
                 maxCredit: params.creditPositionId == RESERVED_ID
                     ? Math.mulDivDown(swapData.cashAmountIn, PERCENT + ratePerTenor, PERCENT)
-                    : creditPosition.credit,
+                    : swapData.creditPosition.credit,
                 ratePerTenor: ratePerTenor,
                 tenor: swapData.tenor
             });
@@ -181,17 +175,33 @@ library BuyCreditMarket {
             swapData.creditAmountOut = params.amount;
             (swapData.cashAmountIn, swapData.swapFee, swapData.fragmentationFee) = state.getCashAmountIn({
                 creditAmountOut: swapData.creditAmountOut,
-                maxCredit: params.creditPositionId == RESERVED_ID ? swapData.creditAmountOut : creditPosition.credit,
+                maxCredit: params.creditPositionId == RESERVED_ID
+                    ? swapData.creditAmountOut
+                    : swapData.creditPosition.credit,
                 ratePerTenor: ratePerTenor,
                 tenor: swapData.tenor
             });
         }
+    }
+
+    /// @notice Executes the buying of credit as a market order
+    /// @param state The state
+    /// @param params The input parameters for buying credit as a market order
+    function executeBuyCreditMarket(State storage state, BuyCreditMarketParams memory params)
+        external
+        returns (uint256 netCashAmountIn)
+    {
+        emit Events.BuyCreditMarket(
+            params.borrower, params.creditPositionId, params.tenor, params.amount, params.exactAmountIn
+        );
+
+        SwapDataBuyCreditMarket memory swapData = getSwapData(state, params);
 
         if (params.creditPositionId == RESERVED_ID) {
             // slither-disable-next-line unused-return
             state.createDebtAndCreditPositions({
                 lender: msg.sender,
-                borrower: borrower,
+                borrower: swapData.borrower,
                 futureValue: swapData.creditAmountOut,
                 dueDate: block.timestamp + swapData.tenor
             });
@@ -205,7 +215,7 @@ library BuyCreditMarket {
         }
 
         state.data.borrowAToken.transferFrom(
-            msg.sender, borrower, swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee
+            msg.sender, swapData.borrower, swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee
         );
         state.data.borrowAToken.transferFrom(
             msg.sender, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
@@ -216,7 +226,7 @@ library BuyCreditMarket {
 
         emit Events.SwapData(
             exitCreditPositionId,
-            borrower,
+            swapData.borrower,
             msg.sender,
             swapData.creditAmountOut,
             swapData.cashAmountIn,

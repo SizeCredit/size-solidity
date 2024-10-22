@@ -5,6 +5,8 @@
   fs_permissions = [{access = "read-write", path = "./deployments"}]
   no_match_contract = 'CryticTester|FoundryHandler|FoundryForkTester'
   no_match_test = 'testFork_'
+  solc_version = '0.8.23'
+  evm_version = 'shanghai'
 
 [profile.fork]
   src = "src"
