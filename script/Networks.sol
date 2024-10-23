@@ -58,7 +58,7 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6
             });
-        } else if (Strings.equal(chain, "base-sepolia")) {
+        } else if (Strings.equal(chain, "base-sepolia-weth-usdc")) {
             return NetworkConfiguration({
                 weth: 0x4200000000000000000000000000000000000006,
                 underlyingCollateralToken: 0x4200000000000000000000000000000000000006,
@@ -109,7 +109,7 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6
             });
-        } else if (Strings.equal(chain, "base-production-eth-usdc")) {
+        } else if (Strings.equal(chain, "base-production-weth-usdc")) {
             return NetworkConfiguration({
                 weth: 0x4200000000000000000000000000000000000006,
                 underlyingCollateralToken: 0x4200000000000000000000000000000000000006,
@@ -143,7 +143,7 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6
             });
-        } else if (Strings.equal(chain, "base-production-wsteth-eth")) {
+        } else if (Strings.equal(chain, "base-production-wsteth-weth")) {
             return NetworkConfiguration({
                 weth: 0x4200000000000000000000000000000000000006,
                 underlyingCollateralToken: 0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452,

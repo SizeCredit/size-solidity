@@ -60,6 +60,10 @@ contract NonTransferrableScaledToken is Ownable, IERC20Metadata, IERC20Errors {
     /// @dev Emits a TransferUnscaled event representing the actual unscaled amount
     ///      Re-implements `_mint` logic from solmate's ERC20.sol
     function mintScaled(address to, uint256 scaledAmount) external onlyOwner {
+        if (to == address(0)) {
+            revert ERC20InvalidReceiver(address(0));
+        }
+
         _totalSupply += scaledAmount;
 
         // Cannot overflow because the sum of all user
@@ -80,6 +84,10 @@ contract NonTransferrableScaledToken is Ownable, IERC20Metadata, IERC20Errors {
     /// @dev Emits a TransferUnscaled event representing the actual unscaled amount
     ///      Re-implements `_burn` logic from solmate's ERC20.sol
     function burnScaled(address from, uint256 scaledAmount) external onlyOwner {
+        if (from == address(0)) {
+            revert ERC20InvalidSender(address(0));
+        }
+
         uint256 unscaledAmount = _unscale(scaledAmount);
         if (_balanceOf[from] < scaledAmount) {
             revert ERC20InsufficientBalance(from, balanceOf(from), unscaledAmount);
@@ -106,6 +114,13 @@ contract NonTransferrableScaledToken is Ownable, IERC20Metadata, IERC20Errors {
     ///      Scales the amount by the current liquidity index before transferring scaled tokens
     /// @return True if the transfer was successful
     function transferFrom(address from, address to, uint256 value) public virtual onlyOwner returns (bool) {
+        if (from == address(0)) {
+            revert ERC20InvalidSender(address(0));
+        }
+        if (to == address(0)) {
+            revert ERC20InvalidReceiver(address(0));
+        }
+
         uint256 scaledAmount = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
 
         if (_balanceOf[from] < scaledAmount) {
@@ -148,7 +163,7 @@ contract NonTransferrableScaledToken is Ownable, IERC20Metadata, IERC20Errors {
     /// @param scaledAmount The scaled amount to unscale
     /// @return The unscaled amount
     /// @dev The unscaled amount is the scaled amount divided by the current liquidity index
-    function _unscale(uint256 scaledAmount) internal view returns (uint256) {
+    function _unscale(uint256 scaledAmount) private view returns (uint256) {
         return Math.mulDivDown(scaledAmount, liquidityIndex(), WadRayMath.RAY);
     }
 
