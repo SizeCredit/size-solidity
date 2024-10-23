@@ -3,11 +3,14 @@ pragma solidity 0.8.23;
 
 import {DataView, UserView} from "@src/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/libraries/actions/Initialize.sol";
+import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
 /// @title ISizeView
 /// @custom:security-contact security@size.credit
@@ -106,6 +109,22 @@ interface ISizeView {
     /// @param tenor The tenor of the loan
     /// @return The swap fee
     function getSwapFee(uint256 cash, uint256 tenor) external view returns (uint256);
+
+    /// @notice Gets the swap data for buying credit as a market order
+    /// @param params The input parameters for buying credit as a market order
+    /// @return swapData The swap data for buying credit as a market order
+    function getBuyCreditMarketSwapData(BuyCreditMarketParams memory params)
+        external
+        view
+        returns (BuyCreditMarket.SwapDataBuyCreditMarket memory);
+
+    /// @notice Returns the swap data for selling credit as a market order
+    /// @param params The input parameters for selling credit as a market order
+    /// @return swapData The swap data for selling credit as a market order
+    function getSellCreditMarketSwapData(SellCreditMarketParams memory params)
+        external
+        view
+        returns (SellCreditMarket.SwapDataSellCreditMarket memory);
 
     /// @notice Get the version of the Size protocol
     /// @return The version of the Size protocol

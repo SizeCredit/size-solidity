@@ -36,3 +36,6 @@ node_modules
 crytic-export
 echidna
 medusa
+
+# Custom
+selectors.txt

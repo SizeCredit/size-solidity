@@ -30,6 +30,9 @@ import {
     InitializeRiskConfigParams
 } from "@src/libraries/actions/Initialize.sol";
 
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
+import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+
 /// @title SizeView
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -183,7 +186,25 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
+    function getBuyCreditMarketSwapData(BuyCreditMarketParams memory params)
+        external
+        view
+        returns (BuyCreditMarket.SwapDataBuyCreditMarket memory)
+    {
+        return BuyCreditMarket.getSwapData(state, params);
+    }
+
+    /// @inheritdoc ISizeView
+    function getSellCreditMarketSwapData(SellCreditMarketParams memory params)
+        external
+        view
+        returns (SellCreditMarket.SwapDataSellCreditMarket memory)
+    {
+        return SellCreditMarket.getSwapData(state, params);
+    }
+
+    /// @inheritdoc ISizeView
     function version() public pure returns (string memory) {
-        return "v1.2";
+        return "v1.2.1";
     }
 }
