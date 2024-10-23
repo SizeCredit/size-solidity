@@ -28,7 +28,7 @@ contract CryticNonTransferrableScaledTokenDifferentialCryticTester is CryticAsse
 
     constructor() {
         underlying = new USDC(address(this));
-        pool = IPool(address(new SimplePool(WadRayMath.RAY)));
+        pool = IPool(address(new SimplePool()));
         v1 = new NonTransferrableScaledTokenV1(
             pool,
             IERC20Metadata(underlying),
