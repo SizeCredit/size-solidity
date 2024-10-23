@@ -253,6 +253,7 @@ You can set relevant `NetworkParams` to `address(0)` if you are deploying with m
 
 ```bash
 source .env
+export NETWORK_CONFIGURATION=base-production-weth-usdc
 forge script script/Deploy.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
 ```
 

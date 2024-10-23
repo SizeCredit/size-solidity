@@ -2,7 +2,7 @@
   "commit": "d1ed03741036715cb5a0d5bac31e7e621ac82674",
   "deployments": {
     "PriceFeed": "0xd6938E55cc5f4B553948Cc153d360E8a8FA0de72",
-    "Size-implementation": "0xeC81d117d194A323e26D5527e5d555e44CF50fbb",
+    "Size-implementation": "0xAC17bD775b59930F7f27978d70B7258399C101c8",
     "Size-proxy": "0xC2a429681CAd7C1ce36442fbf7A4a68B11eFF940"
   },
   "chainId": "8453",
