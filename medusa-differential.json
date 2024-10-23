@@ -1,0 +1,82 @@
+{
+	"fuzzing": {
+		"workers": 10,
+		"workerResetLimit": 50,
+		"timeout": 0,
+		"testLimit": 0,
+		"callSequenceLength": 100,
+		"corpusDirectory": "medusa",
+		"coverageEnabled": true,
+		"targetContracts": [
+			"CryticNonTransferrableScaledTokenDifferentialCryticTester"
+		],
+		"targetContractsBalances": [],
+		"constructorArgs": {},
+		"deployerAddress": "0x30000",
+		"senderAddresses": [
+			"0x10000",
+			"0x20000",
+			"0x30000"
+		],
+		"blockNumberDelayMax": 60480,
+		"blockTimestampDelayMax": 604800,
+		"blockGasLimit": 125000000,
+		"transactionGasLimit": 12500000,
+		"testing": {
+			"stopOnFailedTest": true,
+			"stopOnFailedContractMatching": true,
+			"stopOnNoTests": true,
+			"testAllContracts": false,
+			"traceAll": false,
+			"assertionTesting": {
+				"enabled": true,
+				"testViewMethods": false,
+				"panicCodeConfig": {
+					"failOnCompilerInsertedPanic": false,
+					"failOnAssertion": true,
+					"failOnArithmeticUnderflow": false,
+					"failOnDivideByZero": false,
+					"failOnEnumTypeConversionOutOfBounds": false,
+					"failOnIncorrectStorageAccess": false,
+					"failOnPopEmptyArray": false,
+					"failOnOutOfBoundsArrayAccess": false,
+					"failOnAllocateTooMuchMemory": false,
+					"failOnCallUninitializedVariable": false
+				}
+			},
+			"propertyTesting": {
+				"enabled": true,
+				"testPrefixes": [
+					"property_"
+				]
+			},
+			"optimizationTesting": {
+				"enabled": true,
+				"testPrefixes": [
+					"optimize_"
+				]
+			}
+		},
+		"chainConfig": {
+			"codeSizeCheckDisabled": true,
+			"cheatCodes": {
+				"cheatCodesEnabled": true,
+				"enableFFI": false
+			}
+		}
+	},
+	"compilation": {
+		"platform": "crytic-compile",
+		"platformConfig": {
+			"target": ".",
+			"solcVersion": "",
+			"exportDirectory": "",
+			"args": ["--compile-libraries=(Errors,0x10),(UpdateConfig,0x11),(Deposit,0x12),(Withdraw,0x13),(Initialize,0x14),(Events,0x15),(Multicall,0x16),(DepositTokenLibrary,0x17),(OfferLibrary,0x18),(CapsLibrary,0x19),(LoanLibrary,0x1a),(RiskLibrary,0x1b),(LiquidateWithReplacement,0x1c),(Claim,0x1d),(Compensate,0x1e),(SellCreditLimit,0x1f),(BuyCreditMarket,0x20),(Liquidate,0x21),(Repay,0x22),(SellCreditMarket,0x23),(SelfLiquidate,0x24),(BuyCreditLimit,0x25),(SetUserConfiguration,0x26),(YieldCurveLibrary,0x27),(AccountingLibrary,0x28),(Math,0x29),(YieldCurveHelper,0x2a)","--foundry-compile-all"]
+		}
+	},
+	"logging": {
+		"level": "info",
+		"logDirectory": "",
+		"noColor": false
+	}
+}
