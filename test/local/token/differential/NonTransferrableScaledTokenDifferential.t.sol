@@ -2,7 +2,6 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
-import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {SymTest} from "halmos-cheatcodes/SymTest.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
@@ -25,7 +24,7 @@ contract NonTransferrableScaledTokenDifferentialTest is Test, SymTest {
 
     function setUp() public {
         underlying = new USDC(address(this));
-        pool = IPool(address(new SimplePool(WadRayMath.RAY)));
+        pool = IPool(address(new SimplePool()));
         v1 = new NonTransferrableScaledTokenV1(pool, IERC20Metadata(underlying), owner, "Test", "TEST", 18);
         v2 = new NonTransferrableScaledToken(pool, IERC20Metadata(underlying), owner, "Test", "TEST", 18);
     }

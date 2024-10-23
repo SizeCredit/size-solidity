@@ -10,7 +10,7 @@ import {Vars} from "@test/BaseTest.sol";
 import {CREDIT_POSITION_ID_START, CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 import {PERCENT, YEAR} from "@src/libraries/Math.sol";
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Math} from "@src/libraries/Math.sol";
@@ -22,6 +22,35 @@ contract SellCreditMarketTest is BaseTest {
     uint256 private constant MAX_TENOR = 365 days * 2;
     uint256 private constant MAX_AMOUNT_USDC = 100e6;
     uint256 private constant MAX_AMOUNT_WETH = 2e18;
+
+    struct SellCreditMarketExactAmountOutSpecificationParams {
+        uint256 A1;
+        uint256 V2;
+        uint256 deltaT1;
+        uint256 deltaT2;
+        uint256 apr1;
+        uint256 apr2;
+    }
+
+    struct SellCreditMarketExactAmountInSpecificationParams {
+        uint256 A1;
+        uint256 A2;
+        uint256 deltaT1;
+        uint256 deltaT2;
+        uint256 apr1;
+        uint256 apr2;
+    }
+
+    struct SellCreditMarketSpecificationLocalParams {
+        uint256 r1;
+        uint256 r2;
+        uint256 debtPositionId;
+        uint256 creditPositionId;
+        uint256 A1;
+        uint256 A2;
+        uint256 V1;
+        uint256 V2;
+    }
 
     function test_SellCreditMarket_sellCreditMarket_used_to_borrow() public {
         _deposit(alice, usdc, 200e6);
@@ -441,12 +470,7 @@ contract SellCreditMarketTest is BaseTest {
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountIn_specification(
-        uint256 A1,
-        uint256 A2,
-        uint256 deltaT1,
-        uint256 deltaT2,
-        uint256 apr1,
-        uint256 apr2
+        SellCreditMarketExactAmountInSpecificationParams memory input
     ) public {
         vm.warp(123 days);
 
@@ -454,51 +478,73 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(candy, usdc, MAX_AMOUNT_USDC);
         _deposit(bob, weth, MAX_AMOUNT_WETH);
 
-        apr1 = bound(apr1, 0, MAX_RATE);
-        deltaT1 = bound(deltaT1, size.riskConfig().minTenor, MAX_TENOR);
-        A1 = bound(A1, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        SellCreditMarketSpecificationLocalParams memory local;
 
-        _buyCreditLimit(alice, block.timestamp + deltaT1, YieldCurveHelper.pointCurve(deltaT1, int256(apr1)));
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, A1, deltaT1, true);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        input.apr1 = bound(input.apr1, 0, MAX_RATE);
+        input.deltaT1 = bound(input.deltaT1, size.riskConfig().minTenor, MAX_TENOR);
+        input.A1 = bound(input.A1, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
 
-        deltaT2 = size.riskConfig().minTenor + bound(deltaT2, 0, deltaT1);
-        vm.assume(deltaT1 >= deltaT2);
+        _buyCreditLimit(
+            alice, block.timestamp + input.deltaT1, YieldCurveHelper.pointCurve(input.deltaT1, int256(input.apr1))
+        );
+        local.debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, input.A1, input.deltaT1, true);
+        local.creditPositionId = size.getCreditPositionIdsByDebtPositionId(local.debtPositionId)[0];
 
-        vm.warp(block.timestamp + (deltaT1 - deltaT2));
-        apr2 = bound(apr2, 0, MAX_RATE);
-        uint256 r2 = Math.aprToRatePerTenor(apr2, deltaT2);
-        A2 = bound(A2, size.riskConfig().minimumCreditBorrowAToken, A1);
-        vm.assume(A1 - A2 >= size.riskConfig().minimumCreditBorrowAToken);
-        _buyCreditLimit(candy, block.timestamp + deltaT2, YieldCurveHelper.pointCurve(deltaT2, int256(apr2)));
+        input.deltaT2 = size.riskConfig().minTenor + bound(input.deltaT2, 0, input.deltaT1);
+        vm.assume(input.deltaT1 >= input.deltaT2);
+
+        vm.warp(block.timestamp + (input.deltaT1 - input.deltaT2));
+        input.apr2 = bound(input.apr2, 0, MAX_RATE);
+        local.r2 = Math.aprToRatePerTenor(input.apr2, input.deltaT2);
+        input.A2 = bound(input.A2, size.riskConfig().minimumCreditBorrowAToken, input.A1);
+        vm.assume(input.A1 - input.A2 >= size.riskConfig().minimumCreditBorrowAToken);
+        _buyCreditLimit(
+            candy, block.timestamp + input.deltaT2, YieldCurveHelper.pointCurve(input.deltaT2, int256(input.apr2))
+        );
 
         Vars memory _before = _state();
-        vm.prank(alice);
-        try size.sellCreditMarket(
-            SellCreditMarketParams({
-                lender: candy,
-                creditPositionId: creditPositionId,
-                amount: A2,
-                tenor: type(uint256).max,
-                deadline: block.timestamp,
-                maxAPR: type(uint256).max,
-                exactAmountIn: true
-            })
-        ) {
-            Vars memory _after = _state();
+        bytes4[2] memory expectedErrors = [Errors.NOT_ENOUGH_CASH.selector, Errors.NOT_ENOUGH_CREDIT.selector];
 
-            uint256 V2 = Math.mulDivDown(
-                Math.mulDivDown(A2, PERCENT, PERCENT + r2),
-                PERCENT - Math.mulDivUp(size.feeConfig().swapFeeAPR, /* k */ deltaT2, YEAR * PERCENT),
-                PERCENT
-            ) - (A2 == A1 ? 0 : size.feeConfig().fragmentationFee); /* f */
+        SellCreditMarketParams memory params = SellCreditMarketParams({
+            lender: candy,
+            creditPositionId: local.creditPositionId,
+            amount: input.A2,
+            tenor: type(uint256).max,
+            deadline: block.timestamp,
+            maxAPR: type(uint256).max,
+            exactAmountIn: true
+        });
 
-            assertGe(V2, _after.alice.borrowATokenBalance - _before.alice.borrowATokenBalance);
-            assertEqApprox(V2, _after.alice.borrowATokenBalance - _before.alice.borrowATokenBalance, 1e6);
-            uint256 credit = size.getCreditPositionsByDebtPositionId(debtPositionId)[A2 == A1 ? 0 : 1].credit;
-            assertEq(A2, credit);
+        try size.getSellCreditMarketSwapData(params) returns (SellCreditMarket.SwapDataSellCreditMarket memory expected)
+        {
+            vm.prank(alice);
+            try size.sellCreditMarket(params) {
+                Vars memory _after = _state();
+
+                uint256 fragmentationFee = (input.A2 == input.A1 ? 0 : size.feeConfig().fragmentationFee); /* f */
+
+                local.V2 = Math.mulDivDown(
+                    Math.mulDivDown(input.A2, PERCENT, PERCENT + local.r2),
+                    PERCENT - Math.mulDivUp(size.feeConfig().swapFeeAPR, /* k */ input.deltaT2, YEAR * PERCENT),
+                    PERCENT
+                ) - fragmentationFee;
+
+                assertGe(local.V2, _after.alice.borrowATokenBalance - _before.alice.borrowATokenBalance);
+                assertEqApprox(local.V2, _after.alice.borrowATokenBalance - _before.alice.borrowATokenBalance, 1e6);
+                uint256 credit =
+                    size.getCreditPositionsByDebtPositionId(local.debtPositionId)[input.A2 == input.A1 ? 0 : 1].credit;
+                assertEq(input.A2, credit);
+
+                assertEq(expected.creditAmountIn, input.A2);
+                assertEq(expected.cashAmountOut, _after.alice.borrowATokenBalance - _before.alice.borrowATokenBalance);
+                assertGt(expected.swapFee, 0);
+                assertEq(expected.fragmentationFee, fragmentationFee);
+                assertEq(expected.tenor, input.deltaT2);
+            } catch (bytes memory err) {
+                assertIn(bytes4(err), expectedErrors);
+            }
         } catch (bytes memory err) {
-            assertIn(bytes4(err), [Errors.NOT_ENOUGH_CASH.selector, Errors.NOT_ENOUGH_CREDIT.selector]);
+            assertIn(bytes4(err), expectedErrors);
         }
     }
 
@@ -531,12 +577,7 @@ contract SellCreditMarketTest is BaseTest {
     }
 
     function testFuzz_SellCreditMarket_sellCreditMarket_exactAmountOut_specification(
-        uint256 A1,
-        uint256 V2,
-        uint256 deltaT1,
-        uint256 deltaT2,
-        uint256 apr1,
-        uint256 apr2
+        SellCreditMarketExactAmountOutSpecificationParams memory input
     ) public {
         vm.warp(123 days);
 
@@ -544,74 +585,81 @@ contract SellCreditMarketTest is BaseTest {
         _deposit(candy, usdc, MAX_AMOUNT_USDC);
         _deposit(bob, weth, MAX_AMOUNT_WETH);
 
-        apr1 = bound(apr1, 0, MAX_RATE);
-        deltaT1 = bound(deltaT1, size.riskConfig().minTenor, MAX_TENOR);
-        A1 = bound(A1, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        SellCreditMarketSpecificationLocalParams memory local;
 
-        _buyCreditLimit(alice, block.timestamp + deltaT1, YieldCurveHelper.pointCurve(deltaT1, int256(apr1)));
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, A1, deltaT1, true);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-        uint256 V1 = size.getCreditPosition(creditPositionId).credit;
+        input.apr1 = bound(input.apr1, 0, MAX_RATE);
+        input.deltaT1 = bound(input.deltaT1, size.riskConfig().minTenor, MAX_TENOR);
+        input.A1 = bound(input.A1, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
 
-        deltaT2 = size.riskConfig().minTenor + bound(deltaT2, 0, deltaT1);
-        vm.assume(deltaT1 >= deltaT2);
+        _buyCreditLimit(
+            alice, block.timestamp + input.deltaT1, YieldCurveHelper.pointCurve(input.deltaT1, int256(input.apr1))
+        );
+        local.debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, input.A1, input.deltaT1, true);
+        local.creditPositionId = size.getCreditPositionIdsByDebtPositionId(local.debtPositionId)[0];
+        local.V1 = size.getCreditPosition(local.creditPositionId).credit;
 
-        vm.warp(block.timestamp + (deltaT1 - deltaT2));
-        apr2 = bound(apr2, 0, MAX_RATE);
-        uint256 r2 = Math.aprToRatePerTenor(apr2, deltaT2);
-        V2 = bound(V2, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
-        _buyCreditLimit(candy, block.timestamp + deltaT2, YieldCurveHelper.pointCurve(deltaT2, int256(apr2)));
+        input.deltaT2 = size.riskConfig().minTenor + bound(input.deltaT2, 0, input.deltaT1);
+        vm.assume(input.deltaT1 >= input.deltaT2);
+
+        vm.warp(block.timestamp + (input.deltaT1 - input.deltaT2));
+        input.apr2 = bound(input.apr2, 0, MAX_RATE);
+        local.r2 = Math.aprToRatePerTenor(input.apr2, input.deltaT2);
+        input.V2 = bound(input.V2, size.riskConfig().minimumCreditBorrowAToken, MAX_AMOUNT_USDC);
+        _buyCreditLimit(
+            candy, block.timestamp + input.deltaT2, YieldCurveHelper.pointCurve(input.deltaT2, int256(input.apr2))
+        );
 
         Vars memory _before = _state();
 
-        vm.prank(alice);
-        try size.sellCreditMarket(
-            SellCreditMarketParams({
-                lender: candy,
-                creditPositionId: creditPositionId,
-                amount: V2,
-                tenor: type(uint256).max,
-                deadline: block.timestamp,
-                maxAPR: type(uint256).max,
-                exactAmountIn: false
-            })
-        ) {
-            Vars memory _after = _state();
-            uint256 kDeltaT2 = Math.mulDivUp(size.feeConfig().swapFeeAPR, /* k */ deltaT2, YEAR);
+        bytes4[3] memory expectedErrors = [
+            Errors.NOT_ENOUGH_CASH.selector,
+            Errors.NOT_ENOUGH_CREDIT.selector,
+            Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector
+        ];
 
-            uint256 Amax = Math.mulDivDown(V1, PERCENT - kDeltaT2, PERCENT + r2);
+        SellCreditMarketParams memory params = SellCreditMarketParams({
+            lender: candy,
+            creditPositionId: local.creditPositionId,
+            amount: input.V2,
+            tenor: type(uint256).max,
+            deadline: block.timestamp,
+            maxAPR: type(uint256).max,
+            exactAmountIn: false
+        });
 
-            uint256 A2 = Math.mulDivDown(
-                V2 + (V2 == Amax ? 0 : size.feeConfig().fragmentationFee), /* f */ PERCENT + r2, PERCENT - kDeltaT2
-            );
+        try size.getSellCreditMarketSwapData(params) returns (SellCreditMarket.SwapDataSellCreditMarket memory expected)
+        {
+            vm.prank(alice);
+            try size.sellCreditMarket(params) {
+                Vars memory _after = _state();
+                uint256 kDeltaT2 = Math.mulDivUp(size.feeConfig().swapFeeAPR, /* k */ input.deltaT2, YEAR);
 
-            if (V2 == Amax) {
-                assertEq(size.getCreditPosition(creditPositionId).lender, candy);
-                assertEq(
-                    V1,
-                    size.getCreditPositionsByDebtPositionId(debtPositionId)[size.getCreditPositionsByDebtPositionId(
-                        debtPositionId
-                    ).length - 1].credit
-                );
-            } else {
-                assertEqApprox(
-                    A2,
-                    size.getCreditPositionsByDebtPositionId(debtPositionId)[size.getCreditPositionsByDebtPositionId(
-                        debtPositionId
-                    ).length - 1].credit,
-                    0.00001e6
-                );
+                uint256 Amax = Math.mulDivDown(local.V1, PERCENT - kDeltaT2, PERCENT + local.r2);
+                uint256 fragmentationFee = (input.V2 == Amax ? 0 : size.feeConfig().fragmentationFee);
+
+                local.A2 = Math.mulDivDown(input.V2 + fragmentationFee, /* f */ PERCENT + local.r2, PERCENT - kDeltaT2);
+
+                uint256 credit = size.getCreditPositionsByDebtPositionId(local.debtPositionId)[size
+                    .getCreditPositionsByDebtPositionId(local.debtPositionId).length - 1].credit;
+
+                if (input.V2 == Amax) {
+                    assertEq(size.getCreditPosition(local.creditPositionId).lender, candy);
+                    assertEq(local.V1, credit);
+                } else {
+                    assertEqApprox(local.A2, credit, 0.00001e6);
+                }
+                assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + input.V2);
+
+                assertEq(expected.creditAmountIn, credit);
+                assertEq(expected.cashAmountOut, input.V2);
+                assertGt(expected.swapFee, 0);
+                assertEq(expected.fragmentationFee, fragmentationFee);
+                assertEq(expected.tenor, input.deltaT2);
+            } catch (bytes memory err) {
+                assertIn(bytes4(err), expectedErrors);
             }
-            assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + V2);
         } catch (bytes memory err) {
-            assertIn(
-                bytes4(err),
-                [
-                    Errors.NOT_ENOUGH_CASH.selector,
-                    Errors.NOT_ENOUGH_CREDIT.selector,
-                    Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector
-                ]
-            );
+            assertIn(bytes4(err), expectedErrors);
         }
     }
 }
