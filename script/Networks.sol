@@ -75,6 +75,23 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6
             });
+        } else if (Strings.equal(chain, "base-sepolia-link-usdc")) {
+            return NetworkConfiguration({
+                weth: 0x4200000000000000000000000000000000000006,
+                underlyingCollateralToken: 0xE4aB69C077896252FAFBD49EFD26B5D171A32410,
+                underlyingBorrowToken: 0x036CbD53842c5426634e7929541eC2318f3dCF7e,
+                variablePool: 0x07eA79F68B2B3df564D0A34F8e19D9B1e339814b,
+                underlyingCollateralTokenAggregator: 0xb113F5A928BCfF189C998ab20d753a47F9dE5A61,
+                underlyingBorrowTokenAggregator: 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165,
+                sequencerUptimeFeed: address(0),
+                underlyingCollateralTokenHeartbeat: 86400 * 1.1e18 / 1e18,
+                underlyingBorrowTokenHeartbeat: 86400 * 1.1e18 / 1e18,
+                fragmentationFee: 1e6,
+                crOpening: 1.5e18,
+                crLiquidation: 1.3e18,
+                minimumCreditBorrowAToken: 10e6,
+                borrowATokenCap: 1_000_000e6
+            });
         } else if (Strings.equal(chain, "mainnet-production")) {
             return NetworkConfiguration({
                 weth: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2,
