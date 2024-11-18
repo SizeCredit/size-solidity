@@ -33,6 +33,8 @@ import {
 import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
+import {VERSION} from "@src/interfaces/ISize.sol";
+
 /// @title SizeView
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -205,6 +207,6 @@ abstract contract SizeView is SizeStorage, ISizeView {
 
     /// @inheritdoc ISizeView
     function version() public pure returns (string memory) {
-        return "v1.5";
+        return VERSION;
     }
 }

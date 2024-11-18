@@ -29,6 +29,8 @@ import {PriceFeedFactoryLibrary} from "@src/v1.5/libraries/PriceFeedFactoryLibra
 import {PriceFeed} from "@src/oracle/PriceFeed.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
+import {VERSION} from "@src/interfaces/ISize.sol";
+
 /// @title SizeFactory
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -279,6 +281,6 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
 
     /// @inheritdoc ISizeFactory
     function version() external pure returns (string memory) {
-        return "v1.5";
+        return VERSION;
     }
 }

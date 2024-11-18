@@ -31,6 +31,8 @@ import {SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfigur
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
 import {ISizeV1_5} from "@src/v1.5/interfaces/ISizeV1_5.sol";
 
+string constant VERSION = "v1.5";
+
 /// @title ISize
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
