@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {Ghosts} from "./Ghosts.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import {console2 as console} from "forge-std/console2.sol";
 
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 

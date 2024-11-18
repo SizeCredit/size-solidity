@@ -1,0 +1,30 @@
+{
+  "transactions": [
+    {
+      "hash": "0xa0318bf378c74d8e1b25086101cf859d2a666af0e1244d48f10104b062844f38",
+      "transactionType": "CALL",
+      "contractName": "ERC1967Proxy",
+      "contractAddress": "0x3ae40a5126b3e37dfcb172bbf485b1e2a6dbd882",
+      "function": null,
+      "arguments": null,
+      "transaction": {
+        "from": "0xf7164d2fc05350c75387fa6c0cc4f97634ca9451",
+        "to": "0x3ae40a5126b3e37dfcb172bbf485b1e2a6dbd882",
+        "gas": "0x7a0ad",
+        "value": "0x0",
+        "input": "0xd795f4940000000000000000000000000dcbf4d5fd0c54c7ce3f590c1ba4cec8cb1c4ab50000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000087cdad83a779d785a729a91dbb9fe0db8be14b3b",
+        "nonce": "0xa1",
+        "chainId": "0x14a34"
+      },
+      "additionalContracts": [],
+      "isFixedGasLimit": false
+    }
+  ],
+  "receipts": [],
+  "libraries": [],
+  "pending": [],
+  "returns": {},
+  "timestamp": 1731693688,
+  "chain": 84532,
+  "commit": "da569ad"
+}

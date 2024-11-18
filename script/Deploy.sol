@@ -4,7 +4,10 @@ pragma solidity 0.8.23;
 import {IPool} from "@aave/interfaces/IPool.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
+
+import "@crytic/properties/contracts/util/Hevm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
 import {Math} from "@src/libraries/Math.sol";
@@ -17,6 +20,7 @@ import {PriceFeed} from "@src/oracle/PriceFeed.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
 import {Size} from "@src/Size.sol";
+import {ISize} from "@src/interfaces/ISize.sol";
 
 import {NetworkConfiguration} from "@script/Networks.sol";
 import {
@@ -29,6 +33,10 @@ import {
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
+
+import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
+import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
+import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
 abstract contract Deploy {
     address internal implementation;
@@ -43,8 +51,10 @@ abstract contract Deploy {
     InitializeOracleParams internal o;
     InitializeDataParams internal d;
 
-    MockERC20 internal collateralToken;
-    MockERC20 internal borrowToken;
+    IERC20Metadata internal collateralToken;
+    IERC20Metadata internal borrowToken;
+
+    SizeFactory internal sizeFactory;
 
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
@@ -53,6 +63,15 @@ abstract contract Deploy {
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(weth), WadRayMath.RAY);
         PoolMock(address(variablePool)).setLiquidityIndex(address(usdc), WadRayMath.RAY);
+
+        _deployLocalSizeFactoryIfNeeded(owner);
+
+        hevm.prank(owner);
+        sizeFactory.createBorrowATokenV1_5(variablePool, usdc);
+
+        NonTransferrableScaledTokenV1_5 borrowAToken =
+            NonTransferrableScaledTokenV1_5(address(sizeFactory.getBorrowATokenV1_5(0)));
+
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
             fragmentationFee: 5e6,
@@ -74,13 +93,18 @@ abstract contract Deploy {
             weth: address(weth),
             underlyingCollateralToken: address(weth),
             underlyingBorrowToken: address(usdc),
-            variablePool: address(variablePool) // Aave v3
+            variablePool: address(variablePool), // Aave v3
+            borrowATokenV1_5: address(borrowAToken)
         });
 
         implementation = address(new SizeMock());
         proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         size = SizeMock(payable(proxy));
 
+        hevm.prank(owner);
+        sizeFactory.addMarket(ISize(size));
+
+        hevm.prank(owner);
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
 
@@ -98,17 +122,22 @@ abstract contract Deploy {
         uint256 price = Math.mulDivDown(collateralTokenPriceUSD, 10 ** priceFeed.decimals(), borrowTokenPriceUSD);
 
         weth = new WETH();
-        collateralToken = new MockERC20("CollateralToken", "CTK", collateralTokenDecimals);
-        borrowToken = new MockERC20("BorrowToken", "BTK", borrowTokenDecimals);
+        collateralToken = IERC20Metadata(address(new MockERC20("CollateralToken", "CTK", collateralTokenDecimals)));
+        borrowToken = IERC20Metadata(address(new MockERC20("BorrowToken", "BTK", borrowTokenDecimals)));
         if (collateralTokenIsWETH) {
-            collateralToken = MockERC20(address(weth));
+            collateralToken = IERC20Metadata(address(weth));
         }
         if (borrowTokenIsWETH) {
-            borrowToken = MockERC20(address(weth));
+            borrowToken = IERC20Metadata(address(weth));
         }
 
         variablePool = IPool(address(new PoolMock()));
         PoolMock(address(variablePool)).setLiquidityIndex(address(borrowToken), 1.234567e27);
+
+        _deployLocalSizeFactoryIfNeeded(owner);
+
+        NonTransferrableScaledTokenV1_5 borrowAToken =
+            _deployBorrowAToken(owner, ISizeFactory(sizeFactory), variablePool, borrowToken);
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -137,16 +166,23 @@ abstract contract Deploy {
             weth: address(weth),
             underlyingCollateralToken: address(collateralToken),
             underlyingBorrowToken: address(borrowToken),
-            variablePool: address(variablePool)
+            variablePool: address(variablePool),
+            borrowATokenV1_5: address(borrowAToken)
         });
 
         implementation = address(new SizeMock());
         proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         size = SizeMock(payable(proxy));
 
+        hevm.prank(owner);
+        sizeFactory.addMarket(ISize(size));
+
+        hevm.prank(owner);
         PriceFeedMock(address(priceFeed)).setPrice(price);
     }
 
+    /// @notice Deploys the contracts needed for the production environment (legacy deployment)
+    /// @dev The owner should add the contracts to the registry after this function is called
     function setupProduction(address _owner, address _feeRecipient, NetworkConfiguration memory _networkParams)
         internal
     {
@@ -157,7 +193,6 @@ abstract contract Deploy {
                 && _networkParams.underlyingBorrowTokenAggregator == address(0)
         ) {
             priceFeed = new PriceFeedMock(_owner);
-            PriceFeedMock(address(priceFeed)).setPrice(2468e18);
         } else {
             priceFeed = new PriceFeed(
                 _networkParams.underlyingCollateralTokenAggregator,
@@ -180,6 +215,11 @@ abstract contract Deploy {
             variablePool = IPool(_networkParams.variablePool);
         }
 
+        sizeFactory = _deploySizeFactory(_owner);
+
+        NonTransferrableScaledTokenV1_5 borrowAToken = _deployBorrowAToken(
+            _owner, ISizeFactory(sizeFactory), variablePool, IERC20Metadata(_networkParams.underlyingBorrowToken)
+        );
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
             fragmentationFee: _networkParams.fragmentationFee,
@@ -201,7 +241,8 @@ abstract contract Deploy {
             weth: address(_networkParams.weth),
             underlyingCollateralToken: address(_networkParams.underlyingCollateralToken),
             underlyingBorrowToken: address(_networkParams.underlyingBorrowToken),
-            variablePool: address(variablePool) // Aave v3
+            variablePool: address(variablePool), // Aave v3
+            borrowATokenV1_5: address(borrowAToken)
         });
         implementation = address(new Size());
         proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
@@ -216,5 +257,45 @@ abstract contract Deploy {
         variablePool = IPool(_variablePool);
         weth = WETH(payable(_weth));
         usdc = USDC(_usdc);
+    }
+
+    function _deploySizeFactory(address _owner) internal returns (SizeFactory _sizeFactory) {
+        _sizeFactory = SizeFactory(
+            address(new ERC1967Proxy(address(new SizeFactory()), abi.encodeCall(SizeFactory.initialize, (_owner))))
+        );
+    }
+
+    function _deployLocalSizeFactoryIfNeeded(address _owner) internal {
+        if (address(sizeFactory) != address(0)) {
+            return;
+        }
+        sizeFactory = _deploySizeFactory(_owner);
+    }
+
+    function _deployBorrowAToken(
+        address _owner,
+        ISizeFactory _sizeFactory,
+        IPool _variablePool,
+        IERC20Metadata _underlyingBorrowToken
+    ) internal returns (NonTransferrableScaledTokenV1_5 borrowAToken) {
+        borrowAToken = NonTransferrableScaledTokenV1_5(
+            address(
+                new ERC1967Proxy(
+                    address(new NonTransferrableScaledTokenV1_5()),
+                    abi.encodeCall(
+                        NonTransferrableScaledTokenV1_5.initialize,
+                        (
+                            _sizeFactory,
+                            _variablePool,
+                            _underlyingBorrowToken,
+                            address(_owner),
+                            string.concat("Size Scaled ", _underlyingBorrowToken.name(), " (v1.5)"),
+                            string.concat("sza", _underlyingBorrowToken.symbol()),
+                            _underlyingBorrowToken.decimals()
+                        )
+                    )
+                )
+            )
+        );
     }
 }

@@ -36,7 +36,7 @@ contract SizeViewTest is BaseTest {
         size.getSwapFee(100e6, 0);
     }
 
-    function test_SizeView_isDebtPositionId_no_loans() public {
+    function test_SizeView_isDebtPositionId_no_loans() public view {
         assertEq(size.isDebtPositionId(0), false);
     }
 }

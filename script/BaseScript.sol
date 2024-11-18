@@ -1,15 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {IPool} from "@aave/interfaces/IPool.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {USDC} from "@test/mocks/USDC.sol";
-import {WETH} from "@test/mocks/WETH.sol";
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Vm} from "forge-std/Vm.sol";
+import {console2 as console} from "forge-std/console2.sol";
 
 struct Deployment {
     string name;
@@ -22,6 +21,7 @@ struct Parameter {
 }
 
 abstract contract BaseScript is Script {
+    using EnumerableMap for EnumerableMap.AddressToUintMap;
     using stdJson for string;
 
     error InvalidChainId(uint256 chainid);
@@ -42,7 +42,6 @@ abstract contract BaseScript is Script {
     }
 
     function exportDeployments(string memory networkConfiguration) internal {
-        // fetch already existing contracts
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
         path = string.concat(path, string.concat(networkConfiguration, ".json"));
@@ -69,7 +68,7 @@ abstract contract BaseScript is Script {
 
     function importDeployments(string memory networkConfiguration)
         internal
-        returns (ISize size, IPriceFeed priceFeed, IPool variablePool, USDC usdc, WETH weth, address owner)
+        returns (ISize size, IPriceFeed priceFeed, address owner)
     {
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/");
@@ -79,10 +78,50 @@ abstract contract BaseScript is Script {
 
         size = ISize(abi.decode(json.parseRaw(".deployments.Size-proxy"), (address)));
         priceFeed = IPriceFeed(abi.decode(json.parseRaw(".deployments.PriceFeed"), (address)));
-        variablePool = IPool(abi.decode(json.parseRaw(".parameters.variablePool"), (address)));
-        usdc = USDC(abi.decode(json.parseRaw(".parameters.usdc"), (address)));
-        weth = WETH(abi.decode(json.parseRaw(".parameters.weth"), (address)));
         owner = address(abi.decode(json.parseRaw(".parameters.owner"), (address)));
+    }
+
+    function exportV1_5ReinitializeData(
+        string memory networkConfiguration,
+        EnumerableMap.AddressToUintMap storage map,
+        uint256 blockNumber
+    ) internal {
+        root = vm.projectRoot();
+        path = string.concat(root, "/deployments/v1.5/");
+        path = string.concat(path, string.concat(networkConfiguration, "-reinitialize-data", ".json"));
+
+        string memory finalObject;
+        address[] memory users = map.keys();
+        uint256[] memory values = new uint256[](users.length);
+        for (uint256 i = 0; i < users.length; i++) {
+            values[i] = map.get(users[i]);
+        }
+        finalObject = vm.serializeAddress(".", "users", users);
+        finalObject = vm.serializeUint(".", "values", values);
+        finalObject = vm.serializeUint(".", "blockNumber", blockNumber);
+
+        vm.writeJson(finalObject, path);
+    }
+
+    function importV1_5ReinitializeData(string memory networkConfiguration, EnumerableMap.AddressToUintMap storage map)
+        internal
+        returns (uint256 blockNumber)
+    {
+        root = vm.projectRoot();
+        path = string.concat(root, "/deployments/v1.5/");
+        path = string.concat(path, string.concat(networkConfiguration, "-reinitialize-data", ".json"));
+
+        string memory json = vm.readFile(path);
+
+        // Deserialize the data
+        address[] memory users = json.readAddressArray(".users");
+        uint256[] memory values = json.readUintArray(".values");
+        blockNumber = json.readUint(".blockNumber");
+
+        // Populate the map
+        for (uint256 i = 0; i < users.length; i++) {
+            map.set(users[i], values[i]);
+        }
     }
 
     function getCommitHash() internal returns (string memory) {

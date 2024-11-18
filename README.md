@@ -272,3 +272,27 @@ If it does not work, try removing `--verify`
 source .env.sepolia
 forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
 ```
+
+### v1.5 migration
+
+1. Deploy the SizeFactory
+
+```bash
+source .env
+export NETWORK_CONFIGURATION=base-sepolia-size-factory
+forge script script/DeploySizeFactory.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
+```
+
+2. Manually call `sizeFactory.addMarket` (x2), `sizeFactory.addPriceFeed` (x2)
+
+3. Manually call `sizeFactory.createBorrowATokenV1_5`
+
+4. Verify the correctness through `sizeFactory.get{Markets,PriceFeeds}Descriptions`
+
+5. Pause all markets
+
+6. Call `GetV1_5ReinitializeDataScript`
+
+7. Manually upgrade and reinitialize the markets: `size.upgradeToAndCall(sizeFactory.sizeImplementation(), "reinitialize")`
+
+8. Unpause all markets

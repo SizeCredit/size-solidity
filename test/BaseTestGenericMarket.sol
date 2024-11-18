@@ -16,7 +16,7 @@ contract BaseTestGenericMarket is BaseTest {
         vm.label(address(collateralToken), "CTK (USDT)");
         vm.label(address(borrowToken), "BTK (cbBTC)");
         vm.label(address(size.data().collateralToken), "szCTK (szUSDT)");
-        vm.label(address(size.data().borrowAToken), "szaBTK (szacbBTC)");
+        vm.label(address(size.data().borrowAToken), "szaBTK (szacbBTC) (v1.5)");
         vm.label(address(size.data().debtToken), "szDebtBTK (szDebtcbBTC)");
     }
 
@@ -27,7 +27,7 @@ contract BaseTestGenericMarket is BaseTest {
         vm.label(address(collateralToken), "CTK (cbBTC)");
         vm.label(address(borrowToken), "BTK (USDC)");
         vm.label(address(size.data().collateralToken), "szCTK (szcbBTC)");
-        vm.label(address(size.data().borrowAToken), "szaBTK (szaUSDC)");
+        vm.label(address(size.data().borrowAToken), "szaBTK (szaUSDC) (v1.5)");
         vm.label(address(size.data().debtToken), "szDebtBTK (szDebtUSDC)");
     }
 
@@ -38,7 +38,7 @@ contract BaseTestGenericMarket is BaseTest {
         vm.label(address(collateralToken), "CTK (wstETH)");
         vm.label(address(borrowToken), "BTK (ETH)");
         vm.label(address(size.data().collateralToken), "szCTK (szwstETH)");
-        vm.label(address(size.data().borrowAToken), "szaBTK (szaETH)");
+        vm.label(address(size.data().borrowAToken), "szaBTK (szaETH) (v1.5)");
         vm.label(address(size.data().debtToken), "szDebtBTK (szDebtETH)");
     }
 
@@ -49,7 +49,7 @@ contract BaseTestGenericMarket is BaseTest {
         vm.label(address(collateralToken), "CTK (sUSDe)");
         vm.label(address(borrowToken), "BTK (USDC)");
         vm.label(address(size.data().collateralToken), "szCTK (szsUSDe)");
-        vm.label(address(size.data().borrowAToken), "szaBTK (szaUSDC)");
+        vm.label(address(size.data().borrowAToken), "szaBTK (szaUSDC) (v1.5)");
         vm.label(address(size.data().debtToken), "szDebtBTK (szDebtUSDC)");
     }
 }

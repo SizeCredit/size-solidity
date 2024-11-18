@@ -5,8 +5,8 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {SymTest} from "halmos-cheatcodes/SymTest.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
-import {NonTransferrableScaledTokenV1} from "@test/local/token/differential/NonTransferrableScaledTokenV1.sol";
+import {NonTransferrableScaledTokenV1} from "@src/token/deprecated/NonTransferrableScaledTokenV1.sol";
+import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
 
 import {SimplePool} from "@test/local/token/differential/mocks/SimplePool.sol";
 import {USDC} from "@test/mocks/USDC.sol";
@@ -16,7 +16,7 @@ import {Test} from "forge-std/Test.sol";
 /// @custom:halmos --storage-layout=generic --array-lengths senders=2 --loop 256
 contract NonTransferrableScaledTokenDifferentialTest is Test, SymTest {
     NonTransferrableScaledTokenV1 public v1;
-    NonTransferrableScaledToken public v2;
+    NonTransferrableScaledTokenV1_2 public v1_2;
 
     address owner = address(0x2);
     USDC public underlying;
@@ -26,7 +26,7 @@ contract NonTransferrableScaledTokenDifferentialTest is Test, SymTest {
         underlying = new USDC(address(this));
         pool = IPool(address(new SimplePool()));
         v1 = new NonTransferrableScaledTokenV1(pool, IERC20Metadata(underlying), owner, "Test", "TEST", 18);
-        v2 = new NonTransferrableScaledToken(pool, IERC20Metadata(underlying), owner, "Test", "TEST", 18);
+        v1_2 = new NonTransferrableScaledTokenV1_2(pool, IERC20Metadata(underlying), owner, "Test", "TEST", 18);
     }
 
     function check_NonTransferrableToken_differential(address[] memory senders) public {
@@ -51,7 +51,7 @@ contract NonTransferrableScaledTokenDifferentialTest is Test, SymTest {
             vm.assume(senders[i] != address(0));
         }
 
-        address[2] memory contracts = [address(v1), address(v2)];
+        address[2] memory contracts = [address(v1), address(v1_2)];
         bool[2] memory successes;
         bytes[2] memory results;
 
@@ -78,7 +78,7 @@ contract NonTransferrableScaledTokenDifferentialTest is Test, SymTest {
         verifyResults(successes, results);
     }
 
-    function verifyResults(bool[2] memory successes, bytes[2] memory results) private {
+    function verifyResults(bool[2] memory successes, bytes[2] memory results) private pure {
         for (uint256 i = 0; i < successes.length - 1; i++) {
             // if (successes[i] != successes[i + 1]) {
             //     console.logBool(successes[i]);

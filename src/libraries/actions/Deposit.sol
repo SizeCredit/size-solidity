@@ -74,7 +74,7 @@ library Deposit {
         }
 
         if (params.token == address(state.data.underlyingBorrowToken)) {
-            state.depositUnderlyingBorrowTokenToVariablePool(from, params.to, amount);
+            state.depositUnderlyingBorrowTokenToVariablePoolV1_5(from, params.to, amount);
             // borrow aToken cap is not validated in multicall,
             //   since users must be able to deposit more tokens to repay debt
             if (!state.data.isMulticall) {

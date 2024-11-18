@@ -55,9 +55,9 @@ library Withdraw {
     function executeWithdraw(State storage state, WithdrawParams calldata params) public {
         uint256 amount;
         if (params.token == address(state.data.underlyingBorrowToken)) {
-            amount = Math.min(params.amount, state.data.borrowAToken.balanceOf(msg.sender));
+            amount = Math.min(params.amount, state.data.borrowATokenV1_5.balanceOf(msg.sender));
             if (amount > 0) {
-                state.withdrawUnderlyingTokenFromVariablePool(msg.sender, params.to, amount);
+                state.withdrawUnderlyingTokenFromVariablePoolV1_5(msg.sender, params.to, amount);
             }
         } else {
             amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));

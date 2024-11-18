@@ -17,7 +17,7 @@ contract NonTransferrableTokenTest is Test {
         vm.label(owner, "owner");
     }
 
-    function test_NonTransferrableToken_construction() public {
+    function test_NonTransferrableToken_construction() public view {
         assertEq(token.name(), "Test");
         assertEq(token.symbol(), "TEST");
         assertEq(token.decimals(), 18);
@@ -88,7 +88,7 @@ contract NonTransferrableTokenTest is Test {
         assertEq(token.balanceOf(owner), 55);
     }
 
-    function test_NonTransferrableToken_only_owner_has_allowance() public {
+    function test_NonTransferrableToken_only_owner_has_allowance() public view {
         assertEq(token.allowance(address(this), owner), type(uint256).max);
         assertEq(token.allowance(owner, address(this)), 0);
     }

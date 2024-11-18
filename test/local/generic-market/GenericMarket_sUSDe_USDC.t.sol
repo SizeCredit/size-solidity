@@ -13,19 +13,19 @@ contract GenericMarket_sUSDe_USDC_Test is BaseTestGenericMarket {
         this.setUp_sUSDe_USDC();
     }
 
-    function test_GenericMarket_sUSDe_USDC_decimals() public {
+    function test_GenericMarket_sUSDe_USDC_decimals() public view {
         assertEq(size.data().collateralToken.decimals(), 18);
         assertEq(size.data().borrowAToken.decimals(), 6);
         assertEq(size.data().debtToken.decimals(), 6);
     }
 
-    function test_GenericMarket_sUSDe_USDC_config() public {
+    function test_GenericMarket_sUSDe_USDC_config() public view {
         assertEqApprox(size.feeConfig().fragmentationFee, 5e6, 0.01e6);
         assertEqApprox(size.riskConfig().minimumCreditBorrowAToken, 10e6, 0.01e6);
         assertEqApprox(size.riskConfig().borrowATokenCap, 1_000_000e6, 1000e6);
     }
 
-    function test_GenericMarket_sUSDe_USDC_debtTokenAmountToCollateralTokenAmount() public {
+    function test_GenericMarket_sUSDe_USDC_debtTokenAmountToCollateralTokenAmount() public view {
         assertEq(size.debtTokenAmountToCollateralTokenAmount(1.1e6), 0.9999e18 + 1);
     }
 

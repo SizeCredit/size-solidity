@@ -7,17 +7,17 @@ import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract MathTest is Test, AssertsHelper {
-    function test_Math_mulDivUp() public {
+    function test_Math_mulDivUp() public pure {
         assertEq(Math.mulDivUp(3, 5, 4), 4);
         assertEq(Math.mulDivUp(4, 5, 4), 5);
     }
 
-    function test_Math_mulDivDown() public {
+    function test_Math_mulDivDown() public pure {
         assertEq(Math.mulDivDown(3, 5, 4), 3);
         assertEq(Math.mulDivDown(4, 5, 4), 5);
     }
 
-    function test_Math_binarySearch_two() public {
+    function test_Math_binarySearch_two() public pure {
         uint256[] memory array = new uint256[](2);
         array[0] = 86400;
         array[1] = 259200;
@@ -29,7 +29,7 @@ contract MathTest is Test, AssertsHelper {
         assertEq(high, 1);
     }
 
-    function test_Math_binarySearch_found() public {
+    function test_Math_binarySearch_found() public pure {
         uint256[] memory array = new uint256[](5);
         array[0] = 10;
         array[1] = 20;
@@ -45,7 +45,7 @@ contract MathTest is Test, AssertsHelper {
         }
     }
 
-    function test_Math_binarySearch_not_found() public {
+    function test_Math_binarySearch_not_found() public pure {
         uint256[] memory array = new uint256[](5);
         array[0] = 10;
         array[1] = 20;
@@ -86,12 +86,12 @@ contract MathTest is Test, AssertsHelper {
         assertEq(high, type(uint256).max);
     }
 
-    function test_Math_aprToRatePerTenor() public {
+    function test_Math_aprToRatePerTenor() public pure {
         // 1% APY (linear interest) is 0.082% over the period of 30 days
         assertEqApprox((Math.aprToRatePerTenor(uint256(0.01e18), 30 days)), 0.000821917808219178e18, 1);
     }
 
-    function check_Math_binarySearch(uint256[] memory array, uint256 value) public {
+    function check_Math_binarySearch(uint256[] memory array, uint256 value) public pure {
         // array is strictly increasing
         for (uint256 i = 0; i < array.length - 1; i++) {
             vm.assume(array[i] < array[i + 1]);

@@ -10,8 +10,9 @@ import {LimitOrder} from "@src/libraries/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
+import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
+import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
 struct User {
     // The user's loan offer
@@ -84,14 +85,16 @@ struct Data {
     IERC20Metadata underlyingBorrowToken;
     // Size deposit underlying collateral token
     NonTransferrableToken collateralToken;
-    // Size deposit underlying borrow aToken
-    NonTransferrableScaledToken borrowAToken;
+    // Size deposit underlying borrow aToken v1.2
+    NonTransferrableScaledTokenV1_2 borrowATokenV1_2;
     // Size tokenized debt
     NonTransferrableToken debtToken;
     // Variable Pool (Aave v3)
     IPool variablePool;
     // Multicall lock to check if multicall is in progress
     bool isMulticall;
+    // Size deposit underlying borrow aToken v1.5
+    NonTransferrableScaledTokenV1_5 borrowATokenV1_5;
 }
 
 struct State {

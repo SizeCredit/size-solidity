@@ -9,7 +9,7 @@ import {Vars} from "@test/BaseTest.sol";
 import {Test} from "forge-std/Test.sol";
 
 abstract contract AssertsHelper is Test {
-    function assertEq(Vars memory a, Vars memory b) internal {
+    function assertEq(Vars memory a, Vars memory b) internal pure {
         assertEq(a.alice, b.alice);
         assertEq(a.bob, b.bob);
         assertEq(a.candy, b.candy);
@@ -33,21 +33,21 @@ abstract contract AssertsHelper is Test {
         );
     }
 
-    function assertEq(UserView memory a, UserView memory b) internal {
+    function assertEq(UserView memory a, UserView memory b) internal pure {
         assertEq(a.account, b.account, "account");
         assertEq(a.collateralTokenBalance, b.collateralTokenBalance, "collateralTokenBalance");
         assertEq(a.borrowATokenBalance, b.borrowATokenBalance, "borrowATokenBalance");
         assertEq(a.debtBalance, b.debtBalance, "debtBalance");
     }
 
-    function assertIn(bytes4 a, bytes4[1] memory array) internal {
+    function assertIn(bytes4 a, bytes4[1] memory array) internal pure {
         string memory arrayStr = string.concat("[", Strings.toHexString(uint256(uint32(array[0])), 4), "]");
         string memory reason =
             string.concat("Value ", Strings.toHexString(uint256(uint32(a)), 4), " not in array ", arrayStr);
         assertTrue(a == array[0], reason);
     }
 
-    function assertIn(bytes4 a, bytes4[2] memory array) internal {
+    function assertIn(bytes4 a, bytes4[2] memory array) internal pure {
         string memory arrayStr = string.concat(
             "[",
             Strings.toHexString(uint256(uint32(array[0])), 4),
@@ -60,7 +60,7 @@ abstract contract AssertsHelper is Test {
         assertTrue(a == array[0] || a == array[1], reason);
     }
 
-    function assertIn(bytes4 a, bytes4[3] memory array) internal {
+    function assertIn(bytes4 a, bytes4[3] memory array) internal pure {
         string memory arrayStr = string.concat(
             "[",
             Strings.toHexString(uint256(uint32(array[0])), 4),
@@ -75,7 +75,7 @@ abstract contract AssertsHelper is Test {
         assertTrue(a == array[0] || a == array[1] || a == array[2], reason);
     }
 
-    function assertIn(bytes4 a, bytes4[4] memory array) internal {
+    function assertIn(bytes4 a, bytes4[4] memory array) internal pure {
         string memory arrayStr = string.concat(
             "[",
             Strings.toHexString(uint256(uint32(array[0])), 4),
@@ -92,7 +92,7 @@ abstract contract AssertsHelper is Test {
         assertTrue(a == array[0] || a == array[1] || a == array[2] || a == array[3], reason);
     }
 
-    function assertEqApprox(uint256 a, uint256 b, uint256 tolerance, string memory reason) internal {
+    function assertEqApprox(uint256 a, uint256 b, uint256 tolerance, string memory reason) internal pure {
         reason = string.concat(
             bytes(reason).length > 0 ? string.concat(reason, "\n") : "",
             "Expected ",
@@ -109,23 +109,33 @@ abstract contract AssertsHelper is Test {
         }
     }
 
-    function assertEqApprox(uint256 a, uint256 b, uint256 tolerance) internal {
+    function assertEqApprox(uint256 a, uint256 b, uint256 tolerance) internal pure {
         assertEqApprox(a, b, tolerance, "");
     }
 
-    function assertEq(uint256 a, uint256 b, uint256 c) internal {
-        string memory reason = string.concat(
-            "Expected ", Strings.toString(a), " to be equal to ", Strings.toString(b), " and ", Strings.toString(c)
+    function assertEq(uint256 a, uint256 b, uint256 c, string memory reason) internal pure {
+        reason = string.concat(
+            bytes(reason).length > 0 ? string.concat(reason, "\n") : "",
+            "Expected ",
+            Strings.toString(a),
+            " to be equal to ",
+            Strings.toString(b),
+            " and ",
+            Strings.toString(c)
         );
         assertTrue(a == b && b == c, reason);
     }
 
-    function assertEq(LoanStatus a, LoanStatus b) internal {
+    function assertEq(uint256 a, uint256 b, uint256 c) internal pure {
+        assertEq(a, b, c, "");
+    }
+
+    function assertEq(LoanStatus a, LoanStatus b) internal pure {
         string memory reason = string.concat("Expected ", str(a), " to be equal to ", str(b));
         assertEq(a, b, reason);
     }
 
-    function assertEq(LoanStatus a, LoanStatus b, string memory reason) internal {
+    function assertEq(LoanStatus a, LoanStatus b, string memory reason) internal pure {
         assertTrue(uint256(a) == uint256(b), reason);
     }
 

@@ -50,6 +50,8 @@ import {Events} from "@src/libraries/Events.sol";
 import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
+import {ISizeV1_5} from "@src/v1.5/interfaces/ISizeV1_5.sol";
+
 import {Errors} from "@src/libraries/Errors.sol";
 
 bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
@@ -103,6 +105,17 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         _grantRole(PAUSER_ROLE, owner);
         _grantRole(KEEPER_ROLE, owner);
         _grantRole(BORROW_RATE_UPDATER_ROLE, owner);
+    }
+
+    /// @inheritdoc ISizeV1_5
+    function reinitialize(address borrowATokenV1_5, address[] calldata users)
+        external
+        override(ISizeV1_5)
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        reinitializer(1_5_0)
+    {
+        state.validateReinitializeV1_5(borrowATokenV1_5, users);
+        state.executeReinitializeV1_5(borrowATokenV1_5, users);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}

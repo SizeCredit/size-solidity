@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
+
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {Math} from "@src/libraries/Math.sol";
@@ -12,8 +16,9 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
+import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
+import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -49,14 +54,18 @@ struct InitializeDataParams {
     address underlyingCollateralToken;
     address underlyingBorrowToken;
     address variablePool;
+    address borrowATokenV1_5;
 }
 
 /// @title Initialize
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic to initialize the protocol
-/// @dev The collateralToken (e.g. szETH), borrowAToken (e.g. szaUSDC), and debtToken (e.g. szDebt) are created in the `executeInitialize` function
+/// @dev The collateralToken (e.g. szETH) and debtToken (e.g. szDebt) are created in the `executeInitialize` function
+///      The borrowAToken (e.g. szaUSDC) must have been deployed before the initialization
 library Initialize {
+    using SafeERC20 for IERC20;
+
     /// @notice Validates the owner address
     /// @param owner The owner address
     function validateOwner(address owner) internal pure {
@@ -169,6 +178,11 @@ library Initialize {
         if (d.variablePool == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+
+        // validate borrowATokenV1_5
+        if (d.borrowATokenV1_5 == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
     }
 
     /// @notice Validates the parameters for the initialization
@@ -247,7 +261,8 @@ library Initialize {
             string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
             IERC20Metadata(state.data.underlyingCollateralToken).decimals()
         );
-        state.data.borrowAToken = new NonTransferrableScaledToken(
+        // new markets still have a NonTransferrableScaledTokenV1_2 even though it is never used
+        state.data.borrowATokenV1_2 = new NonTransferrableScaledTokenV1_2(
             state.data.variablePool,
             state.data.underlyingBorrowToken,
             address(this),
@@ -261,6 +276,7 @@ library Initialize {
             string.concat("szDebt", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
             IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
+        state.data.borrowATokenV1_5 = NonTransferrableScaledTokenV1_5(d.borrowATokenV1_5);
     }
 
     /// @notice Executes the initialization of the protocol
@@ -281,5 +297,88 @@ library Initialize {
         executeInitializeOracle(state, o);
         executeInitializeData(state, d);
         emit Events.Initialize(f, r, o, d);
+    }
+
+    /// @notice Validates the parameters for the reinitialization
+    function validateReinitializeV1_5(State storage state, address borrowATokenV1_5, address[] calldata /*users*/ )
+        external
+        view
+    {
+        // validate state
+        if (address(state.data.borrowATokenV1_5) != address(0)) {
+            // markets deployed through the SizeFactory can't be reinitialized, since they will already have the borrowATokenV1_5 set
+            revert Errors.ALREADY_INITIALIZED(address(state.data.borrowATokenV1_5));
+        }
+
+        // validate borrowATokenV1_5
+        if (borrowATokenV1_5 == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        // validate users
+        // N/A
+    }
+
+    /// @notice Executes the reinitialization of the protocol to v1.5
+    function executeReinitializeV1_5(State storage state, address borrowATokenV1_5, address[] calldata users)
+        external
+    {
+        state.data.borrowATokenV1_5 = NonTransferrableScaledTokenV1_5(borrowATokenV1_5);
+
+        NonTransferrableScaledTokenV1_2 oldToken = state.data.borrowATokenV1_2;
+        NonTransferrableScaledTokenV1_5 newToken = state.data.borrowATokenV1_5;
+
+        uint256 oldTotalSupply = oldToken.totalSupply();
+        uint256 oldScaledTotalSupply = oldToken.scaledTotalSupply();
+
+        // we need to check (after - before) since the same newToken will be used for many markets
+        uint256 newScaledTotalSupplyBefore = newToken.scaledTotalSupply();
+
+        // migrate users' balances
+        // slither-disable-start calls-loop
+        for (uint256 i = 0; i < users.length; i++) {
+            // Just in case
+            uint256 userNewTokenScaledBalanceBefore = newToken.scaledBalanceOf(users[i]);
+            uint256 scaledBalance = oldToken.scaledBalanceOf(users[i]);
+            oldToken.burnScaled(users[i], scaledBalance);
+            if (oldToken.scaledBalanceOf(users[i]) != 0) {
+                revert Errors.REINITIALIZE_PER_USER_CHECK(0, oldToken.scaledBalanceOf(users[i]));
+            }
+            newToken.mintScaled(users[i], scaledBalance);
+            uint256 deltaScaled = newToken.scaledBalanceOf(users[i]) - userNewTokenScaledBalanceBefore;
+            if (deltaScaled != scaledBalance) {
+                revert Errors.REINITIALIZE_PER_USER_CHECK_DELTA(scaledBalance, deltaScaled);
+            }
+        }
+        // slither-disable-end calls-loop
+
+        uint256 newScaledTotalSupplyAfter = newToken.scaledTotalSupply();
+
+        IAToken aToken =
+            IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
+
+        if (oldToken.totalSupply() > 0) {
+            // the migration is expected to be done in a single transaction
+            revert Errors.REINITIALIZE_MIGRATION_EXPECTED_IN_ONE_TRANSACTION(oldToken.totalSupply());
+        }
+        if ((newScaledTotalSupplyAfter - newScaledTotalSupplyBefore) != oldScaledTotalSupply) {
+            // all claims preserved
+            revert Errors.REINITIALIZE_ALL_CLAIMS_PRESERVED(
+                newScaledTotalSupplyAfter, newScaledTotalSupplyBefore, oldScaledTotalSupply
+            );
+        }
+        // > to avoid donation attacks
+        if ((newScaledTotalSupplyAfter - newScaledTotalSupplyBefore) > aToken.scaledBalanceOf(address(this))) {
+            // technically, this would mean the existing market was already insolvent
+            revert Errors.REINITIALIZE_INSOLVENT(
+                newScaledTotalSupplyAfter, newScaledTotalSupplyBefore, aToken.scaledBalanceOf(address(this))
+            );
+        }
+
+        // transfer the aToken balance
+        IERC20(address(aToken)).safeTransfer(address(newToken), aToken.balanceOf(address(this)));
+
+        emit Events.ReinitializeV1_5(
+            borrowATokenV1_5, oldTotalSupply, oldScaledTotalSupply, newToken.totalSupply(), newToken.scaledTotalSupply()
+        );
     }
 }

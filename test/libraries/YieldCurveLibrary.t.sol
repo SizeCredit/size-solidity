@@ -16,7 +16,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
     }
 
-    function test_YieldCurve_validateYieldCurve() public {
+    function test_YieldCurve_validateYieldCurve() public view {
         uint256[] memory tenors = new uint256[](0);
         int256[] memory aprs = new int256[](0);
         uint256[] memory marketRateMultipliers = new uint256[](0);
@@ -108,7 +108,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         YieldCurveLibrary.getAPR(curve, params, interval);
     }
 
-    function test_YieldCurve_getRate_first_point() public {
+    function test_YieldCurve_getRate_first_point() public view {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         VariablePoolBorrowRateParams memory params;
         uint256 interval = curve.tenors[0];
@@ -116,7 +116,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         assertEq(apr, SafeCast.toUint256(curve.aprs[0]));
     }
 
-    function test_YieldCurve_getRate_last_point() public {
+    function test_YieldCurve_getRate_last_point() public view {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         VariablePoolBorrowRateParams memory params;
         uint256 interval = curve.tenors[curve.tenors.length - 1];
@@ -124,7 +124,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         assertEq(apr, SafeCast.toUint256(curve.aprs[curve.aprs.length - 1]));
     }
 
-    function test_YieldCurve_getRate_middle_point() public {
+    function test_YieldCurve_getRate_middle_point() public view {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         VariablePoolBorrowRateParams memory params;
         uint256 interval = curve.tenors[2];
@@ -132,7 +132,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         assertEq(apr, SafeCast.toUint256(curve.aprs[2]));
     }
 
-    function test_YieldCurve_getRate_point_2_out_of_5() public {
+    function test_YieldCurve_getRate_point_2_out_of_5() public view {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         VariablePoolBorrowRateParams memory params;
         uint256 interval = curve.tenors[1];
@@ -140,7 +140,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         assertEq(apr, SafeCast.toUint256(curve.aprs[1]));
     }
 
-    function test_YieldCurve_getRate_point_4_out_of_5() public {
+    function test_YieldCurve_getRate_point_4_out_of_5() public view {
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         VariablePoolBorrowRateParams memory params;
         uint256 interval = curve.tenors[3];
@@ -155,7 +155,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 q0,
         uint256 q1,
         uint256 tenorB
-    ) public {
+    ) public view {
         VariablePoolBorrowRateParams memory params;
         YieldCurve memory curve = YieldCurveHelper.flatCurve();
         p0 = bound(p0, 0, curve.tenors.length - 1);
@@ -177,7 +177,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 q0,
         uint256 q1,
         uint256 tenorB
-    ) public {
+    ) public view {
         VariablePoolBorrowRateParams memory params;
         YieldCurve memory curve = YieldCurveHelper.normalCurve();
         p0 = bound(p0, 0, curve.tenors.length - 1);
@@ -197,7 +197,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         uint256 p0,
         uint256 p1,
         uint256 interval
-    ) public {
+    ) public view {
         VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
             variablePoolBorrowRate: 0.31415e18,
             variablePoolBorrowRateUpdatedAt: uint64(block.timestamp),
@@ -225,7 +225,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         }
     }
 
-    function test_YieldCurve_getRate_with_non_null_borrowRate() public {
+    function test_YieldCurve_getRate_with_non_null_borrowRate() public view {
         YieldCurve memory curve = YieldCurveHelper.marketCurve();
         VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
             variablePoolBorrowRate: 0.31415e18,
@@ -236,7 +236,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         assertEq(YieldCurveLibrary.getAPR(curve, params, 60 days), 0.02e18 + 0.31415e18);
     }
 
-    function test_YieldCurve_getRate_with_negative_rate() public {
+    function test_YieldCurve_getRate_with_negative_rate() public view {
         VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
             variablePoolBorrowRate: 0.07e18,
             variablePoolBorrowRateUpdatedAt: uint64(block.timestamp),
@@ -249,7 +249,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         assertEq(YieldCurveLibrary.getAPR(curve, params, 30 days), 0.07e18 - 0.0015e18);
     }
 
-    function test_YieldCurve_getRate_with_negative_rate_double_multiplier() public {
+    function test_YieldCurve_getRate_with_negative_rate_double_multiplier() public view {
         VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
             variablePoolBorrowRate: 0.07e18,
             variablePoolBorrowRateUpdatedAt: uint64(block.timestamp),
@@ -262,7 +262,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         assertEq(YieldCurveLibrary.getAPR(curve, params, 30 days), 2 * 0.07e18 - 0.0015e18);
     }
 
-    function test_YieldCurve_getRate_null_multiplier_does_not_fetch_oracle() public {
+    function test_YieldCurve_getRate_null_multiplier_does_not_fetch_oracle() public view {
         VariablePoolBorrowRateParams memory params;
         YieldCurve memory curve = YieldCurveHelper.customCurve(30 days, uint256(0.01e18), 60 days, uint256(0.02e18));
         assertEq(YieldCurveLibrary.getAPR(curve, params, 45 days), 0.015e18);
