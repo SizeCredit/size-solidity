@@ -1,10 +1,10 @@
 {
   "chainId": "84532",
-  "commit": "6ffa18f",
+  "commit": "06f111f",
   "deployments": {
-    "PriceFeed": "0xfc07187800EA772F6BCa0574642CF88F0472A7e2",
-    "Size-implementation": "0x9bdf67bF65c16a2Bf81238C012421dDB93010e7a",
-    "Size-proxy": "0xc9826743b12cb5F1465445455C1CD19aeDC212b8"
+    "PriceFeed": "0xf336B38CD502C5cfE7c45572A7C39631bA180b63",
+    "Size-implementation": "0x7b31f38A8923d7eBde0DDcFDC3ADDC3468fE34a6",
+    "Size-proxy": "0xA5f2066647d22dfBd2Ed0dD43344dB9DCe4b4632"
   },
   "networkConfiguration": "base-sepolia-link-usdc",
   "parameters": {
