@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
-
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {BaseScript} from "@script/BaseScript.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
+import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
+
 import {Vm} from "forge-std/Vm.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
@@ -16,21 +16,32 @@ contract GetV1_5ReinitializeDataScript is BaseScript {
 
     EnumerableMap.AddressToUintMap private addressesWethUsdc;
     EnumerableMap.AddressToUintMap private addressesCbbtcUsdc;
+    address private borrowATokenV1_5;
 
-    function run() external {
+    modifier parseEnv() {
+        borrowATokenV1_5 = vm.envAddress("BORROW_ATOKEN_V1_5");
+        _;
+    }
+
+    modifier ignoreGas() {
+        vm.pauseGasMetering();
+        _;
+        vm.resumeGasMetering();
+    }
+
+    function run() external parseEnv ignoreGas {
         string[2] memory markets = ["base-production-weth-usdc", "base-production-cbbtc-usdc"];
         uint256[2] memory deploymentBlocks = [uint256(17147278), uint256(20637165)];
 
         console.log("GetV1_5ReinitializeData...");
 
         for (uint256 i = 0; i < markets.length; i++) {
-            ISize market;
-            (market,,) = importDeployments(markets[i]);
+            (ISize market,,) = importDeployments(markets[i]);
             EnumerableMap.AddressToUintMap storage addresses =
                 Strings.equal(markets[i], markets[0]) ? addressesWethUsdc : addressesCbbtcUsdc;
 
-            // we use .data().borrowAToken here since, before the migration, it points to the V1_2 token
-            // after the migration, it will point to the V1_5 token
+            // We use .data().borrowAToken here since, before the migration, it points to the V1_2 token.
+            // After the migration, it will point to the V1_5 token
             NonTransferrableScaledTokenV1_2 borrowATokenV1_2 =
                 NonTransferrableScaledTokenV1_2(address(market.data().borrowAToken));
 
@@ -66,7 +77,7 @@ contract GetV1_5ReinitializeDataScript is BaseScript {
 
             console.log("Market: %s, Users: %s", markets[i], addresses.length());
 
-            exportV1_5ReinitializeData(markets[i], addresses, toBlock);
+            exportV1_5ReinitializeData(markets[i], addresses, toBlock, borrowATokenV1_5);
         }
     }
 }

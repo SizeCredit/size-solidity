@@ -1,14 +1,15 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 
-import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {ISizeV1_5} from "@src/v1.5/interfaces/ISizeV1_5.sol";
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {console2 as console} from "forge-std/console2.sol";
 
 struct Deployment {
     string name;
@@ -84,7 +85,8 @@ abstract contract BaseScript is Script {
     function exportV1_5ReinitializeData(
         string memory networkConfiguration,
         EnumerableMap.AddressToUintMap storage map,
-        uint256 blockNumber
+        uint256 blockNumber,
+        address borrowATokenV1_5
     ) internal {
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/v1.5/");
@@ -99,7 +101,8 @@ abstract contract BaseScript is Script {
         finalObject = vm.serializeAddress(".", "users", users);
         finalObject = vm.serializeUint(".", "values", values);
         finalObject = vm.serializeUint(".", "blockNumber", blockNumber);
-
+        finalObject =
+            vm.serializeBytes(".", "data", abi.encodeCall(ISizeV1_5.reinitialize, (address(borrowATokenV1_5), users)));
         vm.writeJson(finalObject, path);
     }
 
