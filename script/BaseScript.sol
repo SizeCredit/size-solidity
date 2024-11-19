@@ -108,7 +108,7 @@ abstract contract BaseScript is Script {
 
     function importV1_5ReinitializeData(string memory networkConfiguration, EnumerableMap.AddressToUintMap storage map)
         internal
-        returns (uint256 blockNumber)
+        returns (uint256 blockNumber, bytes memory data)
     {
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/v1.5/");
@@ -120,6 +120,7 @@ abstract contract BaseScript is Script {
         address[] memory users = json.readAddressArray(".users");
         uint256[] memory values = json.readUintArray(".values");
         blockNumber = json.readUint(".blockNumber");
+        data = json.readBytes(".data");
 
         // Populate the map
         for (uint256 i = 0; i < users.length; i++) {

@@ -78,8 +78,8 @@ contract ForkReinitializeV1_5Test is ForkTest {
         variablePool = sizeWethUsdcVariablePool;
         borrowToken = sizeWethUsdcBorrowToken;
 
-        uint256 blockNumberWethUsdc = importV1_5ReinitializeData("base-production-weth-usdc", addressesWethUsdc);
-        uint256 blockNumberCbbtcUsdc = importV1_5ReinitializeData("base-production-cbbtc-usdc", addressesCbbtcUsdc);
+        (uint256 blockNumberWethUsdc,) = importV1_5ReinitializeData("base-production-weth-usdc", addressesWethUsdc);
+        (uint256 blockNumberCbbtcUsdc,) = importV1_5ReinitializeData("base-production-cbbtc-usdc", addressesCbbtcUsdc);
         assertEq(blockNumberWethUsdc, blockNumberCbbtcUsdc, BLOCK_NUMBER);
     }
 

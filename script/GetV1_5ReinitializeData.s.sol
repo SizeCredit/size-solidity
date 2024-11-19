@@ -5,13 +5,15 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {BaseScript} from "@script/BaseScript.sol";
+
+import {Networks} from "@script/Networks.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
 
 import {Vm} from "forge-std/Vm.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-contract GetV1_5ReinitializeDataScript is BaseScript {
+contract GetV1_5ReinitializeDataScript is BaseScript, Networks {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
     EnumerableMap.AddressToUintMap private addressesWethUsdc;
@@ -30,8 +32,12 @@ contract GetV1_5ReinitializeDataScript is BaseScript {
     }
 
     function run() external parseEnv ignoreGas {
-        string[2] memory markets = ["base-production-weth-usdc", "base-production-cbbtc-usdc"];
-        uint256[2] memory deploymentBlocks = [uint256(17147278), uint256(20637165)];
+        string[2] memory markets = block.chainid == BASE_MAINNET
+            ? ["base-production-weth-usdc", "base-production-cbbtc-usdc"]
+            : ["base-sepolia-weth-usdc", "base-sepolia-link-usdc"];
+        uint256[2] memory deploymentBlocks = block.chainid == BASE_MAINNET
+            ? [uint256(17147278), uint256(20637165)]
+            : [uint256(18082649), uint256(18082796)];
 
         console.log("GetV1_5ReinitializeData...");
 
