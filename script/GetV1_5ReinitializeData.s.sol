@@ -25,12 +25,6 @@ contract GetV1_5ReinitializeDataScript is BaseScript, Networks {
         _;
     }
 
-    modifier ignoreGas() {
-        vm.pauseGasMetering();
-        _;
-        vm.resumeGasMetering();
-    }
-
     function run() external parseEnv ignoreGas {
         string[2] memory markets = block.chainid == BASE_MAINNET
             ? ["base-production-weth-usdc", "base-production-cbbtc-usdc"]

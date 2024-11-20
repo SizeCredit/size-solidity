@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 
@@ -40,6 +39,12 @@ abstract contract BaseScript is Script {
         vm.startBroadcast();
         _;
         vm.stopBroadcast();
+    }
+
+    modifier ignoreGas() {
+        vm.pauseGasMetering();
+        _;
+        vm.resumeGasMetering();
     }
 
     function exportDeployments(string memory networkConfiguration) internal {
