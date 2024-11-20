@@ -5,6 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {BaseScript} from "@script/BaseScript.sol";
+import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
 
 import {Networks} from "@script/Networks.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
@@ -18,10 +19,10 @@ contract GetV1_5ReinitializeDataScript is BaseScript, Networks {
 
     EnumerableMap.AddressToUintMap private addressesWethUsdc;
     EnumerableMap.AddressToUintMap private addressesCbbtcUsdc;
-    address private borrowATokenV1_5;
+    ISizeFactory private sizeFactory;
 
     modifier parseEnv() {
-        borrowATokenV1_5 = vm.envAddress("BORROW_ATOKEN_V1_5");
+        sizeFactory = ISizeFactory(vm.envAddress("SIZE_FACTORY"));
         _;
     }
 
@@ -32,6 +33,7 @@ contract GetV1_5ReinitializeDataScript is BaseScript, Networks {
         uint256[2] memory deploymentBlocks = block.chainid == BASE_MAINNET
             ? [uint256(17147278), uint256(20637165)]
             : [uint256(18082649), uint256(18082796)];
+        address borrowATokenV1_5 = address(sizeFactory.getBorrowATokensV1_5()[0]);
 
         console.log("GetV1_5ReinitializeData...");
 
