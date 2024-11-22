@@ -292,7 +292,7 @@ contract ForkReinitializeV1_5TestAudit is ForkReinitializeV1_5Test {
         sizeFactory = _deploySizeFactory(owner);
         _deployNewBorrowAToken();
 
-        IERC20Metadata USDC = sizeWethUsdc.data().underlyingBorrowToken;
+        USDC = sizeWethUsdc.data().underlyingBorrowToken;
         IAToken aUSDC = IAToken(sizeWethUsdc.data().variablePool.getReserveData(address(USDC)).aTokenAddress);
 
         address aUSDC_holder = 0x4E32E08f3d8d1cAb474A489B4E31f8D3FD627abf;

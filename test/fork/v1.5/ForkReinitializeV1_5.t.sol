@@ -23,7 +23,7 @@ import {console2 as console} from "forge-std/console2.sol";
 contract ForkReinitializeV1_5Test is ForkTest {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
-    uint256 internal BLOCK_NUMBER = 22320624;
+    uint256 internal BLOCK_NUMBER = 22746717;
 
     ISize internal sizeWethUsdc;
     ISize internal sizeCbbtcUsdc;
@@ -31,6 +31,8 @@ contract ForkReinitializeV1_5Test is ForkTest {
     IPriceFeed internal priceFeedCbbtcUsdc;
     EnumerableMap.AddressToUintMap internal addressesWethUsdc;
     EnumerableMap.AddressToUintMap internal addressesCbbtcUsdc;
+    bytes internal dataWethUsdc;
+    bytes internal dataCbbtcUsdc;
 
     NonTransferrableScaledTokenV1_5 internal newBorrowAToken;
 
@@ -77,9 +79,11 @@ contract ForkReinitializeV1_5Test is ForkTest {
         owner = sizeWethUsdcOwner;
         variablePool = sizeWethUsdcVariablePool;
         borrowToken = sizeWethUsdcBorrowToken;
-
-        (uint256 blockNumberWethUsdc,) = importV1_5ReinitializeData("base-production-weth-usdc", addressesWethUsdc);
-        (uint256 blockNumberCbbtcUsdc,) = importV1_5ReinitializeData("base-production-cbbtc-usdc", addressesCbbtcUsdc);
+        uint256 blockNumberWethUsdc;
+        uint256 blockNumberCbbtcUsdc;
+        (blockNumberWethUsdc, dataWethUsdc) = importV1_5ReinitializeData("base-production-weth-usdc", addressesWethUsdc);
+        (blockNumberCbbtcUsdc, dataCbbtcUsdc) =
+            importV1_5ReinitializeData("base-production-cbbtc-usdc", addressesCbbtcUsdc);
         assertEq(blockNumberWethUsdc, blockNumberCbbtcUsdc, BLOCK_NUMBER);
     }
 
@@ -277,5 +281,15 @@ contract ForkReinitializeV1_5Test is ForkTest {
         variablePool.supply(address(borrowToken), amount, address(sizeWethUsdc), 0);
 
         testFork_ForkReinitializeV1_5_migrate_2_existing_markets();
+    }
+
+    function testFork_ForkReinitializeV1_5_works_with_data() public {
+        Size v1_5 = new Size();
+
+        vm.prank(owner);
+        UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(address(v1_5), dataWethUsdc);
+
+        vm.prank(owner);
+        UUPSUpgradeable(address(sizeCbbtcUsdc)).upgradeToAndCall(address(v1_5), dataCbbtcUsdc);
     }
 }
