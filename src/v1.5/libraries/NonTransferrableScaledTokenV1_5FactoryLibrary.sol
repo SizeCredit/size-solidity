@@ -27,7 +27,7 @@ library NonTransferrableScaledTokenV1_5FactoryLibrary {
                             underlyingBorrowToken,
                             owner,
                             string.concat("Size Scaled ", underlyingBorrowToken.name(), " (v1.5)"),
-                            string.concat("sza", underlyingBorrowToken.symbol()),
+                            string.concat("sa", underlyingBorrowToken.symbol()),
                             underlyingBorrowToken.decimals()
                         )
                     )
