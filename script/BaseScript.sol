@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
+import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {ISizeV1_5} from "@src/v1.5/interfaces/ISizeV1_5.sol";
@@ -131,6 +132,16 @@ abstract contract BaseScript is Script {
         for (uint256 i = 0; i < users.length; i++) {
             map.set(users[i], values[i]);
         }
+    }
+
+    function importSizeFactory(string memory networkConfiguration) internal returns (SizeFactory sizeFactory) {
+        root = vm.projectRoot();
+        path = string.concat(root, "/deployments/");
+        path = string.concat(path, string.concat(networkConfiguration, ".json"));
+
+        string memory json = vm.readFile(path);
+
+        sizeFactory = SizeFactory(abi.decode(json.parseRaw(".deployments.SizeFactory-proxy"), (address)));
     }
 
     function getCommitHash() internal returns (string memory) {
