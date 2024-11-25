@@ -1,0 +1,28 @@
+{
+  "chainId": "84532",
+  "commit": "06f111f",
+  "deployments": {
+    "PriceFeed": "0xf336B38CD502C5cfE7c45572A7C39631bA180b63",
+    "Size-implementation": "0x0Ac75e8542ddf6E6d5373F1917CB9c3b0B4B7f31",
+    "Size-proxy": "0xA5f2066647d22dfBd2Ed0dD43344dB9DCe4b4632"
+  },
+  "networkConfiguration": "base-sepolia-link-usdc",
+  "parameters": {
+    "borrowATokenCap": "1000000000000",
+    "crLiquidation": "1300000000000000000",
+    "crOpening": "1500000000000000000",
+    "feeRecipient": "0xf7164d2fc05350c75387fa6c0cc4f97634ca9451",
+    "fragmentationFee": "1000000",
+    "minimumCreditBorrowAToken": "10000000",
+    "owner": "0xf7164d2fc05350c75387fa6c0cc4f97634ca9451",
+    "sequencerUptimeFeed": "0x0000000000000000000000000000000000000000",
+    "underlyingBorrowToken": "0x036cbd53842c5426634e7929541ec2318f3dcf7e",
+    "underlyingBorrowTokenAggregator": "0xd30e2101a97dcbaebcbc04f14c3f624e67a35165",
+    "underlyingBorrowTokenHeartbeat": "95040",
+    "underlyingCollateralToken": "0xe4ab69c077896252fafbd49efd26b5d171a32410",
+    "underlyingCollateralTokenAggregator": "0xb113f5a928bcff189c998ab20d753a47f9de5a61",
+    "underlyingCollateralTokenHeartbeat": "95040",
+    "variablePool": "0x07ea79f68b2b3df564d0a34f8e19d9b1e339814b",
+    "weth": "0x4200000000000000000000000000000000000006"
+  }
+}

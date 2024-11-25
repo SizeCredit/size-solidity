@@ -5,7 +5,7 @@ import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract WadRayMathTest is BaseTest {
-    function testFuzz_WadRayMath_rayDiv_rayMul_identity(uint256 x, uint256 y) public {
+    function testFuzz_WadRayMath_rayDiv_rayMul_identity(uint256 x, uint256 y) public pure {
         x = bound(x, 0, type(uint128).max);
         y = bound(y, WadRayMath.RAY, WadRayMath.RAY * 2);
 

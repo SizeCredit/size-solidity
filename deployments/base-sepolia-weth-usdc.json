@@ -1,22 +1,28 @@
 {
   "chainId": "84532",
-  "commit": "0386d48",
+  "commit": "06f111f",
   "deployments": {
-    "PriceFeed": "0x56A5CD8bADd94E5d46e3cc028393Bdb4A91b66eD",
-    "Size-implementation": "0xEd45C92666130471270DB1261F9b0d727AF31DB5",
-    "Size-proxy": "0x3AE40a5126b3E37dfcB172bbF485b1E2A6DBD882"
+    "PriceFeed": "0x4C4B6E64b5765196661E3FF80b5Da8c917392BDB",
+    "Size-implementation": "0x0Ac75e8542ddf6E6d5373F1917CB9c3b0B4B7f31",
+    "Size-proxy": "0x3009B1049F2ef921Bb35A80A3D5ee0a47Bd0211A"
   },
-  "networkConfiguration": "base-sepolia",
+  "networkConfiguration": "base-sepolia-weth-usdc",
   "parameters": {
+    "borrowATokenCap": "1000000000000",
+    "crLiquidation": "1300000000000000000",
+    "crOpening": "1500000000000000000",
     "feeRecipient": "0xf7164d2fc05350c75387fa6c0cc4f97634ca9451",
+    "fragmentationFee": "1000000",
+    "minimumCreditBorrowAToken": "10000000",
     "owner": "0xf7164d2fc05350c75387fa6c0cc4f97634ca9451",
     "sequencerUptimeFeed": "0x0000000000000000000000000000000000000000",
-    "usdc": "0x036cbd53842c5426634e7929541ec2318f3dcf7e",
-    "usdcAggregator": "0xd30e2101a97dcbaebcbc04f14c3f624e67a35165",
-    "usdcHeartbeat": "95040",
+    "underlyingBorrowToken": "0x036cbd53842c5426634e7929541ec2318f3dcf7e",
+    "underlyingBorrowTokenAggregator": "0xd30e2101a97dcbaebcbc04f14c3f624e67a35165",
+    "underlyingBorrowTokenHeartbeat": "95040",
+    "underlyingCollateralToken": "0x4200000000000000000000000000000000000006",
+    "underlyingCollateralTokenAggregator": "0x4adc67696ba383f43dd60a9e78f2c97fbbfc7cb1",
+    "underlyingCollateralTokenHeartbeat": "1320",
     "variablePool": "0x07ea79f68b2b3df564d0a34f8e19d9b1e339814b",
-    "weth": "0x4200000000000000000000000000000000000006",
-    "wethAggregator": "0x4adc67696ba383f43dd60a9e78f2c97fbbfc7cb1",
-    "wethHeartbeat": "1320"
+    "weth": "0x4200000000000000000000000000000000000006"
   }
 }

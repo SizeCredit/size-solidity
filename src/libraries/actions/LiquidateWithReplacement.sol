@@ -159,7 +159,9 @@ library LiquidateWithReplacement {
         );
 
         state.data.debtToken.mint(params.borrower, debtPosition.futureValue);
-        state.data.borrowAToken.transferFrom(address(this), params.borrower, issuanceValue);
-        state.data.borrowAToken.transferFrom(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowToken);
+        state.data.borrowATokenV1_5.transferFrom(address(this), params.borrower, issuanceValue);
+        state.data.borrowATokenV1_5.transferFrom(
+            address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowToken
+        );
     }
 }

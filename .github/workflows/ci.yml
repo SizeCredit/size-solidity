@@ -97,7 +97,7 @@ jobs:
           forge test -vvv
         id: test
         env:
-          API_KEY_INFURA: ${{ secrets.API_KEY_INFURA }}
+          API_KEY_ALCHEMY: ${{ secrets.API_KEY_ALCHEMY }}
           FOUNDRY_INVARIANT_RUNS: 0
           FOUNDRY_INVARIANT_DEPTH: 0
           FOUNDRY_PROFILE: fork
@@ -119,7 +119,7 @@ jobs:
           version: nightly
 
       - name: Run Slither
-        uses: crytic/slither-action@v0.3.1
+        uses: crytic/slither-action@v0.4.0
         id: slither
         with:
           fail-on: low
@@ -210,10 +210,10 @@ jobs:
           name: abi
           path: |
             out/Size.sol/Size.json
+            out/SizeFactory.sol/SizeFactory.json
             out/IPriceFeed.sol/IPriceFeed.json
             out/IPool.sol/IPool.json
-            out/WETH.sol/WETH.json
-            out/USDC.sol/USDC.json
+            out/IERC20Metadata.sol/IERC20Metadata.json
             out/Errors.sol/Errors.json
             out/Events.sol/Events.json
 

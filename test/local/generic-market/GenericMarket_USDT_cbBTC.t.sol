@@ -14,17 +14,17 @@ contract GenericMarket_USDT_cbBTC_Test is BaseTestGenericMarket {
         this.setUp_USDT_cbBTC();
     }
 
-    function test_GenericMarket_USDT_cbBTC_decimals() public {
+    function test_GenericMarket_USDT_cbBTC_decimals() public view {
         assertEq(size.data().collateralToken.decimals(), 6);
         assertEq(size.data().borrowAToken.decimals(), 8);
         assertEq(size.data().debtToken.decimals(), 8);
     }
 
-    function test_GenericMarket_USDT_cbBTC_debtTokenAmountToCollateralTokenAmount() public {
+    function test_GenericMarket_USDT_cbBTC_debtTokenAmountToCollateralTokenAmount() public view {
         assertEq(size.debtTokenAmountToCollateralTokenAmount(1e8), 60576e6 + 1);
     }
 
-    function test_GenericMarket_USDT_cbBTC_config() public {
+    function test_GenericMarket_USDT_cbBTC_config() public view {
         assertEqApprox(size.feeConfig().fragmentationFee, 0.00008254e8, 1);
         assertEqApprox(size.riskConfig().minimumCreditBorrowAToken, 0.00016508e8, 1);
         assertEqApprox(size.riskConfig().borrowATokenCap, 16.5e8, 0.1e8);

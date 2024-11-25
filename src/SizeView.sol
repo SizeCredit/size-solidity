@@ -33,6 +33,8 @@ import {
 import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
+import {VERSION} from "@src/interfaces/ISize.sol";
+
 /// @title SizeView
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -90,7 +92,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
             underlyingBorrowToken: state.data.underlyingBorrowToken,
             variablePool: state.data.variablePool,
             collateralToken: state.data.collateralToken,
-            borrowAToken: state.data.borrowAToken,
+            borrowAToken: state.data.borrowATokenV1_5,
             debtToken: state.data.debtToken
         });
     }
@@ -101,7 +103,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
             user: state.data.users[user],
             account: user,
             collateralTokenBalance: state.data.collateralToken.balanceOf(user),
-            borrowATokenBalance: state.data.borrowAToken.balanceOf(user),
+            borrowATokenBalance: state.data.borrowATokenV1_5.balanceOf(user),
             debtBalance: state.data.debtToken.balanceOf(user)
         });
     }
@@ -205,6 +207,6 @@ abstract contract SizeView is SizeStorage, ISizeView {
 
     /// @inheritdoc ISizeView
     function version() public pure returns (string memory) {
-        return "v1.2.1";
+        return VERSION;
     }
 }

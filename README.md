@@ -95,11 +95,11 @@ yarn coverage
 
 | File                                                                            | % Lines            | % Statements       | % Branches       | % Funcs          |
 |---------------------------------------------------------------------------------|--------------------|--------------------|------------------|------------------|
-| src/Size.sol                                                                    | 100.00% (60/60)    | 100.00% (65/65)    | 100.00% (3/3)    | 100.00% (22/22)  |
-| src/SizeView.sol                                                                | 96.77% (30/31)     | 98.00% (49/50)     | 100.00% (3/3)    | 95.45% (21/22)   |
+| src/Size.sol                                                                    | 96.77% (60/62)     | 97.01% (65/67)     | 100.00% (3/3)    | 95.65% (22/23)   |
+| src/SizeView.sol                                                                | 100.00% (31/31)    | 100.00% (50/50)    | 100.00% (3/3)    | 100.00% (22/22)  |
 | src/libraries/AccountingLibrary.sol                                             | 96.34% (79/82)     | 96.88% (93/96)     | 86.96% (20/23)   | 100.00% (12/12)  |
 | src/libraries/CapsLibrary.sol                                                   | 91.67% (11/12)     | 93.33% (14/15)     | 75.00% (3/4)     | 100.00% (3/3)    |
-| src/libraries/DepositTokenLibrary.sol                                           | 100.00% (18/18)    | 100.00% (24/24)    | 100.00% (0/0)    | 100.00% (4/4)    |
+| src/libraries/DepositTokenLibrary.sol                                           | 100.00% (10/10)    | 100.00% (10/10)    | 100.00% (0/0)    | 100.00% (4/4)    |
 | src/libraries/LoanLibrary.sol                                                   | 96.77% (30/31)     | 97.83% (45/46)     | 93.33% (14/15)   | 100.00% (8/8)    |
 | src/libraries/Math.sol                                                          | 100.00% (17/17)    | 100.00% (25/25)    | 100.00% (5/5)    | 100.00% (6/6)    |
 | src/libraries/Multicall.sol                                                     | 100.00% (10/10)    | 100.00% (16/16)    | 100.00% (0/0)    | 100.00% (1/1)    |
@@ -111,7 +111,7 @@ yarn coverage
 | src/libraries/actions/Claim.sol                                                 | 100.00% (11/11)    | 100.00% (16/16)    | 100.00% (2/2)    | 100.00% (2/2)    |
 | src/libraries/actions/Compensate.sol                                            | 100.00% (48/48)    | 100.00% (53/53)    | 100.00% (13/13)  | 100.00% (2/2)    |
 | src/libraries/actions/Deposit.sol                                               | 100.00% (23/23)    | 100.00% (24/24)    | 100.00% (8/8)    | 100.00% (2/2)    |
-| src/libraries/actions/Initialize.sol                                            | 98.53% (67/68)     | 98.57% (69/70)     | 94.12% (16/17)   | 100.00% (11/11)  |
+| src/libraries/actions/Initialize.sol                                            | 68.32% (69/101)    | 61.21% (71/116)    | 64.00% (16/25)   | 84.62% (11/13)   |
 | src/libraries/actions/Liquidate.sol                                             | 100.00% (29/29)    | 100.00% (38/38)    | 100.00% (5/5)    | 100.00% (3/3)    |
 | src/libraries/actions/LiquidateWithReplacement.sol                              | 100.00% (32/32)    | 100.00% (42/42)    | 100.00% (5/5)    | 100.00% (3/3)    |
 | src/libraries/actions/Repay.sol                                                 | 100.00% (9/9)      | 100.00% (11/11)    | 100.00% (2/2)    | 100.00% (2/2)    |
@@ -122,44 +122,51 @@ yarn coverage
 | src/libraries/actions/UpdateConfig.sol                                          | 100.00% (48/48)    | 100.00% (51/51)    | 100.00% (32/32)  | 100.00% (5/5)    |
 | src/libraries/actions/Withdraw.sol                                              | 100.00% (18/18)    | 100.00% (18/18)    | 100.00% (7/7)    | 100.00% (2/2)    |
 | src/oracle/PriceFeed.sol                                                        | 96.43% (27/28)     | 97.96% (48/49)     | 91.67% (11/12)   | 100.00% (3/3)    |
-| src/token/NonTransferrableScaledToken.sol                                       | 82.98% (39/47)     | 84.48% (49/58)     | 14.29% (1/7)     | 69.23% (9/13)    |
 | src/token/NonTransferrableToken.sol                                             | 90.91% (10/11)     | 92.31% (12/13)     | 0.00% (0/1)      | 100.00% (8/8)    |
+| src/token/deprecated/NonTransferrableScaledTokenV1.sol                          | 85.71% (18/21)     | 90.00% (27/30)     | 0.00% (0/1)      | 50.00% (6/12)    |
+| src/token/deprecated/NonTransferrableScaledTokenV1_2.sol                        | 80.85% (38/47)     | 82.76% (48/58)     | 0.00% (0/7)      | 53.85% (7/13)    |
+| src/v1.5/SizeFactory.sol                                                        | 100.00% (69/69)    | 100.00% (88/88)    | 100.00% (6/6)    | 96.77% (30/31)   |
+| src/v1.5/libraries/MarketFactoryLibrary.sol                                     | 100.00% (2/2)      | 100.00% (3/3)      | 100.00% (0/0)    | 100.00% (1/1)    |
+| src/v1.5/libraries/NonTransferrableScaledTokenV1_5FactoryLibrary.sol            | 100.00% (1/1)      | 100.00% (1/1)      | 100.00% (0/0)    | 100.00% (1/1)    |
+| src/v1.5/libraries/PriceFeedFactoryLibrary.sol                                  | 100.00% (1/1)      | 100.00% (1/1)      | 100.00% (0/0)    | 100.00% (1/1)    |
+| src/v1.5/token/NonTransferrableScaledTokenV1_5.sol                              | 88.57% (62/70)     | 90.80% (79/87)     | 25.00% (2/8)     | 85.00% (17/20)   |
 
 ### Tests per file
 
 ```markdown
-┌─────────────────────────────┬────────┐
-│           (index)           │ Values │
-├─────────────────────────────┼────────┤
-│       BuyCreditLimit        │   4    │
-│       BuyCreditMarket       │   10   │
-│            Claim            │   10   │
-│         Compensate          │   20   │
-│       CryticToFoundry       │   27   │
-│           Deposit           │   5    │
-│        GenericMarket        │   20   │
-│         Initialize          │   4    │
-│  LiquidateWithReplacement   │   6    │
-│          Liquidate          │   12   │
-│            Math             │   6    │
-│          Multicall          │   9    │
-│ NonTransferrableScaledToken │   2    │
-│    NonTransferrableToken    │   8    │
-│        OfferLibrary         │   1    │
-│            Pause            │   2    │
-│          PriceFeed          │   9    │
-│            Repay            │   7    │
-│        SelfLiquidate        │   10   │
-│       SellCreditLimit       │   5    │
-│      SellCreditMarket       │   13   │
-│    SetUserConfiguration     │   3    │
-│          SizeView           │   5    │
-│          SwapData           │   3    │
-│        UpdateConfig         │   7    │
-│           Upgrade           │   2    │
-│          Withdraw           │   9    │
-│         YieldCurve          │   14   │
-└─────────────────────────────┴────────┘
+┌───────────────────────────────┬────────┐
+│            (index)            │ Values │
+├───────────────────────────────┼────────┤
+│        BuyCreditLimit         │   4    │
+│        BuyCreditMarket        │   10   │
+│             Claim             │   10   │
+│          Compensate           │   20   │
+│        CryticToFoundry        │   27   │
+│            Deposit            │   5    │
+│         GenericMarket         │   20   │
+│          Initialize           │   4    │
+│   LiquidateWithReplacement    │   6    │
+│           Liquidate           │   12   │
+│             Math              │   6    │
+│           Multicall           │   9    │
+│ NonTransferrableScaledTokenV1 │   17   │
+│     NonTransferrableToken     │   8    │
+│         OfferLibrary          │   1    │
+│             Pause             │   2    │
+│           PriceFeed           │   9    │
+│             Repay             │   7    │
+│         SelfLiquidate         │   10   │
+│        SellCreditLimit        │   5    │
+│       SellCreditMarket        │   13   │
+│     SetUserConfiguration      │   3    │
+│          SizeFactory          │   34   │
+│           SizeView            │   5    │
+│           SwapData            │   3    │
+│         UpdateConfig          │   7    │
+│            Upgrade            │   2    │
+│           Withdraw            │   9    │
+│          YieldCurve           │   14   │
+└───────────────────────────────┴────────┘
 ```
 <!-- END_COVERAGE -->
 
@@ -272,3 +279,32 @@ If it does not work, try removing `--verify`
 source .env.sepolia
 forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
 ```
+
+### v1.5 migration
+
+1. Deploy the SizeFactory
+
+```bash
+source .env
+export NETWORK_CONFIGURATION=base-sepolia-size-factory
+forge script script/DeploySizeFactory.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
+```
+
+2. Manually call `sizeFactory.addMarket` (x2), `sizeFactory.addPriceFeed` (x2)
+
+3. Manually call `sizeFactory.createBorrowATokenV1_5`
+
+4. Verify the correctness through `sizeFactory.get{Markets,PriceFeeds}Descriptions`
+
+5. Pause all markets
+
+6. Call `GetV1_5ReinitializeDataScript`
+
+```bash
+source .env
+forge script script/GetV1_5ReinitializeData.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi -vvvvv
+```
+
+7. Manually upgrade and reinitialize the markets: `size.upgradeToAndCall(sizeFactory.sizeImplementation(), "reinitialize")`
+
+8. Unpause all markets

@@ -5,8 +5,9 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {User} from "@src/SizeStorage.sol";
-import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
+
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
+import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
 struct UserView {
     // The user struct
@@ -33,7 +34,7 @@ struct DataView {
     // The collateral token
     NonTransferrableToken collateralToken;
     // The borrow aToken
-    NonTransferrableScaledToken borrowAToken;
+    NonTransferrableScaledTokenV1_5 borrowAToken;
     // The debt token
     NonTransferrableToken debtToken;
     // The variable pool

@@ -3,12 +3,11 @@ pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
 
-import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {CryticAsserts} from "@chimera/CryticAsserts.sol";
 import {vm} from "@chimera/Hevm.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import {NonTransferrableScaledToken} from "@src/token/NonTransferrableScaledToken.sol";
-import {NonTransferrableScaledTokenV1} from "@test/local/token/differential/NonTransferrableScaledTokenV1.sol";
+import {NonTransferrableScaledTokenV1} from "@src/token/deprecated/NonTransferrableScaledTokenV1.sol";
+import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
 import {INonTransferrableScaledTokenCall} from
     "@test/local/token/differential/interfaces/INonTransferrableScaledTokenCall.sol";
 import {INonTransferrableScaledTokenStaticcall} from
@@ -22,7 +21,7 @@ contract CryticNonTransferrableScaledTokenDifferentialCryticTester is CryticAsse
     string private constant ERROR = "ERROR";
 
     NonTransferrableScaledTokenV1 private v1;
-    NonTransferrableScaledToken private v2;
+    NonTransferrableScaledTokenV1_2 private v1_2;
     USDC private underlying;
     IPool private pool;
 
@@ -37,7 +36,7 @@ contract CryticNonTransferrableScaledTokenDifferentialCryticTester is CryticAsse
             string.concat(underlying.symbol(), " TEST"),
             underlying.decimals()
         );
-        v2 = new NonTransferrableScaledToken(
+        v1_2 = new NonTransferrableScaledTokenV1_2(
             pool,
             IERC20Metadata(underlying),
             msg.sender,
@@ -76,65 +75,71 @@ contract CryticNonTransferrableScaledTokenDifferentialCryticTester is CryticAsse
 
     function mintScaled(address to, uint256 scaledAmount) external {
         callFunction(
-            address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenCall.mintScaled, (to, scaledAmount))
+            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenCall.mintScaled, (to, scaledAmount))
         );
     }
 
     function burnScaled(address from, uint256 scaledAmount) external {
         callFunction(
-            address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenCall.burnScaled, (from, scaledAmount))
+            address(v1),
+            address(v1_2),
+            abi.encodeCall(INonTransferrableScaledTokenCall.burnScaled, (from, scaledAmount))
         );
     }
 
     function transferFrom(address from, address to, uint256 value) external {
         callFunction(
-            address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenCall.transferFrom, (from, to, value))
+            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenCall.transferFrom, (from, to, value))
         );
     }
 
     function transfer(address to, uint256 value) external {
-        callFunction(address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenCall.transfer, (to, value)));
+        callFunction(address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenCall.transfer, (to, value)));
     }
 
     function approve(address spender, uint256 value) external {
         callFunction(
-            address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenCall.approve, (spender, value))
+            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenCall.approve, (spender, value))
         );
     }
 
     function allowance(address owner, address spender) external {
         staticCallFunction(
-            address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.allowance, (owner, spender))
+            address(v1),
+            address(v1_2),
+            abi.encodeCall(INonTransferrableScaledTokenStaticcall.allowance, (owner, spender))
         );
     }
 
     function scaledBalanceOf(address account) external {
         staticCallFunction(
-            address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.scaledBalanceOf, (account))
+            address(v1),
+            address(v1_2),
+            abi.encodeCall(INonTransferrableScaledTokenStaticcall.scaledBalanceOf, (account))
         );
     }
 
     function balanceOf(address account) external {
         staticCallFunction(
-            address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.balanceOf, (account))
+            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.balanceOf, (account))
         );
     }
 
     function scaledTotalSupply() external {
         staticCallFunction(
-            address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.scaledTotalSupply, ())
+            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.scaledTotalSupply, ())
         );
     }
 
     function totalSupply() external {
         staticCallFunction(
-            address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.totalSupply, ())
+            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.totalSupply, ())
         );
     }
 
     function liquidityIndex() external {
         staticCallFunction(
-            address(v1), address(v2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.liquidityIndex, ())
+            address(v1), address(v1_2), abi.encodeCall(INonTransferrableScaledTokenStaticcall.liquidityIndex, ())
         );
     }
 }

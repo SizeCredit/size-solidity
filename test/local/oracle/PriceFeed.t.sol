@@ -59,7 +59,7 @@ contract PriceFeedTest is Test, AssertsHelper {
         new PriceFeed(address(stethToEth), address(stethToEth), address(sequencerUptimeFeed), 3600, 86400);
     }
 
-    function test_PriceFeed_getPrice_success() public {
+    function test_PriceFeed_getPrice_success() public view {
         assertEq(priceFeed.getPrice(), Math.mulDivDown(uint256(2200.12e18), 1e18, uint256(0.9999e18)));
     }
 
@@ -135,7 +135,7 @@ contract PriceFeedTest is Test, AssertsHelper {
         priceFeed.getPrice();
     }
 
-    function test_PriceFeed_getPrice_direct() public {
+    function test_PriceFeed_getPrice_direct() public view {
         assertEq(priceFeedStethToEth.getPrice(), uint256(0.9997e18));
         assertEq(priceFeedStethToEth.decimals(), 18);
     }
@@ -148,7 +148,7 @@ contract PriceFeedTest is Test, AssertsHelper {
         assertEq(priceFeedStethToEth.decimals(), 18);
     }
 
-    function test_PriceFeed_getPrice_is_consistent() public {
+    function test_PriceFeed_getPrice_is_consistent() public view {
         uint256 price_1 = priceFeed.getPrice();
         uint256 price_2 = priceFeed.getPrice();
         uint256 price_3 = priceFeed.getPrice();

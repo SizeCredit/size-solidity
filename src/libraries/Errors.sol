@@ -79,7 +79,17 @@ library Errors {
     error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
 
     error NOT_SUPPORTED();
+    error REINITIALIZE_MIGRATION_EXPECTED_IN_ONE_TRANSACTION(uint256 totalSupply);
+    error REINITIALIZE_ALL_CLAIMS_PRESERVED(
+        uint256 newScaledTotalSupplyAfter, uint256 newScaledTotalSupplyBefore, uint256 oldScaledTotalSupply
+    );
+    error REINITIALIZE_INSOLVENT(uint256 newTotalSupplyAfter, uint256 newTotalSupplyBefore, uint256 aTokenBalance);
+    error REINITIALIZE_PER_USER_CHECK(uint256 expected, uint256 actual);
+    error REINITIALIZE_PER_USER_CHECK_DELTA(uint256 expected, uint256 actual);
 
     error SEQUENCER_DOWN();
     error GRACE_PERIOD_NOT_OVER();
+
+    error ALREADY_INITIALIZED(address account);
+    error UNAUTHORIZED(address account);
 }

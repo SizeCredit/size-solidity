@@ -19,7 +19,7 @@ contract DeployScriptTest is ForkTest, BaseTestVariablePool {
         vm.rollFork(6252509);
     }
 
-    function testFork_Deploy_size_is_configured() public {
+    function testFork_Deploy_size_is_configured() public view {
         assertTrue(address(size.data().variablePool) != address(0));
         assertTrue(address(size.oracle().priceFeed) != address(0));
         assertTrue(address(size.feeConfig().feeRecipient) != address(0));

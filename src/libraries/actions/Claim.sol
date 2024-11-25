@@ -50,10 +50,10 @@ library Claim {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 claimAmount = Math.mulDivDown(
-            creditPosition.credit, state.data.borrowAToken.liquidityIndex(), debtPosition.liquidityIndexAtRepayment
+            creditPosition.credit, state.data.borrowATokenV1_5.liquidityIndex(), debtPosition.liquidityIndexAtRepayment
         );
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
-        state.data.borrowAToken.transferFrom(address(this), creditPosition.lender, claimAmount);
+        state.data.borrowATokenV1_5.transferFrom(address(this), creditPosition.lender, claimAmount);
 
         emit Events.Claim(params.creditPositionId, creditPosition.debtPositionId);
     }

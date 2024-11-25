@@ -5,7 +5,7 @@ import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract OfferLibraryTest is Test {
-    function test_OfferLibrary_isNull() public {
+    function test_OfferLibrary_isNull() public pure {
         LimitOrder memory l;
         assertEq(OfferLibrary.isNull(l), true);
 

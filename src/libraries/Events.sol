@@ -18,6 +18,13 @@ library Events {
     event Initialize(
         InitializeFeeConfigParams f, InitializeRiskConfigParams r, InitializeOracleParams o, InitializeDataParams d
     );
+    event ReinitializeV1_5(
+        address indexed borrowATokenV1_5,
+        uint256 oldTotalSupply,
+        uint256 oldScaledTotalSupply,
+        uint256 totalSupply,
+        uint256 scaledTotalSupply
+    );
     event Deposit(address indexed token, address indexed to, uint256 amount);
     event Withdraw(address indexed token, address indexed to, uint256 amount);
     event UpdateConfig(string indexed key, uint256 value);

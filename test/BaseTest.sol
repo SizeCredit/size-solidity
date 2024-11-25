@@ -85,6 +85,8 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.label(address(size.data().borrowAToken), "szaUSDC");
         vm.label(address(size.data().debtToken), "szDebtUSDC");
 
+        vm.label(address(sizeFactory), "SizeFactory");
+
         vm.label(address(0), "address(0)");
     }
 
