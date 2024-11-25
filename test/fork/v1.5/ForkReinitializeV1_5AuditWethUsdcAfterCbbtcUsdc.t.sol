@@ -7,7 +7,6 @@ import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Size} from "@src/Size.sol";
-import {PriceFeed} from "@src/oracle/PriceFeed.sol";
 
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
@@ -17,10 +16,13 @@ import {BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
 
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
-import {ForkReinitializeV1_5Test} from "@test/fork/v1.5/ForkReinitializeV1_5.t.sol";
+import {ForkReinitializeV1_5WethUsdcAfterCbbtcUsdcTest} from
+    "@test/fork/v1.5/ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc.t.sol";
 
 /// @notice Tests added by 0xAlix2
-contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
+contract ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdcWethUsdcAfterCbbtcUsdcTest is
+    ForkReinitializeV1_5WethUsdcAfterCbbtcUsdcTest
+{
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
     IERC20Metadata internal USDC;
@@ -48,13 +50,10 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
         CBBTC.transfer(user, amount);
     }
 
-    function testFork_ForkReinitializeV1_5Audit_LoanBeforeReinitializationRepayAfter() public {
+    function testFork_ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdc_LoanBeforeReinitializationRepayAfter() public {
         USDC = sizeWethUsdc.data().underlyingBorrowToken;
         WETH = sizeWethUsdc.data().underlyingCollateralToken;
         v1_5 = new Size();
-
-        sizeFactory = _deploySizeFactory(owner);
-        _deployNewBorrowAToken();
 
         importV1_5ReinitializeData("base-production-weth-usdc", addressesWethUsdc);
         WETH_USDC_users = addressesWethUsdc.keys();
@@ -104,19 +103,9 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
 
         {
             vm.startPrank(owner);
-            sizeFactory.addMarket(sizeWethUsdc);
-            sizeFactory.addPriceFeed(PriceFeed(address(priceFeedWethUsdc)));
-            sizeFactory.addBorrowATokenV1_5(newBorrowAToken);
-
-            sizeWethUsdc.pause();
-
-            // Fetch holders
-
             UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(
                 address(v1_5), abi.encodeCall(Size.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
             );
-
-            sizeWethUsdc.unpause();
             vm.stopPrank();
         }
 
@@ -139,14 +128,11 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
         }
     }
 
-    function testFork_ForkReinitializeV1_5Audit_LoanOn2Markets() public {
+    function testFork_ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdc_LoanOn2Markets() public {
         USDC = sizeWethUsdc.data().underlyingBorrowToken;
         WETH = sizeWethUsdc.data().underlyingCollateralToken;
         CBBTC = sizeCbbtcUsdc.data().underlyingCollateralToken;
         v1_5 = new Size();
-
-        sizeFactory = _deploySizeFactory(owner);
-        _deployNewBorrowAToken();
 
         importV1_5ReinitializeData("base-production-weth-usdc", addressesWethUsdc);
         WETH_USDC_users = addressesWethUsdc.keys();
@@ -191,34 +177,9 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
 
         vm.startPrank(owner);
         {
-            sizeFactory.addMarket(sizeWethUsdc);
-            sizeFactory.addPriceFeed(PriceFeed(address(priceFeedWethUsdc)));
-            sizeFactory.addBorrowATokenV1_5(newBorrowAToken);
-
-            sizeWethUsdc.pause();
-
-            // Fetch holders
-
             UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(
                 address(v1_5), abi.encodeCall(Size.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
             );
-
-            sizeWethUsdc.unpause();
-        }
-        {
-            sizeFactory.addMarket(sizeCbbtcUsdc);
-            sizeFactory.addPriceFeed(PriceFeed(address(priceFeedCbbtcUsdc)));
-            sizeFactory.addBorrowATokenV1_5(newBorrowAToken);
-
-            sizeCbbtcUsdc.pause();
-
-            // Fetch holders
-
-            UUPSUpgradeable(address(sizeCbbtcUsdc)).upgradeToAndCall(
-                address(v1_5), abi.encodeCall(Size.reinitialize, (address(newBorrowAToken), cBBTC_USDC_users))
-            );
-
-            sizeCbbtcUsdc.unpause();
         }
         vm.stopPrank();
 
@@ -288,10 +249,7 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
         }
     }
 
-    function testFork_ForkReinitializeV1_5Audit_ATokenDonationReinitializeDOS() public {
-        sizeFactory = _deploySizeFactory(owner);
-        _deployNewBorrowAToken();
-
+    function testFork_ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdc_ATokenDonationReinitializeDOS() public {
         USDC = sizeWethUsdc.data().underlyingBorrowToken;
         IAToken aUSDC = IAToken(sizeWethUsdc.data().variablePool.getReserveData(address(USDC)).aTokenAddress);
 
@@ -300,9 +258,6 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
         vm.prank(aUSDC_holder);
         aUSDC.transfer(address(sizeWethUsdc), 1e6);
 
-        Supply memory old;
-        _testFork_ForkReinitializeV1_5_migrate(
-            "base-production-weth-usdc", sizeWethUsdc, priceFeedWethUsdc, addressesWethUsdc, old, true
-        );
+        testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_migrate_WETH_USDC();
     }
 }

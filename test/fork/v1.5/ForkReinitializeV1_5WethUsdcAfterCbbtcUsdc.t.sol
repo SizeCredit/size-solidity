@@ -4,42 +4,34 @@ pragma solidity 0.8.23;
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
-import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {PriceFeed} from "@src/oracle/PriceFeed.sol";
 
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {Size} from "@src/Size.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 
 import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
-import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
 
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
-contract ForkReinitializeV1_5Test is ForkTest {
+contract ForkReinitializeV1_5WethUsdcAfterCbbtcUsdcTest is ForkTest {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
-    uint256 internal BLOCK_NUMBER = 22746717;
+    uint256 internal BLOCK_NUMBER_CBBTC_USDC_ALREADY_MIGRATED = 22761358;
 
     ISize internal sizeWethUsdc;
     ISize internal sizeCbbtcUsdc;
-    IPriceFeed internal priceFeedWethUsdc;
-    IPriceFeed internal priceFeedCbbtcUsdc;
     EnumerableMap.AddressToUintMap internal addressesWethUsdc;
     EnumerableMap.AddressToUintMap internal addressesCbbtcUsdc;
+    EnumerableMap.AddressToUintMap internal oldScaledBalancesWethUsdc;
+    EnumerableMap.AddressToUintMap internal newScaledBalancesWethUsdc;
     bytes internal dataWethUsdc;
-    bytes internal dataCbbtcUsdc;
 
     NonTransferrableScaledTokenV1_5 internal newBorrowAToken;
-
-    struct Supply {
-        uint256 totalSupply;
-        uint256 scaledTotalSupply;
-    }
 
     struct Vars {
         uint256 balanceBefore;
@@ -58,13 +50,16 @@ contract ForkReinitializeV1_5Test is ForkTest {
 
     function setUp() public override {
         vm.createSelectFork("base");
-        vm.rollFork(BLOCK_NUMBER);
+        vm.rollFork(BLOCK_NUMBER_CBBTC_USDC_ALREADY_MIGRATED);
 
         address sizeWethUsdcOwner;
         address sizeCbbtcUsdcOwner;
 
-        (sizeWethUsdc, priceFeedWethUsdc, sizeWethUsdcOwner) = importDeployments("base-production-weth-usdc");
-        (sizeCbbtcUsdc, priceFeedCbbtcUsdc, sizeCbbtcUsdcOwner) = importDeployments("base-production-cbbtc-usdc");
+        (sizeWethUsdc,, sizeWethUsdcOwner) = importDeployments("base-production-weth-usdc");
+        (sizeCbbtcUsdc,, sizeCbbtcUsdcOwner) = importDeployments("base-production-cbbtc-usdc");
+
+        assertTrue(Strings.equal(sizeCbbtcUsdc.version(), "v1.5"));
+        assertTrue(!Strings.equal(sizeWethUsdc.version(), "v1.5"));
 
         IERC20Metadata sizeWethUsdcBorrowToken = sizeWethUsdc.data().underlyingBorrowToken;
         IERC20Metadata sizeCbbtcUsdcBorrowToken = sizeCbbtcUsdc.data().underlyingBorrowToken;
@@ -81,84 +76,36 @@ contract ForkReinitializeV1_5Test is ForkTest {
         borrowToken = sizeWethUsdcBorrowToken;
         uint256 blockNumberWethUsdc;
         uint256 blockNumberCbbtcUsdc;
-        (blockNumberWethUsdc, dataWethUsdc) = importV1_5ReinitializeData("base-production-weth-usdc", addressesWethUsdc);
-        (blockNumberCbbtcUsdc, dataCbbtcUsdc) =
-            importV1_5ReinitializeData("base-production-cbbtc-usdc", addressesCbbtcUsdc);
-        assertEq(blockNumberWethUsdc, blockNumberCbbtcUsdc, BLOCK_NUMBER);
+        (blockNumberWethUsdc, dataWethUsdc) =
+            importV1_5ReinitializeData("base-production-weth-usdc-after-cbbtc-usdc", addressesWethUsdc);
+        (blockNumberCbbtcUsdc,) = importV1_5ReinitializeData("base-production-cbbtc-usdc", addressesCbbtcUsdc);
+        assertLt(blockNumberCbbtcUsdc, BLOCK_NUMBER_CBBTC_USDC_ALREADY_MIGRATED);
+        assertEq(blockNumberWethUsdc, BLOCK_NUMBER_CBBTC_USDC_ALREADY_MIGRATED);
+
+        sizeFactory = importSizeFactory("base-production-size-factory");
+        newBorrowAToken = NonTransferrableScaledTokenV1_5(address(sizeFactory.getBorrowATokensV1_5()[0]));
     }
 
-    function _deployNewBorrowAToken() internal {
-        newBorrowAToken = _deployBorrowAToken(owner, ISizeFactory(sizeFactory), variablePool, borrowToken);
-    }
-
-    function testFork_ForkReinitializeV1_5_migrate_WETH_USDC() public {
-        sizeFactory = _deploySizeFactory(owner);
-        _deployNewBorrowAToken();
-
+    function testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_migrate_WETH_USDC() public {
         string memory market = "base-production-weth-usdc";
         ISize isize = sizeWethUsdc;
-        IPriceFeed ipriceFeed = priceFeedWethUsdc;
         EnumerableMap.AddressToUintMap storage addresses = addressesWethUsdc;
 
-        Supply memory old;
-        _testFork_ForkReinitializeV1_5_migrate(market, isize, ipriceFeed, addresses, old, true);
-    }
-
-    function testFork_ForkReinitializeV1_5_migrate_cBBTC_USDC() public {
-        sizeFactory = _deploySizeFactory(owner);
-        _deployNewBorrowAToken();
-
-        string memory market = "base-production-cbbtc-usdc";
-        ISize isize = sizeCbbtcUsdc;
-        IPriceFeed ipriceFeed = priceFeedCbbtcUsdc;
-        EnumerableMap.AddressToUintMap storage addresses = addressesCbbtcUsdc;
-
-        Supply memory old;
-        _testFork_ForkReinitializeV1_5_migrate(market, isize, ipriceFeed, addresses, old, true);
-    }
-
-    function testFork_ForkReinitializeV1_5_migrate_2_existing_markets() public {
-        sizeFactory = _deploySizeFactory(owner);
-        _deployNewBorrowAToken();
-
-        string[2] memory markets = ["base-production-weth-usdc", "base-production-cbbtc-usdc"];
-        IPriceFeed[2] memory ipriceFeeds = [priceFeedWethUsdc, priceFeedCbbtcUsdc];
-        ISize[2] memory sizes = [sizeWethUsdc, sizeCbbtcUsdc];
-        Supply memory old;
-        for (uint256 i = 0; i < markets.length; i++) {
-            ISize isize = sizes[i];
-            IPriceFeed ipriceFeed = ipriceFeeds[i];
-            string memory market = markets[i];
-            EnumerableMap.AddressToUintMap storage addresses = i == 0 ? addressesWethUsdc : addressesCbbtcUsdc;
-
-            _testFork_ForkReinitializeV1_5_migrate(market, isize, ipriceFeed, addresses, old, false);
-        }
-    }
-
-    function _testFork_ForkReinitializeV1_5_migrate(
-        string memory market,
-        ISize isize,
-        IPriceFeed ipriceFeed,
-        EnumerableMap.AddressToUintMap storage addresses,
-        Supply memory old,
-        bool withdraw
-    ) internal {
+        uint256 scaledTotalSupply;
         address[] memory users = addresses.keys();
 
         console.log("Market: %s, Users: %s", market, users.length);
 
-        vm.prank(owner);
-        sizeFactory.addMarket(isize);
-        vm.prank(owner);
-        sizeFactory.addPriceFeed(PriceFeed(address(ipriceFeed)));
-        vm.prank(owner);
-        sizeFactory.addBorrowATokenV1_5(newBorrowAToken);
-
         NonTransferrableScaledTokenV1_2 borrowATokenV1_2 =
             NonTransferrableScaledTokenV1_2(address(isize.data().borrowAToken));
 
-        old.totalSupply += borrowATokenV1_2.totalSupply();
-        old.scaledTotalSupply += borrowATokenV1_2.scaledTotalSupply();
+        scaledTotalSupply += borrowATokenV1_2.scaledTotalSupply();
+        uint256 newBorrowATokenScaledTotalSupplyBefore = newBorrowAToken.scaledTotalSupply();
+        for (uint256 i = 0; i < users.length; i++) {
+            address user = users[i];
+            oldScaledBalancesWethUsdc.set(user, borrowATokenV1_2.scaledBalanceOf(user));
+            newScaledBalancesWethUsdc.set(user, newBorrowAToken.scaledBalanceOf(user));
+        }
 
         Size v1_5 = new Size();
 
@@ -171,31 +118,30 @@ contract ForkReinitializeV1_5Test is ForkTest {
 
         assertEq(borrowATokenV1_2.totalSupply(), 0, "totalSupply should be 0");
         assertEq(borrowATokenV1_2.scaledTotalSupply(), 0, "scaledTotalSupply should be 0");
-        assertEq(
+        assertGe(
             newBorrowAToken.scaledTotalSupply(),
-            old.scaledTotalSupply,
-            "new scaledTotalSupply = SUM(old scaledTotalSupply)"
+            newBorrowATokenScaledTotalSupplyBefore + scaledTotalSupply,
+            "new scaledTotalSupply delta = SUM(old scaledTotalSupply)"
         );
-        assertEqApprox(newBorrowAToken.totalSupply(), old.totalSupply, 1, "new totalSupply = SUM(old totalSupply)");
 
         console.log("Migration completed for market: %s", market);
 
-        if (withdraw) {
-            for (uint256 i = 0; i < users.length; i++) {
-                address user = users[i];
-                uint256 oldBalance = addresses.get(user);
-                uint256 newBalance = newBorrowAToken.balanceOf(user);
+        for (uint256 i = 0; i < users.length; i++) {
+            address user = users[i];
+            uint256 balance = newBorrowAToken.balanceOf(user);
 
-                assertEq(newBalance, oldBalance, "newBalance == oldBalance");
+            assertEq(
+                oldScaledBalancesWethUsdc.get(user) + newScaledBalancesWethUsdc.get(user),
+                newBorrowAToken.scaledBalanceOf(user)
+            );
 
-                uint256 balanceBefore = borrowToken.balanceOf(user);
+            uint256 balanceBefore = borrowToken.balanceOf(user);
 
-                vm.prank(user);
-                isize.withdraw(WithdrawParams({token: address(borrowToken), amount: newBalance, to: user}));
+            vm.prank(user);
+            isize.withdraw(WithdrawParams({token: address(borrowToken), amount: balance, to: user}));
 
-                uint256 balanceAfter = borrowToken.balanceOf(user);
-                assertEq(balanceAfter, balanceBefore + newBalance, "users can withdraw everything");
-            }
+            uint256 balanceAfter = borrowToken.balanceOf(user);
+            assertEq(balanceAfter, balanceBefore + balance, "users can withdraw everything");
         }
     }
 
@@ -210,8 +156,8 @@ contract ForkReinitializeV1_5Test is ForkTest {
         assertTrue(userWhoHadDepositsInBothMarkets != address(0), "userWhoHadDepositsInBothMarkets != address(0)");
     }
 
-    function testFork_ForkReinitializeV1_5_deposit_withdraw_after_migrate() public {
-        testFork_ForkReinitializeV1_5_migrate_2_existing_markets();
+    function testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_deposit_withdraw_after_migrate() public {
+        testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_migrate_WETH_USDC();
 
         address userWhoHadDepositsInBothMarkets = _getUserWhoHadDepositsInBothMarkets();
 
@@ -244,7 +190,7 @@ contract ForkReinitializeV1_5Test is ForkTest {
             "user has balance in newBorrowAToken"
         );
 
-        assertEq(vars.balanceAfter, vars.balanceBefore + amount, "user can deposit");
+        assertEqApprox(vars.balanceAfter, vars.balanceBefore + amount, 1, "user can deposit");
 
         vars.underlyingBalanceBeforeWithdraw = underlyingBorrowToken.balanceOf(userWhoHadDepositsInBothMarkets);
 
@@ -254,8 +200,8 @@ contract ForkReinitializeV1_5Test is ForkTest {
         );
 
         vars.underlyingBalanceAfterWithdraw = underlyingBorrowToken.balanceOf(userWhoHadDepositsInBothMarkets);
-        assertEq(
-            vars.underlyingBalanceAfterWithdraw, vars.underlyingBalanceBeforeWithdraw + amount, "user can withdraw"
+        assertEqApprox(
+            vars.underlyingBalanceAfterWithdraw, vars.underlyingBalanceBeforeWithdraw + amount, 1, "user can withdraw"
         );
 
         vars.balanceAfterWithdraw = newBorrowAToken.balanceOf(userWhoHadDepositsInBothMarkets);
@@ -268,7 +214,7 @@ contract ForkReinitializeV1_5Test is ForkTest {
         );
     }
 
-    function testFork_ForkReinitializeV1_5_cannot_be_DoS_by_donation_attack() public {
+    function testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_cannot_be_DoS_by_donation_attack() public {
         address userWhoHadDepositsInBothMarkets = _getUserWhoHadDepositsInBothMarkets();
 
         IPool variablePool = sizeWethUsdc.data().variablePool;
@@ -280,16 +226,13 @@ contract ForkReinitializeV1_5Test is ForkTest {
         vm.prank(userWhoHadDepositsInBothMarkets);
         variablePool.supply(address(borrowToken), amount, address(sizeWethUsdc), 0);
 
-        testFork_ForkReinitializeV1_5_migrate_2_existing_markets();
+        testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_migrate_WETH_USDC();
     }
 
-    function testFork_ForkReinitializeV1_5_works_with_data() public {
+    function testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_works_with_data() public {
         Size v1_5 = new Size();
 
         vm.prank(owner);
         UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(address(v1_5), dataWethUsdc);
-
-        vm.prank(owner);
-        UUPSUpgradeable(address(sizeCbbtcUsdc)).upgradeToAndCall(address(v1_5), dataCbbtcUsdc);
     }
 }

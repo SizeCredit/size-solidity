@@ -1,10 +1,13 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
+import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
 
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+import {ISizeV1_5} from "@src/v1.5/interfaces/ISizeV1_5.sol";
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Vm} from "forge-std/Vm.sol";
@@ -39,6 +42,12 @@ abstract contract BaseScript is Script {
         vm.startBroadcast();
         _;
         vm.stopBroadcast();
+    }
+
+    modifier ignoreGas() {
+        vm.pauseGasMetering();
+        _;
+        vm.resumeGasMetering();
     }
 
     function exportDeployments(string memory networkConfiguration) internal {
@@ -84,7 +93,8 @@ abstract contract BaseScript is Script {
     function exportV1_5ReinitializeData(
         string memory networkConfiguration,
         EnumerableMap.AddressToUintMap storage map,
-        uint256 blockNumber
+        uint256 blockNumber,
+        address borrowATokenV1_5
     ) internal {
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/v1.5/");
@@ -99,13 +109,14 @@ abstract contract BaseScript is Script {
         finalObject = vm.serializeAddress(".", "users", users);
         finalObject = vm.serializeUint(".", "values", values);
         finalObject = vm.serializeUint(".", "blockNumber", blockNumber);
-
+        finalObject =
+            vm.serializeBytes(".", "data", abi.encodeCall(ISizeV1_5.reinitialize, (address(borrowATokenV1_5), users)));
         vm.writeJson(finalObject, path);
     }
 
     function importV1_5ReinitializeData(string memory networkConfiguration, EnumerableMap.AddressToUintMap storage map)
         internal
-        returns (uint256 blockNumber)
+        returns (uint256 blockNumber, bytes memory data)
     {
         root = vm.projectRoot();
         path = string.concat(root, "/deployments/v1.5/");
@@ -117,11 +128,22 @@ abstract contract BaseScript is Script {
         address[] memory users = json.readAddressArray(".users");
         uint256[] memory values = json.readUintArray(".values");
         blockNumber = json.readUint(".blockNumber");
+        data = json.readBytes(".data");
 
         // Populate the map
         for (uint256 i = 0; i < users.length; i++) {
             map.set(users[i], values[i]);
         }
+    }
+
+    function importSizeFactory(string memory networkConfiguration) internal returns (SizeFactory sizeFactory) {
+        root = vm.projectRoot();
+        path = string.concat(root, "/deployments/");
+        path = string.concat(path, string.concat(networkConfiguration, ".json"));
+
+        string memory json = vm.readFile(path);
+
+        sizeFactory = SizeFactory(abi.decode(json.parseRaw(".deployments.SizeFactory-proxy"), (address)));
     }
 
     function getCommitHash() internal returns (string memory) {

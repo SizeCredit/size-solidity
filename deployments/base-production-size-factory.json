@@ -1,8 +1,8 @@
 {
   "chainId": "8453",
-  "commit": "d41a94c",
+  "commit": "e294ea5",
   "deployments": {
-    "SizeFactory-implementation": "0xa2ab0a146B4284dDadb03540241a9D20E00F159D",
+    "SizeFactory-implementation": "0xFa64CC164b87De05382dD7EfB3B2236ce8D90709",
     "SizeFactory-proxy": "0x330Dc31dB45672c1F565cf3EC91F9a01f8f3DF0b"
   },
   "networkConfiguration": "base-production-size-factory",

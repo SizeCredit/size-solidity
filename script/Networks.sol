@@ -23,6 +23,9 @@ struct NetworkConfiguration {
 abstract contract Networks {
     error InvalidNetworkConfiguration(string networkConfiguration);
 
+    uint256 public constant BASE_MAINNET = 8453;
+    uint256 public constant BASE_SEPOLIA = 84532;
+
     function params(string memory networkConfiguration) public pure returns (NetworkConfiguration memory) {
         if (Strings.equal(networkConfiguration, "sepolia-mocks")) {
             return NetworkConfiguration({

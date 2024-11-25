@@ -300,6 +300,11 @@ forge script script/DeploySizeFactory.s.sol --rpc-url $RPC_URL --gas-limit 30000
 
 6. Call `GetV1_5ReinitializeDataScript`
 
+```bash
+source .env
+forge script script/GetV1_5ReinitializeData.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi -vvvvv
+```
+
 7. Manually upgrade and reinitialize the markets: `size.upgradeToAndCall(sizeFactory.sizeImplementation(), "reinitialize")`
 
 8. Unpause all markets
