@@ -138,7 +138,7 @@ abstract contract Networks {
                 underlyingCollateralTokenAggregator: 0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D,
                 underlyingBorrowTokenAggregator: 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B,
                 sequencerUptimeFeed: 0xBCF85224fc0756B9Fa45aA7892530B47e10b6433,
-                underlyingCollateralTokenHeartbeat: 86400 * 1.1e18 / 1e18,
+                underlyingCollateralTokenHeartbeat: 1200 * 1.1e18 / 1e18,
                 underlyingBorrowTokenHeartbeat: 86400 * 1.1e18 / 1e18,
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
