@@ -11,6 +11,7 @@ Target networks:
 
 ## Audits
 
+- [2024-11-13 - Custodia Security](https://custodiasecurity.xyz/audits/Custodia%20Security%20-%20Size%20v1.5%20Review%20Report.pdf)
 - [2024-06-10 - Code4rena](https://code4rena.com/reports/2024-06-size)
 - [2024-06-08 - Spearbit](./audits/2024-06-08-Spearbit.pdf)
 - [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
@@ -208,9 +209,7 @@ for i in {0..5}; do halmos --loop $i; done
 
 ## Known limitations
 
-- The protocol currently supports only a single market (USDC/ETH for borrow/collateral tokens)
 - The protocol does not support rebasing/fee-on-transfer tokens
-- The protocol does not support tokens with different decimals than the current market
 - The protocol only supports tokens compliant with the IERC20Metadata interface
 - The protocol only supports pre-vetted tokens
 - The protocol owner, KEEPER_ROLE, PAUSER_ROLE, and BORROW_RATE_UPDATER_ROLE are trusted
@@ -268,6 +267,7 @@ If it does not work, try removing `--verify`
 
 ### Deployment checklist
 
+0. Due dilligence on borrow/collateral tokens: non-rebasing, IERC20Metadata
 1. Deploy
 2. Grant `KEEPER_ROLE` to keeper bot
 3. Grant `BORROW_RATE_UPDATER_ROLE` to updater bot

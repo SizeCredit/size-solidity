@@ -17,9 +17,9 @@ contract GetChainlinkAggregatorInformationScript is BaseScript, Networks, Deploy
 
     event NewRound(uint256 roundId, address startedBy, uint256 startedAt);
 
-    function run() public {
-        uint256 deploymentBlock = 20637165;
-        address aggregator = 0x52A12E019826C53B1f7Fd3E6D9546c0935377B95;
+    function run() public ignoreGas {
+        uint256 deploymentBlock = 17147278;
+        address aggregator = 0x330eC3210511cC8f5A87A737A08905092e033AF3;
 
         bytes32[] memory topics = new bytes32[](1);
         topics[0] = NewRound.selector;
@@ -33,14 +33,12 @@ contract GetChainlinkAggregatorInformationScript is BaseScript, Networks, Deploy
         while (fromBlock < toBlock) {
             uint256 endBlock = (fromBlock + batchSize > toBlock) ? toBlock : fromBlock + batchSize;
 
-            console.log("block range: %s - %s", fromBlock, endBlock);
-
             logs = vm.eth_getLogs(fromBlock, endBlock, aggregator, topics);
 
             for (uint256 j = 0; j < logs.length; j++) {
                 Vm.EthGetLogs memory log = logs[j];
                 uint64 blockNumber = log.blockNumber;
-                console.log("blockNumber: %s", blockNumber);
+                console.log("%s", blockNumber);
             }
 
             fromBlock = endBlock + 1;
