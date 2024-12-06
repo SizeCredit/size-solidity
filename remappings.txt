@@ -9,4 +9,5 @@
 @crytic/properties=lib/properties
 @aave=lib/aave-v3-core/contracts
 halmos-cheatcodes=lib/halmos-cheatcodes/src
-@uniswap/v3-core=lib/v3-core/contracts
+@uniswap/v3-core=lib/v3-core
+@uniswap/v3-periphery=lib/v3-periphery

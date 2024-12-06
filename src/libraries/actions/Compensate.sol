@@ -68,7 +68,7 @@ library Compensate {
             if (!state.isCreditPositionTransferrable(params.creditPositionToCompensateId)) {
                 revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
                     params.creditPositionToCompensateId,
-                    state.getLoanStatus(params.creditPositionToCompensateId),
+                    uint8(state.getLoanStatus(params.creditPositionToCompensateId)),
                     state.collateralRatio(debtPositionToCompensate.borrower)
                 );
             }

@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {ChainlinkSequencerUptimeFeed} from "@src/oracle/adapters/ChainlinkSequencerUptimeFeed.sol";
-import {ChainlinkPriceFeed} from "@src/oracle/adapters/ChainlinkPriceFeed.sol";
-import {UniswapV3PriceFeed} from "@src/oracle/adapters/UniswapV3PriceFeed.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {Errors} from "@src/libraries/Errors.sol";
+import {ChainlinkPriceFeed} from "@src/oracle/adapters/ChainlinkPriceFeed.sol";
+import {ChainlinkSequencerUptimeFeed} from "@src/oracle/adapters/ChainlinkSequencerUptimeFeed.sol";
+import {UniswapV3PriceFeed} from "@src/oracle/adapters/UniswapV3PriceFeed.sol";
+import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
 /// @title PriceFeed
 /// @custom:security-contact security@size.credit
@@ -19,29 +20,28 @@ contract PriceFeed is IPriceFeed {
     ChainlinkSequencerUptimeFeed public immutable chainlinkSequencerUptimeFeed;
     ChainlinkPriceFeed public immutable chainlinkPriceFeed;
     UniswapV3PriceFeed public immutable uniswapV3PriceFeed;
+
     constructor(
-        address _sequencerUptimeFeed,
+        IUniswapV3Factory _uniswapV3Factory,
+        uint32 _twapWindow,
+        IERC20Metadata _baseToken,
+        IERC20Metadata _quoteToken,
         address _baseAggregator,
         address _quoteAggregator,
         uint256 _baseStalePriceInterval,
-        uint256 _quoteStalePriceInterval
+        uint256 _quoteStalePriceInterval,
+        address _sequencerUptimeFeed
     ) {
-        chainlinkSequencerUptimeFeed = new ChainlinkSequencerUptimeFeed(
-            _sequencerUptimeFeed
-        );
+        chainlinkSequencerUptimeFeed = new ChainlinkSequencerUptimeFeed(_sequencerUptimeFeed);
         chainlinkPriceFeed = new ChainlinkPriceFeed(
-            decimals,
-            _baseAggregator,
-            _quoteAggregator,
-            _baseStalePriceInterval,
-            _quoteStalePriceInterval
+            decimals, _baseAggregator, _quoteAggregator, _baseStalePriceInterval, _quoteStalePriceInterval
         );
-        uniswapV3PriceFeed = new UniswapV3PriceFeed(decimals);
+        uniswapV3PriceFeed = new UniswapV3PriceFeed(decimals, _baseToken, _quoteToken, _uniswapV3Factory, _twapWindow);
     }
 
     function getPrice() external view override returns (uint256) {
         chainlinkSequencerUptimeFeed.validateSequencerIsUp();
- 
+
         try chainlinkPriceFeed.getPrice() returns (uint256 price) {
             return price;
         } catch {

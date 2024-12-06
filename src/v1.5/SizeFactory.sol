@@ -247,8 +247,13 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
         // slither-disable-start calls-loop
         for (uint256 i = 0; i < descriptions.length; i++) {
             PriceFeed priceFeed = PriceFeed(priceFeeds.at(i));
-            descriptions[i] =
-                string.concat("PriceFeed | ", priceFeed.chainlinkPriceFeed().quoteAggregator().description(), " | ", priceFeed.chainlinkPriceFeed().quoteAggregator().description());
+            descriptions[i] = string.concat(
+                "PriceFeed | ",
+                priceFeed.chainlinkPriceFeed().quoteAggregator().description(),
+                " | ",
+                priceFeed.chainlinkPriceFeed().quoteAggregator().description(),
+                " (v1.5.1)"
+            );
         }
         // slither-disable-end calls-loop
     }

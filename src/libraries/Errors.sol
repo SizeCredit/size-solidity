@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
-
 /// @title Errors
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -54,14 +52,14 @@ library Errors {
 
     error CREDIT_POSITION_ALREADY_CLAIMED(uint256 positionId);
 
-    error CREDIT_POSITION_NOT_TRANSFERRABLE(uint256 creditPositionId, LoanStatus status, uint256 borrowerCR);
+    error CREDIT_POSITION_NOT_TRANSFERRABLE(uint256 creditPositionId, uint8 loanStatus, uint256 borrowerCR);
 
     error LOAN_ALREADY_REPAID(uint256 positionId);
     error LOAN_NOT_REPAID(uint256 positionId);
     error LOAN_NOT_ACTIVE(uint256 positionId);
 
-    error LOAN_NOT_LIQUIDATABLE(uint256 debtPositionId, uint256 cr, LoanStatus status);
-    error LOAN_NOT_SELF_LIQUIDATABLE(uint256 creditPositionId, uint256 cr, LoanStatus status);
+    error LOAN_NOT_LIQUIDATABLE(uint256 debtPositionId, uint256 cr, uint8 loanStatus);
+    error LOAN_NOT_SELF_LIQUIDATABLE(uint256 creditPositionId, uint256 cr, uint8 loanStatus);
     error LIQUIDATE_PROFIT_BELOW_MINIMUM_COLLATERAL_PROFIT(
         uint256 liquidatorProfitCollateralToken, uint256 minimumCollateralProfit
     );
@@ -92,4 +90,6 @@ library Errors {
 
     error ALREADY_INITIALIZED(address account);
     error UNAUTHORIZED(address account);
+
+    error INVALID_FEE_TIER();
 }

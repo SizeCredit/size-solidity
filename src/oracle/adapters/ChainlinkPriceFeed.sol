@@ -3,9 +3,10 @@ pragma solidity 0.8.23;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+
+import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {Errors} from "@src/libraries/Errors.sol";
 
 /// @title ChainlinkPriceFeed
 /// @custom:security-contact security@size.credit
@@ -72,7 +73,9 @@ contract ChainlinkPriceFeed is IPriceFeed {
             return _getPrice(baseAggregator, baseStalePriceInterval) * 10 ** decimals / 10 ** baseAggregator.decimals();
         } else {
             return Math.mulDivDown(
-                _getPrice(baseAggregator, baseStalePriceInterval), 10 ** decimals, _getPrice(quoteAggregator, quoteStalePriceInterval)
+                _getPrice(baseAggregator, baseStalePriceInterval),
+                10 ** decimals,
+                _getPrice(quoteAggregator, quoteStalePriceInterval)
             );
         }
     }

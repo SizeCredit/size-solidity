@@ -16,14 +16,14 @@ contract ChainlinkSequencerUptimeFeed {
     AggregatorV3Interface public immutable sequencerUptimeFeed;
     /* solhint-enable */
 
-    constructor(
-        address _sequencerUptimeFeed
-    ) {
+    constructor(address _sequencerUptimeFeed) {
         // the _sequencerUptimeFeed can be null for unsupported networks
-        
+
         sequencerUptimeFeed = AggregatorV3Interface(_sequencerUptimeFeed);
     }
 
+    /// @notice Validates that the sequencer is up
+    /// @dev If the sequencer is down, reverts with the error message
     function validateSequencerIsUp() external view {
         if (address(sequencerUptimeFeed) != address(0)) {
             // slither-disable-next-line unused-return
