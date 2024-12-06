@@ -5,16 +5,16 @@ import {PriceFeed} from "@src/oracle/PriceFeed.sol";
 
 library PriceFeedFactoryLibrary {
     function createPriceFeed(
+        address sequencerUptimeFeed,
         address underlyingCollateralTokenAggregator,
         address underlyingBorrowTokenAggregator,
-        address sequencerUptimeFeed,
         uint256 underlyingCollateralTokenHeartbeat,
         uint256 underlyingBorrowTokenHeartbeat
     ) external returns (PriceFeed priceFeed) {
         priceFeed = new PriceFeed(
+            sequencerUptimeFeed,
             underlyingCollateralTokenAggregator,
             underlyingBorrowTokenAggregator,
-            sequencerUptimeFeed,
             underlyingCollateralTokenHeartbeat,
             underlyingBorrowTokenHeartbeat
         );

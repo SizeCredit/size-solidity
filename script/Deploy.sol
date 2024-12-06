@@ -195,9 +195,9 @@ abstract contract Deploy {
             priceFeed = new PriceFeedMock(_owner);
         } else {
             priceFeed = new PriceFeed(
+                _networkParams.sequencerUptimeFeed,
                 _networkParams.underlyingCollateralTokenAggregator,
                 _networkParams.underlyingBorrowTokenAggregator,
-                _networkParams.sequencerUptimeFeed,
                 _networkParams.underlyingCollateralTokenHeartbeat,
                 _networkParams.underlyingBorrowTokenHeartbeat
             );

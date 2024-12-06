@@ -95,16 +95,16 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
     }
 
     function createPriceFeed(
+        address sequencerUptimeFeed,
         address underlyingCollateralTokenAggregator,
         address underlyingBorrowTokenAggregator,
-        address sequencerUptimeFeed,
         uint256 underlyingCollateralTokenHeartbeat,
         uint256 underlyingBorrowTokenHeartbeat
     ) external onlyOwner returns (PriceFeed priceFeed) {
         priceFeed = PriceFeedFactoryLibrary.createPriceFeed(
+            sequencerUptimeFeed,
             underlyingCollateralTokenAggregator,
             underlyingBorrowTokenAggregator,
-            sequencerUptimeFeed,
             underlyingCollateralTokenHeartbeat,
             underlyingBorrowTokenHeartbeat
         );
@@ -248,7 +248,7 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
         for (uint256 i = 0; i < descriptions.length; i++) {
             PriceFeed priceFeed = PriceFeed(priceFeeds.at(i));
             descriptions[i] =
-                string.concat("PriceFeed | ", priceFeed.base().description(), " | ", priceFeed.quote().description());
+                string.concat("PriceFeed | ", priceFeed.chainlinkPriceFeed().quoteAggregator().description(), " | ", priceFeed.chainlinkPriceFeed().quoteAggregator().description());
         }
         // slither-disable-end calls-loop
     }
