@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
-
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
@@ -12,7 +11,6 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/PriceFeed.sol";
 import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
 import {BaseTest} from "@test/BaseTest.sol";
-import {UNISWAP_V3_FACTORY_BYTECODE} from "@test/local/v1.5/UniswapV3FactoryBytecode.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
 contract SizeFactoryTest is BaseTest {
@@ -44,22 +42,22 @@ contract SizeFactoryTest is BaseTest {
 
     function test_SizeFactory_set_2_existing_markets_1() public {
         assertEq(address(sizeFactory.getMarket(0)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[0], "Size | WETH | USDC | 130 | v1.5");
+        assertEq(sizeFactory.getMarketDescriptions()[0], "Size | WETH | USDC | 130 | v1.5.1");
 
         setupLocalGenericMarket(owner, feeRecipient, 60576e18, 0.9999e18, 8, 6, false, false);
 
         assertEq(address(sizeFactory.getMarket(1)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[1], "Size | CTK | BTK | 130 | v1.5");
+        assertEq(sizeFactory.getMarketDescriptions()[1], "Size | CTK | BTK | 130 | v1.5.1");
     }
 
     function test_SizeFactory_set_2_existing_markets_add_3rd_market() public {
         assertEq(address(sizeFactory.getMarket(0)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[0], "Size | WETH | USDC | 130 | v1.5");
+        assertEq(sizeFactory.getMarketDescriptions()[0], "Size | WETH | USDC | 130 | v1.5.1");
 
         setupLocalGenericMarket(owner, feeRecipient, 60576e18, 0.9999e18, 8, 6, false, false);
 
         assertEq(address(sizeFactory.getMarket(1)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[1], "Size | CTK | BTK | 130 | v1.5");
+        assertEq(sizeFactory.getMarketDescriptions()[1], "Size | CTK | BTK | 130 | v1.5.1");
 
         d.underlyingCollateralToken = address(new MockERC20("Liquid staked Ether 2.0", "stETH", 18));
         d.underlyingBorrowToken = address(weth);
@@ -74,7 +72,7 @@ contract SizeFactoryTest is BaseTest {
             assertTrue(address(markets[i]) != address(0));
             assertTrue(markets[i] != markets[i + 1]);
         }
-        assertEq(sizeFactory.getMarketDescriptions()[2], "Size | stETH | WETH | 125 | v1.5");
+        assertEq(sizeFactory.getMarketDescriptions()[2], "Size | stETH | WETH | 125 | v1.5.1");
     }
 
     function test_SizeFactory_set_2_existing_markets_add_3rd_market_remove_1st_market_tryRemove_unexistent_market()
@@ -108,8 +106,7 @@ contract SizeFactoryTest is BaseTest {
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        IUniswapV3Factory uniswapV3Factory = IUniswapV3Factory(makeAddr("UniswapV3Factory"));
-        vm.etch(makeAddr("UniswapV3Factory"), UNISWAP_V3_FACTORY_BYTECODE);
+        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
         uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000);
 
         vm.prank(owner);
@@ -177,13 +174,12 @@ contract SizeFactoryTest is BaseTest {
         assertFalse(existed);
     }
 
-    function test_SizeFactory_addPriceFeed() public {
+    function test_SizeFactory_addPriceFeed_1() public {
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        IUniswapV3Factory uniswapV3Factory = IUniswapV3Factory(makeAddr("UniswapV3Factory"));
-        vm.etch(makeAddr("UniswapV3Factory"), UNISWAP_V3_FACTORY_BYTECODE);
+        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
         uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000);
 
         vm.prank(owner);
@@ -214,8 +210,7 @@ contract SizeFactoryTest is BaseTest {
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        IUniswapV3Factory uniswapV3Factory = IUniswapV3Factory(makeAddr("UniswapV3Factory"));
-        vm.etch(makeAddr("UniswapV3Factory"), UNISWAP_V3_FACTORY_BYTECODE);
+        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
         uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000);
 
         vm.prank(owner);
@@ -261,8 +256,7 @@ contract SizeFactoryTest is BaseTest {
     function test_SizeFactory_getPriceFeedsCount() public {
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
-        IUniswapV3Factory uniswapV3Factory = IUniswapV3Factory(makeAddr("UniswapV3Factory"));
-        vm.etch(makeAddr("UniswapV3Factory"), UNISWAP_V3_FACTORY_BYTECODE);
+        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
         uint24 feeTier = 3000;
@@ -313,18 +307,17 @@ contract SizeFactoryTest is BaseTest {
         string[] memory descriptions = sizeFactory.getMarketDescriptions();
 
         assertEq(descriptions.length, 3);
-        assertEq(descriptions[2], "Size | MTA | MTB | 120 | v1.5");
+        assertEq(descriptions[2], "Size | MTA | MTB | 120 | v1.5.1");
     }
 
     function test_SizeFactory_getPriceFeedDescriptions() public {
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
-        IUniswapV3Factory uniswapV3Factory = IUniswapV3Factory(makeAddr("UniswapV3Factory"));
-        vm.etch(makeAddr("UniswapV3Factory"), UNISWAP_V3_FACTORY_BYTECODE);
+        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        uint24 feeTier = 3000;
         uint32 twapWindow = 30 minutes;
+        uint24 feeTier = 3000;
         uniswapV3Factory.createPool(address(baseToken), address(quoteToken), feeTier);
 
         vm.prank(owner);
@@ -345,7 +338,10 @@ contract SizeFactoryTest is BaseTest {
         string[] memory descriptions = sizeFactory.getPriceFeedDescriptions();
 
         assertEq(descriptions.length, 1);
-        assertEq(descriptions[0], "PriceFeed | v0.8/tests/MockV3Aggregator.sol | v0.8/tests/MockV3Aggregator.sol");
+        assertEq(
+            descriptions[0],
+            "PriceFeed | v0.8/tests/MockV3Aggregator.sol | v0.8/tests/MockV3Aggregator.sol | 1800 | 3000"
+        );
     }
 
     function test_SizeFactory_getBorrowATokenV1_5Descriptions() public {
@@ -361,7 +357,7 @@ contract SizeFactoryTest is BaseTest {
 
     function test_SizeFactory_version() public view {
         string memory version = sizeFactory.version();
-        assertEq(version, "v1.5");
+        assertEq(version, "v1.5.1");
     }
 
     function test_SizeFactory_addPriceFeed_reverts_on_null_address() public {
@@ -393,8 +389,7 @@ contract SizeFactoryTest is BaseTest {
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        IUniswapV3Factory uniswapV3Factory = IUniswapV3Factory(makeAddr("UniswapV3Factory"));
-        vm.etch(makeAddr("UniswapV3Factory"), UNISWAP_V3_FACTORY_BYTECODE);
+        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
         uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000);
 
         vm.prank(owner);

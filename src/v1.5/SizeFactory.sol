@@ -244,7 +244,10 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
                 priceFeed.chainlinkPriceFeed().quoteAggregator().description(),
                 " | ",
                 priceFeed.chainlinkPriceFeed().quoteAggregator().description(),
-                " (v1.5.1)"
+                " | ",
+                Strings.toString(priceFeed.uniswapV3PriceFeed().twapWindow()),
+                " | ",
+                Strings.toString(priceFeed.uniswapV3PriceFeed().feeTier())
             );
         }
         // slither-disable-end calls-loop
