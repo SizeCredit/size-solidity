@@ -27,7 +27,9 @@ struct PriceFeedParams {
 /// @author Size (https://size.credit/)
 /// @notice A contract that provides the price of a `base` asset in terms of a `quote` asset, scaled to 18 decimals,
 ///         using Chainlink as a primary oracle and Uniswap V3 as a fallback oracle
-/// @dev decimals must be 18 to comply with Size contracts
+/// @dev `decimals` must be 18 to comply with Size contracts
+///      `sequencerUptimeFeed` can be null for unsupported networks
+///      In case the sequencer is down, `getPrice` reverts (see `ChainlinkSequencerUptimeFeed`)
 contract PriceFeed is IPriceFeedV1_5 {
     /* solhint-disable */
     uint256 public constant decimals = 18;
