@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
@@ -38,12 +37,12 @@ contract ChainlinkPriceFeed is IPriceFeed {
 
     constructor(
         uint256 _decimals,
-        address _baseAggregator,
-        address _quoteAggregator,
+        AggregatorV3Interface _baseAggregator,
+        AggregatorV3Interface _quoteAggregator,
         uint256 _baseStalePriceInterval,
         uint256 _quoteStalePriceInterval
     ) {
-        if (_baseAggregator == address(0) || _quoteAggregator == address(0)) {
+        if (address(_baseAggregator) == address(0) || address(_quoteAggregator) == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
@@ -52,8 +51,8 @@ contract ChainlinkPriceFeed is IPriceFeed {
         }
 
         decimals = _decimals;
-        baseAggregator = AggregatorV3Interface(_baseAggregator);
-        quoteAggregator = AggregatorV3Interface(_quoteAggregator);
+        baseAggregator = _baseAggregator;
+        quoteAggregator = _quoteAggregator;
         baseStalePriceInterval = _baseStalePriceInterval;
         quoteStalePriceInterval = _quoteStalePriceInterval;
 

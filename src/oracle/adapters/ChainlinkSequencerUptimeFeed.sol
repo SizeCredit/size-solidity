@@ -16,10 +16,9 @@ contract ChainlinkSequencerUptimeFeed {
     AggregatorV3Interface public immutable sequencerUptimeFeed;
     /* solhint-enable */
 
-    constructor(address _sequencerUptimeFeed) {
+    constructor(AggregatorV3Interface _sequencerUptimeFeed) {
         // the _sequencerUptimeFeed can be null for unsupported networks
-
-        sequencerUptimeFeed = AggregatorV3Interface(_sequencerUptimeFeed);
+        sequencerUptimeFeed = _sequencerUptimeFeed;
     }
 
     /// @notice Validates that the sequencer is up

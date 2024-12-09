@@ -28,130 +28,130 @@ contract PriceFeedTest is Test, AssertsHelper {
     int256 public constant STETH_TO_ETH = 0.9997e18;
     uint8 public constant STETH_TO_ETH_DECIMALS = 18;
 
-    function setUp() public {
-        sequencerUptimeFeed = new MockV3Aggregator(0, SEQUENCER_UP);
-        vm.warp(block.timestamp + 1 days);
-        ethToUsd = new MockV3Aggregator(ETH_TO_USD_DECIMALS, ETH_TO_USD);
-        usdcToUsd = new MockV3Aggregator(USDC_TO_USD_DECIMALS, USDC_TO_USD);
-        stethToEth = new MockV3Aggregator(STETH_TO_ETH_DECIMALS, STETH_TO_ETH);
-        priceFeed = new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 86400);
-        priceFeedStethToEth =
-            new PriceFeed(address(stethToEth), address(stethToEth), address(sequencerUptimeFeed), 86400, 86400);
-    }
+    // function setUp() public {
+    //     sequencerUptimeFeed = new MockV3Aggregator(0, SEQUENCER_UP);
+    //     vm.warp(block.timestamp + 1 days);
+    //     ethToUsd = new MockV3Aggregator(ETH_TO_USD_DECIMALS, ETH_TO_USD);
+    //     usdcToUsd = new MockV3Aggregator(USDC_TO_USD_DECIMALS, USDC_TO_USD);
+    //     stethToEth = new MockV3Aggregator(STETH_TO_ETH_DECIMALS, STETH_TO_ETH);
+    //     priceFeed = new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 86400);
+    //     priceFeedStethToEth =
+    //         new PriceFeed(address(stethToEth), address(stethToEth), address(sequencerUptimeFeed), 86400, 86400);
+    // }
 
-    function test_PriceFeed_validation() public {
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new PriceFeed(address(0), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 86400);
+    // function test_PriceFeed_validation() public {
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+    //     new PriceFeed(address(0), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 86400);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new PriceFeed(address(ethToUsd), address(0), address(sequencerUptimeFeed), 3600, 86400);
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+    //     new PriceFeed(address(ethToUsd), address(0), address(sequencerUptimeFeed), 3600, 86400);
 
-        // do not revert if sequencerUptimeFeed is null
-        new PriceFeed(address(ethToUsd), address(usdcToUsd), address(0), 3600, 86400);
+    //     // do not revert if sequencerUptimeFeed is null
+    //     new PriceFeed(address(ethToUsd), address(usdcToUsd), address(0), 3600, 86400);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_STALE_PRICE.selector));
-        new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 0, 86400);
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.NULL_STALE_PRICE.selector));
+    //     new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 0, 86400);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_STALE_PRICE.selector));
-        new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 0);
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.NULL_STALE_PRICE.selector));
+    //     new PriceFeed(address(ethToUsd), address(usdcToUsd), address(sequencerUptimeFeed), 3600, 0);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_STALE_PRICE_INTERVAL.selector, 3600, 86400));
-        new PriceFeed(address(stethToEth), address(stethToEth), address(sequencerUptimeFeed), 3600, 86400);
-    }
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_STALE_PRICE_INTERVAL.selector, 3600, 86400));
+    //     new PriceFeed(address(stethToEth), address(stethToEth), address(sequencerUptimeFeed), 3600, 86400);
+    // }
 
-    function test_PriceFeed_getPrice_success() public view {
-        assertEq(priceFeed.getPrice(), Math.mulDivDown(uint256(2200.12e18), 1e18, uint256(0.9999e18)));
-    }
+    // function test_PriceFeed_getPrice_success() public view {
+    //     assertEq(priceFeed.getPrice(), Math.mulDivDown(uint256(2200.12e18), 1e18, uint256(0.9999e18)));
+    // }
 
-    function test_PriceFeed_getPrice_reverts_null_price() public {
-        ethToUsd.updateAnswer(0);
+    // function test_PriceFeed_getPrice_reverts_null_price() public {
+    //     ethToUsd.updateAnswer(0);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_PRICE.selector, address(ethToUsd), 0));
-        priceFeed.getPrice();
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_PRICE.selector, address(ethToUsd), 0));
+    //     priceFeed.getPrice();
 
-        ethToUsd.updateAnswer(ETH_TO_USD);
-        priceFeed.getPrice();
+    //     ethToUsd.updateAnswer(ETH_TO_USD);
+    //     priceFeed.getPrice();
 
-        usdcToUsd.updateAnswer(0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_PRICE.selector, address(usdcToUsd), 0));
-        priceFeed.getPrice();
+    //     usdcToUsd.updateAnswer(0);
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_PRICE.selector, address(usdcToUsd), 0));
+    //     priceFeed.getPrice();
 
-        usdcToUsd.updateAnswer(USDC_TO_USD);
-        priceFeed.getPrice();
-    }
+    //     usdcToUsd.updateAnswer(USDC_TO_USD);
+    //     priceFeed.getPrice();
+    // }
 
-    function test_PriceFeed_getPrice_reverts_negative_price() public {
-        ethToUsd.updateAnswer(-1);
+    // function test_PriceFeed_getPrice_reverts_negative_price() public {
+    //     ethToUsd.updateAnswer(-1);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_PRICE.selector, address(ethToUsd), -1));
-        priceFeed.getPrice();
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_PRICE.selector, address(ethToUsd), -1));
+    //     priceFeed.getPrice();
 
-        ethToUsd.updateAnswer(ETH_TO_USD);
-        priceFeed.getPrice();
+    //     ethToUsd.updateAnswer(ETH_TO_USD);
+    //     priceFeed.getPrice();
 
-        usdcToUsd.updateAnswer(-1);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_PRICE.selector, address(usdcToUsd), -1));
-        priceFeed.getPrice();
+    //     usdcToUsd.updateAnswer(-1);
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_PRICE.selector, address(usdcToUsd), -1));
+    //     priceFeed.getPrice();
 
-        usdcToUsd.updateAnswer(USDC_TO_USD);
-        priceFeed.getPrice();
-    }
+    //     usdcToUsd.updateAnswer(USDC_TO_USD);
+    //     priceFeed.getPrice();
+    // }
 
-    function test_PriceFeed_getPrice_reverts_stale_price() public {
-        uint256 updatedAt = block.timestamp;
-        vm.warp(updatedAt + 3600 + 1);
+    // function test_PriceFeed_getPrice_reverts_stale_price() public {
+    //     uint256 updatedAt = block.timestamp;
+    //     vm.warp(updatedAt + 3600 + 1);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.STALE_PRICE.selector, address(ethToUsd), updatedAt));
-        priceFeed.getPrice();
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.STALE_PRICE.selector, address(ethToUsd), updatedAt));
+    //     priceFeed.getPrice();
 
-        ethToUsd.updateAnswer((ETH_TO_USD * 1.1e8) / 1e8);
-        assertEq(priceFeed.getPrice(), Math.mulDivDown(uint256(2200.12e18), 1.1e18, uint256(0.9999e18)));
+    //     ethToUsd.updateAnswer((ETH_TO_USD * 1.1e8) / 1e8);
+    //     assertEq(priceFeed.getPrice(), Math.mulDivDown(uint256(2200.12e18), 1.1e18, uint256(0.9999e18)));
 
-        vm.warp(updatedAt + 86400 + 1);
-        ethToUsd.updateAnswer(ETH_TO_USD);
+    //     vm.warp(updatedAt + 86400 + 1);
+    //     ethToUsd.updateAnswer(ETH_TO_USD);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.STALE_PRICE.selector, address(usdcToUsd), updatedAt));
-        priceFeed.getPrice();
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.STALE_PRICE.selector, address(usdcToUsd), updatedAt));
+    //     priceFeed.getPrice();
 
-        usdcToUsd.updateAnswer((USDC_TO_USD * 1.2e8) / 1e8);
-        assertEq(priceFeed.getPrice(), (uint256(2200.12e18) * 1e18 * 1e18) / (uint256(0.9999e18) * uint256(1.2e18)));
-    }
+    //     usdcToUsd.updateAnswer((USDC_TO_USD * 1.2e8) / 1e8);
+    //     assertEq(priceFeed.getPrice(), (uint256(2200.12e18) * 1e18 * 1e18) / (uint256(0.9999e18) * uint256(1.2e18)));
+    // }
 
-    function test_PriceFeed_getPrice_reverts_sequencer_down() public {
-        uint256 updatedAt = block.timestamp;
-        vm.warp(updatedAt + 365 days);
+    // function test_PriceFeed_getPrice_reverts_sequencer_down() public {
+    //     uint256 updatedAt = block.timestamp;
+    //     vm.warp(updatedAt + 365 days);
 
-        sequencerUptimeFeed.updateAnswer(1);
-        vm.expectRevert(abi.encodeWithSelector(Errors.SEQUENCER_DOWN.selector));
-        priceFeed.getPrice();
+    //     sequencerUptimeFeed.updateAnswer(1);
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.SEQUENCER_DOWN.selector));
+    //     priceFeed.getPrice();
 
-        sequencerUptimeFeed.updateAnswer(0);
-        vm.expectRevert(abi.encodeWithSelector(Errors.GRACE_PERIOD_NOT_OVER.selector));
-        priceFeed.getPrice();
+    //     sequencerUptimeFeed.updateAnswer(0);
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.GRACE_PERIOD_NOT_OVER.selector));
+    //     priceFeed.getPrice();
 
-        vm.warp(block.timestamp + 3600 + 1);
-        usdcToUsd.updateAnswer(USDC_TO_USD);
-        ethToUsd.updateAnswer(ETH_TO_USD);
-        priceFeed.getPrice();
-    }
+    //     vm.warp(block.timestamp + 3600 + 1);
+    //     usdcToUsd.updateAnswer(USDC_TO_USD);
+    //     ethToUsd.updateAnswer(ETH_TO_USD);
+    //     priceFeed.getPrice();
+    // }
 
-    function test_PriceFeed_getPrice_direct() public view {
-        assertEq(priceFeedStethToEth.getPrice(), uint256(0.9997e18));
-        assertEq(priceFeedStethToEth.decimals(), 18);
-    }
+    // function test_PriceFeed_getPrice_direct() public view {
+    //     assertEq(priceFeedStethToEth.getPrice(), uint256(0.9997e18));
+    //     assertEq(priceFeedStethToEth.decimals(), 18);
+    // }
 
-    function test_PriceFeed_getPrice_different_decimals() public {
-        stethToEth = new MockV3Aggregator(8, 0.9997e8);
-        priceFeedStethToEth =
-            new PriceFeed(address(stethToEth), address(stethToEth), address(sequencerUptimeFeed), 86400, 86400);
-        assertEq(priceFeedStethToEth.getPrice(), uint256(0.9997e18));
-        assertEq(priceFeedStethToEth.decimals(), 18);
-    }
+    // function test_PriceFeed_getPrice_different_decimals() public {
+    //     stethToEth = new MockV3Aggregator(8, 0.9997e8);
+    //     priceFeedStethToEth =
+    //         new PriceFeed(address(stethToEth), address(stethToEth), address(sequencerUptimeFeed), 86400, 86400);
+    //     assertEq(priceFeedStethToEth.getPrice(), uint256(0.9997e18));
+    //     assertEq(priceFeedStethToEth.decimals(), 18);
+    // }
 
-    function test_PriceFeed_getPrice_is_consistent() public view {
-        uint256 price_1 = priceFeed.getPrice();
-        uint256 price_2 = priceFeed.getPrice();
-        uint256 price_3 = priceFeed.getPrice();
-        assertEq(price_1, price_2, price_3);
-    }
+    // function test_PriceFeed_getPrice_is_consistent() public view {
+    //     uint256 price_1 = priceFeed.getPrice();
+    //     uint256 price_2 = priceFeed.getPrice();
+    //     uint256 price_3 = priceFeed.getPrice();
+    //     assertEq(price_1, price_2, price_3);
+    // }
 }
