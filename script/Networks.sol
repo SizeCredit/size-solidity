@@ -7,6 +7,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {PriceFeedParams} from "@src/oracle/PriceFeed.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 struct NetworkConfiguration {
     address weth;
@@ -42,7 +43,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
-                    feeTier: 0,
+                    pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(address(0)),
                     quoteToken: IERC20Metadata(address(0)),
                     baseAggregator: AggregatorV3Interface(address(0)),
@@ -66,7 +67,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
-                    feeTier: 0,
+                    pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0x4200000000000000000000000000000000000006),
                     quoteToken: IERC20Metadata(0x036CbD53842c5426634e7929541eC2318f3dCF7e),
                     baseAggregator: AggregatorV3Interface(0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165),
@@ -90,7 +91,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
-                    feeTier: 0,
+                    pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0xE4aB69C077896252FAFBD49EFD26B5D171A32410),
                     quoteToken: IERC20Metadata(0x036CbD53842c5426634e7929541eC2318f3dCF7e),
                     baseAggregator: AggregatorV3Interface(0xb113F5A928BCfF189C998ab20d753a47F9dE5A61),
@@ -114,7 +115,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
-                    feeTier: 0,
+                    pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2),
                     quoteToken: IERC20Metadata(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48),
                     baseAggregator: AggregatorV3Interface(0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419),
@@ -138,7 +139,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
-                    feeTier: 0,
+                    pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0x4200000000000000000000000000000000000006),
                     quoteToken: IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913),
                     baseAggregator: AggregatorV3Interface(address(0)),
@@ -162,7 +163,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
-                    feeTier: 0,
+                    pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0x4200000000000000000000000000000000000006),
                     quoteToken: IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913),
                     baseAggregator: AggregatorV3Interface(0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70),
@@ -186,7 +187,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
-                    feeTier: 0,
+                    pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf),
                     quoteToken: IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913),
                     baseAggregator: AggregatorV3Interface(0x07DA0E54543a844a80ABE69c8A12F22B3aA59f9D),
@@ -210,7 +211,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
-                    feeTier: 0,
+                    pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452),
                     quoteToken: IERC20Metadata(0x4200000000000000000000000000000000000006),
                     baseAggregator: AggregatorV3Interface(0x43a5C292A453A3bF3606fa856197f09D7B74251a),
@@ -234,7 +235,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
-                    feeTier: 0,
+                    pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2),
                     quoteToken: IERC20Metadata(0xaf88d065e77c8cC2239327C5EDb3A432268e5831),
                     baseAggregator: AggregatorV3Interface(0xf2215b9c35b1697B5f47e407c917a40D055E68d7),

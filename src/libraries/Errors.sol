@@ -91,5 +91,6 @@ library Errors {
     error ALREADY_INITIALIZED(address account);
     error UNAUTHORIZED(address account);
 
+    error INVALID_TWAP_WINDOW();
     error INVALID_FEE_TIER();
 }

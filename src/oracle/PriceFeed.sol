@@ -8,11 +8,12 @@ import {ChainlinkPriceFeed} from "@src/oracle/adapters/ChainlinkPriceFeed.sol";
 import {ChainlinkSequencerUptimeFeed} from "@src/oracle/adapters/ChainlinkSequencerUptimeFeed.sol";
 import {UniswapV3PriceFeed} from "@src/oracle/adapters/UniswapV3PriceFeed.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 struct PriceFeedParams {
     IUniswapV3Factory uniswapV3Factory;
+    IUniswapV3Pool pool;
     uint32 twapWindow;
-    uint24 feeTier;
     IERC20Metadata baseToken;
     IERC20Metadata quoteToken;
     AggregatorV3Interface baseAggregator;
@@ -52,8 +53,8 @@ contract PriceFeed is IPriceFeedV1_5 {
             _priceFeedParams.baseToken,
             _priceFeedParams.quoteToken,
             _priceFeedParams.uniswapV3Factory,
-            _priceFeedParams.twapWindow,
-            _priceFeedParams.feeTier
+            _priceFeedParams.pool,
+            _priceFeedParams.twapWindow
         );
     }
 
