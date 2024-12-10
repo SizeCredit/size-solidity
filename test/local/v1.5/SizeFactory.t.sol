@@ -8,7 +8,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {PriceFeed, PriceFeedParams} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
@@ -363,9 +363,7 @@ contract SizeFactoryTest is BaseTest {
         string[] memory descriptions = sizeFactory.getPriceFeedDescriptions();
 
         assertEq(descriptions.length, 1);
-        assertEq(
-            descriptions[0], "PriceFeed | v0.8/tests/MockV3Aggregator.sol | v0.8/tests/MockV3Aggregator.sol | 1800"
-        );
+        assertEq(descriptions[0], "PriceFeed | v0.8/tests/MockV3Aggregator.sol | v0.8/tests/MockV3Aggregator.sol");
     }
 
     function test_SizeFactory_getBorrowATokenV1_5Descriptions() public {

@@ -6,7 +6,7 @@ import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggreg
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
-import {PriceFeed, PriceFeedParams} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 import {USDC} from "@test/mocks/USDC.sol";

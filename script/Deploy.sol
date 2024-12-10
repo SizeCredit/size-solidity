@@ -16,7 +16,7 @@ import {PoolMock} from "@test/mocks/PoolMock.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {PriceFeed, PriceFeedParams} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 

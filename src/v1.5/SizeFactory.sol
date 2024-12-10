@@ -26,7 +26,7 @@ import {NonTransferrableScaledTokenV1_5FactoryLibrary} from
     "@src/v1.5/libraries/NonTransferrableScaledTokenV1_5FactoryLibrary.sol";
 import {PriceFeedFactoryLibrary} from "@src/v1.5/libraries/PriceFeedFactoryLibrary.sol";
 
-import {PriceFeed, PriceFeedParams} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
 import {VERSION} from "@src/interfaces/ISize.sol";

@@ -5,7 +5,7 @@ import {Size} from "@src/Size.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {PriceFeed} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";
 
 contract ForkSizeRegistryFactoryTest is ForkTest {
