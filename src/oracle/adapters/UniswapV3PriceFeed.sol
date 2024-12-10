@@ -18,7 +18,7 @@ import {PoolAddress} from "@uniswap/v3-periphery/contracts/libraries/PoolAddress
 /// @notice This contract returns the price of 1 `baseToken` in terms of `quoteToken` scaled to `decimals` using Uniswap V3 TWAPs
 /// @dev UniswapV3 TWAPs can be manipulated and, as such, this price feed should not be the primary oracle. See https://blog.uniswap.org/uniswap-v3-oracles
 ///      This contract increases the observation cardinality if it is less than the desired (see https://docs.uniswap.org/contracts/v3/reference/core/interfaces/pool/IUniswapV3PoolActions#increaseobservationcardinalitynext)
-///      The observation cardinality needed is about `ceil(t / tau) + 1`, where tau is the time passing between two blocks (see https://reports.zellic.io/publications/beefy-uniswapv3/sections/observation-cardinality-observation-cardinality)
+///      The observation cardinality needed is about `ceil(t / tau) + 1`, where `tau` is the time passing between two blocks (see https://reports.zellic.io/publications/beefy-uniswapv3/sections/observation-cardinality-observation-cardinality)
 contract UniswapV3PriceFeed is IPriceFeed {
     /* solhint-disable */
     uint256 public immutable decimals;

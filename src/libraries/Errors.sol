@@ -92,6 +92,5 @@ library Errors {
     error UNAUTHORIZED(address account);
 
     error INVALID_TWAP_WINDOW();
-    error INVALID_FEE_TIER();
     error INVALID_AVERAGE_BLOCK_TIME();
 }

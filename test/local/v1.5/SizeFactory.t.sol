@@ -13,6 +13,7 @@ import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import {IUniswapV3PoolActions} from "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
 
 contract SizeFactoryTest is BaseTest {
     address public owner;
@@ -23,6 +24,19 @@ contract SizeFactoryTest is BaseTest {
         owner = makeAddr("owner");
         address _feeRecipient = makeAddr("feeRecipient");
         setupLocal(owner, _feeRecipient);
+    }
+
+    function _deployUniswapV3FactoryAndPool(MockERC20 baseToken, MockERC20 quoteToken)
+        internal
+        returns (IUniswapV3Factory uniswapV3Factory, IUniswapV3Pool pool)
+    {
+        uniswapV3Factory = _deployUniswapV3Factory();
+        pool = IUniswapV3Pool(uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000));
+        vm.mockCall(
+            address(pool),
+            abi.encodeWithSelector(IUniswapV3PoolActions.increaseObservationCardinalityNext.selector),
+            abi.encode("")
+        );
     }
 
     function test_SizeFactory_owner() public view {
@@ -111,6 +125,11 @@ contract SizeFactoryTest is BaseTest {
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
         IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
         IUniswapV3Pool pool = IUniswapV3Pool(uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000));
+        vm.mockCall(
+            address(pool),
+            abi.encodeWithSelector(IUniswapV3PoolActions.increaseObservationCardinalityNext.selector),
+            abi.encode("")
+        );
 
         vm.prank(owner);
         sizeFactory.createPriceFeed(
@@ -183,8 +202,8 @@ contract SizeFactoryTest is BaseTest {
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
-        IUniswapV3Pool pool = IUniswapV3Pool(uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000));
+        (IUniswapV3Factory uniswapV3Factory, IUniswapV3Pool pool) =
+            _deployUniswapV3FactoryAndPool(baseToken, quoteToken);
 
         vm.prank(owner);
         sizeFactory.createPriceFeed(
@@ -215,8 +234,8 @@ contract SizeFactoryTest is BaseTest {
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
-        IUniswapV3Pool pool = IUniswapV3Pool(uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000));
+        (IUniswapV3Factory uniswapV3Factory, IUniswapV3Pool pool) =
+            _deployUniswapV3FactoryAndPool(baseToken, quoteToken);
 
         vm.prank(owner);
         sizeFactory.createPriceFeed(
@@ -262,11 +281,11 @@ contract SizeFactoryTest is BaseTest {
     function test_SizeFactory_getPriceFeedsCount() public {
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
-        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
         uint32 twapWindow = 30 minutes;
-        IUniswapV3Pool pool = IUniswapV3Pool(uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000));
+        (IUniswapV3Factory uniswapV3Factory, IUniswapV3Pool pool) =
+            _deployUniswapV3FactoryAndPool(baseToken, quoteToken);
 
         vm.prank(owner);
         sizeFactory.createPriceFeed(
@@ -319,11 +338,11 @@ contract SizeFactoryTest is BaseTest {
     function test_SizeFactory_getPriceFeedDescriptions() public {
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
-        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
         uint32 twapWindow = 30 minutes;
-        IUniswapV3Pool pool = IUniswapV3Pool(uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000));
+        (IUniswapV3Factory uniswapV3Factory, IUniswapV3Pool pool) =
+            _deployUniswapV3FactoryAndPool(baseToken, quoteToken);
 
         vm.prank(owner);
         sizeFactory.createPriceFeed(
@@ -394,8 +413,8 @@ contract SizeFactoryTest is BaseTest {
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
         MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
-        IUniswapV3Pool pool = IUniswapV3Pool(uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000));
+        (IUniswapV3Factory uniswapV3Factory, IUniswapV3Pool pool) =
+            _deployUniswapV3FactoryAndPool(baseToken, quoteToken);
 
         vm.prank(owner);
         sizeFactory.createPriceFeed(

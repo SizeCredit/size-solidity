@@ -14,6 +14,8 @@ import {WETH} from "@test/mocks/WETH.sol";
 import {cbBTC} from "@test/mocks/cbBTC.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+
+import {IUniswapV3PoolActions} from "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
 import {IUniswapV3PoolDerivedState} from "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolDerivedState.sol";
 
 contract PriceFeedTest is BaseTest {
@@ -59,6 +61,11 @@ contract PriceFeedTest is BaseTest {
         vm.etch(_cbbtc, address(new cbBTC(address(this))).code);
 
         poolWethUsdc = IUniswapV3Pool(uniswapV3Factory.createPool(address(_weth), address(_usdc), 3000));
+        vm.mockCall(
+            address(poolWethUsdc),
+            abi.encodeWithSelector(IUniswapV3PoolActions.increaseObservationCardinalityNext.selector),
+            abi.encode("")
+        );
 
         int56[] memory tickCumulatives = new int56[](2);
         tickCumulatives[0] = int56(-6642986263212);
