@@ -31,6 +31,8 @@ contract UniswapV3PriceFeedTest is BaseTest {
     uint256 constant decimals = 18;
     uint24 public feeTier = 3000;
 
+    uint32 constant averageBlockTime = 2 seconds;
+
     function setUp() public override {
         vm.warp(block.timestamp + 365 days);
         uniswapV3Factory = _deployUniswapV3Factory();
@@ -49,7 +51,8 @@ contract UniswapV3PriceFeedTest is BaseTest {
             IERC20Metadata(_usdc),
             uniswapV3Factory,
             IUniswapV3Pool(address(poolWethUsdc)),
-            30 minutes
+            30 minutes,
+            averageBlockTime
         );
         priceFeedCbbtcUsdc = new UniswapV3PriceFeed(
             decimals,
@@ -57,7 +60,8 @@ contract UniswapV3PriceFeedTest is BaseTest {
             IERC20Metadata(_usdc),
             uniswapV3Factory,
             IUniswapV3Pool(address(poolCbbtcUsdc)),
-            10 minutes
+            10 minutes,
+            averageBlockTime
         );
     }
 
@@ -65,22 +69,33 @@ contract UniswapV3PriceFeedTest is BaseTest {
         uint32 twapWindow = 30 minutes;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new UniswapV3PriceFeed(decimals, IERC20Metadata(address(0)), usdc, uniswapV3Factory, poolWethUsdc, twapWindow);
+        new UniswapV3PriceFeed(
+            decimals, IERC20Metadata(address(0)), usdc, uniswapV3Factory, poolWethUsdc, twapWindow, averageBlockTime
+        );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new UniswapV3PriceFeed(decimals, weth, IERC20Metadata(address(0)), uniswapV3Factory, poolWethUsdc, twapWindow);
+        new UniswapV3PriceFeed(
+            decimals, weth, IERC20Metadata(address(0)), uniswapV3Factory, poolWethUsdc, twapWindow, averageBlockTime
+        );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new UniswapV3PriceFeed(decimals, weth, usdc, IUniswapV3Factory(address(0)), poolWethUsdc, twapWindow);
+        new UniswapV3PriceFeed(
+            decimals, weth, usdc, IUniswapV3Factory(address(0)), poolWethUsdc, twapWindow, averageBlockTime
+        );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TOKEN.selector, address(usdc)));
-        new UniswapV3PriceFeed(decimals, weth, weth, uniswapV3Factory, poolWethUsdc, twapWindow);
+        new UniswapV3PriceFeed(decimals, weth, weth, uniswapV3Factory, poolWethUsdc, twapWindow, averageBlockTime);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TWAP_WINDOW.selector));
-        new UniswapV3PriceFeed(decimals, weth, usdc, uniswapV3Factory, poolWethUsdc, twapWindow);
+        new UniswapV3PriceFeed(decimals, weth, usdc, uniswapV3Factory, poolWethUsdc, twapWindow, averageBlockTime);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_AVERAGE_BLOCK_TIME.selector));
+        new UniswapV3PriceFeed(decimals, weth, usdc, uniswapV3Factory, poolWethUsdc, twapWindow, 0);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_FEE_TIER.selector));
-        new UniswapV3PriceFeed(decimals, weth, usdc, uniswapV3Factory, IUniswapV3Pool(address(0)), twapWindow);
+        new UniswapV3PriceFeed(
+            decimals, weth, usdc, uniswapV3Factory, IUniswapV3Pool(address(0)), twapWindow, averageBlockTime
+        );
     }
 
     // data from https://basescan.org/address/0x6c561B446416E1A00E8E93E221854d6eA4171372#readContract @ 2024-12-09 16:45 UTC
@@ -127,5 +142,26 @@ contract UniswapV3PriceFeedTest is BaseTest {
         uint256 price_2 = priceFeed.getPrice();
         uint256 price_3 = priceFeed.getPrice();
         assertEq(price_1, price_2, price_3);
+    }
+
+    function test_UniswapV3PriceFeed_getPrice_reverts_if_twapWindow_is_too_long() public {
+        priceFeedWethUsdc = new UniswapV3PriceFeed(
+            decimals,
+            IERC20Metadata(_weth),
+            IERC20Metadata(_usdc),
+            uniswapV3Factory,
+            IUniswapV3Pool(address(poolWethUsdc)),
+            365 days,
+            averageBlockTime
+        );
+
+        // vm.mockCallRevert(
+        //     address(poolWethUsdc),
+        //     abi.encodeWithSelector(IUniswapV3PoolDerivedState.observe.selector),
+        //     abi.encode("OLD")
+        // );
+
+        vm.expectRevert(abi.encode("OLD"));
+        priceFeedWethUsdc.getPrice();
     }
 }

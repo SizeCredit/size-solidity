@@ -241,7 +241,7 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
             PriceFeed priceFeed = PriceFeed(priceFeeds.at(i));
             descriptions[i] = string.concat(
                 "PriceFeed | ",
-                priceFeed.chainlinkPriceFeed().quoteAggregator().description(),
+                priceFeed.chainlinkPriceFeed().baseAggregator().description(),
                 " | ",
                 priceFeed.chainlinkPriceFeed().quoteAggregator().description(),
                 " | ",

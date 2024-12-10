@@ -25,7 +25,8 @@ contract UniswapV3PriceFeedScript is Script {
             IERC20Metadata(usdc),
             IUniswapV3Factory(uniswapV3Factory),
             IUniswapV3Pool(poolWethUsdc),
-            30 minutes
+            30 minutes,
+            2 seconds
         );
         UniswapV3PriceFeed priceFeedCbbtcUsdc = new UniswapV3PriceFeed(
             18,
@@ -33,7 +34,8 @@ contract UniswapV3PriceFeedScript is Script {
             IERC20Metadata(usdc),
             IUniswapV3Factory(uniswapV3Factory),
             IUniswapV3Pool(poolCbbtcUsdc),
-            10 minutes
+            10 minutes,
+            2 seconds
         );
 
         console.log("priceFeedWethUsdc", priceFeedWethUsdc.getPrice());

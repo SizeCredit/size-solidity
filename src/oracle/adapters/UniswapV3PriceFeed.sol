@@ -3,6 +3,8 @@ pragma solidity 0.8.23;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+
+import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
@@ -15,14 +17,17 @@ import {PoolAddress} from "@uniswap/v3-periphery/contracts/libraries/PoolAddress
 /// @author Size (https://size.credit/)
 /// @notice This contract returns the price of 1 `baseToken` in terms of `quoteToken` scaled to `decimals` using Uniswap V3 TWAPs
 /// @dev UniswapV3 TWAPs can be manipulated and, as such, this price feed should not be the primary oracle. See https://blog.uniswap.org/uniswap-v3-oracles
+///      This contract increases the observation cardinality if it is less than the desired (see https://docs.uniswap.org/contracts/v3/reference/core/interfaces/pool/IUniswapV3PoolActions#increaseobservationcardinalitynext)
+///      The observation cardinality needed is about `ceil(t / tau) + 1`, where tau is the time passing between two blocks (see https://reports.zellic.io/publications/beefy-uniswapv3/sections/observation-cardinality-observation-cardinality)
 contract UniswapV3PriceFeed is IPriceFeed {
     /* solhint-disable */
     uint256 public immutable decimals;
     IERC20Metadata public immutable baseToken;
     IERC20Metadata public immutable quoteToken;
     IUniswapV3Factory public immutable uniswapV3Factory;
-    uint32 public immutable twapWindow;
     IUniswapV3Pool public immutable pool;
+    uint32 public immutable twapWindow;
+    uint32 public immutable averageBlockTime;
     /* solhint-enable */
 
     constructor(
@@ -31,7 +36,8 @@ contract UniswapV3PriceFeed is IPriceFeed {
         IERC20Metadata _quoteToken,
         IUniswapV3Factory _uniswapV3Factory,
         IUniswapV3Pool _pool,
-        uint32 _twapWindow
+        uint32 _twapWindow,
+        uint32 _averageBlockTime
     ) {
         if (
             address(_baseToken) == address(0) || address(_quoteToken) == address(0)
@@ -45,13 +51,23 @@ contract UniswapV3PriceFeed is IPriceFeed {
         if (_twapWindow == 0) {
             revert Errors.INVALID_TWAP_WINDOW();
         }
+        if (_averageBlockTime == 0) {
+            revert Errors.INVALID_AVERAGE_BLOCK_TIME();
+        }
 
         decimals = _decimals;
         uniswapV3Factory = _uniswapV3Factory;
         baseToken = _baseToken;
         quoteToken = _quoteToken;
-        twapWindow = _twapWindow;
         pool = _pool;
+        twapWindow = _twapWindow;
+        averageBlockTime = _averageBlockTime;
+
+        (,,, uint16 cardinality,,,) = IUniswapV3Pool(_pool).slot0();
+        uint16 desiredCardinality = SafeCast.toUint16(FixedPointMathLib.divUp(_twapWindow, _averageBlockTime) + 1);
+        if (cardinality < desiredCardinality) {
+            pool.increaseObservationCardinalityNext(desiredCardinality);
+        }
     }
 
     function getPrice() public view override returns (uint256) {

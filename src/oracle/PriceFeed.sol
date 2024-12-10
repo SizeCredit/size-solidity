@@ -14,6 +14,7 @@ struct PriceFeedParams {
     IUniswapV3Factory uniswapV3Factory;
     IUniswapV3Pool pool;
     uint32 twapWindow;
+    uint32 averageBlockTime;
     IERC20Metadata baseToken;
     IERC20Metadata quoteToken;
     AggregatorV3Interface baseAggregator;
@@ -39,22 +40,23 @@ contract PriceFeed is IPriceFeedV1_5 {
     UniswapV3PriceFeed public immutable uniswapV3PriceFeed;
     /* solhint-enable */
 
-    constructor(PriceFeedParams memory _priceFeedParams) {
-        chainlinkSequencerUptimeFeed = new ChainlinkSequencerUptimeFeed(_priceFeedParams.sequencerUptimeFeed);
+    constructor(PriceFeedParams memory priceFeedParams) {
+        chainlinkSequencerUptimeFeed = new ChainlinkSequencerUptimeFeed(priceFeedParams.sequencerUptimeFeed);
         chainlinkPriceFeed = new ChainlinkPriceFeed(
             decimals,
-            _priceFeedParams.baseAggregator,
-            _priceFeedParams.quoteAggregator,
-            _priceFeedParams.baseStalePriceInterval,
-            _priceFeedParams.quoteStalePriceInterval
+            priceFeedParams.baseAggregator,
+            priceFeedParams.quoteAggregator,
+            priceFeedParams.baseStalePriceInterval,
+            priceFeedParams.quoteStalePriceInterval
         );
         uniswapV3PriceFeed = new UniswapV3PriceFeed(
             decimals,
-            _priceFeedParams.baseToken,
-            _priceFeedParams.quoteToken,
-            _priceFeedParams.uniswapV3Factory,
-            _priceFeedParams.pool,
-            _priceFeedParams.twapWindow
+            priceFeedParams.baseToken,
+            priceFeedParams.quoteToken,
+            priceFeedParams.uniswapV3Factory,
+            priceFeedParams.pool,
+            priceFeedParams.twapWindow,
+            priceFeedParams.averageBlockTime
         );
     }
 

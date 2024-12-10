@@ -40,6 +40,7 @@ contract PriceFeedTest is BaseTest {
     IUniswapV3Factory public uniswapV3Factory;
     IUniswapV3Pool public poolWethUsdc;
     IUniswapV3Pool public poolCbbtcUsdc;
+    uint32 constant averageBlockTime = 2;
 
     // in UniswapV3, the order of the tokens addresses is important, so we use the same addresses to mock call results
     address _weth = 0x4200000000000000000000000000000000000006;
@@ -84,6 +85,7 @@ contract PriceFeedTest is BaseTest {
                 uniswapV3Factory: uniswapV3Factory,
                 pool: poolWethUsdc,
                 twapWindow: 30 minutes,
+                averageBlockTime: averageBlockTime,
                 baseToken: IERC20Metadata(_weth),
                 quoteToken: IERC20Metadata(_usdc),
                 baseAggregator: ethToUsd,
@@ -98,6 +100,7 @@ contract PriceFeedTest is BaseTest {
                 uniswapV3Factory: uniswapV3Factory,
                 pool: poolWethUsdc,
                 twapWindow: 30 minutes,
+                averageBlockTime: averageBlockTime,
                 baseToken: IERC20Metadata(_steth),
                 quoteToken: IERC20Metadata(_weth),
                 baseAggregator: stethToEth,
@@ -197,6 +200,7 @@ contract PriceFeedTest is BaseTest {
                 uniswapV3Factory: uniswapV3Factory,
                 pool: poolWethUsdc,
                 twapWindow: 30 minutes,
+                averageBlockTime: averageBlockTime,
                 baseToken: IERC20Metadata(_steth),
                 quoteToken: IERC20Metadata(_weth),
                 baseAggregator: stethToEth,

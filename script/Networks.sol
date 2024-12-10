@@ -43,6 +43,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
+                    averageBlockTime: 0,
                     pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(address(0)),
                     quoteToken: IERC20Metadata(address(0)),
@@ -67,6 +68,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
+                    averageBlockTime: 0,
                     pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0x4200000000000000000000000000000000000006),
                     quoteToken: IERC20Metadata(0x036CbD53842c5426634e7929541eC2318f3dCF7e),
@@ -91,6 +93,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
+                    averageBlockTime: 0,
                     pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0xE4aB69C077896252FAFBD49EFD26B5D171A32410),
                     quoteToken: IERC20Metadata(0x036CbD53842c5426634e7929541eC2318f3dCF7e),
@@ -115,6 +118,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
+                    averageBlockTime: 0,
                     pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2),
                     quoteToken: IERC20Metadata(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48),
@@ -139,6 +143,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
+                    averageBlockTime: 0,
                     pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0x4200000000000000000000000000000000000006),
                     quoteToken: IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913),
@@ -163,6 +168,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
+                    averageBlockTime: 0,
                     pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0x4200000000000000000000000000000000000006),
                     quoteToken: IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913),
@@ -187,6 +193,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
+                    averageBlockTime: 0,
                     pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf),
                     quoteToken: IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913),
@@ -211,6 +218,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
+                    averageBlockTime: 0,
                     pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452),
                     quoteToken: IERC20Metadata(0x4200000000000000000000000000000000000006),
@@ -235,6 +243,7 @@ abstract contract Networks {
                 priceFeedParams: PriceFeedParams({
                     uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
+                    averageBlockTime: 0,
                     pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2),
                     quoteToken: IERC20Metadata(0xaf88d065e77c8cC2239327C5EDb3A432268e5831),

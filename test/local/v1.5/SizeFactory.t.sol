@@ -17,6 +17,8 @@ import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Po
 contract SizeFactoryTest is BaseTest {
     address public owner;
 
+    uint32 constant averageBlockTime = 2 seconds;
+
     function setUp() public override {
         owner = makeAddr("owner");
         address _feeRecipient = makeAddr("feeRecipient");
@@ -122,7 +124,8 @@ contract SizeFactoryTest is BaseTest {
                 pool: IUniswapV3Pool(address(pool)),
                 baseToken: IERC20Metadata(address(baseToken)),
                 quoteToken: IERC20Metadata(address(quoteToken)),
-                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory))
+                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory)),
+                averageBlockTime: averageBlockTime
             })
         );
         PriceFeed ipriceFeed = sizeFactory.getPriceFeed(0);
@@ -195,7 +198,8 @@ contract SizeFactoryTest is BaseTest {
                 pool: IUniswapV3Pool(address(pool)),
                 baseToken: IERC20Metadata(address(baseToken)),
                 quoteToken: IERC20Metadata(address(quoteToken)),
-                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory))
+                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory)),
+                averageBlockTime: averageBlockTime
             })
         );
         PriceFeed priceFeed = sizeFactory.getPriceFeed(0);
@@ -226,7 +230,8 @@ contract SizeFactoryTest is BaseTest {
                 pool: IUniswapV3Pool(address(pool)),
                 baseToken: IERC20Metadata(address(baseToken)),
                 quoteToken: IERC20Metadata(address(quoteToken)),
-                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory))
+                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory)),
+                averageBlockTime: averageBlockTime
             })
         );
         PriceFeed priceFeed = sizeFactory.getPriceFeed(0);
@@ -275,7 +280,8 @@ contract SizeFactoryTest is BaseTest {
                 pool: IUniswapV3Pool(address(pool)),
                 baseToken: IERC20Metadata(address(baseToken)),
                 quoteToken: IERC20Metadata(address(quoteToken)),
-                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory))
+                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory)),
+                averageBlockTime: averageBlockTime
             })
         );
 
@@ -331,15 +337,15 @@ contract SizeFactoryTest is BaseTest {
                 pool: IUniswapV3Pool(address(pool)),
                 baseToken: IERC20Metadata(address(baseToken)),
                 quoteToken: IERC20Metadata(address(quoteToken)),
-                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory))
+                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory)),
+                averageBlockTime: averageBlockTime
             })
         );
         string[] memory descriptions = sizeFactory.getPriceFeedDescriptions();
 
         assertEq(descriptions.length, 1);
         assertEq(
-            descriptions[0],
-            "PriceFeed | v0.8/tests/MockV3Aggregator.sol | v0.8/tests/MockV3Aggregator.sol | 1800 | 3000"
+            descriptions[0], "PriceFeed | v0.8/tests/MockV3Aggregator.sol | v0.8/tests/MockV3Aggregator.sol | 1800"
         );
     }
 
@@ -403,7 +409,8 @@ contract SizeFactoryTest is BaseTest {
                 pool: IUniswapV3Pool(address(pool)),
                 baseToken: IERC20Metadata(address(baseToken)),
                 quoteToken: IERC20Metadata(address(quoteToken)),
-                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory))
+                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory)),
+                averageBlockTime: averageBlockTime
             })
         );
 
@@ -419,7 +426,8 @@ contract SizeFactoryTest is BaseTest {
                 pool: IUniswapV3Pool(address(pool)),
                 baseToken: IERC20Metadata(address(baseToken)),
                 quoteToken: IERC20Metadata(address(quoteToken)),
-                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory))
+                uniswapV3Factory: IUniswapV3Factory(address(uniswapV3Factory)),
+                averageBlockTime: averageBlockTime
             })
         );
 
