@@ -2,8 +2,9 @@
 pragma solidity 0.8.23;
 
 import {IPriceFeedV1_5} from "@src/oracle/deprecated/IPriceFeedV1_5.sol";
-import {ChainlinkSequencerUptimeFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkSequencerUptimeFeed.sol";
+
 import {ChainlinkPriceFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkPriceFeed.sol";
+import {ChainlinkSequencerUptimeFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkSequencerUptimeFeed.sol";
 import {UniswapV3PriceFeed} from "@src/oracle/v1.5.1/adapters/UniswapV3PriceFeed.sol";
 
 /// @title IPriceFeedV1_5_1
