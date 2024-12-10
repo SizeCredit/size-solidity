@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IPriceFeedV1_5} from "@src/oracle/deprecated/IPriceFeedV1_5.sol";
+import {IPriceFeedV1_5_1} from "@src/oracle/v1.5.1/IPriceFeedV1_5_1.sol";
 import {ChainlinkPriceFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkPriceFeed.sol";
 import {ChainlinkSequencerUptimeFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkSequencerUptimeFeed.sol";
 import {UniswapV3PriceFeed} from "@src/oracle/v1.5.1/adapters/UniswapV3PriceFeed.sol";
@@ -32,7 +32,7 @@ struct PriceFeedParams {
 /// @dev `decimals` must be 18 to comply with Size contracts
 ///      `sequencerUptimeFeed` can be null for unsupported networks
 ///      In case the sequencer is down, `getPrice` reverts (see `ChainlinkSequencerUptimeFeed`)
-contract PriceFeed is IPriceFeedV1_5 {
+contract PriceFeed is IPriceFeedV1_5_1 {
     /* solhint-disable */
     uint256 public constant decimals = 18;
     ChainlinkSequencerUptimeFeed public immutable chainlinkSequencerUptimeFeed;

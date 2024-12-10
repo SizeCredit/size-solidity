@@ -7,7 +7,7 @@ import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 /// @title IPriceFeedV1_5
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-/// @notice Getters from previous PriceFeed implementation
+/// @notice Getters from previous PriceFeed implementation. Maintained for backwards compatibility.
 interface IPriceFeedV1_5 is IPriceFeed {
     function base() external view returns (AggregatorV3Interface);
     function quote() external view returns (AggregatorV3Interface);
