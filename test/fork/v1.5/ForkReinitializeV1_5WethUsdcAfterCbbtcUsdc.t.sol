@@ -86,7 +86,7 @@ contract ForkReinitializeV1_5WethUsdcAfterCbbtcUsdcTest is ForkTest {
         newBorrowAToken = NonTransferrableScaledTokenV1_5(address(sizeFactory.getBorrowATokensV1_5()[0]));
     }
 
-    function testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_initialized() public {
+    function testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_initialized() public view {
         assertTrue(
             address(sizeWethUsdc.data().borrowAToken) != address(newBorrowAToken),
             "borrowAToken should not yet be newBorrowAToken"
