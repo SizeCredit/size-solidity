@@ -4,8 +4,10 @@ pragma solidity 0.8.23;
 import {Test} from "forge-std/Test.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
+
+import {UNISWAP_V3_FACTORY_BYTECODE} from "@test/mocks/UniswapV3FactoryBytecode.sol";
+import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
 import {Size} from "@src/Size.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
@@ -439,5 +441,16 @@ contract BaseTest is Test, Deploy, AssertsHelper {
 
     function _setLiquidityIndex(uint256 index) internal {
         _setLiquidityIndex(address(usdc), index);
+    }
+
+    function _deployUniswapV3Factory() internal returns (IUniswapV3Factory) {
+        bytes memory bytecode = UNISWAP_V3_FACTORY_BYTECODE;
+        address deployed;
+        assembly {
+            deployed := create(0, add(bytecode, 0x20), mload(bytecode))
+            if iszero(deployed) { revert(0, 0) }
+        }
+        vm.label(deployed, "IUniswapV3Factory");
+        return IUniswapV3Factory(deployed);
     }
 }

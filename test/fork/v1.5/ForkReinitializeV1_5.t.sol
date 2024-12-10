@@ -6,7 +6,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {PriceFeed} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {Size} from "@src/Size.sol";

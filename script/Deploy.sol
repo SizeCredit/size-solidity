@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IPool} from "@aave/interfaces/IPool.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import "@crytic/properties/contracts/util/Hevm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -15,7 +16,7 @@ import {PoolMock} from "@test/mocks/PoolMock.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {PriceFeed} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
@@ -189,18 +190,12 @@ abstract contract Deploy {
         variablePool = IPool(_networkParams.variablePool);
 
         if (
-            _networkParams.underlyingCollateralTokenAggregator == address(0)
-                && _networkParams.underlyingBorrowTokenAggregator == address(0)
+            _networkParams.priceFeedParams.baseAggregator == AggregatorV3Interface(address(0))
+                && _networkParams.priceFeedParams.quoteAggregator == AggregatorV3Interface(address(0))
         ) {
             priceFeed = new PriceFeedMock(_owner);
         } else {
-            priceFeed = new PriceFeed(
-                _networkParams.underlyingCollateralTokenAggregator,
-                _networkParams.underlyingBorrowTokenAggregator,
-                _networkParams.sequencerUptimeFeed,
-                _networkParams.underlyingCollateralTokenHeartbeat,
-                _networkParams.underlyingBorrowTokenHeartbeat
-            );
+            priceFeed = new PriceFeed(_networkParams.priceFeedParams);
         }
 
         if (_networkParams.variablePool == address(0)) {

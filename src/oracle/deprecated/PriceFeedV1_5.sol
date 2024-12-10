@@ -5,10 +5,10 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Math} from "@src/libraries/Math.sol";
 
-import {IPriceFeed} from "./IPriceFeed.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-/// @title PriceFeed
+/// @title PriceFeedV1_5
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A contract that provides the price of a `base` asset in terms of a `quote` asset, using an intermediate asset, scaled to 18 decimals (1)
@@ -30,7 +30,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 ///         _baseStalePriceInterval: 86400 seconds (https://data.chain.link/feeds/base/base/steth-eth)
 ///         _quoteStalePriceInterval: 86400 seconds (https://data.chain.link/feeds/base/base/steth-eth)
 ///         answer: STETH/ETH in 1e18
-contract PriceFeed is IPriceFeed {
+contract PriceFeedV1_5 is IPriceFeed {
     uint256 private constant GRACE_PERIOD_TIME = 3600;
 
     /* solhint-disable */

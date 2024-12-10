@@ -56,29 +56,34 @@ contract DeployScript is BaseScript, Networks, Deploy {
         );
         parameters.push(
             Parameter({
-                key: "underlyingCollateralTokenAggregator",
-                value: Strings.toHexString(params.underlyingCollateralTokenAggregator)
+                key: "priceFeedParams.baseAggregator",
+                value: Strings.toHexString(address(params.priceFeedParams.baseAggregator))
             })
         );
         parameters.push(
             Parameter({
-                key: "underlyingBorrowTokenAggregator",
-                value: Strings.toHexString(params.underlyingBorrowTokenAggregator)
+                key: "priceFeedParams.quoteAggregator",
+                value: Strings.toHexString(address(params.priceFeedParams.quoteAggregator))
             })
         );
         parameters.push(
             Parameter({
-                key: "underlyingCollateralTokenHeartbeat",
-                value: Strings.toString(params.underlyingCollateralTokenHeartbeat)
+                key: "priceFeedParams.baseStalePriceInterval",
+                value: Strings.toString(params.priceFeedParams.baseStalePriceInterval)
             })
         );
         parameters.push(
             Parameter({
-                key: "underlyingBorrowTokenHeartbeat",
-                value: Strings.toString(params.underlyingBorrowTokenHeartbeat)
+                key: "priceFeedParams.quoteStalePriceInterval",
+                value: Strings.toString(params.priceFeedParams.quoteStalePriceInterval)
             })
         );
-        parameters.push(Parameter({key: "sequencerUptimeFeed", value: Strings.toHexString(params.sequencerUptimeFeed)}));
+        parameters.push(
+            Parameter({
+                key: "priceFeedParams.sequencerUptimeFeed",
+                value: Strings.toHexString(address(params.priceFeedParams.sequencerUptimeFeed))
+            })
+        );
         parameters.push(Parameter({key: "variablePool", value: Strings.toHexString(address(variablePool))}));
 
         parameters.push(Parameter({key: "fragmentationFee", value: Strings.toString(params.fragmentationFee)}));

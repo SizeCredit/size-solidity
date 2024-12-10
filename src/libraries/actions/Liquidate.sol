@@ -47,7 +47,7 @@ library Liquidate {
             revert Errors.LOAN_NOT_LIQUIDATABLE(
                 params.debtPositionId,
                 state.collateralRatio(debtPosition.borrower),
-                state.getLoanStatus(params.debtPositionId)
+                uint8(state.getLoanStatus(params.debtPositionId))
             );
         }
 

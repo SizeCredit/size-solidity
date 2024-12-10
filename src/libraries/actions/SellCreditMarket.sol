@@ -86,7 +86,7 @@ library SellCreditMarket {
             if (!state.isCreditPositionTransferrable(params.creditPositionId)) {
                 revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
                     params.creditPositionId,
-                    state.getLoanStatus(params.creditPositionId),
+                    uint8(state.getLoanStatus(params.creditPositionId)),
                     state.collateralRatio(debtPosition.borrower)
                 );
             }
