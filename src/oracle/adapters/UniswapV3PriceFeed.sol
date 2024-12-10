@@ -63,6 +63,7 @@ contract UniswapV3PriceFeed is IPriceFeed {
         twapWindow = _twapWindow;
         averageBlockTime = _averageBlockTime;
 
+        // slither-disable-next-line unused-return
         (,,, uint16 cardinality,,,) = IUniswapV3Pool(_pool).slot0();
         uint16 desiredCardinality = SafeCast.toUint16(FixedPointMathLib.divUp(_twapWindow, _averageBlockTime) + 1);
         if (cardinality < desiredCardinality) {
@@ -71,6 +72,7 @@ contract UniswapV3PriceFeed is IPriceFeed {
     }
 
     function getPrice() public view override returns (uint256) {
+        // slither-disable-next-line unused-return
         (int24 meanTick,) = OracleLibrary.consult(address(pool), twapWindow);
         uint128 baseAmount = SafeCast.toUint128(10 ** baseToken.decimals());
         uint256 quoteAmount =
