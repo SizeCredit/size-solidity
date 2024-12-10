@@ -11,7 +11,6 @@ import {ISizeV1_5} from "@src/v1.5/interfaces/ISizeV1_5.sol";
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {console2 as console} from "forge-std/console2.sol";
 
 struct Deployment {
     string name;
