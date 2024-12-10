@@ -11,7 +11,7 @@ Target networks:
 
 ## Audits
 
-- [2024-11-13 - Custodia Security](https://custodiasecurity.xyz/audits/Custodia%20Security%20-%20Size%20v1.5%20Review%20Report.pdf)
+- [2024-11-13 - Custodia Security](./audits/2024-11-13-Custodia-Security.pdf)
 - [2024-06-10 - Code4rena](https://code4rena.com/reports/2024-06-size)
 - [2024-06-08 - Spearbit](./audits/2024-06-08-Spearbit.pdf)
 - [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
