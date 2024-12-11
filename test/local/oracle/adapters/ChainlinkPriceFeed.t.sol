@@ -58,6 +58,11 @@ contract ChainlinkPriceFeedTest is Test, AssertsHelper {
             decimals, AggregatorV3Interface(address(ethToUsd)), AggregatorV3Interface(address(usdcToUsd)), 3600, 0
         );
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_DECIMALS.selector, ETH_TO_USD_DECIMALS));
+        new ChainlinkPriceFeed(
+            decimals, AggregatorV3Interface(address(stethToEth)), AggregatorV3Interface(address(ethToUsd)), 3600, 86400
+        );
+
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_STALE_PRICE_INTERVAL.selector, 3600, 86400));
         new ChainlinkPriceFeed(
             decimals,
