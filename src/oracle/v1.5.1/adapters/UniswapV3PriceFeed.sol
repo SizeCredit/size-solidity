@@ -25,7 +25,7 @@ contract UniswapV3PriceFeed is IPriceFeed {
     IERC20Metadata public immutable baseToken;
     IERC20Metadata public immutable quoteToken;
     IUniswapV3Factory public immutable uniswapV3Factory;
-    IUniswapV3Pool public immutable pool;
+    IUniswapV3Pool public immutable uniswapV3Pool;
     uint32 public immutable twapWindow;
     uint32 public immutable averageBlockTime;
     /* solhint-enable */
@@ -35,13 +35,13 @@ contract UniswapV3PriceFeed is IPriceFeed {
         IERC20Metadata _baseToken,
         IERC20Metadata _quoteToken,
         IUniswapV3Factory _uniswapV3Factory,
-        IUniswapV3Pool _pool,
+        IUniswapV3Pool _uniswapV3Pool,
         uint32 _twapWindow,
         uint32 _averageBlockTime
     ) {
         if (
             address(_baseToken) == address(0) || address(_quoteToken) == address(0)
-                || address(_uniswapV3Factory) == address(0) || address(_pool) == address(0)
+                || address(_uniswapV3Factory) == address(0) || address(_uniswapV3Pool) == address(0)
         ) {
             revert Errors.NULL_ADDRESS();
         }
@@ -59,21 +59,21 @@ contract UniswapV3PriceFeed is IPriceFeed {
         uniswapV3Factory = _uniswapV3Factory;
         baseToken = _baseToken;
         quoteToken = _quoteToken;
-        pool = _pool;
+        uniswapV3Pool = _uniswapV3Pool;
         twapWindow = _twapWindow;
         averageBlockTime = _averageBlockTime;
 
         // slither-disable-next-line unused-return
-        (,,, uint16 cardinality,,,) = IUniswapV3Pool(_pool).slot0();
+        (,,, uint16 cardinality,,,) = IUniswapV3Pool(_uniswapV3Pool).slot0();
         uint16 desiredCardinality = SafeCast.toUint16(FixedPointMathLib.divUp(_twapWindow, _averageBlockTime) + 1);
         if (cardinality < desiredCardinality) {
-            pool.increaseObservationCardinalityNext(desiredCardinality);
+            uniswapV3Pool.increaseObservationCardinalityNext(desiredCardinality);
         }
     }
 
     function getPrice() public view override returns (uint256) {
         // slither-disable-next-line unused-return
-        (int24 meanTick,) = OracleLibrary.consult(address(pool), twapWindow);
+        (int24 meanTick,) = OracleLibrary.consult(address(uniswapV3Pool), twapWindow);
         uint128 baseAmount = SafeCast.toUint128(10 ** baseToken.decimals());
         uint256 quoteAmount =
             OracleLibrary.getQuoteAtTick(meanTick, baseAmount, address(baseToken), address(quoteToken));

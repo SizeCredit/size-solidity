@@ -105,7 +105,7 @@ contract ChainlinkGoesDownUniswapIsUsedAsFallbackTest is ForkTest {
                 baseStalePriceInterval: baseStalePriceInterval,
                 quoteStalePriceInterval: quoteStalePriceInterval,
                 twapWindow: twapWindow,
-                pool: uniswapV3Pool,
+                uniswapV3Pool: uniswapV3Pool,
                 baseToken: underlyingCollateralToken,
                 quoteToken: underlyingBorrowToken,
                 uniswapV3Factory: uniswapV3Factory,

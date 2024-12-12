@@ -90,7 +90,7 @@ contract PriceFeedTest is BaseTest {
         priceFeedEthToUsd = new PriceFeed(
             PriceFeedParams({
                 uniswapV3Factory: uniswapV3Factory,
-                pool: poolWethUsdc,
+                uniswapV3Pool: poolWethUsdc,
                 twapWindow: 30 minutes,
                 averageBlockTime: averageBlockTime,
                 baseToken: IERC20Metadata(_weth),
@@ -105,7 +105,7 @@ contract PriceFeedTest is BaseTest {
         priceFeedStethToEth = new PriceFeed(
             PriceFeedParams({
                 uniswapV3Factory: uniswapV3Factory,
-                pool: poolWethUsdc,
+                uniswapV3Pool: poolWethUsdc,
                 twapWindow: 30 minutes,
                 averageBlockTime: averageBlockTime,
                 baseToken: IERC20Metadata(_steth),
@@ -205,7 +205,7 @@ contract PriceFeedTest is BaseTest {
         priceFeedStethToEth = new PriceFeed(
             PriceFeedParams({
                 uniswapV3Factory: uniswapV3Factory,
-                pool: poolWethUsdc,
+                uniswapV3Pool: poolWethUsdc,
                 twapWindow: 30 minutes,
                 averageBlockTime: averageBlockTime,
                 baseToken: IERC20Metadata(_steth),

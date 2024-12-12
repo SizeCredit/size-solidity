@@ -12,7 +12,7 @@ import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Po
 
 struct PriceFeedParams {
     IUniswapV3Factory uniswapV3Factory;
-    IUniswapV3Pool pool;
+    IUniswapV3Pool uniswapV3Pool;
     uint32 twapWindow;
     uint32 averageBlockTime;
     IERC20Metadata baseToken;
@@ -54,7 +54,7 @@ contract PriceFeed is IPriceFeedV1_5_1 {
             priceFeedParams.baseToken,
             priceFeedParams.quoteToken,
             priceFeedParams.uniswapV3Factory,
-            priceFeedParams.pool,
+            priceFeedParams.uniswapV3Pool,
             priceFeedParams.twapWindow,
             priceFeedParams.averageBlockTime
         );
