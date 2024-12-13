@@ -13,7 +13,6 @@ import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";
 
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
@@ -25,7 +24,6 @@ contract ChainlinkGoesDownUniswapIsUsedAsFallbackTest is ForkTest {
     // https://basescan.org/tx/0x5861fd0da0cdc07265494e4e7f80608f00f4e2e4211735ee06918f8330569786 (aggregatorRoundId 398 executed at Oct-18-2024 10:05:33 PM +UTC)
     uint256 blockNumberChainlinkAggregatorRoundId398 = 21249893;
 
-    address UNISWAP_V3_FACTORY_BASE_MAINNET = 0x33128a8fC17869897dcE68Ed026d694621f6FDfD;
     address UNISWAP_V3_POOL_CBBTC_USDC_BASE_MAINNET = 0xeC558e484cC9f2210714E345298fdc53B253c27D;
 
     uint256 updatedAt;
@@ -92,7 +90,6 @@ contract ChainlinkGoesDownUniswapIsUsedAsFallbackTest is ForkTest {
             PriceFeedV1_5(address(sizeCbBtcUsdc.oracle().priceFeed)).baseStalePriceInterval();
         uint256 quoteStalePriceInterval =
             PriceFeedV1_5(address(sizeCbBtcUsdc.oracle().priceFeed)).quoteStalePriceInterval();
-        IUniswapV3Factory uniswapV3Factory = IUniswapV3Factory(address(UNISWAP_V3_FACTORY_BASE_MAINNET));
         IUniswapV3Pool uniswapV3Pool = IUniswapV3Pool(address(UNISWAP_V3_POOL_CBBTC_USDC_BASE_MAINNET));
         uint32 averageBlockTime = 2 seconds;
         uint32 twapWindow = 30 minutes;
@@ -108,7 +105,6 @@ contract ChainlinkGoesDownUniswapIsUsedAsFallbackTest is ForkTest {
                 uniswapV3Pool: uniswapV3Pool,
                 baseToken: underlyingCollateralToken,
                 quoteToken: underlyingBorrowToken,
-                uniswapV3Factory: uniswapV3Factory,
                 averageBlockTime: averageBlockTime
             })
         );

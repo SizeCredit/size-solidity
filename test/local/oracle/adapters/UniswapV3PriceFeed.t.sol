@@ -62,7 +62,6 @@ contract UniswapV3PriceFeedTest is BaseTest {
             decimals,
             IERC20Metadata(_weth),
             IERC20Metadata(_usdc),
-            uniswapV3Factory,
             IUniswapV3Pool(address(poolWethUsdc)),
             30 minutes,
             averageBlockTime
@@ -71,7 +70,6 @@ contract UniswapV3PriceFeedTest is BaseTest {
             decimals,
             IERC20Metadata(_cbbtc),
             IERC20Metadata(_usdc),
-            uniswapV3Factory,
             IUniswapV3Pool(address(poolCbbtcUsdc)),
             10 minutes,
             averageBlockTime
@@ -82,59 +80,31 @@ contract UniswapV3PriceFeedTest is BaseTest {
         uint32 twapWindow = 30 minutes;
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new UniswapV3PriceFeed(
-            decimals, IERC20Metadata(address(0)), usdc, uniswapV3Factory, poolWethUsdc, twapWindow, averageBlockTime
-        );
+        new UniswapV3PriceFeed(decimals, IERC20Metadata(address(0)), usdc, poolWethUsdc, twapWindow, averageBlockTime);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         new UniswapV3PriceFeed(
-            decimals,
-            IERC20Metadata(_weth),
-            IERC20Metadata(address(0)),
-            uniswapV3Factory,
-            poolWethUsdc,
-            twapWindow,
-            averageBlockTime
-        );
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        new UniswapV3PriceFeed(
-            decimals,
-            IERC20Metadata(_weth),
-            IERC20Metadata(_usdc),
-            IUniswapV3Factory(address(0)),
-            poolWethUsdc,
-            twapWindow,
-            averageBlockTime
+            decimals, IERC20Metadata(_weth), IERC20Metadata(address(0)), poolWethUsdc, twapWindow, averageBlockTime
         );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TOKEN.selector, address(_weth)));
         new UniswapV3PriceFeed(
-            decimals,
-            IERC20Metadata(_weth),
-            IERC20Metadata(_weth),
-            uniswapV3Factory,
-            poolWethUsdc,
-            twapWindow,
-            averageBlockTime
+            decimals, IERC20Metadata(_weth), IERC20Metadata(_weth), poolWethUsdc, twapWindow, averageBlockTime
         );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_TWAP_WINDOW.selector));
         new UniswapV3PriceFeed(
-            decimals, IERC20Metadata(_weth), IERC20Metadata(_usdc), uniswapV3Factory, poolWethUsdc, 0, averageBlockTime
+            decimals, IERC20Metadata(_weth), IERC20Metadata(_usdc), poolWethUsdc, 0, averageBlockTime
         );
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_AVERAGE_BLOCK_TIME.selector));
-        new UniswapV3PriceFeed(
-            decimals, IERC20Metadata(_weth), IERC20Metadata(_usdc), uniswapV3Factory, poolWethUsdc, twapWindow, 0
-        );
+        new UniswapV3PriceFeed(decimals, IERC20Metadata(_weth), IERC20Metadata(_usdc), poolWethUsdc, twapWindow, 0);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         new UniswapV3PriceFeed(
             decimals,
             IERC20Metadata(_weth),
             IERC20Metadata(_usdc),
-            uniswapV3Factory,
             IUniswapV3Pool(address(0)),
             twapWindow,
             averageBlockTime
@@ -194,7 +164,6 @@ contract UniswapV3PriceFeedTest is BaseTest {
             decimals,
             IERC20Metadata(_weth),
             IERC20Metadata(_usdc),
-            uniswapV3Factory,
             IUniswapV3Pool(address(poolWethUsdc)),
             1 days,
             averageBlockTime

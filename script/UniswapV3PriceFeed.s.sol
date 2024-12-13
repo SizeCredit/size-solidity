@@ -17,25 +17,12 @@ contract UniswapV3PriceFeedScript is Script {
         address usdc = 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913;
         address poolWethUsdc = 0x6c561B446416E1A00E8E93E221854d6eA4171372;
         address poolCbbtcUsdc = 0xeC558e484cC9f2210714E345298fdc53B253c27D;
-        address uniswapV3Factory = 0x33128a8fC17869897dcE68Ed026d694621f6FDfD;
 
         UniswapV3PriceFeed priceFeedWethUsdc = new UniswapV3PriceFeed(
-            18,
-            IERC20Metadata(weth),
-            IERC20Metadata(usdc),
-            IUniswapV3Factory(uniswapV3Factory),
-            IUniswapV3Pool(poolWethUsdc),
-            30 minutes,
-            2 seconds
+            18, IERC20Metadata(weth), IERC20Metadata(usdc), IUniswapV3Pool(poolWethUsdc), 30 minutes, 2 seconds
         );
         UniswapV3PriceFeed priceFeedCbbtcUsdc = new UniswapV3PriceFeed(
-            18,
-            IERC20Metadata(cbbtc),
-            IERC20Metadata(usdc),
-            IUniswapV3Factory(uniswapV3Factory),
-            IUniswapV3Pool(poolCbbtcUsdc),
-            10 minutes,
-            2 seconds
+            18, IERC20Metadata(cbbtc), IERC20Metadata(usdc), IUniswapV3Pool(poolCbbtcUsdc), 10 minutes, 2 seconds
         );
 
         console.log("priceFeedWethUsdc", priceFeedWethUsdc.getPrice());

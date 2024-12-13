@@ -7,11 +7,9 @@ import {IPriceFeedV1_5_1} from "@src/oracle/v1.5.1/IPriceFeedV1_5_1.sol";
 import {ChainlinkPriceFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkPriceFeed.sol";
 import {ChainlinkSequencerUptimeFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkSequencerUptimeFeed.sol";
 import {UniswapV3PriceFeed} from "@src/oracle/v1.5.1/adapters/UniswapV3PriceFeed.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 struct PriceFeedParams {
-    IUniswapV3Factory uniswapV3Factory;
     IUniswapV3Pool uniswapV3Pool;
     uint32 twapWindow;
     uint32 averageBlockTime;
@@ -53,7 +51,6 @@ contract PriceFeed is IPriceFeedV1_5_1 {
             decimals,
             priceFeedParams.baseToken,
             priceFeedParams.quoteToken,
-            priceFeedParams.uniswapV3Factory,
             priceFeedParams.uniswapV3Pool,
             priceFeedParams.twapWindow,
             priceFeedParams.averageBlockTime

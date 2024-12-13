@@ -89,7 +89,6 @@ contract PriceFeedTest is BaseTest {
 
         priceFeedEthToUsd = new PriceFeed(
             PriceFeedParams({
-                uniswapV3Factory: uniswapV3Factory,
                 uniswapV3Pool: poolWethUsdc,
                 twapWindow: 30 minutes,
                 averageBlockTime: averageBlockTime,
@@ -104,7 +103,6 @@ contract PriceFeedTest is BaseTest {
         );
         priceFeedStethToEth = new PriceFeed(
             PriceFeedParams({
-                uniswapV3Factory: uniswapV3Factory,
                 uniswapV3Pool: poolWethUsdc,
                 twapWindow: 30 minutes,
                 averageBlockTime: averageBlockTime,
@@ -204,7 +202,6 @@ contract PriceFeedTest is BaseTest {
         stethToEth = new MockV3Aggregator(8, 0.9997e8);
         priceFeedStethToEth = new PriceFeed(
             PriceFeedParams({
-                uniswapV3Factory: uniswapV3Factory,
                 uniswapV3Pool: poolWethUsdc,
                 twapWindow: 30 minutes,
                 averageBlockTime: averageBlockTime,

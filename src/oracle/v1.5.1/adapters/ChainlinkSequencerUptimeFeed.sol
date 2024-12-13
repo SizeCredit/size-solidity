@@ -9,6 +9,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @dev See https://docs.chain.link/data-feeds/l2-sequencer-feeds
+///      The sequencer is down if if `startedAt` is 0 (only on Arbitrum) or if `answer` is 1
 contract ChainlinkSequencerUptimeFeed {
     uint256 private constant GRACE_PERIOD_TIME = 3600;
 

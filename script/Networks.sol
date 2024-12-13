@@ -6,7 +6,6 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 struct NetworkConfiguration {
@@ -41,10 +40,9 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
-                    uniswapV3Factory: IUniswapV3Factory(address(0)),
+                    uniswapV3Pool: IUniswapV3Pool(address(0)),
                     twapWindow: 0,
                     averageBlockTime: 0,
-                    uniswapV3Pool: IUniswapV3Pool(address(0)),
                     baseToken: IERC20Metadata(address(0)),
                     quoteToken: IERC20Metadata(address(0)),
                     baseAggregator: AggregatorV3Interface(address(0)),
@@ -66,7 +64,6 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
-                    uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
                     averageBlockTime: 0,
                     uniswapV3Pool: IUniswapV3Pool(address(0)),
@@ -91,7 +88,6 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
-                    uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
                     averageBlockTime: 0,
                     uniswapV3Pool: IUniswapV3Pool(address(0)),
@@ -116,7 +112,6 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
-                    uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
                     averageBlockTime: 0,
                     uniswapV3Pool: IUniswapV3Pool(address(0)),
@@ -141,7 +136,6 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
-                    uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
                     averageBlockTime: 0,
                     uniswapV3Pool: IUniswapV3Pool(address(0)),
@@ -166,7 +160,6 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
-                    uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
                     averageBlockTime: 0,
                     uniswapV3Pool: IUniswapV3Pool(address(0)),
@@ -191,7 +184,6 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
-                    uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
                     averageBlockTime: 0,
                     uniswapV3Pool: IUniswapV3Pool(address(0)),
@@ -216,7 +208,6 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 0.005e18,
                 borrowATokenCap: 500e18,
                 priceFeedParams: PriceFeedParams({
-                    uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
                     averageBlockTime: 0,
                     uniswapV3Pool: IUniswapV3Pool(address(0)),
@@ -241,7 +232,6 @@ abstract contract Networks {
                 minimumCreditBorrowAToken: 10e6,
                 borrowATokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
-                    uniswapV3Factory: IUniswapV3Factory(address(0)),
                     twapWindow: 0,
                     averageBlockTime: 0,
                     uniswapV3Pool: IUniswapV3Pool(address(0)),

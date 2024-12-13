@@ -7,7 +7,6 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
 import {PoolAddress} from "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
@@ -24,7 +23,6 @@ contract UniswapV3PriceFeed is IPriceFeed {
     uint256 public immutable decimals;
     IERC20Metadata public immutable baseToken;
     IERC20Metadata public immutable quoteToken;
-    IUniswapV3Factory public immutable uniswapV3Factory;
     IUniswapV3Pool public immutable uniswapV3Pool;
     uint32 public immutable twapWindow;
     uint32 public immutable averageBlockTime;
@@ -34,14 +32,13 @@ contract UniswapV3PriceFeed is IPriceFeed {
         uint256 _decimals,
         IERC20Metadata _baseToken,
         IERC20Metadata _quoteToken,
-        IUniswapV3Factory _uniswapV3Factory,
         IUniswapV3Pool _uniswapV3Pool,
         uint32 _twapWindow,
         uint32 _averageBlockTime
     ) {
         if (
             address(_baseToken) == address(0) || address(_quoteToken) == address(0)
-                || address(_uniswapV3Factory) == address(0) || address(_uniswapV3Pool) == address(0)
+                || address(_uniswapV3Pool) == address(0)
         ) {
             revert Errors.NULL_ADDRESS();
         }
@@ -56,7 +53,6 @@ contract UniswapV3PriceFeed is IPriceFeed {
         }
 
         decimals = _decimals;
-        uniswapV3Factory = _uniswapV3Factory;
         baseToken = _baseToken;
         quoteToken = _quoteToken;
         uniswapV3Pool = _uniswapV3Pool;
@@ -71,7 +67,7 @@ contract UniswapV3PriceFeed is IPriceFeed {
         }
     }
 
-    function getPrice() public view override returns (uint256) {
+    function getPrice() external view override returns (uint256) {
         // slither-disable-next-line unused-return
         (int24 meanTick,) = OracleLibrary.consult(address(uniswapV3Pool), twapWindow);
         uint128 baseAmount = SafeCast.toUint128(10 ** baseToken.decimals());

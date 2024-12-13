@@ -11,7 +11,10 @@ import {UniswapV3PriceFeed} from "@src/oracle/v1.5.1/adapters/UniswapV3PriceFeed
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 interface IPriceFeedV1_5_1 is IPriceFeedV1_5 {
+    /// @notice Returns the Chainlink sequencer uptime feed
     function chainlinkSequencerUptimeFeed() external view returns (ChainlinkSequencerUptimeFeed);
+    /// @notice Returns the Chainlink price feed
     function chainlinkPriceFeed() external view returns (ChainlinkPriceFeed);
+    /// @notice Returns the Uniswap V3 price feed
     function uniswapV3PriceFeed() external view returns (UniswapV3PriceFeed);
 }
