@@ -11,6 +11,7 @@ Target networks:
 
 ## Audits
 
+- [2024-12-10 - ChainDefenders](./audits/2024-12-10-ChainDefenders.pdf)
 - [2024-11-13 - Custodia Security](./audits/2024-11-13-Custodia-Security.pdf)
 - [2024-06-10 - Code4rena](https://code4rena.com/reports/2024-06-size)
 - [2024-06-08 - Spearbit](./audits/2024-06-08-Spearbit.pdf)
