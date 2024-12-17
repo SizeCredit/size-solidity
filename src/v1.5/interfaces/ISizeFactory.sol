@@ -12,7 +12,7 @@ import {
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
-import {PriceFeed} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
 /// @title ISizeFactory
@@ -23,20 +23,14 @@ interface ISizeFactory {
     /// @notice Creates a new market
     /// @dev The contract owner is set as the owner of the market
     function createMarket(
-        InitializeFeeConfigParams calldata f,
-        InitializeRiskConfigParams calldata r,
-        InitializeOracleParams calldata o,
-        InitializeDataParams calldata d
+        InitializeFeeConfigParams calldata feeConfigParams,
+        InitializeRiskConfigParams calldata riskConfigParams,
+        InitializeOracleParams calldata oracleParams,
+        InitializeDataParams calldata dataParams
     ) external returns (ISize);
 
     /// @notice Creates a new price feed
-    function createPriceFeed(
-        address underlyingCollateralTokenAggregator,
-        address underlyingBorrowTokenAggregator,
-        address sequencerUptimeFeed,
-        uint256 underlyingCollateralTokenHeartbeat,
-        uint256 underlyingBorrowTokenHeartbeat
-    ) external returns (PriceFeed);
+    function createPriceFeed(PriceFeedParams calldata priceFeedParams) external returns (PriceFeed);
 
     /// @notice Creates a new borrow aToken
     function createBorrowATokenV1_5(IPool variablePool, IERC20Metadata underlyingBorrowToken)

@@ -39,7 +39,7 @@ library SelfLiquidate {
             revert Errors.LOAN_NOT_SELF_LIQUIDATABLE(
                 params.creditPositionId,
                 state.collateralRatio(debtPosition.borrower),
-                state.getLoanStatus(params.creditPositionId)
+                uint8(state.getLoanStatus(params.creditPositionId))
             );
         }
 

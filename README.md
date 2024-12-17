@@ -11,6 +11,8 @@ Target networks:
 
 ## Audits
 
+- [2024-12-10 - ChainDefenders](./audits/2024-12-10-ChainDefenders.pdf)
+- [2024-11-13 - Custodia Security](./audits/2024-11-13-Custodia-Security.pdf)
 - [2024-06-10 - Code4rena](https://code4rena.com/reports/2024-06-size)
 - [2024-06-08 - Spearbit](./audits/2024-06-08-Spearbit.pdf)
 - [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
@@ -208,14 +210,11 @@ for i in {0..5}; do halmos --loop $i; done
 
 ## Known limitations
 
-- The protocol currently supports only a single market (USDC/ETH for borrow/collateral tokens)
 - The protocol does not support rebasing/fee-on-transfer tokens
-- The protocol does not support tokens with different decimals than the current market
 - The protocol only supports tokens compliant with the IERC20Metadata interface
 - The protocol only supports pre-vetted tokens
 - The protocol owner, KEEPER_ROLE, PAUSER_ROLE, and BORROW_RATE_UPDATER_ROLE are trusted
-- The protocol does not have any fallback oracles.
-- Price feeds must be redeployed and updated in case any Chainlink configuration changes (stale price timeouts, decimals, etc)
+- The protocol uses Uniswap TWAP as a fallback oracle in case Chainlink is stale.
 - In case Chainlink reports a wrong price, the protocol state cannot be guaranteed. This may cause incorrect liquidations, among other issues
 - In case the protocol is paused, the price of the collateral may change during the unpause event. This may cause unforseen liquidations, among other issues
 - It is not possible to pause individual functions. Nevertheless, BORROW_RATE_UPDATER_ROLE and admin functions are enabled even if the protocol is paused
@@ -268,10 +267,11 @@ If it does not work, try removing `--verify`
 
 ### Deployment checklist
 
+0. Due dilligence on borrow/collateral tokens: non-rebasing, IERC20Metadata
 1. Deploy
-2. Grant `KEEPER_ROLE` to keeper bot
-3. Grant `BORROW_RATE_UPDATER_ROLE` to updater bot
-4. Grant `PAUSER_ROLE` to pauser bot
+2. Grant `KEEPER_ROLE` to liquidation contract
+3. Grant `BORROW_RATE_UPDATER_ROLE` to bot
+4. Grant `PAUSER_ROLE` to bot, multisig signers
 
 ## Upgrade
 
@@ -279,32 +279,3 @@ If it does not work, try removing `--verify`
 source .env.sepolia
 forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
 ```
-
-### v1.5 migration
-
-1. Deploy the SizeFactory
-
-```bash
-source .env
-export NETWORK_CONFIGURATION=base-sepolia-size-factory
-forge script script/DeploySizeFactory.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv
-```
-
-2. Manually call `sizeFactory.addMarket` (x2), `sizeFactory.addPriceFeed` (x2)
-
-3. Manually call `sizeFactory.createBorrowATokenV1_5`
-
-4. Verify the correctness through `sizeFactory.get{Markets,PriceFeeds}Descriptions`
-
-5. Pause all markets
-
-6. Call `GetV1_5ReinitializeDataScript`
-
-```bash
-source .env
-forge script script/GetV1_5ReinitializeData.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi -vvvvv
-```
-
-7. Manually upgrade and reinitialize the markets: `size.upgradeToAndCall(sizeFactory.sizeImplementation(), "reinitialize")`
-
-8. Unpause all markets

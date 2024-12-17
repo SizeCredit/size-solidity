@@ -21,7 +21,7 @@ import {console2 as console} from "forge-std/console2.sol";
 contract ForkReinitializeV1_5WethUsdcAfterCbbtcUsdcTest is ForkTest {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
-    uint256 internal BLOCK_NUMBER_CBBTC_USDC_ALREADY_MIGRATED = 22761358;
+    uint256 internal BLOCK_NUMBER_CBBTC_USDC_ALREADY_MIGRATED = 22878761;
 
     ISize internal sizeWethUsdc;
     ISize internal sizeCbbtcUsdc;
@@ -84,6 +84,17 @@ contract ForkReinitializeV1_5WethUsdcAfterCbbtcUsdcTest is ForkTest {
 
         sizeFactory = importSizeFactory("base-production-size-factory");
         newBorrowAToken = NonTransferrableScaledTokenV1_5(address(sizeFactory.getBorrowATokensV1_5()[0]));
+    }
+
+    function testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_initialized() public view {
+        assertTrue(
+            address(sizeWethUsdc.data().borrowAToken) != address(newBorrowAToken),
+            "borrowAToken should not yet be newBorrowAToken"
+        );
+        assertTrue(
+            address(sizeCbbtcUsdc.data().borrowAToken) == address(newBorrowAToken),
+            "borrowAToken should be newBorrowAToken"
+        );
     }
 
     function testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_migrate_WETH_USDC() public {
