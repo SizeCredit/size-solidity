@@ -39,3 +39,6 @@ medusa
 
 # Custom
 selectors.txt
+
+# Typechain
+types/

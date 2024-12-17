@@ -26,7 +26,7 @@ import {NonTransferrableScaledTokenV1_5FactoryLibrary} from
     "@src/v1.5/libraries/NonTransferrableScaledTokenV1_5FactoryLibrary.sol";
 import {PriceFeedFactoryLibrary} from "@src/v1.5/libraries/PriceFeedFactoryLibrary.sol";
 
-import {PriceFeed} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
 import {VERSION} from "@src/interfaces/ISize.sol";
@@ -63,12 +63,12 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function createMarket(
-        InitializeFeeConfigParams calldata f,
-        InitializeRiskConfigParams calldata r,
-        InitializeOracleParams calldata o,
-        InitializeDataParams calldata d
+        InitializeFeeConfigParams calldata feeConfigParams,
+        InitializeRiskConfigParams calldata riskConfigParams,
+        InitializeOracleParams calldata oracleParams,
+        InitializeDataParams calldata dataParams
     ) external onlyOwner returns (ISize market) {
-        market = MarketFactoryLibrary.createMarket(owner(), f, r, o, d);
+        market = MarketFactoryLibrary.createMarket(owner(), feeConfigParams, riskConfigParams, oracleParams, dataParams);
         _addMarket(market);
     }
 
@@ -94,20 +94,12 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
         emit MarketRemoved(address(market), existed);
     }
 
-    function createPriceFeed(
-        address underlyingCollateralTokenAggregator,
-        address underlyingBorrowTokenAggregator,
-        address sequencerUptimeFeed,
-        uint256 underlyingCollateralTokenHeartbeat,
-        uint256 underlyingBorrowTokenHeartbeat
-    ) external onlyOwner returns (PriceFeed priceFeed) {
-        priceFeed = PriceFeedFactoryLibrary.createPriceFeed(
-            underlyingCollateralTokenAggregator,
-            underlyingBorrowTokenAggregator,
-            sequencerUptimeFeed,
-            underlyingCollateralTokenHeartbeat,
-            underlyingBorrowTokenHeartbeat
-        );
+    function createPriceFeed(PriceFeedParams memory _priceFeedParams)
+        external
+        onlyOwner
+        returns (PriceFeed priceFeed)
+    {
+        priceFeed = PriceFeedFactoryLibrary.createPriceFeed(_priceFeedParams);
         _addPriceFeed(priceFeed);
     }
 

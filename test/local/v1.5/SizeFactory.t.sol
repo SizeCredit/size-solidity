@@ -1,25 +1,42 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
-
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {PriceFeed} from "@src/oracle/PriceFeed.sol";
+import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
 import {BaseTest} from "@test/BaseTest.sol";
+import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import {IUniswapV3PoolActions} from "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
 
 contract SizeFactoryTest is BaseTest {
     address public owner;
+
+    uint32 constant averageBlockTime = 2 seconds;
 
     function setUp() public override {
         owner = makeAddr("owner");
         address _feeRecipient = makeAddr("feeRecipient");
         setupLocal(owner, _feeRecipient);
+    }
+
+    function _deployUniswapV3Pool(MockERC20 baseToken, MockERC20 quoteToken)
+        internal
+        returns (IUniswapV3Pool uniswapV3Pool)
+    {
+        IUniswapV3Factory uniswapV3Factory = _deployUniswapV3Factory();
+        uniswapV3Pool = IUniswapV3Pool(uniswapV3Factory.createPool(address(baseToken), address(quoteToken), 3000));
+        vm.mockCall(
+            address(uniswapV3Pool),
+            abi.encodeWithSelector(IUniswapV3PoolActions.increaseObservationCardinalityNext.selector),
+            abi.encode("")
+        );
     }
 
     function test_SizeFactory_owner() public view {
@@ -42,22 +59,22 @@ contract SizeFactoryTest is BaseTest {
 
     function test_SizeFactory_set_2_existing_markets_1() public {
         assertEq(address(sizeFactory.getMarket(0)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[0], "Size | WETH | USDC | 130 | v1.5");
+        assertEq(sizeFactory.getMarketDescriptions()[0], "Size | WETH | USDC | 130 | v1.5.1");
 
         setupLocalGenericMarket(owner, feeRecipient, 60576e18, 0.9999e18, 8, 6, false, false);
 
         assertEq(address(sizeFactory.getMarket(1)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[1], "Size | CTK | BTK | 130 | v1.5");
+        assertEq(sizeFactory.getMarketDescriptions()[1], "Size | CTK | BTK | 130 | v1.5.1");
     }
 
     function test_SizeFactory_set_2_existing_markets_add_3rd_market() public {
         assertEq(address(sizeFactory.getMarket(0)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[0], "Size | WETH | USDC | 130 | v1.5");
+        assertEq(sizeFactory.getMarketDescriptions()[0], "Size | WETH | USDC | 130 | v1.5.1");
 
         setupLocalGenericMarket(owner, feeRecipient, 60576e18, 0.9999e18, 8, 6, false, false);
 
         assertEq(address(sizeFactory.getMarket(1)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[1], "Size | CTK | BTK | 130 | v1.5");
+        assertEq(sizeFactory.getMarketDescriptions()[1], "Size | CTK | BTK | 130 | v1.5.1");
 
         d.underlyingCollateralToken = address(new MockERC20("Liquid staked Ether 2.0", "stETH", 18));
         d.underlyingBorrowToken = address(weth);
@@ -72,7 +89,7 @@ contract SizeFactoryTest is BaseTest {
             assertTrue(address(markets[i]) != address(0));
             assertTrue(markets[i] != markets[i + 1]);
         }
-        assertEq(sizeFactory.getMarketDescriptions()[2], "Size | stETH | WETH | 125 | v1.5");
+        assertEq(sizeFactory.getMarketDescriptions()[2], "Size | stETH | WETH | 125 | v1.5.1");
     }
 
     function test_SizeFactory_set_2_existing_markets_add_3rd_market_remove_1st_market_tryRemove_unexistent_market()
@@ -104,9 +121,30 @@ contract SizeFactoryTest is BaseTest {
 
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
+        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
+        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
+        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
+        vm.mockCall(
+            address(uniswapV3Pool),
+            abi.encodeWithSelector(IUniswapV3PoolActions.increaseObservationCardinalityNext.selector),
+            abi.encode("")
+        );
 
         vm.prank(owner);
-        sizeFactory.createPriceFeed(address(aggregator1), address(aggregator2), address(0x1), 1, 2);
+        sizeFactory.createPriceFeed(
+            PriceFeedParams({
+                baseAggregator: AggregatorV3Interface(address(aggregator1)),
+                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
+                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
+                baseStalePriceInterval: 1,
+                quoteStalePriceInterval: 2,
+                twapWindow: 30 minutes,
+                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
+                baseToken: IERC20Metadata(address(baseToken)),
+                quoteToken: IERC20Metadata(address(quoteToken)),
+                averageBlockTime: averageBlockTime
+            })
+        );
         PriceFeed ipriceFeed = sizeFactory.getPriceFeed(0);
         assertTrue(sizeFactory.isPriceFeed(address(ipriceFeed)));
 
@@ -157,12 +195,28 @@ contract SizeFactoryTest is BaseTest {
         assertFalse(existed);
     }
 
-    function test_SizeFactory_addPriceFeed() public {
+    function test_SizeFactory_addPriceFeed_1() public {
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
+        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
+        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
+        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
 
         vm.prank(owner);
-        sizeFactory.createPriceFeed(address(aggregator1), address(aggregator2), address(0x1), 1, 2);
+        sizeFactory.createPriceFeed(
+            PriceFeedParams({
+                baseAggregator: AggregatorV3Interface(address(aggregator1)),
+                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
+                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
+                baseStalePriceInterval: 1,
+                quoteStalePriceInterval: 2,
+                twapWindow: 30 minutes,
+                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
+                baseToken: IERC20Metadata(address(baseToken)),
+                quoteToken: IERC20Metadata(address(quoteToken)),
+                averageBlockTime: averageBlockTime
+            })
+        );
         PriceFeed priceFeed = sizeFactory.getPriceFeed(0);
 
         vm.prank(owner);
@@ -174,9 +228,25 @@ contract SizeFactoryTest is BaseTest {
     function test_SizeFactory_removePriceFeed() public {
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
+        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
+        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
+        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
 
         vm.prank(owner);
-        sizeFactory.createPriceFeed(address(aggregator1), address(aggregator2), address(0x1), 1, 2);
+        sizeFactory.createPriceFeed(
+            PriceFeedParams({
+                baseAggregator: AggregatorV3Interface(address(aggregator1)),
+                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
+                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
+                baseStalePriceInterval: 1,
+                quoteStalePriceInterval: 2,
+                twapWindow: 30 minutes,
+                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
+                baseToken: IERC20Metadata(address(baseToken)),
+                quoteToken: IERC20Metadata(address(quoteToken)),
+                averageBlockTime: averageBlockTime
+            })
+        );
         PriceFeed priceFeed = sizeFactory.getPriceFeed(0);
 
         vm.prank(owner);
@@ -205,9 +275,26 @@ contract SizeFactoryTest is BaseTest {
     function test_SizeFactory_getPriceFeedsCount() public {
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
+        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
+        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
+        uint32 twapWindow = 30 minutes;
+        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
 
         vm.prank(owner);
-        sizeFactory.createPriceFeed(address(aggregator1), address(aggregator2), address(0x1), 1, 2);
+        sizeFactory.createPriceFeed(
+            PriceFeedParams({
+                baseAggregator: AggregatorV3Interface(address(aggregator1)),
+                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
+                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
+                baseStalePriceInterval: 1,
+                quoteStalePriceInterval: 2,
+                twapWindow: twapWindow,
+                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
+                baseToken: IERC20Metadata(address(baseToken)),
+                quoteToken: IERC20Metadata(address(quoteToken)),
+                averageBlockTime: averageBlockTime
+            })
+        );
 
         assertEq(sizeFactory.getPriceFeedsCount(), 1);
     }
@@ -237,15 +324,32 @@ contract SizeFactoryTest is BaseTest {
         string[] memory descriptions = sizeFactory.getMarketDescriptions();
 
         assertEq(descriptions.length, 3);
-        assertEq(descriptions[2], "Size | MTA | MTB | 120 | v1.5");
+        assertEq(descriptions[2], "Size | MTA | MTB | 120 | v1.5.1");
     }
 
     function test_SizeFactory_getPriceFeedDescriptions() public {
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
+        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
+        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
+        uint32 twapWindow = 30 minutes;
+        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
 
         vm.prank(owner);
-        sizeFactory.createPriceFeed(address(aggregator1), address(aggregator2), address(0x1), 1, 2);
+        sizeFactory.createPriceFeed(
+            PriceFeedParams({
+                baseAggregator: AggregatorV3Interface(address(aggregator1)),
+                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
+                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
+                baseStalePriceInterval: 1,
+                quoteStalePriceInterval: 2,
+                twapWindow: twapWindow,
+                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
+                baseToken: IERC20Metadata(address(baseToken)),
+                quoteToken: IERC20Metadata(address(quoteToken)),
+                averageBlockTime: averageBlockTime
+            })
+        );
         string[] memory descriptions = sizeFactory.getPriceFeedDescriptions();
 
         assertEq(descriptions.length, 1);
@@ -265,7 +369,7 @@ contract SizeFactoryTest is BaseTest {
 
     function test_SizeFactory_version() public view {
         string memory version = sizeFactory.version();
-        assertEq(version, "v1.5");
+        assertEq(version, "v1.5.1");
     }
 
     function test_SizeFactory_addPriceFeed_reverts_on_null_address() public {
@@ -295,12 +399,41 @@ contract SizeFactoryTest is BaseTest {
     function test_SizeFactory_get_price_feeds() public {
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
+        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
+        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
+        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
 
         vm.prank(owner);
-        sizeFactory.createPriceFeed(address(aggregator1), address(aggregator2), address(0x1), 1, 2);
+        sizeFactory.createPriceFeed(
+            PriceFeedParams({
+                baseAggregator: AggregatorV3Interface(address(aggregator1)),
+                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
+                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
+                baseStalePriceInterval: 1,
+                quoteStalePriceInterval: 2,
+                twapWindow: 30 minutes,
+                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
+                baseToken: IERC20Metadata(address(baseToken)),
+                quoteToken: IERC20Metadata(address(quoteToken)),
+                averageBlockTime: averageBlockTime
+            })
+        );
 
         vm.prank(owner);
-        sizeFactory.createPriceFeed(address(aggregator2), address(aggregator1), address(0x2), 1, 2);
+        sizeFactory.createPriceFeed(
+            PriceFeedParams({
+                baseAggregator: AggregatorV3Interface(address(aggregator2)),
+                quoteAggregator: AggregatorV3Interface(address(aggregator1)),
+                sequencerUptimeFeed: AggregatorV3Interface(address(0x2)),
+                baseStalePriceInterval: 1,
+                quoteStalePriceInterval: 2,
+                twapWindow: 30 minutes,
+                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
+                baseToken: IERC20Metadata(address(baseToken)),
+                quoteToken: IERC20Metadata(address(quoteToken)),
+                averageBlockTime: averageBlockTime
+            })
+        );
 
         PriceFeed[] memory priceFeeds = sizeFactory.getPriceFeeds();
 
