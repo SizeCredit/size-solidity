@@ -26,6 +26,8 @@ import {NonTransferrableScaledTokenV1_5FactoryLibrary} from
     "@src/v1.5/libraries/NonTransferrableScaledTokenV1_5FactoryLibrary.sol";
 import {PriceFeedFactoryLibrary} from "@src/v1.5/libraries/PriceFeedFactoryLibrary.sol";
 
+import {IPriceFeedV1_5_2} from "@src/oracle/v1.5.2/IPriceFeedV1_5_2.sol";
+
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
@@ -239,8 +241,17 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
         // slither-disable-start calls-loop
         for (uint256 i = 0; i < descriptions.length; i++) {
             PriceFeed priceFeed = PriceFeed(priceFeeds.at(i));
-            descriptions[i] =
-                string.concat("PriceFeed | ", priceFeed.base().description(), " | ", priceFeed.quote().description());
+            (bool success, bytes memory data) =
+                address(priceFeed).staticcall(abi.encodeWithSelector(IPriceFeedV1_5_2.description.selector));
+            if (success) {
+                // IPriceFeedV1_5_2
+                descriptions[i] = abi.decode(data, (string));
+            } else {
+                // IPriceFeedV1_5
+                descriptions[i] = string.concat(
+                    "PriceFeed | ", priceFeed.base().description(), " | ", priceFeed.quote().description()
+                );
+            }
         }
         // slither-disable-end calls-loop
     }
