@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
-import {console} from "forge-std/Script.sol";
 import {BaseScript} from "@script/BaseScript.sol";
 import {Deploy} from "@script/Deploy.sol";
+import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
+import {console} from "forge-std/Script.sol";
 
 contract UpgradeSizeFactoryScript is BaseScript, Deploy {
     address deployer;
