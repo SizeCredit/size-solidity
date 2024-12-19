@@ -51,9 +51,17 @@ contract PriceFeedUniswapV3TWAPChainlinkTest is BaseTest {
         vm.warp(block.timestamp + 13 days);
 
         vm.etch(_weth, address(new WETH()).code);
+        vm.label(_weth, "WETH");
         vm.etch(_virtual, address(new MockERC20()).code);
         MockERC20(_virtual).initialize("Virtual Protocol", "VIRTUAL", 18);
+        vm.label(_virtual, "VIRTUAL");
         vm.etch(_usdc, address(new USDC(address(this))).code);
+        vm.label(_usdc, "USDC");
+
+        // https://github.com/foundry-rs/foundry/issues/5579
+        vm.mockCall(address(_weth), abi.encodeWithSelector(IERC20Metadata.symbol.selector), abi.encode("WETH"));
+        vm.mockCall(address(_usdc), abi.encodeWithSelector(IERC20Metadata.symbol.selector), abi.encode("USDC"));
+        vm.mockCall(address(_virtual), abi.encodeWithSelector(IERC20Metadata.symbol.selector), abi.encode("VIRTUAL"));
 
         poolWethUsdc = IUniswapV3Pool(uniswapV3Factory.createPool(address(_weth), address(_usdc), 3000));
         poolVirtualWeth = IUniswapV3Pool(uniswapV3Factory.createPool(address(_virtual), address(_weth), 3000));
@@ -101,6 +109,17 @@ contract PriceFeedUniswapV3TWAPChainlinkTest is BaseTest {
         ethToUsd = new MockV3Aggregator(ETH_TO_USD_DECIMALS, ETH_TO_USD);
         usdcToUsd = new MockV3Aggregator(USDC_TO_USD_DECIMALS, USDC_TO_USD);
 
+        vm.mockCall(
+            address(ethToUsd),
+            abi.encodeWithSelector(AggregatorV3Interface.description.selector),
+            abi.encode("ETH / USD")
+        );
+        vm.mockCall(
+            address(usdcToUsd),
+            abi.encodeWithSelector(AggregatorV3Interface.description.selector),
+            abi.encode("USDC / USD")
+        );
+
         priceFeedVirtualToUsdc = new PriceFeedUniswapV3TWAPChainlink(
             sequencerUptimeFeed,
             PriceFeedParams({
@@ -141,5 +160,12 @@ contract PriceFeedUniswapV3TWAPChainlinkTest is BaseTest {
         uint256 price_2 = priceFeedVirtualToUsdc.getPrice();
         uint256 price_3 = priceFeedVirtualToUsdc.getPrice();
         assertEq(price_1, price_2, price_3);
+    }
+
+    function test_PriceFeedUniswapV3TWAPChainlink_description() public view {
+        assertEq(
+            priceFeedVirtualToUsdc.description(),
+            "PriceFeedUniswapV3TWAPChainlink | (VIRTUAL/WETH) (Uniswap v3 TWAP) * ((ETH / USD) / (USDC / USD)) (PriceFeed)"
+        );
     }
 }

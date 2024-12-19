@@ -43,4 +43,11 @@ contract ForkPriceFeedUniswapV3TWAPChainlinkTest is ForkTest, Networks {
         uint256 price = priceFeedVirtualToUsdc.getPrice();
         assertEqApprox(price, 2.358e18, 0.001e18);
     }
+
+    function testFork_PriceFeedUniswapV3TWAPChainlink_description() public view {
+        assertEq(
+            priceFeedVirtualToUsdc.description(),
+            "PriceFeedUniswapV3TWAPChainlink | (VIRTUAL/WETH) (Uniswap v3 TWAP) * ((ETH / USD) / (USDC / USD)) (PriceFeed)"
+        );
+    }
 }

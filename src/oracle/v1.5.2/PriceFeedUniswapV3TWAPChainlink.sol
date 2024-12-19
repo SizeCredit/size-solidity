@@ -62,15 +62,15 @@ contract PriceFeedUniswapV3TWAPChainlink is IPriceFeedV1_5_2 {
 
     function description() external view override returns (string memory) {
         return string.concat(
-            "UniswapV3TWAPChainlink | ",
+            "PriceFeedUniswapV3TWAPChainlink | (",
             basePriceFeed.baseToken().symbol(),
             "/",
             basePriceFeed.quoteToken().symbol(),
-            " (Uniswap v3 TWAP) | ",
+            ") (Uniswap v3 TWAP) * ((",
             quotePriceFeed.base().description(),
-            " / ",
+            ") / (",
             quotePriceFeed.quote().description(),
-            " (PriceFeed)"
+            ")) (PriceFeed)"
         );
     }
 }
