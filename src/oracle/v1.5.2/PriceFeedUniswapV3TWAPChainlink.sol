@@ -16,9 +16,10 @@ import {IPriceFeedV1_5_2} from "@src/oracle/v1.5.2/IPriceFeedV1_5_2.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A contract that provides the price of a `base` asset in terms of a `quote` asset, scaled to 18 decimals,
-///         using Uniswap V3 for `base` and a IPriceFeedV1_5_1 for `quote`
-///         For example, this can be used to calculate ABC/USDC through ABC/WETH via UniswapV3PriceFeed and WETH/USDC via IPriceFeedV1_5_1
+///           using Uniswap V3 for `base` and a IPriceFeedV1_5_1 for `quote`
 ///         The price is defined as `base * quote`
+///         For example, this can be used to calculate the price of an ABC token for the ABC/USDC pair through
+///           ABC/WETH via UniswapV3PriceFeed and WETH/USDC via IPriceFeedV1_5_1, ie, ABC/USDC = ABC/WETH * WETH/USDC
 /// @dev `decimals` must be 18 to comply with Size contracts
 ///      `sequencerUptimeFeed` can be null for unsupported networks
 ///      In case the sequencer is down, `getPrice` reverts (see `ChainlinkSequencerUptimeFeed`)
