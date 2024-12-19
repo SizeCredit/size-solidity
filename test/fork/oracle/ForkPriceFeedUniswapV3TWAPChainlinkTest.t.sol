@@ -17,18 +17,30 @@ import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Po
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
-contract PriceFeedUniswapV3TWAPChainlinkTest is ForkTest {
-    address UNISWAP_V3_POOL_CBBTC_USDC_BASE_MAINNET = 0xeC558e484cC9f2210714E345298fdc53B253c27D;
+import {PriceFeedUniswapV3TWAPChainlink} from "@src/oracle/v1.5.2/PriceFeedUniswapV3TWAPChainlink.sol";
 
-    uint256 updatedAt;
+import {PriceFeedUniswapV3TWAPChainlinkTest} from "@test/local/oracle/PriceFeedUniswapV3TWAPChainlink.t.sol";
 
-    ISize sizeCbBtcUsdc;
-    address sizeCbBtcUsdcOwner;
+import {Networks} from "@script/Networks.sol";
+
+contract ForkPriceFeedUniswapV3TWAPChainlinkTest is ForkTest, Networks {
+    PriceFeedUniswapV3TWAPChainlink public priceFeedVirtualToUsdc;
 
     function setUp() public override(ForkTest) {
         super.setUp();
         vm.createSelectFork("base");
+
+        // 2024-12-19 16h20
+        vm.rollFork(23917935);
+
+        (AggregatorV3Interface sequencerUptimeFeed, PriceFeedParams memory base, PriceFeedParams memory quote) =
+            priceFeedVirtualUsdcBaseMainnet();
+
+        priceFeedVirtualToUsdc = new PriceFeedUniswapV3TWAPChainlink(sequencerUptimeFeed, base, quote);
     }
 
-    function testFork_PriceFeedUniswapV3TWAPChainlink() public {}
+    function testFork_ForkPriceFeedUniswapV3TWAPChainlink_getPrice() public view {
+        uint256 price = priceFeedVirtualToUsdc.getPrice();
+        assertEqApprox(price, 2.358e18, 0.001e18);
+    }
 }

@@ -18,7 +18,7 @@ import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
 // On Oct-18-2024, Chainlink cbBTC/USD price feed went down for over 6h
-contract ChainlinkGoesDownUniswapIsUsedAsFallbackTest is ForkTest {
+contract ForkChainlinkGoesDownUniswapIsUsedAsFallbackTest is ForkTest {
     // https://basescan.org/tx/0x2797a77761aa4eda81640b54faa9fe19608c563e146eb566b3fdadea5941070e (aggregatorRoundId 397 executed at Oct-18-2024 03:37:21 PM +UTC)
     uint256 blockNumberChainlinkAggregatorRoundId397 = 21238247;
     // https://basescan.org/tx/0x5861fd0da0cdc07265494e4e7f80608f00f4e2e4211735ee06918f8330569786 (aggregatorRoundId 398 executed at Oct-18-2024 10:05:33 PM +UTC)
@@ -41,7 +41,7 @@ contract ChainlinkGoesDownUniswapIsUsedAsFallbackTest is ForkTest {
             AggregatorV3Interface(PriceFeedV1_5(address(sizeCbBtcUsdc.oracle().priceFeed)).base()).latestRoundData();
     }
 
-    function testFork_ChainlinkGoesDownUniswapIsUsedAsFallbackTest_without_fallback_wrong_stale_interval() public {
+    function testFork_ForkChainlinkGoesDownUniswapIsUsedAsFallbackTest_without_fallback_wrong_stale_interval() public {
         vm.rollFork(blockNumberChainlinkAggregatorRoundId398 - 1); // Chainlink is down
 
         uint256 baseStalePriceInterval =
@@ -54,7 +54,9 @@ contract ChainlinkGoesDownUniswapIsUsedAsFallbackTest is ForkTest {
         assertGt(IPriceFeed(address(sizeCbBtcUsdc.oracle().priceFeed)).getPrice(), 0);
     }
 
-    function testFork_ChainlinkGoesDownUniswapIsUsedAsFallbackTest_without_fallback_correct_stale_interval() public {
+    function testFork_ForkChainlinkGoesDownUniswapIsUsedAsFallbackTest_without_fallback_correct_stale_interval()
+        public
+    {
         AggregatorV3Interface base = PriceFeedV1_5(address(sizeCbBtcUsdc.oracle().priceFeed)).base();
         AggregatorV3Interface quote = PriceFeedV1_5(address(sizeCbBtcUsdc.oracle().priceFeed)).quote();
         AggregatorV3Interface sequencerUptimeFeed = AggregatorV3Interface(address(0));
@@ -80,7 +82,7 @@ contract ChainlinkGoesDownUniswapIsUsedAsFallbackTest is ForkTest {
         assertGt(v1_5PriceFeedCorrectStaleInterval.getPrice(), 0);
     }
 
-    function testFork_ChainlinkGoesDownUniswapIsUsedAsFallbackTest_with_fallback_correct_stale_interval() public {
+    function testFork_ForkChainlinkGoesDownUniswapIsUsedAsFallbackTest_with_fallback_correct_stale_interval() public {
         AggregatorV3Interface baseAggregator = PriceFeedV1_5(address(sizeCbBtcUsdc.oracle().priceFeed)).base();
         AggregatorV3Interface quoteAggregator = PriceFeedV1_5(address(sizeCbBtcUsdc.oracle().priceFeed)).quote();
         AggregatorV3Interface sequencerUptimeFeed = AggregatorV3Interface(address(0));
