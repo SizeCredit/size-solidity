@@ -326,7 +326,7 @@ contract SizeFactoryTest is BaseTest {
         string[] memory descriptions = sizeFactory.getMarketDescriptions();
 
         assertEq(descriptions.length, 3);
-        assertEq(descriptions[2], "Size | MTA | MTB | 120 | v1.5.1");
+        assertEq(descriptions[2], string.concat("Size | MTA | MTB | 120 | ", VERSION));
     }
 
     function test_SizeFactory_getPriceFeedDescriptions() public {
