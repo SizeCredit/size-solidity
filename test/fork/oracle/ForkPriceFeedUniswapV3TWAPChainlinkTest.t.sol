@@ -41,7 +41,7 @@ contract ForkPriceFeedUniswapV3TWAPChainlinkTest is ForkTest, Networks {
 
     function testFork_ForkPriceFeedUniswapV3TWAPChainlink_getPrice() public view {
         uint256 price = priceFeedVirtualToUsdc.getPrice();
-        assertEqApprox(price, 2.358e18, 0.001e18);
+        assertEqApprox(price, 2.359e18, 0.001e18);
     }
 
     function testFork_PriceFeedUniswapV3TWAPChainlink_description() public view {

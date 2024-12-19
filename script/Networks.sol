@@ -257,7 +257,7 @@ abstract contract Networks {
         sequencerUptimeFeed = AggregatorV3Interface(0xBCF85224fc0756B9Fa45aA7892530B47e10b6433);
         base = PriceFeedParams({
             uniswapV3Pool: IUniswapV3Pool(0x1D4daB3f27C7F656b6323C1D6Ef713b48A8f72F1), // VIRTUAL/WETH Uniswap v3 0.3% pool
-            twapWindow: 5 minutes,
+            twapWindow: 10 minutes,
             averageBlockTime: 2 seconds,
             baseToken: IERC20Metadata(0x0b3e328455c4059EEb9e3f84b5543F74E24e7E1b), // VIRTUAL
             quoteToken: IERC20Metadata(0x4200000000000000000000000000000000000006), // WETH
@@ -269,7 +269,7 @@ abstract contract Networks {
         });
         quote = PriceFeedParams({
             uniswapV3Pool: IUniswapV3Pool(0xd0b53D9277642d899DF5C87A3966A349A798F224), // WETH/USDC Uniswap v3 0.05% pool
-            twapWindow: 5 minutes,
+            twapWindow: 10 minutes,
             averageBlockTime: 2 seconds,
             baseToken: IERC20Metadata(0x4200000000000000000000000000000000000006), // WETH
             quoteToken: IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913), // USDC
