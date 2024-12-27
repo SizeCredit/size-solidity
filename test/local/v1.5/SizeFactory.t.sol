@@ -7,6 +7,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
+
+import {VERSION} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
@@ -59,22 +61,22 @@ contract SizeFactoryTest is BaseTest {
 
     function test_SizeFactory_set_2_existing_markets_1() public {
         assertEq(address(sizeFactory.getMarket(0)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[0], "Size | WETH | USDC | 130 | v1.5.1");
+        assertEq(sizeFactory.getMarketDescriptions()[0], string.concat("Size | WETH | USDC | 130 | ", VERSION));
 
         setupLocalGenericMarket(owner, feeRecipient, 60576e18, 0.9999e18, 8, 6, false, false);
 
         assertEq(address(sizeFactory.getMarket(1)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[1], "Size | CTK | BTK | 130 | v1.5.1");
+        assertEq(sizeFactory.getMarketDescriptions()[1], string.concat("Size | CTK | BTK | 130 | ", VERSION));
     }
 
     function test_SizeFactory_set_2_existing_markets_add_3rd_market() public {
         assertEq(address(sizeFactory.getMarket(0)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[0], "Size | WETH | USDC | 130 | v1.5.1");
+        assertEq(sizeFactory.getMarketDescriptions()[0], string.concat("Size | WETH | USDC | 130 | ", VERSION));
 
         setupLocalGenericMarket(owner, feeRecipient, 60576e18, 0.9999e18, 8, 6, false, false);
 
         assertEq(address(sizeFactory.getMarket(1)), address(size));
-        assertEq(sizeFactory.getMarketDescriptions()[1], "Size | CTK | BTK | 130 | v1.5.1");
+        assertEq(sizeFactory.getMarketDescriptions()[1], string.concat("Size | CTK | BTK | 130 | ", VERSION));
 
         d.underlyingCollateralToken = address(new MockERC20("Liquid staked Ether 2.0", "stETH", 18));
         d.underlyingBorrowToken = address(weth);
@@ -89,7 +91,7 @@ contract SizeFactoryTest is BaseTest {
             assertTrue(address(markets[i]) != address(0));
             assertTrue(markets[i] != markets[i + 1]);
         }
-        assertEq(sizeFactory.getMarketDescriptions()[2], "Size | stETH | WETH | 125 | v1.5.1");
+        assertEq(sizeFactory.getMarketDescriptions()[2], string.concat("Size | stETH | WETH | 125 | ", VERSION));
     }
 
     function test_SizeFactory_set_2_existing_markets_add_3rd_market_remove_1st_market_tryRemove_unexistent_market()
@@ -324,7 +326,7 @@ contract SizeFactoryTest is BaseTest {
         string[] memory descriptions = sizeFactory.getMarketDescriptions();
 
         assertEq(descriptions.length, 3);
-        assertEq(descriptions[2], "Size | MTA | MTB | 120 | v1.5.1");
+        assertEq(descriptions[2], string.concat("Size | MTA | MTB | 120 | ", VERSION));
     }
 
     function test_SizeFactory_getPriceFeedDescriptions() public {
@@ -369,7 +371,7 @@ contract SizeFactoryTest is BaseTest {
 
     function test_SizeFactory_version() public view {
         string memory version = sizeFactory.version();
-        assertEq(version, "v1.5.1");
+        assertEq(version, VERSION);
     }
 
     function test_SizeFactory_addPriceFeed_reverts_on_null_address() public {
