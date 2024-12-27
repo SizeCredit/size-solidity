@@ -117,6 +117,13 @@ contract PriceFeedTest is BaseTest {
         );
     }
 
+    function test_PriceFeed_v1_5() public view {
+        assertEq(address(priceFeedEthToUsd.base()), address(ethToUsd));
+        assertEq(address(priceFeedEthToUsd.quote()), address(usdcToUsd));
+        assertEq(priceFeedEthToUsd.baseStalePriceInterval(), 3600);
+        assertEq(priceFeedEthToUsd.quoteStalePriceInterval(), 86400);
+    }
+
     function test_PriceFeed_getPrice_success() public view {
         assertEq(priceFeedEthToUsd.getPrice(), Math.mulDivDown(uint256(2200.12e18), 1e18, uint256(0.9999e18)));
         assertEq(priceFeedStethToEth.getPrice(), uint256(STETH_TO_ETH));
