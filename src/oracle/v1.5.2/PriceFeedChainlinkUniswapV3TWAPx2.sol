@@ -12,7 +12,7 @@ import {ChainlinkSequencerUptimeFeed} from "@src/oracle/v1.5.1/adapters/Chainlin
 import {UniswapV3PriceFeed} from "@src/oracle/v1.5.1/adapters/UniswapV3PriceFeed.sol";
 import {IPriceFeedV1_5_2} from "@src/oracle/v1.5.2/IPriceFeedV1_5_2.sol";
 
-/// @title PriceFeedChainlinkUniswapV3TWAP
+/// @title PriceFeedChainlinkUniswapV3TWAPx2
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A contract that provides the price of a `base` asset in terms of a `quote` asset, scaled to 18 decimals,
