@@ -28,8 +28,7 @@ contract ForkPriceFeedChainlinkUniswapV3TWAPx2Test is ForkTest, Networks {
         super.setUp();
         vm.createSelectFork("mainnet");
 
-        // 2025-01-08 01h30
-        vm.rollFork(21576480);
+        vm.rollFork(21579400);
 
         (
             PriceFeedParams memory chainlinkPriceFeedParams,
@@ -58,7 +57,7 @@ contract ForkPriceFeedChainlinkUniswapV3TWAPx2Test is ForkTest, Networks {
         vm.mockCallRevert(
             address(priceFeedsUSDeToUsdc.chainlinkPriceFeed()),
             abi.encodeWithSelector(IPriceFeed.getPrice.selector),
-            "revert"
+            "REVERT"
         );
         uint256 price = priceFeedsUSDeToUsdc.getPrice();
         assertEqApprox(price, 1.14e18, 0.01e18);
