@@ -1,0 +1,12 @@
+{
+  "chainId": "11155111",
+  "commit": "2844a76",
+  "deployments": {
+    "SizeFactory-implementation": "0x89BF47fD93e89436051505a91D03218AD14424b6",
+    "SizeFactory-proxy": "0x9089e45c85575945E41b80C547d5fC6DdB08bffd"
+  },
+  "networkConfiguration": "sepolia-size-factory",
+  "parameters": {
+    "owner": "0xf7164d2fc05350c75387fa6c0cc4f97634ca9451"
+  }
+}
