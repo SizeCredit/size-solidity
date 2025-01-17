@@ -128,6 +128,7 @@ yarn coverage
 |---------------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
 |---------------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
 |---------------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
+|---------------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
 | src/Size.sol                                                                    | 96.47% (82/85)     | 97.01% (65/67)     | 100.00% (3/3)    | 95.65% (22/23)   |
 |---------------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
 | src/SizeView.sol                                                                | 100.00% (53/53)    | 100.00% (50/50)    | 100.00% (3/3)    | 100.00% (22/22)  |
@@ -190,6 +191,8 @@ yarn coverage
 |---------------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
 | src/oracle/v1.5.1/adapters/UniswapV3PriceFeed.sol                               | 100.00% (27/27)    | 100.00% (36/36)    | 100.00% (5/5)    | 100.00% (2/2)    |
 |---------------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
+| src/oracle/v1.5.2/PriceFeedChainlinkUniswapV3TWAPx2.sol                         | 0.00% (0/13)       | 0.00% (0/17)       | 100.00% (0/0)    | 0.00% (0/3)      |
+|---------------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
 | src/oracle/v1.5.2/PriceFeedUniswapV3TWAPChainlink.sol                           | 100.00% (11/11)    | 100.00% (12/12)    | 100.00% (0/0)    | 100.00% (3/3)    |
 |---------------------------------------------------------------------------------+--------------------+--------------------+------------------+------------------|
 | src/token/NonTransferrableToken.sol                                             | 94.74% (18/19)     | 92.31% (12/13)     | 0.00% (0/1)      | 100.00% (8/8)    |
@@ -240,41 +243,41 @@ yarn coverage
 
 ```markdown
 ┌─────────────────────────────────┬────────┐
-│             (index)             │ Values │
+│ (index)                         │ Values │
 ├─────────────────────────────────┼────────┤
-│         BuyCreditLimit          │   4    │
-│         BuyCreditMarket         │   10   │
-│       ChainlinkPriceFeed        │   8    │
-│  ChainlinkSequencerUptimeFeed   │   2    │
-│              Claim              │   10   │
-│           Compensate            │   20   │
-│         CryticToFoundry         │   27   │
-│             Deposit             │   5    │
-│          GenericMarket          │   20   │
-│           Initialize            │   4    │
-│    LiquidateWithReplacement     │   6    │
-│            Liquidate            │   12   │
-│              Math               │   6    │
-│            Multicall            │   9    │
-│  NonTransferrableScaledTokenV1  │   17   │
-│      NonTransferrableToken      │   8    │
-│          OfferLibrary           │   1    │
-│              Pause              │   2    │
-│ PriceFeedUniswapV3TWAPChainlink │   3    │
-│            PriceFeed            │   9    │
-│              Repay              │   7    │
-│          SelfLiquidate          │   10   │
-│         SellCreditLimit         │   5    │
-│        SellCreditMarket         │   13   │
-│      SetUserConfiguration       │   3    │
-│           SizeFactory           │   34   │
-│            SizeView             │   5    │
-│            SwapData             │   3    │
-│       UniswapV3PriceFeed        │   5    │
-│          UpdateConfig           │   7    │
-│             Upgrade             │   2    │
-│            Withdraw             │   9    │
-│           YieldCurve            │   14   │
+│ BuyCreditLimit                  │ 4      │
+│ BuyCreditMarket                 │ 10     │
+│ ChainlinkPriceFeed              │ 8      │
+│ ChainlinkSequencerUptimeFeed    │ 2      │
+│ Claim                           │ 10     │
+│ Compensate                      │ 20     │
+│ CryticToFoundry                 │ 27     │
+│ Deposit                         │ 5      │
+│ GenericMarket                   │ 20     │
+│ Initialize                      │ 4      │
+│ LiquidateWithReplacement        │ 6      │
+│ Liquidate                       │ 12     │
+│ Math                            │ 6      │
+│ Multicall                       │ 9      │
+│ NonTransferrableScaledTokenV1   │ 17     │
+│ NonTransferrableToken           │ 8      │
+│ OfferLibrary                    │ 1      │
+│ Pause                           │ 2      │
+│ PriceFeedUniswapV3TWAPChainlink │ 3      │
+│ PriceFeed                       │ 9      │
+│ Repay                           │ 7      │
+│ SelfLiquidate                   │ 10     │
+│ SellCreditLimit                 │ 5      │
+│ SellCreditMarket                │ 13     │
+│ SetUserConfiguration            │ 3      │
+│ SizeFactory                     │ 34     │
+│ SizeView                        │ 5      │
+│ SwapData                        │ 3      │
+│ UniswapV3PriceFeed              │ 5      │
+│ UpdateConfig                    │ 7      │
+│ Upgrade                         │ 2      │
+│ Withdraw                        │ 9      │
+│ YieldCurve                      │ 14     │
 └─────────────────────────────────┴────────┘
 ```
 <!-- END_COVERAGE -->
