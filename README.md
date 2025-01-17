@@ -6,8 +6,8 @@ Size is a credit marketplace with unified liquidity across maturities.
 
 Target networks:
 
-- Ethereum mainnet
-- [Base](./deployments/base-production.json)
+- [Ethereum mainnet](./deployments/mainnet-size-factory.json)
+- [Base](./deployments/base-production-size-factory.json)
 
 ## Audits
 
