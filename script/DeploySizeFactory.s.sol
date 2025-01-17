@@ -22,7 +22,6 @@ contract DeploySizeFactoryScript is BaseScript, Networks, Deploy {
         deployer = vm.envOr("DEPLOYER_ADDRESS", vm.addr(vm.deriveKey(TEST_MNEMONIC, 0)));
         owner = vm.envOr("OWNER", address(0));
         networkConfiguration = vm.envOr("NETWORK_CONFIGURATION", TEST_NETWORK_CONFIGURATION);
-        sizeFactory = SizeFactory(vm.envOr("SIZE_FACTORY", address(0)));
         _;
     }
 
@@ -34,9 +33,7 @@ contract DeploySizeFactoryScript is BaseScript, Networks, Deploy {
         console.log("[SizeFactory v1.5] owner", owner);
 
         SizeFactory implementation = new SizeFactory();
-        ERC1967Proxy proxy = address(sizeFactory) != address(0)
-            ? ERC1967Proxy(payable(address(sizeFactory)))
-            : new ERC1967Proxy(address(implementation), abi.encodeCall(SizeFactory.initialize, (owner)));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(SizeFactory.initialize, (owner)));
 
         deployments.push(Deployment({name: "SizeFactory-implementation", addr: address(implementation)}));
         deployments.push(Deployment({name: "SizeFactory-proxy", addr: address(proxy)}));

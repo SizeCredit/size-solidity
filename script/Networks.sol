@@ -280,4 +280,51 @@ abstract contract Networks {
             sequencerUptimeFeed: AggregatorV3Interface(0xBCF85224fc0756B9Fa45aA7892530B47e10b6433)
         });
     }
+
+    function priceFeedsUSDeToUsdcMainnet()
+        public
+        pure
+        returns (
+            PriceFeedParams memory chainlinkPriceFeedParams,
+            PriceFeedParams memory uniswapV3BasePriceFeedParams,
+            PriceFeedParams memory uniswapV3QuotePriceFeedParams
+        )
+    {
+        chainlinkPriceFeedParams = PriceFeedParams({
+            uniswapV3Pool: IUniswapV3Pool(address(0)),
+            baseToken: IERC20Metadata(address(0)),
+            quoteToken: IERC20Metadata(address(0)),
+            twapWindow: 0,
+            averageBlockTime: 0,
+            baseAggregator: AggregatorV3Interface(0xFF3BC18cCBd5999CE63E788A1c250a88626aD099),
+            quoteAggregator: AggregatorV3Interface(0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6),
+            baseStalePriceInterval: 86400 * 1.1e18 / 1e18,
+            quoteStalePriceInterval: 86400 * 1.1e18 / 1e18,
+            sequencerUptimeFeed: AggregatorV3Interface(address(0))
+        });
+        uniswapV3BasePriceFeedParams = PriceFeedParams({
+            uniswapV3Pool: IUniswapV3Pool(0x867B321132B18B5BF3775c0D9040D1872979422E),
+            baseToken: IERC20Metadata(0x9D39A5DE30e57443BfF2A8307A4256c8797A3497),
+            quoteToken: IERC20Metadata(0xdAC17F958D2ee523a2206206994597C13D831ec7),
+            twapWindow: 30 minutes,
+            averageBlockTime: 12 seconds,
+            baseAggregator: AggregatorV3Interface(address(0)),
+            quoteAggregator: AggregatorV3Interface(address(0)),
+            baseStalePriceInterval: 0,
+            quoteStalePriceInterval: 0,
+            sequencerUptimeFeed: AggregatorV3Interface(address(0))
+        });
+        uniswapV3QuotePriceFeedParams = PriceFeedParams({
+            uniswapV3Pool: IUniswapV3Pool(0x3416cF6C708Da44DB2624D63ea0AAef7113527C6),
+            baseToken: IERC20Metadata(0xdAC17F958D2ee523a2206206994597C13D831ec7),
+            quoteToken: IERC20Metadata(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48),
+            twapWindow: 30 minutes,
+            averageBlockTime: 12 seconds,
+            baseAggregator: AggregatorV3Interface(address(0)),
+            quoteAggregator: AggregatorV3Interface(address(0)),
+            baseStalePriceInterval: 0,
+            quoteStalePriceInterval: 0,
+            sequencerUptimeFeed: AggregatorV3Interface(address(0))
+        });
+    }
 }
