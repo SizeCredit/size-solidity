@@ -31,7 +31,9 @@ COVERAGE=$(tail -n +$((COVERAGE_BEGIN)) COVERAGE.txt | grep -v 'test/' | grep -v
 echo "$PART_1" > README.md
 echo "### FIles" >> README.md
 echo "" >> README.md
+echo '```markdown' >> README.md
 echo "$COVERAGE" >> README.md
+echo '```' >> README.md
 echo "" >> README.md
 echo "### Tests per file" >> README.md
 echo "" >> README.md
