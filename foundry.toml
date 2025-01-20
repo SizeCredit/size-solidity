@@ -8,6 +8,8 @@
   solc_version = '0.8.23'
   evm_version = 'shanghai'
   ignored_warnings_from = ["lib/aave-v3-core"]
+  optimizer = true
+  optimizer_runs = 200
 
 [profile.fork]
   src = "src"

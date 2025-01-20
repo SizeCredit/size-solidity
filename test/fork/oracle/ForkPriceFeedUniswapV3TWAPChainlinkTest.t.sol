@@ -30,7 +30,7 @@ contract ForkPriceFeedUniswapV3TWAPChainlinkTest is ForkTest, Networks {
         super.setUp();
         vm.createSelectFork("base");
 
-        // 2024-12-19 16h20
+        // 2024-12-19 16h20 UTC
         vm.rollFork(23917935);
 
         (AggregatorV3Interface sequencerUptimeFeed, PriceFeedParams memory base, PriceFeedParams memory quote) =
@@ -44,7 +44,7 @@ contract ForkPriceFeedUniswapV3TWAPChainlinkTest is ForkTest, Networks {
         assertEqApprox(price, 2.359e18, 0.001e18);
     }
 
-    function testFork_PriceFeedUniswapV3TWAPChainlink_description() public view {
+    function testFork_ForkPriceFeedUniswapV3TWAPChainlink_description() public view {
         assertEq(
             priceFeedVirtualToUsdc.description(),
             "PriceFeedUniswapV3TWAPChainlink | (VIRTUAL/WETH) (Uniswap v3 TWAP) * ((ETH / USD) / (USDC / USD)) (PriceFeed)"
