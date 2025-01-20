@@ -327,4 +327,24 @@ abstract contract Networks {
             sequencerUptimeFeed: AggregatorV3Interface(address(0))
         });
     }
+
+    function priceFeedAixbtUsdcBaseMainnet()
+        public
+        pure
+        returns (AggregatorV3Interface sequencerUptimeFeed, PriceFeedParams memory baseToQuoteParams)
+    {
+        sequencerUptimeFeed = AggregatorV3Interface(0xBCF85224fc0756B9Fa45aA7892530B47e10b6433);
+        baseToQuoteParams = PriceFeedParams({
+            uniswapV3Pool: IUniswapV3Pool(0xf1Fdc83c3A336bdbDC9fB06e318B08EadDC82FF4), // AIXBT/USDC Uniswap v3 0.3% pool
+            twapWindow: 10 minutes,
+            averageBlockTime: 2 seconds,
+            baseToken: IERC20Metadata(0x4F9Fd6Be4a90f2620860d680c0d4d5Fb53d1A825), // AIXBT
+            quoteToken: IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913), // USDC
+            baseAggregator: AggregatorV3Interface(address(0)),
+            quoteAggregator: AggregatorV3Interface(address(0)),
+            baseStalePriceInterval: 0,
+            quoteStalePriceInterval: 0,
+            sequencerUptimeFeed: AggregatorV3Interface(address(0))
+        });
+    }
 }

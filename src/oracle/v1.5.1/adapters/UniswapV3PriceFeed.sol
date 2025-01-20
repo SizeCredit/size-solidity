@@ -6,6 +6,8 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
 import {Errors} from "@src/libraries/Errors.sol";
+
+import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
@@ -18,6 +20,7 @@ import {PoolAddress} from "@uniswap/v3-periphery/contracts/libraries/PoolAddress
 /// @dev UniswapV3 TWAPs can be manipulated and, as such, this price feed should not be the primary oracle. See https://blog.uniswap.org/uniswap-v3-oracles
 ///      This contract increases the observation cardinality if it is less than the desired (see https://docs.uniswap.org/contracts/v3/reference/core/interfaces/pool/IUniswapV3PoolActions#increaseobservationcardinalitynext)
 ///      The observation cardinality needed is about `ceil(t / tau) + 1`, where `tau` is the time passing between two blocks (see https://reports.zellic.io/publications/beefy-uniswapv3/sections/observation-cardinality-observation-cardinality)
+///      We adjust the desired cardinality by `OBSERVATION_CARDINALITY_MULTIPLIER_PERCENT` to account for the fact that block times are not constant
 contract UniswapV3PriceFeed is IPriceFeed {
     /* solhint-disable */
     uint256 public immutable decimals;
@@ -27,6 +30,8 @@ contract UniswapV3PriceFeed is IPriceFeed {
     uint32 public immutable twapWindow;
     uint32 public immutable averageBlockTime;
     /* solhint-enable */
+
+    uint256 private constant OBSERVATION_CARDINALITY_MULTIPLIER_PERCENT = 1.3e18;
 
     constructor(
         uint256 _decimals,
@@ -61,9 +66,11 @@ contract UniswapV3PriceFeed is IPriceFeed {
 
         // slither-disable-next-line unused-return
         (,,, uint16 cardinality,,,) = IUniswapV3Pool(_uniswapV3Pool).slot0();
-        uint16 desiredCardinality = SafeCast.toUint16(FixedPointMathLib.divUp(_twapWindow, _averageBlockTime) + 1);
-        if (cardinality < desiredCardinality) {
-            uniswapV3Pool.increaseObservationCardinalityNext(desiredCardinality);
+        uint256 desiredCardinality = FixedPointMathLib.divUp(_twapWindow, _averageBlockTime) + 1;
+        desiredCardinality = Math.mulDivUp(desiredCardinality, OBSERVATION_CARDINALITY_MULTIPLIER_PERCENT, PERCENT);
+        uint16 observationCardinalityNext = SafeCast.toUint16(desiredCardinality);
+        if (cardinality < observationCardinalityNext) {
+            uniswapV3Pool.increaseObservationCardinalityNext(observationCardinalityNext);
         }
     }
 
