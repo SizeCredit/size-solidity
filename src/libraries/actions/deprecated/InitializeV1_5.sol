@@ -1,0 +1,359 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.23;
+
+import {IAToken} from "@aave/interfaces/IAToken.sol";
+import {IPool} from "@aave/interfaces/IPool.sol";
+
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IWETH} from "@src/interfaces/IWETH.sol";
+
+import {Math} from "@src/libraries/Math.sol";
+
+import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/LoanLibrary.sol";
+import {PERCENT} from "@src/libraries/Math.sol";
+
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+
+import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
+import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
+import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
+
+import {State} from "@src/SizeStorage.sol";
+
+import {Errors} from "@src/libraries/Errors.sol";
+import {EventsV1_5} from "@src/libraries/deprecated/EventsV1_5.sol";
+
+import {
+    InitializeDataParams,
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
+} from "@src/libraries/actions/Initialize.sol";
+
+/// @title InitializeV1_5
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
+/// @notice Contains the logic to initialize the protocol
+/// @dev The collateralToken (e.g. szETH) and debtToken (e.g. szDebt) are created in the `executeInitialize` function
+///      The borrowAToken (e.g. szaUSDC) must have been deployed before the initialization
+library InitializeV1_5 {
+    using SafeERC20 for IERC20;
+
+    /// @notice Validates the owner address
+    /// @param owner The owner address
+    function validateOwner(address owner) internal pure {
+        if (owner == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+    }
+
+    /// @notice Validates the parameters for the fee configuration
+    /// @param f The fee configuration parameters
+    function validateInitializeFeeConfigParams(InitializeFeeConfigParams memory f) internal pure {
+        // validate swapFeeAPR
+        // N/A
+
+        // validate fragmentationFee
+        // N/A
+
+        // validate liquidationRewardPercent
+        // N/A
+
+        // validate overdueCollateralProtocolPercent
+        if (f.overdueCollateralProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.overdueCollateralProtocolPercent);
+        }
+
+        // validate collateralProtocolPercent
+        if (f.collateralProtocolPercent > PERCENT) {
+            revert Errors.INVALID_COLLATERAL_PERCENTAGE_PREMIUM(f.collateralProtocolPercent);
+        }
+
+        // validate feeRecipient
+        if (f.feeRecipient == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+    }
+
+    /// @notice Validates the parameters for the risk configuration
+    /// @param r The risk configuration parameters
+    function validateInitializeRiskConfigParams(InitializeRiskConfigParams memory r) internal pure {
+        // validate crOpening
+        if (r.crOpening < PERCENT) {
+            revert Errors.INVALID_COLLATERAL_RATIO(r.crOpening);
+        }
+
+        // validate crLiquidation
+        if (r.crLiquidation < PERCENT) {
+            revert Errors.INVALID_COLLATERAL_RATIO(r.crLiquidation);
+        }
+        if (r.crOpening <= r.crLiquidation) {
+            revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(r.crOpening, r.crLiquidation);
+        }
+
+        // validate minimumCreditBorrowAToken
+        if (r.minimumCreditBorrowAToken == 0) {
+            revert Errors.NULL_AMOUNT();
+        }
+
+        // validate underlyingBorrowTokenCap
+        // N/A
+
+        // validate minTenor
+        if (r.minTenor == 0) {
+            revert Errors.NULL_AMOUNT();
+        }
+
+        if (r.maxTenor <= r.minTenor) {
+            revert Errors.INVALID_MAXIMUM_TENOR(r.maxTenor);
+        }
+    }
+
+    /// @notice Validates the parameters for the oracle configuration
+    /// @param o The oracle configuration parameters
+    function validateInitializeOracleParams(InitializeOracleParams memory o) internal view {
+        // validate priceFeed
+        if (o.priceFeed == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        // slither-disable-next-line unused-return
+        IPriceFeed(o.priceFeed).getPrice();
+
+        // validate variablePoolBorrowRateStaleRateInterval
+        // N/A
+    }
+
+    /// @notice Validates the parameters for the data configuration
+    /// @param d The data configuration parameters
+    function validateInitializeDataParams(InitializeDataParams memory d) internal view {
+        // validate weth
+        if (d.weth == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate underlyingCollateralToken
+        if (d.underlyingCollateralToken == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        if (IERC20Metadata(d.underlyingCollateralToken).decimals() > 18) {
+            revert Errors.INVALID_DECIMALS(IERC20Metadata(d.underlyingCollateralToken).decimals());
+        }
+
+        // validate underlyingBorrowToken
+        if (d.underlyingBorrowToken == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        if (IERC20Metadata(d.underlyingBorrowToken).decimals() > 18) {
+            revert Errors.INVALID_DECIMALS(IERC20Metadata(d.underlyingBorrowToken).decimals());
+        }
+
+        // validate variablePool
+        if (d.variablePool == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate borrowATokenV1_5
+        if (d.borrowATokenV1_5 == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+    }
+
+    /// @notice Validates the parameters for the initialization
+    /// @param owner The owner address
+    /// @param f The fee configuration parameters
+    /// @param r The risk configuration parameters
+    /// @param o The oracle configuration parameters
+    /// @param d The data configuration parameters
+    function validateInitialize(
+        State storage,
+        address owner,
+        InitializeFeeConfigParams memory f,
+        InitializeRiskConfigParams memory r,
+        InitializeOracleParams memory o,
+        InitializeDataParams memory d
+    ) external view {
+        validateOwner(owner);
+        validateInitializeFeeConfigParams(f);
+        validateInitializeRiskConfigParams(r);
+        validateInitializeOracleParams(o);
+        validateInitializeDataParams(d);
+    }
+
+    /// @notice Executes the initialization of the fee configuration
+    /// @param state The state
+    /// @param f The fee configuration parameters
+    function executeInitializeFeeConfig(State storage state, InitializeFeeConfigParams memory f) internal {
+        state.feeConfig.swapFeeAPR = f.swapFeeAPR;
+        state.feeConfig.fragmentationFee = f.fragmentationFee;
+
+        state.feeConfig.liquidationRewardPercent = f.liquidationRewardPercent;
+        state.feeConfig.overdueCollateralProtocolPercent = f.overdueCollateralProtocolPercent;
+        state.feeConfig.collateralProtocolPercent = f.collateralProtocolPercent;
+
+        state.feeConfig.feeRecipient = f.feeRecipient;
+    }
+
+    /// @notice Executes the initialization of the risk configuration
+    /// @param state The state
+    /// @param r The risk configuration parameters
+    function executeInitializeRiskConfig(State storage state, InitializeRiskConfigParams memory r) internal {
+        state.riskConfig.crOpening = r.crOpening;
+        state.riskConfig.crLiquidation = r.crLiquidation;
+
+        state.riskConfig.minimumCreditBorrowAToken = r.minimumCreditBorrowAToken;
+
+        state.riskConfig.borrowATokenCap = r.borrowATokenCap;
+
+        state.riskConfig.minTenor = r.minTenor;
+        state.riskConfig.maxTenor = r.maxTenor;
+    }
+
+    /// @notice Executes the initialization of the oracle configuration
+    /// @param state The state
+    /// @param o The oracle configuration parameters
+    function executeInitializeOracle(State storage state, InitializeOracleParams memory o) internal {
+        state.oracle.priceFeed = IPriceFeed(o.priceFeed);
+        state.oracle.variablePoolBorrowRateStaleRateInterval = o.variablePoolBorrowRateStaleRateInterval;
+    }
+
+    /// @notice Executes the initialization of the data configuration
+    /// @param state The state
+    /// @param d The data configuration parameters
+    function executeInitializeData(State storage state, InitializeDataParams memory d) internal {
+        state.data.nextDebtPositionId = DEBT_POSITION_ID_START;
+        state.data.nextCreditPositionId = CREDIT_POSITION_ID_START;
+
+        state.data.weth = IWETH(d.weth);
+        state.data.underlyingCollateralToken = IERC20Metadata(d.underlyingCollateralToken);
+        state.data.underlyingBorrowToken = IERC20Metadata(d.underlyingBorrowToken);
+        state.data.variablePool = IPool(d.variablePool);
+
+        state.data.collateralToken = new NonTransferrableToken(
+            address(this),
+            string.concat("Size ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
+            string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
+            IERC20Metadata(state.data.underlyingCollateralToken).decimals()
+        );
+        // new markets still have a NonTransferrableScaledTokenV1_2 even though it is never used
+        state.data.borrowATokenV1_2 = new NonTransferrableScaledTokenV1_2(
+            state.data.variablePool,
+            state.data.underlyingBorrowToken,
+            address(this),
+            string.concat("Size Scaled ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
+            string.concat("sza", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
+            IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+        );
+        state.data.debtToken = new NonTransferrableToken(
+            address(this),
+            string.concat("Size Debt ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
+            string.concat("szDebt", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
+            IERC20Metadata(state.data.underlyingBorrowToken).decimals()
+        );
+        state.data.borrowATokenV1_5 = NonTransferrableScaledTokenV1_5(d.borrowATokenV1_5);
+    }
+
+    /// @notice Executes the initialization of the protocol
+    /// @param state The state
+    /// @param f The fee configuration parameters
+    /// @param r The risk configuration parameters
+    /// @param o The oracle configuration parameters
+    /// @param d The data configuration parameters
+    function executeInitialize(
+        State storage state,
+        InitializeFeeConfigParams memory f,
+        InitializeRiskConfigParams memory r,
+        InitializeOracleParams memory o,
+        InitializeDataParams memory d
+    ) external {
+        executeInitializeFeeConfig(state, f);
+        executeInitializeRiskConfig(state, r);
+        executeInitializeOracle(state, o);
+        executeInitializeData(state, d);
+        emit EventsV1_5.Initialize(f, r, o, d);
+    }
+
+    /// @notice Validates the parameters for the reinitialization
+    function validateReinitializeV1_5(State storage state, address borrowATokenV1_5, address[] calldata /*users*/ )
+        external
+        view
+    {
+        // validate state
+        if (address(state.data.borrowATokenV1_5) != address(0)) {
+            // markets deployed through the SizeFactory can't be reinitialized, since they will already have the borrowATokenV1_5 set
+            revert Errors.ALREADY_INITIALIZED(address(state.data.borrowATokenV1_5));
+        }
+
+        // validate borrowATokenV1_5
+        if (borrowATokenV1_5 == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        // validate users
+        // N/A
+    }
+
+    /// @notice Executes the reinitialization of the protocol to v1.5
+    function executeReinitializeV1_5(State storage state, address borrowATokenV1_5, address[] calldata users)
+        external
+    {
+        state.data.borrowATokenV1_5 = NonTransferrableScaledTokenV1_5(borrowATokenV1_5);
+
+        NonTransferrableScaledTokenV1_2 oldToken = state.data.borrowATokenV1_2;
+        NonTransferrableScaledTokenV1_5 newToken = state.data.borrowATokenV1_5;
+
+        uint256 oldTotalSupply = oldToken.totalSupply();
+        uint256 oldScaledTotalSupply = oldToken.scaledTotalSupply();
+
+        // we need to check (after - before) since the same newToken will be used for many markets
+        uint256 newScaledTotalSupplyBefore = newToken.scaledTotalSupply();
+
+        // migrate users' balances
+        // slither-disable-start calls-loop
+        for (uint256 i = 0; i < users.length; i++) {
+            // Just in case
+            uint256 userNewTokenScaledBalanceBefore = newToken.scaledBalanceOf(users[i]);
+            uint256 scaledBalance = oldToken.scaledBalanceOf(users[i]);
+            oldToken.burnScaled(users[i], scaledBalance);
+            if (oldToken.scaledBalanceOf(users[i]) != 0) {
+                revert Errors.REINITIALIZE_PER_USER_CHECK(0, oldToken.scaledBalanceOf(users[i]));
+            }
+            newToken.mintScaled(users[i], scaledBalance);
+            uint256 deltaScaled = newToken.scaledBalanceOf(users[i]) - userNewTokenScaledBalanceBefore;
+            if (deltaScaled != scaledBalance) {
+                revert Errors.REINITIALIZE_PER_USER_CHECK_DELTA(scaledBalance, deltaScaled);
+            }
+        }
+        // slither-disable-end calls-loop
+
+        uint256 newScaledTotalSupplyAfter = newToken.scaledTotalSupply();
+
+        IAToken aToken =
+            IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
+
+        if (oldToken.totalSupply() > 0) {
+            // the migration is expected to be done in a single transaction
+            revert Errors.REINITIALIZE_MIGRATION_EXPECTED_IN_ONE_TRANSACTION(oldToken.totalSupply());
+        }
+        if ((newScaledTotalSupplyAfter - newScaledTotalSupplyBefore) != oldScaledTotalSupply) {
+            // all claims preserved
+            revert Errors.REINITIALIZE_ALL_CLAIMS_PRESERVED(
+                newScaledTotalSupplyAfter, newScaledTotalSupplyBefore, oldScaledTotalSupply
+            );
+        }
+        // > to avoid donation attacks
+        if ((newScaledTotalSupplyAfter - newScaledTotalSupplyBefore) > aToken.scaledBalanceOf(address(this))) {
+            // technically, this would mean the existing market was already insolvent
+            revert Errors.REINITIALIZE_INSOLVENT(
+                newScaledTotalSupplyAfter, newScaledTotalSupplyBefore, aToken.scaledBalanceOf(address(this))
+            );
+        }
+
+        // transfer the aToken balance
+        IERC20(address(aToken)).safeTransfer(address(newToken), aToken.balanceOf(address(this)));
+
+        emit EventsV1_5.ReinitializeV1_5(
+            borrowATokenV1_5, oldTotalSupply, oldScaledTotalSupply, newToken.totalSupply(), newToken.scaledTotalSupply()
+        );
+    }
+}

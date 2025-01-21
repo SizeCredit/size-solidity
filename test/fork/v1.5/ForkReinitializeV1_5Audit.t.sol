@@ -6,9 +6,10 @@ import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Size} from "@src/Size.sol";
-import {ISizeV1_5} from "@src/v1.5/interfaces/ISizeV1_5.sol";
+import {SizeV1_5} from "@src/deprecated/SizeV1_5.sol";
+
 import {PriceFeed} from "@src/oracle/v1.5.1/PriceFeed.sol";
+import {ISizeV1_5} from "@src/v1.5/interfaces/deprecated/ISizeV1_5.sol";
 
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
@@ -27,7 +28,7 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
     IERC20Metadata internal USDC;
     IERC20Metadata internal WETH;
     IERC20Metadata internal CBBTC;
-    Size internal v1_5;
+    SizeV1_5 internal v1_5;
     address[] internal WETH_USDC_users;
     address[] internal cBBTC_USDC_users;
 
@@ -52,7 +53,7 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
     function testFork_ForkReinitializeV1_5Audit_LoanBeforeReinitializationRepayAfter() public {
         USDC = sizeWethUsdc.data().underlyingBorrowToken;
         WETH = sizeWethUsdc.data().underlyingCollateralToken;
-        v1_5 = new Size();
+        v1_5 = new SizeV1_5();
 
         sizeFactory = _deploySizeFactory(owner);
         _deployNewBorrowAToken();
@@ -114,8 +115,7 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
             // Fetch holders
 
             UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(
-                address(v1_5),
-                abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
+                address(v1_5), abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
             );
 
             sizeWethUsdc.unpause();
@@ -145,7 +145,7 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
         USDC = sizeWethUsdc.data().underlyingBorrowToken;
         WETH = sizeWethUsdc.data().underlyingCollateralToken;
         CBBTC = sizeCbbtcUsdc.data().underlyingCollateralToken;
-        v1_5 = new Size();
+        v1_5 = new SizeV1_5();
 
         sizeFactory = _deploySizeFactory(owner);
         _deployNewBorrowAToken();
@@ -202,8 +202,7 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
             // Fetch holders
 
             UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(
-                address(v1_5),
-                abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
+                address(v1_5), abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
             );
 
             sizeWethUsdc.unpause();
@@ -218,8 +217,7 @@ contract ForkReinitializeV1_5AuditTest is ForkReinitializeV1_5Test {
             // Fetch holders
 
             UUPSUpgradeable(address(sizeCbbtcUsdc)).upgradeToAndCall(
-                address(v1_5),
-                abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), cBBTC_USDC_users))
+                address(v1_5), abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), cBBTC_USDC_users))
             );
 
             sizeCbbtcUsdc.unpause();

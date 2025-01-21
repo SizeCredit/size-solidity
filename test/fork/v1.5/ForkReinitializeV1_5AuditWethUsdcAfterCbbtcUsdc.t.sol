@@ -6,8 +6,8 @@ import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Size} from "@src/Size.sol";
-import {ISizeV1_5} from "@src/v1.5/interfaces/ISizeV1_5.sol";
+import {SizeV1_5} from "@src/deprecated/SizeV1_5.sol";
+import {ISizeV1_5} from "@src/v1.5/interfaces/deprecated/ISizeV1_5.sol";
 
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
@@ -29,7 +29,7 @@ contract ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdcWethUsdcAfterCbbtcUsdcTe
     IERC20Metadata internal USDC;
     IERC20Metadata internal WETH;
     IERC20Metadata internal CBBTC;
-    Size internal v1_5;
+    SizeV1_5 internal v1_5;
     address[] internal WETH_USDC_users;
     address[] internal cBBTC_USDC_users;
 
@@ -54,7 +54,7 @@ contract ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdcWethUsdcAfterCbbtcUsdcTe
     function testFork_ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdc_LoanBeforeReinitializationRepayAfter() public {
         USDC = sizeWethUsdc.data().underlyingBorrowToken;
         WETH = sizeWethUsdc.data().underlyingCollateralToken;
-        v1_5 = new Size();
+        v1_5 = new SizeV1_5();
 
         importV1_5ReinitializeData("base-production-weth-usdc", addressesWethUsdc);
         WETH_USDC_users = addressesWethUsdc.keys();
@@ -105,8 +105,7 @@ contract ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdcWethUsdcAfterCbbtcUsdcTe
         {
             vm.startPrank(owner);
             UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(
-                address(v1_5),
-                abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
+                address(v1_5), abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
             );
             vm.stopPrank();
         }
@@ -134,7 +133,7 @@ contract ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdcWethUsdcAfterCbbtcUsdcTe
         USDC = sizeWethUsdc.data().underlyingBorrowToken;
         WETH = sizeWethUsdc.data().underlyingCollateralToken;
         CBBTC = sizeCbbtcUsdc.data().underlyingCollateralToken;
-        v1_5 = new Size();
+        v1_5 = new SizeV1_5();
 
         importV1_5ReinitializeData("base-production-weth-usdc", addressesWethUsdc);
         WETH_USDC_users = addressesWethUsdc.keys();
@@ -180,8 +179,7 @@ contract ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdcWethUsdcAfterCbbtcUsdcTe
         vm.startPrank(owner);
         {
             UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(
-                address(v1_5),
-                abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
+                address(v1_5), abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
             );
         }
         vm.stopPrank();
