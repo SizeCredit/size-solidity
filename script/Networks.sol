@@ -28,31 +28,7 @@ abstract contract Networks {
     uint256 public constant BASE_SEPOLIA = 84532;
 
     function params(string memory networkConfiguration) public pure returns (NetworkConfiguration memory) {
-        if (Strings.equal(networkConfiguration, "sepolia-mocks")) {
-            return NetworkConfiguration({
-                weth: 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14,
-                underlyingCollateralToken: 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14,
-                underlyingBorrowToken: 0x94a9D9AC8a22534E3FaCa9F4e7F2E2cf85d5E4C8,
-                variablePool: address(0),
-                fragmentationFee: 1e6,
-                crOpening: 1.5e18,
-                crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
-                priceFeedParams: PriceFeedParams({
-                    uniswapV3Pool: IUniswapV3Pool(address(0)),
-                    twapWindow: 0,
-                    averageBlockTime: 0,
-                    baseToken: IERC20Metadata(address(0)),
-                    quoteToken: IERC20Metadata(address(0)),
-                    baseAggregator: AggregatorV3Interface(address(0)),
-                    quoteAggregator: AggregatorV3Interface(address(0)),
-                    baseStalePriceInterval: 0,
-                    quoteStalePriceInterval: 0,
-                    sequencerUptimeFeed: AggregatorV3Interface(address(0))
-                })
-            });
-        } else if (Strings.equal(networkConfiguration, "base-sepolia-weth-usdc")) {
+        if (Strings.equal(networkConfiguration, "base-sepolia-weth-usdc")) {
             return NetworkConfiguration({
                 weth: 0x4200000000000000000000000000000000000006,
                 underlyingCollateralToken: 0x4200000000000000000000000000000000000006,
