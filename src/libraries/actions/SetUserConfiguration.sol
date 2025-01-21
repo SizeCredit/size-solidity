@@ -75,6 +75,7 @@ library SetUserConfiguration {
         }
 
         emit Events.SetUserConfiguration(
+            msg.sender,
             params.openingLimitBorrowCR,
             params.allCreditPositionsForSaleDisabled,
             params.creditPositionIdsForSale,

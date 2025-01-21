@@ -46,6 +46,8 @@ library Claim {
     /// @param state The state
     /// @param params The input parameters for claiming a credit position
     function executeClaim(State storage state, ClaimParams calldata params) external {
+        emit Events.Claim(msg.sender, params.creditPositionId);
+
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
@@ -54,7 +56,5 @@ library Claim {
         );
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
         state.data.borrowATokenV1_5.transferFrom(address(this), creditPosition.lender, claimAmount);
-
-        emit Events.Claim(params.creditPositionId, creditPosition.debtPositionId);
     }
 }

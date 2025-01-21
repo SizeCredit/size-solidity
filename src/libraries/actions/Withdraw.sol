@@ -67,6 +67,6 @@ library Withdraw {
             state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
         }
 
-        emit Events.Withdraw(params.token, params.to, amount);
+        emit Events.Withdraw(msg.sender, params.token, params.to, amount);
     }
 }

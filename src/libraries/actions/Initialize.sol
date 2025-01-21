@@ -292,93 +292,11 @@ library Initialize {
         InitializeOracleParams memory o,
         InitializeDataParams memory d
     ) external {
+        emit Events.Initialize();
+
         executeInitializeFeeConfig(state, f);
         executeInitializeRiskConfig(state, r);
         executeInitializeOracle(state, o);
         executeInitializeData(state, d);
-        emit Events.Initialize(f, r, o, d);
-    }
-
-    /// @notice Validates the parameters for the reinitialization
-    function validateReinitializeV1_5(State storage state, address borrowATokenV1_5, address[] calldata /*users*/ )
-        external
-        view
-    {
-        // validate state
-        if (address(state.data.borrowATokenV1_5) != address(0)) {
-            // markets deployed through the SizeFactory can't be reinitialized, since they will already have the borrowATokenV1_5 set
-            revert Errors.ALREADY_INITIALIZED(address(state.data.borrowATokenV1_5));
-        }
-
-        // validate borrowATokenV1_5
-        if (borrowATokenV1_5 == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        // validate users
-        // N/A
-    }
-
-    /// @notice Executes the reinitialization of the protocol to v1.5
-    function executeReinitializeV1_5(State storage state, address borrowATokenV1_5, address[] calldata users)
-        external
-    {
-        state.data.borrowATokenV1_5 = NonTransferrableScaledTokenV1_5(borrowATokenV1_5);
-
-        NonTransferrableScaledTokenV1_2 oldToken = state.data.borrowATokenV1_2;
-        NonTransferrableScaledTokenV1_5 newToken = state.data.borrowATokenV1_5;
-
-        uint256 oldTotalSupply = oldToken.totalSupply();
-        uint256 oldScaledTotalSupply = oldToken.scaledTotalSupply();
-
-        // we need to check (after - before) since the same newToken will be used for many markets
-        uint256 newScaledTotalSupplyBefore = newToken.scaledTotalSupply();
-
-        // migrate users' balances
-        // slither-disable-start calls-loop
-        for (uint256 i = 0; i < users.length; i++) {
-            // Just in case
-            uint256 userNewTokenScaledBalanceBefore = newToken.scaledBalanceOf(users[i]);
-            uint256 scaledBalance = oldToken.scaledBalanceOf(users[i]);
-            oldToken.burnScaled(users[i], scaledBalance);
-            if (oldToken.scaledBalanceOf(users[i]) != 0) {
-                revert Errors.REINITIALIZE_PER_USER_CHECK(0, oldToken.scaledBalanceOf(users[i]));
-            }
-            newToken.mintScaled(users[i], scaledBalance);
-            uint256 deltaScaled = newToken.scaledBalanceOf(users[i]) - userNewTokenScaledBalanceBefore;
-            if (deltaScaled != scaledBalance) {
-                revert Errors.REINITIALIZE_PER_USER_CHECK_DELTA(scaledBalance, deltaScaled);
-            }
-        }
-        // slither-disable-end calls-loop
-
-        uint256 newScaledTotalSupplyAfter = newToken.scaledTotalSupply();
-
-        IAToken aToken =
-            IAToken(state.data.variablePool.getReserveData(address(state.data.underlyingBorrowToken)).aTokenAddress);
-
-        if (oldToken.totalSupply() > 0) {
-            // the migration is expected to be done in a single transaction
-            revert Errors.REINITIALIZE_MIGRATION_EXPECTED_IN_ONE_TRANSACTION(oldToken.totalSupply());
-        }
-        if ((newScaledTotalSupplyAfter - newScaledTotalSupplyBefore) != oldScaledTotalSupply) {
-            // all claims preserved
-            revert Errors.REINITIALIZE_ALL_CLAIMS_PRESERVED(
-                newScaledTotalSupplyAfter, newScaledTotalSupplyBefore, oldScaledTotalSupply
-            );
-        }
-        // > to avoid donation attacks
-        if ((newScaledTotalSupplyAfter - newScaledTotalSupplyBefore) > aToken.scaledBalanceOf(address(this))) {
-            // technically, this would mean the existing market was already insolvent
-            revert Errors.REINITIALIZE_INSOLVENT(
-                newScaledTotalSupplyAfter, newScaledTotalSupplyBefore, aToken.scaledBalanceOf(address(this))
-            );
-        }
-
-        // transfer the aToken balance
-        IERC20(address(aToken)).safeTransfer(address(newToken), aToken.balanceOf(address(this)));
-
-        emit Events.ReinitializeV1_5(
-            borrowATokenV1_5, oldTotalSupply, oldScaledTotalSupply, newToken.totalSupply(), newToken.scaledTotalSupply()
-        );
     }
 }

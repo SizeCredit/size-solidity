@@ -10,10 +10,10 @@ library Events {
     event Initialize();
     event Deposit(address indexed sender, address indexed token, address indexed to, uint256 amount);
     event Withdraw(address indexed sender, address indexed token, address indexed to, uint256 amount);
-    event UpdateConfig(string indexed key, uint256 value);
+    event UpdateConfig(address indexed sender, string indexed key, uint256 value);
     event VariablePoolBorrowRateUpdated(uint128 indexed oldBorrowRate, uint128 indexed newBorrowRate);
     event SellCreditMarket(
-        address indexed sender,
+        address indexed borrower,
         address indexed lender,
         uint256 indexed creditPositionId,
         uint256 amount,
@@ -30,7 +30,7 @@ library Events {
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
     event BuyCreditMarket(
-        address indexed sender,
+        address indexed lender,
         address indexed borrower,
         uint256 indexed creditPositionId,
         uint256 amount,

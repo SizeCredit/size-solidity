@@ -192,7 +192,14 @@ library BuyCreditMarket {
         returns (uint256 netCashAmountIn)
     {
         emit Events.BuyCreditMarket(
-            params.borrower, params.creditPositionId, params.tenor, params.amount, params.exactAmountIn
+            msg.sender,
+            params.borrower,
+            params.creditPositionId,
+            params.amount,
+            params.tenor,
+            params.deadline,
+            params.minAPR,
+            params.exactAmountIn
         );
 
         SwapDataBuyCreditMarket memory swapData = getSwapData(state, params);

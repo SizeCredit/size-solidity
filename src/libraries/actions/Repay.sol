@@ -50,12 +50,12 @@ library Repay {
     /// @param state The state
     /// @param params The input parameters for repaying a debt position
     function executeRepay(State storage state, RepayParams calldata params) external {
+        emit Events.Repay(msg.sender, params.debtPositionId, params.borrower);
+
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
         state.data.borrowATokenV1_5.transferFrom(msg.sender, address(this), debtPosition.futureValue);
         debtPosition.liquidityIndexAtRepayment = state.data.borrowATokenV1_5.liquidityIndex();
         state.repayDebt(params.debtPositionId, debtPosition.futureValue);
-
-        emit Events.Repay(params.debtPositionId);
     }
 }

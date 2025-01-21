@@ -43,13 +43,15 @@ library SellCreditLimit {
     /// @param params The input parameters for selling credit as a limit order
     /// @dev A null offer means clearing a user's borrow limit order
     function executeSellCreditLimit(State storage state, SellCreditLimitParams calldata params) external {
-        state.data.users[msg.sender].borrowOffer =
-            LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
         emit Events.SellCreditLimit(
+            msg.sender,
             params.maxDueDate,
             params.curveRelativeTime.tenors,
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers
         );
+
+        state.data.users[msg.sender].borrowOffer =
+            LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
     }
 }

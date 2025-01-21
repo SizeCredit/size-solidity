@@ -10,6 +10,7 @@ import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {Size} from "@src/Size.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
+import {ISizeV1_5} from "@src/v1.5/interfaces/ISizeV1_5.sol";
 
 import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
 
@@ -122,7 +123,7 @@ contract ForkReinitializeV1_5WethUsdcAfterCbbtcUsdcTest is ForkTest {
 
         vm.prank(owner);
         UUPSUpgradeable(address(isize)).upgradeToAndCall(
-            address(v1_5), abi.encodeCall(Size.reinitialize, (address(newBorrowAToken), users))
+            address(v1_5), abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), users))
         );
 
         assertEq(address(isize.data().borrowAToken), address(newBorrowAToken), "borrowAToken should be newBorrowAToken");

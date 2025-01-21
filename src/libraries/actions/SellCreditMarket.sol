@@ -192,7 +192,14 @@ library SellCreditMarket {
         returns (uint256)
     {
         emit Events.SellCreditMarket(
-            params.lender, params.creditPositionId, params.tenor, params.amount, params.tenor, params.exactAmountIn
+            msg.sender,
+            params.lender,
+            params.creditPositionId,
+            params.amount,
+            params.tenor,
+            params.deadline,
+            params.maxAPR,
+            params.exactAmountIn
         );
 
         SwapDataSellCreditMarket memory swapData = getSwapData(state, params);

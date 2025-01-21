@@ -105,7 +105,7 @@ library Compensate {
     /// @param params The input parameters for compensating a credit position
     function executeCompensate(State storage state, CompensateParams calldata params) external {
         emit Events.Compensate(
-            params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId, params.amount
+            msg.sender, params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId, params.amount
         );
 
         CreditPosition storage creditPositionWithDebtToRepay =

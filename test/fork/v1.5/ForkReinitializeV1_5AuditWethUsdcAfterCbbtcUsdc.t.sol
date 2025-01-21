@@ -7,6 +7,7 @@ import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Size} from "@src/Size.sol";
+import {ISizeV1_5} from "@src/v1.5/interfaces/ISizeV1_5.sol";
 
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";
@@ -104,7 +105,8 @@ contract ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdcWethUsdcAfterCbbtcUsdcTe
         {
             vm.startPrank(owner);
             UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(
-                address(v1_5), abi.encodeCall(Size.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
+                address(v1_5),
+                abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
             );
             vm.stopPrank();
         }
@@ -178,7 +180,8 @@ contract ForkReinitializeV1_5AuditWethUsdcAfterCbbtcUsdcWethUsdcAfterCbbtcUsdcTe
         vm.startPrank(owner);
         {
             UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(
-                address(v1_5), abi.encodeCall(Size.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
+                address(v1_5),
+                abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), WETH_USDC_users))
             );
         }
         vm.stopPrank();
