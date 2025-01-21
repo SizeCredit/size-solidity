@@ -7,11 +7,11 @@ pragma solidity 0.8.23;
 library Events {
     // actions
 
-    event Initialize();
+    event Initialize(address indexed sender);
     event Deposit(address indexed sender, address indexed token, address indexed to, uint256 amount);
     event Withdraw(address indexed sender, address indexed token, address indexed to, uint256 amount);
     event UpdateConfig(address indexed sender, string indexed key, uint256 value);
-    event VariablePoolBorrowRateUpdated(uint128 indexed oldBorrowRate, uint128 indexed newBorrowRate);
+    event VariablePoolBorrowRateUpdated(address indexed sender, uint128 oldBorrowRate, uint128 newBorrowRate);
     event SellCreditMarket(
         address indexed borrower,
         address indexed lender,

@@ -292,7 +292,7 @@ library Initialize {
         InitializeOracleParams memory o,
         InitializeDataParams memory d
     ) external {
-        emit Events.Initialize();
+        emit Events.Initialize(msg.sender);
 
         executeInitializeFeeConfig(state, f);
         executeInitializeRiskConfig(state, r);

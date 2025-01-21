@@ -137,7 +137,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         uint128 oldBorrowRate = state.oracle.variablePoolBorrowRate;
         state.oracle.variablePoolBorrowRate = borrowRate;
         state.oracle.variablePoolBorrowRateUpdatedAt = uint64(block.timestamp);
-        emit Events.VariablePoolBorrowRateUpdated(oldBorrowRate, borrowRate);
+        emit Events.VariablePoolBorrowRateUpdated(msg.sender, oldBorrowRate, borrowRate);
     }
 
     /// @inheritdoc ISizeAdmin
