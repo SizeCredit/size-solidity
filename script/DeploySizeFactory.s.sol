@@ -15,6 +15,7 @@ contract DeploySizeFactoryScript is BaseScript, Networks, Deploy {
     address deployer;
     address owner;
     string networkConfiguration;
+    bool shouldUpgrade;
 
     function setUp() public {}
 
@@ -22,6 +23,7 @@ contract DeploySizeFactoryScript is BaseScript, Networks, Deploy {
         deployer = vm.envOr("DEPLOYER_ADDRESS", vm.addr(vm.deriveKey(TEST_MNEMONIC, 0)));
         owner = vm.envOr("OWNER", address(0));
         networkConfiguration = vm.envOr("NETWORK_CONFIGURATION", TEST_NETWORK_CONFIGURATION);
+        shouldUpgrade = vm.envOr("SHOULD_UPGRADE", false);
         _;
     }
 
@@ -33,22 +35,31 @@ contract DeploySizeFactoryScript is BaseScript, Networks, Deploy {
         console.log("[SizeFactory v1.5] owner", owner);
 
         SizeFactory implementation = new SizeFactory();
-        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(SizeFactory.initialize, (owner)));
 
-        deployments.push(Deployment({name: "SizeFactory-implementation", addr: address(implementation)}));
-        deployments.push(Deployment({name: "SizeFactory-proxy", addr: address(proxy)}));
-        parameters.push(Parameter({key: "owner", value: Strings.toHexString(owner)}));
+        console.log("[SizeFactory v1.5] implementation", address(implementation));
 
-        console.log("[SizeFactory v1.5] deployed\n");
+        if (shouldUpgrade) {
+            ERC1967Proxy proxy =
+                new ERC1967Proxy(address(implementation), abi.encodeCall(SizeFactory.initialize, (owner)));
+            console.log("[SizeFactory v1.5] proxy", address(proxy));
 
-        for (uint256 i = 0; i < deployments.length; i++) {
-            console.log("[SizeFactory v1.5] Deployment: ", deployments[i].name, "\t", address(deployments[i].addr));
+            deployments.push(Deployment({name: "SizeFactory-implementation", addr: address(implementation)}));
+            deployments.push(Deployment({name: "SizeFactory-proxy", addr: address(proxy)}));
+            parameters.push(Parameter({key: "owner", value: Strings.toHexString(owner)}));
+
+            console.log("[SizeFactory v1.5] deployed\n");
+
+            for (uint256 i = 0; i < deployments.length; i++) {
+                console.log("[SizeFactory v1.5] Deployment: ", deployments[i].name, "\t", address(deployments[i].addr));
+            }
+            for (uint256 i = 0; i < parameters.length; i++) {
+                console.log("[SizeFactory v1.5] Parameter:  ", parameters[i].key, "\t", parameters[i].value);
+            }
+
+            exportDeployments(networkConfiguration);
+        } else {
+            console.log("[SizeFactory v1.5] upgrade pending, call `upgradeToAndCall`\n");
         }
-        for (uint256 i = 0; i < parameters.length; i++) {
-            console.log("[SizeFactory v1.5] Parameter:  ", parameters[i].key, "\t", parameters[i].value);
-        }
-
-        exportDeployments(networkConfiguration);
 
         console.log("[SizeFactory v1.5] done");
     }

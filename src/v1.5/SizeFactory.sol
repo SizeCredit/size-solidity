@@ -43,7 +43,14 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
     EnumerableSet.AddressSet private markets;
     EnumerableSet.AddressSet private priceFeeds;
     EnumerableSet.AddressSet private borrowATokensV1_5;
+    address public sizeImplementation;
+    address public nonTransferrableScaledTokenV1_5Implementation;
 
+    event SizeImplementationSet(address indexed oldSizeImplementation, address indexed newSizeImplementation);
+    event NonTransferrableScaledTokenV1_5ImplementationSet(
+        address indexed oldNonTransferrableScaledTokenV1_5Implementation,
+        address indexed newNonTransferrableScaledTokenV1_5Implementation
+    );
     event MarketAdded(address indexed market, bool indexed existed);
     event MarketRemoved(address indexed market, bool indexed existed);
     event PriceFeedAdded(address indexed priceFeed, bool indexed existed);
@@ -64,13 +71,32 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
+    /// @inheritdoc ISizeFactory
+    function setSizeImplementation(address _sizeImplementation) external onlyOwner {
+        emit SizeImplementationSet(sizeImplementation, _sizeImplementation);
+        sizeImplementation = _sizeImplementation;
+    }
+
+    /// @inheritdoc ISizeFactory
+    function setNonTransferrableScaledTokenV1_5Implementation(address _nonTransferrableScaledTokenV1_5Implementation)
+        external
+        onlyOwner
+    {
+        emit NonTransferrableScaledTokenV1_5ImplementationSet(
+            nonTransferrableScaledTokenV1_5Implementation, _nonTransferrableScaledTokenV1_5Implementation
+        );
+        nonTransferrableScaledTokenV1_5Implementation = _nonTransferrableScaledTokenV1_5Implementation;
+    }
+
     function createMarket(
         InitializeFeeConfigParams calldata feeConfigParams,
         InitializeRiskConfigParams calldata riskConfigParams,
         InitializeOracleParams calldata oracleParams,
         InitializeDataParams calldata dataParams
     ) external onlyOwner returns (ISize market) {
-        market = MarketFactoryLibrary.createMarket(owner(), feeConfigParams, riskConfigParams, oracleParams, dataParams);
+        market = MarketFactoryLibrary.createMarket(
+            sizeImplementation, owner(), feeConfigParams, riskConfigParams, oracleParams, dataParams
+        );
         _addMarket(market);
     }
 
@@ -133,7 +159,7 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
         returns (NonTransferrableScaledTokenV1_5 borrowATokenV1_5)
     {
         borrowATokenV1_5 = NonTransferrableScaledTokenV1_5FactoryLibrary.createNonTransferrableScaledTokenV1_5(
-            owner(), variablePool, underlyingBorrowToken
+            nonTransferrableScaledTokenV1_5Implementation, owner(), variablePool, underlyingBorrowToken
         );
         _addBorrowATokenV1_5(borrowATokenV1_5);
     }

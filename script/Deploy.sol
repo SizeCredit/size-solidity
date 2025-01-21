@@ -67,6 +67,11 @@ abstract contract Deploy {
 
         _deployLocalSizeFactoryIfNeeded(owner);
 
+        address borrowATokenV1_5Implementation = address(new NonTransferrableScaledTokenV1_5());
+
+        hevm.prank(owner);
+        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(borrowATokenV1_5Implementation);
+
         hevm.prank(owner);
         sizeFactory.createBorrowATokenV1_5(variablePool, usdc);
 
@@ -106,6 +111,9 @@ abstract contract Deploy {
         sizeFactory.addMarket(ISize(size));
 
         hevm.prank(owner);
+        sizeFactory.setSizeImplementation(implementation);
+
+        hevm.prank(owner);
         PriceFeedMock(address(priceFeed)).setPrice(1337e18);
     }
 
@@ -137,8 +145,16 @@ abstract contract Deploy {
 
         _deployLocalSizeFactoryIfNeeded(owner);
 
+        address borrowATokenV1_5Implementation = address(new NonTransferrableScaledTokenV1_5());
+
+        hevm.prank(owner);
+        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(borrowATokenV1_5Implementation);
+
+        hevm.prank(owner);
+        sizeFactory.createBorrowATokenV1_5(variablePool, borrowToken);
+
         NonTransferrableScaledTokenV1_5 borrowAToken =
-            _deployBorrowAToken(owner, ISizeFactory(sizeFactory), variablePool, borrowToken);
+            NonTransferrableScaledTokenV1_5(address(sizeFactory.getBorrowATokenV1_5(0)));
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -179,69 +195,10 @@ abstract contract Deploy {
         sizeFactory.addMarket(ISize(size));
 
         hevm.prank(owner);
+        sizeFactory.setSizeImplementation(implementation);
+
+        hevm.prank(owner);
         PriceFeedMock(address(priceFeed)).setPrice(price);
-    }
-
-    /// @notice Deploys the contracts needed for the production environment (legacy deployment)
-    /// @dev The owner should add the contracts to the registry after this function is called
-    function setupProduction(address _owner, address _feeRecipient, NetworkConfiguration memory _networkParams)
-        internal
-    {
-        variablePool = IPool(_networkParams.variablePool);
-
-        if (
-            _networkParams.priceFeedParams.baseAggregator == AggregatorV3Interface(address(0))
-                && _networkParams.priceFeedParams.quoteAggregator == AggregatorV3Interface(address(0))
-        ) {
-            priceFeed = new PriceFeedMock(_owner);
-        } else {
-            priceFeed = new PriceFeed(_networkParams.priceFeedParams);
-        }
-
-        if (_networkParams.variablePool == address(0)) {
-            variablePool = IPool(address(new PoolMock()));
-            PoolMock(address(variablePool)).setLiquidityIndex(
-                address(_networkParams.underlyingCollateralToken), WadRayMath.RAY
-            );
-            PoolMock(address(variablePool)).setLiquidityIndex(
-                address(_networkParams.underlyingBorrowToken), WadRayMath.RAY
-            );
-        } else {
-            variablePool = IPool(_networkParams.variablePool);
-        }
-
-        sizeFactory = _deploySizeFactory(_owner);
-
-        NonTransferrableScaledTokenV1_5 borrowAToken = _deployBorrowAToken(
-            _owner, ISizeFactory(sizeFactory), variablePool, IERC20Metadata(_networkParams.underlyingBorrowToken)
-        );
-        f = InitializeFeeConfigParams({
-            swapFeeAPR: 0.005e18,
-            fragmentationFee: _networkParams.fragmentationFee,
-            liquidationRewardPercent: 0.05e18,
-            overdueCollateralProtocolPercent: 0.01e18,
-            collateralProtocolPercent: 0.1e18,
-            feeRecipient: _feeRecipient
-        });
-        r = InitializeRiskConfigParams({
-            crOpening: _networkParams.crOpening,
-            crLiquidation: _networkParams.crLiquidation,
-            minimumCreditBorrowAToken: _networkParams.minimumCreditBorrowAToken,
-            borrowATokenCap: _networkParams.borrowATokenCap,
-            minTenor: 1 hours,
-            maxTenor: 5 * 365 days
-        });
-        o = InitializeOracleParams({priceFeed: address(priceFeed), variablePoolBorrowRateStaleRateInterval: 0});
-        d = InitializeDataParams({
-            weth: address(_networkParams.weth),
-            underlyingCollateralToken: address(_networkParams.underlyingCollateralToken),
-            underlyingBorrowToken: address(_networkParams.underlyingBorrowToken),
-            variablePool: address(variablePool), // Aave v3
-            borrowATokenV1_5: address(borrowAToken)
-        });
-        implementation = address(new Size());
-        proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (_owner, f, r, o, d)));
-        size = SizeMock(payable(proxy));
     }
 
     function setupFork(address _size, address _priceFeed, address _variablePool, address _weth, address _usdc)

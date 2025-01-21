@@ -30,13 +30,12 @@ contract UpgradeScript is BaseScript, Networks, Deploy {
         console.log("[Size v1] networkConfiguration", networkConfiguration);
         console.log("[Size v1] deployer", deployer);
 
-        (ISize proxy,,) = importDeployments(networkConfiguration);
-
         Size upgrade = new Size();
         console.log("[Size v1] new implementation", address(upgrade));
 
         if (shouldUpgrade) {
-            Size(address(proxy)).upgradeToAndCall(address(upgrade), "");
+            (ISize _proxy,,) = importDeployments(networkConfiguration);
+            Size(address(_proxy)).upgradeToAndCall(address(upgrade), "");
             console.log("[Size v1] upgraded\n");
         } else {
             console.log("[Size v1] upgrade pending, call `upgradeToAndCall`\n");
