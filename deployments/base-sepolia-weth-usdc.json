@@ -3,7 +3,7 @@
   "commit": "06f111f",
   "deployments": {
     "PriceFeed": "0x4C4B6E64b5765196661E3FF80b5Da8c917392BDB",
-    "Size-implementation": "0x0Ac75e8542ddf6E6d5373F1917CB9c3b0B4B7f31",
+    "Size-implementation": "",
     "Size-proxy": "0x3009B1049F2ef921Bb35A80A3D5ee0a47Bd0211A"
   },
   "networkConfiguration": "base-sepolia-weth-usdc",

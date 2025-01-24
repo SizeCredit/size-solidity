@@ -1,9 +1,0 @@
-{
-  "chainId": "84532",
-  "commit": "b2ceb4a",
-  "deployments": {
-    "SizeFactory": "0x1662E28E77Cd553e495Ce9465Fb0E0993d1278c2"
-  },
-  "networkConfiguration": "base-sepolia",
-  "parameters": ""
-}

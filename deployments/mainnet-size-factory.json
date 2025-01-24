@@ -2,7 +2,7 @@
   "chainId": "1",
   "commit": "2844a76",
   "deployments": {
-    "SizeFactory-implementation": "0x5a4Ac0B8C4D2eab5601c1265f59bfDB7e158C337",
+    "SizeFactory-implementation": "",
     "SizeFactory-proxy": "0x3A9C05c3Da48E6E26f39928653258D7D4Eb594C1"
   },
   "networkConfiguration": "mainnet-size-factory",
