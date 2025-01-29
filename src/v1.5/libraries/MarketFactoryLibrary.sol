@@ -14,13 +14,14 @@ import {
 
 library MarketFactoryLibrary {
     function createMarket(
+        address implementation,
         address owner,
         InitializeFeeConfigParams calldata f,
         InitializeRiskConfigParams calldata r,
         InitializeOracleParams calldata o,
         InitializeDataParams calldata d
     ) external returns (ISize market) {
-        ERC1967Proxy proxy = new ERC1967Proxy(address(new Size()), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        ERC1967Proxy proxy = new ERC1967Proxy(implementation, abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         market = ISize(payable(proxy));
     }
 }

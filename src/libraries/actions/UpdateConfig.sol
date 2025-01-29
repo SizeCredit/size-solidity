@@ -84,6 +84,8 @@ library UpdateConfig {
     /// @param state The state of the protocol
     /// @param params The parameters to update the configuration
     function executeUpdateConfig(State storage state, UpdateConfigParams calldata params) external {
+        emit Events.UpdateConfig(msg.sender, params.key, params.value);
+
         if (Strings.equal(params.key, "crOpening")) {
             state.riskConfig.crOpening = params.value;
         } else if (Strings.equal(params.key, "crLiquidation")) {
@@ -143,7 +145,5 @@ library UpdateConfig {
         Initialize.validateInitializeFeeConfigParams(feeConfigParams(state));
         Initialize.validateInitializeRiskConfigParams(riskConfigParams(state));
         Initialize.validateInitializeOracleParams(oracleParams(state));
-
-        emit Events.UpdateConfig(params.key, params.value);
     }
 }

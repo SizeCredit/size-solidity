@@ -13,6 +13,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
 import {BaseTest} from "@test/BaseTest.sol";
+
+import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {IUniswapV3PoolActions} from "@uniswap/v3-core/contracts/interfaces/pool/IUniswapV3PoolActions.sol";
@@ -501,5 +503,23 @@ contract SizeFactoryTest is BaseTest {
         vm.prank(makeAddr("unauthorized"));
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, makeAddr("unauthorized")));
         sizeFactory.removeBorrowATokenV1_5(borrowAToken);
+    }
+
+    function test_SizeFactory_setSizeImplementation() public {
+        address newImplementation = address(new SizeMock());
+        vm.prank(owner);
+        sizeFactory.setSizeImplementation(newImplementation);
+        assertEq(sizeFactory.sizeImplementation(), newImplementation);
+
+        vm.prank(owner);
+        sizeFactory.createMarket(f, r, o, d);
+        assertEq(SizeMock(address(sizeFactory.getMarket(1))).v(), 2);
+    }
+
+    function test_SizeFactory_setNonTransferrableScaledTokenV1_5Implementation() public {
+        address newImplementation = makeAddr("newImplementation");
+        vm.prank(owner);
+        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(newImplementation);
+        assertEq(sizeFactory.nonTransferrableScaledTokenV1_5Implementation(), newImplementation);
     }
 }

@@ -20,6 +20,15 @@ import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableS
 /// @author Size (https://size.credit/)
 /// @notice The interface for the size factory
 interface ISizeFactory {
+    /// @notice Set the size implementation
+    /// @param _sizeImplementation The new size implementation
+    function setSizeImplementation(address _sizeImplementation) external;
+
+    /// @notice Set the non-transferrable scaled token v1.5 implementation
+    /// @param _nonTransferrableScaledTokenV1_5Implementation The new non-transferrable scaled token v1.5 implementation
+    function setNonTransferrableScaledTokenV1_5Implementation(address _nonTransferrableScaledTokenV1_5Implementation)
+        external;
+
     /// @notice Creates a new market
     /// @dev The contract owner is set as the owner of the market
     function createMarket(

@@ -121,7 +121,14 @@ library LiquidateWithReplacement {
         external
         returns (uint256 issuanceValue, uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
     {
-        emit Events.LiquidateWithReplacement(params.debtPositionId, params.borrower, params.minimumCollateralProfit);
+        emit Events.LiquidateWithReplacement(
+            msg.sender,
+            params.debtPositionId,
+            params.borrower,
+            params.minimumCollateralProfit,
+            params.deadline,
+            params.minAPR
+        );
 
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         DebtPosition memory debtPositionCopy = debtPosition;

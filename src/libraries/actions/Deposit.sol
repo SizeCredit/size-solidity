@@ -84,6 +84,6 @@ library Deposit {
             state.depositUnderlyingCollateralToken(from, params.to, amount);
         }
 
-        emit Events.Deposit(params.token, params.to, amount);
+        emit Events.Deposit(msg.sender, params.token, params.to, amount);
     }
 }

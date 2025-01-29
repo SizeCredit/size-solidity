@@ -87,7 +87,14 @@ library Liquidate {
         LoanStatus loanStatus = state.getLoanStatus(params.debtPositionId);
         uint256 collateralRatio = state.collateralRatio(debtPosition.borrower);
 
-        emit Events.Liquidate(params.debtPositionId, params.minimumCollateralProfit, collateralRatio, loanStatus);
+        emit Events.Liquidate(
+            msg.sender,
+            params.debtPositionId,
+            params.minimumCollateralProfit,
+            params.deadline,
+            collateralRatio,
+            uint8(loanStatus)
+        );
 
         // if the loan is both underwater and overdue, the protocol fee related to underwater liquidations takes precedence
         uint256 collateralProtocolPercent = state.isUserUnderwater(debtPosition.borrower)

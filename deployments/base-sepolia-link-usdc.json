@@ -3,7 +3,7 @@
   "commit": "06f111f",
   "deployments": {
     "PriceFeed": "0xf336B38CD502C5cfE7c45572A7C39631bA180b63",
-    "Size-implementation": "0x0Ac75e8542ddf6E6d5373F1917CB9c3b0B4B7f31",
+    "Size-implementation": "",
     "Size-proxy": "0xA5f2066647d22dfBd2Ed0dD43344dB9DCe4b4632"
   },
   "networkConfiguration": "base-sepolia-link-usdc",

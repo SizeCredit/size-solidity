@@ -53,7 +53,7 @@ library SelfLiquidate {
     /// @param state The state
     /// @param params The input parameters for self-liquidating a credit position
     function executeSelfLiquidate(State storage state, SelfLiquidateParams calldata params) external {
-        emit Events.SelfLiquidate(params.creditPositionId);
+        emit Events.SelfLiquidate(msg.sender, params.creditPositionId);
 
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);

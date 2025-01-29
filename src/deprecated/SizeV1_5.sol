@@ -9,13 +9,13 @@ import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Pau
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 
 import {
-    Initialize,
     InitializeDataParams,
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/libraries/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
+import {InitializeV1_5} from "@src/libraries/actions/deprecated/InitializeV1_5.sol";
 
 import {SellCreditLimit, SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
@@ -45,11 +45,12 @@ import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
-import {Events} from "@src/libraries/Events.sol";
+import {EventsV1_5} from "@src/libraries/deprecated/EventsV1_5.sol";
 
 import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
+import {ISizeV1_5} from "@src/v1.5/interfaces/deprecated/ISizeV1_5.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
@@ -57,12 +58,20 @@ bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE");
 
-/// @title Size
+/// @title SizeV1_5
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISize}.
-contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
-    using Initialize for State;
+contract SizeV1_5 is
+    ISize,
+    ISizeV1_5,
+    SizeView,
+    Initializable,
+    AccessControlUpgradeable,
+    PausableUpgradeable,
+    UUPSUpgradeable
+{
+    using InitializeV1_5 for State;
     using UpdateConfig for State;
     using Deposit for State;
     using Withdraw for State;
@@ -106,6 +115,17 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         _grantRole(BORROW_RATE_UPDATER_ROLE, owner);
     }
 
+    /// @inheritdoc ISizeV1_5
+    function reinitialize(address borrowATokenV1_5, address[] calldata users)
+        external
+        override(ISizeV1_5)
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        reinitializer(1_5_0)
+    {
+        state.validateReinitializeV1_5(borrowATokenV1_5, users);
+        state.executeReinitializeV1_5(borrowATokenV1_5, users);
+    }
+
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
     /// @notice Validate that the user has not put themselves in underwater state
@@ -137,7 +157,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         uint128 oldBorrowRate = state.oracle.variablePoolBorrowRate;
         state.oracle.variablePoolBorrowRate = borrowRate;
         state.oracle.variablePoolBorrowRateUpdatedAt = uint64(block.timestamp);
-        emit Events.VariablePoolBorrowRateUpdated(msg.sender, oldBorrowRate, borrowRate);
+        emit EventsV1_5.VariablePoolBorrowRateUpdated(oldBorrowRate, borrowRate);
     }
 
     /// @inheritdoc ISizeAdmin

@@ -2,7 +2,7 @@
   "chainId": "84532",
   "commit": "71dd47b",
   "deployments": {
-    "SizeFactory-implementation": "0xE382b04Af70346b2B0F8E58d57e087c6FAb9F1ec",
+    "SizeFactory-implementation": "",
     "SizeFactory-proxy": "0x1bC2Aa26D4F3eCD612ddC4aB2518B59E04468191"
   },
   "networkConfiguration": "base-sepolia-factory",

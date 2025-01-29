@@ -3,7 +3,7 @@
   "commit": "f9f953a",
   "deployments": {
     "PriceFeed": "0x634160Ce49Fe29FC086E0B12230bD571c3A4858b",
-    "Size-implementation": "0x9F2e948354e160c6A95b1B078C9Ed7b59a71987b_PENDING",
+    "Size-implementation": "",
     "Size-proxy": "0xB21Bbe052F5cE9ae681c59725f0A313765Fd016c"
   },
   "networkConfiguration": "base-production-cbbtc-usdc",

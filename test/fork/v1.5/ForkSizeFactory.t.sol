@@ -8,13 +8,13 @@ import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {PriceFeed} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";
 
-contract ForkSizeRegistryFactoryTest is ForkTest {
+contract ForkSizeFactoryTest is ForkTest {
     function setUp() public override {
         vm.createSelectFork("base");
         vm.rollFork(21975923);
     }
 
-    function testFork_ForkSizeRegistryFactory_set_2_existing_markets() public {
+    function testFork_ForkSizeFactory_set_2_existing_markets() public {
         ISize sizeWethUsdc;
         ISize sizeCbBtcUsdc;
         IPriceFeed sizeWethUsdcPriceFeed;

@@ -11,6 +11,7 @@ import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableS
 
 library NonTransferrableScaledTokenV1_5FactoryLibrary {
     function createNonTransferrableScaledTokenV1_5(
+        address implementation,
         address owner,
         IPool variablePool,
         IERC20Metadata underlyingBorrowToken
@@ -18,7 +19,7 @@ library NonTransferrableScaledTokenV1_5FactoryLibrary {
         token = NonTransferrableScaledTokenV1_5(
             address(
                 new ERC1967Proxy(
-                    address(new NonTransferrableScaledTokenV1_5()),
+                    address(implementation),
                     abi.encodeCall(
                         NonTransferrableScaledTokenV1_5.initialize,
                         (

@@ -8,8 +8,9 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import {Size} from "@src/Size.sol";
+import {SizeV1_5} from "@src/deprecated/SizeV1_5.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
+import {ISizeV1_5} from "@src/v1.5/interfaces/deprecated/ISizeV1_5.sol";
 
 import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
 
@@ -118,11 +119,11 @@ contract ForkReinitializeV1_5WethUsdcAfterCbbtcUsdcTest is ForkTest {
             newScaledBalancesWethUsdc.set(user, newBorrowAToken.scaledBalanceOf(user));
         }
 
-        Size v1_5 = new Size();
+        SizeV1_5 v1_5 = new SizeV1_5();
 
         vm.prank(owner);
         UUPSUpgradeable(address(isize)).upgradeToAndCall(
-            address(v1_5), abi.encodeCall(Size.reinitialize, (address(newBorrowAToken), users))
+            address(v1_5), abi.encodeCall(ISizeV1_5.reinitialize, (address(newBorrowAToken), users))
         );
 
         assertEq(address(isize.data().borrowAToken), address(newBorrowAToken), "borrowAToken should be newBorrowAToken");
@@ -241,7 +242,7 @@ contract ForkReinitializeV1_5WethUsdcAfterCbbtcUsdcTest is ForkTest {
     }
 
     function testFork_ForkReinitializeV1_5WethUsdcAfterCbbtcUsdc_works_with_data() public {
-        Size v1_5 = new Size();
+        SizeV1_5 v1_5 = new SizeV1_5();
 
         vm.prank(owner);
         UUPSUpgradeable(address(sizeWethUsdc)).upgradeToAndCall(address(v1_5), dataWethUsdc);

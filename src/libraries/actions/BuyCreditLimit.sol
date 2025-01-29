@@ -44,13 +44,15 @@ library BuyCreditLimit {
     /// @param params The input parameters for buying credit as a limit order
     /// @dev A null offer means clearing a user's loan limit order
     function executeBuyCreditLimit(State storage state, BuyCreditLimitParams calldata params) external {
-        state.data.users[msg.sender].loanOffer =
-            LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
         emit Events.BuyCreditLimit(
+            msg.sender,
             params.maxDueDate,
             params.curveRelativeTime.tenors,
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers
         );
+
+        state.data.users[msg.sender].loanOffer =
+            LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
     }
 }
