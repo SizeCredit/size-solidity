@@ -232,6 +232,7 @@ library SellCreditMarket {
             params.maxAPR,
             params.exactAmountIn
         );
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, recipient);
 
         SwapDataSellCreditMarket memory swapData = getSwapData(state, params);
 
