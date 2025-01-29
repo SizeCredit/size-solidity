@@ -18,7 +18,9 @@ import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateCon
 import {InitializeV1_5} from "@src/libraries/actions/deprecated/InitializeV1_5.sol";
 
 import {SellCreditLimit, SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
-import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+import {
+    SellCreditMarketParams, SellCreditMarketV1_5
+} from "@src/libraries/actions/deprecated/SellCreditMarketV1_5.sol";
 
 import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
@@ -75,7 +77,7 @@ contract SizeV1_5 is
     using UpdateConfig for State;
     using Deposit for State;
     using Withdraw for State;
-    using SellCreditMarket for State;
+    using SellCreditMarketV1_5 for State;
     using SellCreditLimit for State;
     using BuyCreditMarket for State;
     using BuyCreditLimit for State;
