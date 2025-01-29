@@ -91,6 +91,8 @@ library Errors {
     error ALREADY_INITIALIZED(address account);
     error UNAUTHORIZED(address account);
 
+    error UNAUTHORIZED_ACTION(address account, address onBehalfOf, bytes4 action);
+
     error INVALID_TWAP_WINDOW();
     error INVALID_AVERAGE_BLOCK_TIME();
 }

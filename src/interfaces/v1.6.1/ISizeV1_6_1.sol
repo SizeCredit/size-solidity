@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {SellCreditMarketOnBehalfOfParams} from "@src/libraries/actions/SellCreditMarket.sol";
+
 /// @title ISizeV1_6_1
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -11,4 +13,7 @@ interface ISizeV1_6_1 {
     /// @param action The action
     /// @param newIsAuthorized The new authorization status
     function setAuthorization(address other, bytes4 action, bool newIsAuthorized) external;
+
+    /// @notice Same as `sellCreditMarket` but `onBehalfOf`
+    function sellCreditMarketOnBehalfOf(SellCreditMarketOnBehalfOfParams calldata params) external payable;
 }

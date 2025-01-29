@@ -18,7 +18,11 @@ import {
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
 import {SellCreditLimit, SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
-import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+import {
+    SellCreditMarket,
+    SellCreditMarketOnBehalfOfParams,
+    SellCreditMarketParams
+} from "@src/libraries/actions/SellCreditMarket.sol";
 
 import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
@@ -62,7 +66,15 @@ bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE"
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISize}.
-contract Size is ISize, ISizeV1_6_1, SizeView, Initializable, AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract Size is
+    ISize,
+    ISizeV1_6_1,
+    SizeView,
+    Initializable,
+    AccessControlUpgradeable,
+    PausableUpgradeable,
+    UUPSUpgradeable
+{
     using Initialize for State;
     using UpdateConfig for State;
     using Deposit for State;
@@ -199,10 +211,22 @@ contract Size is ISize, ISizeV1_6_1, SizeView, Initializable, AccessControlUpgra
 
     /// @inheritdoc ISize
     function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) whenNotPaused {
-        state.validateSellCreditMarket(params);
-        uint256 amount = state.executeSellCreditMarket(params);
-        if (params.creditPositionId == RESERVED_ID) {
-            state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
+        SellCreditMarketOnBehalfOfParams memory onBehalfOfParams =
+            SellCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender});
+        sellCreditMarketOnBehalfOf(onBehalfOfParams);
+    }
+
+    /// @inheritdoc ISizeV1_6_1
+    function sellCreditMarketOnBehalfOf(SellCreditMarketOnBehalfOfParams memory externalParams)
+        public
+        payable
+        override(ISizeV1_6_1)
+        whenNotPaused
+    {
+        state.validateSellCreditMarket(externalParams);
+        uint256 amount = state.executeSellCreditMarket(externalParams);
+        if (externalParams.params.creditPositionId == RESERVED_ID) {
+            state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.onBehalfOf);
         }
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }

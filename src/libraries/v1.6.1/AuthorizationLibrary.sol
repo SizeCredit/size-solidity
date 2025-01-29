@@ -54,4 +54,13 @@ library AuthorizationLibrary {
     function isAuthorized(State storage state, address user, bytes4 action) internal view returns (bool) {
         return _isAuthorized(state, user, msg.sender, action);
     }
+
+    /// @notice Check if the `user` account is the `msg.sender` account or if `msg.sender` is authorized to perform the `action` on behalf of the `user` account
+    /// @param state The state struct
+    /// @param user The user
+    /// @param action The action
+    /// @return The authorization status
+    function isUserOrAuthorized(State storage state, address user, bytes4 action) internal view returns (bool) {
+        return msg.sender == user || isAuthorized(state, user, action);
+    }
 }
