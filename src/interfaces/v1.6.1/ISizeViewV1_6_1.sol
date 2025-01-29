@@ -6,10 +6,10 @@ pragma solidity 0.8.23;
 /// @author Size (https://size.credit/)
 /// @notice The view interface for the Size v1.6.1 authorization system
 interface ISizeViewV1_6_1 {
-    /// @notice Check if an action is authorized by the `user` account for the `other` account to perform
-    /// @param user The user
-    /// @param other The other account
+    /// @notice Check if an action is authorized by the `onBehalfOf` account for the `operator` account to perform
+    /// @param onBehalfOf The account on behalf of which the action is authorized
+    /// @param operator The operator account
     /// @param action The action
     /// @return The authorization status
-    function isAuthorized(address user, address other, bytes4 action) external view returns (bool);
+    function isAuthorized(address onBehalfOf, address operator, bytes4 action) external view returns (bool);
 }
