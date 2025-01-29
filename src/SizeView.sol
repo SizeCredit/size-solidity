@@ -33,6 +33,8 @@ import {
 import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
+import {ISizeViewV1_6_1} from "@src/interfaces/v1.6.1/ISizeViewV1_6_1.sol";
+
 import {VERSION} from "@src/interfaces/ISize.sol";
 
 /// @title SizeView
@@ -208,5 +210,10 @@ abstract contract SizeView is SizeStorage, ISizeView {
     /// @inheritdoc ISizeView
     function version() public pure returns (string memory) {
         return VERSION;
+    }
+
+    /// @inheritdoc ISizeViewV1_6_1
+    function isAuthorized(address user, address other, bytes4 action) external view returns (bool) {
+        return state.data.authorizations[user][other][action];
     }
 }

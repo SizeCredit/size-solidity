@@ -78,6 +78,7 @@ library Events {
         bool creditPositionIdsForSale,
         uint256[] creditPositionIds
     );
+    event SetAuthorization(address indexed sender, address indexed other, bytes4 indexed action, bool isAuthorized); // v1.6.1
 
     // creates
 

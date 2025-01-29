@@ -43,6 +43,7 @@ import {State} from "@src/SizeStorage.sol";
 
 import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
+import {AuthorizationLibrary} from "@src/libraries/v1.6.1/AuthorizationLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -50,7 +51,7 @@ import {Events} from "@src/libraries/Events.sol";
 import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
-
+import {ISizeV1_6_1} from "@src/interfaces/v1.6.1/ISizeV1_6_1.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
@@ -61,7 +62,7 @@ bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE"
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISize}.
-contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract Size is ISize, ISizeV1_6_1, SizeView, Initializable, AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using Initialize for State;
     using UpdateConfig for State;
     using Deposit for State;
@@ -80,6 +81,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using RiskLibrary for State;
     using CapsLibrary for State;
     using Multicall for State;
+    using AuthorizationLibrary for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -275,5 +277,10 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     {
         state.validateSetUserConfiguration(params);
         state.executeSetUserConfiguration(params);
+    }
+
+    /// @inheritdoc ISizeV1_6_1
+    function setAuthorization(address other, bytes4 action, bool newIsAuthorized) external override(ISizeV1_6_1) {
+        state.setAuthorization(other, action, newIsAuthorized);
     }
 }
