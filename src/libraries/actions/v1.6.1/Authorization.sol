@@ -5,10 +5,10 @@ import {State} from "@src/SizeStorage.sol";
 
 import {Events} from "@src/libraries/Events.sol";
 
-/// @title AuthorizationLibrary
+/// @title Authorization
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-library AuthorizationLibrary {
+library Authorization {
     /// @notice Set the authorization for an action for an `operator` account to perform on behalf of the `onBehalfOf` account
     /// @param state The state struct
     /// @param onBehalfOf The account on behalf of which the action is authorized
@@ -40,15 +40,6 @@ library AuthorizationLibrary {
         return state.data.authorizations[onBehalfOf][operator][action];
     }
 
-    /// @notice Set the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
-    /// @param state The state struct
-    /// @param operator The operator account
-    /// @param action The action
-    /// @param isActionAuthorized The new authorization status
-    function setAuthorization(State storage state, address operator, bytes4 action, bool isActionAuthorized) internal {
-        _setAuthorization(state, msg.sender, operator, action, isActionAuthorized);
-    }
-
     /// @notice Check if the `onBehalfOf` account is the `msg.sender` account or if `msg.sender` is the operator authorized to perform the `action`
     /// @param state The state struct
     /// @param onBehalfOf The account on behalf of which the action is authorized
@@ -60,5 +51,21 @@ library AuthorizationLibrary {
         returns (bool)
     {
         return msg.sender == onBehalfOf || isAuthorized(state, onBehalfOf, msg.sender, action);
+    }
+
+    /// @notice Validate the input parameters for setting the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
+    function validateSetAuthorization(State storage, address, bytes4, bool) internal view {
+        // N/A
+    }
+
+    /// @notice Set the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
+    /// @param state The state struct
+    /// @param operator The operator account
+    /// @param action The action
+    /// @param isActionAuthorized The new authorization status
+    function executeSetAuthorization(State storage state, address operator, bytes4 action, bool isActionAuthorized)
+        internal
+    {
+        _setAuthorization(state, msg.sender, operator, action, isActionAuthorized);
     }
 }

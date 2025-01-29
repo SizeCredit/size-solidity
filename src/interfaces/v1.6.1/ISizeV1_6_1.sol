@@ -13,6 +13,7 @@ interface ISizeV1_6_1 {
     /// @param action The action
     /// @param isActionAuthorized The new authorization status
     /// @dev Actions are encoded as bytes4 values because all external actions can be uniquely determined by their function selectors
+    ///      The action identifier is the function selector of the simple version, not the selector of the `OnBehalfOf` version
     ///      Not all actions require authorization (for example, `repay`, `liquidate`, etc.)
     ///      It is not possible to authorize/revoke all actions at once
     function setAuthorization(address other, bytes4 action, bool isActionAuthorized) external;

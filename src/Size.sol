@@ -47,7 +47,7 @@ import {State} from "@src/SizeStorage.sol";
 
 import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
-import {AuthorizationLibrary} from "@src/libraries/v1.6.1/AuthorizationLibrary.sol";
+import {Authorization} from "@src/libraries/actions/v1.6.1/Authorization.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -93,7 +93,7 @@ contract Size is
     using RiskLibrary for State;
     using CapsLibrary for State;
     using Multicall for State;
-    using AuthorizationLibrary for State;
+    using Authorization for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -212,7 +212,7 @@ contract Size is
     /// @inheritdoc ISize
     function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) whenNotPaused {
         SellCreditMarketOnBehalfOfParams memory onBehalfOfParams =
-            SellCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender});
+            SellCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender});
         sellCreditMarketOnBehalfOf(onBehalfOfParams);
     }
 
@@ -308,6 +308,7 @@ contract Size is
         external
         override(ISizeV1_6_1)
     {
-        state.setAuthorization(operator, action, isActionAuthorized);
+        state.validateSetAuthorization(operator, action, isActionAuthorized);
+        state.executeSetAuthorization(operator, action, isActionAuthorized);
     }
 }

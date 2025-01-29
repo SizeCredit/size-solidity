@@ -15,7 +15,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
-import {AuthorizationLibrary} from "@src/libraries/v1.6.1/AuthorizationLibrary.sol";
+import {Authorization} from "@src/libraries/actions/v1.6.1/Authorization.sol";
 
 struct SellCreditMarketParams {
     // The lender
@@ -37,8 +37,12 @@ struct SellCreditMarketParams {
 }
 
 struct SellCreditMarketOnBehalfOfParams {
+    // The parameters for selling credit as a market order
     SellCreditMarketParams params;
+    // The account that will accrue debt
     address onBehalfOf;
+    // The account that will receive the cash
+    address recipient;
 }
 
 /// @title SellCreditMarket
@@ -52,7 +56,7 @@ library SellCreditMarket {
     using LoanLibrary for State;
     using RiskLibrary for State;
     using AccountingLibrary for State;
-    using AuthorizationLibrary for State;
+    using Authorization for State;
 
     struct SwapDataSellCreditMarket {
         CreditPosition creditPosition;
@@ -72,6 +76,7 @@ library SellCreditMarket {
     {
         SellCreditMarketParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
+        address recipient = externalParams.recipient;
 
         LimitOrder memory loanOffer = state.data.users[params.lender].loanOffer;
         uint256 tenor;
@@ -79,6 +84,11 @@ library SellCreditMarket {
         // validate msg.sender
         if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.sellCreditMarket.selector)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.sellCreditMarket.selector);
+        }
+
+        // validate recipient
+        if (recipient == address(0)) {
+            revert Errors.NULL_ADDRESS();
         }
 
         // validate lender
@@ -210,9 +220,10 @@ library SellCreditMarket {
     {
         SellCreditMarketParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
+        address recipient = externalParams.recipient;
 
         emit Events.SellCreditMarket(
-            msg.sender,
+            onBehalfOf,
             params.lender,
             params.creditPositionId,
             params.amount,
@@ -243,7 +254,7 @@ library SellCreditMarket {
             credit: swapData.creditAmountIn,
             forSale: true
         });
-        state.data.borrowATokenV1_5.transferFrom(params.lender, msg.sender, swapData.cashAmountOut);
+        state.data.borrowATokenV1_5.transferFrom(params.lender, recipient, swapData.cashAmountOut);
         state.data.borrowATokenV1_5.transferFrom(
             params.lender, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
         );

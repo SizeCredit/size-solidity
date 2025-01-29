@@ -32,7 +32,7 @@ import {
     InitializeRiskConfigParams
 } from "@src/libraries/actions/Initialize.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
-import {AuthorizationLibrary} from "@src/libraries/v1.6.1/AuthorizationLibrary.sol";
+import {Authorization} from "@src/libraries/actions/v1.6.1/Authorization.sol";
 
 import {ISizeViewV1_6_1} from "@src/interfaces/v1.6.1/ISizeViewV1_6_1.sol";
 
@@ -50,7 +50,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     using RiskLibrary for State;
     using AccountingLibrary for State;
     using UpdateConfig for State;
-    using AuthorizationLibrary for State;
+    using Authorization for State;
 
     /// @inheritdoc ISizeView
     function collateralRatio(address user) external view returns (uint256) {
