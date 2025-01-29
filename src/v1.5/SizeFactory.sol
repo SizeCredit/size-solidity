@@ -73,6 +73,9 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
 
     /// @inheritdoc ISizeFactory
     function setSizeImplementation(address _sizeImplementation) external onlyOwner {
+        if (_sizeImplementation == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
         emit SizeImplementationSet(sizeImplementation, _sizeImplementation);
         sizeImplementation = _sizeImplementation;
     }
@@ -82,6 +85,9 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
         external
         onlyOwner
     {
+        if (_nonTransferrableScaledTokenV1_5Implementation == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
         emit NonTransferrableScaledTokenV1_5ImplementationSet(
             nonTransferrableScaledTokenV1_5Implementation, _nonTransferrableScaledTokenV1_5Implementation
         );

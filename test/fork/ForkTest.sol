@@ -16,9 +16,9 @@ contract ForkTest is BaseTest, BaseScript {
     IAToken public aToken;
 
     function setUp() public virtual override {
-        vm.createSelectFork("sepolia");
+        vm.createSelectFork("base_sepolia");
         ISize isize;
-        (isize, priceFeed, owner) = importDeployments("sepolia-weth-usdc-mocks");
+        (isize, priceFeed, owner) = importDeployments("base-sepolia-weth-usdc-mocks");
         size = SizeMock(address(isize));
         usdc = USDC(address(size.data().underlyingBorrowToken));
         weth = WETH(payable(address(size.data().underlyingCollateralToken)));
