@@ -304,7 +304,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_6_1
-    function setAuthorization(address other, bytes4 action, bool newIsAuthorized) external override(ISizeV1_6_1) {
-        state.setAuthorization(other, action, newIsAuthorized);
+    function setAuthorization(address other, bytes4 action, bool isActionAuthorized) external override(ISizeV1_6_1) {
+        state.setAuthorization(other, action, isActionAuthorized);
     }
 }

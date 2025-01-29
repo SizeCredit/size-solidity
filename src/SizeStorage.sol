@@ -95,8 +95,9 @@ struct Data {
     bool isMulticall;
     // Size deposit underlying borrow aToken v1.5
     NonTransferrableScaledTokenV1_5 borrowATokenV1_5;
-    // mapping of authorized actions for other users per user v1.6.1
-    mapping(address user => mapping(address other => mapping(bytes4 action => bool isAuthorized))) authorizations;
+    // mapping of authorized actions for other accounts per account v1.6.1
+    mapping(address onBehalfOf => mapping(address other => mapping(bytes4 action => bool isActionAuthorized)))
+        authorizations;
 }
 
 struct State {

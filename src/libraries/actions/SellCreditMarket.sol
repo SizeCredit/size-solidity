@@ -77,7 +77,7 @@ library SellCreditMarket {
         uint256 tenor;
 
         // validate msg.sender
-        if (!state.isUserOrAuthorized(onBehalfOf, ISize.sellCreditMarket.selector)) {
+        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.sellCreditMarket.selector)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.sellCreditMarket.selector);
         }
 

@@ -11,8 +11,11 @@ interface ISizeV1_6_1 {
     /// @notice Set the authorization for an action for another `other` account to perform on behalf of the `msg.sender` account
     /// @param other The other account
     /// @param action The action
-    /// @param newIsAuthorized The new authorization status
-    function setAuthorization(address other, bytes4 action, bool newIsAuthorized) external;
+    /// @param isActionAuthorized The new authorization status
+    /// @dev Actions are encoded as bytes4 values because all external actions can be uniquely determined by their function selectors
+    ///      Not all actions require authorization (for example, `repay`, `liquidate`, etc.)
+    ///      It is not possible to authorize/revoke all actions at once
+    function setAuthorization(address other, bytes4 action, bool isActionAuthorized) external;
 
     /// @notice Same as `sellCreditMarket` but `onBehalfOf`
     function sellCreditMarketOnBehalfOf(SellCreditMarketOnBehalfOfParams calldata params) external payable;
