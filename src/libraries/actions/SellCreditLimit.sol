@@ -28,11 +28,11 @@ library SellCreditLimit {
         LimitOrder memory borrowOffer =
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
+        // validate msg.sender
+        // N/A
+
         // a null offer mean clearing their limit order
         if (!borrowOffer.isNull()) {
-            // validate msg.sender
-            // N/A
-
             // validate borrowOffer
             borrowOffer.validateLimitOrder(state.riskConfig.minTenor, state.riskConfig.maxTenor);
         }
