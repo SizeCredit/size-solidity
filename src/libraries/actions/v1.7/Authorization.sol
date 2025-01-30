@@ -70,7 +70,7 @@ library Authorization {
     /// @notice Validate the input parameters for setting the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
     /// @param state The state struct
     /// @param externalParams The input parameters for setting the authorization
-    function validateSetAuthorization(State storage state, SetAuthorizationOnBehalfOfParams calldata externalParams)
+    function validateSetAuthorization(State storage state, SetAuthorizationOnBehalfOfParams memory externalParams)
         internal
         view
     {
@@ -108,7 +108,7 @@ library Authorization {
     /// @notice Set the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
     /// @param state The state struct
     /// @param externalParams The input parameters for setting the authorization
-    function executeSetAuthorization(State storage state, SetAuthorizationOnBehalfOfParams calldata externalParams)
+    function executeSetAuthorization(State storage state, SetAuthorizationOnBehalfOfParams memory externalParams)
         internal
     {
         SetAuthorizationParams memory params = externalParams.params;

@@ -46,7 +46,7 @@ library Deposit {
     /// @notice Validates the deposit parameters
     /// @param state The state of the protocol
     /// @param externalParams The input parameters for depositing tokens
-    function validateDeposit(State storage state, DepositOnBehalfOfParams calldata externalParams) external view {
+    function validateDeposit(State storage state, DepositOnBehalfOfParams memory externalParams) external view {
         DepositParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
 
@@ -82,7 +82,7 @@ library Deposit {
     /// @notice Executes the deposit
     /// @param state The state of the protocol
     /// @param externalParams The input parameters for depositing tokens
-    function executeDeposit(State storage state, DepositOnBehalfOfParams calldata externalParams) public {
+    function executeDeposit(State storage state, DepositOnBehalfOfParams memory externalParams) public {
         DepositParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
 

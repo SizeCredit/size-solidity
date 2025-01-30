@@ -41,7 +41,7 @@ library SelfLiquidate {
     /// @notice Validates the input parameters for self-liquidating a credit position
     /// @param state The state of the protocol
     /// @param externalParams The input parameters for self-liquidating a credit position
-    function validateSelfLiquidate(State storage state, SelfLiquidateOnBehalfOfParams calldata externalParams)
+    function validateSelfLiquidate(State storage state, SelfLiquidateOnBehalfOfParams memory externalParams)
         external
         view
     {
@@ -78,9 +78,7 @@ library SelfLiquidate {
     /// @notice Executes the self-liquidation of a credit position
     /// @param state The state of the protocol
     /// @param externalParams The input parameters for self-liquidating a credit position
-    function executeSelfLiquidate(State storage state, SelfLiquidateOnBehalfOfParams calldata externalParams)
-        external
-    {
+    function executeSelfLiquidate(State storage state, SelfLiquidateOnBehalfOfParams memory externalParams) external {
         SelfLiquidateParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
         address recipient = externalParams.recipient;

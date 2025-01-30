@@ -25,6 +25,7 @@ import {DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.so
 import {BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
+import {SetAuthorizationParams} from "@src/libraries/actions/v1.7/Authorization.sol";
 
 import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {LiquidateWithReplacementParams} from "@src/libraries/actions/LiquidateWithReplacement.sol";
@@ -460,6 +461,13 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 creditPositionIdsForSale: creditPositionIdsForSale,
                 creditPositionIds: creditPositionIds
             })
+        );
+    }
+
+    function _setAuthorization(address user, address operator, bytes4 action, bool isActionAuthorized) internal {
+        vm.prank(user);
+        size.setAuthorization(
+            SetAuthorizationParams({operator: operator, action: action, isActionAuthorized: isActionAuthorized})
         );
     }
 

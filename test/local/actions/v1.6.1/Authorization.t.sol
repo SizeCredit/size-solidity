@@ -11,8 +11,7 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationTest is BaseTest {
     function test_Authorization_setAuthorization() public {
-        vm.startPrank(alice);
-        size.setAuthorization(bob, ISize.sellCreditMarket.selector, true);
+        _setAuthorization(alice, bob, ISize.sellCreditMarket.selector, true);
 
         assertTrue(size.isAuthorized(alice, bob, ISize.sellCreditMarket.selector));
         assertTrue(!size.isAuthorized(alice, alice, ISize.sellCreditMarket.selector));
@@ -32,8 +31,7 @@ contract AuthorizationTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
 
-        vm.prank(bob);
-        size.setAuthorization(candy, ISize.sellCreditMarket.selector, true);
+        _setAuthorization(bob, candy, ISize.sellCreditMarket.selector, true);
 
         Vars memory _before = _state();
 

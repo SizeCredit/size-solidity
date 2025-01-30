@@ -49,10 +49,7 @@ library Compensate {
     /// @notice Validates the input parameters for compensating a credit position
     /// @param state The state of the protocol
     /// @param externalParams The input parameters for compensating a credit position
-    function validateCompensate(State storage state, CompensateOnBehalfOfParams calldata externalParams)
-        external
-        view
-    {
+    function validateCompensate(State storage state, CompensateOnBehalfOfParams memory externalParams) external view {
         CompensateParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
 
@@ -122,7 +119,7 @@ library Compensate {
     /// @notice Executes the compensating of a credit position
     /// @param state The state of the protocol
     /// @param externalParams The input parameters for compensating a credit position
-    function executeCompensate(State storage state, CompensateOnBehalfOfParams calldata externalParams) external {
+    function executeCompensate(State storage state, CompensateOnBehalfOfParams memory externalParams) external {
         CompensateParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
 

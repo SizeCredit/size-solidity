@@ -32,47 +32,47 @@ interface ISizeV1_7 {
     function setAuthorization(SetAuthorizationParams calldata params) external;
 
     /// @notice Same as `setAuthorization` but `onBehalfOf`
-    function setAuthorizationOnBehalfOf(SetAuthorizationOnBehalfOfParams calldata params) external payable;
+    function setAuthorizationOnBehalfOf(SetAuthorizationOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `deposit` but `onBehalfOf`
-    function depositOnBehalfOf(DepositOnBehalfOfParams calldata params) external payable;
+    function depositOnBehalfOf(DepositOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `withdraw` but `onBehalfOf`
-    function withdrawOnBehalfOf(WithdrawOnBehalfOfParams calldata params) external payable;
+    function withdrawOnBehalfOf(WithdrawOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `buyCreditLimit` but `onBehalfOf`
-    function buyCreditLimitOnBehalfOf(BuyCreditLimitOnBehalfOfParams calldata params) external payable;
+    function buyCreditLimitOnBehalfOf(BuyCreditLimitOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `sellCreditLimit` but `onBehalfOf`
-    function sellCreditLimitOnBehalfOf(SellCreditLimitOnBehalfOfParams calldata params) external payable;
+    function sellCreditLimitOnBehalfOf(SellCreditLimitOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `buyCreditMarket` but `onBehalfOf`
-    function buyCreditMarketOnBehalfOf(BuyCreditMarketOnBehalfOfParams calldata params) external payable;
+    function buyCreditMarketOnBehalfOf(BuyCreditMarketOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `sellCreditMarket` but `onBehalfOf`
-    function sellCreditMarketOnBehalfOf(SellCreditMarketOnBehalfOfParams calldata params) external payable;
+    function sellCreditMarketOnBehalfOf(SellCreditMarketOnBehalfOfParams memory params) external payable;
 
     // repay is permissionless
-    // function repayOnBehalfOf(RepayOnBehalfOfParams calldata params) external payable;
+    // function repayOnBehalfOf(RepayOnBehalfOfParams memory params) external payable;
 
     // claim is permissionless
-    // function claimOnBehalfOf(ClaimOnBehalfOfParams calldata params) external payable;
+    // function claimOnBehalfOf(ClaimOnBehalfOfParams memory params) external payable;
 
     // liquidate is permissionless
-    // function liquidateOnBehalfOf(LiquidateOnBehalfOfParams calldata params) external payable;
+    // function liquidateOnBehalfOf(LiquidateOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `selfLiquidate` but `onBehalfOf`
-    function selfLiquidateOnBehalfOf(SelfLiquidateOnBehalfOfParams calldata params) external payable;
+    function selfLiquidateOnBehalfOf(SelfLiquidateOnBehalfOfParams memory params) external payable;
 
     // liquidateWithReplacement is permissioned
-    // function liquidateWithReplacementOnBehalfOf(LiquidateWithReplacementOnBehalfOfParams calldata params)
+    // function liquidateWithReplacementOnBehalfOf(LiquidateWithReplacementOnBehalfOfParams memory params)
     //     external
     //     payable
     //     returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken);
 
     /// @notice Same as `compensate` but `onBehalfOf`
-    function compensateOnBehalfOf(CompensateOnBehalfOfParams calldata params) external payable;
+    function compensateOnBehalfOf(CompensateOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `setUserConfiguration` but `onBehalfOf`
-    function setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams calldata params) external payable;
+    function setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams memory params) external payable;
 }

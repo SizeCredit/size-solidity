@@ -35,7 +35,7 @@ library SellCreditLimit {
     /// @notice Validates the input parameters for selling credit as a limit order
     /// @param state The state
     /// @param externalParams The input parameters for selling credit as a limit order
-    function validateSellCreditLimit(State storage state, SellCreditLimitOnBehalfOfParams calldata externalParams)
+    function validateSellCreditLimit(State storage state, SellCreditLimitOnBehalfOfParams memory externalParams)
         external
         view
     {
@@ -61,7 +61,7 @@ library SellCreditLimit {
     /// @param state The state
     /// @param externalParams The input parameters for selling credit as a limit order
     /// @dev A null offer means clearing a user's borrow limit order
-    function executeSellCreditLimit(State storage state, SellCreditLimitOnBehalfOfParams calldata externalParams)
+    function executeSellCreditLimit(State storage state, SellCreditLimitOnBehalfOfParams memory externalParams)
         external
     {
         SellCreditLimitParams memory params = externalParams.params;

@@ -41,7 +41,7 @@ library SetUserConfiguration {
     /// @param externalParams The input parameters for setting user configuration
     function validateSetUserConfiguration(
         State storage state,
-        SetUserConfigurationOnBehalfOfParams calldata externalParams
+        SetUserConfigurationOnBehalfOfParams memory externalParams
     ) external view {
         SetUserConfigurationParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
@@ -78,7 +78,7 @@ library SetUserConfiguration {
     /// @param externalParams The input parameters for setting user configuration
     function executeSetUserConfiguration(
         State storage state,
-        SetUserConfigurationOnBehalfOfParams calldata externalParams
+        SetUserConfigurationOnBehalfOfParams memory externalParams
     ) external {
         SetUserConfigurationParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;

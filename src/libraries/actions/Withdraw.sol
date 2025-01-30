@@ -42,7 +42,7 @@ library Withdraw {
     /// @notice Validates the withdraw parameters
     /// @param state The state of the protocol
     /// @param externalParams The input parameters for withdrawing tokens
-    function validateWithdraw(State storage state, WithdrawOnBehalfOfParams calldata externalParams) external view {
+    function validateWithdraw(State storage state, WithdrawOnBehalfOfParams memory externalParams) external view {
         WithdrawParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
 
@@ -70,7 +70,7 @@ library Withdraw {
         }
     }
 
-    function executeWithdraw(State storage state, WithdrawOnBehalfOfParams calldata externalParams) public {
+    function executeWithdraw(State storage state, WithdrawOnBehalfOfParams memory externalParams) public {
         WithdrawParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
 

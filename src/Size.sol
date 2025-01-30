@@ -201,7 +201,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_7
-    function depositOnBehalfOf(DepositOnBehalfOfParams calldata params)
+    function depositOnBehalfOf(DepositOnBehalfOfParams memory params)
         public
         payable
         override(ISizeV1_7)
@@ -217,7 +217,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_7
-    function withdrawOnBehalfOf(WithdrawOnBehalfOfParams calldata externalParams)
+    function withdrawOnBehalfOf(WithdrawOnBehalfOfParams memory externalParams)
         public
         payable
         override(ISizeV1_7)
@@ -233,7 +233,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_7
-    function buyCreditLimitOnBehalfOf(BuyCreditLimitOnBehalfOfParams calldata externalParams)
+    function buyCreditLimitOnBehalfOf(BuyCreditLimitOnBehalfOfParams memory externalParams)
         public
         payable
         override(ISizeV1_7)
@@ -249,7 +249,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_7
-    function sellCreditLimitOnBehalfOf(SellCreditLimitOnBehalfOfParams calldata externalParams)
+    function sellCreditLimitOnBehalfOf(SellCreditLimitOnBehalfOfParams memory externalParams)
         public
         payable
         override(ISizeV1_7)
@@ -267,7 +267,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_7
-    function buyCreditMarketOnBehalfOf(BuyCreditMarketOnBehalfOfParams calldata externalParams)
+    function buyCreditMarketOnBehalfOf(BuyCreditMarketOnBehalfOfParams memory externalParams)
         public
         payable
         override(ISizeV1_7)
@@ -336,7 +336,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_7
-    function selfLiquidateOnBehalfOf(SelfLiquidateOnBehalfOfParams calldata externalParams)
+    function selfLiquidateOnBehalfOf(SelfLiquidateOnBehalfOfParams memory externalParams)
         public
         payable
         override(ISizeV1_7)
@@ -376,7 +376,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_7
-    function compensateOnBehalfOf(CompensateOnBehalfOfParams calldata externalParams)
+    function compensateOnBehalfOf(CompensateOnBehalfOfParams memory externalParams)
         public
         payable
         override(ISizeV1_7)
@@ -398,7 +398,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_7
-    function setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams calldata externalParams)
+    function setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams memory externalParams)
         public
         payable
         override(ISizeV1_7)
@@ -414,7 +414,7 @@ contract Size is
     }
 
     /// @inheritdoc ISizeV1_7
-    function setAuthorizationOnBehalfOf(SetAuthorizationOnBehalfOfParams calldata externalParams)
+    function setAuthorizationOnBehalfOf(SetAuthorizationOnBehalfOfParams memory externalParams)
         public
         payable
         override(ISizeV1_7)
