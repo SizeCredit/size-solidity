@@ -3,11 +3,11 @@ pragma solidity 0.8.23;
 
 import {SellCreditMarketOnBehalfOfParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
-/// @title ISizeV1_6_1
+/// @title ISizeV1_7
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice The interface for the Size v1.6.1 authorization system
-interface ISizeV1_6_1 {
+interface ISizeV1_7 {
     /// @notice Set the authorization for an action for another `other` account to perform on behalf of the `msg.sender` account
     /// @param other The other account
     /// @param action The action

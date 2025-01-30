@@ -47,7 +47,7 @@ import {State} from "@src/SizeStorage.sol";
 
 import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
-import {Authorization} from "@src/libraries/actions/v1.6.1/Authorization.sol";
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -55,7 +55,7 @@ import {Events} from "@src/libraries/Events.sol";
 import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
-import {ISizeV1_6_1} from "@src/interfaces/v1.6.1/ISizeV1_6_1.sol";
+import {ISizeV1_7} from "@src/interfaces/v1.7/ISizeV1_7.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
@@ -68,7 +68,7 @@ bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE"
 /// @notice See the documentation in {ISize}.
 contract Size is
     ISize,
-    ISizeV1_6_1,
+    ISizeV1_7,
     SizeView,
     Initializable,
     AccessControlUpgradeable,
@@ -216,11 +216,11 @@ contract Size is
         sellCreditMarketOnBehalfOf(onBehalfOfParams);
     }
 
-    /// @inheritdoc ISizeV1_6_1
+    /// @inheritdoc ISizeV1_7
     function sellCreditMarketOnBehalfOf(SellCreditMarketOnBehalfOfParams memory externalParams)
         public
         payable
-        override(ISizeV1_6_1)
+        override(ISizeV1_7)
         whenNotPaused
     {
         state.validateSellCreditMarket(externalParams);
@@ -303,10 +303,10 @@ contract Size is
         state.executeSetUserConfiguration(params);
     }
 
-    /// @inheritdoc ISizeV1_6_1
+    /// @inheritdoc ISizeV1_7
     function setAuthorization(address operator, bytes4 action, bool isActionAuthorized)
         external
-        override(ISizeV1_6_1)
+        override(ISizeV1_7)
     {
         state.validateSetAuthorization(operator, action, isActionAuthorized);
         state.executeSetAuthorization(operator, action, isActionAuthorized);

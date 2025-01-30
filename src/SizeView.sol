@@ -32,9 +32,9 @@ import {
     InitializeRiskConfigParams
 } from "@src/libraries/actions/Initialize.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
-import {Authorization} from "@src/libraries/actions/v1.6.1/Authorization.sol";
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 
-import {ISizeViewV1_6_1} from "@src/interfaces/v1.6.1/ISizeViewV1_6_1.sol";
+import {ISizeViewV1_7} from "@src/interfaces/v1.7/ISizeViewV1_7.sol";
 
 import {VERSION} from "@src/interfaces/ISize.sol";
 
@@ -214,7 +214,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
         return VERSION;
     }
 
-    /// @inheritdoc ISizeViewV1_6_1
+    /// @inheritdoc ISizeViewV1_7
     function isAuthorized(address onBehalfOf, address operator, bytes4 action) external view returns (bool) {
         return state.isAuthorized(onBehalfOf, operator, action);
     }

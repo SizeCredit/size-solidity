@@ -15,7 +15,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 import {ISize} from "@src/interfaces/ISize.sol";
-import {Authorization} from "@src/libraries/actions/v1.6.1/Authorization.sol";
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 
 struct SellCreditMarketParams {
     // The lender
