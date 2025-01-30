@@ -17,37 +17,57 @@ import {
 } from "@src/libraries/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
-import {SellCreditLimit, SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
+import {
+    SellCreditLimit,
+    SellCreditLimitOnBehalfOfParams,
+    SellCreditLimitParams
+} from "@src/libraries/actions/SellCreditLimit.sol";
 import {
     SellCreditMarket,
     SellCreditMarketOnBehalfOfParams,
     SellCreditMarketParams
 } from "@src/libraries/actions/SellCreditMarket.sol";
 
+import {
+    BuyCreditMarket,
+    BuyCreditMarketOnBehalfOfParams,
+    BuyCreditMarketParams
+} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
-import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {Deposit, DepositOnBehalfOfParams, DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {
+    SetUserConfiguration,
+    SetUserConfigurationOnBehalfOfParams,
+    SetUserConfigurationParams
+} from "@src/libraries/actions/SetUserConfiguration.sol";
+import {Withdraw, WithdrawOnBehalfOfParams, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
-import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
-import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
-
-import {BuyCreditLimit, BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
+import {
+    BuyCreditLimit,
+    BuyCreditLimitOnBehalfOfParams,
+    BuyCreditLimitParams
+} from "@src/libraries/actions/BuyCreditLimit.sol";
 import {Liquidate, LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
 
+import {State} from "@src/SizeStorage.sol";
 import {Multicall} from "@src/libraries/Multicall.sol";
-import {Compensate, CompensateParams} from "@src/libraries/actions/Compensate.sol";
+import {Compensate, CompensateOnBehalfOfParams, CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {
     LiquidateWithReplacement,
     LiquidateWithReplacementParams
 } from "@src/libraries/actions/LiquidateWithReplacement.sol";
 import {Repay, RepayParams} from "@src/libraries/actions/Repay.sol";
-import {SelfLiquidate, SelfLiquidateParams} from "@src/libraries/actions/SelfLiquidate.sol";
-import {Withdraw, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
-
-import {State} from "@src/SizeStorage.sol";
+import {
+    SelfLiquidate, SelfLiquidateOnBehalfOfParams, SelfLiquidateParams
+} from "@src/libraries/actions/SelfLiquidate.sol";
 
 import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {
+    Authorization,
+    SetAuthorizationOnBehalfOfParams,
+    SetAuthorizationParams
+} from "@src/libraries/actions/v1.7/Authorization.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -123,12 +143,12 @@ contract Size is
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
     /// @notice Validate that the user has not put themselves in underwater state
-    modifier shouldNotEndUpUnderwater() {
-        bool isUserUnderwaterBefore = state.isUserUnderwater(msg.sender);
+    modifier shouldNotEndUpUnderwater(address onBehalfOf) {
+        bool isUserUnderwaterBefore = state.isUserUnderwater(onBehalfOf);
         _;
-        bool isUserUnderwaterAfter = state.isUserUnderwater(msg.sender);
+        bool isUserUnderwaterAfter = state.isUserUnderwater(onBehalfOf);
         if (!isUserUnderwaterBefore && isUserUnderwaterAfter) {
-            revert Errors.USER_IS_UNDERWATER(msg.sender, state.collateralRatio(msg.sender));
+            revert Errors.USER_IS_UNDERWATER(onBehalfOf, state.collateralRatio(onBehalfOf));
         }
     }
 
@@ -177,43 +197,95 @@ contract Size is
 
     /// @inheritdoc ISize
     function deposit(DepositParams calldata params) public payable override(ISize) whenNotPaused {
+        depositOnBehalfOf(DepositOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    }
+
+    /// @inheritdoc ISizeV1_7
+    function depositOnBehalfOf(DepositOnBehalfOfParams calldata params)
+        public
+        payable
+        override(ISizeV1_7)
+        whenNotPaused
+    {
         state.validateDeposit(params);
         state.executeDeposit(params);
     }
 
     /// @inheritdoc ISize
     function withdraw(WithdrawParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateWithdraw(params);
-        state.executeWithdraw(params);
+        withdrawOnBehalfOf(WithdrawOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    }
+
+    /// @inheritdoc ISizeV1_7
+    function withdrawOnBehalfOf(WithdrawOnBehalfOfParams calldata externalParams)
+        public
+        payable
+        override(ISizeV1_7)
+        whenNotPaused
+    {
+        state.validateWithdraw(externalParams);
+        state.executeWithdraw(externalParams);
     }
 
     /// @inheritdoc ISize
     function buyCreditLimit(BuyCreditLimitParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateBuyCreditLimit(params);
-        state.executeBuyCreditLimit(params);
+        buyCreditLimitOnBehalfOf(BuyCreditLimitOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    }
+
+    /// @inheritdoc ISizeV1_7
+    function buyCreditLimitOnBehalfOf(BuyCreditLimitOnBehalfOfParams calldata externalParams)
+        public
+        payable
+        override(ISizeV1_7)
+        whenNotPaused
+    {
+        state.validateBuyCreditLimit(externalParams);
+        state.executeBuyCreditLimit(externalParams);
     }
 
     /// @inheritdoc ISize
     function sellCreditLimit(SellCreditLimitParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateSellCreditLimit(params);
-        state.executeSellCreditLimit(params);
+        sellCreditLimitOnBehalfOf(SellCreditLimitOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    }
+
+    /// @inheritdoc ISizeV1_7
+    function sellCreditLimitOnBehalfOf(SellCreditLimitOnBehalfOfParams calldata externalParams)
+        public
+        payable
+        override(ISizeV1_7)
+        whenNotPaused
+    {
+        state.validateSellCreditLimit(externalParams);
+        state.executeSellCreditLimit(externalParams);
     }
 
     /// @inheritdoc ISize
     function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateBuyCreditMarket(params);
-        uint256 amount = state.executeBuyCreditMarket(params);
-        if (params.creditPositionId == RESERVED_ID) {
-            state.validateUserIsNotBelowOpeningLimitBorrowCR(params.borrower);
+        buyCreditMarketOnBehalfOf(
+            BuyCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
+        );
+    }
+
+    /// @inheritdoc ISizeV1_7
+    function buyCreditMarketOnBehalfOf(BuyCreditMarketOnBehalfOfParams calldata externalParams)
+        public
+        payable
+        override(ISizeV1_7)
+        whenNotPaused
+    {
+        state.validateBuyCreditMarket(externalParams);
+        uint256 amount = state.executeBuyCreditMarket(externalParams);
+        if (externalParams.params.creditPositionId == RESERVED_ID) {
+            state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.onBehalfOf);
         }
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
 
     /// @inheritdoc ISize
     function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) whenNotPaused {
-        SellCreditMarketOnBehalfOfParams memory onBehalfOfParams =
-            SellCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender});
-        sellCreditMarketOnBehalfOf(onBehalfOfParams);
+        sellCreditMarketOnBehalfOf(
+            SellCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
+        );
     }
 
     /// @inheritdoc ISizeV1_7
@@ -258,8 +330,20 @@ contract Size is
 
     /// @inheritdoc ISize
     function selfLiquidate(SelfLiquidateParams calldata params) external payable override(ISize) whenNotPaused {
-        state.validateSelfLiquidate(params);
-        state.executeSelfLiquidate(params);
+        selfLiquidateOnBehalfOf(
+            SelfLiquidateOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
+        );
+    }
+
+    /// @inheritdoc ISizeV1_7
+    function selfLiquidateOnBehalfOf(SelfLiquidateOnBehalfOfParams calldata externalParams)
+        public
+        payable
+        override(ISizeV1_7)
+        whenNotPaused
+    {
+        state.validateSelfLiquidate(externalParams);
+        state.executeSelfLiquidate(externalParams);
     }
 
     /// @inheritdoc ISize
@@ -286,10 +370,21 @@ contract Size is
         payable
         override(ISize)
         whenNotPaused
-        shouldNotEndUpUnderwater
+        shouldNotEndUpUnderwater(msg.sender)
     {
-        state.validateCompensate(params);
-        state.executeCompensate(params);
+        compensateOnBehalfOf(CompensateOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    }
+
+    /// @inheritdoc ISizeV1_7
+    function compensateOnBehalfOf(CompensateOnBehalfOfParams calldata externalParams)
+        public
+        payable
+        override(ISizeV1_7)
+        whenNotPaused
+        shouldNotEndUpUnderwater(externalParams.onBehalfOf)
+    {
+        state.validateCompensate(externalParams);
+        state.executeCompensate(externalParams);
     }
 
     /// @inheritdoc ISize
@@ -299,16 +394,33 @@ contract Size is
         override(ISize)
         whenNotPaused
     {
-        state.validateSetUserConfiguration(params);
-        state.executeSetUserConfiguration(params);
+        setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
     /// @inheritdoc ISizeV1_7
-    function setAuthorization(address operator, bytes4 action, bool isActionAuthorized)
-        external
+    function setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams calldata externalParams)
+        public
+        payable
         override(ISizeV1_7)
+        whenNotPaused
     {
-        state.validateSetAuthorization(operator, action, isActionAuthorized);
-        state.executeSetAuthorization(operator, action, isActionAuthorized);
+        state.validateSetUserConfiguration(externalParams);
+        state.executeSetUserConfiguration(externalParams);
+    }
+
+    /// @inheritdoc ISizeV1_7
+    function setAuthorization(SetAuthorizationParams calldata params) external override(ISizeV1_7) {
+        setAuthorizationOnBehalfOf(SetAuthorizationOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
+    }
+
+    /// @inheritdoc ISizeV1_7
+    function setAuthorizationOnBehalfOf(SetAuthorizationOnBehalfOfParams calldata externalParams)
+        public
+        payable
+        override(ISizeV1_7)
+        whenNotPaused
+    {
+        state.validateSetAuthorization(externalParams);
+        state.executeSetAuthorization(externalParams);
     }
 }

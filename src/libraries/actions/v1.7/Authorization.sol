@@ -3,7 +3,21 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
+import {ISize} from "@src/interfaces/ISize.sol";
+import {ISizeV1_7} from "@src/interfaces/v1.7/ISizeV1_7.sol";
+import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
+
+struct SetAuthorizationParams {
+    address operator;
+    bytes4 action;
+    bool isActionAuthorized;
+}
+
+struct SetAuthorizationOnBehalfOfParams {
+    SetAuthorizationParams params;
+    address onBehalfOf;
+}
 
 /// @title Authorization
 /// @custom:security-contact security@size.credit
@@ -54,18 +68,51 @@ library Authorization {
     }
 
     /// @notice Validate the input parameters for setting the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
-    function validateSetAuthorization(State storage, address, bytes4, bool) internal view {
+    /// @param state The state struct
+    /// @param externalParams The input parameters for setting the authorization
+    function validateSetAuthorization(State storage state, SetAuthorizationOnBehalfOfParams calldata externalParams)
+        internal
+        view
+    {
+        SetAuthorizationParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
+        // validate msg.sender
+        if (!isOnBehalfOfOrAuthorized(state, onBehalfOf, ISizeV1_7.setAuthorization.selector)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISizeV1_7.setAuthorization.selector);
+        }
+
+        // validate operator
+        if (params.operator == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate action
+        if (
+            !(
+                params.action == ISize.deposit.selector || params.action == ISize.withdraw.selector
+                    || params.action == ISize.buyCreditLimit.selector || params.action == ISize.sellCreditLimit.selector
+                    || params.action == ISize.buyCreditMarket.selector || params.action == ISize.sellCreditMarket.selector
+                    || params.action == ISize.selfLiquidate.selector || params.action == ISize.compensate.selector
+                    || params.action == ISize.setUserConfiguration.selector
+                    || params.action == ISizeV1_7.setAuthorization.selector
+            )
+        ) {
+            revert Errors.INVALID_ACTION(params.action);
+        }
+
+        // validate isActionAuthorized
         // N/A
     }
 
     /// @notice Set the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
     /// @param state The state struct
-    /// @param operator The operator account
-    /// @param action The action
-    /// @param isActionAuthorized The new authorization status
-    function executeSetAuthorization(State storage state, address operator, bytes4 action, bool isActionAuthorized)
+    /// @param externalParams The input parameters for setting the authorization
+    function executeSetAuthorization(State storage state, SetAuthorizationOnBehalfOfParams calldata externalParams)
         internal
     {
-        _setAuthorization(state, msg.sender, operator, action, isActionAuthorized);
+        SetAuthorizationParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+        _setAuthorization(state, onBehalfOf, params.operator, params.action, params.isActionAuthorized);
     }
 }

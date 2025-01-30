@@ -9,7 +9,9 @@ import {Math} from "@src/libraries/Math.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
+import {ISize} from "@src/interfaces/ISize.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 
 struct WithdrawParams {
     // The token to withdraw
@@ -21,6 +23,13 @@ struct WithdrawParams {
     address to;
 }
 
+struct WithdrawOnBehalfOfParams {
+    // The parameters for the withdraw
+    WithdrawParams params;
+    // The account to withdraw the tokens from
+    address onBehalfOf;
+}
+
 /// @title Withdraw
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -28,10 +37,19 @@ struct WithdrawParams {
 library Withdraw {
     using DepositTokenLibrary for State;
     using RiskLibrary for State;
+    using Authorization for State;
 
-    function validateWithdraw(State storage state, WithdrawParams calldata params) external view {
+    /// @notice Validates the withdraw parameters
+    /// @param state The state of the protocol
+    /// @param externalParams The input parameters for withdrawing tokens
+    function validateWithdraw(State storage state, WithdrawOnBehalfOfParams calldata externalParams) external view {
+        WithdrawParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
         // validte msg.sender
-        // N/A
+        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.withdraw.selector)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.withdraw.selector);
+        }
 
         // validate token
         if (
@@ -52,21 +70,25 @@ library Withdraw {
         }
     }
 
-    function executeWithdraw(State storage state, WithdrawParams calldata params) public {
+    function executeWithdraw(State storage state, WithdrawOnBehalfOfParams calldata externalParams) public {
+        WithdrawParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
         uint256 amount;
         if (params.token == address(state.data.underlyingBorrowToken)) {
-            amount = Math.min(params.amount, state.data.borrowATokenV1_5.balanceOf(msg.sender));
+            amount = Math.min(params.amount, state.data.borrowATokenV1_5.balanceOf(onBehalfOf));
             if (amount > 0) {
-                state.withdrawUnderlyingTokenFromVariablePoolV1_5(msg.sender, params.to, amount);
+                state.withdrawUnderlyingTokenFromVariablePoolV1_5(onBehalfOf, params.to, amount);
             }
         } else {
-            amount = Math.min(params.amount, state.data.collateralToken.balanceOf(msg.sender));
+            amount = Math.min(params.amount, state.data.collateralToken.balanceOf(onBehalfOf));
             if (amount > 0) {
-                state.withdrawUnderlyingCollateralToken(msg.sender, params.to, amount);
+                state.withdrawUnderlyingCollateralToken(onBehalfOf, params.to, amount);
             }
-            state.validateUserIsNotBelowOpeningLimitBorrowCR(msg.sender);
+            state.validateUserIsNotBelowOpeningLimitBorrowCR(onBehalfOf);
         }
 
         emit Events.Withdraw(msg.sender, params.token, params.to, amount);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.withdraw.selector, params.to);
     }
 }

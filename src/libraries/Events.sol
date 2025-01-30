@@ -81,7 +81,9 @@ library Events {
     event SetAuthorization(
         address indexed sender, address indexed operator, bytes4 indexed action, bool isActionAuthorized
     ); // v1.7
-    event OnBehalfOfParams(address indexed sender, address indexed onBehalfOf, address indexed recipient); // v1.7
+    event OnBehalfOfParams(
+        address indexed sender, address indexed onBehalfOf, bytes4 indexed action, address recipient
+    ); // v1.7
 
     // creates
 

@@ -39,9 +39,9 @@ struct SellCreditMarketParams {
 struct SellCreditMarketOnBehalfOfParams {
     // The parameters for selling credit as a market order
     SellCreditMarketParams params;
-    // The account that will accrue debt
+    // The account to receive the debt
     address onBehalfOf;
-    // The account that will receive the cash
+    // The account to receive the cash
     address recipient;
 }
 
@@ -232,7 +232,7 @@ library SellCreditMarket {
             params.maxAPR,
             params.exactAmountIn
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, recipient);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.sellCreditMarket.selector, recipient);
 
         SwapDataSellCreditMarket memory swapData = getSwapData(state, params);
 

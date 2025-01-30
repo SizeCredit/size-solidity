@@ -5,6 +5,9 @@ import {State, User} from "@src/SizeStorage.sol";
 
 import {CreditPosition, LoanLibrary, LoanStatus} from "@src/libraries/LoanLibrary.sol";
 
+import {ISize} from "@src/interfaces/ISize.sol";
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
@@ -19,21 +22,34 @@ struct SetUserConfigurationParams {
     uint256[] creditPositionIds;
 }
 
+struct SetUserConfigurationOnBehalfOfParams {
+    // The input parameters for setting user configuration
+    SetUserConfigurationParams params;
+    // The address of the account to set user configuration for
+    address onBehalfOf;
+}
+
 /// @title SetUserConfiguration
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 library SetUserConfiguration {
     using LoanLibrary for State;
+    using Authorization for State;
 
     /// @notice Validates the input parameters for setting user configuration
     /// @param state The state
-    /// @param params The input parameters for setting user configuration
-    function validateSetUserConfiguration(State storage state, SetUserConfigurationParams calldata params)
-        external
-        view
-    {
+    /// @param externalParams The input parameters for setting user configuration
+    function validateSetUserConfiguration(
+        State storage state,
+        SetUserConfigurationOnBehalfOfParams calldata externalParams
+    ) external view {
+        SetUserConfigurationParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
         // validate msg.sender
-        // N/A
+        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.setUserConfiguration.selector)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.setUserConfiguration.selector);
+        }
 
         // validate openingLimitBorrowCR
         // N/A
@@ -47,7 +63,7 @@ library SetUserConfiguration {
         // validate creditPositionIds
         for (uint256 i = 0; i < params.creditPositionIds.length; i++) {
             CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionIds[i]);
-            if (creditPosition.lender != msg.sender) {
+            if (creditPosition.lender != onBehalfOf) {
                 revert Errors.INVALID_CREDIT_POSITION_ID(params.creditPositionIds[i]);
             }
 
@@ -59,9 +75,15 @@ library SetUserConfiguration {
 
     /// @notice Executes the setting of user configuration
     /// @param state The state
-    /// @param params The input parameters for setting user configuration
-    function executeSetUserConfiguration(State storage state, SetUserConfigurationParams calldata params) external {
-        User storage user = state.data.users[msg.sender];
+    /// @param externalParams The input parameters for setting user configuration
+    function executeSetUserConfiguration(
+        State storage state,
+        SetUserConfigurationOnBehalfOfParams calldata externalParams
+    ) external {
+        SetUserConfigurationParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
+        User storage user = state.data.users[onBehalfOf];
 
         user.openingLimitBorrowCR = params.openingLimitBorrowCR;
         user.allCreditPositionsForSaleDisabled = params.allCreditPositionsForSaleDisabled;
@@ -81,5 +103,6 @@ library SetUserConfiguration {
             params.creditPositionIdsForSale,
             params.creditPositionIds
         );
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.setUserConfiguration.selector, address(0));
     }
 }
