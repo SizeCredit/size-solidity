@@ -4,10 +4,10 @@ pragma solidity 0.8.23;
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
+import {SizeV1_5} from "@deprecated/SizeV1_5.sol";
+import {ISizeV1_5} from "@deprecated/interfaces/ISizeV1_5.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {SizeV1_5} from "@src/deprecated/SizeV1_5.sol";
-import {ISizeV1_5} from "@src/v1.5/interfaces/deprecated/ISizeV1_5.sol";
 
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {RepayParams} from "@src/libraries/actions/Repay.sol";

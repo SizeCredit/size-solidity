@@ -4,8 +4,8 @@ pragma solidity 0.8.23;
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 
+import {NonTransferrableScaledTokenV1} from "@deprecated/token/NonTransferrableScaledTokenV1.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import {NonTransferrableScaledTokenV1} from "@src/token/deprecated/NonTransferrableScaledTokenV1.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 

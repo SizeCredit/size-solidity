@@ -3,7 +3,8 @@ pragma solidity 0.8.23;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IPriceFeedV1_5_1} from "@src/oracle/v1.5.1/IPriceFeedV1_5_1.sol";
+
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {ChainlinkPriceFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkPriceFeed.sol";
 import {ChainlinkSequencerUptimeFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkSequencerUptimeFeed.sol";
 import {UniswapV3PriceFeed} from "@src/oracle/v1.5.1/adapters/UniswapV3PriceFeed.sol";
@@ -30,7 +31,7 @@ struct PriceFeedParams {
 /// @dev `decimals` must be 18 to comply with Size contracts
 ///      `sequencerUptimeFeed` can be null for unsupported networks
 ///      In case the sequencer is down, `getPrice` reverts (see `ChainlinkSequencerUptimeFeed`)
-contract PriceFeed is IPriceFeedV1_5_1 {
+contract PriceFeed is IPriceFeed {
     /* solhint-disable */
     uint256 public constant decimals = 18;
     ChainlinkSequencerUptimeFeed public immutable chainlinkSequencerUptimeFeed;
@@ -67,19 +68,19 @@ contract PriceFeed is IPriceFeedV1_5_1 {
         }
     }
 
-    function base() external view override returns (AggregatorV3Interface) {
+    function base() external view returns (AggregatorV3Interface) {
         return chainlinkPriceFeed.baseAggregator();
     }
 
-    function quote() external view override returns (AggregatorV3Interface) {
+    function quote() external view returns (AggregatorV3Interface) {
         return chainlinkPriceFeed.quoteAggregator();
     }
 
-    function baseStalePriceInterval() external view override returns (uint256) {
+    function baseStalePriceInterval() external view returns (uint256) {
         return chainlinkPriceFeed.baseStalePriceInterval();
     }
 
-    function quoteStalePriceInterval() external view override returns (uint256) {
+    function quoteStalePriceInterval() external view returns (uint256) {
         return chainlinkPriceFeed.quoteStalePriceInterval();
     }
 }

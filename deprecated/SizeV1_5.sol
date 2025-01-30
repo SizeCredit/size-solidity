@@ -15,12 +15,10 @@ import {
     InitializeRiskConfigParams
 } from "@src/libraries/actions/Initialize.sol";
 import {UpdateConfig, UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
-import {InitializeV1_5} from "@src/libraries/actions/deprecated/InitializeV1_5.sol";
+import {InitializeV1_5} from "@deprecated/libraries/actions/InitializeV1_5.sol";
 
 import {SellCreditLimit, SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
-import {
-    SellCreditMarketParams, SellCreditMarketV1_5
-} from "@src/libraries/actions/deprecated/SellCreditMarketV1_5.sol";
+import {SellCreditMarketV1_5, SellCreditMarketParams} from "@deprecated/libraries/actions/SellCreditMarketV1_5.sol";
 
 import {Claim, ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {Deposit, DepositParams} from "@src/libraries/actions/Deposit.sol";
@@ -47,12 +45,12 @@ import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 
 import {SizeView} from "@src/SizeView.sol";
-import {EventsV1_5} from "@src/libraries/deprecated/EventsV1_5.sol";
+import {EventsV1_5} from "@deprecated/libraries/EventsV1_5.sol";
 
 import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
-import {ISizeV1_5} from "@src/v1.5/interfaces/deprecated/ISizeV1_5.sol";
+import {ISizeV1_5} from "@deprecated/interfaces/ISizeV1_5.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 
