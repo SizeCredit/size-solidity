@@ -276,7 +276,7 @@ contract Size is
         state.validateBuyCreditMarket(externalParams);
         uint256 amount = state.executeBuyCreditMarket(externalParams);
         if (externalParams.params.creditPositionId == RESERVED_ID) {
-            state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.onBehalfOf);
+            state.validateUserIsNotBelowOpeningLimitBorrowCR(externalParams.params.borrower);
         }
         state.validateVariablePoolHasEnoughLiquidity(amount);
     }
