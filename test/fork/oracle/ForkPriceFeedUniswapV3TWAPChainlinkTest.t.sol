@@ -3,12 +3,12 @@ pragma solidity 0.8.23;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
+import {PriceFeedV1_5} from "@deprecated/oracle/PriceFeedV1_5.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {PriceFeedV1_5} from "@src/oracle/deprecated/PriceFeedV1_5.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";

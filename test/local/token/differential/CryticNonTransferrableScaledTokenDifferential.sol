@@ -5,9 +5,10 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 
 import {CryticAsserts} from "@chimera/CryticAsserts.sol";
 import {vm} from "@chimera/Hevm.sol";
+
+import {NonTransferrableScaledTokenV1} from "@deprecated/token/NonTransferrableScaledTokenV1.sol";
+import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import {NonTransferrableScaledTokenV1} from "@src/token/deprecated/NonTransferrableScaledTokenV1.sol";
-import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
 import {INonTransferrableScaledTokenCall} from
     "@test/local/token/differential/interfaces/INonTransferrableScaledTokenCall.sol";
 import {INonTransferrableScaledTokenStaticcall} from

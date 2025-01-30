@@ -3,6 +3,7 @@
 @chainlink=lib/chainlink
 @src=src
 @test=test
+@deprecated=deprecated
 @script=script
 @solady=lib/solady/src
 @chimera=lib/chimera/src

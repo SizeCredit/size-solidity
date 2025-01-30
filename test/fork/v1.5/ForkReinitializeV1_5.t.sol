@@ -8,12 +8,13 @@ import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {PriceFeed} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
-import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import {SizeV1_5} from "@src/deprecated/SizeV1_5.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
-import {ISizeV1_5} from "@src/v1.5/interfaces/deprecated/ISizeV1_5.sol";
+import {SizeV1_5} from "@deprecated/SizeV1_5.sol";
 
-import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
+import {ISizeV1_5} from "@deprecated/interfaces/ISizeV1_5.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import {ISize} from "@src/interfaces/ISize.sol";
+
+import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
 
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";

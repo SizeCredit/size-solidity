@@ -16,8 +16,8 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
+import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
-import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
 import {State} from "@src/SizeStorage.sol";

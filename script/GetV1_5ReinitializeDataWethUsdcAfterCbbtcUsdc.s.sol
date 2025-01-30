@@ -6,9 +6,9 @@ import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap
 import {BaseScript} from "@script/BaseScript.sol";
 import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
 
+import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {Networks} from "@script/Networks.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
-import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
 
 import {Vm} from "forge-std/Vm.sol";
 import {console2 as console} from "forge-std/console2.sol";

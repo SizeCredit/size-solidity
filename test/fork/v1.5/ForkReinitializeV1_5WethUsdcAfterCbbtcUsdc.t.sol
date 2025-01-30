@@ -7,12 +7,13 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 
-import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import {SizeV1_5} from "@src/deprecated/SizeV1_5.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
-import {ISizeV1_5} from "@src/v1.5/interfaces/deprecated/ISizeV1_5.sol";
+import {SizeV1_5} from "@deprecated/SizeV1_5.sol";
 
-import {NonTransferrableScaledTokenV1_2} from "@src/token/deprecated/NonTransferrableScaledTokenV1_2.sol";
+import {ISizeV1_5} from "@deprecated/interfaces/ISizeV1_5.sol";
+import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import {ISize} from "@src/interfaces/ISize.sol";
+
+import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";

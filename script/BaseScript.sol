@@ -5,9 +5,9 @@ import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap
 import {ISize} from "@src/interfaces/ISize.sol";
 import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
 
+import {ISizeV1_5} from "@deprecated/interfaces/ISizeV1_5.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {ISizeV1_5} from "@src/v1.5/interfaces/deprecated/ISizeV1_5.sol";
 import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Vm} from "forge-std/Vm.sol";

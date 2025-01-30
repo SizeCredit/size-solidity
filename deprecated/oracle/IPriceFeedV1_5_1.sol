@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IPriceFeedV1_5} from "@src/oracle/deprecated/IPriceFeedV1_5.sol";
+import {IPriceFeedV1_5} from "@deprecated/oracle/IPriceFeedV1_5.sol";
 
 import {ChainlinkPriceFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkPriceFeed.sol";
 import {ChainlinkSequencerUptimeFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkSequencerUptimeFeed.sol";
