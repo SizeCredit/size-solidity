@@ -18,7 +18,7 @@ Networks:
 - [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
 - [2024-03-19 - LightChaserV3](./audits/2024-03-19-LightChaserV3.md)
 
-For bug reports, please refer to our [Bug Bounty Program](https://size.credit/)
+For bug reports, please refer to our [Bug Bounty Program](https://app.hats.finance/bug-bounties/size-0xd915dc4630c8957e7aabb44df6309f6f4cfcf9c0/rewards)
 
 ## Documentation
 
