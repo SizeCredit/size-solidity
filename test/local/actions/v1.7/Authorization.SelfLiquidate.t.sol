@@ -80,5 +80,15 @@ contract AuthorizationSelfLiquidateTest is BaseTest {
                 recipient: candy
             })
         );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        vm.prank(alice);
+        size.selfLiquidateOnBehalfOf(
+            SelfLiquidateOnBehalfOfParams({
+                params: SelfLiquidateParams({creditPositionId: creditPositionId}),
+                onBehalfOf: alice,
+                recipient: address(0)
+            })
+        );
     }
 }
