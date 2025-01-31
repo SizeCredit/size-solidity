@@ -25,7 +25,7 @@ contract AuthorizationSellCreditMarketTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        vm.prank(bob);
+        vm.prank(candy);
         size.sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({
                 params: SellCreditMarketParams({
@@ -37,8 +37,8 @@ contract AuthorizationSellCreditMarketTest is BaseTest {
                     maxAPR: type(uint256).max,
                     exactAmountIn: false
                 }),
-                onBehalfOf: candy,
-                recipient: bob
+                onBehalfOf: bob,
+                recipient: candy
             })
         );
         (uint256 debtPositionsCount,) = size.getPositionsCount();
