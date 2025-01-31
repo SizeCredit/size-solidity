@@ -9,6 +9,9 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
+import {DEBT_POSITION_ID_START} from "@src/libraries/LoanLibrary.sol";
+import {SellCreditMarketOnBehalfOfParams, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+
 contract AuthorizationSellCreditMarketTest is BaseTest {
     function test_AuthorizationSellCreditMarket_sellCreditMarketOnBehalfOf() public {
         _deposit(alice, usdc, 200e6);
@@ -22,7 +25,24 @@ contract AuthorizationSellCreditMarketTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        uint256 debtPositionId = _sellCreditMarketOnBehalfOf(candy, bob, alice, RESERVED_ID, amount, tenor, false);
+        vm.prank(bob);
+        size.sellCreditMarketOnBehalfOf(
+            SellCreditMarketOnBehalfOfParams({
+                params: SellCreditMarketParams({
+                    lender: alice,
+                    creditPositionId: RESERVED_ID,
+                    amount: amount,
+                    tenor: tenor,
+                    deadline: block.timestamp,
+                    maxAPR: type(uint256).max,
+                    exactAmountIn: false
+                }),
+                onBehalfOf: candy,
+                recipient: bob
+            })
+        );
+        (uint256 debtPositionsCount,) = size.getPositionsCount();
+        uint256 debtPositionId = DEBT_POSITION_ID_START + debtPositionsCount - 1;
         uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
         uint256 issuanceValue = Math.mulDivDown(futureValue, PERCENT, PERCENT + 0.03e18);
         uint256 swapFee = size.getSwapFee(issuanceValue, tenor);

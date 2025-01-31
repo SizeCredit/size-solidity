@@ -200,35 +200,6 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         size.buyCreditLimit(BuyCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime}));
     }
 
-    function _sellCreditMarketOnBehalfOf(
-        address operator,
-        address onBehalfOf,
-        address lender,
-        uint256 creditPositionId,
-        uint256 amount,
-        uint256 tenor,
-        bool exactAmountIn
-    ) internal returns (uint256) {
-        vm.prank(operator);
-        size.sellCreditMarketOnBehalfOf(
-            SellCreditMarketOnBehalfOfParams({
-                params: SellCreditMarketParams({
-                    lender: lender,
-                    creditPositionId: creditPositionId,
-                    amount: amount,
-                    tenor: tenor,
-                    deadline: block.timestamp,
-                    maxAPR: type(uint256).max,
-                    exactAmountIn: exactAmountIn
-                }),
-                onBehalfOf: onBehalfOf,
-                recipient: operator
-            })
-        );
-        (uint256 debtPositionsCount,) = size.getPositionsCount();
-        return DEBT_POSITION_ID_START + debtPositionsCount - 1;
-    }
-
     function _sellCreditMarket(
         address borrower,
         address lender,
