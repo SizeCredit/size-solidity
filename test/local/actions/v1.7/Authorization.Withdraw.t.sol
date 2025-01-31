@@ -44,4 +44,17 @@ contract AuthorizationWithdrawTest is BaseTest {
         assertEq(usdc.balanceOf(bob), 9e6);
         assertEq(weth.balanceOf(bob), 7e18);
     }
+
+    function test_AuthorizationWithdraw_validation() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, bob, alice, ISize.withdraw.selector)
+        );
+        vm.prank(bob);
+        size.withdrawOnBehalfOf(
+            WithdrawOnBehalfOfParams({
+                params: WithdrawParams({token: address(usdc), amount: 9e6, to: bob}),
+                onBehalfOf: alice
+            })
+        );
+    }
 }

@@ -75,5 +75,23 @@ contract AuthorizationSellCreditMarketTest is BaseTest {
                 recipient: candy
             })
         );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        vm.prank(alice);
+        size.sellCreditMarketOnBehalfOf(
+            SellCreditMarketOnBehalfOfParams({
+                params: SellCreditMarketParams({
+                    lender: alice,
+                    creditPositionId: RESERVED_ID,
+                    amount: 100e6,
+                    tenor: 365 days,
+                    deadline: block.timestamp,
+                    maxAPR: type(uint256).max,
+                    exactAmountIn: false
+                }),
+                onBehalfOf: alice,
+                recipient: address(0)
+            })
+        );
     }
 }
