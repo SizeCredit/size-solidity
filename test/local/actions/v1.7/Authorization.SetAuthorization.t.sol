@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {ISize} from "@src/interfaces/ISize.sol";
+import {ISizeV1_7} from "@src/interfaces/v1.7/ISizeV1_7.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
@@ -9,7 +10,7 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {SetAuthorizationOnBehalfOfParams, SetAuthorizationParams} from "@src/libraries/actions/SetAuthorization.sol";
+import {SetAuthorizationOnBehalfOfParams, SetAuthorizationParams} from "@src/libraries/actions/v1.7/Authorization.sol";
 
 contract AuthorizationSetAuthorizationTest is BaseTest {
     function test_AuthorizationSetAuthorization_setAuthorization() public {
@@ -35,9 +36,21 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         size.setAuthorizationOnBehalfOf(
             SetAuthorizationOnBehalfOfParams({
                 params: SetAuthorizationParams({
+                    operator: bob,
+                    action: ISize.sellCreditMarket.selector,
+                    isActionAuthorized: true
+                }),
+                onBehalfOf: alice
+            })
+        );
+
+        vm.prank(bob);
+        size.setAuthorizationOnBehalfOf(
+            SetAuthorizationOnBehalfOfParams({
+                params: SetAuthorizationParams({
                     operator: candy,
-                    selector: ISizeV1_7.setAuthorization.selector,
-                    authorized: true
+                    action: ISize.sellCreditMarket.selector,
+                    isActionAuthorized: true
                 }),
                 onBehalfOf: alice
             })
