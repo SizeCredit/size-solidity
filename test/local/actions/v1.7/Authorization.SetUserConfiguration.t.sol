@@ -56,4 +56,22 @@ contract AuthorizationSetUserConfigurationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.CREDIT_NOT_FOR_SALE.selector, creditPositionId1_1));
         _buyCreditMarket(james, alice, creditPositionId1_1, futureValue, tenor, false);
     }
+
+    function test_AuthorizationSetUserConfiguration_validation() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.setUserConfiguration.selector)
+        );
+        vm.prank(alice);
+        size.setUserConfigurationOnBehalfOf(
+            SetUserConfigurationOnBehalfOfParams({
+                params: SetUserConfigurationParams({
+                    openingLimitBorrowCR: 0,
+                    allCreditPositionsForSaleDisabled: true,
+                    creditPositionIdsForSale: false,
+                    creditPositionIds: new uint256[](0)
+                }),
+                onBehalfOf: bob
+            })
+        );
+    }
 }

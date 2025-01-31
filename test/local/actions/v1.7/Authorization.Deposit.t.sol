@@ -53,4 +53,15 @@ contract AuthorizationDepositTest is BaseTest {
         assertEq(bobUser.collateralTokenBalance, 2e18);
         assertEq(weth.balanceOf(address(size)), 2e18);
     }
+
+    function test_AuthorizationDeposit_validation() public {
+        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.deposit.selector));
+        vm.prank(alice);
+        size.depositOnBehalfOf(
+            DepositOnBehalfOfParams({
+                params: DepositParams({token: address(usdc), amount: 1e6, to: alice}),
+                onBehalfOf: bob
+            })
+        );
+    }
 }

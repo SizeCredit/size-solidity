@@ -54,4 +54,26 @@ contract AuthorizationSellCreditMarketTest is BaseTest {
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.bob.debtBalance, futureValue);
     }
+
+    function test_AuthorizationSellCreditMarket_validation() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.sellCreditMarket.selector)
+        );
+        vm.prank(alice);
+        size.sellCreditMarketOnBehalfOf(
+            SellCreditMarketOnBehalfOfParams({
+                params: SellCreditMarketParams({
+                    lender: james,
+                    creditPositionId: RESERVED_ID,
+                    amount: 100e6,
+                    tenor: 365 days,
+                    deadline: block.timestamp,
+                    maxAPR: type(uint256).max,
+                    exactAmountIn: false
+                }),
+                onBehalfOf: bob,
+                recipient: candy
+            })
+        );
+    }
 }

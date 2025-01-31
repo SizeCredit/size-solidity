@@ -65,4 +65,26 @@ contract AuthorizationBuyCreditMarketTest is BaseTest {
         assertEq(size.getCreditPosition(creditPositionId).lender, candy);
         assertEq(size.getDebtPosition(debtPositionId).dueDate, block.timestamp + tenor);
     }
+
+    function test_AuthorizationBuyCreditMarket_validation() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.buyCreditMarket.selector)
+        );
+        vm.prank(alice);
+        size.buyCreditMarketOnBehalfOf(
+            BuyCreditMarketOnBehalfOfParams({
+                params: BuyCreditMarketParams({
+                    borrower: alice,
+                    creditPositionId: RESERVED_ID,
+                    amount: 100e6,
+                    tenor: 365 days,
+                    deadline: block.timestamp,
+                    minAPR: 0,
+                    exactAmountIn: true
+                }),
+                onBehalfOf: bob,
+                recipient: candy
+            })
+        );
+    }
 }

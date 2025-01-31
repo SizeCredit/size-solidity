@@ -59,4 +59,35 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         assertTrue(size.isAuthorized(alice, bob, ISize.sellCreditMarket.selector));
         assertTrue(size.isAuthorized(alice, candy, ISize.sellCreditMarket.selector));
     }
+
+    function test_AuthorizationSetAuthorization_validation() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISizeV1_7.setAuthorization.selector)
+        );
+        vm.prank(alice);
+        size.setAuthorizationOnBehalfOf(
+            SetAuthorizationOnBehalfOfParams({
+                params: SetAuthorizationParams({
+                    operator: alice,
+                    action: ISize.sellCreditMarket.selector,
+                    isActionAuthorized: true
+                }),
+                onBehalfOf: bob
+            })
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        vm.prank(alice);
+        size.setAuthorization(
+            SetAuthorizationParams({
+                operator: address(0),
+                action: ISize.sellCreditMarket.selector,
+                isActionAuthorized: true
+            })
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTION.selector, bytes4(0)));
+        vm.prank(alice);
+        size.setAuthorization(SetAuthorizationParams({operator: bob, action: bytes4(0), isActionAuthorized: true}));
+    }
 }
