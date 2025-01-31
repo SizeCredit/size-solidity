@@ -79,6 +79,26 @@ A contract that provides the price of ETH in terms of USDC in 18 decimals. For e
 
 In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation on Aave's rate, convert it to 18 decimals, and store it in the Size contract. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000. The admin can disable this feature by setting the stale interval to zero. If the oracle information is stale, orders relying on the variable rate feed cannot be matched.
 
+#### Authorization
+
+Users can authorize other operator accounts to perform any action on their behalf through a new `setAuthorization` method introduced in Size v1.7. This enables users to delegate all Size functionalities to third parties, enabling more complex strategies and automations.
+
+This powerful capability comes with associated risks, and, as such, users must take extra care regarding whom and what they authorize, and should only authorize operators they fully trust, such as non-upgradeable safe audited smart contracts or wallets they control. A recommended pattern is to authorize these pre-vetted smart contracts in the beginning of a `multicall` operation, and revoke the authorization at the end of it.
+
+A non-exhaustive list of the risks of improper authorization includes:
+
+- Authorizing `deposit` enables the operator to deposit user funds to their account
+- Authorizing `withdraw` enables the operator to withdraw user funds to their account
+- Authorizing `sellCreditLimit` enables the operator to set sub-optimal borrow offers
+- Authorizing `buyCreditLimit` enables the operator to set sub-optimal loan offers
+- Authorizing both `buyCreditLimit` and `sellCreditLimit` enables the operator to set the borrow offer above the loan offer and create a self-arbitrage opportunity for the user
+- Authorizing `sellCreditMarket` enables the operator to borrow on behalf of the user and send the borrowed cash to their account
+- Authorizing `buyCreditMarket` enables the operator to lend on behalf of the user and send the credit to their account
+- Authorizing `selfLiquidate` enables the operator to self liquidate on their behalf when the debt position is likely to become liquidatable in the short term
+- Authorizing `compensate` enables the operator to compensate loans on their behalf from risky debt positions
+- Authorizing `setUserConfiguration` enables the operator to change opening CR and other important account configurations
+- Authorizing `setAuthorization` enables the operator to authorize other operators
+
 ## Test
 
 ```bash

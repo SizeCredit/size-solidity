@@ -10,7 +10,7 @@ import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationSellCreditMarketTest is BaseTest {
-    function test_AuthorizationSellCreditMarket_sellCreditMarket() public {
+    function test_AuthorizationSellCreditMarket_sellCreditMarketOnBehalfOf() public {
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 100e18);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));

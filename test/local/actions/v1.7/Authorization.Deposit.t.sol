@@ -10,7 +10,7 @@ import {DepositOnBehalfOfParams, DepositParams} from "@src/libraries/actions/Dep
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationDepositTest is BaseTest {
-    function test_AuthorizationDeposit_deposit() public {
+    function test_AuthorizationDeposit_depositOnBehalfOf() public {
         _setAuthorization(alice, bob, ISize.deposit.selector, true);
 
         _mint(address(usdc), alice, 1e6);
