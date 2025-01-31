@@ -16,7 +16,6 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
@@ -260,15 +259,6 @@ library Initialize {
             string.concat("Size ", IERC20Metadata(state.data.underlyingCollateralToken).name()),
             string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
             IERC20Metadata(state.data.underlyingCollateralToken).decimals()
-        );
-        // new markets still have a NonTransferrableScaledTokenV1_2 even though it is never used
-        state.data.borrowATokenV1_2 = new NonTransferrableScaledTokenV1_2(
-            state.data.variablePool,
-            state.data.underlyingBorrowToken,
-            address(this),
-            string.concat("Size Scaled ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
-            string.concat("sza", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
-            IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
         state.data.debtToken = new NonTransferrableToken(
             address(this),

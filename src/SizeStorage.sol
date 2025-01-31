@@ -10,7 +10,6 @@ import {LimitOrder} from "@src/libraries/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
@@ -85,8 +84,8 @@ struct Data {
     IERC20Metadata underlyingBorrowToken;
     // Size deposit underlying collateral token
     NonTransferrableToken collateralToken;
-    // Size deposit underlying borrow aToken v1.2
-    NonTransferrableScaledTokenV1_2 borrowATokenV1_2;
+    // Size deposit underlying borrow aToken v1.2 (deprecated)
+    address ___deprecated_borrowATokenV1_2;
     // Size tokenized debt
     NonTransferrableToken debtToken;
     // Variable Pool (Aave v3)
