@@ -11,12 +11,14 @@ import {
     SetUserConfigurationOnBehalfOfParams,
     SetUserConfigurationParams
 } from "@src/libraries/actions/SetUserConfiguration.sol";
+
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationSetUserConfigurationTest is BaseTest {
     function test_AuthorizationSetUserConfiguration_setUserConfigurationOnBehalfOf() public {
-        _setAuthorization(alice, candy, ISize.setUserConfiguration.selector, true);
+        _setAuthorization(alice, candy, Authorization.getActionsBitmap(ISize.setUserConfiguration.selector));
 
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);

@@ -6,12 +6,14 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {CompensateOnBehalfOfParams, CompensateParams} from "@src/libraries/actions/Compensate.sol";
+
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationCompensateTest is BaseTest {
     function test_AuthorizationCompensate_compensateOnBehalfOf() public {
-        _setAuthorization(alice, candy, ISize.compensate.selector, true);
+        _setAuthorization(alice, candy, Authorization.getActionsBitmap(ISize.compensate.selector));
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);

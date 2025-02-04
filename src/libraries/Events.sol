@@ -79,8 +79,9 @@ library Events {
         uint256[] creditPositionIds
     );
     event SetAuthorization(
-        address indexed sender, address indexed operator, bytes4 indexed action, bool isActionAuthorized
+        address indexed sender, address indexed operator, uint256 indexed actionsBitmap, uint256 nonce
     ); // v1.7
+    event RevokeAllAuthorizations(address indexed sender); // v1.7
     event OnBehalfOfParams(
         address indexed sender, address indexed onBehalfOf, bytes4 indexed action, address recipient
     ); // v1.7

@@ -7,11 +7,13 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {DepositOnBehalfOfParams, DepositParams} from "@src/libraries/actions/Deposit.sol";
+
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationDepositTest is BaseTest {
     function test_AuthorizationDeposit_depositOnBehalfOf() public {
-        _setAuthorization(alice, bob, ISize.deposit.selector, true);
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(ISize.deposit.selector));
 
         _mint(address(usdc), alice, 1e6);
         _approve(alice, address(usdc), address(size), 1e6);

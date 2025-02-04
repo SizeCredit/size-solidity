@@ -6,12 +6,14 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {SelfLiquidateOnBehalfOfParams, SelfLiquidateParams} from "@src/libraries/actions/SelfLiquidate.sol";
+
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationSelfLiquidateTest is BaseTest {
     function test_AuthorizationSelfLiquidate_selfLiquidateOnBehalfOf() public {
-        _setAuthorization(alice, candy, ISize.selfLiquidate.selector, true);
+        _setAuthorization(alice, candy, Authorization.getActionsBitmap(ISize.selfLiquidate.selector));
 
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);

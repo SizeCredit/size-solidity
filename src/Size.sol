@@ -423,4 +423,9 @@ contract Size is
         state.validateSetAuthorization(externalParams);
         state.executeSetAuthorization(externalParams);
     }
+
+    /// @inheritdoc ISizeV1_7
+    function revokeAllAuthorizations() external payable override(ISizeV1_7) {
+        state.revokeAllAuthorizations();
+    }
 }

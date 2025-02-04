@@ -95,8 +95,11 @@ struct Data {
     // Size deposit underlying borrow aToken v1.5
     NonTransferrableScaledTokenV1_5 borrowATokenV1_5;
     // mapping of authorized actions for operators per account v1.7
-    mapping(address onBehalfOf => mapping(address operator => mapping(bytes4 action => bool isActionAuthorized)))
-        authorizations;
+    mapping(
+        address onBehalfOf => mapping(uint256 nonce => mapping(address operator => uint256 authorizedActionsBitmap))
+    ) authorizations;
+    // mapping of authorization nonces per account v1.7
+    mapping(address onBehalfOf => uint256 nonce) authorizationNonces;
 }
 
 struct State {

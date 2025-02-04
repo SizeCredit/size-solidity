@@ -23,16 +23,20 @@ interface ISizeV1_7 {
     /// @notice Set the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
     /// @param params SetAuthorizationParams struct containing the following fields:
     ///     - address operator: The operator account
-    ///     - bytes4 action: The action
-    ///     - bool isActionAuthorized: The new authorization status
-    /// @dev Actions are encoded as bytes4 values because all external actions can be uniquely determined by their function selectors
-    ///      The action identifier is the function selector of the simple version, not the selector of the `OnBehalfOf` version
+    ///     - uint256 actionsBitmap: The actions bitmap
+    /// @dev Actions bitmap are encoded a uint256 value because all external actions can fit in a uint256
+    ///      To construct the actionsBitmap, the `Authorization.getActionsBitmap` functions can be used
     ///      Not all actions require authorization (for example, `repay`, `liquidate`, etc.)
-    ///      It is not possible to authorize/revoke all actions at once
+    ///      In order to possible to authorize/revoke many actions at once, simply construct the actions bitmap using bitmap operations
+    ///      For example, to revoke an operator, simply set the authorization bitmap for that operator to `uint256(0)`
+    ///      To revoke all authorizations for all operators at once, use `revokeAllAuthorizations`
     function setAuthorization(SetAuthorizationParams calldata params) external;
 
     /// @notice Same as `setAuthorization` but `onBehalfOf`
     function setAuthorizationOnBehalfOf(SetAuthorizationOnBehalfOfParams memory params) external payable;
+
+    /// @notice Revoke all authorizations for the `msg.sender` account
+    function revokeAllAuthorizations() external payable;
 
     /// @notice Same as `deposit` but `onBehalfOf`
     function depositOnBehalfOf(DepositOnBehalfOfParams memory params) external payable;

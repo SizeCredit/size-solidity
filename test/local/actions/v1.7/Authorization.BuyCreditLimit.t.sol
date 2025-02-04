@@ -9,13 +9,15 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {BuyCreditLimitOnBehalfOfParams, BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
+
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationBuyCreditLimitTest is BaseTest {
     using OfferLibrary for LimitOrder;
 
     function test_AuthorizationBuyCreditLimit_buyCreditLimitOnBehalfOf() public {
-        _setAuthorization(alice, bob, ISize.buyCreditLimit.selector, true);
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(ISize.buyCreditLimit.selector));
 
         _deposit(alice, weth, 100e18);
         uint256[] memory tenors = new uint256[](2);

@@ -11,10 +11,11 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START} from "@src/libraries/LoanLibrary.sol";
 import {BuyCreditMarketOnBehalfOfParams, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 
 contract AuthorizationBuyCreditMarketTest is BaseTest {
     function test_AuthorizationBuyCreditMarket_buyCreditMarketOnBehalfOf() public {
-        _setAuthorization(bob, candy, ISize.buyCreditMarket.selector, true);
+        _setAuthorization(bob, candy, Authorization.getActionsBitmap(ISize.buyCreditMarket.selector));
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);

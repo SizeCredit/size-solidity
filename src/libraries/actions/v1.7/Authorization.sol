@@ -9,35 +9,89 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
 struct SetAuthorizationParams {
+    // The operator account
     address operator;
-    bytes4 action;
-    bool isActionAuthorized;
+    // The actions bitmap
+    uint256 actionsBitmap;
 }
 
 struct SetAuthorizationOnBehalfOfParams {
+    // The parameters for setting the authorization
     SetAuthorizationParams params;
+    // The account to set the authorization for
     address onBehalfOf;
+}
+
+/// @notice The actions that can be authorized
+/// @dev Do not change the order of the enum values, or the authorizations will change
+enum Action {
+    DEPOSIT,
+    WITHDRAW,
+    BUY_CREDIT_LIMIT,
+    SELL_CREDIT_LIMIT,
+    BUY_CREDIT_MARKET,
+    SELL_CREDIT_MARKET,
+    SELF_LIQUIDATE,
+    COMPENSATE,
+    SET_USER_CONFIGURATION,
+    SET_AUTHORIZATION
 }
 
 /// @title Authorization
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
+/// @dev This library is used to manage the authorization of actions for an operator account to perform on behalf of the `onBehalfOf` account
+///      The actions are stored in a bitmap, where each bit represents an action
+///      While all values between 0 and maxBitmap are technically valid according to the validation check, it's worth noting that:
+///      The bitmap created using `getActionsBitmap` only sets specific bits corresponding to valid function selectors, so in practice, only certain combinations will be used
+///      The validation is permissive by design - it only ensures no bits beyond the maximum action are set, rather than enforcing that only specific combinations are allowed
 library Authorization {
     /// @notice Set the authorization for an action for an `operator` account to perform on behalf of the `onBehalfOf` account
     /// @param state The state struct
     /// @param onBehalfOf The account on behalf of which the action is authorized
     /// @param operator The operator account
+    /// @param actionsBitmap The actions bitmap
+    function _setAuthorization(State storage state, address onBehalfOf, address operator, uint256 actionsBitmap)
+        private
+    {
+        uint256 nonce = state.data.authorizationNonces[onBehalfOf];
+        emit Events.SetAuthorization(onBehalfOf, operator, actionsBitmap, nonce);
+        state.data.authorizations[onBehalfOf][nonce][operator] = actionsBitmap;
+    }
+
+    /// @notice Get the action bit for an action
     /// @param action The action
-    /// @param isActionAuthorized The new authorization status
-    function _setAuthorization(
-        State storage state,
-        address onBehalfOf,
-        address operator,
-        bytes4 action,
-        bool isActionAuthorized
-    ) private {
-        emit Events.SetAuthorization(onBehalfOf, operator, action, isActionAuthorized);
-        state.data.authorizations[onBehalfOf][operator][action] = isActionAuthorized;
+    /// @return The action bit
+    function _getActionBit(bytes4 action) private pure returns (uint256) {
+        if (action == ISize.deposit.selector) return uint256(Action.DEPOSIT);
+        else if (action == ISize.withdraw.selector) return uint256(Action.WITHDRAW);
+        else if (action == ISize.buyCreditLimit.selector) return uint256(Action.BUY_CREDIT_LIMIT);
+        else if (action == ISize.sellCreditLimit.selector) return uint256(Action.SELL_CREDIT_LIMIT);
+        else if (action == ISize.buyCreditMarket.selector) return uint256(Action.BUY_CREDIT_MARKET);
+        else if (action == ISize.sellCreditMarket.selector) return uint256(Action.SELL_CREDIT_MARKET);
+        else if (action == ISize.selfLiquidate.selector) return uint256(Action.SELF_LIQUIDATE);
+        else if (action == ISize.compensate.selector) return uint256(Action.COMPENSATE);
+        else if (action == ISize.setUserConfiguration.selector) return uint256(Action.SET_USER_CONFIGURATION);
+        else if (action == ISizeV1_7.setAuthorization.selector) return uint256(Action.SET_AUTHORIZATION);
+        else revert Errors.INVALID_ACTION(action);
+    }
+
+    /// @notice Get the actions bitmap for an action
+    /// @param action The action
+    /// @return The actions bitmap
+    function getActionsBitmap(bytes4 action) internal pure returns (uint256) {
+        return 1 << _getActionBit(action);
+    }
+
+    /// @notice Get the actions bitmap for an array of actions
+    /// @param actions The array of actions
+    /// @return The actions bitmap
+    function getActionsBitmap(bytes4[] memory actions) internal pure returns (uint256) {
+        uint256 actionsBitmap = 0;
+        for (uint256 i = 0; i < actions.length; i++) {
+            actionsBitmap |= getActionsBitmap(actions[i]);
+        }
+        return actionsBitmap;
     }
 
     /// @notice Check if an action is authorized by the `onBehalfOf` account for the `operator` account to perform
@@ -51,7 +105,8 @@ library Authorization {
         view
         returns (bool)
     {
-        return state.data.authorizations[onBehalfOf][operator][action];
+        uint256 nonce = state.data.authorizationNonces[onBehalfOf];
+        return (state.data.authorizations[onBehalfOf][nonce][operator] & getActionsBitmap(action)) != 0;
     }
 
     /// @notice Check if the `onBehalfOf` account is the `msg.sender` account or if `msg.sender` is the operator authorized to perform the `action`
@@ -87,18 +142,10 @@ library Authorization {
             revert Errors.NULL_ADDRESS();
         }
 
-        // validate action
-        if (
-            !(
-                params.action == ISize.deposit.selector || params.action == ISize.withdraw.selector
-                    || params.action == ISize.buyCreditLimit.selector || params.action == ISize.sellCreditLimit.selector
-                    || params.action == ISize.buyCreditMarket.selector || params.action == ISize.sellCreditMarket.selector
-                    || params.action == ISize.selfLiquidate.selector || params.action == ISize.compensate.selector
-                    || params.action == ISize.setUserConfiguration.selector
-                    || params.action == ISizeV1_7.setAuthorization.selector
-            )
-        ) {
-            revert Errors.INVALID_ACTION(params.action);
+        // validate actionsBitmap
+        uint256 maxBitmap = (1 << (uint256(Action.SET_AUTHORIZATION) + 1)) - 1;
+        if (params.actionsBitmap > maxBitmap) {
+            revert Errors.INVALID_ACTIONS_BITMAP(params.actionsBitmap);
         }
 
         // validate isActionAuthorized
@@ -113,6 +160,11 @@ library Authorization {
     {
         SetAuthorizationParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
-        _setAuthorization(state, onBehalfOf, params.operator, params.action, params.isActionAuthorized);
+        _setAuthorization(state, onBehalfOf, params.operator, params.actionsBitmap);
+    }
+
+    function revokeAllAuthorizations(State storage state) internal {
+        emit Events.RevokeAllAuthorizations(msg.sender);
+        state.data.authorizationNonces[msg.sender]++;
     }
 }
