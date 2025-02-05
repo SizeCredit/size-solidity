@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {State} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {VariablePoolBorrowRateParams, YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
@@ -12,6 +13,17 @@ struct LimitOrder {
     uint256 maxDueDate;
     // The yield curve in relative terms
     YieldCurve curveRelativeTime;
+}
+
+struct CopyLimitOrder {
+    // the minimum tenor of the copied offer
+    uint256 minTenor;
+    // the maximum tenor of the copied offer
+    uint256 maxTenor;
+    // the minimum APR of the copied offer
+    uint256 minAPR;
+    // the maximum APR of the copied offer
+    uint256 maxAPR;
 }
 
 /// @title OfferLibrary
@@ -70,5 +82,27 @@ library OfferLibrary {
     {
         uint256 apr = getAPRByTenor(self, params, tenor);
         return Math.aprToRatePerTenor(apr, tenor);
+    }
+
+    function isNull(CopyLimitOrder memory self) internal pure returns (bool) {
+        return self.minTenor == 0 && self.maxTenor == 0 && self.minAPR == 0 && self.maxAPR == 0;
+    }
+
+    function getLoanOffer(State storage state, address user) internal view returns (LimitOrder memory) {
+        address copyAddress = state.data.usersCopyLimitOrders[user].copyAddress;
+        if (copyAddress == address(0)) {
+            return state.data.users[user].loanOffer;
+        } else {
+            return state.data.users[copyAddress].loanOffer;
+        }
+    }
+
+    function getBorrowOffer(State storage state, address user) internal view returns (LimitOrder memory) {
+        address copyAddress = state.data.usersCopyLimitOrders[user].copyAddress;
+        if (copyAddress == address(0)) {
+            return state.data.users[user].borrowOffer;
+        } else {
+            return state.data.users[copyAddress].borrowOffer;
+        }
     }
 }

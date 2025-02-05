@@ -78,6 +78,18 @@ library Events {
         bool creditPositionIdsForSale,
         uint256[] creditPositionIds
     );
+    event CopyLimitOrders(
+        address indexed sender,
+        address indexed copyAddress,
+        uint256 minTenorLoanOffer,
+        uint256 maxTenorLoanOffer,
+        uint256 minAPRLoanOffer,
+        uint256 maxAPRLoanOffer,
+        uint256 minTenorBorrowOffer,
+        uint256 maxTenorBorrowOffer,
+        uint256 minAPRBorrowOffer,
+        uint256 maxAPRBorrowOffer
+    ); // v1.6.1
 
     // creates
 
