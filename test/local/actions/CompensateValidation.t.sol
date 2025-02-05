@@ -134,7 +134,7 @@ contract CompensateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        vm.startPrank(bob);
+        vm.startPrank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_CREDIT_POSITION_ID.selector, debtPositionId));
         size.compensate(
             CompensateParams({
