@@ -39,6 +39,7 @@ struct SellCreditMarketParams {
 /// @notice Contains the logic for selling credit (borrowing) as a market order
 library SellCreditMarket {
     using OfferLibrary for LimitOrder;
+    using OfferLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
@@ -109,14 +110,7 @@ library SellCreditMarket {
         }
 
         // validate maxAPR
-        uint256 apr = loanOffer.getAPRByTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
+        uint256 apr = state.getLoanOfferAPRByTenor(params.lender, tenor);
         if (apr > params.maxAPR) {
             revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
         }
@@ -143,14 +137,7 @@ library SellCreditMarket {
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        uint256 ratePerTenor = state.data.users[params.lender].loanOffer.getRatePerTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            swapData.tenor
-        );
+        uint256 ratePerTenor = state.getLoanOfferRatePerTenor(params.lender, swapData.tenor);
 
         if (params.exactAmountIn) {
             swapData.creditAmountIn = params.amount;

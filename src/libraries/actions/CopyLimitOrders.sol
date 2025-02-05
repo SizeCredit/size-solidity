@@ -19,6 +19,9 @@ struct CopyLimitOrdersParams {
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic for copying limit orders
+/// @dev Must not allow copy offer params to be non-null if the copyAddress is null
+/// @dev Can allow at most one copy offer params to be null if the copyAddress is non-null
+/// TODO review this
 library CopyLimitOrders {
     using OfferLibrary for CopyLimitOrder;
 

@@ -39,6 +39,7 @@ struct BuyCreditMarketParams {
 /// @notice Contains the logic for buying credit (lending) as a market order
 library BuyCreditMarket {
     using OfferLibrary for LimitOrder;
+    using OfferLibrary for State;
     using AccountingLibrary for State;
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
@@ -113,14 +114,7 @@ library BuyCreditMarket {
         }
 
         // validate minAPR
-        uint256 apr = borrowOffer.getAPRByTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
+        uint256 apr = state.getBorrowOfferAPRByTenor(borrower, tenor);
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
@@ -149,14 +143,7 @@ library BuyCreditMarket {
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        uint256 ratePerTenor = state.data.users[swapData.borrower].borrowOffer.getRatePerTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            swapData.tenor
-        );
+        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(swapData.borrower, swapData.tenor);
 
         if (params.exactAmountIn) {
             swapData.cashAmountIn = params.amount;

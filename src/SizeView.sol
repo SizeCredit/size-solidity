@@ -149,34 +149,12 @@ abstract contract SizeView is SizeStorage, ISizeView {
 
     /// @inheritdoc ISizeView
     function getBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256) {
-        LimitOrder memory offer = OfferLibrary.getBorrowOffer(state, borrower);
-        if (offer.isNull()) {
-            revert Errors.NULL_OFFER();
-        }
-        return offer.getAPRByTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
+        return state.getBorrowOfferAPRByTenor(borrower, tenor);
     }
 
     /// @inheritdoc ISizeView
     function getLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
-        LimitOrder memory offer = OfferLibrary.getLoanOffer(state, lender);
-        if (offer.isNull()) {
-            revert Errors.NULL_OFFER();
-        }
-        return offer.getAPRByTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
+        return state.getLoanOfferAPRByTenor(lender, tenor);
     }
 
     /// @inheritdoc ISizeView

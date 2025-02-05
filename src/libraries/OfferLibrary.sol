@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {State} from "@src/SizeStorage.sol";
+import {State, UserCopyLimitOrders} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {VariablePoolBorrowRateParams, YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
@@ -56,53 +56,136 @@ library OfferLibrary {
         YieldCurveLibrary.validateYieldCurve(self.curveRelativeTime, minTenor, maxTenor);
     }
 
-    /// @notice Get the APR by tenor of a limit order
-    /// @param self The limit order
-    /// @param params The variable pool borrow rate params
+    /// @notice Get the APR by tenor of a loan offer
+    /// @param state The state
+    /// @param user The user
     /// @param tenor The tenor
     /// @return The APR
-    function getAPRByTenor(LimitOrder memory self, VariablePoolBorrowRateParams memory params, uint256 tenor)
+    function getLoanOfferAPRByTenor(State storage state, address user, uint256 tenor) internal view returns (uint256) {
+        if (tenor == 0) revert Errors.NULL_TENOR();
+
+        (LimitOrder memory loanOffer, CopyLimitOrder memory copyLimitOrder) = _getLoanOfferWithBounds(state, user);
+        if (isNull(loanOffer)) {
+            revert Errors.NULL_OFFER();
+        }
+
+        uint256 apr = YieldCurveLibrary.getAPR(
+            loanOffer.curveRelativeTime,
+            VariablePoolBorrowRateParams({
+                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+            }),
+            tenor
+        );
+        if (apr < copyLimitOrder.minAPR) {
+            return copyLimitOrder.minAPR;
+        }
+        if (apr > copyLimitOrder.maxAPR) {
+            return copyLimitOrder.maxAPR;
+        }
+        return apr;
+    }
+
+    /// @notice Get the absolute rate per tenor of a loan offer
+    /// @param state The state
+    /// @param user The user
+    /// @param tenor The tenor
+    /// @return The absolute rate
+    function getLoanOfferRatePerTenor(State storage state, address user, uint256 tenor)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 apr = getLoanOfferAPRByTenor(state, user, tenor);
+        return Math.aprToRatePerTenor(apr, tenor);
+    }
+
+    /// @notice Get the APR by tenor of a borrow offer
+    /// @param state The state
+    /// @param user The user
+    /// @param tenor The tenor
+    /// @return The APR
+    function getBorrowOfferAPRByTenor(State storage state, address user, uint256 tenor)
         internal
         view
         returns (uint256)
     {
         if (tenor == 0) revert Errors.NULL_TENOR();
-        return YieldCurveLibrary.getAPR(self.curveRelativeTime, params, tenor);
+
+        (LimitOrder memory borrowOffer, CopyLimitOrder memory copyLimitOrder) = _getBorrowOfferWithBounds(state, user);
+
+        uint256 apr = YieldCurveLibrary.getAPR(
+            borrowOffer.curveRelativeTime,
+            VariablePoolBorrowRateParams({
+                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+            }),
+            tenor
+        );
+        if (apr < copyLimitOrder.minAPR) {
+            return copyLimitOrder.minAPR;
+        }
+        if (apr > copyLimitOrder.maxAPR) {
+            return copyLimitOrder.maxAPR;
+        }
+        return apr;
     }
 
-    /// @notice Get the absolute rate per tenor of a limit order
-    /// @param self The limit order
-    /// @param params The variable pool borrow rate params
-    /// @param tenor The tenor
-    /// @return The absolute rate
-    function getRatePerTenor(LimitOrder memory self, VariablePoolBorrowRateParams memory params, uint256 tenor)
+    function getBorrowOfferRatePerTenor(State storage state, address user, uint256 tenor)
         internal
         view
         returns (uint256)
     {
-        uint256 apr = getAPRByTenor(self, params, tenor);
+        uint256 apr = getBorrowOfferAPRByTenor(state, user, tenor);
         return Math.aprToRatePerTenor(apr, tenor);
     }
 
+    /// @notice Check if the copy limit order is null
+    /// @param self The copy limit order
+    /// @return True if the copy limit order is null, false otherwise
     function isNull(CopyLimitOrder memory self) internal pure returns (bool) {
         return self.minTenor == 0 && self.maxTenor == 0 && self.minAPR == 0 && self.maxAPR == 0;
     }
 
-    function getLoanOffer(State storage state, address user) internal view returns (LimitOrder memory) {
-        address copyAddress = state.data.usersCopyLimitOrders[user].copyAddress;
-        if (copyAddress == address(0)) {
-            return state.data.users[user].loanOffer;
+    /// @notice Get the loan offer with bounds
+    /// @param state The state
+    /// @param user The user
+    /// @return The loan offer and the copy limit order
+    function _getLoanOfferWithBounds(State storage state, address user)
+        private
+        view
+        returns (LimitOrder memory, CopyLimitOrder memory)
+    {
+        UserCopyLimitOrders memory userCopyLimitOrders = state.data.usersCopyLimitOrders[user];
+        if (isNull(userCopyLimitOrders.copyLoanOffer)) {
+            return (
+                state.data.users[user].loanOffer,
+                CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max})
+            );
         } else {
-            return state.data.users[copyAddress].loanOffer;
+            return (state.data.users[userCopyLimitOrders.copyAddress].loanOffer, userCopyLimitOrders.copyLoanOffer);
         }
     }
 
-    function getBorrowOffer(State storage state, address user) internal view returns (LimitOrder memory) {
-        address copyAddress = state.data.usersCopyLimitOrders[user].copyAddress;
-        if (copyAddress == address(0)) {
-            return state.data.users[user].borrowOffer;
+    /// @notice Get the borrow offer with bounds
+    /// @param state The state
+    /// @param user The user
+    /// @return The borrow offer and the copy limit order
+    function _getBorrowOfferWithBounds(State storage state, address user)
+        private
+        view
+        returns (LimitOrder memory, CopyLimitOrder memory)
+    {
+        UserCopyLimitOrders memory userCopyLimitOrders = state.data.usersCopyLimitOrders[user];
+        if (isNull(userCopyLimitOrders.copyBorrowOffer)) {
+            return (
+                state.data.users[user].borrowOffer,
+                CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max})
+            );
         } else {
-            return state.data.users[copyAddress].borrowOffer;
+            return (state.data.users[userCopyLimitOrders.copyAddress].borrowOffer, userCopyLimitOrders.copyBorrowOffer);
         }
     }
 }

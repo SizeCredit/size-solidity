@@ -36,6 +36,7 @@ struct LiquidateWithReplacementParams {
 library LiquidateWithReplacement {
     using LoanLibrary for CreditPosition;
     using OfferLibrary for LimitOrder;
+    using OfferLibrary for State;
 
     using LoanLibrary for State;
     using Liquidate for State;
@@ -78,14 +79,7 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        uint256 apr = borrowOffer.getAPRByTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
+        uint256 apr = state.getBorrowOfferAPRByTenor(params.borrower, tenor);
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
@@ -143,14 +137,7 @@ library LiquidateWithReplacement {
             })
         );
 
-        uint256 ratePerTenor = borrowOffer.getRatePerTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
+        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(params.borrower, tenor);
         issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
         liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 
