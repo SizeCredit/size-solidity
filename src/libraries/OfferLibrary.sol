@@ -24,6 +24,8 @@ struct CopyLimitOrder {
     uint256 minAPR;
     // the maximum APR of the copied offer
     uint256 maxAPR;
+    // the offset APR relative to the copied offer (currently unused)
+    int256 offsetAPR;
 }
 
 /// @title OfferLibrary
@@ -65,8 +67,13 @@ library OfferLibrary {
         if (tenor == 0) revert Errors.NULL_TENOR();
 
         (LimitOrder memory loanOffer, CopyLimitOrder memory copyLimitOrder) = _getLoanOfferWithBounds(state, user);
+
         if (isNull(loanOffer)) {
             revert Errors.NULL_OFFER();
+        }
+
+        if (tenor < copyLimitOrder.minTenor || tenor > copyLimitOrder.maxTenor) {
+            revert Errors.TENOR_OUT_OF_RANGE(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
         }
 
         uint256 apr = YieldCurveLibrary.getAPR(
@@ -115,6 +122,14 @@ library OfferLibrary {
 
         (LimitOrder memory borrowOffer, CopyLimitOrder memory copyLimitOrder) = _getBorrowOfferWithBounds(state, user);
 
+        if (isNull(borrowOffer)) {
+            revert Errors.NULL_OFFER();
+        }
+
+        if (tenor < copyLimitOrder.minTenor || tenor > copyLimitOrder.maxTenor) {
+            revert Errors.TENOR_OUT_OF_RANGE(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
+        }
+
         uint256 apr = YieldCurveLibrary.getAPR(
             borrowOffer.curveRelativeTime,
             VariablePoolBorrowRateParams({
@@ -146,7 +161,7 @@ library OfferLibrary {
     /// @param self The copy limit order
     /// @return True if the copy limit order is null, false otherwise
     function isNull(CopyLimitOrder memory self) internal pure returns (bool) {
-        return self.minTenor == 0 && self.maxTenor == 0 && self.minAPR == 0 && self.maxAPR == 0;
+        return self.minTenor == 0 && self.maxTenor == 0 && self.minAPR == 0 && self.maxAPR == 0 && self.offsetAPR == 0;
     }
 
     /// @notice Get the loan offer with bounds
@@ -162,7 +177,13 @@ library OfferLibrary {
         if (isNull(userCopyLimitOrders.copyLoanOffer)) {
             return (
                 state.data.users[user].loanOffer,
-                CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max})
+                CopyLimitOrder({
+                    minTenor: 0,
+                    maxTenor: type(uint256).max,
+                    minAPR: 0,
+                    maxAPR: type(uint256).max,
+                    offsetAPR: 0
+                })
             );
         } else {
             return (state.data.users[userCopyLimitOrders.copyAddress].loanOffer, userCopyLimitOrders.copyLoanOffer);
@@ -182,7 +203,13 @@ library OfferLibrary {
         if (isNull(userCopyLimitOrders.copyBorrowOffer)) {
             return (
                 state.data.users[user].borrowOffer,
-                CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max})
+                CopyLimitOrder({
+                    minTenor: 0,
+                    maxTenor: type(uint256).max,
+                    minAPR: 0,
+                    maxAPR: type(uint256).max,
+                    offsetAPR: 0
+                })
             );
         } else {
             return (state.data.users[userCopyLimitOrders.copyAddress].borrowOffer, userCopyLimitOrders.copyBorrowOffer);

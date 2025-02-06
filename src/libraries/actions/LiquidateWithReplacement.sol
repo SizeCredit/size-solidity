@@ -126,7 +126,6 @@ library LiquidateWithReplacement {
 
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
         DebtPosition memory debtPositionCopy = debtPosition;
-        LimitOrder storage borrowOffer = state.data.users[params.borrower].borrowOffer;
         uint256 tenor = debtPositionCopy.dueDate - block.timestamp;
 
         liquidatorProfitCollateralToken = state.executeLiquidate(

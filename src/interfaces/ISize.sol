@@ -188,6 +188,7 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
     ///       - uint256 maxTenor: The maximum tenor of the borrow offer to copy
     ///       - uint256 minAPR: The minimum APR of the borrow offer to copy
     ///       - uint256 maxAPR: The maximum APR of the borrow offer to copy
+    ///       - int256 offsetAPR: The offset APR relative to the copied offer (currently unused)
     /// @dev Does not erase the user's loan offer and borrow offer
     function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable;
 }
