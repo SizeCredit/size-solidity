@@ -79,6 +79,19 @@ A contract that provides the price of ETH in terms of USDC in 18 decimals. For e
 
 In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation on Aave's rate, convert it to 18 decimals, and store it in the Size contract. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000. The admin can disable this feature by setting the stale interval to zero. If the oracle information is stale, orders relying on the variable rate feed cannot be matched.
 
+#### Copy trading
+
+Since Size v1.6.1, users can copy other users' limit orders.
+
+- Users can copy borrow/loan offers from other users
+- Users can copy both or a single offer from a single address
+- Users can specify safeguards per copied curve:
+  - min/max APR (safety envelope): if the calculated APR falls outside of this range, the min/max is used instead
+  - min/max tenor: if the requested tenor goes outside of this range, the market order reverts
+- Users can specify offset APRs to be applied to the curves (currently unused)
+
+Note: there is a risk in copying another account's limit orders, since they can place suboptimal rates and incur monetary losses.
+
 ## Test
 
 ```bash

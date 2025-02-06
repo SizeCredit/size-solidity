@@ -66,6 +66,12 @@ library CopyLimitOrders {
                 revert Errors.NULL_ADDRESS();
             }
         }
+
+        // validate copyLoanOffer.offsetAPR
+        // N/A
+
+        // validate copyBorrowOffer.offsetAPR
+        // N/A
     }
 
     /// @notice Executes the copying of limit orders
@@ -79,10 +85,12 @@ library CopyLimitOrders {
             params.copyLoanOffer.maxTenor,
             params.copyLoanOffer.minAPR,
             params.copyLoanOffer.maxAPR,
+            params.copyLoanOffer.offsetAPR,
             params.copyBorrowOffer.minTenor,
             params.copyBorrowOffer.maxTenor,
             params.copyBorrowOffer.minAPR,
-            params.copyBorrowOffer.maxAPR
+            params.copyBorrowOffer.maxAPR,
+            params.copyBorrowOffer.offsetAPR
         );
 
         state.data.usersCopyLimitOrders[msg.sender] = UserCopyLimitOrders({

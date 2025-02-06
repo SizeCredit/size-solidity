@@ -85,10 +85,12 @@ library Events {
         uint256 maxTenorLoanOffer,
         uint256 minAPRLoanOffer,
         uint256 maxAPRLoanOffer,
+        int256 offsetAPRLoanOffer,
         uint256 minTenorBorrowOffer,
         uint256 maxTenorBorrowOffer,
         uint256 minAPRBorrowOffer,
-        uint256 maxAPRBorrowOffer
+        uint256 maxAPRBorrowOffer,
+        int256 offsetAPRBorrowOffer
     ); // v1.6.1
 
     // creates
