@@ -19,16 +19,16 @@ struct CopyLimitOrdersParams {
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic for copying limit orders
-/// @dev Must not allow copy offer params to be non-null if the copyAddress is null
-/// @dev Can allow at most one copy offer params to be null if the copyAddress is non-null
-/// TODO review this
+/// @dev Invariants:
+///      - copyAddress != address(0) <=> at least one of copyLoanOffer or copyBorrowOffer is non-null
+///      - copyAddress == address(0) <=> both copyLoanOffer and copyBorrowOffer are null
 library CopyLimitOrders {
     using OfferLibrary for CopyLimitOrder;
 
     /// @notice Validates the input parameters for copying limit orders
-    /// @param state The state
     /// @param params The input parameters for copying limit orders
-    function validateCopyLimitOrders(State storage state, CopyLimitOrdersParams calldata params) external view {
+    /// @dev Does not validate against riskConfig.minTenor or riskConfig.maxTenor since these are already enforced during limit order creation
+    function validateCopyLimitOrders(State storage, CopyLimitOrdersParams calldata params) external pure {
         // validate msg.sender
         // N/A
 
@@ -38,19 +38,7 @@ library CopyLimitOrders {
         if (!params.copyLoanOffer.isNull()) {
             bothNull = false;
             // validate copyLoanOffer.minTenor
-            if (params.copyLoanOffer.minTenor < state.riskConfig.minTenor) {
-                revert Errors.TENOR_OUT_OF_RANGE(
-                    params.copyLoanOffer.minTenor, state.riskConfig.minTenor, state.riskConfig.maxTenor
-                );
-            }
-
             // validate copyLoanOffer.maxTenor
-            if (params.copyLoanOffer.maxTenor > state.riskConfig.maxTenor) {
-                revert Errors.TENOR_OUT_OF_RANGE(
-                    params.copyLoanOffer.maxTenor, state.riskConfig.minTenor, state.riskConfig.maxTenor
-                );
-            }
-
             if (params.copyLoanOffer.minTenor > params.copyLoanOffer.maxTenor) {
                 revert Errors.INVALID_TENOR_RANGE(params.copyLoanOffer.minTenor, params.copyLoanOffer.maxTenor);
             }
@@ -60,19 +48,7 @@ library CopyLimitOrders {
         if (!params.copyBorrowOffer.isNull()) {
             bothNull = false;
             // validate copyBorrowOffer.minTenor
-            if (params.copyBorrowOffer.minTenor < state.riskConfig.minTenor) {
-                revert Errors.TENOR_OUT_OF_RANGE(
-                    params.copyBorrowOffer.minTenor, state.riskConfig.minTenor, state.riskConfig.maxTenor
-                );
-            }
-
             // validate copyBorrowOffer.maxTenor
-            if (params.copyBorrowOffer.maxTenor > state.riskConfig.maxTenor) {
-                revert Errors.TENOR_OUT_OF_RANGE(
-                    params.copyBorrowOffer.maxTenor, state.riskConfig.minTenor, state.riskConfig.maxTenor
-                );
-            }
-
             if (params.copyBorrowOffer.minTenor > params.copyBorrowOffer.maxTenor) {
                 revert Errors.INVALID_TENOR_RANGE(params.copyBorrowOffer.minTenor, params.copyBorrowOffer.maxTenor);
             }
@@ -80,10 +56,14 @@ library CopyLimitOrders {
 
         // validate copyAddress
         if (bothNull) {
+            // both offers are null, so copyAddress must be address(0)
+            if (params.copyAddress != address(0)) {
+                revert Errors.INVALID_ADDRESS(params.copyAddress);
+            }
+        } else {
+            // at least one offer is non-null, so copyAddress must be non-zero
             if (params.copyAddress == address(0)) {
                 revert Errors.NULL_ADDRESS();
-            } else {
-                revert Errors.INVALID_ADDRESS(params.copyAddress);
             }
         }
     }
