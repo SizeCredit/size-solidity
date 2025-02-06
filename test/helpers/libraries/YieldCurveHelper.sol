@@ -179,6 +179,26 @@ library YieldCurveHelper {
         return customCurve(tenor1, SafeCast.toInt256(apr1), tenor2, SafeCast.toInt256(apr2));
     }
 
+    function customCurve(uint256 tenor1, uint256 apr1, uint256 tenor2, uint256 apr2, uint256 tenor3, uint256 apr3)
+        public
+        pure
+        returns (YieldCurve memory)
+    {
+        uint256[] memory tenors = new uint256[](3);
+        int256[] memory aprs = new int256[](3);
+        uint256[] memory marketRateMultipliers = new uint256[](3);
+
+        aprs[0] = SafeCast.toInt256(apr1);
+        aprs[1] = SafeCast.toInt256(apr2);
+        aprs[2] = SafeCast.toInt256(apr3);
+
+        tenors[0] = tenor1;
+        tenors[1] = tenor2;
+        tenors[2] = tenor3;
+
+        return YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
+    }
+
     function pointCurve(uint256 tenor, int256 apr) public pure returns (YieldCurve memory) {
         uint256[] memory tenors = new uint256[](1);
         int256[] memory aprs = new int256[](1);

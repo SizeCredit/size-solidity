@@ -225,4 +225,62 @@ contract CopyLimitOrdersTest is BaseTest {
             }
         } catch (bytes memory) {}
     }
+
+    function test_CopyLimitOrders_copyLimitOrders_loan_offer_scenario() public {
+        // - first case [(1d, 2%), (10d, 20%), (30d, 25%)]
+
+        _buyCreditLimit(
+            bob,
+            block.timestamp + 365 days,
+            YieldCurveHelper.customCurve(
+                uint256(1 days), uint256(0.02e18), uint256(10 days), uint256(0.2e18), uint256(30 days), uint256(0.25e18)
+            )
+        );
+
+        CopyLimitOrder memory copyLoanOffer = CopyLimitOrder({
+            minTenor: 3 days,
+            maxTenor: 7 days,
+            minAPR: 0.1e18,
+            maxAPR: type(uint256).max,
+            offsetAPR: 0
+        });
+
+        _copyLimitOrders(alice, bob, copyLoanOffer, nullCopy);
+
+        assertEq(size.getLoanOfferAPR(alice, 3 days), 0.1e18);
+        assertEq(size.getLoanOfferAPR(alice, 5 days), 0.1e18);
+        assertEq(size.getLoanOfferAPR(alice, 7 days), 0.14e18);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 1 days, 3 days, 7 days));
+        size.getLoanOfferAPR(alice, 1 days);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 10 days, 3 days, 7 days));
+        size.getLoanOfferAPR(alice, 10 days);
+    }
+
+    function test_CopyLimitOrders_copyLimitOrders_borrow_offer_scenario() public {
+        _sellCreditLimit(
+            bob,
+            block.timestamp + 365 days,
+            YieldCurveHelper.customCurve(
+                uint256(1 days), uint256(0.02e18), uint256(10 days), uint256(0.2e18), uint256(30 days), uint256(0.25e18)
+            )
+        );
+
+        CopyLimitOrder memory copyBorrowOffer =
+            CopyLimitOrder({minTenor: 3 days, maxTenor: 15 days, minAPR: 0, maxAPR: 0.1e18, offsetAPR: 0});
+
+        _copyLimitOrders(alice, bob, nullCopy, copyBorrowOffer);
+
+        assertEq(size.getBorrowOfferAPR(alice, 3 days), 0.06e18);
+        assertEq(size.getBorrowOfferAPR(alice, 5 days), 0.1e18);
+        assertEq(size.getBorrowOfferAPR(alice, 10 days), 0.1e18);
+        assertEq(size.getBorrowOfferAPR(alice, 15 days), 0.1e18);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 1 days, 3 days, 15 days));
+        size.getBorrowOfferAPR(alice, 1 days);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 20 days, 3 days, 15 days));
+        size.getBorrowOfferAPR(alice, 20 days);
+    }
 }
