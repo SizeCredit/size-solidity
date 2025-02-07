@@ -91,7 +91,7 @@ Since Size v1.6.1, users can copy other users' limit orders.
 - Users can specify offset APRs to be applied to the curves (currently unused)
 - Once a copy offer is set, the user's own offers should be ignored, even if they update them. Copy offers have precedence until erased (setting them to null/default vales)
 
-Note: there is a risk in copying another account's limit orders, since they can place suboptimal rates and incur monetary losses.
+Note: copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
 
 ## Test
 
@@ -408,6 +408,6 @@ If it does not work, try removing `--verify`
 ## Upgrade
 
 ```bash
-source .env.sepolia
+source .env.base_sepolia
 forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv [--slow]
 ```
