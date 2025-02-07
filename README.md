@@ -89,6 +89,7 @@ Since Size v1.6.1, users can copy other users' limit orders.
   - min/max APR (safety envelope): if the calculated APR falls outside of this range, the min/max is used instead
   - min/max tenor: if the requested tenor goes outside of this range, the market order reverts
 - Users can specify offset APRs to be applied to the curves (currently unused)
+- Once a copy offer is set, the user's own offers should be ignored, even if they update them. Copy offers have precedence until erased (setting them to null/default vales)
 
 Note: there is a risk in copying another account's limit orders, since they can place suboptimal rates and incur monetary losses.
 

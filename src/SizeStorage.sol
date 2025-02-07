@@ -26,7 +26,7 @@ struct User {
 }
 
 struct UserCopyLimitOrders {
-    // the address to copy the loan offer from
+    // the address to copy the limit orders from
     address copyAddress;
     // the loan offer copy parameters (null means no copy)
     CopyLimitOrder copyLoanOffer;

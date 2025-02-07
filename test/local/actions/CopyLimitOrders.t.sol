@@ -283,4 +283,47 @@ contract CopyLimitOrdersTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 20 days, 3 days, 15 days));
         size.getBorrowOfferAPR(alice, 20 days);
     }
+
+    function test_CopyLimitOrders_copyLimitOrders_copy_offer_precedence() public {
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
+        _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.08e18));
+
+        _copyLimitOrders(alice, bob, fullCopy, fullCopy);
+
+        assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
+        assertEq(size.getLoanOfferAPR(alice, 60 days), 0.08e18);
+
+        _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.1e18));
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.15e18));
+
+        assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
+        assertEq(size.getLoanOfferAPR(alice, 60 days), 0.08e18);
+
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.06e18));
+        _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.09e18));
+
+        assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.06e18);
+        assertEq(size.getLoanOfferAPR(alice, 60 days), 0.09e18);
+    }
+
+    function test_CopyLimitOrders_copyLimitOrders_deletes_single_copy() public {
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
+        _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.08e18));
+
+        _copyLimitOrders(alice, bob, fullCopy, fullCopy);
+
+        assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
+        assertEq(size.getLoanOfferAPR(alice, 60 days), 0.08e18);
+
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.1e18));
+        _copyLimitOrders(alice, bob, nullCopy, fullCopy);
+
+        assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
+        assertEq(size.getLoanOfferAPR(alice, 60 days), 0.1e18);
+
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.06e18));
+
+        assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.06e18);
+        assertEq(size.getLoanOfferAPR(alice, 60 days), 0.1e18);
+    }
 }
