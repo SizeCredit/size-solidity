@@ -65,33 +65,7 @@ library OfferLibrary {
     /// @param tenor The tenor
     /// @return The APR
     function getLoanOfferAPRByTenor(State storage state, address user, uint256 tenor) internal view returns (uint256) {
-        if (tenor == 0) revert Errors.NULL_TENOR();
-
-        (LimitOrder memory loanOffer, CopyLimitOrder memory copyLimitOrder) = _getLoanOfferWithBounds(state, user);
-
-        if (isNull(loanOffer)) {
-            revert Errors.NULL_OFFER();
-        }
-
-        if (tenor < copyLimitOrder.minTenor || tenor > copyLimitOrder.maxTenor) {
-            revert Errors.TENOR_OUT_OF_RANGE(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
-        }
-
-        VariablePoolBorrowRateParams memory variablePoolBorrowRateParams = VariablePoolBorrowRateParams({
-            variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-            variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-            variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-        });
-
-        uint256 baseAPR = YieldCurveLibrary.getAPR(loanOffer.curveRelativeTime, variablePoolBorrowRateParams, tenor);
-        uint256 apr = SafeCast.toUint256(SafeCast.toInt256(baseAPR) + copyLimitOrder.offsetAPR);
-        if (apr < copyLimitOrder.minAPR) {
-            return copyLimitOrder.minAPR;
-        } else if (apr > copyLimitOrder.maxAPR) {
-            return copyLimitOrder.maxAPR;
-        } else {
-            return apr;
-        }
+        return _getLimitOrderAPRByTenor(state, user, tenor, true);
     }
 
     /// @notice Get the absolute rate per tenor of a loan offer
@@ -118,11 +92,21 @@ library OfferLibrary {
         view
         returns (uint256)
     {
+        return _getLimitOrderAPRByTenor(state, user, tenor, false);
+    }
+
+    /// @notice Get the APR by tenor of a limit order
+    /// @param state The state
+    /// @param user The user
+    /// @param tenor The tenor
+    /// @param isLoanOffer True if the limit order is a loan offer, false if it is a borrow offer
+    /// @return The APR
+    function _getLimitOrderAPRByTenor(State storage state, address user, uint256 tenor, bool isLoanOffer) internal view returns (uint256) {
         if (tenor == 0) revert Errors.NULL_TENOR();
 
-        (LimitOrder memory borrowOffer, CopyLimitOrder memory copyLimitOrder) = _getBorrowOfferWithBounds(state, user);
+        (LimitOrder memory limitOrder, CopyLimitOrder memory copyLimitOrder) = isLoanOffer ? _getLoanOfferWithBounds(state, user) : _getBorrowOfferWithBounds(state, user);
 
-        if (isNull(borrowOffer)) {
+        if (isNull(limitOrder)) {
             revert Errors.NULL_OFFER();
         }
 
@@ -136,7 +120,7 @@ library OfferLibrary {
             variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
         });
 
-        uint256 baseAPR = YieldCurveLibrary.getAPR(borrowOffer.curveRelativeTime, variablePoolBorrowRateParams, tenor);
+        uint256 baseAPR = YieldCurveLibrary.getAPR(limitOrder.curveRelativeTime, variablePoolBorrowRateParams, tenor);
         uint256 apr = SafeCast.toUint256(SafeCast.toInt256(baseAPR) + copyLimitOrder.offsetAPR);
         if (apr < copyLimitOrder.minAPR) {
             return copyLimitOrder.minAPR;
@@ -166,52 +150,52 @@ library OfferLibrary {
     /// @notice Get the loan offer with bounds
     /// @param state The state
     /// @param user The user
-    /// @return The loan offer and the copy limit order
+    /// @return limitOrder The loan offer
+    /// @return copyLimitOrder The copy loan order bounds
     function _getLoanOfferWithBounds(State storage state, address user)
         private
         view
-        returns (LimitOrder memory, CopyLimitOrder memory)
+        returns (LimitOrder memory limitOrder, CopyLimitOrder memory copyLimitOrder)
     {
         UserCopyLimitOrders memory userCopyLimitOrders = state.data.usersCopyLimitOrders[user];
         if (isNull(userCopyLimitOrders.copyLoanOffer)) {
-            return (
-                state.data.users[user].loanOffer,
-                CopyLimitOrder({
-                    minTenor: 0,
-                    maxTenor: type(uint256).max,
-                    minAPR: 0,
-                    maxAPR: type(uint256).max,
-                    offsetAPR: 0
-                })
-            );
+            limitOrder = state.data.users[user].loanOffer;
+            copyLimitOrder = CopyLimitOrder({
+                minTenor: 0,
+                maxTenor: type(uint256).max,
+                minAPR: 0,
+                maxAPR: type(uint256).max,
+                offsetAPR: 0
+            });
         } else {
-            return (state.data.users[userCopyLimitOrders.copyAddress].loanOffer, userCopyLimitOrders.copyLoanOffer);
+            limitOrder = state.data.users[userCopyLimitOrders.copyAddress].loanOffer;
+            copyLimitOrder = userCopyLimitOrders.copyLoanOffer;
         }
     }
 
     /// @notice Get the borrow offer with bounds
     /// @param state The state
     /// @param user The user
-    /// @return The borrow offer and the copy limit order
+    /// @return limitOrder The borrow offer
+    /// @return copyLimitOrder The copy borrow order bounds
     function _getBorrowOfferWithBounds(State storage state, address user)
         private
         view
-        returns (LimitOrder memory, CopyLimitOrder memory)
+        returns (LimitOrder memory limitOrder, CopyLimitOrder memory copyLimitOrder)
     {
         UserCopyLimitOrders memory userCopyLimitOrders = state.data.usersCopyLimitOrders[user];
         if (isNull(userCopyLimitOrders.copyBorrowOffer)) {
-            return (
-                state.data.users[user].borrowOffer,
-                CopyLimitOrder({
-                    minTenor: 0,
-                    maxTenor: type(uint256).max,
-                    minAPR: 0,
-                    maxAPR: type(uint256).max,
+            limitOrder = state.data.users[user].borrowOffer;
+            copyLimitOrder = CopyLimitOrder({
+                minTenor: 0,
+                maxTenor: type(uint256).max,
+                minAPR: 0,
+                maxAPR: type(uint256).max,
                     offsetAPR: 0
-                })
-            );
+            });
         } else {
-            return (state.data.users[userCopyLimitOrders.copyAddress].borrowOffer, userCopyLimitOrders.copyBorrowOffer);
+            limitOrder = state.data.users[userCopyLimitOrders.copyAddress].borrowOffer;
+            copyLimitOrder = userCopyLimitOrders.copyBorrowOffer;
         }
     }
 }
