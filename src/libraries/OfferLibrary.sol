@@ -5,6 +5,7 @@ import {State, UserCopyLimitOrders} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {VariablePoolBorrowRateParams, YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 struct LimitOrder {
     // The maximum due date of the limit order
@@ -24,7 +25,7 @@ struct CopyLimitOrder {
     uint256 minAPR;
     // the maximum APR of the copied offer
     uint256 maxAPR;
-    // the offset APR relative to the copied offer (currently unused)
+    // the offset APR relative to the copied offer
     int256 offsetAPR;
 }
 
@@ -76,7 +77,7 @@ library OfferLibrary {
             revert Errors.TENOR_OUT_OF_RANGE(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
         }
 
-        uint256 apr = YieldCurveLibrary.getAPR(
+        uint256 baseAPR = YieldCurveLibrary.getAPR(
             loanOffer.curveRelativeTime,
             VariablePoolBorrowRateParams({
                 variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
@@ -85,6 +86,7 @@ library OfferLibrary {
             }),
             tenor
         );
+        uint256 apr = SafeCast.toUint256(SafeCast.toInt256(baseAPR) + copyLimitOrder.offsetAPR);
         if (apr < copyLimitOrder.minAPR) {
             return copyLimitOrder.minAPR;
         }
@@ -130,7 +132,7 @@ library OfferLibrary {
             revert Errors.TENOR_OUT_OF_RANGE(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
         }
 
-        uint256 apr = YieldCurveLibrary.getAPR(
+        uint256 baseAPR = YieldCurveLibrary.getAPR(
             borrowOffer.curveRelativeTime,
             VariablePoolBorrowRateParams({
                 variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
@@ -139,6 +141,7 @@ library OfferLibrary {
             }),
             tenor
         );
+        uint256 apr = SafeCast.toUint256(SafeCast.toInt256(baseAPR) + copyLimitOrder.offsetAPR);
         if (apr < copyLimitOrder.minAPR) {
             return copyLimitOrder.minAPR;
         }
