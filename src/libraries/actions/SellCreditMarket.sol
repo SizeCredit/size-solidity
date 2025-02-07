@@ -117,6 +117,12 @@ library SellCreditMarket {
 
         // validate exactAmountIn
         // N/A
+
+        // validate inverted curve
+        // TODO must not revert when getting the other curve
+        // if (apr < state.getBorrowOfferRatePerTenor(params.lender, tenor)) {
+        //     revert Errors.INVERTED_CURVE(params.lender, tenor, apr, state.getBorrowOfferRatePerTenor(params.lender, tenor));
+        // }
     }
 
     /// @notice Returns the swap data for selling credit as a market order

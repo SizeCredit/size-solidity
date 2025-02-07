@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {State, UserCopyLimitOrders} from "@src/SizeStorage.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Math} from "@src/libraries/Math.sol";
 import {VariablePoolBorrowRateParams, YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 struct LimitOrder {
     // The maximum due date of the limit order
@@ -77,23 +77,21 @@ library OfferLibrary {
             revert Errors.TENOR_OUT_OF_RANGE(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
         }
 
-        uint256 baseAPR = YieldCurveLibrary.getAPR(
-            loanOffer.curveRelativeTime,
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
+        VariablePoolBorrowRateParams memory variablePoolBorrowRateParams = VariablePoolBorrowRateParams({
+            variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+            variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+            variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+        });
+
+        uint256 baseAPR = YieldCurveLibrary.getAPR(loanOffer.curveRelativeTime, variablePoolBorrowRateParams, tenor);
         uint256 apr = SafeCast.toUint256(SafeCast.toInt256(baseAPR) + copyLimitOrder.offsetAPR);
         if (apr < copyLimitOrder.minAPR) {
             return copyLimitOrder.minAPR;
-        }
-        if (apr > copyLimitOrder.maxAPR) {
+        } else if (apr > copyLimitOrder.maxAPR) {
             return copyLimitOrder.maxAPR;
+        } else {
+            return apr;
         }
-        return apr;
     }
 
     /// @notice Get the absolute rate per tenor of a loan offer
@@ -132,23 +130,21 @@ library OfferLibrary {
             revert Errors.TENOR_OUT_OF_RANGE(tenor, copyLimitOrder.minTenor, copyLimitOrder.maxTenor);
         }
 
-        uint256 baseAPR = YieldCurveLibrary.getAPR(
-            borrowOffer.curveRelativeTime,
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
+        VariablePoolBorrowRateParams memory variablePoolBorrowRateParams = VariablePoolBorrowRateParams({
+            variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
+            variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
+            variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
+        });
+
+        uint256 baseAPR = YieldCurveLibrary.getAPR(borrowOffer.curveRelativeTime, variablePoolBorrowRateParams, tenor);
         uint256 apr = SafeCast.toUint256(SafeCast.toInt256(baseAPR) + copyLimitOrder.offsetAPR);
         if (apr < copyLimitOrder.minAPR) {
             return copyLimitOrder.minAPR;
-        }
-        if (apr > copyLimitOrder.maxAPR) {
+        } else if (apr > copyLimitOrder.maxAPR) {
             return copyLimitOrder.maxAPR;
+        } else {
+            return apr;
         }
-        return apr;
     }
 
     function getBorrowOfferRatePerTenor(State storage state, address user, uint256 tenor)

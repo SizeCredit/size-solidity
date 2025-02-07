@@ -121,6 +121,12 @@ library BuyCreditMarket {
 
         // validate exactAmountIn
         // N/A
+
+        // validate inverted curve
+        // TODO must not revert when getting the other curve
+        // if (apr > state.getLoanOfferRatePerTenor(borrower, tenor)) {
+        //     revert Errors.INVERTED_CURVE(borrower, tenor, apr, state.getLoanOfferRatePerTenor(borrower, tenor));
+        // }
     }
 
     /// @notice Gets the swap data for buying credit as a market order

@@ -177,39 +177,21 @@ contract CopyLimitOrdersTest is BaseTest {
 
     function testFuzz_CopyLimitOrders_copyLimitOrders_invariants(
         address copyAddress,
-        uint256 minTenorLoanOffer,
-        uint256 maxTenorLoanOffer,
-        uint256 minAPRLoanOffer,
-        uint256 maxAPRLoanOffer,
-        uint256 minTenorBorrowOffer,
-        uint256 maxTenorBorrowOffer,
-        uint256 minAPRBorrowOffer,
-        uint256 maxAPRBorrowOffer
+        CopyLimitOrder memory copyLoanOffer,
+        CopyLimitOrder memory copyBorrowOffer
     ) public {
         copyAddress = address(uint160(bound(uint160(copyAddress), MIN, MAX)));
-        minTenorLoanOffer = bound(minTenorLoanOffer, MIN, MAX);
-        maxTenorLoanOffer = bound(maxTenorLoanOffer, MIN, MAX);
-        minAPRLoanOffer = bound(minAPRLoanOffer, MIN, MAX);
-        maxAPRLoanOffer = bound(maxAPRLoanOffer, MIN, MAX);
-        minTenorBorrowOffer = bound(minTenorBorrowOffer, MIN, MAX);
-        maxTenorBorrowOffer = bound(maxTenorBorrowOffer, MIN, MAX);
-        minAPRBorrowOffer = bound(minAPRBorrowOffer, MIN, MAX);
-        maxAPRBorrowOffer = bound(maxAPRBorrowOffer, MIN, MAX);
+        copyLoanOffer.minTenor = bound(copyLoanOffer.minTenor, MIN, MAX);
+        copyLoanOffer.maxTenor = bound(copyLoanOffer.maxTenor, MIN, MAX);
+        copyLoanOffer.minAPR = bound(copyLoanOffer.minAPR, MIN, MAX);
+        copyLoanOffer.maxAPR = bound(copyLoanOffer.maxAPR, MIN, MAX);
+        copyLoanOffer.offsetAPR = bound(copyLoanOffer.offsetAPR, -int256(MAX), int256(MAX));
+        copyBorrowOffer.minTenor = bound(copyBorrowOffer.minTenor, MIN, MAX);
+        copyBorrowOffer.maxTenor = bound(copyBorrowOffer.maxTenor, MIN, MAX);
+        copyBorrowOffer.minAPR = bound(copyBorrowOffer.minAPR, MIN, MAX);
+        copyBorrowOffer.maxAPR = bound(copyBorrowOffer.maxAPR, MIN, MAX);
+        copyBorrowOffer.offsetAPR = bound(copyBorrowOffer.offsetAPR, -int256(MAX), int256(MAX));
 
-        CopyLimitOrder memory copyLoanOffer = CopyLimitOrder({
-            minTenor: minTenorLoanOffer,
-            maxTenor: maxTenorLoanOffer,
-            minAPR: minAPRLoanOffer,
-            maxAPR: maxAPRLoanOffer,
-            offsetAPR: 0
-        });
-        CopyLimitOrder memory copyBorrowOffer = CopyLimitOrder({
-            minTenor: minTenorBorrowOffer,
-            maxTenor: maxTenorBorrowOffer,
-            minAPR: minAPRBorrowOffer,
-            maxAPR: maxAPRBorrowOffer,
-            offsetAPR: 0
-        });
         vm.prank(alice);
         try size.copyLimitOrders(
             CopyLimitOrdersParams({
@@ -227,8 +209,6 @@ contract CopyLimitOrdersTest is BaseTest {
     }
 
     function test_CopyLimitOrders_copyLimitOrders_loan_offer_scenario() public {
-        // - first case [(1d, 2%), (10d, 20%), (30d, 25%)]
-
         _buyCreditLimit(
             bob,
             block.timestamp + 365 days,
@@ -325,5 +305,37 @@ contract CopyLimitOrdersTest is BaseTest {
 
         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.06e18);
         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.1e18);
+    }
+
+    function test_CopyLimitOrders_copyLimitOrders_copy_offer_precedence_with_offset() public {
+        _buyCreditLimit(
+            bob,
+            block.timestamp + 365 days,
+            YieldCurveHelper.customCurve(uint256(30 days), uint256(0.05e18), uint256(60 days), uint256(0.08e18))
+        );
+        _sellCreditLimit(
+            bob,
+            block.timestamp + 365 days,
+            YieldCurveHelper.customCurve(uint256(30 days), uint256(0.07e18), uint256(60 days), uint256(0.18e18))
+        );
+
+        CopyLimitOrder memory copyLoanOffer = CopyLimitOrder({
+            minTenor: 0,
+            maxTenor: type(uint256).max,
+            minAPR: 0.1e18,
+            maxAPR: type(uint256).max,
+            offsetAPR: 0.03e18
+        });
+
+        CopyLimitOrder memory copyBorrowOffer =
+            CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: 0.12e18, offsetAPR: -0.01e18});
+
+        _copyLimitOrders(alice, bob, copyLoanOffer, copyBorrowOffer);
+
+        assertEq(size.getLoanOfferAPR(alice, 30 days), 0.1e18);
+        assertEq(size.getLoanOfferAPR(alice, 60 days), 0.11e18);
+
+        assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.06e18);
+        assertEq(size.getBorrowOfferAPR(alice, 60 days), 0.12e18);
     }
 }

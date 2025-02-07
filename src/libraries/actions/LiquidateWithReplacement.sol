@@ -83,6 +83,12 @@ library LiquidateWithReplacement {
         if (apr < params.minAPR) {
             revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
         }
+
+        // validate inverted curve
+        // TODO must not revert when getting the other curve
+        // if (apr > state.getLoanOfferRatePerTenor(params.borrower, tenor)) {
+        //     revert Errors.INVERTED_CURVE(params.borrower, tenor, apr, state.getLoanOfferRatePerTenor(params.borrower, tenor));
+        // }
     }
 
     /// @notice Validates the minimum profit in collateral tokens expected by the liquidator
