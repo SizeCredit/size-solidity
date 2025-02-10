@@ -101,13 +101,22 @@ library OfferLibrary {
     /// @param tenor The tenor
     /// @param isLoanOffer True if the limit order is a loan offer, false if it is a borrow offer
     /// @return The APR
-    function _getLimitOrderAPRByTenor(State storage state, address user, uint256 tenor, bool isLoanOffer) internal view returns (uint256) {
+    function _getLimitOrderAPRByTenor(State storage state, address user, uint256 tenor, bool isLoanOffer)
+        internal
+        view
+        returns (uint256)
+    {
         if (tenor == 0) revert Errors.NULL_TENOR();
 
-        (LimitOrder memory limitOrder, CopyLimitOrder memory copyLimitOrder) = isLoanOffer ? _getLoanOfferWithBounds(state, user) : _getBorrowOfferWithBounds(state, user);
+        (LimitOrder memory limitOrder, CopyLimitOrder memory copyLimitOrder) =
+            isLoanOffer ? _getLoanOfferWithBounds(state, user) : _getBorrowOfferWithBounds(state, user);
 
         if (isNull(limitOrder)) {
-            revert Errors.NULL_OFFER();
+            revert Errors.INVALID_OFFER(user);
+        }
+
+        if (block.timestamp + tenor > limitOrder.maxDueDate) {
+            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, limitOrder.maxDueDate);
         }
 
         if (tenor < copyLimitOrder.minTenor || tenor > copyLimitOrder.maxTenor) {
@@ -191,7 +200,7 @@ library OfferLibrary {
                 maxTenor: type(uint256).max,
                 minAPR: 0,
                 maxAPR: type(uint256).max,
-                    offsetAPR: 0
+                offsetAPR: 0
             });
         } else {
             limitOrder = state.data.users[userCopyLimitOrders.copyAddress].borrowOffer;

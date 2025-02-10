@@ -2,6 +2,8 @@
 pragma solidity 0.8.23;
 
 import {Errors} from "@src/libraries/Errors.sol";
+
+import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {CopyLimitOrder} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
@@ -57,7 +59,7 @@ contract CopyLimitOrdersTest is BaseTest {
 
         _copyLimitOrders(alice, bob, fullCopy, nullCopy);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
         size.getBorrowOfferAPR(alice, 30 days);
 
         assertEq(size.getLoanOfferAPR(alice, 60 days), 0.08e18);
@@ -76,7 +78,7 @@ contract CopyLimitOrdersTest is BaseTest {
 
         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.05e18);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
         size.getLoanOfferAPR(alice, 60 days);
 
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.07e18));
@@ -96,9 +98,9 @@ contract CopyLimitOrdersTest is BaseTest {
 
         _copyLimitOrders(alice, address(0), nullCopy, nullCopy);
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
         size.getBorrowOfferAPR(alice, 30 days);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
         size.getLoanOfferAPR(alice, 60 days);
     }
 
@@ -337,5 +339,58 @@ contract CopyLimitOrdersTest is BaseTest {
 
         assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.06e18);
         assertEq(size.getBorrowOfferAPR(alice, 60 days), 0.12e18);
+    }
+
+    function test_CopyLimitOrders_copyLimitOrders_can_leave_inverted_curves_with_offsetAPR() public {
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.03e18));
+        _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
+
+        CopyLimitOrder memory loanCopy = CopyLimitOrder({
+            minTenor: 0,
+            maxTenor: type(uint256).max,
+            minAPR: 0,
+            maxAPR: type(uint256).max,
+            offsetAPR: -0.01e18
+        });
+
+        _copyLimitOrders(alice, bob, loanCopy, fullCopy);
+
+        assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.03e18);
+        assertEq(size.getLoanOfferAPR(alice, 30 days), 0.04e18);
+
+        assertTrue(size.getLoanOfferAPR(alice, 30 days) > size.getBorrowOfferAPR(alice, 30 days));
+
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.04e18));
+
+        assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.04e18);
+        assertEq(size.getLoanOfferAPR(alice, 30 days), 0.04e18);
+
+        assertTrue(!(size.getLoanOfferAPR(alice, 30 days) > size.getBorrowOfferAPR(alice, 30 days)));
+    }
+
+    function test_CopyLimitOrders_copyLimitOrders_can_leave_inverted_curves_but_market_orders_revert() public {
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.03e18));
+        _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
+
+        CopyLimitOrder memory loanCopy = CopyLimitOrder({
+            minTenor: 0,
+            maxTenor: type(uint256).max,
+            minAPR: 0,
+            maxAPR: type(uint256).max,
+            offsetAPR: -0.01e18
+        });
+
+        _deposit(alice, weth, 1 ether);
+        _deposit(alice, usdc, 3000e6);
+        _copyLimitOrders(alice, bob, loanCopy, fullCopy);
+
+        assertEq(size.getBorrowOfferAPR(alice, 30 days), 0.03e18);
+        assertEq(size.getLoanOfferAPR(alice, 30 days), 0.04e18);
+
+        _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.04e18));
+
+        _deposit(candy, usdc, 2000e6);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVE.selector, alice, 30 days, 0.04e18, 0.04e18));
+        _buyCreditMarket(candy, alice, RESERVED_ID, 500e6, 30 days, true);
     }
 }

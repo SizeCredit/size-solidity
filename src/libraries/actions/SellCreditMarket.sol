@@ -59,15 +59,14 @@ library SellCreditMarket {
     /// @param state The state
     /// @param params The input parameters for selling credit as a market order
     function validateSellCreditMarket(State storage state, SellCreditMarketParams calldata params) external view {
-        LimitOrder memory loanOffer = state.data.users[params.lender].loanOffer;
         uint256 tenor;
 
         // validate msg.sender
         // N/A
 
         // validate lender
-        if (loanOffer.isNull()) {
-            revert Errors.INVALID_LOAN_OFFER(params.lender);
+        if (params.lender == address(0)) {
+            revert Errors.NULL_ADDRESS();
         }
 
         // validate creditPositionId
@@ -100,9 +99,7 @@ library SellCreditMarket {
         }
 
         // validate tenor
-        if (block.timestamp + tenor > loanOffer.maxDueDate) {
-            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, loanOffer.maxDueDate);
-        }
+        // N/A
 
         // validate deadline
         if (params.deadline < block.timestamp) {

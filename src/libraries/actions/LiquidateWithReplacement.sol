@@ -50,7 +50,6 @@ library LiquidateWithReplacement {
         view
     {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
-        LimitOrder storage borrowOffer = state.data.users[params.borrower].borrowOffer;
 
         // validate liquidate
         state.validateLiquidate(
@@ -62,8 +61,8 @@ library LiquidateWithReplacement {
         );
 
         // validate borrower
-        if (borrowOffer.isNull()) {
-            revert Errors.INVALID_BORROW_OFFER(params.borrower);
+        if (params.borrower == address(0)) {
+            revert Errors.NULL_ADDRESS();
         }
 
         // validate debtPositionId
@@ -73,9 +72,6 @@ library LiquidateWithReplacement {
         uint256 tenor = debtPosition.dueDate - block.timestamp;
         if (tenor < state.riskConfig.minTenor || tenor > state.riskConfig.maxTenor) {
             revert Errors.TENOR_OUT_OF_RANGE(tenor, state.riskConfig.minTenor, state.riskConfig.maxTenor);
-        }
-        if (block.timestamp + tenor > borrowOffer.maxDueDate) {
-            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, borrowOffer.maxDueDate);
         }
 
         // validate minAPR

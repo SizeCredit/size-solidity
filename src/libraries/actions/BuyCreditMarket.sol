@@ -91,11 +91,9 @@ library BuyCreditMarket {
             tenor = debtPosition.dueDate - block.timestamp; // positive since the credit position is transferrable, so the loan must be ACTIVE
         }
 
-        LimitOrder memory borrowOffer = state.data.users[borrower].borrowOffer;
-
         // validate borrower
-        if (borrowOffer.isNull()) {
-            revert Errors.INVALID_BORROW_OFFER(borrower);
+        if (borrower == address(0)) {
+            revert Errors.NULL_ADDRESS();
         }
 
         // validate amount
@@ -104,9 +102,7 @@ library BuyCreditMarket {
         }
 
         // validate tenor
-        if (block.timestamp + tenor > borrowOffer.maxDueDate) {
-            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, borrowOffer.maxDueDate);
-        }
+        // N/A
 
         // validate deadline
         if (params.deadline < block.timestamp) {

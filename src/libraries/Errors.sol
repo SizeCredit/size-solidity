@@ -39,6 +39,7 @@ library Errors {
     error INVALID_BORROWER(address account);
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);
+    error INVALID_OFFER(address account);
 
     error CREDIT_NOT_FOR_SALE(uint256 creditPositionId);
     error NOT_ENOUGH_CREDIT(uint256 credit, uint256 required);

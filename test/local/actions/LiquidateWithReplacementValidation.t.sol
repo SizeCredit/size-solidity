@@ -91,7 +91,7 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         _sellCreditLimit(candy, 0, empty);
 
         vm.prank(liquidator);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, candy));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, candy));
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,
