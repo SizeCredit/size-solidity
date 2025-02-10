@@ -31,7 +31,7 @@ library Errors {
     error DUE_DATE_NOT_COMPATIBLE(uint256 dueDate1, uint256 dueDate2);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error TENOR_OUT_OF_RANGE(uint256 tenor, uint256 minTenor, uint256 maxTenor);
-    error INVERTED_CURVE(address account, uint256 tenor, uint256 loanOfferRate, uint256 borrowOfferRate);
+    error MISMATCHED_CURVES(address account, uint256 tenor, uint256 loanOfferAPR, uint256 borrowOfferAPR);
     error INVALID_POSITION_ID(uint256 positionId);
     error INVALID_DEBT_POSITION_ID(uint256 debtPositionId);
     error INVALID_CREDIT_POSITION_ID(uint256 creditPositionId);

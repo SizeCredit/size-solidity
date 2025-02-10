@@ -64,7 +64,7 @@ library OfferLibrary {
     /// @param user The user
     /// @param tenor The tenor
     /// @return The APR
-    function getLoanOfferAPRByTenor(State storage state, address user, uint256 tenor) internal view returns (uint256) {
+    function getLoanOfferAPRByTenor(State storage state, address user, uint256 tenor) public view returns (uint256) {
         return _getLimitOrderAPRByTenor(state, user, tenor, true);
     }
 
@@ -87,11 +87,7 @@ library OfferLibrary {
     /// @param user The user
     /// @param tenor The tenor
     /// @return The APR
-    function getBorrowOfferAPRByTenor(State storage state, address user, uint256 tenor)
-        internal
-        view
-        returns (uint256)
-    {
+    function getBorrowOfferAPRByTenor(State storage state, address user, uint256 tenor) public view returns (uint256) {
         return _getLimitOrderAPRByTenor(state, user, tenor, false);
     }
 

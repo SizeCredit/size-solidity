@@ -110,19 +110,22 @@ library BuyCreditMarket {
         }
 
         // validate minAPR
-        uint256 apr = state.getBorrowOfferAPRByTenor(borrower, tenor);
-        if (apr < params.minAPR) {
-            revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
+        uint256 borrowAPR = state.getBorrowOfferAPRByTenor(borrower, tenor);
+        if (borrowAPR < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
 
         // validate exactAmountIn
         // N/A
 
         // validate inverted curve
-        // TODO must not revert when getting the other curve
-        // if (apr > state.getLoanOfferRatePerTenor(borrower, tenor)) {
-        //     revert Errors.INVERTED_CURVE(borrower, tenor, apr, state.getLoanOfferRatePerTenor(borrower, tenor));
-        // }
+        try state.getLoanOfferAPRByTenor(borrower, tenor) returns (uint256 loanAPR) {
+            if (borrowAPR >= loanAPR) {
+                revert Errors.MISMATCHED_CURVES(borrower, tenor, loanAPR, borrowAPR);
+            }
+        } catch (bytes memory) {
+            // N/A
+        }
     }
 
     /// @notice Gets the swap data for buying credit as a market order

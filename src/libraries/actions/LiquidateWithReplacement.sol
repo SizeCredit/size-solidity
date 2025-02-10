@@ -75,16 +75,19 @@ library LiquidateWithReplacement {
         }
 
         // validate minAPR
-        uint256 apr = state.getBorrowOfferAPRByTenor(params.borrower, tenor);
-        if (apr < params.minAPR) {
-            revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
+        uint256 borrowAPR = state.getBorrowOfferAPRByTenor(params.borrower, tenor);
+        if (borrowAPR < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
 
         // validate inverted curve
-        // TODO must not revert when getting the other curve
-        // if (apr > state.getLoanOfferRatePerTenor(params.borrower, tenor)) {
-        //     revert Errors.INVERTED_CURVE(params.borrower, tenor, apr, state.getLoanOfferRatePerTenor(params.borrower, tenor));
-        // }
+        try state.getLoanOfferAPRByTenor(params.borrower, tenor) returns (uint256 loanAPR) {
+            if (borrowAPR >= loanAPR) {
+                revert Errors.MISMATCHED_CURVES(params.borrower, tenor, loanAPR, borrowAPR);
+            }
+        } catch (bytes memory) {
+            // N/A
+        }
     }
 
     /// @notice Validates the minimum profit in collateral tokens expected by the liquidator

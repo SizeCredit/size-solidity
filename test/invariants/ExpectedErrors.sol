@@ -57,6 +57,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.STALE_RATE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
+        SELL_CREDIT_MARKET_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
 
         // SELL_CREDIT_LIMIT_ERRORS
         SELL_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
@@ -77,6 +78,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         BUY_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_NOT_FOR_SALE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.STALE_RATE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
 
         // BUY_CREDIT_LIMIT_ERRORS
         BUY_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
@@ -110,6 +112,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.STALE_RATE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
+        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
 
         // COMPENSATE_ERRORS
         COMPENSATE_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);

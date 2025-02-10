@@ -107,19 +107,22 @@ library SellCreditMarket {
         }
 
         // validate maxAPR
-        uint256 apr = state.getLoanOfferAPRByTenor(params.lender, tenor);
-        if (apr > params.maxAPR) {
-            revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
+        uint256 loanAPR = state.getLoanOfferAPRByTenor(params.lender, tenor);
+        if (loanAPR > params.maxAPR) {
+            revert Errors.APR_GREATER_THAN_MAX_APR(loanAPR, params.maxAPR);
         }
 
         // validate exactAmountIn
         // N/A
 
         // validate inverted curve
-        // TODO must not revert when getting the other curve
-        // if (apr < state.getBorrowOfferRatePerTenor(params.lender, tenor)) {
-        //     revert Errors.INVERTED_CURVE(params.lender, tenor, apr, state.getBorrowOfferRatePerTenor(params.lender, tenor));
-        // }
+        try state.getBorrowOfferAPRByTenor(params.lender, tenor) returns (uint256 borrowAPR) {
+            if (borrowAPR >= loanAPR) {
+                revert Errors.MISMATCHED_CURVES(params.lender, tenor, loanAPR, borrowAPR);
+            }
+        } catch (bytes memory) {
+            // N/A
+        }
     }
 
     /// @notice Returns the swap data for selling credit as a market order

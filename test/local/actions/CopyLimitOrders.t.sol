@@ -5,9 +5,10 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {CopyLimitOrder} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
@@ -390,7 +391,18 @@ contract CopyLimitOrdersTest is BaseTest {
         _sellCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.04e18));
 
         _deposit(candy, usdc, 2000e6);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVERTED_CURVE.selector, alice, 30 days, 0.04e18, 0.04e18));
-        _buyCreditMarket(candy, alice, RESERVED_ID, 500e6, 30 days, true);
+        vm.expectRevert(abi.encodeWithSelector(Errors.MISMATCHED_CURVES.selector, alice, 30 days, 0.04e18, 0.04e18));
+        vm.prank(candy);
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: alice,
+                creditPositionId: RESERVED_ID,
+                amount: 500e6,
+                tenor: 30 days,
+                minAPR: 0,
+                deadline: block.timestamp + 365 days,
+                exactAmountIn: false
+            })
+        );
     }
 }
