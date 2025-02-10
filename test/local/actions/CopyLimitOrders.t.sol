@@ -9,8 +9,10 @@ import {CopyLimitOrder} from "@src/libraries/OfferLibrary.sol";
 import {UserCopyLimitOrders} from "@src/SizeStorage.sol";
 import {OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+
 import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol";
+import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
@@ -413,6 +415,20 @@ contract CopyLimitOrdersTest is BaseTest {
                 amount: 500e6,
                 tenor: 30 days,
                 minAPR: 0,
+                deadline: block.timestamp + 365 days,
+                exactAmountIn: false
+            })
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.MISMATCHED_CURVES.selector, alice, 30 days, 0.04e18, 0.04e18));
+        vm.prank(candy);
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: alice,
+                creditPositionId: RESERVED_ID,
+                amount: 500e6,
+                tenor: 30 days,
+                maxAPR: type(uint256).max,
                 deadline: block.timestamp + 365 days,
                 exactAmountIn: false
             })
