@@ -6,6 +6,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {CopyLimitOrder} from "@src/libraries/OfferLibrary.sol";
 
+import {UserCopyLimitOrders} from "@src/SizeStorage.sol";
 import {OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
@@ -52,6 +53,18 @@ contract CopyLimitOrdersTest is BaseTest {
 
         assertEq(size.getBorrowOfferAPR(alice, 30 days), borrowOfferAPR);
         assertEq(size.getLoanOfferAPR(alice, 60 days), loanOfferAPR);
+
+        UserCopyLimitOrders memory userCopyLimitOrders = size.getUserCopyLimitOrders(alice);
+        assertEq(userCopyLimitOrders.copyLoanOffer.minTenor, fullCopy.minTenor);
+        assertEq(userCopyLimitOrders.copyLoanOffer.maxTenor, fullCopy.maxTenor);
+        assertEq(userCopyLimitOrders.copyLoanOffer.minAPR, fullCopy.minAPR);
+        assertEq(userCopyLimitOrders.copyLoanOffer.maxAPR, fullCopy.maxAPR);
+        assertEq(userCopyLimitOrders.copyLoanOffer.offsetAPR, fullCopy.offsetAPR);
+        assertEq(userCopyLimitOrders.copyBorrowOffer.minTenor, fullCopy.minTenor);
+        assertEq(userCopyLimitOrders.copyBorrowOffer.maxTenor, fullCopy.maxTenor);
+        assertEq(userCopyLimitOrders.copyBorrowOffer.minAPR, fullCopy.minAPR);
+        assertEq(userCopyLimitOrders.copyBorrowOffer.maxAPR, fullCopy.maxAPR);
+        assertEq(userCopyLimitOrders.copyBorrowOffer.offsetAPR, fullCopy.offsetAPR);
     }
 
     function test_CopyLimitOrders_copyLimitOrders_copy_only_loan_offer() public {

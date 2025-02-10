@@ -16,7 +16,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
     }
 
-    function test_YieldCurve_validateYieldCurve() public view {
+    function test_YieldCurve_validateYieldCurve() public {
         uint256[] memory tenors = new uint256[](0);
         int256[] memory aprs = new int256[](0);
         uint256[] memory marketRateMultipliers = new uint256[](0);
@@ -25,18 +25,14 @@ contract YieldCurveTest is Test, AssertsHelper {
 
         YieldCurve memory curve = YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
 
-        try this.validate(curve, minTenor, maxTenor) {}
-        catch (bytes memory err) {
-            assertEq(bytes4(err), Errors.NULL_ARRAY.selector);
-        }
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ARRAY.selector));
+        YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
 
         curve.aprs = new int256[](2);
         curve.marketRateMultipliers = new uint256[](2);
         curve.tenors = new uint256[](1);
-        try this.validate(curve, minTenor, maxTenor) {}
-        catch (bytes memory err) {
-            assertEq(bytes4(err), Errors.ARRAY_LENGTHS_MISMATCH.selector);
-        }
+        vm.expectRevert(abi.encodeWithSelector(Errors.ARRAY_LENGTHS_MISMATCH.selector));
+        YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
 
         curve.aprs = new int256[](2);
         curve.marketRateMultipliers = new uint256[](2);
@@ -51,22 +47,16 @@ contract YieldCurveTest is Test, AssertsHelper {
         curve.marketRateMultipliers[0] = 1e18;
         curve.marketRateMultipliers[1] = 2e18;
 
-        try this.validate(curve, minTenor, maxTenor) {}
-        catch (bytes memory err) {
-            assertEq(bytes4(err), Errors.TENORS_NOT_STRICTLY_INCREASING.selector);
-        }
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENORS_NOT_STRICTLY_INCREASING.selector));
+        YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
 
         curve.tenors[1] = 30 days;
-        try this.validate(curve, minTenor, maxTenor) {}
-        catch (bytes memory err) {
-            assertEq(bytes4(err), Errors.TENORS_NOT_STRICTLY_INCREASING.selector);
-        }
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENORS_NOT_STRICTLY_INCREASING.selector));
+        YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
 
         curve.tenors[1] = 40 days;
-        try this.validate(curve, minTenor, maxTenor) {}
-        catch (bytes memory err) {
-            assertEq(bytes4(err), Errors.TENOR_OUT_OF_RANGE.selector);
-        }
+        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 40 days, minTenor, maxTenor));
+        YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
 
         curve.tenors[0] = 150 days;
         curve.tenors[1] = 180 days;
