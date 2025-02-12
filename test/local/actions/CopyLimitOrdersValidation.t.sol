@@ -37,5 +37,24 @@ contract CopyLimitOrdersValidationTest is BaseTest {
             nullCopy,
             CopyLimitOrder({minTenor: 5 days, maxTenor: 2 days, minAPR: 0, maxAPR: 0, offsetAPR: 0})
         );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ADDRESS.selector, alice));
+        _copyLimitOrders(alice, alice, fullCopy, fullCopy);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_APR_RANGE.selector, 0.1e18, 0.05e18));
+        _copyLimitOrders(
+            alice,
+            bob,
+            CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0.1e18, maxAPR: 0.05e18, offsetAPR: 0}),
+            fullCopy
+        );
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_APR_RANGE.selector, 0.2e18, 0.1e18));
+        _copyLimitOrders(
+            alice,
+            bob,
+            fullCopy,
+            CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0.2e18, maxAPR: 0.1e18, offsetAPR: 0})
+        );
     }
 }

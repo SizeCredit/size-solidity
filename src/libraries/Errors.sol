@@ -23,6 +23,7 @@ library Errors {
     error VALUE_GREATER_THAN_MAX(uint256 value, uint256 max);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
     error INVALID_TENOR_RANGE(uint256 minTenor, uint256 maxTenor);
+    error INVALID_APR_RANGE(uint256 minAPR, uint256 maxAPR);
     error INVALID_ADDRESS(address account);
     error PAST_DEADLINE(uint256 deadline);
     error PAST_MAX_DUE_DATE(uint256 maxDueDate);

@@ -28,7 +28,7 @@ library CopyLimitOrders {
     /// @notice Validates the input parameters for copying limit orders
     /// @param params The input parameters for copying limit orders
     /// @dev Does not validate against riskConfig.minTenor or riskConfig.maxTenor since these are already enforced during limit order creation
-    function validateCopyLimitOrders(State storage, CopyLimitOrdersParams calldata params) external pure {
+    function validateCopyLimitOrders(State storage, CopyLimitOrdersParams calldata params) external view {
         // validate msg.sender
         // N/A
 
@@ -42,6 +42,12 @@ library CopyLimitOrders {
             if (params.copyLoanOffer.minTenor > params.copyLoanOffer.maxTenor) {
                 revert Errors.INVALID_TENOR_RANGE(params.copyLoanOffer.minTenor, params.copyLoanOffer.maxTenor);
             }
+
+            // validate copyLoanOffer.minAPR
+            // validate copyLoanOffer.maxAPR
+            if (params.copyLoanOffer.minAPR > params.copyLoanOffer.maxAPR) {
+                revert Errors.INVALID_APR_RANGE(params.copyLoanOffer.minAPR, params.copyLoanOffer.maxAPR);
+            }
         }
 
         // validate copyBorrowOffer
@@ -52,9 +58,19 @@ library CopyLimitOrders {
             if (params.copyBorrowOffer.minTenor > params.copyBorrowOffer.maxTenor) {
                 revert Errors.INVALID_TENOR_RANGE(params.copyBorrowOffer.minTenor, params.copyBorrowOffer.maxTenor);
             }
+
+            // validate copyBorrowOffer.minAPR
+            // validate copyBorrowOffer.maxAPR
+            if (params.copyBorrowOffer.minAPR > params.copyBorrowOffer.maxAPR) {
+                revert Errors.INVALID_APR_RANGE(params.copyBorrowOffer.minAPR, params.copyBorrowOffer.maxAPR);
+            }
         }
 
         // validate copyAddress
+        if (params.copyAddress == msg.sender) {
+            revert Errors.INVALID_ADDRESS(params.copyAddress);
+        }
+
         if (bothNull) {
             // both offers are null, so copyAddress must be address(0)
             if (params.copyAddress != address(0)) {
