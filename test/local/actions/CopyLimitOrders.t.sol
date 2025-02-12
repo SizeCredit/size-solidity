@@ -434,4 +434,46 @@ contract CopyLimitOrdersTest is BaseTest {
             })
         );
     }
+
+    function test_CopyLimitOrders_copyLimitOrders_copyAddress_removes_offer_then_user_defined_offer_is_still_active()
+        public
+    {
+        _deposit(alice, usdc, 200e6);
+        _deposit(candy, weth, 100e18);
+
+        _buyCreditLimit(
+            bob,
+            block.timestamp + 365 days,
+            YieldCurveHelper.customCurve(uint256(3 days), uint256(0.03e18), uint256(7 days), uint256(0.12e18))
+        );
+        _sellCreditLimit(
+            bob,
+            block.timestamp + 365 days,
+            YieldCurveHelper.customCurve(uint256(1 days), uint256(0.15e18), uint256(15 days), uint256(0.17e18))
+        );
+
+        CopyLimitOrder memory borrowCopy =
+            CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: 0.1e18, offsetAPR: 0});
+
+        _copyLimitOrders(alice, bob, fullCopy, borrowCopy);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.MISMATCHED_CURVES.selector, alice, 5 days, 0.075e18, 0.1e18));
+        vm.prank(candy);
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: alice,
+                creditPositionId: RESERVED_ID,
+                amount: 10e6,
+                tenor: 5 days,
+                maxAPR: type(uint256).max,
+                deadline: block.timestamp,
+                exactAmountIn: false
+            })
+        );
+
+        YieldCurve memory nullCurve;
+        _sellCreditLimit(bob, 0, nullCurve);
+
+        _sellCreditMarket(candy, alice, RESERVED_ID, 10e6, 5 days, false);
+    }
 }
