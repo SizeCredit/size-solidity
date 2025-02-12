@@ -183,12 +183,13 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
     ///       - uint256 maxTenor: The maximum tenor of the loan offer to copy (type(uint256).max means use copy yield curve tenor upper bound)
     ///       - uint256 minAPR: The minimum APR of the loan offer to copy (0 means use copy yield curve APR lower bound)
     ///       - uint256 maxAPR: The maximum APR of the loan offer to copy (type(uint256).max means use copy yield curve APR upper bound)
+    ///       - int256 offsetAPR: The offset APR relative to the copied loan offer
     ///     - CopyLimitOrder copyBorrowOffer: The borrow offer to copy (null means no copy)
     ///       - uint256 minTenor: The minimum tenor of the borrow offer to copy (0 means use copy yield curve tenor lower bound)
     ///       - uint256 maxTenor: The maximum tenor of the borrow offer to copy (type(uint256).max means use copy yield curve tenor upper bound)
     ///       - uint256 minAPR: The minimum APR of the borrow offer to copy (0 means use copy yield curve APR lower bound)
     ///       - uint256 maxAPR: The maximum APR of the borrow offer to copy (type(uint256).max means use copy yield curve APR upper bound)
-    ///       - int256 offsetAPR: The offset APR relative to the copied offer
+    ///       - int256 offsetAPR: The offset APR relative to the copied borrow offer
     /// @dev Does not erase the user's loan offer and borrow offer
     function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable;
 }

@@ -93,7 +93,10 @@ Since Size v1.6.1, users can copy other users' limit orders.
 
 As an additional safety measure against inverted curves, market orders check that the borrow offer is lower than the user's loan offer for a given tenor. This does not prevent the copy address from changing curves in a single multicall transaction and bypassing this check.
 
-Note: copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
+Notes
+
+1. Copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
+2. The max/min params from the `copyLimitOrder` method are not global max/min for the user-defined limit orders; they are specific to copy offers. Once the copy address offer is no longer valid, max/min guards for mismatched curves will not be applied. The only reason to stop market orders is in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
 
 ## Test
 
