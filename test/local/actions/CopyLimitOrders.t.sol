@@ -478,6 +478,7 @@ contract CopyLimitOrdersTest is BaseTest {
     }
 
     function test_CopyLimitOrders_copyLimitOrders_copyAddress_updates_offer_then_user_market_order_reverts() public {
+        _updateConfig("swapFeeAPR", 0);
         _deposit(alice, usdc, 200e6);
         _deposit(candy, weth, 100e18);
 
@@ -517,6 +518,8 @@ contract CopyLimitOrdersTest is BaseTest {
             YieldCurveHelper.customCurve(uint256(1 days), uint256(0.15e18), uint256(15 days), uint256(0.17e18))
         );
 
-        _sellCreditMarket(candy, alice, RESERVED_ID, 10e6, 5 days, false);
+        uint256 debtPositionId = _sellCreditMarket(candy, alice, RESERVED_ID, 10e6, 5 days, false);
+        uint256 futureValue = 10e6 + uint256(10e6 * 0.075e18 * 5 days) / 365 days / 1e18 + 1;
+        assertEq(size.getDebtPosition(debtPositionId).futureValue, futureValue);
     }
 }
