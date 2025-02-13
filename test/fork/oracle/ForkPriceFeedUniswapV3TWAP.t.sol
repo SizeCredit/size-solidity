@@ -26,7 +26,7 @@ contract ForkPriceFeedUniswapV3TWAPTest is ForkTest, Networks {
 
     function setUp() public override(ForkTest) {
         super.setUp();
-        vm.createSelectFork("base");
+        vm.createSelectFork("base_archive");
 
         // 2025-01-17 13h30 UTC
         vm.rollFork(25163791);

@@ -7,7 +7,7 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract SizeViewTest is BaseTest {
     function test_SizeView_getBorrowOfferAPR_validation() public {
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
         size.getBorrowOfferAPR(alice, block.timestamp);
 
         _sellCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.marketCurve());
@@ -17,7 +17,7 @@ contract SizeViewTest is BaseTest {
     }
 
     function test_SizeView_getLoanOfferAPR_validation() public {
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_OFFER.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
         size.getLoanOfferAPR(alice, block.timestamp);
 
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));

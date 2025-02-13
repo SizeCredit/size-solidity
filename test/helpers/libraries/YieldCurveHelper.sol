@@ -153,39 +153,59 @@ library YieldCurveHelper {
         return YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }
 
-    // Simple way to create a line between two points, in case you need to
-    // test your code with different values that offered by
-    // the above the patterns.
-    // m1 = 31 days
-    // r1 = 0.01e18
-    // m2 = 60 days
-    // r2 = 0.03e18
-    function customCurve(uint256 m1, int256 r1, uint256 m2, int256 r2) public pure returns (YieldCurve memory) {
+    function customCurve(uint256 tenor1, int256 apr1, uint256 tenor2, int256 apr2)
+        public
+        pure
+        returns (YieldCurve memory)
+    {
         uint256[] memory tenors = new uint256[](2);
         int256[] memory aprs = new int256[](2);
         uint256[] memory marketRateMultipliers = new uint256[](2);
 
-        aprs[0] = r1;
-        aprs[1] = r2;
+        aprs[0] = apr1;
+        aprs[1] = apr2;
 
-        tenors[0] = m1;
-        tenors[1] = m2;
+        tenors[0] = tenor1;
+        tenors[1] = tenor2;
 
         return YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }
 
-    function customCurve(uint256 m1, uint256 r1, uint256 m2, uint256 r2) public pure returns (YieldCurve memory) {
-        return customCurve(m1, SafeCast.toInt256(r1), m2, SafeCast.toInt256(r2));
+    function customCurve(uint256 tenor1, uint256 apr1, uint256 tenor2, uint256 apr2)
+        public
+        pure
+        returns (YieldCurve memory)
+    {
+        return customCurve(tenor1, SafeCast.toInt256(apr1), tenor2, SafeCast.toInt256(apr2));
     }
 
-    function pointCurve(uint256 m1, int256 r1) public pure returns (YieldCurve memory) {
+    function customCurve(uint256 tenor1, uint256 apr1, uint256 tenor2, uint256 apr2, uint256 tenor3, uint256 apr3)
+        public
+        pure
+        returns (YieldCurve memory)
+    {
+        uint256[] memory tenors = new uint256[](3);
+        int256[] memory aprs = new int256[](3);
+        uint256[] memory marketRateMultipliers = new uint256[](3);
+
+        aprs[0] = SafeCast.toInt256(apr1);
+        aprs[1] = SafeCast.toInt256(apr2);
+        aprs[2] = SafeCast.toInt256(apr3);
+
+        tenors[0] = tenor1;
+        tenors[1] = tenor2;
+        tenors[2] = tenor3;
+
+        return YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
+    }
+
+    function pointCurve(uint256 tenor, int256 apr) public pure returns (YieldCurve memory) {
         uint256[] memory tenors = new uint256[](1);
         int256[] memory aprs = new int256[](1);
         uint256[] memory marketRateMultipliers = new uint256[](1);
 
-        aprs[0] = r1;
-
-        tenors[0] = m1;
+        aprs[0] = apr;
+        tenors[0] = tenor;
 
         return YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
     }

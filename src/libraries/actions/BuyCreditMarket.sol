@@ -39,6 +39,7 @@ struct BuyCreditMarketParams {
 /// @notice Contains the logic for buying credit (lending) as a market order
 library BuyCreditMarket {
     using OfferLibrary for LimitOrder;
+    using OfferLibrary for State;
     using AccountingLibrary for State;
     using LoanLibrary for State;
     using LoanLibrary for DebtPosition;
@@ -90,11 +91,9 @@ library BuyCreditMarket {
             tenor = debtPosition.dueDate - block.timestamp; // positive since the credit position is transferrable, so the loan must be ACTIVE
         }
 
-        LimitOrder memory borrowOffer = state.data.users[borrower].borrowOffer;
-
         // validate borrower
-        if (borrowOffer.isNull()) {
-            revert Errors.INVALID_BORROW_OFFER(borrower);
+        if (borrower == address(0)) {
+            revert Errors.NULL_ADDRESS();
         }
 
         // validate amount
@@ -103,9 +102,7 @@ library BuyCreditMarket {
         }
 
         // validate tenor
-        if (block.timestamp + tenor > borrowOffer.maxDueDate) {
-            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, borrowOffer.maxDueDate);
-        }
+        // N/A
 
         // validate deadline
         if (params.deadline < block.timestamp) {
@@ -113,20 +110,22 @@ library BuyCreditMarket {
         }
 
         // validate minAPR
-        uint256 apr = borrowOffer.getAPRByTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
-        if (apr < params.minAPR) {
-            revert Errors.APR_LOWER_THAN_MIN_APR(apr, params.minAPR);
+        uint256 borrowAPR = state.getBorrowOfferAPRByTenor(borrower, tenor);
+        if (borrowAPR < params.minAPR) {
+            revert Errors.APR_LOWER_THAN_MIN_APR(borrowAPR, params.minAPR);
         }
 
         // validate exactAmountIn
         // N/A
+
+        // validate inverted curve
+        try state.getLoanOfferAPRByTenor(borrower, tenor) returns (uint256 loanAPR) {
+            if (borrowAPR >= loanAPR) {
+                revert Errors.MISMATCHED_CURVES(borrower, tenor, loanAPR, borrowAPR);
+            }
+        } catch (bytes memory) {
+            // N/A
+        }
     }
 
     /// @notice Gets the swap data for buying credit as a market order
@@ -149,14 +148,7 @@ library BuyCreditMarket {
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        uint256 ratePerTenor = state.data.users[swapData.borrower].borrowOffer.getRatePerTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            swapData.tenor
-        );
+        uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(swapData.borrower, swapData.tenor);
 
         if (params.exactAmountIn) {
             swapData.cashAmountIn = params.amount;

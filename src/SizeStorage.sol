@@ -6,7 +6,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {IWETH} from "@src/interfaces/IWETH.sol";
 
 import {CreditPosition, DebtPosition} from "@src/libraries/LoanLibrary.sol";
-import {LimitOrder} from "@src/libraries/OfferLibrary.sol";
+import {CopyLimitOrder, LimitOrder} from "@src/libraries/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
@@ -23,6 +23,15 @@ struct User {
     uint256 openingLimitBorrowCR;
     // Whether the user has disabled all credit positions for sale
     bool allCreditPositionsForSaleDisabled;
+}
+
+struct UserCopyLimitOrders {
+    // the address to copy the limit orders from
+    address copyAddress;
+    // the loan offer copy parameters (null means no copy)
+    CopyLimitOrder copyLoanOffer;
+    // the borrow offer copy parameters (null means no copy)
+    CopyLimitOrder copyBorrowOffer;
 }
 
 struct FeeConfig {
@@ -95,6 +104,8 @@ struct Data {
     bool isMulticall;
     // Size deposit underlying borrow aToken v1.5
     NonTransferrableScaledTokenV1_5 borrowATokenV1_5;
+    // mapping of copy limit orders v1.6.1
+    mapping(address => UserCopyLimitOrders) usersCopyLimitOrders;
 }
 
 struct State {

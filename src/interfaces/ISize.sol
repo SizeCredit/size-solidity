@@ -26,11 +26,13 @@ import {
 import {IMulticall} from "@src/interfaces/IMulticall.sol";
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
+
+import {CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol";
 import {SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
 
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
 
-string constant VERSION = "v1.6";
+string constant VERSION = "v1.6.1";
 
 /// @title ISize
 /// @custom:security-contact security@size.credit
@@ -172,4 +174,22 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall {
     ///     - bool creditPositionIdsForSale: This flag indicates if the creditPositionIds array should be set for sale or not
     ///     - uint256[] creditPositionIds: The id of the credit positions
     function setUserConfiguration(SetUserConfigurationParams calldata params) external payable;
+
+    /// @notice Copy limit orders from a user
+    /// @param params CopyLimitOrdersParams struct containing the following fields:
+    ///     - address copyAddress: The address of the user to copy from
+    ///     - CopyLimitOrder copyLoanOffer: The loan offer to copy (null means no copy)
+    ///       - uint256 minTenor: The minimum tenor of the loan offer to copy (0 means use copy yield curve tenor lower bound)
+    ///       - uint256 maxTenor: The maximum tenor of the loan offer to copy (type(uint256).max means use copy yield curve tenor upper bound)
+    ///       - uint256 minAPR: The minimum APR of the loan offer to copy (0 means use copy yield curve APR lower bound)
+    ///       - uint256 maxAPR: The maximum APR of the loan offer to copy (type(uint256).max means use copy yield curve APR upper bound)
+    ///       - int256 offsetAPR: The offset APR relative to the copied loan offer
+    ///     - CopyLimitOrder copyBorrowOffer: The borrow offer to copy (null means no copy)
+    ///       - uint256 minTenor: The minimum tenor of the borrow offer to copy (0 means use copy yield curve tenor lower bound)
+    ///       - uint256 maxTenor: The maximum tenor of the borrow offer to copy (type(uint256).max means use copy yield curve tenor upper bound)
+    ///       - uint256 minAPR: The minimum APR of the borrow offer to copy (0 means use copy yield curve APR lower bound)
+    ///       - uint256 maxAPR: The maximum APR of the borrow offer to copy (type(uint256).max means use copy yield curve APR upper bound)
+    ///       - int256 offsetAPR: The offset APR relative to the copied borrow offer
+    /// @dev Does not erase the user's loan offer and borrow offer
+    function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable;
 }

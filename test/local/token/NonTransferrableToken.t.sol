@@ -17,13 +17,16 @@ contract NonTransferrableTokenTest is Test {
         vm.label(owner, "owner");
     }
 
-    function test_NonTransferrableToken_construction() public view {
+    function test_NonTransferrableToken_construction() public {
         assertEq(token.name(), "Test");
         assertEq(token.symbol(), "TEST");
         assertEq(token.decimals(), 18);
         assertEq(token.totalSupply(), 0);
         assertEq(token.owner(), owner);
         assertEq(token.balanceOf(address(this)), 0);
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
+        new NonTransferrableToken(owner, "Test2", "TEST2", 0);
     }
 
     function test_NonTransferrableToken_only_owner_can_mint() public {

@@ -39,6 +39,7 @@ struct SellCreditMarketParams {
 /// @notice Contains the logic for selling credit (borrowing) as a market order
 library SellCreditMarket {
     using OfferLibrary for LimitOrder;
+    using OfferLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
@@ -58,15 +59,14 @@ library SellCreditMarket {
     /// @param state The state
     /// @param params The input parameters for selling credit as a market order
     function validateSellCreditMarket(State storage state, SellCreditMarketParams calldata params) external view {
-        LimitOrder memory loanOffer = state.data.users[params.lender].loanOffer;
         uint256 tenor;
 
         // validate msg.sender
         // N/A
 
         // validate lender
-        if (loanOffer.isNull()) {
-            revert Errors.INVALID_LOAN_OFFER(params.lender);
+        if (params.lender == address(0)) {
+            revert Errors.NULL_ADDRESS();
         }
 
         // validate creditPositionId
@@ -99,9 +99,7 @@ library SellCreditMarket {
         }
 
         // validate tenor
-        if (block.timestamp + tenor > loanOffer.maxDueDate) {
-            revert Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE(block.timestamp + tenor, loanOffer.maxDueDate);
-        }
+        // N/A
 
         // validate deadline
         if (params.deadline < block.timestamp) {
@@ -109,20 +107,22 @@ library SellCreditMarket {
         }
 
         // validate maxAPR
-        uint256 apr = loanOffer.getAPRByTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
-        if (apr > params.maxAPR) {
-            revert Errors.APR_GREATER_THAN_MAX_APR(apr, params.maxAPR);
+        uint256 loanAPR = state.getLoanOfferAPRByTenor(params.lender, tenor);
+        if (loanAPR > params.maxAPR) {
+            revert Errors.APR_GREATER_THAN_MAX_APR(loanAPR, params.maxAPR);
         }
 
         // validate exactAmountIn
         // N/A
+
+        // validate inverted curve
+        try state.getBorrowOfferAPRByTenor(params.lender, tenor) returns (uint256 borrowAPR) {
+            if (borrowAPR >= loanAPR) {
+                revert Errors.MISMATCHED_CURVES(params.lender, tenor, loanAPR, borrowAPR);
+            }
+        } catch (bytes memory) {
+            // N/A
+        }
     }
 
     /// @notice Returns the swap data for selling credit as a market order
@@ -143,14 +143,7 @@ library SellCreditMarket {
             swapData.tenor = debtPosition.dueDate - block.timestamp;
         }
 
-        uint256 ratePerTenor = state.data.users[params.lender].loanOffer.getRatePerTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            swapData.tenor
-        );
+        uint256 ratePerTenor = state.getLoanOfferRatePerTenor(params.lender, swapData.tenor);
 
         if (params.exactAmountIn) {
             swapData.creditAmountIn = params.amount;
