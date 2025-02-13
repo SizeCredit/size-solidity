@@ -33,7 +33,7 @@ contract ForkChainlinkGoesDownUniswapIsUsedAsFallbackTest is ForkTest {
 
     function setUp() public override(ForkTest) {
         super.setUp();
-        vm.createSelectFork("base");
+        vm.createSelectFork("base_archive");
         (sizeCbBtcUsdc,, sizeCbBtcUsdcOwner) = importDeployments("base-production-cbbtc-usdc");
 
         vm.rollFork(blockNumberChainlinkAggregatorRoundId397);

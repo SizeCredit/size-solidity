@@ -39,10 +39,24 @@ contract SellCreditMarketValidationTest is BaseTest {
         bool exactAmountIn = false;
 
         vm.startPrank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, address(0)));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: address(0),
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                tenor: tenor,
+                deadline: deadline,
+                maxAPR: type(uint256).max,
+                exactAmountIn: exactAmountIn
+            })
+        );
+
+        vm.startPrank(candy);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, liquidator));
+        size.sellCreditMarket(
+            SellCreditMarketParams({
+                lender: liquidator,
                 creditPositionId: RESERVED_ID,
                 amount: amount,
                 tenor: tenor,

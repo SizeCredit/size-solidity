@@ -31,6 +31,8 @@ import {Liquidate, LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
 
 import {Multicall} from "@src/libraries/Multicall.sol";
 import {Compensate, CompensateParams} from "@src/libraries/actions/Compensate.sol";
+
+import {CopyLimitOrders, CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol";
 import {
     LiquidateWithReplacement,
     LiquidateWithReplacementParams
@@ -80,6 +82,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using RiskLibrary for State;
     using CapsLibrary for State;
     using Multicall for State;
+    using CopyLimitOrders for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -275,5 +278,11 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     {
         state.validateSetUserConfiguration(params);
         state.executeSetUserConfiguration(params);
+    }
+
+    /// @inheritdoc ISize
+    function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable override(ISize) whenNotPaused {
+        state.validateCopyLimitOrders(params);
+        state.executeCopyLimitOrders(params);
     }
 }

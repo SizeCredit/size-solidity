@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {UserCopyLimitOrders} from "@src/SizeStorage.sol";
 import {DataView, UserView} from "@src/SizeViewData.sol";
 import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/LoanLibrary.sol";
-
 import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeFeeConfigParams,
@@ -57,6 +57,11 @@ interface ISizeView {
     /// @param user The address of the user
     /// @return The user view
     function getUserView(address user) external view returns (UserView memory);
+
+    /// @notice Get the user copy limit orders for a given user
+    /// @param user The address of the user
+    /// @return The user copy limit orders
+    function getUserCopyLimitOrders(address user) external view returns (UserCopyLimitOrders memory);
 
     /// @notice Check if a given ID is a debt position ID
     /// @param debtPositionId The ID to check

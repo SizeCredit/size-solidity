@@ -506,6 +506,10 @@ contract SizeFactoryTest is BaseTest {
     }
 
     function test_SizeFactory_setSizeImplementation() public {
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        sizeFactory.setSizeImplementation(address(0));
+
         address newImplementation = address(new SizeMock());
         vm.prank(owner);
         sizeFactory.setSizeImplementation(newImplementation);
@@ -517,6 +521,10 @@ contract SizeFactoryTest is BaseTest {
     }
 
     function test_SizeFactory_setNonTransferrableScaledTokenV1_5Implementation() public {
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(address(0));
+
         address newImplementation = makeAddr("newImplementation");
         vm.prank(owner);
         sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(newImplementation);

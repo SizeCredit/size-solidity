@@ -10,7 +10,7 @@ import {ForkTest} from "@test/fork/ForkTest.sol";
 
 contract ForkSizeFactoryTest is ForkTest {
     function setUp() public override {
-        vm.createSelectFork("base");
+        vm.createSelectFork("base_archive");
         vm.rollFork(21975923);
     }
 

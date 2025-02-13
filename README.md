@@ -79,6 +79,25 @@ A contract that provides the price of ETH in terms of USDC in 18 decimals. For e
 
 In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation on Aave's rate, convert it to 18 decimals, and store it in the Size contract. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000. The admin can disable this feature by setting the stale interval to zero. If the oracle information is stale, orders relying on the variable rate feed cannot be matched.
 
+#### Copy trading
+
+Since Size v1.6.1, users can copy other users' limit orders.
+
+- Users can copy borrow/loan offers from other users
+- Users can copy both or a single offer from a single address
+- Users can specify safeguards per copied curve:
+  - min/max APR (safety envelope): if the calculated APR falls outside of this range, the min/max is used instead
+  - min/max tenor: if the requested tenor goes outside of this range, the market order reverts
+- Users can specify offset APRs to be applied to the curves
+- Once a copy offer is set, the user's own offers should be ignored, even if they update them. Copy offers have precedence until erased (setting them to null/default vales)
+
+As an additional safety measure against inverted curves, market orders check that the borrow offer is lower than the user's loan offer for a given tenor. This does not prevent the copy address from changing curves in a single multicall transaction and bypassing this check.
+
+Notes
+
+1. Copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
+2. The max/min params from the `copyLimitOrder` method are not global max/min for the user-defined limit orders; they are specific to copy offers. Once the copy address offer is no longer valid, max/min guards for mismatched curves will not be applied. The only reason to stop market orders is in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
+
 ## Test
 
 ```bash
@@ -327,6 +346,6 @@ If it does not work, try removing `--verify`
 ## Upgrade
 
 ```bash
-source .env.sepolia
+source .env.base_sepolia
 forge script script/Upgrade.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv [--slow]
 ```

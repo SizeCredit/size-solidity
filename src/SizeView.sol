@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {SizeStorage, State, User} from "@src/SizeStorage.sol";
+import {SizeStorage, State, User, UserCopyLimitOrders} from "@src/SizeStorage.sol";
 import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {
@@ -41,6 +41,7 @@ import {VERSION} from "@src/interfaces/ISize.sol";
 /// @notice View methods for the Size protocol
 abstract contract SizeView is SizeStorage, ISizeView {
     using OfferLibrary for LimitOrder;
+    using OfferLibrary for State;
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using LoanLibrary for State;
@@ -109,6 +110,11 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
+    function getUserCopyLimitOrders(address user) external view returns (UserCopyLimitOrders memory) {
+        return state.data.usersCopyLimitOrders[user];
+    }
+
+    /// @inheritdoc ISizeView
     function isDebtPositionId(uint256 debtPositionId) external view returns (bool) {
         return state.isDebtPositionId(debtPositionId);
     }
@@ -143,34 +149,12 @@ abstract contract SizeView is SizeStorage, ISizeView {
 
     /// @inheritdoc ISizeView
     function getBorrowOfferAPR(address borrower, uint256 tenor) external view returns (uint256) {
-        LimitOrder memory offer = state.data.users[borrower].borrowOffer;
-        if (offer.isNull()) {
-            revert Errors.NULL_OFFER();
-        }
-        return offer.getAPRByTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
+        return state.getBorrowOfferAPRByTenor(borrower, tenor);
     }
 
     /// @inheritdoc ISizeView
     function getLoanOfferAPR(address lender, uint256 tenor) external view returns (uint256) {
-        LimitOrder memory offer = state.data.users[lender].loanOffer;
-        if (offer.isNull()) {
-            revert Errors.NULL_OFFER();
-        }
-        return offer.getAPRByTenor(
-            VariablePoolBorrowRateParams({
-                variablePoolBorrowRate: state.oracle.variablePoolBorrowRate,
-                variablePoolBorrowRateUpdatedAt: state.oracle.variablePoolBorrowRateUpdatedAt,
-                variablePoolBorrowRateStaleRateInterval: state.oracle.variablePoolBorrowRateStaleRateInterval
-            }),
-            tenor
-        );
+        return state.getLoanOfferAPRByTenor(lender, tenor);
     }
 
     /// @inheritdoc ISizeView
