@@ -91,7 +91,46 @@ contract LiquidateWithReplacementValidationTest is BaseTest {
         _sellCreditLimit(candy, 0, empty);
 
         vm.prank(liquidator);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, candy));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, candy));
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
+                borrower: candy,
+                minAPR: 0,
+                deadline: block.timestamp,
+                minimumCollateralProfit: minimumCollateralProfit
+            })
+        );
+
+        vm.prank(liquidator);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        size.liquidateWithReplacement(
+            LiquidateWithReplacementParams({
+                debtPositionId: debtPositionId,
+                borrower: address(0),
+                minAPR: 0,
+                deadline: block.timestamp,
+                minimumCollateralProfit: minimumCollateralProfit
+            })
+        );
+
+        _buyCreditLimit(
+            candy,
+            block.timestamp + 365 days * 3,
+            [int256(0.03e18), int256(0.03e18)],
+            [uint256(1 days), uint256(365 days * 3)]
+        );
+        _sellCreditLimit(
+            candy,
+            block.timestamp + 365 days * 3,
+            [int256(0.03e18), int256(0.03e18)],
+            [uint256(1 days), uint256(365 days * 3)]
+        );
+
+        vm.prank(liquidator);
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.MISMATCHED_CURVES.selector, candy, 2 * 365 days, 0.03e18, 0.03e18)
+        );
         size.liquidateWithReplacement(
             LiquidateWithReplacementParams({
                 debtPositionId: debtPositionId,

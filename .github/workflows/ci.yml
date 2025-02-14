@@ -223,7 +223,6 @@ jobs:
 
     name: Coverage
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -249,6 +248,7 @@ jobs:
           git commit -m "Update coverage [skip ci]" || true
 
       - name: Push
+        if: github.ref == 'refs/heads/main'
         run: |
           git push https://${{ env.token }}@github.com/${{ github.event.repository.full_name }}.git
         env:

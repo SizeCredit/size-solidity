@@ -3,15 +3,15 @@
   "description": "Size v2",
   "scripts": {
     "solhint": "solhint \"src/**/*.sol\"  --max-warnings 0",
-    "typechain": "npx typechain --target=ethers-v6",
+    "typechain": "npx typechain --target=ethers-v6 out/Size.sol/Size.json out/SizeFactory.sol/SizeFactory.json out/Errors.sol/Errors.json out/Events.sol/Events.json out/draft-IERC6093.sol/IERC20Errors.json",
     "get-libraries": "(j=$((0x10)); find src/libraries test/helpers/libraries -type f | sed 's/.*\\///' | sed 's/.sol//' | while read i; do echo -n \"($i,$(printf \"0x%x\" $j))\\n\";j=$((j+1));done) | paste -sd, -",
     "echidna-property": "echidna . --contract CryticTester --config echidna.yaml --test-mode property",
     "echidna-assertion": "echidna . --contract CryticTester --config echidna.yaml --test-mode assertion",
     "echidna-coverage": "open $(find echidna -name '*.html' | sort | tail -1)",
-    "coverage": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*' 'script/*' 'deprecated/*' && genhtml lcov.info -o report --branch-coverage && open report/index.html"
+    "coverage": "forge coverage --no-match-coverage \"(script|test|deprecated)\" --report lcov && genhtml lcov.info -o report --branch-coverage && open report/index.html"
   },
   "devDependencies": {
-    "@typechain/ethers-v5": "^11.1.2",
+    "@typechain/ethers-v6": "^0.5.1",
     "solhint": "^4.0.0"
   }
 }

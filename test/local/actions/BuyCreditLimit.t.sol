@@ -57,7 +57,7 @@ contract BuyCreditLimitTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 45 days;
         vm.prank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_LOAN_OFFER.selector, alice));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, alice));
         size.sellCreditMarket(
             SellCreditMarketParams({
                 lender: alice,

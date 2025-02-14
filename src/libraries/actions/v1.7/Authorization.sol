@@ -24,7 +24,9 @@ struct SetAuthorizationOnBehalfOfParams {
 
 /// @notice The actions that can be authorized
 /// @dev Do not change the order of the enum values, or the authorizations will change
+/// @dev Add new actions right before LAST_ACTION
 enum Action {
+    SET_AUTHORIZATION,
     DEPOSIT,
     WITHDRAW,
     BUY_CREDIT_LIMIT,
@@ -34,7 +36,9 @@ enum Action {
     SELF_LIQUIDATE,
     COMPENSATE,
     SET_USER_CONFIGURATION,
-    SET_AUTHORIZATION
+    COPY_LIMIT_ORDERS,
+    // add more actions here
+    LAST_ACTION
 }
 
 /// @title Authorization
@@ -63,7 +67,8 @@ library Authorization {
     /// @param action The action
     /// @return The action bit
     function _getActionBit(bytes4 action) private pure returns (uint256) {
-        if (action == ISize.deposit.selector) return uint256(Action.DEPOSIT);
+        if (action == ISizeV1_7.setAuthorization.selector) return uint256(Action.SET_AUTHORIZATION);
+        else if (action == ISize.deposit.selector) return uint256(Action.DEPOSIT);
         else if (action == ISize.withdraw.selector) return uint256(Action.WITHDRAW);
         else if (action == ISize.buyCreditLimit.selector) return uint256(Action.BUY_CREDIT_LIMIT);
         else if (action == ISize.sellCreditLimit.selector) return uint256(Action.SELL_CREDIT_LIMIT);
@@ -72,7 +77,7 @@ library Authorization {
         else if (action == ISize.selfLiquidate.selector) return uint256(Action.SELF_LIQUIDATE);
         else if (action == ISize.compensate.selector) return uint256(Action.COMPENSATE);
         else if (action == ISize.setUserConfiguration.selector) return uint256(Action.SET_USER_CONFIGURATION);
-        else if (action == ISizeV1_7.setAuthorization.selector) return uint256(Action.SET_AUTHORIZATION);
+        else if (action == ISize.copyLimitOrders.selector) return uint256(Action.COPY_LIMIT_ORDERS);
         else revert Errors.INVALID_ACTION(action);
     }
 
@@ -143,7 +148,7 @@ library Authorization {
         }
 
         // validate actionsBitmap
-        uint256 maxBitmap = (1 << (uint256(Action.SET_AUTHORIZATION) + 1)) - 1;
+        uint256 maxBitmap = (1 << (uint256(Action.LAST_ACTION))) - 1;
         if (params.actionsBitmap > maxBitmap) {
             revert Errors.INVALID_ACTIONS_BITMAP(params.actionsBitmap);
         }

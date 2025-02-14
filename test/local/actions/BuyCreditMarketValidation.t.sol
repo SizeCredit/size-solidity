@@ -33,7 +33,21 @@ contract BuyCreditMarketTest is BaseTest {
         bool exactAmountIn = false;
 
         vm.startPrank(candy);
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_BORROW_OFFER.selector, address(0)));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_OFFER.selector, liquidator));
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: liquidator,
+                creditPositionId: RESERVED_ID,
+                amount: amount,
+                tenor: tenor,
+                deadline: deadline,
+                minAPR: 0,
+                exactAmountIn: exactAmountIn
+            })
+        );
+
+        vm.startPrank(candy);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: address(0),

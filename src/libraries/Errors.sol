@@ -22,6 +22,9 @@ library Errors {
     error INVALID_MAXIMUM_TENOR(uint256 maxTenor);
     error VALUE_GREATER_THAN_MAX(uint256 value, uint256 max);
     error INVALID_LIQUIDATION_COLLATERAL_RATIO(uint256 crOpening, uint256 crLiquidation);
+    error INVALID_TENOR_RANGE(uint256 minTenor, uint256 maxTenor);
+    error INVALID_APR_RANGE(uint256 minAPR, uint256 maxAPR);
+    error INVALID_ADDRESS(address account);
     error PAST_DEADLINE(uint256 deadline);
     error PAST_MAX_DUE_DATE(uint256 maxDueDate);
     error APR_LOWER_THAN_MIN_APR(uint256 apr, uint256 minAPR);
@@ -29,6 +32,7 @@ library Errors {
     error DUE_DATE_NOT_COMPATIBLE(uint256 dueDate1, uint256 dueDate2);
     error DUE_DATE_GREATER_THAN_MAX_DUE_DATE(uint256 dueDate, uint256 maxDueDate);
     error TENOR_OUT_OF_RANGE(uint256 tenor, uint256 minTenor, uint256 maxTenor);
+    error MISMATCHED_CURVES(address account, uint256 tenor, uint256 loanOfferAPR, uint256 borrowOfferAPR);
     error INVALID_POSITION_ID(uint256 positionId);
     error INVALID_DEBT_POSITION_ID(uint256 debtPositionId);
     error INVALID_CREDIT_POSITION_ID(uint256 creditPositionId);
@@ -36,6 +40,7 @@ library Errors {
     error INVALID_BORROWER(address account);
     error INVALID_LOAN_OFFER(address lender);
     error INVALID_BORROW_OFFER(address borrower);
+    error INVALID_OFFER(address account);
 
     error CREDIT_NOT_FOR_SALE(uint256 creditPositionId);
     error NOT_ENOUGH_CREDIT(uint256 credit, uint256 required);

@@ -11,6 +11,7 @@ import {SelfLiquidateOnBehalfOfParams} from "@src/libraries/actions/SelfLiquidat
 import {SellCreditLimitOnBehalfOfParams} from "@src/libraries/actions/SellCreditLimit.sol";
 import {SellCreditMarketOnBehalfOfParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
+import {CopyLimitOrdersOnBehalfOfParams} from "@src/libraries/actions/CopyLimitOrders.sol";
 import {SetUserConfigurationOnBehalfOfParams} from "@src/libraries/actions/SetUserConfiguration.sol";
 import {WithdrawOnBehalfOfParams} from "@src/libraries/actions/Withdraw.sol";
 import {SetAuthorizationOnBehalfOfParams, SetAuthorizationParams} from "@src/libraries/actions/v1.7/Authorization.sol";
@@ -79,4 +80,7 @@ interface ISizeV1_7 {
 
     /// @notice Same as `setUserConfiguration` but `onBehalfOf`
     function setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams memory params) external payable;
+
+    /// @notice Same as `copyLimitOrders` but `onBehalfOf`
+    function copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams memory params) external payable;
 }

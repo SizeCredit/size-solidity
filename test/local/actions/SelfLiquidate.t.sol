@@ -347,7 +347,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _buyCreditLimit(alice, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
         _buyCreditLimit(candy, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
-        _buyCreditLimit(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
+        _buyCreditLimit(james, block.timestamp + 365 days, [int256(0.1e18)], [uint256(365 days)]);
         _sellCreditLimit(james, block.timestamp + 365 days, 0, 365 days);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);
@@ -383,7 +383,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _buyCreditLimit(alice, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
         _buyCreditLimit(candy, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
-        _buyCreditLimit(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
+        _buyCreditLimit(james, block.timestamp + 365 days, [int256(0.1e18)], [uint256(365 days)]);
         _sellCreditLimit(james, block.timestamp + 365 days, 0, 365 days);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);
@@ -416,7 +416,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _buyCreditLimit(alice, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
         _buyCreditLimit(candy, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
-        _buyCreditLimit(james, block.timestamp + 365 days, [int256(0)], [uint256(365 days)]);
+        _buyCreditLimit(james, block.timestamp + 365 days, [int256(0.1e18)], [uint256(365 days)]);
         _sellCreditLimit(james, block.timestamp + 365 days, 0, 365 days);
 
         uint256 debtPositionId1 = _sellCreditMarket(alice, candy, RESERVED_ID, borrowAmount, 365 days, false);

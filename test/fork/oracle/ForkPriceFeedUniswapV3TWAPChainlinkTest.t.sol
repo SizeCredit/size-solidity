@@ -28,7 +28,7 @@ contract ForkPriceFeedUniswapV3TWAPChainlinkTest is ForkTest, Networks {
 
     function setUp() public override(ForkTest) {
         super.setUp();
-        vm.createSelectFork("base");
+        vm.createSelectFork("base_archive");
 
         // 2024-12-19 16h20 UTC
         vm.rollFork(23917935);
