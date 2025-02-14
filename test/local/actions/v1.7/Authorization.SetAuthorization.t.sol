@@ -86,5 +86,8 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, type(uint256).max));
         vm.prank(alice);
         size.setAuthorization(SetAuthorizationParams({operator: bob, actionsBitmap: type(uint256).max}));
+
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTION.selector, bytes4(0)));
+        Authorization.getActionsBitmap(bytes4(0));
     }
 }
