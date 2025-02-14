@@ -23,15 +23,18 @@ import {DataView, UserView} from "@src/SizeViewData.sol";
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/libraries/actions/Initialize.sol";
-
-import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+
+import {ISizeViewV1_7} from "@src/interfaces/v1.7/ISizeViewV1_7.sol";
 
 import {VERSION} from "@src/interfaces/ISize.sol";
 
@@ -48,6 +51,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
     using RiskLibrary for State;
     using AccountingLibrary for State;
     using UpdateConfig for State;
+    using Authorization for State;
 
     /// @inheritdoc ISizeView
     function collateralRatio(address user) external view returns (uint256) {
@@ -192,5 +196,10 @@ abstract contract SizeView is SizeStorage, ISizeView {
     /// @inheritdoc ISizeView
     function version() public pure returns (string memory) {
         return VERSION;
+    }
+
+    /// @inheritdoc ISizeViewV1_7
+    function isAuthorized(address onBehalfOf, address operator, bytes4 action) external view returns (bool) {
+        return state.isAuthorized(onBehalfOf, operator, action);
     }
 }

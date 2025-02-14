@@ -18,13 +18,14 @@ import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 import {SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
-import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+import {SellCreditMarketOnBehalfOfParams, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
 import {DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 
 import {BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
 import {ClaimParams} from "@src/libraries/actions/Claim.sol";
 import {LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
+import {SetAuthorizationParams} from "@src/libraries/actions/v1.7/Authorization.sol";
 
 import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
 import {LiquidateWithReplacementParams} from "@src/libraries/actions/LiquidateWithReplacement.sol";
@@ -451,6 +452,11 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 copyBorrowOffer: copyBorrowOffer
             })
         );
+    }
+
+    function _setAuthorization(address user, address operator, uint256 actionsBitmap) internal {
+        vm.prank(user);
+        size.setAuthorization(SetAuthorizationParams({operator: operator, actionsBitmap: actionsBitmap}));
     }
 
     function _setLiquidityIndex(address token, uint256 index) internal {

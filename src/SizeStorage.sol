@@ -10,7 +10,6 @@ import {CopyLimitOrder, LimitOrder} from "@src/libraries/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
@@ -94,8 +93,8 @@ struct Data {
     IERC20Metadata underlyingBorrowToken;
     // Size deposit underlying collateral token
     NonTransferrableToken collateralToken;
-    // Size deposit underlying borrow aToken v1.2
-    NonTransferrableScaledTokenV1_2 borrowATokenV1_2;
+    // Size deposit underlying borrow aToken v1.2 (deprecated)
+    address ___deprecated_borrowATokenV1_2;
     // Size tokenized debt
     NonTransferrableToken debtToken;
     // Variable Pool (Aave v3)
@@ -106,6 +105,12 @@ struct Data {
     NonTransferrableScaledTokenV1_5 borrowATokenV1_5;
     // mapping of copy limit orders v1.6.1
     mapping(address => UserCopyLimitOrders) usersCopyLimitOrders;
+    // mapping of authorized actions for operators per account v1.7
+    mapping(
+        address onBehalfOf => mapping(uint256 nonce => mapping(address operator => uint256 authorizedActionsBitmap))
+    ) authorizations;
+    // mapping of authorization nonces per account v1.7
+    mapping(address onBehalfOf => uint256 nonce) authorizationNonces;
 }
 
 struct State {
