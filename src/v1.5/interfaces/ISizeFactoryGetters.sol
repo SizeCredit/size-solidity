@@ -10,6 +10,43 @@ import {PriceFeed} from "@src/oracle/v1.5.1/PriceFeed.sol";
 /// @author Size (https://size.credit/)
 /// @notice The interface for the size factory getters
 interface ISizeFactoryGetters {
+    /// @notice Check if an address is a registered price feed
+    /// @param candidate The candidate to check
+    /// @return isPriceFeed True if the candidate is a registered price feed
+    function isPriceFeed(address candidate) external view returns (bool);
+
+    /// @notice Check if an address is a registered borrow aToken
+    /// @param candidate The candidate to check
+    /// @return isBorrowATokenV1_5 True if the candidate is a registered borrow aToken
+    function isBorrowATokenV1_5(address candidate) external view returns (bool);
+
+    /// @notice Get a market by index
+    /// @param index The index of the market
+    /// @return market The market
+    function getMarket(uint256 index) external view returns (ISize);
+
+    /// @notice Get a price feed by index
+    /// @param index The index of the price feed
+    /// @return priceFeed The price feed
+    function getPriceFeed(uint256 index) external view returns (PriceFeed);
+
+    /// @notice Get a borrow aToken by index
+    /// @param index The index of the borrow aToken
+    /// @return borrowATokenV1_5 The borrow aToken
+    function getBorrowATokenV1_5(uint256 index) external view returns (IERC20Metadata);
+
+    /// @notice Get the number of markets
+    /// @return marketsCount The number of markets
+    function getMarketsCount() external view returns (uint256);
+
+    /// @notice Get the number of price feeds
+    /// @return priceFeedsCount The number of price feeds
+    function getPriceFeedsCount() external view returns (uint256);
+
+    /// @notice Get the number of borrow aTokens
+    /// @return borrowATokensV1_5Count The number of borrow aTokens
+    function getBorrowATokensV1_5Count() external view returns (uint256);
+
     /// @notice Get all markets
     /// @return markets The markets
     function getMarkets() external view returns (ISize[] memory);
@@ -39,4 +76,8 @@ interface ISizeFactoryGetters {
     ///         such as szaUSDC for a ETH/USDC borrow aToken
     /// @return descriptions The borrow aToken descriptions
     function getBorrowATokenV1_5Descriptions() external view returns (string[] memory descriptions);
+
+    /// @notice Get the version of the size factory
+    /// @return version The version of the size factory
+    function version() external view returns (string memory);
 }

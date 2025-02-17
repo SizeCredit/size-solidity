@@ -25,6 +25,46 @@ abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage 
     using EnumerableSet for EnumerableSet.AddressSet;
 
     /// @inheritdoc ISizeFactoryGetters
+    function isPriceFeed(address candidate) external view returns (bool) {
+        return priceFeeds.contains(candidate);
+    }
+
+    /// @inheritdoc ISizeFactoryGetters
+    function isBorrowATokenV1_5(address candidate) external view returns (bool) {
+        return borrowATokensV1_5.contains(candidate);
+    }
+
+    /// @inheritdoc ISizeFactoryGetters
+    function getMarket(uint256 index) external view returns (ISize) {
+        return ISize(markets.at(index));
+    }
+
+    /// @inheritdoc ISizeFactoryGetters
+    function getPriceFeed(uint256 index) external view returns (PriceFeed) {
+        return PriceFeed(priceFeeds.at(index));
+    }
+
+    /// @inheritdoc ISizeFactoryGetters
+    function getBorrowATokenV1_5(uint256 index) external view returns (IERC20Metadata) {
+        return IERC20Metadata(borrowATokensV1_5.at(index));
+    }
+
+    /// @inheritdoc ISizeFactoryGetters
+    function getMarketsCount() external view returns (uint256) {
+        return markets.length();
+    }
+
+    /// @inheritdoc ISizeFactoryGetters
+    function getPriceFeedsCount() external view returns (uint256) {
+        return priceFeeds.length();
+    }
+
+    /// @inheritdoc ISizeFactoryGetters
+    function getBorrowATokensV1_5Count() external view returns (uint256) {
+        return borrowATokensV1_5.length();
+    }
+
+    /// @inheritdoc ISizeFactoryGetters
     function getMarkets() external view returns (ISize[] memory _markets) {
         _markets = new ISize[](markets.length());
         for (uint256 i = 0; i < _markets.length; i++) {

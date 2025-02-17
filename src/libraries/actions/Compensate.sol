@@ -59,8 +59,8 @@ library Compensate {
         uint256 amountToCompensate = Math.min(params.amount, creditPositionWithDebtToRepay.credit);
 
         // validate msg.sender
-        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.COMPENSATE)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.COMPENSATE);
+        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.COMPENSATE)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.COMPENSATE));
         }
         if (onBehalfOf != debtPositionToRepay.borrower) {
             revert Errors.COMPENSATOR_IS_NOT_BORROWER(onBehalfOf, debtPositionToRepay.borrower);
@@ -124,7 +124,7 @@ library Compensate {
         emit Events.Compensate(
             msg.sender, params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId, params.amount
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.COMPENSATE, address(0));
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.COMPENSATE), address(0));
 
         CreditPosition storage creditPositionWithDebtToRepay =
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);

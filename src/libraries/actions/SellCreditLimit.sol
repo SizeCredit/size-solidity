@@ -45,7 +45,7 @@ library SellCreditLimit {
 
         // validate msg.sender
         if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELL_CREDIT_LIMIT)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.SELL_CREDIT_LIMIT));
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(uint8(Action.SELL_CREDIT_LIMIT)));
         }
 
         // a null offer mean clearing their limit order
@@ -72,7 +72,7 @@ library SellCreditLimit {
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.SELL_CREDIT_LIMIT, address(0));
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.SELL_CREDIT_LIMIT), address(0));
 
         state.data.users[onBehalfOf].borrowOffer =
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});

@@ -51,8 +51,8 @@ library SelfLiquidate {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         // validate msg.sender
-        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELF_LIQUIDATE)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.SELF_LIQUIDATE);
+        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELF_LIQUIDATE)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.SELF_LIQUIDATE));
         }
         if (onBehalfOf != creditPosition.lender) {
             revert Errors.LIQUIDATOR_IS_NOT_LENDER(onBehalfOf, creditPosition.lender);
@@ -82,7 +82,7 @@ library SelfLiquidate {
         address recipient = externalParams.recipient;
 
         emit Events.SelfLiquidate(msg.sender, params.creditPositionId);
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.SELF_LIQUIDATE, recipient);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.SELF_LIQUIDATE), recipient);
 
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);

@@ -80,8 +80,8 @@ library SellCreditMarket {
         uint256 tenor;
 
         // validate msg.sender
-        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELL_CREDIT_MARKET)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.SELL_CREDIT_MARKET);
+        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELL_CREDIT_MARKET)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.SELL_CREDIT_MARKET));
         }
 
         // validate recipient
@@ -223,7 +223,7 @@ library SellCreditMarket {
             params.maxAPR,
             params.exactAmountIn
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.SELL_CREDIT_MARKET, recipient);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.SELL_CREDIT_MARKET), recipient);
 
         SwapDataSellCreditMarket memory swapData = getSwapData(state, params);
 

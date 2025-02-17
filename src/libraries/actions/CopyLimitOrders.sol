@@ -45,8 +45,8 @@ library CopyLimitOrders {
         address onBehalfOf = externalParams.onBehalfOf;
 
         // validate msg.sender
-        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.COPY_LIMIT_ORDERS)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.COPY_LIMIT_ORDERS);
+        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.COPY_LIMIT_ORDERS)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.COPY_LIMIT_ORDERS));
         }
 
         bool bothNull = true;
@@ -130,7 +130,7 @@ library CopyLimitOrders {
             params.copyBorrowOffer.maxAPR,
             params.copyBorrowOffer.offsetAPR
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.COPY_LIMIT_ORDERS, address(0));
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.COPY_LIMIT_ORDERS), address(0));
 
         state.data.usersCopyLimitOrders[onBehalfOf] = UserCopyLimitOrders({
             copyAddress: params.copyAddress,

@@ -49,8 +49,8 @@ library Deposit {
         address onBehalfOf = externalParams.onBehalfOf;
 
         // validate msg.sender
-        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.DEPOSIT)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.DEPOSIT);
+        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.DEPOSIT)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.DEPOSIT));
         }
 
         // validate msg.value
@@ -107,6 +107,6 @@ library Deposit {
         }
 
         emit Events.Deposit(msg.sender, params.token, params.to, amount);
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.DEPOSIT, params.to);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.DEPOSIT), params.to);
     }
 }

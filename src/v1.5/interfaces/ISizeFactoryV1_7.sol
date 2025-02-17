@@ -27,15 +27,15 @@ interface ISizeFactoryV1_7 {
     /// @param operator The operator account
     /// @param onBehalfOf The account on behalf of which the action is authorized
     /// @param market The market
-    /// @param actionBitmap The action bitmap
+    /// @param action The action
     /// @return The authorization status
-    function isAuthorized(address operator, address onBehalfOf, address market, uint256 actionBitmap)
+    function isAuthorized(address operator, address onBehalfOf, address market, Action action)
         external
         view
         returns (bool);
 
     /// @notice Check if actions are authorized by the `onBehalfOf` account for the `operator` account to perform on the calling market
-    /// @dev Reverts if `msg.sender` is not a Size market
+    /// @dev Returns false if `msg.sender` is not a Size market
     /// @param operator The operator account
     /// @param onBehalfOf The account on behalf of which the action is authorized
     /// @param action The action

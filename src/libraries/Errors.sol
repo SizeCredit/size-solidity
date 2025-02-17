@@ -102,4 +102,6 @@ library Errors {
 
     error INVALID_TWAP_WINDOW();
     error INVALID_AVERAGE_BLOCK_TIME();
+
+    error INVALID_MARKET(address market);
 }

@@ -35,8 +35,6 @@ import {SizeFactoryEvents} from "@src/v1.5/SizeFactoryEvents.sol";
 import {SizeFactoryGetters} from "@src/v1.5/SizeFactoryGetters.sol";
 import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 
-import {VERSION} from "@src/interfaces/ISize.sol";
-
 import {ISizeFactoryV1_7} from "@src/v1.5/interfaces/ISizeFactoryV1_7.sol";
 
 /// @title SizeFactory
@@ -180,6 +178,15 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
+    function removeBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5) external onlyOwner returns (bool existed) {
+        if (address(borrowATokenV1_5) == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        existed = borrowATokensV1_5.remove(address(borrowATokenV1_5));
+        emit BorrowATokenV1_5Removed(address(borrowATokenV1_5), existed);
+    }
+
+    /// @inheritdoc ISizeFactory
     function isMarket(address candidate) external view returns (bool) {
         return markets.contains(candidate);
     }
@@ -208,7 +215,7 @@ contract SizeFactory is
 
         uint256 nonce = authorizationNonces[msg.sender];
         emit SetAuthorization(msg.sender, operator, market, nonce, actionsBitmap);
-        authorizations[msg.sender][operator][market][nonce] = actionsBitmap;
+        authorizations[nonce][operator][msg.sender][market] = actionsBitmap;
     }
 
     /// @inheritdoc ISizeFactoryV1_7
@@ -218,7 +225,7 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactoryV1_7
-    function isAuthorized(address operator, address onBehalfOf, address market, uint256 actionsBitmap)
+    function isAuthorized(address operator, address onBehalfOf, address market, Action action)
         public
         view
         returns (bool)
@@ -227,6 +234,8 @@ contract SizeFactory is
             return true;
         } else {
             // TODO if all markets is turned off, then specific market is still authorized
+
+            uint256 actionsBitmap = Authorization.getActionsBitmap(action);
 
             uint256 nonce = authorizationNonces[onBehalfOf];
 
@@ -241,20 +250,12 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactoryV1_7
-    function isAuthorized(address onBehalfOf, address operator, address market, Action action)
-        external
-        view
-        returns (bool)
-    {
-        return isAuthorized(onBehalfOf, operator, market, Authorization.getActionsBitmap(action));
-    }
-
-    /// @inheritdoc ISizeFactoryV1_7
     function isAuthorizedOnThisMarket(address operator, address onBehalfOf, Action action) public view returns (bool) {
         address market = msg.sender;
         if (!markets.contains(market)) {
-            revert Errors.INVALID_MARKET(market);
+            return false;
+        } else {
+            return isAuthorized(operator, onBehalfOf, market, action);
         }
-        return isAuthorized(operator, onBehalfOf, market, Authorization.getActionsBitmap(action));
     }
 }

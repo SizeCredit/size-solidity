@@ -45,8 +45,8 @@ library SetUserConfiguration {
         address onBehalfOf = externalParams.onBehalfOf;
 
         // validate msg.sender
-        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SET_USER_CONFIGURATION)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.SET_USER_CONFIGURATION);
+        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SET_USER_CONFIGURATION)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.SET_USER_CONFIGURATION));
         }
 
         // validate openingLimitBorrowCR
@@ -101,6 +101,6 @@ library SetUserConfiguration {
             params.creditPositionIdsForSale,
             params.creditPositionIds
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.SET_USER_CONFIGURATION, address(0));
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.SET_USER_CONFIGURATION), address(0));
     }
 }
