@@ -33,8 +33,6 @@ import {
 } from "@src/libraries/actions/Initialize.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
-import {ISizeViewV1_7} from "@src/interfaces/v1.7/ISizeViewV1_7.sol";
-
 import {VERSION} from "@src/interfaces/ISize.sol";
 
 /// @title SizeView

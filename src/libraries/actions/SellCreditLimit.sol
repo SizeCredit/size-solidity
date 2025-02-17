@@ -44,8 +44,8 @@ library SellCreditLimit {
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
         // validate msg.sender
-        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELL_CREDIT_LIMIT)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.SELL_CREDIT_LIMIT);
+        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELL_CREDIT_LIMIT)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.SELL_CREDIT_LIMIT));
         }
 
         // a null offer mean clearing their limit order

@@ -40,7 +40,7 @@ library Authorization {
         if (uint256(action) < uint256(Action.LAST_ACTION)) {
             return uint256(action);
         } else {
-            revert Errors.INVALID_ACTION(action);
+            revert Errors.INVALID_ACTION(uint8(action));
         }
     }
 
