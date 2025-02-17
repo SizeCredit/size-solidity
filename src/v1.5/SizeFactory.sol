@@ -2,6 +2,8 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
+
+import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {
@@ -45,6 +47,7 @@ contract SizeFactory is
     ISizeFactory,
     SizeFactoryGetters,
     SizeFactoryEvents,
+    MulticallUpgradeable,
     Ownable2StepUpgradeable,
     UUPSUpgradeable
 {
@@ -57,6 +60,7 @@ contract SizeFactory is
 
     function initialize(address _owner) external initializer {
         __Ownable_init(_owner);
+        __Multicall_init();
         __Ownable2Step_init();
         __UUPSUpgradeable_init();
     }
