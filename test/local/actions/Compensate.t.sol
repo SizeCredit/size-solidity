@@ -949,7 +949,7 @@ contract CompensateTest is BaseTest {
         (, creditPositionCount) = size.getPositionsCount();
         uint256 creditPositionToCompensateId = CREDIT_POSITION_ID_START + creditPositionCount - 1;
 
-        uint256 snapshot = vm.snapshot();
+        uint256 snapshot = vm.snapshotState();
         {
             uint256 beforeBalance = _state().alice.collateralTokenBalance;
             _compensate(alice, creditPositionWithDebtToRepayId, creditPositionToCompensateId);
@@ -957,7 +957,7 @@ contract CompensateTest is BaseTest {
             assertEq(afterBalance, beforeBalance);
         }
 
-        vm.revertTo(snapshot);
+        vm.revertToState(snapshot);
         _sellCreditLimit(bob, block.timestamp + 365 days, 0.04e18, 365 days);
         _buyCreditMarket(james, creditPositionWithDebtToRepayId, 50e6, false);
         {
