@@ -79,6 +79,8 @@ import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
 import {ISizeV1_7} from "@src/interfaces/v1.7/ISizeV1_7.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
+import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
+
 bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE");
@@ -131,6 +133,18 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         _grantRole(PAUSER_ROLE, owner);
         _grantRole(KEEPER_ROLE, owner);
         _grantRole(BORROW_RATE_UPDATER_ROLE, owner);
+    }
+
+    function reinitialize(ISizeFactory sizeFactory)
+        external
+        override(ISizeV1_7)
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        reinitializer(1_7_0)
+    {
+        if (address(sizeFactory) == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        state.data.sizeFactory = sizeFactory;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}

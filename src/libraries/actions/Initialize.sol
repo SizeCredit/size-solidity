@@ -4,6 +4,8 @@ pragma solidity 0.8.23;
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 
+import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -54,6 +56,7 @@ struct InitializeDataParams {
     address underlyingBorrowToken;
     address variablePool;
     address borrowATokenV1_5;
+    address sizeFactory;
 }
 
 /// @title Initialize
@@ -122,8 +125,10 @@ library Initialize {
             revert Errors.NULL_AMOUNT();
         }
 
-        // validate underlyingBorrowTokenCap
-        // N/A
+        // validate borrowATokenCap
+        if (r.borrowATokenCap == 0) {
+            revert Errors.NULL_AMOUNT();
+        }
 
         // validate minTenor
         if (r.minTenor == 0) {
@@ -180,6 +185,11 @@ library Initialize {
 
         // validate borrowATokenV1_5
         if (d.borrowATokenV1_5 == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate sizeFactory
+        if (d.sizeFactory == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
     }
@@ -267,6 +277,7 @@ library Initialize {
             IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
         state.data.borrowATokenV1_5 = NonTransferrableScaledTokenV1_5(d.borrowATokenV1_5);
+        state.data.sizeFactory = ISizeFactory(d.sizeFactory);
     }
 
     /// @notice Executes the initialization of the protocol

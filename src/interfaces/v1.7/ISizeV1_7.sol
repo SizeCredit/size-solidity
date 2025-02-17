@@ -15,11 +15,18 @@ import {CopyLimitOrdersOnBehalfOfParams} from "@src/libraries/actions/CopyLimitO
 import {SetUserConfigurationOnBehalfOfParams} from "@src/libraries/actions/SetUserConfiguration.sol";
 import {WithdrawOnBehalfOfParams} from "@src/libraries/actions/Withdraw.sol";
 
+import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
+
 /// @title ISizeV1_7
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice The interface for the Size v1.7 authorization system
 interface ISizeV1_7 {
+    /// @notice Reinitialize the size contract
+    /// @dev This function is only callable by the owner of the contract
+    /// @param sizeFactory The size factory
+    function reinitialize(ISizeFactory sizeFactory) external;
+
     /// @notice Same as `deposit` but `onBehalfOf`
     function depositOnBehalfOf(DepositOnBehalfOfParams memory params) external payable;
 
