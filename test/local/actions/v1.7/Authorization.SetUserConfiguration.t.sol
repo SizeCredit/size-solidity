@@ -12,7 +12,7 @@ import {
     SetUserConfigurationParams
 } from "@src/libraries/actions/SetUserConfiguration.sol";
 
-import {Action} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

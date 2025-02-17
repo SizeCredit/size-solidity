@@ -7,7 +7,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {CompensateOnBehalfOfParams, CompensateParams} from "@src/libraries/actions/Compensate.sol";
 
-import {Action} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

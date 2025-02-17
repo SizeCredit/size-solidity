@@ -5,7 +5,7 @@ import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {UserView} from "@src/SizeView.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {Action} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 
 import {WithdrawOnBehalfOfParams, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 import {BaseTest} from "@test/BaseTest.sol";

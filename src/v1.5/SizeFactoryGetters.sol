@@ -24,7 +24,7 @@ import {VERSION} from "@src/interfaces/ISize.sol";
 abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    /// @inheritdoc ISizeFactoryView
+    /// @inheritdoc ISizeFactoryGetters
     function getMarkets() external view returns (ISize[] memory _markets) {
         _markets = new ISize[](markets.length());
         for (uint256 i = 0; i < _markets.length; i++) {
@@ -32,7 +32,7 @@ abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage 
         }
     }
 
-    /// @inheritdoc ISizeFactoryView
+    /// @inheritdoc ISizeFactoryGetters
     function getPriceFeeds() external view returns (PriceFeed[] memory _priceFeeds) {
         _priceFeeds = new PriceFeed[](priceFeeds.length());
         for (uint256 i = 0; i < _priceFeeds.length; i++) {
@@ -40,7 +40,7 @@ abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage 
         }
     }
 
-    /// @inheritdoc ISizeFactoryView
+    /// @inheritdoc ISizeFactoryGetters
     function getBorrowATokensV1_5() external view returns (IERC20Metadata[] memory _borrowATokensV1_5) {
         _borrowATokensV1_5 = new IERC20Metadata[](borrowATokensV1_5.length());
         for (uint256 i = 0; i < _borrowATokensV1_5.length; i++) {
@@ -48,7 +48,7 @@ abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage 
         }
     }
 
-    /// @inheritdoc ISizeFactoryView
+    /// @inheritdoc ISizeFactoryGetters
     function getMarketDescriptions() external view returns (string[] memory descriptions) {
         descriptions = new string[](markets.length());
         // slither-disable-start calls-loop
@@ -69,7 +69,7 @@ abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage 
         // slither-disable-end calls-loop
     }
 
-    /// @inheritdoc ISizeFactoryView
+    /// @inheritdoc ISizeFactoryGetters
     function getPriceFeedDescriptions() external view returns (string[] memory descriptions) {
         descriptions = new string[](priceFeeds.length());
         // slither-disable-start calls-loop
@@ -90,7 +90,7 @@ abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage 
         // slither-disable-end calls-loop
     }
 
-    /// @inheritdoc ISizeFactoryView
+    /// @inheritdoc ISizeFactoryGetters
     function getBorrowATokenV1_5Descriptions() external view returns (string[] memory descriptions) {
         descriptions = new string[](borrowATokensV1_5.length());
         // slither-disable-start calls-loop
@@ -101,7 +101,7 @@ abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage 
         // slither-disable-end calls-loop
     }
 
-    /// @inheritdoc ISizeFactoryView
+    /// @inheritdoc ISizeFactoryGetters
     function version() external pure returns (string memory) {
         return VERSION;
     }

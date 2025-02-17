@@ -11,7 +11,7 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {DEBT_POSITION_ID_START} from "@src/libraries/LoanLibrary.sol";
 import {SellCreditMarketOnBehalfOfParams, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
-import {Action} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 
 contract AuthorizationSellCreditMarketTest is BaseTest {
     function test_AuthorizationSellCreditMarket_sellCreditMarketOnBehalfOf() public {

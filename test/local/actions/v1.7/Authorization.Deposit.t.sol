@@ -8,7 +8,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 import {DepositOnBehalfOfParams, DepositParams} from "@src/libraries/actions/Deposit.sol";
 
-import {Action} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationDepositTest is BaseTest {

@@ -1,19 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {ISize} from "@src/interfaces/ISize.sol";
-import {ISizeV1_7} from "@src/interfaces/v1.7/ISizeV1_7.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
-import {Action} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationSetAuthorizationTest is BaseTest {
     function test_AuthorizationSetAuthorization_setAuthorization() public {
-        _setAuthorization(alice, bob, Authorization.getActionsBitmap(ISize.sellCreditMarket.selector));
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
 
         assertTrue(size.isAuthorized(alice, bob, Action.SELL_CREDIT_MARKET));
         assertTrue(!size.isAuthorized(alice, alice, Action.SELL_CREDIT_MARKET));

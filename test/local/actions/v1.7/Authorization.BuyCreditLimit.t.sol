@@ -8,7 +8,7 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {BuyCreditLimitOnBehalfOfParams, BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
-import {Action} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 

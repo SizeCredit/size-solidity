@@ -10,7 +10,7 @@ import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {CopyLimitOrdersOnBehalfOfParams, CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Action} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationCopyLimitOrdersTest is BaseTest {

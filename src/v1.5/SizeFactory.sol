@@ -33,6 +33,7 @@ import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableS
 
 import {SizeFactoryEvents} from "@src/v1.5/SizeFactoryEvents.sol";
 import {SizeFactoryGetters} from "@src/v1.5/SizeFactoryGetters.sol";
+import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 
 import {VERSION} from "@src/interfaces/ISize.sol";
 
@@ -192,7 +193,7 @@ contract SizeFactory is
         // N/A
 
         // validate market
-        if (market != address(0) && !data.markets.contains(market)) {
+        if (market != address(0) && !markets.contains(market)) {
             revert Errors.INVALID_MARKET(market);
         }
         // validate operator
@@ -205,15 +206,15 @@ contract SizeFactory is
             revert Errors.INVALID_ACTIONS_BITMAP(actionsBitmap);
         }
 
-        uint256 nonce = data.authorizationNonces[msg.sender];
-        emit Events.SetAuthorization(msg.sender, operator, market, nonce, actionsBitmap);
-        data.authorizations[msg.sender][operator][market][nonce] = actionsBitmap;
+        uint256 nonce = authorizationNonces[msg.sender];
+        emit SetAuthorization(msg.sender, operator, market, nonce, actionsBitmap);
+        authorizations[msg.sender][operator][market][nonce] = actionsBitmap;
     }
 
     /// @inheritdoc ISizeFactoryV1_7
     function revokeAllAuthorizations() external override(ISizeFactoryV1_7) {
-        emit Events.RevokeAllAuthorizations(msg.sender);
-        data.authorizationNonces[msg.sender]++;
+        emit RevokeAllAuthorizations(msg.sender);
+        authorizationNonces[msg.sender]++;
     }
 
     /// @inheritdoc ISizeFactoryV1_7
@@ -227,10 +228,10 @@ contract SizeFactory is
         } else {
             // TODO if all markets is turned off, then specific market is still authorized
 
-            uint256 nonce = data.authorizationNonces[onBehalfOf];
+            uint256 nonce = authorizationNonces[onBehalfOf];
 
             mapping(address market => uint256 authorizedActionsBitmap) storage authorizationsPerMarket =
-                data.authorizations[nonce][operator][onBehalfOf];
+                authorizations[nonce][operator][onBehalfOf];
 
             bool operatorAuthorizedOnSpecificMarket = (authorizationsPerMarket[market] & actionsBitmap) != 0;
             bool operatorAuthorizedOnAllMarkets = (authorizationsPerMarket[address(0)] & actionsBitmap) != 0;
@@ -251,7 +252,7 @@ contract SizeFactory is
     /// @inheritdoc ISizeFactoryV1_7
     function isAuthorizedOnThisMarket(address operator, address onBehalfOf, Action action) public view returns (bool) {
         address market = msg.sender;
-        if (!data.markets.contains(market)) {
+        if (!markets.contains(market)) {
             revert Errors.INVALID_MARKET(market);
         }
         return isAuthorized(operator, onBehalfOf, market, Authorization.getActionsBitmap(action));

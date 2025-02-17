@@ -10,7 +10,7 @@ import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {SellCreditLimitOnBehalfOfParams, SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
 
-import {Action} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationSellCreditLimitTest is BaseTest {
