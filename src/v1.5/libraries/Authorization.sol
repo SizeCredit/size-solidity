@@ -22,16 +22,15 @@ enum Action {
     // add more actions here
     LAST_ACTION
 }
-// do not add new actions after this
 
 /// @title Authorization
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @dev This library is used to manage the authorization of actions for an operator account to perform on behalf of the `onBehalfOf` account
 ///      The actions are stored in a bitmap, where each bit represents an action
-///      While all values between 0 and maxBitmap are technically valid according to the validation check, it's worth noting that:
+///      While all values between 0 and type(uint256).max are technically valid according to the validation check, it's worth noting that:
 ///      The bitmap created using `getActionsBitmap` only sets specific bits corresponding to valid actions, so in practice, only certain combinations will be used
-///      The validation is permissive by design - it only ensures no bits beyond the maximum action are set, rather than enforcing that only specific combinations are allowed
+///      The validation is permissive by design. It only ensures no bits beyond the maximum action are set, rather than enforcing that only specific combinations are allowed
 library Authorization {
     /// @notice Get the action bit for an action
     /// @param action The action

@@ -11,28 +11,23 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationSetAuthorizationTest is BaseTest {
     function test_AuthorizationSetAuthorization_setAuthorization() public {
-        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
+        _setAuthorization(alice, bob, address(size), Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
 
-        assertTrue(sizeFactory.isAuthorized(alice, bob, address(size), Action.SELL_CREDIT_MARKET));
-        assertTrue(!sizeFactory.isAuthorized(alice, alice, address(size), Action.SELL_CREDIT_MARKET));
-        assertTrue(!sizeFactory.isAuthorized(alice, candy, address(size), Action.SELL_CREDIT_MARKET));
-
-        assertTrue(!sizeFactory.isAuthorized(bob, alice, address(size), Action.SELL_CREDIT_MARKET));
-        assertTrue(!sizeFactory.isAuthorized(bob, bob, address(size), Action.SELL_CREDIT_MARKET));
-        assertTrue(!sizeFactory.isAuthorized(bob, candy, address(size), Action.SELL_CREDIT_MARKET));
-
+        assertTrue(sizeFactory.isAuthorized(bob, alice, address(size), Action.SELL_CREDIT_MARKET));
+        assertTrue(sizeFactory.isAuthorized(alice, alice, address(size), Action.SELL_CREDIT_MARKET));
         assertTrue(!sizeFactory.isAuthorized(candy, alice, address(size), Action.SELL_CREDIT_MARKET));
+
+        assertTrue(!sizeFactory.isAuthorized(alice, bob, address(size), Action.SELL_CREDIT_MARKET));
+        assertTrue(sizeFactory.isAuthorized(bob, bob, address(size), Action.SELL_CREDIT_MARKET));
         assertTrue(!sizeFactory.isAuthorized(candy, bob, address(size), Action.SELL_CREDIT_MARKET));
-        assertTrue(!sizeFactory.isAuthorized(candy, candy, address(size), Action.SELL_CREDIT_MARKET));
+
+        assertTrue(!sizeFactory.isAuthorized(alice, candy, address(size), Action.SELL_CREDIT_MARKET));
+        assertTrue(!sizeFactory.isAuthorized(bob, candy, address(size), Action.SELL_CREDIT_MARKET));
+        assertTrue(sizeFactory.isAuthorized(candy, candy, address(size), Action.SELL_CREDIT_MARKET));
     }
 
     function test_AuthorizationSetAuthorization_validation() public {
         address market = address(size);
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, market, Action.SELL_CREDIT_MARKET)
-        );
-        vm.prank(alice);
-        sizeFactory.setAuthorization(bob, market, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
 
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         vm.prank(alice);

@@ -53,7 +53,7 @@ contract AuthorizationSellCreditLimitTest is BaseTest {
         uint256[] memory marketRateMultipliers = new uint256[](2);
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.sellCreditLimit.selector)
+            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, Action.SELL_CREDIT_LIMIT)
         );
         vm.prank(alice);
         size.sellCreditLimitOnBehalfOf(
