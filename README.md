@@ -81,7 +81,7 @@ In order to set the current market average value of USDC variable borrow rates, 
 
 #### Authorization
 
-Users can authorize other operator accounts to perform any action on their behalf through a new `setAuthorization` method introduced in Size v1.7. This enables users to delegate all Size functionalities to third parties, enabling more complex strategies and automations.
+Users can authorize other operator accounts to perform any action on their behalf on specific markets or on any market through a new `setAuthorization` method introduced in Size v1.7. This enables users to delegate all Size functionalities to third parties, enabling more complex strategies and automations.
 
 This powerful capability comes with associated risks, and, as such, users must take extra care regarding whom and what they authorize, and should only authorize operators they fully trust, such as non-upgradeable safe audited smart contracts or wallets they control.
 
@@ -97,7 +97,7 @@ A non-exhaustive list of the risks of improper authorization includes:
 - Authorizing `selfLiquidate` enables the operator to self liquidate on their behalf when the debt position is likely to become liquidatable in the short term
 - Authorizing `compensate` enables the operator to compensate loans on their behalf from risky debt positions
 - Authorizing `setUserConfiguration` enables the operator to change opening CR and other important account configurations
-- Authorizing `setAuthorization` enables the operator to authorize and revoke other operators of any action
+- Authorizing `copyLimitOrders` enables the operator to copy from addresses with parameters that would make market orders against them revert
 
 Because of the related risks, a recommended pattern is to authorize pre-vetted smart contracts in the beginning of a `multicall` operation, and revoke the authorization at the end of it. This way, the strategy contract will not hold any funds or credit on behalf of the user, and will be only responsible for specific actions during a limited time.
 
