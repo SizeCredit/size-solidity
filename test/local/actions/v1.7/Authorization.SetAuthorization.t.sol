@@ -33,11 +33,23 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         vm.prank(alice);
         sizeFactory.setAuthorization(address(0), market, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MARKET.selector, address(0x42)));
+        vm.prank(alice);
+        sizeFactory.setAuthorization(bob, address(0x42), Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
+
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, type(uint256).max));
         vm.prank(alice);
         sizeFactory.setAuthorization(bob, market, type(uint256).max);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTION.selector, Action.LAST_ACTION));
         Authorization.getActionsBitmap(Action.LAST_ACTION);
+    }
+
+    function test_AuthorizationSetAuthorization_isAuthorizedOnThisMarket() public {
+        _setAuthorization(alice, bob, address(size), Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
+
+        assertTrue(!sizeFactory.isAuthorizedOnThisMarket(bob, alice, Action.SELL_CREDIT_MARKET));
+        vm.prank(address(size));
+        assertTrue(sizeFactory.isAuthorizedOnThisMarket(bob, alice, Action.SELL_CREDIT_MARKET));
     }
 }

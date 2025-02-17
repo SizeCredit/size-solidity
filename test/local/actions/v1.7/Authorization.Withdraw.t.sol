@@ -12,7 +12,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationWithdrawTest is BaseTest {
     function test_AuthorizationWithdraw_withdrawOnBehalfOf() public {
-        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.WITHDRAW));
+        _setAuthorization(alice, bob, size, Authorization.getActionsBitmap(Action.WITHDRAW));
 
         _deposit(alice, usdc, 12e6);
         _deposit(alice, weth, 23e18);

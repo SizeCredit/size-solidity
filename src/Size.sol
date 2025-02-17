@@ -141,9 +141,20 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         onlyRole(DEFAULT_ADMIN_ROLE)
         reinitializer(1_7_0)
     {
+        // validate sizeFactory
         if (address(sizeFactory) == address(0)) {
+            // sizeFactory cannot be 0 address (markets deployed with v1.6 Size implementation)
             revert Errors.NULL_ADDRESS();
         }
+        if (address(state.data.sizeFactory) != address(0)) {
+            // cannot reinitialize if sizeFactory is already set (new markets deployed with v1.7 Size implementation)
+            revert Errors.NOT_SUPPORTED();
+        }
+        if (sizeFactory.isMarket(address(this))) {
+            // sanity check for ISizeFactory
+            revert Errors.INVALID_MARKET(address(this));
+        }
+
         state.data.sizeFactory = sizeFactory;
     }
 

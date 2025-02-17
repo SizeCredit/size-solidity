@@ -13,7 +13,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationDepositTest is BaseTest {
     function test_AuthorizationDeposit_depositOnBehalfOf() public {
-        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.DEPOSIT));
+        _setAuthorization(alice, bob, size, Authorization.getActionsBitmap(Action.DEPOSIT));
 
         _mint(address(usdc), alice, 1e6);
         _approve(alice, address(usdc), address(size), 1e6);

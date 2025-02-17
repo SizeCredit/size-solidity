@@ -17,7 +17,7 @@ contract AuthorizationSellCreditLimitTest is BaseTest {
     using OfferLibrary for LimitOrder;
 
     function test_AuthorizationSellCreditLimit_sellCreditLimitOnBehalfOf() public {
-        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.SELL_CREDIT_LIMIT));
+        _setAuthorization(alice, bob, size, Authorization.getActionsBitmap(Action.SELL_CREDIT_LIMIT));
 
         _deposit(alice, weth, 100e18);
         uint256[] memory tenors = new uint256[](2);

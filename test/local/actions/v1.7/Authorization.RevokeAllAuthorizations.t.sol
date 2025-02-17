@@ -17,7 +17,7 @@ contract AuthorizationRevokeAllAuthorizationsTest is BaseTest {
         Action[] memory actions = new Action[](2);
         actions[0] = Action.SELL_CREDIT_MARKET;
         actions[1] = Action.BUY_CREDIT_MARKET;
-        _setAuthorization(alice, bob, address(size), Authorization.getActionsBitmap(actions));
+        _setAuthorization(alice, bob, size, Authorization.getActionsBitmap(actions));
 
         assertTrue(sizeFactory.isAuthorized(bob, alice, address(size), Action.SELL_CREDIT_MARKET));
         assertTrue(sizeFactory.isAuthorized(bob, alice, address(size), Action.BUY_CREDIT_MARKET));

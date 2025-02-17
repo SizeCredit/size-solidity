@@ -59,6 +59,11 @@ contract InitializeValidationTest is Test, BaseTest {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         r.minimumCreditBorrowAToken = 5e6;
 
+        r.borrowATokenCap = 0;
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        r.borrowATokenCap = 1_000_000e6;
+
         r.minTenor = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
@@ -110,5 +115,10 @@ contract InitializeValidationTest is Test, BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         d.borrowATokenV1_5 = address(sizeFactory.getBorrowATokenV1_5(0));
+
+        d.sizeFactory = address(0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        d.sizeFactory = address(sizeFactory);
     }
 }

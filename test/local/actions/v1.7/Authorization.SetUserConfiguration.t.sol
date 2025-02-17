@@ -18,7 +18,7 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationSetUserConfigurationTest is BaseTest {
     function test_AuthorizationSetUserConfiguration_setUserConfigurationOnBehalfOf() public {
-        _setAuthorization(alice, candy, Authorization.getActionsBitmap(Action.SET_USER_CONFIGURATION));
+        _setAuthorization(alice, candy, size, Authorization.getActionsBitmap(Action.SET_USER_CONFIGURATION));
 
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
