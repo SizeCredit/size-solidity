@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {State, User} from "@src/SizeStorage.sol";
 
-import {ISize} from "@src/interfaces/ISize.sol";
 import {AccountingLibrary} from "@src/libraries/AccountingLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -12,7 +11,7 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct BuyCreditMarketParams {
     // The borrower
@@ -55,7 +54,6 @@ library BuyCreditMarket {
     using LoanLibrary for DebtPosition;
     using LoanLibrary for CreditPosition;
     using RiskLibrary for State;
-    using Authorization for State;
 
     struct SwapDataBuyCreditMarket {
         CreditPosition creditPosition;
@@ -82,8 +80,8 @@ library BuyCreditMarket {
         uint256 tenor;
 
         // validate msg.sender
-        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.buyCreditMarket.selector)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.buyCreditMarket.selector);
+        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.BUY_CREDIT_MARKET)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.BUY_CREDIT_MARKET);
         }
 
         // validate recipient
@@ -225,7 +223,7 @@ library BuyCreditMarket {
             params.minAPR,
             params.exactAmountIn
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.buyCreditMarket.selector, recipient);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.BUY_CREDIT_MARKET, recipient);
 
         SwapDataBuyCreditMarket memory swapData = getSwapData(state, params);
 

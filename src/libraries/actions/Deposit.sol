@@ -8,9 +8,8 @@ import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {ISize} from "@src/interfaces/ISize.sol";
 import {DepositTokenLibrary} from "@src/libraries/DepositTokenLibrary.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -41,7 +40,6 @@ library Deposit {
 
     using DepositTokenLibrary for State;
     using CapsLibrary for State;
-    using Authorization for State;
 
     /// @notice Validates the deposit parameters
     /// @param state The state of the protocol
@@ -51,8 +49,8 @@ library Deposit {
         address onBehalfOf = externalParams.onBehalfOf;
 
         // validate msg.sender
-        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.deposit.selector)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.deposit.selector);
+        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.DEPOSIT)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.DEPOSIT);
         }
 
         // validate msg.value
@@ -109,6 +107,6 @@ library Deposit {
         }
 
         emit Events.Deposit(msg.sender, params.token, params.to, amount);
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.deposit.selector, params.to);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.DEPOSIT, params.to);
     }
 }

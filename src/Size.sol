@@ -69,11 +69,6 @@ import {
 
 import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
-import {
-    Authorization,
-    SetAuthorizationOnBehalfOfParams,
-    SetAuthorizationParams
-} from "@src/libraries/actions/v1.7/Authorization.sol";
 
 import {SizeView} from "@src/SizeView.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -111,7 +106,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using RiskLibrary for State;
     using CapsLibrary for State;
     using Multicall for State;
-    using Authorization for State;
     using CopyLimitOrders for State;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -420,26 +414,5 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     {
         state.validateCopyLimitOrders(externalParams);
         state.executeCopyLimitOrders(externalParams);
-    }
-
-    /// @inheritdoc ISizeV1_7
-    function setAuthorization(SetAuthorizationParams calldata params) external override(ISizeV1_7) {
-        setAuthorizationOnBehalfOf(SetAuthorizationOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
-    }
-
-    /// @inheritdoc ISizeV1_7
-    function setAuthorizationOnBehalfOf(SetAuthorizationOnBehalfOfParams memory externalParams)
-        public
-        payable
-        override(ISizeV1_7)
-        whenNotPaused
-    {
-        state.validateSetAuthorization(externalParams);
-        state.executeSetAuthorization(externalParams);
-    }
-
-    /// @inheritdoc ISizeV1_7
-    function revokeAllAuthorizations() external payable override(ISizeV1_7) {
-        state.revokeAllAuthorizations();
     }
 }

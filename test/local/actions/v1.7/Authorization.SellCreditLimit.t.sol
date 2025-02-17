@@ -10,14 +10,14 @@ import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {SellCreditLimitOnBehalfOfParams, SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
 
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationSellCreditLimitTest is BaseTest {
     using OfferLibrary for LimitOrder;
 
     function test_AuthorizationSellCreditLimit_sellCreditLimitOnBehalfOf() public {
-        _setAuthorization(alice, bob, Authorization.getActionsBitmap(ISize.sellCreditLimit.selector));
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.SELL_CREDIT_LIMIT));
 
         _deposit(alice, weth, 100e18);
         uint256[] memory tenors = new uint256[](2);

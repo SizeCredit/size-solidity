@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {ISize} from "@src/interfaces/ISize.sol";
 import {AccountingLibrary} from "@src/libraries/AccountingLibrary.sol";
 import {CreditPosition, DebtPosition, LoanLibrary} from "@src/libraries/LoanLibrary.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
@@ -36,7 +35,6 @@ library SelfLiquidate {
     using LoanLibrary for State;
     using AccountingLibrary for State;
     using RiskLibrary for State;
-    using Authorization for State;
 
     /// @notice Validates the input parameters for self-liquidating a credit position
     /// @param state The state of the protocol
@@ -53,8 +51,8 @@ library SelfLiquidate {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         // validate msg.sender
-        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.selfLiquidate.selector)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.selfLiquidate.selector);
+        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELF_LIQUIDATE)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.SELF_LIQUIDATE);
         }
         if (onBehalfOf != creditPosition.lender) {
             revert Errors.LIQUIDATOR_IS_NOT_LENDER(onBehalfOf, creditPosition.lender);
@@ -84,7 +82,7 @@ library SelfLiquidate {
         address recipient = externalParams.recipient;
 
         emit Events.SelfLiquidate(msg.sender, params.creditPositionId);
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.selfLiquidate.selector, recipient);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.SELF_LIQUIDATE, recipient);
 
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);

@@ -2,14 +2,30 @@
 pragma solidity 0.8.23;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {ISize} from "@src/interfaces/ISize.sol";
 
 /// @title SizeFactoryStorage
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 abstract contract SizeFactoryStorage {
-    EnumerableSet.AddressSet internal markets;
-    EnumerableSet.AddressSet internal priceFeeds;
-    EnumerableSet.AddressSet internal borrowATokensV1_5;
+    // the markets
+    EnumerableSet.AddressSet markets;
+    // the price feeds
+    EnumerableSet.AddressSet priceFeeds;
+    // the borrow aTokens v1.5
+    EnumerableSet.AddressSet borrowATokensV1_5;
+    // the size implementation (used as implementation for proxy contracts)
     address public sizeImplementation;
+    // the non-transferrable scaled token v1.5 implementation (used as implementation for proxy contracts)
     address public nonTransferrableScaledTokenV1_5Implementation;
+    // mapping of authorized actions for operators per market per account v1.7
+    mapping(
+        uint256 nonce
+            => mapping(
+                address operator
+                    => mapping(address onBehalfOf => mapping(address market => uint256 authorizedActionsBitmap))
+            )
+    ) public authorizations;
+    // mapping of authorization nonces per account v1.7
+    mapping(address onBehalfOf => uint256 nonce) public authorizationNonces;
 }

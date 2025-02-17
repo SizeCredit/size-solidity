@@ -16,4 +16,9 @@ abstract contract SizeFactoryEvents {
     event PriceFeedRemoved(address indexed priceFeed, bool indexed existed);
     event BorrowATokenV1_5Added(address indexed borrowATokenV1_5, bool indexed existed);
     event BorrowATokenV1_5Removed(address indexed borrowATokenV1_5, bool indexed existed);
+
+    event SetAuthorization(
+        address indexed sender, address indexed operator, address indexed market, uint256 nonce, uint256 actionsBitmap
+    ); // v1.7
+    event RevokeAllAuthorizations(address indexed sender); // v1.7
 }

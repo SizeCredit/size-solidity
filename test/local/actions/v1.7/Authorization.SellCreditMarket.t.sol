@@ -11,7 +11,7 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {DEBT_POSITION_ID_START} from "@src/libraries/LoanLibrary.sol";
 import {SellCreditMarketOnBehalfOfParams, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 contract AuthorizationSellCreditMarketTest is BaseTest {
     function test_AuthorizationSellCreditMarket_sellCreditMarketOnBehalfOf() public {
@@ -19,7 +19,7 @@ contract AuthorizationSellCreditMarketTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
 
-        _setAuthorization(bob, candy, Authorization.getActionsBitmap(ISize.sellCreditMarket.selector));
+        _setAuthorization(bob, candy, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
 
         Vars memory _before = _state();
 
@@ -58,7 +58,7 @@ contract AuthorizationSellCreditMarketTest is BaseTest {
 
     function test_AuthorizationSellCreditMarket_validation() public {
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.sellCreditMarket.selector)
+            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, Action.SELL_CREDIT_MARKET)
         );
         vm.prank(alice);
         size.sellCreditMarketOnBehalfOf(

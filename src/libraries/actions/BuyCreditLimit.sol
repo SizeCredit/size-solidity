@@ -6,10 +6,9 @@ import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
-import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct BuyCreditLimitParams {
     // The maximum due date of the loan offer
@@ -31,7 +30,6 @@ struct BuyCreditLimitOnBehalfOfParams {
 /// @notice Contains the logic for buying credit (lending) as a limit order
 library BuyCreditLimit {
     using OfferLibrary for LimitOrder;
-    using Authorization for State;
 
     /// @notice Validates the input parameters for buying credit as a limit order
     /// @param state The state
@@ -47,8 +45,8 @@ library BuyCreditLimit {
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
         // validate msg.sender
-        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.buyCreditLimit.selector)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.buyCreditLimit.selector);
+        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.BUY_CREDIT_LIMIT)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.BUY_CREDIT_LIMIT);
         }
 
         // a null offer mean clearing their limit order
@@ -75,7 +73,7 @@ library BuyCreditLimit {
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.buyCreditLimit.selector, address(0));
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.BUY_CREDIT_LIMIT, address(0));
 
         state.data.users[onBehalfOf].loanOffer =
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});

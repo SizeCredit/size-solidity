@@ -32,15 +32,23 @@ import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
 import {SizeFactoryEvents} from "@src/v1.5/SizeFactoryEvents.sol";
-import {SizeFactoryView} from "@src/v1.5/SizeFactoryView.sol";
+import {SizeFactoryGetters} from "@src/v1.5/SizeFactoryGetters.sol";
 
 import {VERSION} from "@src/interfaces/ISize.sol";
+
+import {ISizeFactoryV1_7} from "@src/v1.5/interfaces/ISizeFactoryV1_7.sol";
 
 /// @title SizeFactory
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISizeFactory}.
-contract SizeFactory is ISizeFactory, SizeFactoryView, SizeFactoryEvents, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract SizeFactory is
+    ISizeFactory,
+    SizeFactoryGetters,
+    SizeFactoryEvents,
+    Ownable2StepUpgradeable,
+    UUPSUpgradeable
+{
     using EnumerableSet for EnumerableSet.AddressSet;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -171,11 +179,81 @@ contract SizeFactory is ISizeFactory, SizeFactoryView, SizeFactoryEvents, Ownabl
     }
 
     /// @inheritdoc ISizeFactory
-    function removeBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5) external onlyOwner returns (bool existed) {
-        if (address(borrowATokenV1_5) == address(0)) {
+    function isMarket(address candidate) external view returns (bool) {
+        return markets.contains(candidate);
+    }
+
+    /// @inheritdoc ISizeFactoryV1_7
+    function setAuthorization(address operator, address market, uint256 actionsBitmap)
+        external
+        override(ISizeFactoryV1_7)
+    {
+        // validate msg.sender
+        // N/A
+
+        // validate market
+        if (market != address(0) && !data.markets.contains(market)) {
+            revert Errors.INVALID_MARKET(market);
+        }
+        // validate operator
+        if (operator == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        existed = borrowATokensV1_5.remove(address(borrowATokenV1_5));
-        emit BorrowATokenV1_5Removed(address(borrowATokenV1_5), existed);
+        // validate actionsBitmap
+        uint256 maxBitmap = (1 << (uint256(Action.LAST_ACTION))) - 1;
+        if (actionsBitmap > maxBitmap) {
+            revert Errors.INVALID_ACTIONS_BITMAP(actionsBitmap);
+        }
+
+        uint256 nonce = data.authorizationNonces[msg.sender];
+        emit Events.SetAuthorization(msg.sender, operator, market, nonce, actionsBitmap);
+        data.authorizations[msg.sender][operator][market][nonce] = actionsBitmap;
+    }
+
+    /// @inheritdoc ISizeFactoryV1_7
+    function revokeAllAuthorizations() external override(ISizeFactoryV1_7) {
+        emit Events.RevokeAllAuthorizations(msg.sender);
+        data.authorizationNonces[msg.sender]++;
+    }
+
+    /// @inheritdoc ISizeFactoryV1_7
+    function isAuthorized(address operator, address onBehalfOf, address market, uint256 actionsBitmap)
+        public
+        view
+        returns (bool)
+    {
+        if (operator == onBehalfOf) {
+            return true;
+        } else {
+            // TODO if all markets is turned off, then specific market is still authorized
+
+            uint256 nonce = data.authorizationNonces[onBehalfOf];
+
+            mapping(address market => uint256 authorizedActionsBitmap) storage authorizationsPerMarket =
+                data.authorizations[nonce][operator][onBehalfOf];
+
+            bool operatorAuthorizedOnSpecificMarket = (authorizationsPerMarket[market] & actionsBitmap) != 0;
+            bool operatorAuthorizedOnAllMarkets = (authorizationsPerMarket[address(0)] & actionsBitmap) != 0;
+
+            return operatorAuthorizedOnSpecificMarket || operatorAuthorizedOnAllMarkets;
+        }
+    }
+
+    /// @inheritdoc ISizeFactoryV1_7
+    function isAuthorized(address onBehalfOf, address operator, address market, Action action)
+        external
+        view
+        returns (bool)
+    {
+        return isAuthorized(onBehalfOf, operator, market, Authorization.getActionsBitmap(action));
+    }
+
+    /// @inheritdoc ISizeFactoryV1_7
+    function isAuthorizedOnThisMarket(address operator, address onBehalfOf, Action action) public view returns (bool) {
+        address market = msg.sender;
+        if (!data.markets.contains(market)) {
+            revert Errors.INVALID_MARKET(market);
+        }
+        return isAuthorized(operator, onBehalfOf, market, Authorization.getActionsBitmap(action));
     }
 }

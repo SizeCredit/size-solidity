@@ -8,12 +8,12 @@ import {Errors} from "@src/libraries/Errors.sol";
 
 import {DepositOnBehalfOfParams, DepositParams} from "@src/libraries/actions/Deposit.sol";
 
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationDepositTest is BaseTest {
     function test_AuthorizationDeposit_depositOnBehalfOf() public {
-        _setAuthorization(alice, bob, Authorization.getActionsBitmap(ISize.deposit.selector));
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.DEPOSIT));
 
         _mint(address(usdc), alice, 1e6);
         _approve(alice, address(usdc), address(size), 1e6);
@@ -57,7 +57,7 @@ contract AuthorizationDepositTest is BaseTest {
     }
 
     function test_AuthorizationDeposit_validation() public {
-        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.deposit.selector));
+        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, Action.DEPOSIT));
         vm.prank(alice);
         size.depositOnBehalfOf(
             DepositOnBehalfOfParams({

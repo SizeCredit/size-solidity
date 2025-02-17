@@ -11,9 +11,8 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 
-import {ISize} from "@src/interfaces/ISize.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct CompensateParams {
     // The credit position ID with debt to repay
@@ -44,7 +43,6 @@ library Compensate {
     using LoanLibrary for CreditPosition;
 
     using RiskLibrary for State;
-    using Authorization for State;
 
     /// @notice Validates the input parameters for compensating a credit position
     /// @param state The state of the protocol
@@ -61,8 +59,8 @@ library Compensate {
         uint256 amountToCompensate = Math.min(params.amount, creditPositionWithDebtToRepay.credit);
 
         // validate msg.sender
-        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.compensate.selector)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.compensate.selector);
+        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.COMPENSATE)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.COMPENSATE);
         }
         if (onBehalfOf != debtPositionToRepay.borrower) {
             revert Errors.COMPENSATOR_IS_NOT_BORROWER(onBehalfOf, debtPositionToRepay.borrower);
@@ -126,7 +124,7 @@ library Compensate {
         emit Events.Compensate(
             msg.sender, params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId, params.amount
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.compensate.selector, address(0));
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.COMPENSATE, address(0));
 
         CreditPosition storage creditPositionWithDebtToRepay =
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);

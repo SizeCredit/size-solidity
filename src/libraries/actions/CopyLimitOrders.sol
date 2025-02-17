@@ -3,11 +3,10 @@ pragma solidity 0.8.23;
 
 import {State, UserCopyLimitOrders} from "@src/SizeStorage.sol";
 
-import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CopyLimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct CopyLimitOrdersParams {
     // the address to copy the limit orders from
@@ -34,7 +33,6 @@ struct CopyLimitOrdersOnBehalfOfParams {
 ///      - copyAddress == address(0) <=> both copyLoanOffer and copyBorrowOffer are null
 library CopyLimitOrders {
     using OfferLibrary for CopyLimitOrder;
-    using Authorization for State;
 
     /// @notice Validates the input parameters for copying limit orders
     /// @param externalParams The input parameters for copying limit orders
@@ -47,8 +45,8 @@ library CopyLimitOrders {
         address onBehalfOf = externalParams.onBehalfOf;
 
         // validate msg.sender
-        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.copyLimitOrders.selector)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.copyLimitOrders.selector);
+        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.COPY_LIMIT_ORDERS)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.COPY_LIMIT_ORDERS);
         }
 
         bool bothNull = true;
@@ -132,7 +130,7 @@ library CopyLimitOrders {
             params.copyBorrowOffer.maxAPR,
             params.copyBorrowOffer.offsetAPR
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.copyLimitOrders.selector, address(0));
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.COPY_LIMIT_ORDERS, address(0));
 
         state.data.usersCopyLimitOrders[onBehalfOf] = UserCopyLimitOrders({
             copyAddress: params.copyAddress,

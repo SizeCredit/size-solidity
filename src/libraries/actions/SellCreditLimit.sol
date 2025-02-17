@@ -3,12 +3,11 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/SizeStorage.sol";
 
-import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct SellCreditLimitParams {
     // The maximum due date of the borrow offer
@@ -30,7 +29,6 @@ struct SellCreditLimitOnBehalfOfParams {
 /// @notice Contains the logic for selling credit (borrowing) as a limit order
 library SellCreditLimit {
     using OfferLibrary for LimitOrder;
-    using Authorization for State;
 
     /// @notice Validates the input parameters for selling credit as a limit order
     /// @param state The state
@@ -46,8 +44,8 @@ library SellCreditLimit {
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
         // validate msg.sender
-        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.sellCreditLimit.selector)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.sellCreditLimit.selector);
+        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELL_CREDIT_LIMIT)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.SELL_CREDIT_LIMIT);
         }
 
         // a null offer mean clearing their limit order
@@ -74,7 +72,7 @@ library SellCreditLimit {
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.sellCreditLimit.selector, address(0));
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.SELL_CREDIT_LIMIT, address(0));
 
         state.data.users[onBehalfOf].borrowOffer =
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});

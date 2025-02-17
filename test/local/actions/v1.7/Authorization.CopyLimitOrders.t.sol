@@ -10,7 +10,7 @@ import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {CopyLimitOrdersOnBehalfOfParams, CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationCopyLimitOrdersTest is BaseTest {
@@ -20,7 +20,7 @@ contract AuthorizationCopyLimitOrdersTest is BaseTest {
         CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max, offsetAPR: 0});
 
     function test_AuthorizationCopyLimitOrders_copyLimitOrdersOnBehalfOf() public {
-        _setAuthorization(alice, bob, Authorization.getActionsBitmap(ISize.copyLimitOrders.selector));
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.COPY_LIMIT_ORDERS));
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.08e18));
         _sellCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
 
@@ -53,7 +53,7 @@ contract AuthorizationCopyLimitOrdersTest is BaseTest {
         _sellCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.copyLimitOrders.selector)
+            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, Action.COPY_LIMIT_ORDERS)
         );
         vm.prank(alice);
         size.copyLimitOrdersOnBehalfOf(

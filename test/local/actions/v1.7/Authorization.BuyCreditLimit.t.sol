@@ -3,21 +3,20 @@ pragma solidity 0.8.23;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {UserView} from "@src/SizeView.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
 import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 import {BuyCreditLimitOnBehalfOfParams, BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationBuyCreditLimitTest is BaseTest {
     using OfferLibrary for LimitOrder;
 
     function test_AuthorizationBuyCreditLimit_buyCreditLimitOnBehalfOf() public {
-        _setAuthorization(alice, bob, Authorization.getActionsBitmap(ISize.buyCreditLimit.selector));
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.BUY_CREDIT_LIMIT));
 
         _deposit(alice, weth, 100e18);
         uint256[] memory tenors = new uint256[](2);
@@ -53,7 +52,7 @@ contract AuthorizationBuyCreditLimitTest is BaseTest {
         uint256[] memory marketRateMultipliers = new uint256[](2);
 
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.buyCreditLimit.selector)
+            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, Action.BUY_CREDIT_LIMIT)
         );
         vm.prank(alice);
         size.buyCreditLimitOnBehalfOf(

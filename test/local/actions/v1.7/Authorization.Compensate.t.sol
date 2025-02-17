@@ -7,13 +7,13 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {CompensateOnBehalfOfParams, CompensateParams} from "@src/libraries/actions/Compensate.sol";
 
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationCompensateTest is BaseTest {
     function test_AuthorizationCompensate_compensateOnBehalfOf() public {
-        _setAuthorization(alice, candy, Authorization.getActionsBitmap(ISize.compensate.selector));
+        _setAuthorization(alice, candy, Authorization.getActionsBitmap(Action.COMPENSATE));
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
@@ -71,9 +71,7 @@ contract AuthorizationCompensateTest is BaseTest {
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.compensate.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, Action.COMPENSATE));
         vm.prank(alice);
         size.compensateOnBehalfOf(
             CompensateOnBehalfOfParams({

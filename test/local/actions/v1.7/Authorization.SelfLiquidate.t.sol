@@ -7,13 +7,13 @@ import {Errors} from "@src/libraries/Errors.sol";
 import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {SelfLiquidateOnBehalfOfParams, SelfLiquidateParams} from "@src/libraries/actions/SelfLiquidate.sol";
 
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationSelfLiquidateTest is BaseTest {
     function test_AuthorizationSelfLiquidate_selfLiquidateOnBehalfOf() public {
-        _setAuthorization(alice, candy, Authorization.getActionsBitmap(ISize.selfLiquidate.selector));
+        _setAuthorization(alice, candy, Authorization.getActionsBitmap(Action.SELF_LIQUIDATE));
 
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
@@ -71,9 +71,7 @@ contract AuthorizationSelfLiquidateTest is BaseTest {
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, ISize.selfLiquidate.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, alice, bob, Action.SELF_LIQUIDATE));
         vm.prank(alice);
         size.selfLiquidateOnBehalfOf(
             SelfLiquidateOnBehalfOfParams({

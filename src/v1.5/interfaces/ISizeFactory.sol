@@ -15,13 +15,14 @@ import {ISize} from "@src/interfaces/ISize.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
-import {ISizeFactoryView} from "@src/v1.5/interfaces/ISizeFactoryView.sol";
+import {ISizeFactoryGetters} from "@src/v1.5/interfaces/ISizeFactoryGetters.sol";
+import {ISizeFactoryV1_7} from "@src/v1.5/interfaces/ISizeFactoryV1_7.sol";
 
 /// @title ISizeFactory
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice The interface for the size factory
-interface ISizeFactory is ISizeFactoryView {
+interface ISizeFactory is ISizeFactoryGetters, ISizeFactoryV1_7 {
     /// @notice Set the size implementation
     /// @param _sizeImplementation The new size implementation
     function setSizeImplementation(address _sizeImplementation) external;
@@ -77,4 +78,9 @@ interface ISizeFactory is ISizeFactoryView {
     /// @param borrowATokenV1_5 The borrow aToken to remove
     /// @return existed True if the borrow aToken existed before
     function removeBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5) external returns (bool existed);
+
+    /// @notice Check if an address is a registered market
+    /// @param candidate The candidate to check
+    /// @return True if the candidate is a registered market
+    function isMarket(address candidate) external view returns (bool);
 }

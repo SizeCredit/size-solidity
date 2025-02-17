@@ -92,13 +92,7 @@ library Events {
         uint256 maxAPRBorrowOffer,
         int256 offsetAPRBorrowOffer
     ); // v1.6.1
-    event SetAuthorization(
-        address indexed sender, address indexed operator, uint256 indexed actionsBitmap, uint256 nonce
-    ); // v1.7
-    event RevokeAllAuthorizations(address indexed sender); // v1.7
-    event OnBehalfOfParams(
-        address indexed sender, address indexed onBehalfOf, bytes4 indexed action, address recipient
-    ); // v1.7
+    event OnBehalfOfParams(address indexed sender, address indexed onBehalfOf, uint8 indexed action, address recipient); // v1.7
 
     // creates
 

@@ -9,9 +9,8 @@ import {Math} from "@src/libraries/Math.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-import {ISize} from "@src/interfaces/ISize.sol";
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct WithdrawParams {
     // The token to withdraw
@@ -37,7 +36,6 @@ struct WithdrawOnBehalfOfParams {
 library Withdraw {
     using DepositTokenLibrary for State;
     using RiskLibrary for State;
-    using Authorization for State;
 
     /// @notice Validates the withdraw parameters
     /// @param state The state of the protocol
@@ -47,8 +45,8 @@ library Withdraw {
         address onBehalfOf = externalParams.onBehalfOf;
 
         // validte msg.sender
-        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.withdraw.selector)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.withdraw.selector);
+        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.WITHDRAW)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.WITHDRAW);
         }
 
         // validate token
@@ -89,6 +87,6 @@ library Withdraw {
         }
 
         emit Events.Withdraw(msg.sender, params.token, params.to, amount);
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.withdraw.selector, params.to);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.WITHDRAW, params.to);
     }
 }

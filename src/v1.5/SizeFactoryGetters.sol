@@ -11,48 +11,18 @@ import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {PriceFeed} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {IPriceFeedV1_5_2} from "@src/oracle/v1.5.2/IPriceFeedV1_5_2.sol";
-import {ISizeFactoryView} from "@src/v1.5/interfaces/ISizeFactoryView.sol";
+import {ISizeFactoryGetters} from "@src/v1.5/interfaces/ISizeFactoryGetters.sol";
 
 import {SizeFactoryStorage} from "@src/v1.5/SizeFactoryStorage.sol";
 
 import {VERSION} from "@src/interfaces/ISize.sol";
 
-/// @title SizeFactoryView
+/// @title SizeFactoryGetters
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISizeFactory}.
-abstract contract SizeFactoryView is ISizeFactoryView, SizeFactoryStorage {
+abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage {
     using EnumerableSet for EnumerableSet.AddressSet;
-
-    /// @inheritdoc ISizeFactoryView
-    function isMarket(address candidate) external view returns (bool) {
-        return markets.contains(candidate);
-    }
-
-    /// @inheritdoc ISizeFactoryView
-    function isPriceFeed(address candidate) external view returns (bool) {
-        return priceFeeds.contains(candidate);
-    }
-
-    /// @inheritdoc ISizeFactoryView
-    function isBorrowATokenV1_5(address candidate) external view returns (bool) {
-        return borrowATokensV1_5.contains(candidate);
-    }
-
-    /// @inheritdoc ISizeFactoryView
-    function getMarket(uint256 index) external view returns (ISize) {
-        return ISize(markets.at(index));
-    }
-
-    /// @inheritdoc ISizeFactoryView
-    function getPriceFeed(uint256 index) external view returns (PriceFeed) {
-        return PriceFeed(priceFeeds.at(index));
-    }
-
-    /// @inheritdoc ISizeFactoryView
-    function getBorrowATokenV1_5(uint256 index) external view returns (IERC20Metadata) {
-        return IERC20Metadata(borrowATokensV1_5.at(index));
-    }
 
     /// @inheritdoc ISizeFactoryView
     function getMarkets() external view returns (ISize[] memory _markets) {
@@ -129,21 +99,6 @@ abstract contract SizeFactoryView is ISizeFactoryView, SizeFactoryStorage {
             descriptions[i] = borrowATokenV1_5.symbol();
         }
         // slither-disable-end calls-loop
-    }
-
-    /// @inheritdoc ISizeFactoryView
-    function getMarketsCount() external view returns (uint256) {
-        return markets.length();
-    }
-
-    /// @inheritdoc ISizeFactoryView
-    function getPriceFeedsCount() external view returns (uint256) {
-        return priceFeeds.length();
-    }
-
-    /// @inheritdoc ISizeFactoryView
-    function getBorrowATokensV1_5Count() external view returns (uint256) {
-        return borrowATokensV1_5.length();
     }
 
     /// @inheritdoc ISizeFactoryView

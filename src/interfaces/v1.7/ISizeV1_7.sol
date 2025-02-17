@@ -14,31 +14,12 @@ import {SellCreditMarketOnBehalfOfParams} from "@src/libraries/actions/SellCredi
 import {CopyLimitOrdersOnBehalfOfParams} from "@src/libraries/actions/CopyLimitOrders.sol";
 import {SetUserConfigurationOnBehalfOfParams} from "@src/libraries/actions/SetUserConfiguration.sol";
 import {WithdrawOnBehalfOfParams} from "@src/libraries/actions/Withdraw.sol";
-import {SetAuthorizationOnBehalfOfParams, SetAuthorizationParams} from "@src/libraries/actions/v1.7/Authorization.sol";
 
 /// @title ISizeV1_7
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-/// @notice The interface for the Size v1.6.1 authorization system
+/// @notice The interface for the Size v1.7 authorization system
 interface ISizeV1_7 {
-    /// @notice Set the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
-    /// @param params SetAuthorizationParams struct containing the following fields:
-    ///     - address operator: The operator account
-    ///     - uint256 actionsBitmap: The actions bitmap
-    /// @dev Actions bitmap are encoded a uint256 value because all external actions can fit in a uint256
-    ///      To construct the actionsBitmap, the `Authorization.getActionsBitmap` functions can be used
-    ///      Not all actions require authorization (for example, `repay`, `liquidate`, etc.)
-    ///      In order to possible to authorize/revoke many actions at once, simply construct the actions bitmap using bitmap operations
-    ///      For example, to revoke an operator, simply set the authorization bitmap for that operator to `uint256(0)`
-    ///      To revoke all authorizations for all operators at once, use `revokeAllAuthorizations`
-    function setAuthorization(SetAuthorizationParams calldata params) external;
-
-    /// @notice Same as `setAuthorization` but `onBehalfOf`
-    function setAuthorizationOnBehalfOf(SetAuthorizationOnBehalfOfParams memory params) external payable;
-
-    /// @notice Revoke all authorizations for the `msg.sender` account
-    function revokeAllAuthorizations() external payable;
-
     /// @notice Same as `deposit` but `onBehalfOf`
     function depositOnBehalfOf(DepositOnBehalfOfParams memory params) external payable;
 

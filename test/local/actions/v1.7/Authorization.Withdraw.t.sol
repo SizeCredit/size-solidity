@@ -5,14 +5,14 @@ import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {UserView} from "@src/SizeView.sol";
 import {ISize} from "@src/interfaces/ISize.sol";
 import {Errors} from "@src/libraries/Errors.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 import {WithdrawOnBehalfOfParams, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationWithdrawTest is BaseTest {
     function test_AuthorizationWithdraw_withdrawOnBehalfOf() public {
-        _setAuthorization(alice, bob, Authorization.getActionsBitmap(ISize.withdraw.selector));
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.WITHDRAW));
 
         _deposit(alice, usdc, 12e6);
         _deposit(alice, weth, 23e18);
@@ -47,9 +47,7 @@ contract AuthorizationWithdrawTest is BaseTest {
     }
 
     function test_AuthorizationWithdraw_validation() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, bob, alice, ISize.withdraw.selector)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED_ACTION.selector, bob, alice, Action.WITHDRAW));
         vm.prank(bob);
         size.withdrawOnBehalfOf(
             WithdrawOnBehalfOfParams({

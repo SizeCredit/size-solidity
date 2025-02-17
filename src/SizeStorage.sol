@@ -13,6 +13,8 @@ import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
+import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
+
 struct User {
     // The user's loan offer
     LimitOrder loanOffer;
@@ -105,12 +107,8 @@ struct Data {
     NonTransferrableScaledTokenV1_5 borrowATokenV1_5;
     // mapping of copy limit orders v1.6.1
     mapping(address => UserCopyLimitOrders) usersCopyLimitOrders;
-    // mapping of authorized actions for operators per account v1.7
-    mapping(
-        address onBehalfOf => mapping(uint256 nonce => mapping(address operator => uint256 authorizedActionsBitmap))
-    ) authorizations;
-    // mapping of authorization nonces per account v1.7
-    mapping(address onBehalfOf => uint256 nonce) authorizationNonces;
+    // Size Factory v1.7
+    ISizeFactory sizeFactory;
 }
 
 struct State {

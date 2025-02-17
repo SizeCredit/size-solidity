@@ -14,8 +14,7 @@ import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
-import {ISize} from "@src/interfaces/ISize.sol";
-import {Authorization} from "@src/libraries/actions/v1.7/Authorization.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct SellCreditMarketParams {
     // The lender
@@ -57,7 +56,6 @@ library SellCreditMarket {
     using LoanLibrary for State;
     using RiskLibrary for State;
     using AccountingLibrary for State;
-    using Authorization for State;
 
     struct SwapDataSellCreditMarket {
         CreditPosition creditPosition;
@@ -82,8 +80,8 @@ library SellCreditMarket {
         uint256 tenor;
 
         // validate msg.sender
-        if (!state.isOnBehalfOfOrAuthorized(onBehalfOf, ISize.sellCreditMarket.selector)) {
-            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, ISize.sellCreditMarket.selector);
+        if (!state.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELL_CREDIT_MARKET)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, Action.SELL_CREDIT_MARKET);
         }
 
         // validate recipient
@@ -225,7 +223,7 @@ library SellCreditMarket {
             params.maxAPR,
             params.exactAmountIn
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, ISize.sellCreditMarket.selector, recipient);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, Action.SELL_CREDIT_MARKET, recipient);
 
         SwapDataSellCreditMarket memory swapData = getSwapData(state, params);
 
