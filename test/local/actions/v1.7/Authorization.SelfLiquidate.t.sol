@@ -13,7 +13,7 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationSelfLiquidateTest is BaseTest {
     function test_AuthorizationSelfLiquidate_selfLiquidateOnBehalfOf() public {
-        _setAuthorization(alice, candy, size, Authorization.getActionsBitmap(Action.SELF_LIQUIDATE));
+        _setAuthorization(alice, candy, Authorization.getActionsBitmap(Action.SELF_LIQUIDATE));
 
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);

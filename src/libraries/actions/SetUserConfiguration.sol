@@ -45,7 +45,7 @@ library SetUserConfiguration {
         address onBehalfOf = externalParams.onBehalfOf;
 
         // validate msg.sender
-        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SET_USER_CONFIGURATION)) {
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.SET_USER_CONFIGURATION)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.SET_USER_CONFIGURATION));
         }
 

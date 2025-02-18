@@ -45,7 +45,7 @@ library BuyCreditLimit {
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
         // validate msg.sender
-        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.BUY_CREDIT_LIMIT)) {
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.BUY_CREDIT_LIMIT)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.BUY_CREDIT_LIMIT));
         }
 

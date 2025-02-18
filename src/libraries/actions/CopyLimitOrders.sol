@@ -45,7 +45,7 @@ library CopyLimitOrders {
         address onBehalfOf = externalParams.onBehalfOf;
 
         // validate msg.sender
-        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.COPY_LIMIT_ORDERS)) {
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.COPY_LIMIT_ORDERS)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.COPY_LIMIT_ORDERS));
         }
 

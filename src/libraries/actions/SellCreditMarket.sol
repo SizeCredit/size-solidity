@@ -80,7 +80,7 @@ library SellCreditMarket {
         uint256 tenor;
 
         // validate msg.sender
-        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELL_CREDIT_MARKET)) {
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.SELL_CREDIT_MARKET)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.SELL_CREDIT_MARKET));
         }
 

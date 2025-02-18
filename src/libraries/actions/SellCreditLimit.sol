@@ -44,7 +44,7 @@ library SellCreditLimit {
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
         // validate msg.sender
-        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELL_CREDIT_LIMIT)) {
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.SELL_CREDIT_LIMIT)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(uint8(Action.SELL_CREDIT_LIMIT)));
         }
 

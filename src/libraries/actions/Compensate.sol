@@ -59,7 +59,7 @@ library Compensate {
         uint256 amountToCompensate = Math.min(params.amount, creditPositionWithDebtToRepay.credit);
 
         // validate msg.sender
-        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.COMPENSATE)) {
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.COMPENSATE)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.COMPENSATE));
         }
         if (onBehalfOf != debtPositionToRepay.borrower) {

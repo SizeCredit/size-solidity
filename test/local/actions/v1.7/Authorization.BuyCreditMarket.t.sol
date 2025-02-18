@@ -15,7 +15,7 @@ import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 
 contract AuthorizationBuyCreditMarketTest is BaseTest {
     function test_AuthorizationBuyCreditMarket_buyCreditMarketOnBehalfOf() public {
-        _setAuthorization(bob, candy, size, Authorization.getActionsBitmap(Action.BUY_CREDIT_MARKET));
+        _setAuthorization(bob, candy, Authorization.getActionsBitmap(Action.BUY_CREDIT_MARKET));
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);

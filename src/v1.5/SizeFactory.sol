@@ -196,17 +196,10 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactoryV1_7
-    function setAuthorization(address operator, address market, uint256 actionsBitmap)
-        external
-        override(ISizeFactoryV1_7)
-    {
+    function setAuthorization(address operator, uint256 actionsBitmap) external override(ISizeFactoryV1_7) {
         // validate msg.sender
         // N/A
 
-        // validate market
-        if (market != address(0) && !markets.contains(market)) {
-            revert Errors.INVALID_MARKET(market);
-        }
         // validate operator
         if (operator == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -218,8 +211,8 @@ contract SizeFactory is
         }
 
         uint256 nonce = authorizationNonces[msg.sender];
-        emit SetAuthorization(msg.sender, operator, market, nonce, actionsBitmap);
-        authorizations[nonce][operator][msg.sender][market] = actionsBitmap;
+        emit SetAuthorization(msg.sender, operator, actionsBitmap, nonce);
+        authorizations[nonce][operator][msg.sender] = actionsBitmap;
     }
 
     /// @inheritdoc ISizeFactoryV1_7
@@ -229,37 +222,14 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactoryV1_7
-    function isAuthorized(address operator, address onBehalfOf, address market, Action action)
-        public
-        view
-        returns (bool)
-    {
+    function isAuthorized(address operator, address onBehalfOf, Action action) public view returns (bool) {
         if (operator == onBehalfOf) {
             return true;
         } else {
-            // TODO if all markets is turned off, then specific market is still authorized
-
             uint256 actionsBitmap = Authorization.getActionsBitmap(action);
-
             uint256 nonce = authorizationNonces[onBehalfOf];
 
-            mapping(address market => uint256 authorizedActionsBitmap) storage authorizationsPerMarket =
-                authorizations[nonce][operator][onBehalfOf];
-
-            bool operatorAuthorizedOnSpecificMarket = (authorizationsPerMarket[market] & actionsBitmap) != 0;
-            bool operatorAuthorizedOnAllMarkets = (authorizationsPerMarket[address(0)] & actionsBitmap) != 0;
-
-            return operatorAuthorizedOnSpecificMarket || operatorAuthorizedOnAllMarkets;
-        }
-    }
-
-    /// @inheritdoc ISizeFactoryV1_7
-    function isAuthorizedOnThisMarket(address operator, address onBehalfOf, Action action) public view returns (bool) {
-        address market = msg.sender;
-        if (!markets.contains(market)) {
-            return false;
-        } else {
-            return isAuthorized(operator, onBehalfOf, market, action);
+            return (authorizations[nonce][operator][onBehalfOf] & actionsBitmap) != 0;
         }
     }
 }

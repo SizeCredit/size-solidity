@@ -453,14 +453,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         );
     }
 
-    function _setAuthorization(address user, address operator, Size s, uint256 actionsBitmap) internal {
+    function _setAuthorization(address user, address operator, uint256 actionsBitmap) internal {
         vm.prank(user);
-        sizeFactory.setAuthorization(operator, address(s), actionsBitmap);
-    }
-
-    function _setAuthorization(address user, address operator, address market, uint256 actionsBitmap) internal {
-        vm.prank(user);
-        sizeFactory.setAuthorization(operator, market, actionsBitmap);
+        sizeFactory.setAuthorization(operator, actionsBitmap);
     }
 
     function _setLiquidityIndex(address token, uint256 index) internal {

@@ -13,7 +13,7 @@ import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract AuthorizationCompensateTest is BaseTest {
     function test_AuthorizationCompensate_compensateOnBehalfOf() public {
-        _setAuthorization(alice, candy, size, Authorization.getActionsBitmap(Action.COMPENSATE));
+        _setAuthorization(alice, candy, Authorization.getActionsBitmap(Action.COMPENSATE));
 
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);

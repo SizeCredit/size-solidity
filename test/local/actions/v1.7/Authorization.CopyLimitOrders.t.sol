@@ -20,7 +20,7 @@ contract AuthorizationCopyLimitOrdersTest is BaseTest {
         CopyLimitOrder({minTenor: 0, maxTenor: type(uint256).max, minAPR: 0, maxAPR: type(uint256).max, offsetAPR: 0});
 
     function test_AuthorizationCopyLimitOrders_copyLimitOrdersOnBehalfOf() public {
-        _setAuthorization(alice, bob, size, Authorization.getActionsBitmap(Action.COPY_LIMIT_ORDERS));
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.COPY_LIMIT_ORDERS));
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(60 days, 0.08e18));
         _sellCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(30 days, 0.05e18));
 

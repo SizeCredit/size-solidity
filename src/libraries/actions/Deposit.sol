@@ -49,7 +49,7 @@ library Deposit {
         address onBehalfOf = externalParams.onBehalfOf;
 
         // validate msg.sender
-        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.DEPOSIT)) {
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.DEPOSIT)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.DEPOSIT));
         }
 

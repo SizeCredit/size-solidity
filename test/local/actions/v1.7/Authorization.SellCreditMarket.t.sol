@@ -19,7 +19,7 @@ contract AuthorizationSellCreditMarketTest is BaseTest {
         _deposit(bob, weth, 100e18);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
 
-        _setAuthorization(bob, candy, size, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
+        _setAuthorization(bob, candy, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
 
         Vars memory _before = _state();
 

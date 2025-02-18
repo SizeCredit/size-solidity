@@ -45,7 +45,7 @@ library Withdraw {
         address onBehalfOf = externalParams.onBehalfOf;
 
         // validte msg.sender
-        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.WITHDRAW)) {
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.WITHDRAW)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.WITHDRAW));
         }
 

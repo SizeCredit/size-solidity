@@ -51,7 +51,7 @@ library SelfLiquidate {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         // validate msg.sender
-        if (!state.data.sizeFactory.isAuthorizedOnThisMarket(msg.sender, onBehalfOf, Action.SELF_LIQUIDATE)) {
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.SELF_LIQUIDATE)) {
             revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.SELF_LIQUIDATE));
         }
         if (onBehalfOf != creditPosition.lender) {

@@ -18,13 +18,9 @@ abstract contract SizeFactoryStorage {
     address public sizeImplementation;
     // the non-transferrable scaled token v1.5 implementation (used as implementation for proxy contracts)
     address public nonTransferrableScaledTokenV1_5Implementation;
-    // mapping of authorized actions for operators per market per account v1.7
+    // mapping of authorized actions for operators per account v1.7
     mapping(
-        uint256 nonce
-            => mapping(
-                address operator
-                    => mapping(address onBehalfOf => mapping(address market => uint256 authorizedActionsBitmap))
-            )
+        uint256 nonce => mapping(address operator => mapping(address onBehalfOf => uint256 authorizedActionsBitmap))
     ) public authorizations;
     // mapping of authorization nonces per account v1.7
     mapping(address onBehalfOf => uint256 nonce) public authorizationNonces;
