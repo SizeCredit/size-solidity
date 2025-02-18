@@ -44,4 +44,29 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
 
         assertTrue(sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
     }
+
+    function test_AuthorizationSetAuthorization_revoke_single() public {
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
+        assertTrue(sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
+        _setAuthorization(alice, bob, 0);
+        assertTrue(!sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
+    }
+
+    function test_AuthorizationSetAuthorization_multicall() public {
+        bytes[] memory calls = new bytes[](2);
+        calls[0] = abi.encodeCall(
+            sizeFactory.setAuthorization, (bob, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET))
+        );
+        calls[1] = abi.encodeCall(
+            sizeFactory.setAuthorization, (candy, Authorization.getActionsBitmap(Action.BUY_CREDIT_MARKET))
+        );
+
+        vm.prank(alice);
+        sizeFactory.multicall(calls);
+
+        assertTrue(sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
+        assertTrue(!sizeFactory.isAuthorized(bob, alice, Action.BUY_CREDIT_MARKET));
+        assertTrue(sizeFactory.isAuthorized(candy, alice, Action.BUY_CREDIT_MARKET));
+        assertTrue(!sizeFactory.isAuthorized(candy, alice, Action.SELL_CREDIT_MARKET));
+    }
 }
