@@ -32,22 +32,15 @@ enum Action {
 ///      The bitmap created using `getActionsBitmap` only sets specific bits corresponding to valid actions, so in practice, only certain combinations will be used
 ///      The validation is permissive by design. It only ensures no bits beyond the maximum action are set, rather than enforcing that only specific combinations are allowed
 library Authorization {
-    /// @notice Get the action bit for an action
-    /// @param action The action
-    /// @return The action bit
-    function _getActionBit(Action action) private pure returns (uint256) {
-        if (uint256(action) < uint256(Action.LAST_ACTION)) {
-            return uint256(action);
-        } else {
-            revert Errors.INVALID_ACTION(uint8(action));
-        }
-    }
-
     /// @notice Get the actions bitmap for an action
     /// @param action The action
     /// @return The actions bitmap
     function getActionsBitmap(Action action) internal pure returns (uint256) {
-        return 1 << _getActionBit(action);
+        if (uint256(action) >= uint256(Action.LAST_ACTION)) {
+            revert Errors.INVALID_ACTION(uint8(action));
+        } else {
+            return 1 << uint256(action);
+        }
     }
 
     /// @notice Get the actions bitmap for an array of actions

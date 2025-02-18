@@ -35,6 +35,21 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         vm.prank(alice);
         sizeFactory.setAuthorization(bob, type(uint256).max);
 
+        Action lastAllowedAction = Action(uint256(Action.LAST_ACTION) - 1);
+        sizeFactory.setAuthorization(bob, 1 << (uint256(lastAllowedAction)));
+
+        Action lastAction = Action(uint256(Action.LAST_ACTION));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, 1 << uint256(lastAction)));
+        vm.prank(alice);
+        sizeFactory.setAuthorization(bob, 1 << (uint256(lastAction)));
+
+        Action lastAllowedActionPlusOne = Action(uint256(Action.LAST_ACTION));
+        vm.expectRevert(
+            abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, 1 << uint256(lastAllowedActionPlusOne) + 1)
+        );
+        vm.prank(alice);
+        sizeFactory.setAuthorization(bob, 1 << (uint256(lastAllowedActionPlusOne) + 1));
+
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTION.selector, Action.LAST_ACTION));
         Authorization.getActionsBitmap(Action.LAST_ACTION);
     }
