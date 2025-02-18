@@ -28,6 +28,7 @@
   mainnet = "https://eth-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}"
   base_sepolia = "https://base-sepolia.g.alchemy.com/v2/${API_KEY_ALCHEMY}"
   base = "https://base-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}"
+  base-production = "https://base-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}"
   base_archive = "https://mainnet.base.org"
   anvil = "http://127.0.0.1:8545"
 

@@ -152,7 +152,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
             // cannot reinitialize if sizeFactory is already set (new markets deployed with v1.7 Size implementation)
             revert Errors.NOT_SUPPORTED();
         }
-        if (sizeFactory.isMarket(address(this))) {
+        if (!sizeFactory.isMarket(address(this))) {
             // sanity check for ISizeFactory
             revert Errors.INVALID_MARKET(address(this));
         }

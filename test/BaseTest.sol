@@ -96,6 +96,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.label(address(sizeFactory), "SizeFactory");
 
         vm.label(address(0), "address(0)");
+        vm.label(address(this), "Test");
     }
 
     function _mint(address token, address user, uint256 amount) internal {
