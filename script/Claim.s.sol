@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Size} from "@src/Size.sol";
-import {ClaimParams} from "@src/libraries/actions/Claim.sol";
+import {Size} from "@src/market/Size.sol";
+import {ClaimParams} from "@src/market/libraries/actions/Claim.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 

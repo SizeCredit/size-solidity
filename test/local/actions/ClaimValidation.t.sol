@@ -3,12 +3,12 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {ClaimParams} from "@src/libraries/actions/Claim.sol";
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {ClaimParams} from "@src/market/libraries/actions/Claim.sol";
+import {RepayParams} from "@src/market/libraries/actions/Repay.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
 contract ClaimValidationTest is BaseTest {
     function test_Claim_validation() public {

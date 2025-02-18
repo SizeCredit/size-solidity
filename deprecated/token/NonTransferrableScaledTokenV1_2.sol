@@ -9,9 +9,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import {Math} from "@src/libraries/Math.sol";
+import {Math} from "@src/market/libraries/Math.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
 /// @title NonTransferrableScaledTokenV1_2
 /// @custom:security-contact security@size.credit

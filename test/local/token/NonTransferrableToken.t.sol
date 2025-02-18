@@ -2,10 +2,10 @@
 pragma solidity 0.8.23;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
+import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
 import {Test} from "forge-std/Test.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
 contract NonTransferrableTokenTest is Test {
     NonTransferrableToken public token;

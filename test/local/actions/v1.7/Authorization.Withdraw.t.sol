@@ -2,12 +2,13 @@
 pragma solidity 0.8.23;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
-import {UserView} from "@src/SizeView.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
-import {Errors} from "@src/libraries/Errors.sol";
-import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
 
-import {WithdrawOnBehalfOfParams, WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
+import {UserView} from "@src/market/SizeView.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+
+import {WithdrawOnBehalfOfParams, WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationWithdrawTest is BaseTest {

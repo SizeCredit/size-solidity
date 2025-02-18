@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Size} from "@src/Size.sol";
+import {Size} from "@src/market/Size.sol";
 import {Logger} from "@test/Logger.sol";
 
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
+import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {Script} from "forge-std/Script.sol";
 import {console2 as console} from "forge-std/console2.sol";
 

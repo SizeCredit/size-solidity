@@ -6,12 +6,12 @@ import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {YAMv2} from "@test/mocks/YAMv2.sol";
 
-import {Size} from "@src/Size.sol";
+import {Size} from "@src/market/Size.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
 contract InitializeValidationTest is Test, BaseTest {
     function test_Initialize_validation() public {

@@ -4,11 +4,11 @@ pragma solidity 0.8.23;
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTest.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {LoanStatus, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
+import {RepayParams} from "@src/market/libraries/actions/Repay.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract RepayTest is BaseTest {

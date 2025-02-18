@@ -3,8 +3,8 @@ pragma solidity 0.8.23;
 
 import {console2 as console} from "forge-std/Script.sol";
 
-import {Size} from "@src/Size.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
+import {Size} from "@src/market/Size.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {BaseScript} from "@script/BaseScript.sol";
 import {Deploy} from "@script/Deploy.sol";

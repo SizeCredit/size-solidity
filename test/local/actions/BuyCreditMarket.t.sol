@@ -4,17 +4,17 @@ pragma solidity 0.8.23;
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTest.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {PERCENT} from "@src/libraries/Math.sol";
+import {PERCENT} from "@src/market/libraries/Math.sol";
 
-import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve, YieldCurveLibrary} from "@src/libraries/YieldCurveLibrary.sol";
-import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
+import {LoanStatus, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
+import {YieldCurve, YieldCurveLibrary} from "@src/market/libraries/YieldCurveLibrary.sol";
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Math, PERCENT, YEAR} from "@src/libraries/Math.sol";
+import {Math, PERCENT, YEAR} from "@src/market/libraries/Math.sol";
 
 contract BuyCreditMarketLendTest is BaseTest {
     using OfferLibrary for LimitOrder;

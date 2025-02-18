@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseScript} from "@script/BaseScript.sol";
 import {Deploy} from "@script/Deploy.sol";
-import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
+import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {console} from "forge-std/Script.sol";
 
 contract UpgradeSizeFactoryScript is BaseScript, Deploy {

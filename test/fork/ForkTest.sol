@@ -7,7 +7,7 @@ import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 
 import {BaseScript} from "@script/BaseScript.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 

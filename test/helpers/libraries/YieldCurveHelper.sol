@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
 library YieldCurveHelper {
     // -----------  CURVES -------------

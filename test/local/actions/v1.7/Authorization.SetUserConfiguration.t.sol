@@ -2,17 +2,17 @@
 pragma solidity 0.8.23;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
-import {UserView} from "@src/SizeView.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
-import {Errors} from "@src/libraries/Errors.sol";
+import {UserView} from "@src/market/SizeView.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {CreditPosition, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {CreditPosition, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {
     SetUserConfigurationOnBehalfOfParams,
     SetUserConfigurationParams
-} from "@src/libraries/actions/SetUserConfiguration.sol";
+} from "@src/market/libraries/actions/SetUserConfiguration.sol";
 
-import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

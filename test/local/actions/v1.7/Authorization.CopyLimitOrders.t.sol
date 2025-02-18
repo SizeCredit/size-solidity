@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {UserCopyLimitOrders} from "@src/SizeStorage.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
-import {Errors} from "@src/libraries/Errors.sol";
-import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {CopyLimitOrder} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
-import {CopyLimitOrdersOnBehalfOfParams, CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol";
+import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
+import {
+    CopyLimitOrdersOnBehalfOfParams, CopyLimitOrdersParams
+} from "@src/market/libraries/actions/CopyLimitOrders.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract AuthorizationCopyLimitOrdersTest is BaseTest {

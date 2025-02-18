@@ -10,10 +10,10 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import {ISize} from "@src/interfaces/ISize.sol";
-import {Errors} from "@src/libraries/Errors.sol";
-import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
-import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
+import {SizeFactory} from "@src/factory/SizeFactory.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {Test} from "forge-std/Test.sol";

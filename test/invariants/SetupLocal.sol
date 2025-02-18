@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {BaseSetup} from "@chimera/BaseSetup.sol";
 import "@crytic/properties/contracts/util/Hevm.sol";
-import {KEEPER_ROLE} from "@src/Size.sol";
+import {KEEPER_ROLE} from "@src/market/Size.sol";
 import {Helper} from "@test/invariants/Helper.sol";
 
 abstract contract SetupLocal is Helper, BaseSetup {

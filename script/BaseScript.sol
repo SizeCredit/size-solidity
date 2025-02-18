@@ -2,8 +2,9 @@
 pragma solidity ^0.8.19;
 
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
-import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
+
+import {SizeFactory} from "@src/factory/SizeFactory.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {ISizeV1_5} from "@deprecated/interfaces/ISizeV1_5.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";

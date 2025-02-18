@@ -2,8 +2,8 @@
 pragma solidity 0.8.23;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
-import {UserView} from "@src/SizeView.sol";
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {UserView} from "@src/market/SizeView.sol";
+import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract DepositTest is BaseTest {

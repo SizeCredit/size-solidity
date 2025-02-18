@@ -5,9 +5,9 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 
 import {PriceFeedV1_5} from "@deprecated/oracle/PriceFeedV1_5.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
-import {Errors} from "@src/libraries/Errors.sol";
-import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {BaseTest} from "@test/BaseTest.sol";

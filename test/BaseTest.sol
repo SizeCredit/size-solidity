@@ -9,37 +9,40 @@ import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 import {UNISWAP_V3_FACTORY_BYTECODE} from "@test/mocks/UniswapV3FactoryBytecode.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
-import {Size} from "@src/Size.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {Size} from "@src/market/Size.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
-import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
+import {WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 
-import {SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
-import {SellCreditMarketOnBehalfOfParams, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+import {SellCreditLimitParams} from "@src/market/libraries/actions/SellCreditLimit.sol";
+import {
+    SellCreditMarketOnBehalfOfParams,
+    SellCreditMarketParams
+} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
-import {DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {DEBT_POSITION_ID_START, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
-import {BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
-import {ClaimParams} from "@src/libraries/actions/Claim.sol";
-import {LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
+import {BuyCreditLimitParams} from "@src/market/libraries/actions/BuyCreditLimit.sol";
+import {ClaimParams} from "@src/market/libraries/actions/Claim.sol";
+import {LiquidateParams} from "@src/market/libraries/actions/Liquidate.sol";
 
-import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
-import {LiquidateWithReplacementParams} from "@src/libraries/actions/LiquidateWithReplacement.sol";
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
-import {SelfLiquidateParams} from "@src/libraries/actions/SelfLiquidate.sol";
+import {CompensateParams} from "@src/market/libraries/actions/Compensate.sol";
+import {LiquidateWithReplacementParams} from "@src/market/libraries/actions/LiquidateWithReplacement.sol";
+import {RepayParams} from "@src/market/libraries/actions/Repay.sol";
+import {SelfLiquidateParams} from "@src/market/libraries/actions/SelfLiquidate.sol";
 
-import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
-import {SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
+import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
+import {SetUserConfigurationParams} from "@src/market/libraries/actions/SetUserConfiguration.sol";
 
-import {KEEPER_ROLE} from "@src/Size.sol";
-import {UserView} from "@src/SizeView.sol";
-import {CopyLimitOrder} from "@src/libraries/OfferLibrary.sol";
-import {CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol";
+import {KEEPER_ROLE} from "@src/market/Size.sol";
+import {UserView} from "@src/market/SizeView.sol";
+import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
 
-import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
+import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol";
 
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";

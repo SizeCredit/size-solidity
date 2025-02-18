@@ -3,8 +3,8 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {Events} from "@src/libraries/Events.sol";
-import {CREDIT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {Events} from "@src/market/libraries/Events.sol";
+import {CREDIT_POSITION_ID_START, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

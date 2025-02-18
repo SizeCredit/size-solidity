@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
+import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {SetUserConfigurationParams} from "@src/market/libraries/actions/SetUserConfiguration.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
 contract SetUserConfigurationValidationTest is BaseTest {
     function test_SetUserConfiguration_validation() public {

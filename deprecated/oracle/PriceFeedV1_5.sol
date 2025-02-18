@@ -3,9 +3,9 @@ pragma solidity 0.8.23;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {Math} from "@src/libraries/Math.sol";
+import {Math} from "@src/market/libraries/Math.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
 /// @title PriceFeedV1_5

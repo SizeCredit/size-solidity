@@ -3,11 +3,11 @@ pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
+import {LoanStatus, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {LiquidateParams} from "@src/market/libraries/actions/Liquidate.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
 contract LiquidateValidationTest is BaseTest {
     function test_Liquidate_validation() public {

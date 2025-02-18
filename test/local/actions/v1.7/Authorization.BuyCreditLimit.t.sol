@@ -2,13 +2,13 @@
 pragma solidity 0.8.23;
 
 import {IAToken} from "@aave/interfaces/IAToken.sol";
-import {UserView} from "@src/SizeView.sol";
-import {Errors} from "@src/libraries/Errors.sol";
+import {UserView} from "@src/market/SizeView.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
-import {BuyCreditLimitOnBehalfOfParams, BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
-import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
+import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
+import {BuyCreditLimitOnBehalfOfParams, BuyCreditLimitParams} from "@src/market/libraries/actions/BuyCreditLimit.sol";
 
 import {BaseTest} from "@test/BaseTest.sol";
 

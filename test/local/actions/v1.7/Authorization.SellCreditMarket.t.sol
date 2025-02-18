@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {ISize} from "@src/interfaces/ISize.sol";
-import {Errors} from "@src/libraries/Errors.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {Math, PERCENT} from "@src/market/libraries/Math.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {DEBT_POSITION_ID_START} from "@src/libraries/LoanLibrary.sol";
-import {SellCreditMarketOnBehalfOfParams, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
-import {Action, Authorization} from "@src/v1.5/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
+import {DEBT_POSITION_ID_START} from "@src/market/libraries/LoanLibrary.sol";
+import {
+    SellCreditMarketOnBehalfOfParams,
+    SellCreditMarketParams
+} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
 contract AuthorizationSellCreditMarketTest is BaseTest {
     function test_AuthorizationSellCreditMarket_sellCreditMarketOnBehalfOf() public {

@@ -2,14 +2,14 @@
 pragma solidity 0.8.23;
 
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
-import {CREDIT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {CREDIT_POSITION_ID_START, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 import {Deploy} from "@script/Deploy.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 import {Bounds} from "@test/invariants/Bounds.sol";
 
-import {PERCENT} from "@src/libraries/Math.sol";
+import {PERCENT} from "@src/market/libraries/Math.sol";
 
 abstract contract Helper is Deploy, PropertiesConstants, Bounds {
     function _getRandomUser(address user) internal pure returns (address) {

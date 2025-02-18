@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Errors} from "@src/libraries/Errors.sol";
-import {CopyLimitOrder} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
-import {OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol";
+import {OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

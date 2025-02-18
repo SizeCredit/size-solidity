@@ -2,8 +2,8 @@
 pragma solidity 0.8.23;
 
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
-import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
+import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
+import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract PauseTest is BaseTest {

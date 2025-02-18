@@ -5,9 +5,9 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {FixedPointMathLib} from "@solady/utils/FixedPointMathLib.sol";
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {Math, PERCENT} from "@src/libraries/Math.sol";
+import {Math, PERCENT} from "@src/market/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {OracleLibrary} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
