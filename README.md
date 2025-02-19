@@ -83,7 +83,13 @@ In order to set the current market average value of USDC variable borrow rates, 
 
 Users can authorize other operator accounts to perform specific actions or any action on their behalf on any market (per chain) through a new `setAuthorization` method called on the `SizeFactory` introduced in v1.7. This enables users to delegate all Size functionalities to third parties, enabling more complex strategies and automations.
 
-This powerful capability comes with associated risks, and, as such, users must take extra care regarding whom and what they authorize, and should only authorize operators they fully trust, such as non-upgradeable safe audited smart contracts or wallets they control.
+Some use cases of delegation are:
+
+- One-click leverage through a looping contract
+- Auto-refinancing of loans
+- Stop-loss for price drops in collateral through automated self-liquidations
+
+This powerful capability comes with associated risks, and, as such, users must take extra care regarding whom and what they authorize, and should only authorize operators they fully trust, such as audited smart contracts or wallets they control.
 
 A non-exhaustive list of the risks of improper authorization includes:
 
