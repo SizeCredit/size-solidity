@@ -21,6 +21,8 @@ import {ISafe} from "@script/interfaces/ISafe.sol";
 import {VERSION} from "@src/market/interfaces/ISize.sol";
 import {SafeUtils} from "@test/SafeUtils.sol";
 
+import {ActionsBitmap} from "@src/factory/libraries/Authorization.sol";
+
 contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Networks, SafeUtils {
     struct Vars {
         ISizeFactory sizeFactory;
@@ -56,7 +58,7 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
             assertEq(market.version(), "v1.6.1");
         }
         (bool success,) = address(vars.sizeFactory).call(
-            abi.encodeCall(ISizeFactoryV1_7.setAuthorization, (address(0x1000), uint256(1)))
+            abi.encodeWithSelector(ISizeFactoryV1_7.setAuthorization.selector, address(0x1000), 1)
         );
         assertTrue(!success);
         assertTrue(!Strings.equal(VERSION, "v1.6.1"));
@@ -73,7 +75,10 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
             assertEq(address(market.sizeFactory()), address(vars.sizeFactory));
             assertEq(market.version(), VERSION);
         }
-        vars.sizeFactory.setAuthorization(address(0x1000), uint256(1));
+        (success,) = address(vars.sizeFactory).call(
+            abi.encodeWithSelector(ISizeFactoryV1_7.setAuthorization.selector, address(0x1000), 1)
+        );
+        assertTrue(success);
     }
 
     function testFork_ForkReinitializeV1_7_reinitialize() public {

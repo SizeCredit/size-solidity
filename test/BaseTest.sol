@@ -47,6 +47,8 @@ import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
+import {ActionsBitmap} from "@src/factory/libraries/Authorization.sol";
+
 import {Deploy} from "@script/Deploy.sol";
 
 struct Vars {
@@ -457,7 +459,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         );
     }
 
-    function _setAuthorization(address user, address operator, uint256 actionsBitmap) internal {
+    function _setAuthorization(address user, address operator, ActionsBitmap actionsBitmap) internal {
         vm.prank(user);
         sizeFactory.setAuthorization(operator, actionsBitmap);
     }

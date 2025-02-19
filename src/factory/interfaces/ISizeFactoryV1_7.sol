@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Action} from "@src/factory/libraries/Authorization.sol";
+import {Action, ActionsBitmap} from "@src/factory/libraries/Authorization.sol";
 
 /// @title ISizeFactoryV1_7
 /// @custom:security-contact security@size.credit
@@ -17,7 +17,7 @@ interface ISizeFactoryV1_7 {
     ///      In order to possible to authorize/revoke many actions at once, simply construct the actions bitmap using bitmap operations
     ///      For example, to revoke an operator, simply set the authorization bitmap for that operator to `uint256(0)`
     ///      To revoke all authorizations for all operators at once, use `revokeAllAuthorizations`
-    function setAuthorization(address operator, uint256 actionsBitmap) external;
+    function setAuthorization(address operator, ActionsBitmap actionsBitmap) external;
 
     /// @notice Revoke all authorizations for the `msg.sender` account
     function revokeAllAuthorizations() external;

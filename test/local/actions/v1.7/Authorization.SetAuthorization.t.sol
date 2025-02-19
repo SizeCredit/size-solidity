@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
+import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Authorization.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {Math, PERCENT} from "@src/market/libraries/Math.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
@@ -33,24 +33,25 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, type(uint256).max));
         vm.prank(alice);
-        sizeFactory.setAuthorization(bob, type(uint256).max);
+        sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(type(uint256).max));
 
         Action lastAllowedAction = Action(uint256(Action.LAST_ACTION) - 1);
-        sizeFactory.setAuthorization(bob, 1 << (uint256(lastAllowedAction)));
+        sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(1 << (uint256(lastAllowedAction))));
 
         Action lastAction = Action(uint256(Action.LAST_ACTION));
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, 1 << uint256(lastAction)));
         vm.prank(alice);
-        sizeFactory.setAuthorization(bob, 1 << (uint256(lastAction)));
+        sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(1 << (uint256(lastAction))));
 
-        Action lastAllowedActionPlusOne = Action(uint256(Action.LAST_ACTION));
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, 1 << uint256(lastAllowedActionPlusOne) + 1)
+            abi.encodeWithSelector(
+                Errors.INVALID_ACTIONS_BITMAP.selector, ActionsBitmap.wrap(1 << uint256(lastAction) + 1)
+            )
         );
         vm.prank(alice);
-        sizeFactory.setAuthorization(bob, 1 << (uint256(lastAllowedActionPlusOne) + 1));
+        sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(1 << (uint256(lastAction) + 1)));
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTION.selector, Action.LAST_ACTION));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, 1 << uint256(lastAction)));
         Authorization.getActionsBitmap(Action.LAST_ACTION);
     }
 
@@ -63,7 +64,7 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
     function test_AuthorizationSetAuthorization_revoke_single() public {
         _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
         assertTrue(sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
-        _setAuthorization(alice, bob, 0);
+        _setAuthorization(alice, bob, ActionsBitmap.wrap(0));
         assertTrue(!sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
     }
 

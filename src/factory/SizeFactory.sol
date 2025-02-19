@@ -35,7 +35,7 @@ import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {SizeFactoryEvents} from "@src/factory/SizeFactoryEvents.sol";
 import {SizeFactoryGetters} from "@src/factory/SizeFactoryGetters.sol";
-import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
+import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Authorization.sol";
 
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
 
@@ -196,7 +196,7 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactoryV1_7
-    function setAuthorization(address operator, uint256 actionsBitmap) external override(ISizeFactoryV1_7) {
+    function setAuthorization(address operator, ActionsBitmap actionsBitmap) external override(ISizeFactoryV1_7) {
         // validate msg.sender
         // N/A
 
@@ -205,13 +205,12 @@ contract SizeFactory is
             revert Errors.NULL_ADDRESS();
         }
         // validate actionsBitmap
-        uint256 maxBitmap = (1 << (uint256(Action.LAST_ACTION))) - 1;
-        if (actionsBitmap > maxBitmap) {
-            revert Errors.INVALID_ACTIONS_BITMAP(actionsBitmap);
+        if (!Authorization.isValid(actionsBitmap)) {
+            revert Errors.INVALID_ACTIONS_BITMAP(Authorization.toUint256(actionsBitmap));
         }
 
         uint256 nonce = authorizationNonces[msg.sender];
-        emit SetAuthorization(msg.sender, operator, actionsBitmap, nonce);
+        emit SetAuthorization(msg.sender, operator, Authorization.toUint256(actionsBitmap), nonce);
         authorizations[nonce][operator][msg.sender] = actionsBitmap;
     }
 
@@ -226,10 +225,8 @@ contract SizeFactory is
         if (operator == onBehalfOf) {
             return true;
         } else {
-            uint256 actionsBitmap = Authorization.getActionsBitmap(action);
             uint256 nonce = authorizationNonces[onBehalfOf];
-
-            return (authorizations[nonce][operator][onBehalfOf] & actionsBitmap) != 0;
+            return Authorization.isActionSet(authorizations[nonce][operator][onBehalfOf], action);
         }
     }
 }
