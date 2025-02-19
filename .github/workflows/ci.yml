@@ -26,7 +26,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: '0.3.0'
+          version: stable
 
       - name: Contract sizes
         run: |
@@ -48,7 +48,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: '0.3.0'
+          version: stable
 
       - name: Format
         run: |
@@ -69,7 +69,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: '0.3.0'
+          version: stable
 
       - name: Test
         run: |
@@ -90,7 +90,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: '0.3.0'
+          version: stable
 
       - name: Test Fork
         run: |
@@ -116,7 +116,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: '0.3.0'
+          version: stable
 
       - name: Run Slither
         uses: crytic/slither-action@v0.4.0
@@ -159,7 +159,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: '0.3.0'
+          version: stable
 
       - name: Install Crytic-compile
         run: |
@@ -195,7 +195,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: '0.3.0'
+          version: stable
 
       - name: Install dependencies
         run: npm install
@@ -231,7 +231,7 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: '0.3.0'
+          version: stable
 
       - name: Install dependencies
         run: npm install
