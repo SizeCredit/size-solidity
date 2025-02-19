@@ -23,6 +23,8 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 /// @notice The interface for the Size v1.7 authorization system
 interface ISizeV1_7 {
     /// @notice Reinitialize the size contract
+    ///         In production, `sizeFactory` will not be set for existing markets before the v1.7 upgrade
+    ///         New markets will be deployed with the v1.7 implementation, so `sizeFactory` will be set on the `initialize` function
     /// @dev This function is only callable by the owner of the contract
     /// @param sizeFactory The size factory
     function reinitialize(ISizeFactory sizeFactory) external;
