@@ -530,4 +530,13 @@ contract SizeFactoryTest is BaseTest {
         sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(newImplementation);
         assertEq(sizeFactory.nonTransferrableScaledTokenV1_5Implementation(), newImplementation);
     }
+
+    function test_SizeFactory_upgade() public {
+        SizeFactory implementation = new SizeFactory();
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(this)));
+        sizeFactory.upgradeToAndCall(address(implementation), bytes(""));
+
+        vm.prank(owner);
+        sizeFactory.upgradeToAndCall(address(implementation), bytes(""));
+    }
 }
