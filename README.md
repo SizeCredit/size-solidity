@@ -88,6 +88,7 @@ Some use cases of delegation are:
 - One-click leverage through a looping contract
 - Auto-refinancing of loans
 - Stop-loss for price drops in collateral through automated self-liquidations
+- Automated submission of limit orders into newly deployed markets
 
 This powerful capability comes with associated risks, and, as such, users must take extra care regarding whom and what they authorize, and should only authorize operators they fully trust, such as audited smart contracts or wallets they control.
 
