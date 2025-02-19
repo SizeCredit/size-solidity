@@ -137,27 +137,27 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         _grantRole(BORROW_RATE_UPDATER_ROLE, owner);
     }
 
-    function reinitialize(ISizeFactory sizeFactory)
+    function reinitialize(ISizeFactory _sizeFactory)
         external
         override(ISizeV1_7)
         onlyRole(DEFAULT_ADMIN_ROLE)
         reinitializer(1_7_0)
     {
-        // validate sizeFactory
-        if (address(sizeFactory) == address(0)) {
-            // sizeFactory cannot be 0 address (markets deployed with v1.6 Size implementation)
+        // validate _sizeFactory
+        if (address(_sizeFactory) == address(0)) {
+            // _sizeFactory cannot be 0 address (markets deployed with v1.6 Size implementation)
             revert Errors.NULL_ADDRESS();
         }
         if (address(state.data.sizeFactory) != address(0)) {
-            // cannot reinitialize if sizeFactory is already set (new markets deployed with v1.7 Size implementation)
+            // _sizeFactory cannot be already set (new markets deployed with v1.7 Size implementation)
             revert Errors.NOT_SUPPORTED();
         }
-        if (!sizeFactory.isMarket(address(this))) {
+        if (!_sizeFactory.isMarket(address(this))) {
             // sanity check for ISizeFactory
             revert Errors.INVALID_MARKET(address(this));
         }
 
-        state.data.sizeFactory = sizeFactory;
+        state.data.sizeFactory = _sizeFactory;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}

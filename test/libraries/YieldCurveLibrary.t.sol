@@ -18,6 +18,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
     }
 
+    /// forge-config: default.allow_internal_expect_revert = true
     function test_YieldCurve_validateYieldCurve() public {
         uint256[] memory tenors = new uint256[](0);
         int256[] memory aprs = new int256[](0);

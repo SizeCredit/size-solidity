@@ -26,6 +26,7 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         assertTrue(sizeFactory.isAuthorized(candy, candy, Action.SELL_CREDIT_MARKET));
     }
 
+    /// forge-config: default.allow_internal_expect_revert = true
     function test_AuthorizationSetAuthorization_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         vm.prank(alice);
