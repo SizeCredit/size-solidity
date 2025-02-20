@@ -37,7 +37,7 @@ import {SelfLiquidateParams} from "@src/market/libraries/actions/SelfLiquidate.s
 import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {SetUserConfigurationParams} from "@src/market/libraries/actions/SetUserConfiguration.sol";
 
-import {KEEPER_ROLE} from "@src/market/Size.sol";
+import {KEEPER_ROLE} from "@src/factory/SizeFactory.sol";
 import {UserView} from "@src/market/SizeView.sol";
 import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";

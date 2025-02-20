@@ -81,11 +81,9 @@ import {ISizeAdmin} from "@src/market/interfaces/ISizeAdmin.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
-
-bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
-bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE");
+import {
+    BORROW_RATE_UPDATER_ROLE, ISizeFactory, KEEPER_ROLE, PAUSER_ROLE
+} from "@src/factory/interfaces/ISizeFactory.sol";
 
 /// @title Size
 /// @custom:security-contact security@size.credit
@@ -137,10 +135,27 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         _grantRole(BORROW_RATE_UPDATER_ROLE, owner);
     }
 
+    function _hasRole(bytes32 role, address account) internal view returns (bool) {
+        if (hasRole(role, account)) {
+            return true;
+        } else if (address(state.data.sizeFactory) == address(0)) {
+            return false;
+        } else {
+            return AccessControlUpgradeable(address(state.data.sizeFactory)).hasRole(role, account);
+        }
+    }
+
+    modifier onlyRoleOrSizeFactoryHasRole(bytes32 role) {
+        if (!_hasRole(role, msg.sender)) {
+            revert AccessControlUnauthorizedAccount(msg.sender, role);
+        }
+        _;
+    }
+
     function reinitialize(ISizeFactory _sizeFactory)
         external
         override(ISizeV1_7)
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
         reinitializer(1_7_0)
     {
         // validate _sizeFactory
@@ -160,7 +175,11 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         state.data.sizeFactory = _sizeFactory;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        override
+        onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
+    {}
 
     /// @notice Validate that the user has not put themselves in underwater state
     modifier shouldNotEndUpUnderwater(address onBehalfOf) {
@@ -176,7 +195,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     function updateConfig(UpdateConfigParams calldata params)
         external
         override(ISizeAdmin)
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
     {
         state.validateUpdateConfig(params);
         state.executeUpdateConfig(params);
@@ -186,7 +205,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     function setVariablePoolBorrowRate(uint128 borrowRate)
         external
         override(ISizeAdmin)
-        onlyRole(BORROW_RATE_UPDATER_ROLE)
+        onlyRoleOrSizeFactoryHasRole(BORROW_RATE_UPDATER_ROLE)
     {
         uint128 oldBorrowRate = state.oracle.variablePoolBorrowRate;
         state.oracle.variablePoolBorrowRate = borrowRate;
@@ -195,12 +214,12 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISizeAdmin
-    function pause() public override(ISizeAdmin) onlyRole(PAUSER_ROLE) {
+    function pause() public override(ISizeAdmin) onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
         _pause();
     }
 
     /// @inheritdoc ISizeAdmin
-    function unpause() public override(ISizeAdmin) onlyRole(PAUSER_ROLE) {
+    function unpause() public override(ISizeAdmin) onlyRoleOrSizeFactoryHasRole(PAUSER_ROLE) {
         _unpause();
     }
 
@@ -372,7 +391,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         payable
         override(ISize)
         whenNotPaused
-        onlyRole(KEEPER_ROLE)
+        onlyRoleOrSizeFactoryHasRole(KEEPER_ROLE)
         returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
     {
         state.validateLiquidateWithReplacement(params);
