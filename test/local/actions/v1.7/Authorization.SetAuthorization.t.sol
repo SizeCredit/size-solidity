@@ -26,6 +26,26 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         assertTrue(sizeFactory.isAuthorized(candy, candy, Action.SELL_CREDIT_MARKET));
     }
 
+    function test_AuthorizationSetAuthorization_setAuthorization_all() public {
+        Action[] memory actions = new Action[](uint256(Action.NUMBER_OF_ACTIONS));
+        for (uint256 i = 0; i < uint256(Action.NUMBER_OF_ACTIONS); i++) {
+            actions[i] = Action(i);
+        }
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(actions));
+    }
+
+    function test_AuthorizationSetAuthorization_isValid() public pure {
+        Action[] memory actions = new Action[](uint256(Action.NUMBER_OF_ACTIONS));
+        for (uint256 i = 0; i < uint256(Action.NUMBER_OF_ACTIONS); i++) {
+            actions[i] = Action(i);
+        }
+        ActionsBitmap actionsBitmap = Authorization.getActionsBitmap(actions);
+        assertTrue(Authorization.isValid(actionsBitmap));
+
+        uint256 invalidActionsBitmap = Authorization.toUint256(actionsBitmap) + 1;
+        assertFalse(Authorization.isValid(ActionsBitmap.wrap(invalidActionsBitmap)));
+    }
+
     /// forge-config: default.allow_internal_expect_revert = true
     function test_AuthorizationSetAuthorization_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
@@ -36,24 +56,22 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         vm.prank(alice);
         sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(type(uint256).max));
 
-        Action lastAllowedAction = Action(uint256(Action.LAST_ACTION) - 1);
-        sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(1 << (uint256(lastAllowedAction))));
+        Action lastAction = Action(uint256(Action.NUMBER_OF_ACTIONS) - 1);
+        sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(1 << uint256(lastAction)));
 
-        Action lastAction = Action(uint256(Action.LAST_ACTION));
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, 1 << uint256(lastAction)));
+        uint256 invalidAction = uint256(Action.NUMBER_OF_ACTIONS);
+        ActionsBitmap invalidActionsBitmap = ActionsBitmap.wrap(1 << invalidAction);
         vm.prank(alice);
-        sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(1 << (uint256(lastAction))));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, invalidActionsBitmap));
+        sizeFactory.setAuthorization(bob, invalidActionsBitmap);
 
+        uint256 invalidActionPlusOne = uint256(Action.NUMBER_OF_ACTIONS) + 1;
+        ActionsBitmap invalidActionPlusOneActionsBitmap = ActionsBitmap.wrap(1 << invalidActionPlusOne);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.INVALID_ACTIONS_BITMAP.selector, ActionsBitmap.wrap(1 << uint256(lastAction) + 1)
-            )
+            abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, invalidActionPlusOneActionsBitmap)
         );
         vm.prank(alice);
-        sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(1 << (uint256(lastAction) + 1)));
-
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, 1 << uint256(lastAction)));
-        Authorization.getActionsBitmap(Action.LAST_ACTION);
+        sizeFactory.setAuthorization(bob, invalidActionPlusOneActionsBitmap);
     }
 
     function test_AuthorizationSetAuthorization_isAuthorized() public {
