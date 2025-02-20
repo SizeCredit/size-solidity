@@ -9,6 +9,7 @@ import {CapsLibrary} from "@src/libraries/CapsLibrary.sol";
 import {State} from "@src/SizeStorage.sol";
 
 import {DepositTokenLibrary} from "@src/libraries/DepositTokenLibrary.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
@@ -22,6 +23,13 @@ struct DepositParams {
     address to;
 }
 
+struct DepositOnBehalfOfParams {
+    // The parameters for the deposit
+    DepositParams params;
+    // The account to transfer the tokens from
+    address onBehalfOf;
+}
+
 /// @title Deposit
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -33,9 +41,17 @@ library Deposit {
     using DepositTokenLibrary for State;
     using CapsLibrary for State;
 
-    function validateDeposit(State storage state, DepositParams calldata params) external view {
+    /// @notice Validates the deposit parameters
+    /// @param state The state of the protocol
+    /// @param externalParams The input parameters for depositing tokens
+    function validateDeposit(State storage state, DepositOnBehalfOfParams memory externalParams) external view {
+        DepositParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
         // validate msg.sender
-        // N/A
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.DEPOSIT)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.DEPOSIT));
+        }
 
         // validate msg.value
         if (msg.value != 0 && (msg.value != params.amount || params.token != address(state.data.weth))) {
@@ -61,8 +77,14 @@ library Deposit {
         }
     }
 
-    function executeDeposit(State storage state, DepositParams calldata params) public {
-        address from = msg.sender;
+    /// @notice Executes the deposit
+    /// @param state The state of the protocol
+    /// @param externalParams The input parameters for depositing tokens
+    function executeDeposit(State storage state, DepositOnBehalfOfParams memory externalParams) public {
+        DepositParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
+        address from = onBehalfOf;
         uint256 amount = params.amount;
         if (msg.value > 0) {
             // do not trust msg.value (see `Multicall.sol`)
@@ -85,5 +107,6 @@ library Deposit {
         }
 
         emit Events.Deposit(msg.sender, params.token, params.to, amount);
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.DEPOSIT), params.to);
     }
 }

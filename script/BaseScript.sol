@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+
 import {ISize} from "@src/interfaces/ISize.sol";
 import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
 
@@ -111,6 +112,17 @@ abstract contract BaseScript is Script {
         finalObject = vm.serializeUint(".", "blockNumber", blockNumber);
         finalObject =
             vm.serializeBytes(".", "data", abi.encodeCall(ISizeV1_5.reinitialize, (address(borrowATokenV1_5), users)));
+        vm.writeJson(finalObject, path);
+    }
+
+    function exportV1_7ReinitializeData(string memory network, address to, bytes memory data) internal {
+        root = vm.projectRoot();
+        path = string.concat(root, "/deployments/v1.7/");
+        path = string.concat(path, string.concat(network, "-reinitialize-data", ".json"));
+
+        string memory finalObject;
+        finalObject = vm.serializeAddress(".", "to", to);
+        finalObject = vm.serializeBytes(".", "data", data);
         vm.writeJson(finalObject, path);
     }
 

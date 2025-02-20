@@ -14,6 +14,8 @@ import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
+
 struct SellCreditMarketParams {
     // The lender
     address lender;
@@ -31,6 +33,15 @@ struct SellCreditMarketParams {
     uint256 maxAPR;
     // Whether amount means credit or cash
     bool exactAmountIn;
+}
+
+struct SellCreditMarketOnBehalfOfParams {
+    // The parameters for selling credit as a market order
+    SellCreditMarketParams params;
+    // The account to receive the debt
+    address onBehalfOf;
+    // The account to receive the cash
+    address recipient;
 }
 
 /// @title SellCreditMarket
@@ -57,12 +68,26 @@ library SellCreditMarket {
 
     /// @notice Validates the input parameters for selling credit as a market order
     /// @param state The state
-    /// @param params The input parameters for selling credit as a market order
-    function validateSellCreditMarket(State storage state, SellCreditMarketParams calldata params) external view {
+    /// @param externalParams The input parameters for selling credit as a market order
+    function validateSellCreditMarket(State storage state, SellCreditMarketOnBehalfOfParams calldata externalParams)
+        external
+        view
+    {
+        SellCreditMarketParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+        address recipient = externalParams.recipient;
+
         uint256 tenor;
 
         // validate msg.sender
-        // N/A
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.SELL_CREDIT_MARKET)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.SELL_CREDIT_MARKET));
+        }
+
+        // validate recipient
+        if (recipient == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
 
         // validate lender
         if (params.lender == address(0)) {
@@ -80,8 +105,8 @@ library SellCreditMarket {
         } else {
             CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
             DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
-            if (msg.sender != creditPosition.lender) {
-                revert Errors.BORROWER_IS_NOT_LENDER(msg.sender, creditPosition.lender);
+            if (onBehalfOf != creditPosition.lender) {
+                revert Errors.BORROWER_IS_NOT_LENDER(onBehalfOf, creditPosition.lender);
             }
             if (!state.isCreditPositionTransferrable(params.creditPositionId)) {
                 revert Errors.CREDIT_POSITION_NOT_TRANSFERRABLE(
@@ -179,13 +204,17 @@ library SellCreditMarket {
 
     /// @notice Executes the selling of credit as a market order
     /// @param state The state
-    /// @param params The input parameters for selling credit as a market order
-    function executeSellCreditMarket(State storage state, SellCreditMarketParams calldata params)
+    /// @param externalParams The input parameters for selling credit as a market order
+    function executeSellCreditMarket(State storage state, SellCreditMarketOnBehalfOfParams calldata externalParams)
         external
         returns (uint256)
     {
+        SellCreditMarketParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+        address recipient = externalParams.recipient;
+
         emit Events.SellCreditMarket(
-            msg.sender,
+            onBehalfOf,
             params.lender,
             params.creditPositionId,
             params.amount,
@@ -194,14 +223,15 @@ library SellCreditMarket {
             params.maxAPR,
             params.exactAmountIn
         );
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.SELL_CREDIT_MARKET), recipient);
 
         SwapDataSellCreditMarket memory swapData = getSwapData(state, params);
 
         if (params.creditPositionId == RESERVED_ID) {
             // slither-disable-next-line unused-return
             state.createDebtAndCreditPositions({
-                lender: msg.sender,
-                borrower: msg.sender,
+                lender: onBehalfOf,
+                borrower: onBehalfOf,
                 futureValue: swapData.creditAmountIn,
                 dueDate: block.timestamp + swapData.tenor
             });
@@ -216,14 +246,14 @@ library SellCreditMarket {
             credit: swapData.creditAmountIn,
             forSale: true
         });
-        state.data.borrowATokenV1_5.transferFrom(params.lender, msg.sender, swapData.cashAmountOut);
+        state.data.borrowATokenV1_5.transferFrom(params.lender, recipient, swapData.cashAmountOut);
         state.data.borrowATokenV1_5.transferFrom(
             params.lender, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
         );
 
         emit Events.SwapData(
             exitCreditPositionId,
-            msg.sender,
+            onBehalfOf,
             params.lender,
             swapData.creditAmountIn,
             swapData.cashAmountOut + swapData.swapFee + swapData.fragmentationFee,

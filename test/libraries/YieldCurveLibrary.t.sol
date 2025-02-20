@@ -16,6 +16,7 @@ contract YieldCurveTest is Test, AssertsHelper {
         YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
     }
 
+    /// forge-config: default.allow_internal_expect_revert = true
     function test_YieldCurve_validateYieldCurve() public {
         uint256[] memory tenors = new uint256[](0);
         int256[] memory aprs = new int256[](0);
@@ -61,6 +62,18 @@ contract YieldCurveTest is Test, AssertsHelper {
         curve.tenors[0] = 150 days;
         curve.tenors[1] = 180 days;
         YieldCurveLibrary.validateYieldCurve(curve, minTenor, maxTenor);
+    }
+
+    function test_YieldCurve_getRate_stale_rate() public {
+        YieldCurve memory curve = YieldCurveHelper.marketCurve();
+        VariablePoolBorrowRateParams memory params = VariablePoolBorrowRateParams({
+            variablePoolBorrowRate: 0.31415e18,
+            variablePoolBorrowRateUpdatedAt: uint64(block.timestamp),
+            variablePoolBorrowRateStaleRateInterval: 1 days
+        });
+        vm.warp(block.timestamp + 30 days);
+        vm.expectRevert(abi.encodeWithSelector(Errors.STALE_RATE.selector, params.variablePoolBorrowRateUpdatedAt));
+        YieldCurveLibrary.getAPR(curve, params, 60 days);
     }
 
     function test_YieldCurve_getRate_zero_tenor() public {

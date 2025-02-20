@@ -96,6 +96,12 @@ library Errors {
     error ALREADY_INITIALIZED(address account);
     error UNAUTHORIZED(address account);
 
+    error UNAUTHORIZED_ACTION(address account, address onBehalfOf, uint8 action);
+    error INVALID_ACTION(uint8 action);
+    error INVALID_ACTIONS_BITMAP(uint256 actionsBitmap);
+
     error INVALID_TWAP_WINDOW();
     error INVALID_AVERAGE_BLOCK_TIME();
+
+    error INVALID_MARKET(address market);
 }

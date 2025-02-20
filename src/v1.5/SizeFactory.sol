@@ -2,6 +2,8 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
+
+import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {
@@ -31,32 +33,25 @@ import {IPriceFeedV1_5_2} from "@src/oracle/v1.5.2/IPriceFeedV1_5_2.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
-import {VERSION} from "@src/interfaces/ISize.sol";
+import {SizeFactoryEvents} from "@src/v1.5/SizeFactoryEvents.sol";
+import {SizeFactoryGetters} from "@src/v1.5/SizeFactoryGetters.sol";
+import {Action, ActionsBitmap, Authorization} from "@src/v1.5/libraries/Authorization.sol";
+
+import {ISizeFactoryV1_7} from "@src/v1.5/interfaces/ISizeFactoryV1_7.sol";
 
 /// @title SizeFactory
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISizeFactory}.
-contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
+contract SizeFactory is
+    ISizeFactory,
+    SizeFactoryGetters,
+    SizeFactoryEvents,
+    MulticallUpgradeable,
+    Ownable2StepUpgradeable,
+    UUPSUpgradeable
+{
     using EnumerableSet for EnumerableSet.AddressSet;
-
-    EnumerableSet.AddressSet private markets;
-    EnumerableSet.AddressSet private priceFeeds;
-    EnumerableSet.AddressSet private borrowATokensV1_5;
-    address public sizeImplementation;
-    address public nonTransferrableScaledTokenV1_5Implementation;
-
-    event SizeImplementationSet(address indexed oldSizeImplementation, address indexed newSizeImplementation);
-    event NonTransferrableScaledTokenV1_5ImplementationSet(
-        address indexed oldNonTransferrableScaledTokenV1_5Implementation,
-        address indexed newNonTransferrableScaledTokenV1_5Implementation
-    );
-    event MarketAdded(address indexed market, bool indexed existed);
-    event MarketRemoved(address indexed market, bool indexed existed);
-    event PriceFeedAdded(address indexed priceFeed, bool indexed existed);
-    event PriceFeedRemoved(address indexed priceFeed, bool indexed existed);
-    event BorrowATokenV1_5Added(address indexed borrowATokenV1_5, bool indexed existed);
-    event BorrowATokenV1_5Removed(address indexed borrowATokenV1_5, bool indexed existed);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -65,6 +60,7 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
 
     function initialize(address _owner) external initializer {
         __Ownable_init(_owner);
+        __Multicall_init();
         __Ownable2Step_init();
         __UUPSUpgradeable_init();
     }
@@ -94,6 +90,7 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
         nonTransferrableScaledTokenV1_5Implementation = _nonTransferrableScaledTokenV1_5Implementation;
     }
 
+    /// @inheritdoc ISizeFactory
     function createMarket(
         InitializeFeeConfigParams calldata feeConfigParams,
         InitializeRiskConfigParams calldata riskConfigParams,
@@ -159,6 +156,7 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
         emit PriceFeedRemoved(address(priceFeed), existed);
     }
 
+    /// @inheritdoc ISizeFactory
     function createBorrowATokenV1_5(IPool variablePool, IERC20Metadata underlyingBorrowToken)
         external
         onlyOwner
@@ -197,125 +195,38 @@ contract SizeFactory is ISizeFactory, Ownable2StepUpgradeable, UUPSUpgradeable {
         return markets.contains(candidate);
     }
 
-    /// @inheritdoc ISizeFactory
-    function isPriceFeed(address candidate) external view returns (bool) {
-        return priceFeeds.contains(candidate);
-    }
+    /// @inheritdoc ISizeFactoryV1_7
+    function setAuthorization(address operator, ActionsBitmap actionsBitmap) external override(ISizeFactoryV1_7) {
+        // validate msg.sender
+        // N/A
 
-    /// @inheritdoc ISizeFactory
-    function isBorrowATokenV1_5(address candidate) external view returns (bool) {
-        return borrowATokensV1_5.contains(candidate);
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getMarket(uint256 index) external view returns (ISize) {
-        return ISize(markets.at(index));
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getPriceFeed(uint256 index) external view returns (PriceFeed) {
-        return PriceFeed(priceFeeds.at(index));
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getBorrowATokenV1_5(uint256 index) external view returns (IERC20Metadata) {
-        return IERC20Metadata(borrowATokensV1_5.at(index));
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getMarkets() external view returns (ISize[] memory _markets) {
-        _markets = new ISize[](markets.length());
-        for (uint256 i = 0; i < _markets.length; i++) {
-            _markets[i] = ISize(markets.at(i));
+        // validate operator
+        if (operator == address(0)) {
+            revert Errors.NULL_ADDRESS();
         }
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getPriceFeeds() external view returns (PriceFeed[] memory _priceFeeds) {
-        _priceFeeds = new PriceFeed[](priceFeeds.length());
-        for (uint256 i = 0; i < _priceFeeds.length; i++) {
-            _priceFeeds[i] = PriceFeed(priceFeeds.at(i));
+        // validate actionsBitmap
+        if (!Authorization.isValid(actionsBitmap)) {
+            revert Errors.INVALID_ACTIONS_BITMAP(Authorization.toUint256(actionsBitmap));
         }
+
+        uint256 nonce = authorizationNonces[msg.sender];
+        emit SetAuthorization(msg.sender, operator, Authorization.toUint256(actionsBitmap), nonce);
+        authorizations[nonce][operator][msg.sender] = actionsBitmap;
     }
 
-    /// @inheritdoc ISizeFactory
-    function getBorrowATokensV1_5() external view returns (IERC20Metadata[] memory _borrowATokensV1_5) {
-        _borrowATokensV1_5 = new IERC20Metadata[](borrowATokensV1_5.length());
-        for (uint256 i = 0; i < _borrowATokensV1_5.length; i++) {
-            _borrowATokensV1_5[i] = IERC20Metadata(borrowATokensV1_5.at(i));
+    /// @inheritdoc ISizeFactoryV1_7
+    function revokeAllAuthorizations() external override(ISizeFactoryV1_7) {
+        emit RevokeAllAuthorizations(msg.sender);
+        authorizationNonces[msg.sender]++;
+    }
+
+    /// @inheritdoc ISizeFactoryV1_7
+    function isAuthorized(address operator, address onBehalfOf, Action action) public view returns (bool) {
+        if (operator == onBehalfOf) {
+            return true;
+        } else {
+            uint256 nonce = authorizationNonces[onBehalfOf];
+            return Authorization.isActionSet(authorizations[nonce][operator][onBehalfOf], action);
         }
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getMarketDescriptions() external view returns (string[] memory descriptions) {
-        descriptions = new string[](markets.length());
-        // slither-disable-start calls-loop
-        for (uint256 i = 0; i < descriptions.length; i++) {
-            ISize size = ISize(markets.at(i));
-            uint256 crLiquidationPercent = Math.mulDivDown(100, size.riskConfig().crLiquidation, PERCENT);
-            descriptions[i] = string.concat(
-                "Size | ",
-                size.data().underlyingCollateralToken.symbol(),
-                " | ",
-                size.data().underlyingBorrowToken.symbol(),
-                " | ",
-                Strings.toString(crLiquidationPercent),
-                " | ",
-                size.version()
-            );
-        }
-        // slither-disable-end calls-loop
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getPriceFeedDescriptions() external view returns (string[] memory descriptions) {
-        descriptions = new string[](priceFeeds.length());
-        // slither-disable-start calls-loop
-        for (uint256 i = 0; i < descriptions.length; i++) {
-            PriceFeed priceFeed = PriceFeed(priceFeeds.at(i));
-            (bool success, bytes memory data) =
-                address(priceFeed).staticcall(abi.encodeWithSelector(IPriceFeedV1_5_2.description.selector));
-            if (success) {
-                // IPriceFeedV1_5_2
-                descriptions[i] = abi.decode(data, (string));
-            } else {
-                // IPriceFeedV1_5
-                descriptions[i] = string.concat(
-                    "PriceFeed | ", priceFeed.base().description(), " | ", priceFeed.quote().description()
-                );
-            }
-        }
-        // slither-disable-end calls-loop
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getBorrowATokenV1_5Descriptions() external view returns (string[] memory descriptions) {
-        descriptions = new string[](borrowATokensV1_5.length());
-        // slither-disable-start calls-loop
-        for (uint256 i = 0; i < descriptions.length; i++) {
-            IERC20Metadata borrowATokenV1_5 = IERC20Metadata(borrowATokensV1_5.at(i));
-            descriptions[i] = borrowATokenV1_5.symbol();
-        }
-        // slither-disable-end calls-loop
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getMarketsCount() external view returns (uint256) {
-        return markets.length();
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getPriceFeedsCount() external view returns (uint256) {
-        return priceFeeds.length();
-    }
-
-    /// @inheritdoc ISizeFactory
-    function getBorrowATokensV1_5Count() external view returns (uint256) {
-        return borrowATokensV1_5.length();
-    }
-
-    /// @inheritdoc ISizeFactory
-    function version() external pure returns (string memory) {
-        return VERSION;
     }
 }

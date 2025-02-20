@@ -10,9 +10,10 @@ import {CopyLimitOrder, LimitOrder} from "@src/libraries/OfferLibrary.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
+
+import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
 
 struct User {
     // The user's loan offer
@@ -94,18 +95,20 @@ struct Data {
     IERC20Metadata underlyingBorrowToken;
     // Size deposit underlying collateral token
     NonTransferrableToken collateralToken;
-    // Size deposit underlying borrow aToken v1.2
-    NonTransferrableScaledTokenV1_2 borrowATokenV1_2;
+    // Size deposit underlying borrow aToken v1.2 (deprecated)
+    address ___deprecated_borrowATokenV1_2;
     // Size tokenized debt
     NonTransferrableToken debtToken;
     // Variable Pool (Aave v3)
     IPool variablePool;
     // Multicall lock to check if multicall is in progress
     bool isMulticall;
-    // Size deposit underlying borrow aToken v1.5
+    // Size deposit underlying borrow aToken (added on v1.5)
     NonTransferrableScaledTokenV1_5 borrowATokenV1_5;
-    // mapping of copy limit orders v1.6.1
+    // mapping of copy limit orders (added on v1.6.1)
     mapping(address => UserCopyLimitOrders) usersCopyLimitOrders;
+    // Size Factory (added on v1.7)
+    ISizeFactory sizeFactory;
 }
 
 struct State {

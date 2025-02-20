@@ -23,15 +23,18 @@ import {DataView, UserView} from "@src/SizeViewData.sol";
 import {ISizeView} from "@src/interfaces/ISizeView.sol";
 import {Errors} from "@src/libraries/Errors.sol";
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+
+import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/libraries/actions/Initialize.sol";
-
-import {BuyCreditMarket, BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+
+import {ISizeViewV1_7} from "@src/interfaces/v1.7/ISizeViewV1_7.sol";
+import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
 
 import {VERSION} from "@src/interfaces/ISize.sol";
 
@@ -96,6 +99,11 @@ abstract contract SizeView is SizeStorage, ISizeView {
             borrowAToken: state.data.borrowATokenV1_5,
             debtToken: state.data.debtToken
         });
+    }
+
+    /// @inheritdoc ISizeViewV1_7
+    function sizeFactory() external view returns (ISizeFactory) {
+        return state.data.sizeFactory;
     }
 
     /// @inheritdoc ISizeView

@@ -162,10 +162,13 @@ contract PriceFeedUniswapV3TWAPChainlinkTest is BaseTest {
         assertEq(price_1, price_2, price_3);
     }
 
-    function test_PriceFeedUniswapV3TWAPChainlink_description() public view {
-        assertEq(
-            priceFeedVirtualToUsdc.description(),
-            "PriceFeedUniswapV3TWAPChainlink | (VIRTUAL/WETH) (Uniswap v3 TWAP) * ((ETH / USD) / (USDC / USD)) (PriceFeed)"
-        );
+    function test_PriceFeedUniswapV3TWAPChainlink_description() public {
+        string memory expected =
+            "PriceFeedUniswapV3TWAPChainlink | (VIRTUAL/WETH) (Uniswap v3 TWAP) * ((ETH / USD) / (USDC / USD)) (PriceFeed)";
+        assertEq(priceFeedVirtualToUsdc.description(), expected);
+
+        _deployLocalSizeFactoryIfNeeded(address(this));
+        sizeFactory.addPriceFeed(PriceFeed(address(priceFeedVirtualToUsdc)));
+        assertEq(sizeFactory.getPriceFeedDescriptions()[0], expected);
     }
 }

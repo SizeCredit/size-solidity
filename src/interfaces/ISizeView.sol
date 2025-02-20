@@ -12,11 +12,13 @@ import {
 } from "@src/libraries/actions/Initialize.sol";
 import {SellCreditMarket, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
+import {ISizeViewV1_7} from "@src/interfaces/v1.7/ISizeViewV1_7.sol";
+
 /// @title ISizeView
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice View methods for the Size protocol
-interface ISizeView {
+interface ISizeView is ISizeViewV1_7 {
     /// @notice Get the collateral ratio of a user
     /// @param user The address of the user
     /// @return The collateral ratio of the user

@@ -4,6 +4,8 @@ pragma solidity 0.8.23;
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 
+import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
+
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -16,7 +18,6 @@ import {PERCENT} from "@src/libraries/Math.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
 
@@ -55,6 +56,7 @@ struct InitializeDataParams {
     address underlyingBorrowToken;
     address variablePool;
     address borrowATokenV1_5;
+    address sizeFactory;
 }
 
 /// @title Initialize
@@ -123,8 +125,10 @@ library Initialize {
             revert Errors.NULL_AMOUNT();
         }
 
-        // validate underlyingBorrowTokenCap
-        // N/A
+        // validate borrowATokenCap
+        if (r.borrowATokenCap == 0) {
+            revert Errors.NULL_AMOUNT();
+        }
 
         // validate minTenor
         if (r.minTenor == 0) {
@@ -181,6 +185,11 @@ library Initialize {
 
         // validate borrowATokenV1_5
         if (d.borrowATokenV1_5 == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+
+        // validate sizeFactory
+        if (d.sizeFactory == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
     }
@@ -261,15 +270,6 @@ library Initialize {
             string.concat("sz", IERC20Metadata(state.data.underlyingCollateralToken).symbol()),
             IERC20Metadata(state.data.underlyingCollateralToken).decimals()
         );
-        // new markets still have a NonTransferrableScaledTokenV1_2 even though it is never used
-        state.data.borrowATokenV1_2 = new NonTransferrableScaledTokenV1_2(
-            state.data.variablePool,
-            state.data.underlyingBorrowToken,
-            address(this),
-            string.concat("Size Scaled ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
-            string.concat("sza", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
-            IERC20Metadata(state.data.underlyingBorrowToken).decimals()
-        );
         state.data.debtToken = new NonTransferrableToken(
             address(this),
             string.concat("Size Debt ", IERC20Metadata(state.data.underlyingBorrowToken).name()),
@@ -277,6 +277,7 @@ library Initialize {
             IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
         state.data.borrowATokenV1_5 = NonTransferrableScaledTokenV1_5(d.borrowATokenV1_5);
+        state.data.sizeFactory = ISizeFactory(d.sizeFactory);
     }
 
     /// @notice Executes the initialization of the protocol

@@ -18,7 +18,7 @@ import {DepositParams} from "@src/libraries/actions/Deposit.sol";
 import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
 
 import {SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
-import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+import {SellCreditMarketOnBehalfOfParams, SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
 
 import {DEBT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 
@@ -43,6 +43,8 @@ import {UpdateConfigParams} from "@src/libraries/actions/UpdateConfig.sol";
 
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
+
+import {ActionsBitmap} from "@src/v1.5/libraries/Authorization.sol";
 
 import {Deploy} from "@script/Deploy.sol";
 
@@ -93,6 +95,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.label(address(sizeFactory), "SizeFactory");
 
         vm.label(address(0), "address(0)");
+        vm.label(address(this), "Test");
     }
 
     function _mint(address token, address user, uint256 amount) internal {
@@ -451,6 +454,11 @@ contract BaseTest is Test, Deploy, AssertsHelper {
                 copyBorrowOffer: copyBorrowOffer
             })
         );
+    }
+
+    function _setAuthorization(address user, address operator, ActionsBitmap actionsBitmap) internal {
+        vm.prank(user);
+        sizeFactory.setAuthorization(operator, actionsBitmap);
     }
 
     function _setLiquidityIndex(address token, uint256 index) internal {

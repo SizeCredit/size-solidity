@@ -12,6 +12,7 @@ import {Events} from "@src/libraries/Events.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct CompensateParams {
     // The credit position ID with debt to repay
@@ -22,6 +23,13 @@ struct CompensateParams {
     // The amount to compensate
     // The maximum amount to compensate is the minimum of the credits
     uint256 amount;
+}
+
+struct CompensateOnBehalfOfParams {
+    // The parameters for the compensation
+    CompensateParams params;
+    // The account to compensate the credit position for
+    address onBehalfOf;
 }
 
 /// @title Compensate
@@ -37,15 +45,26 @@ library Compensate {
     using RiskLibrary for State;
 
     /// @notice Validates the input parameters for compensating a credit position
-    /// @param state The state
-    /// @param params The input parameters for compensating a credit position
-    function validateCompensate(State storage state, CompensateParams calldata params) external view {
+    /// @param state The state of the protocol
+    /// @param externalParams The input parameters for compensating a credit position
+    function validateCompensate(State storage state, CompensateOnBehalfOfParams memory externalParams) external view {
+        CompensateParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
         CreditPosition storage creditPositionWithDebtToRepay =
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);
         DebtPosition storage debtPositionToRepay =
             state.getDebtPositionByCreditPositionId(params.creditPositionWithDebtToRepayId);
 
         uint256 amountToCompensate = Math.min(params.amount, creditPositionWithDebtToRepay.credit);
+
+        // validate msg.sender
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.COMPENSATE)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.COMPENSATE));
+        }
+        if (onBehalfOf != debtPositionToRepay.borrower) {
+            revert Errors.COMPENSATOR_IS_NOT_BORROWER(onBehalfOf, debtPositionToRepay.borrower);
+        }
 
         // validate creditPositionWithDebtToRepayId
         if (state.getLoanStatus(params.creditPositionWithDebtToRepayId) != LoanStatus.ACTIVE) {
@@ -89,11 +108,6 @@ library Compensate {
             amountToCompensate = Math.min(amountToCompensate, creditPositionToCompensate.credit);
         }
 
-        // validate msg.sender
-        if (msg.sender != debtPositionToRepay.borrower) {
-            revert Errors.COMPENSATOR_IS_NOT_BORROWER(msg.sender, debtPositionToRepay.borrower);
-        }
-
         // validate amount
         if (amountToCompensate == 0) {
             revert Errors.NULL_AMOUNT();
@@ -101,12 +115,16 @@ library Compensate {
     }
 
     /// @notice Executes the compensating of a credit position
-    /// @param state The state
-    /// @param params The input parameters for compensating a credit position
-    function executeCompensate(State storage state, CompensateParams calldata params) external {
+    /// @param state The state of the protocol
+    /// @param externalParams The input parameters for compensating a credit position
+    function executeCompensate(State storage state, CompensateOnBehalfOfParams memory externalParams) external {
+        CompensateParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
         emit Events.Compensate(
             msg.sender, params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId, params.amount
         );
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.COMPENSATE), address(0));
 
         CreditPosition storage creditPositionWithDebtToRepay =
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);
@@ -119,8 +137,8 @@ library Compensate {
         bool shouldChargeFragmentationFee;
         if (params.creditPositionToCompensateId == RESERVED_ID) {
             creditPositionToCompensate = state.createDebtAndCreditPositions({
-                lender: msg.sender,
-                borrower: msg.sender,
+                lender: onBehalfOf,
+                borrower: onBehalfOf,
                 futureValue: amountToCompensate,
                 dueDate: debtPositionToRepay.dueDate
             });
@@ -149,10 +167,10 @@ library Compensate {
             // charge the fragmentation fee in collateral tokens, capped by the user balance
             uint256 fragmentationFeeInCollateral = Math.min(
                 state.debtTokenAmountToCollateralTokenAmount(state.feeConfig.fragmentationFee),
-                state.data.collateralToken.balanceOf(msg.sender)
+                state.data.collateralToken.balanceOf(onBehalfOf)
             );
             state.data.collateralToken.transferFrom(
-                msg.sender, state.feeConfig.feeRecipient, fragmentationFeeInCollateral
+                onBehalfOf, state.feeConfig.feeRecipient, fragmentationFeeInCollateral
             );
         }
     }

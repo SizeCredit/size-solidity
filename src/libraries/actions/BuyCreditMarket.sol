@@ -9,9 +9,9 @@ import {Events} from "@src/libraries/Events.sol";
 import {CreditPosition, DebtPosition, LoanLibrary, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
 import {Math, PERCENT} from "@src/libraries/Math.sol";
 import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-
 import {RiskLibrary} from "@src/libraries/RiskLibrary.sol";
 import {VariablePoolBorrowRateParams} from "@src/libraries/YieldCurveLibrary.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct BuyCreditMarketParams {
     // The borrower
@@ -31,6 +31,15 @@ struct BuyCreditMarketParams {
     uint256 minAPR;
     // Whether amount means cash or credit
     bool exactAmountIn;
+}
+
+struct BuyCreditMarketOnBehalfOfParams {
+    // The parameters for the buy credit market
+    BuyCreditMarketParams params;
+    // The account to transfer the cash from
+    address onBehalfOf;
+    // The account to transfer the credit to
+    address recipient;
 }
 
 /// @title BuyCreditMarket
@@ -57,11 +66,28 @@ library BuyCreditMarket {
     }
 
     /// @notice Validates the input parameters for buying credit as a market order
-    /// @param state The state
-    /// @param params The input parameters for buying credit as a market order
-    function validateBuyCreditMarket(State storage state, BuyCreditMarketParams calldata params) external view {
+    /// @param state The state of the protocol
+    /// @param externalParams The input parameters for buying credit as a market order
+    function validateBuyCreditMarket(State storage state, BuyCreditMarketOnBehalfOfParams calldata externalParams)
+        external
+        view
+    {
+        BuyCreditMarketParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+        address recipient = externalParams.recipient;
+
         address borrower;
         uint256 tenor;
+
+        // validate msg.sender
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.BUY_CREDIT_MARKET)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.BUY_CREDIT_MARKET));
+        }
+
+        // validate recipient
+        if (recipient == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
 
         // validate creditPositionId
         if (params.creditPositionId == RESERVED_ID) {
@@ -177,12 +203,16 @@ library BuyCreditMarket {
     }
 
     /// @notice Executes the buying of credit as a market order
-    /// @param state The state
-    /// @param params The input parameters for buying credit as a market order
-    function executeBuyCreditMarket(State storage state, BuyCreditMarketParams memory params)
+    /// @param state The state of the protocol
+    /// @param externalParams The input parameters for buying credit as a market order
+    function executeBuyCreditMarket(State storage state, BuyCreditMarketOnBehalfOfParams calldata externalParams)
         external
         returns (uint256 netCashAmountIn)
     {
+        BuyCreditMarketParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+        address recipient = externalParams.recipient;
+
         emit Events.BuyCreditMarket(
             msg.sender,
             params.borrower,
@@ -193,13 +223,14 @@ library BuyCreditMarket {
             params.minAPR,
             params.exactAmountIn
         );
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.BUY_CREDIT_MARKET), recipient);
 
         SwapDataBuyCreditMarket memory swapData = getSwapData(state, params);
 
         if (params.creditPositionId == RESERVED_ID) {
             // slither-disable-next-line unused-return
             state.createDebtAndCreditPositions({
-                lender: msg.sender,
+                lender: recipient,
                 borrower: swapData.borrower,
                 futureValue: swapData.creditAmountOut,
                 dueDate: block.timestamp + swapData.tenor
@@ -207,17 +238,17 @@ library BuyCreditMarket {
         } else {
             state.createCreditPosition({
                 exitCreditPositionId: params.creditPositionId,
-                lender: msg.sender,
+                lender: recipient,
                 credit: swapData.creditAmountOut,
                 forSale: true
             });
         }
 
         state.data.borrowATokenV1_5.transferFrom(
-            msg.sender, swapData.borrower, swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee
+            onBehalfOf, swapData.borrower, swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee
         );
         state.data.borrowATokenV1_5.transferFrom(
-            msg.sender, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
+            onBehalfOf, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
         );
 
         uint256 exitCreditPositionId =
@@ -226,7 +257,7 @@ library BuyCreditMarket {
         emit Events.SwapData(
             exitCreditPositionId,
             swapData.borrower,
-            msg.sender,
+            recipient,
             swapData.creditAmountOut,
             swapData.cashAmountIn,
             swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee,

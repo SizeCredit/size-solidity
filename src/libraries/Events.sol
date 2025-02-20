@@ -92,6 +92,7 @@ library Events {
         uint256 maxAPRBorrowOffer,
         int256 offsetAPRBorrowOffer
     ); // v1.6.1
+    event OnBehalfOfParams(address indexed sender, address indexed onBehalfOf, uint8 indexed action, address recipient); // v1.7
 
     // creates
 

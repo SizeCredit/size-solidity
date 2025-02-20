@@ -31,8 +31,9 @@ import {CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol"
 import {SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
 
 import {ISizeAdmin} from "@src/interfaces/ISizeAdmin.sol";
+import {ISizeV1_7} from "@src/interfaces/v1.7/ISizeV1_7.sol";
 
-string constant VERSION = "v1.6.1";
+string constant VERSION = "v1.7";
 
 /// @title ISize
 /// @custom:security-contact security@size.credit
@@ -40,7 +41,7 @@ string constant VERSION = "v1.6.1";
 /// @notice This interface is the main interface for all user-facing methods of the Size protocol
 /// @dev All functions are `payable` to allow for ETH deposits in a `multicall` pattern.
 ///      See `Multicall.sol`
-interface ISize is ISizeView, ISizeAdmin, IMulticall {
+interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7 {
     /// @notice Deposit underlying borrow/collateral tokens to the protocol (e.g. USDC, WETH)
     ///         Borrow tokens are always deposited into the Variable Pool,
     ///         Collateral tokens are deposited into the Size contract through the DepositTokenLibrary

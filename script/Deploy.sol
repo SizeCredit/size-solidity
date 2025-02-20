@@ -100,7 +100,8 @@ abstract contract Deploy {
             underlyingCollateralToken: address(weth),
             underlyingBorrowToken: address(usdc),
             variablePool: address(variablePool), // Aave v3
-            borrowATokenV1_5: address(borrowAToken)
+            borrowATokenV1_5: address(borrowAToken),
+            sizeFactory: address(sizeFactory)
         });
 
         implementation = address(new SizeMock());
@@ -184,7 +185,8 @@ abstract contract Deploy {
             underlyingCollateralToken: address(collateralToken),
             underlyingBorrowToken: address(borrowToken),
             variablePool: address(variablePool),
-            borrowATokenV1_5: address(borrowAToken)
+            borrowATokenV1_5: address(borrowAToken),
+            sizeFactory: address(sizeFactory)
         });
 
         implementation = address(new SizeMock());

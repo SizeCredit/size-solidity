@@ -6,13 +6,22 @@ import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
 
 import {State} from "@src/SizeStorage.sol";
 
+import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct BuyCreditLimitParams {
     // The maximum due date of the loan offer
     uint256 maxDueDate;
     // The yield curve of the loan offer
     YieldCurve curveRelativeTime;
+}
+
+struct BuyCreditLimitOnBehalfOfParams {
+    // The parameters for the buy credit limit
+    BuyCreditLimitParams params;
+    // The account to set the buy credit limit order for
+    address onBehalfOf;
 }
 
 /// @title BuyCreditLimit
@@ -24,16 +33,24 @@ library BuyCreditLimit {
 
     /// @notice Validates the input parameters for buying credit as a limit order
     /// @param state The state
-    /// @param params The input parameters for buying credit as a limit order
-    function validateBuyCreditLimit(State storage state, BuyCreditLimitParams calldata params) external view {
+    /// @param externalParams The input parameters for buying credit as a limit order
+    function validateBuyCreditLimit(State storage state, BuyCreditLimitOnBehalfOfParams memory externalParams)
+        external
+        view
+    {
+        BuyCreditLimitParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
         LimitOrder memory loanOffer =
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
 
+        // validate msg.sender
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.BUY_CREDIT_LIMIT)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.BUY_CREDIT_LIMIT));
+        }
+
         // a null offer mean clearing their limit order
         if (!loanOffer.isNull()) {
-            // validate msg.sender
-            // N/A
-
             // validate loanOffer
             loanOffer.validateLimitOrder(state.riskConfig.minTenor, state.riskConfig.maxTenor);
         }
@@ -41,9 +58,14 @@ library BuyCreditLimit {
 
     /// @notice Executes the buying of credit as a limit order
     /// @param state The state
-    /// @param params The input parameters for buying credit as a limit order
+    /// @param externalParams The input parameters for buying credit as a limit order
     /// @dev A null offer means clearing a user's loan limit order
-    function executeBuyCreditLimit(State storage state, BuyCreditLimitParams calldata params) external {
+    function executeBuyCreditLimit(State storage state, BuyCreditLimitOnBehalfOfParams memory externalParams)
+        external
+    {
+        BuyCreditLimitParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
         emit Events.BuyCreditLimit(
             msg.sender,
             params.maxDueDate,
@@ -51,8 +73,9 @@ library BuyCreditLimit {
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers
         );
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.BUY_CREDIT_LIMIT), address(0));
 
-        state.data.users[msg.sender].loanOffer =
+        state.data.users[onBehalfOf].loanOffer =
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});
     }
 }

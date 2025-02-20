@@ -2,9 +2,11 @@
 pragma solidity 0.8.23;
 
 import {State, UserCopyLimitOrders} from "@src/SizeStorage.sol";
+
 import {Errors} from "@src/libraries/Errors.sol";
 import {Events} from "@src/libraries/Events.sol";
 import {CopyLimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {Action} from "@src/v1.5/libraries/Authorization.sol";
 
 struct CopyLimitOrdersParams {
     // the address to copy the limit orders from
@@ -13,6 +15,13 @@ struct CopyLimitOrdersParams {
     CopyLimitOrder copyLoanOffer;
     // the borrow offer copy parameters (null means no copy)
     CopyLimitOrder copyBorrowOffer;
+}
+
+struct CopyLimitOrdersOnBehalfOfParams {
+    // the parameters for the copy limit orders
+    CopyLimitOrdersParams params;
+    // the address to perform the copy on behalf of
+    address onBehalfOf;
 }
 
 /// @title CopyLimitOrders
@@ -26,11 +35,19 @@ library CopyLimitOrders {
     using OfferLibrary for CopyLimitOrder;
 
     /// @notice Validates the input parameters for copying limit orders
-    /// @param params The input parameters for copying limit orders
+    /// @param externalParams The input parameters for copying limit orders
     /// @dev Does not validate against riskConfig.minTenor or riskConfig.maxTenor since these are already enforced during limit order creation
-    function validateCopyLimitOrders(State storage, CopyLimitOrdersParams calldata params) external view {
+    function validateCopyLimitOrders(State storage state, CopyLimitOrdersOnBehalfOfParams memory externalParams)
+        external
+        view
+    {
+        CopyLimitOrdersParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
         // validate msg.sender
-        // N/A
+        if (!state.data.sizeFactory.isAuthorized(msg.sender, onBehalfOf, Action.COPY_LIMIT_ORDERS)) {
+            revert Errors.UNAUTHORIZED_ACTION(msg.sender, onBehalfOf, uint8(Action.COPY_LIMIT_ORDERS));
+        }
 
         bool bothNull = true;
 
@@ -67,7 +84,7 @@ library CopyLimitOrders {
         }
 
         // validate copyAddress
-        if (params.copyAddress == msg.sender) {
+        if (params.copyAddress == onBehalfOf) {
             revert Errors.INVALID_ADDRESS(params.copyAddress);
         }
 
@@ -92,8 +109,13 @@ library CopyLimitOrders {
 
     /// @notice Executes the copying of limit orders
     /// @param state The state
-    /// @param params The input parameters for copying limit orders
-    function executeCopyLimitOrders(State storage state, CopyLimitOrdersParams calldata params) external {
+    /// @param externalParams The input parameters for copying limit orders
+    function executeCopyLimitOrders(State storage state, CopyLimitOrdersOnBehalfOfParams memory externalParams)
+        external
+    {
+        CopyLimitOrdersParams memory params = externalParams.params;
+        address onBehalfOf = externalParams.onBehalfOf;
+
         emit Events.CopyLimitOrders(
             msg.sender,
             params.copyAddress,
@@ -108,8 +130,9 @@ library CopyLimitOrders {
             params.copyBorrowOffer.maxAPR,
             params.copyBorrowOffer.offsetAPR
         );
+        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.COPY_LIMIT_ORDERS), address(0));
 
-        state.data.usersCopyLimitOrders[msg.sender] = UserCopyLimitOrders({
+        state.data.usersCopyLimitOrders[onBehalfOf] = UserCopyLimitOrders({
             copyAddress: params.copyAddress,
             copyLoanOffer: params.copyLoanOffer,
             copyBorrowOffer: params.copyBorrowOffer
