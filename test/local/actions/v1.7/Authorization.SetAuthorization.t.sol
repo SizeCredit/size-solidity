@@ -26,6 +26,13 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         assertTrue(sizeFactory.isAuthorized(candy, candy, Action.SELL_CREDIT_MARKET));
     }
 
+    function test_AuthorizationSetAuthorization_set_unset() public {
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
+        assertTrue(sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
+        _setAuthorization(alice, bob, Authorization.nullActionsBitmap());
+        assertTrue(!sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
+    }
+
     function test_AuthorizationSetAuthorization_setAuthorization_all() public {
         Action[] memory actions = new Action[](uint256(Action.NUMBER_OF_ACTIONS));
         for (uint256 i = 0; i < uint256(Action.NUMBER_OF_ACTIONS); i++) {

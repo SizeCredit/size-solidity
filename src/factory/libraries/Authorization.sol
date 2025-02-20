@@ -50,6 +50,13 @@ library Authorization {
         return ActionsBitmap.wrap(value);
     }
 
+    /// @notice Returns the null actions bitmap
+    /// @dev The null actions bitmap is the actions bitmap that represents no actions
+    /// @return The null actions bitmap
+    function nullActionsBitmap() internal pure returns (ActionsBitmap) {
+        return toActionsBitmap(0);
+    }
+
     /// @notice Validates the actions bitmap
     /// @param actionsBitmap The actions bitmap to validate
     /// @return True if the actions bitmap is valid, false otherwise
