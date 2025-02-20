@@ -11,8 +11,9 @@ type ActionsBitmap is uint256;
 
 /// @notice The actions that can be authorized
 /// @dev Do not change the order of the enum values, or the authorizations will change
-/// @dev Add new actions right before NUMBER_OF_ACTIONS. This is a marker to indicate the number of enum values.
-///      This is possible because the enum values start at 0, so the last element will be the number of elements before the marker.
+/// @dev Add new actions right before NUMBER_OF_ACTIONS. This is a marker to indicate the number of valid actions.
+///      This is possible because the enum values start at 0, so the last element will be the _number of elements_ before the marker.
+///      For example, at the release of v1.7, there are 10 valid actions, from values 0 through 9, so NUMBER_OF_ACTIONS has value 10.
 enum Action {
     DEPOSIT,
     WITHDRAW,
