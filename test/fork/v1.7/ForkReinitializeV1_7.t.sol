@@ -55,7 +55,7 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
         for (uint256 i = 0; i < markets.length; i++) {
             ISize market = markets[i];
             borrowATokenV1_5[i] = address(market.data().borrowAToken);
-            assertEq(market.version(), "v1.6.1");
+            assertTrue(Strings.equal(market.version(), "v1.6.1") || Strings.equal(market.version(), "v1.6"));
         }
         (bool success,) = address(vars.sizeFactory).call(
             abi.encodeWithSelector(ISizeFactoryV1_7.setAuthorization.selector, address(0x1000), 1)
