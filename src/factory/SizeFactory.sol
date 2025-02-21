@@ -84,6 +84,7 @@ contract SizeFactory is
         // transfer `Ownable2StepUpgradeable` ownership to the zero address to keep the state consistent
         // in a future upgrade, we can simply remove `Ownable2StepUpgradeable` from the implementation
         _transferOwnership(address(0));
+        // can only be called once
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
