@@ -3,7 +3,8 @@ pragma solidity 0.8.23;
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
+import {Bitmap, NonceBitmapLibrary} from "@src/factory/libraries/NonceBitmapLibrary.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 import {Math, PERCENT} from "@src/market/libraries/Math.sol";
 import {BaseTest, Vars} from "@test/BaseTest.sol";
@@ -29,7 +30,7 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
     function test_AuthorizationSetAuthorization_set_unset() public {
         _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
         assertTrue(sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
-        _setAuthorization(alice, bob, Authorization.nullActionsBitmap());
+        _setAuthorization(alice, bob, NonceBitmapLibrary.nullBitmap());
         assertTrue(!sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
     }
 
@@ -61,11 +62,11 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         for (uint256 i = 0; i < uint256(Action.NUMBER_OF_ACTIONS); i++) {
             actions[i] = Action(i);
         }
-        ActionsBitmap actionsBitmap = Authorization.getActionsBitmap(actions);
+        Bitmap actionsBitmap = Authorization.getActionsBitmap(actions);
         assertTrue(Authorization.isValid(actionsBitmap));
 
-        uint256 invalidActionsBitmap = Authorization.toUint256(actionsBitmap) + 1;
-        assertFalse(Authorization.isValid(ActionsBitmap.wrap(invalidActionsBitmap)));
+        uint128 invalidActionsBitmap = NonceBitmapLibrary.toUint128(actionsBitmap) + 1;
+        assertFalse(Authorization.isValid(NonceBitmapLibrary.toBitmap(invalidActionsBitmap)));
     }
 
     /// forge-config: default.allow_internal_expect_revert = true
@@ -74,21 +75,22 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         vm.prank(alice);
         sizeFactory.setAuthorization(address(0), Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
 
-        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, type(uint256).max));
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, type(uint128).max));
         vm.prank(alice);
-        sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(type(uint256).max));
+        sizeFactory.setAuthorization(bob, NonceBitmapLibrary.toBitmap(type(uint128).max));
 
         Action lastAction = Action(uint256(Action.NUMBER_OF_ACTIONS) - 1);
-        sizeFactory.setAuthorization(bob, ActionsBitmap.wrap(1 << uint256(lastAction)));
+        sizeFactory.setAuthorization(bob, NonceBitmapLibrary.toBitmap(uint128(1 << uint128(lastAction))));
 
         uint256 invalidAction = uint256(Action.NUMBER_OF_ACTIONS);
-        ActionsBitmap invalidActionsBitmap = ActionsBitmap.wrap(1 << invalidAction);
+        Bitmap invalidActionsBitmap = NonceBitmapLibrary.toBitmap(uint128(1 << uint128(invalidAction)));
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, invalidActionsBitmap));
         sizeFactory.setAuthorization(bob, invalidActionsBitmap);
 
         uint256 invalidActionPlusOne = uint256(Action.NUMBER_OF_ACTIONS) + 1;
-        ActionsBitmap invalidActionPlusOneActionsBitmap = ActionsBitmap.wrap(1 << invalidActionPlusOne);
+        Bitmap invalidActionPlusOneActionsBitmap =
+            NonceBitmapLibrary.toBitmap(uint128(1 << uint128(invalidActionPlusOne)));
         vm.expectRevert(
             abi.encodeWithSelector(Errors.INVALID_ACTIONS_BITMAP.selector, invalidActionPlusOneActionsBitmap)
         );
@@ -105,7 +107,7 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
     function test_AuthorizationSetAuthorization_revoke_single() public {
         _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.SELL_CREDIT_MARKET));
         assertTrue(sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
-        _setAuthorization(alice, bob, ActionsBitmap.wrap(0));
+        _setAuthorization(alice, bob, NonceBitmapLibrary.nullBitmap());
         assertTrue(!sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
     }
 

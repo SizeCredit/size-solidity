@@ -35,7 +35,8 @@ import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {SizeFactoryEvents} from "@src/factory/SizeFactoryEvents.sol";
 import {SizeFactoryGetters} from "@src/factory/SizeFactoryGetters.sol";
-import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Authorization.sol";
+import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
+import {Bitmap, Nonce, NonceBitmapLibrary} from "@src/factory/libraries/NonceBitmapLibrary.sol";
 
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
 
@@ -196,7 +197,7 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactoryV1_7
-    function setAuthorization(address operator, ActionsBitmap actionsBitmap) external override(ISizeFactoryV1_7) {
+    function setAuthorization(address operator, Bitmap bitmap) external override(ISizeFactoryV1_7) {
         // validate msg.sender
         // N/A
 
@@ -205,19 +206,21 @@ contract SizeFactory is
             revert Errors.NULL_ADDRESS();
         }
         // validate actionsBitmap
-        if (!Authorization.isValid(actionsBitmap)) {
-            revert Errors.INVALID_ACTIONS_BITMAP(Authorization.toUint256(actionsBitmap));
+        if (!Authorization.isValid(bitmap)) {
+            revert Errors.INVALID_ACTIONS_BITMAP(NonceBitmapLibrary.toUint128(bitmap));
         }
 
-        uint256 nonce = authorizationNonces[msg.sender];
-        emit SetAuthorization(msg.sender, operator, Authorization.toUint256(actionsBitmap), nonce);
-        authorizations[nonce][operator][msg.sender] = actionsBitmap;
+        Nonce nonce = authorizationNonces[msg.sender];
+        emit SetAuthorization(
+            msg.sender, operator, NonceBitmapLibrary.toUint128(bitmap), NonceBitmapLibrary.toUint128(nonce)
+        );
+        authorizations[operator][msg.sender] = NonceBitmapLibrary.toNonceBitmap(nonce, bitmap);
     }
 
     /// @inheritdoc ISizeFactoryV1_7
     function revokeAllAuthorizations() external override(ISizeFactoryV1_7) {
         emit RevokeAllAuthorizations(msg.sender);
-        authorizationNonces[msg.sender]++;
+        authorizationNonces[msg.sender] = NonceBitmapLibrary.increment(authorizationNonces[msg.sender]);
     }
 
     /// @inheritdoc ISizeFactoryV1_7
@@ -225,8 +228,8 @@ contract SizeFactory is
         if (operator == onBehalfOf) {
             return true;
         } else {
-            uint256 nonce = authorizationNonces[onBehalfOf];
-            return Authorization.isActionSet(authorizations[nonce][operator][onBehalfOf], action);
+            return
+                Authorization.isActionSet(authorizations[operator][onBehalfOf], authorizationNonces[onBehalfOf], action);
         }
     }
 }

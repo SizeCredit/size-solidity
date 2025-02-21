@@ -47,7 +47,7 @@ import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
-import {ActionsBitmap} from "@src/factory/libraries/Authorization.sol";
+import {Bitmap} from "@src/factory/libraries/NonceBitmapLibrary.sol";
 
 import {Deploy} from "@script/Deploy.sol";
 
@@ -459,9 +459,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         );
     }
 
-    function _setAuthorization(address user, address operator, ActionsBitmap actionsBitmap) internal {
+    function _setAuthorization(address user, address operator, Bitmap bitmap) internal {
         vm.prank(user);
-        sizeFactory.setAuthorization(operator, actionsBitmap);
+        sizeFactory.setAuthorization(operator, bitmap);
     }
 
     function _setLiquidityIndex(address token, uint256 index) internal {

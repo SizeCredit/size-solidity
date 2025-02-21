@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Action, ActionsBitmap} from "@src/factory/libraries/Authorization.sol";
+import {Action} from "@src/factory/libraries/Authorization.sol";
+import {Bitmap} from "@src/factory/libraries/NonceBitmapLibrary.sol";
 
 /// @title ISizeFactoryV1_7
 /// @custom:security-contact security@size.credit
@@ -10,14 +11,14 @@ import {Action, ActionsBitmap} from "@src/factory/libraries/Authorization.sol";
 interface ISizeFactoryV1_7 {
     /// @notice Set the authorization for an action for an `operator` account to perform on behalf of the `msg.sender` account
     /// @param operator The operator account
-    /// @param actionsBitmap The actions bitmap
-    /// @dev Actions bitmap are encoded a uint256 value because all external actions can fit in a uint256
-    ///      To construct the actionsBitmap, the `Authorization.getActionsBitmap` functions can be used
+    /// @param bitmap The bitmap
+    /// @dev Bitmap are encoded a uint128 value because all external actions can fit in a uint128
+    ///      To construct the bitmap, the `Authorization.getActionsBitmap` functions can be used
     ///      Not all actions require authorization (for example, `repay`, `liquidate`, etc.)
     ///      In order to possible to authorize/revoke many actions at once, simply construct the actions bitmap using bitmap operations
-    ///      For example, to revoke an operator, simply set the authorization bitmap for that operator to `uint256(0)`
+    ///      For example, to revoke an operator, simply set the authorization bitmap for that operator to `uint128(0)`
     ///      To revoke all authorizations for all operators at once, use `revokeAllAuthorizations`
-    function setAuthorization(address operator, ActionsBitmap actionsBitmap) external;
+    function setAuthorization(address operator, Bitmap bitmap) external;
 
     /// @notice Revoke all authorizations for the `msg.sender` account
     function revokeAllAuthorizations() external;

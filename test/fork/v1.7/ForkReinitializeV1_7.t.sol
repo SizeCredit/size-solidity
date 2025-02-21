@@ -21,8 +21,6 @@ import {ISafe} from "@script/interfaces/ISafe.sol";
 import {VERSION} from "@src/market/interfaces/ISize.sol";
 import {SafeUtils} from "@test/SafeUtils.sol";
 
-import {ActionsBitmap} from "@src/factory/libraries/Authorization.sol";
-
 contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Networks, SafeUtils {
     struct Vars {
         ISizeFactory sizeFactory;

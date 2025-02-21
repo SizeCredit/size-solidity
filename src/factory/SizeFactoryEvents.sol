@@ -18,7 +18,7 @@ abstract contract SizeFactoryEvents {
     event BorrowATokenV1_5Removed(address indexed borrowATokenV1_5, bool indexed existed);
 
     event SetAuthorization(
-        address indexed sender, address indexed operator, uint256 indexed actionsBitmap, uint256 nonce
+        address indexed sender, address indexed operator, uint128 indexed actionsBitmap, uint128 nonce
     ); // v1.7
     event RevokeAllAuthorizations(address indexed sender); // v1.7
 }
