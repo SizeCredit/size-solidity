@@ -6,6 +6,8 @@ import {BaseScript} from "@script/BaseScript.sol";
 import {IMultiSendCallOnly} from "@script/interfaces/IMultiSendCallOnly.sol";
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
+
+import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
 import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
@@ -42,8 +44,11 @@ contract GetV1_7ReinitializeDataScript is BaseScript {
         bytes memory data;
         bytes memory transaction;
 
-        // SizeFactory.upgradeToAndCall(SizeFactoryV1_7, 0x)
-        data = abi.encodeCall(UUPSUpgradeable.upgradeToAndCall, (address(sizeFactoryV1_7), bytes("")));
+        // SizeFactory.upgradeToAndCall(SizeFactoryV1_7, reinitialize())
+        data = abi.encodeCall(
+            UUPSUpgradeable.upgradeToAndCall,
+            (address(sizeFactoryV1_7), abi.encodeCall(ISizeFactoryV1_7.reinitialize, ()))
+        );
         dataLength = data.length;
         transaction = abi.encodePacked(operation, address(_sizeFactory), value, dataLength, data);
         _data = abi.encodePacked(_data, transaction);
