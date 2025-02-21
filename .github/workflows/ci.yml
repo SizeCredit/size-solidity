@@ -181,6 +181,33 @@ jobs:
           ./script/prepare_crytic.sh
           ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
 
+  halmos:
+    needs: [sizes, fmt, test, testFork, slither, solhint]
+    strategy:
+      fail-fast: true
+
+    name: Halmos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Install Halmos
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv tool install --python 3.12 halmos
+          uv tool upgrade halmos
+
+      - name: Halmos
+        run: |
+          for i in {0..5}; do halmos --loop $i; done
+
   abi:
     strategy:
       fail-fast: true
