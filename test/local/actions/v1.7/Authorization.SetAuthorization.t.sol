@@ -41,6 +41,21 @@ contract AuthorizationSetAuthorizationTest is BaseTest {
         _setAuthorization(alice, bob, Authorization.getActionsBitmap(actions));
     }
 
+    function test_AuthorizationSetAuthorization_setAuthorization_all_hardcoded() public {
+        Action[] memory actions = new Action[](uint256(Action.NUMBER_OF_ACTIONS));
+        actions[0] = Action.DEPOSIT;
+        actions[1] = Action.WITHDRAW;
+        actions[2] = Action.BUY_CREDIT_LIMIT;
+        actions[3] = Action.SELL_CREDIT_LIMIT;
+        actions[4] = Action.BUY_CREDIT_MARKET;
+        actions[5] = Action.SELL_CREDIT_MARKET;
+        actions[6] = Action.SELF_LIQUIDATE;
+        actions[7] = Action.COMPENSATE;
+        actions[8] = Action.SET_USER_CONFIGURATION;
+        actions[9] = Action.COPY_LIMIT_ORDERS;
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(actions));
+    }
+
     function test_AuthorizationSetAuthorization_isValid() public pure {
         Action[] memory actions = new Action[](uint256(Action.NUMBER_OF_ACTIONS));
         for (uint256 i = 0; i < uint256(Action.NUMBER_OF_ACTIONS); i++) {

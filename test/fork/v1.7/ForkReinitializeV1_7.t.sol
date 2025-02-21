@@ -55,7 +55,7 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
         for (uint256 i = 0; i < markets.length; i++) {
             ISize market = markets[i];
             borrowATokenV1_5[i] = address(market.data().borrowAToken);
-            assertTrue(Strings.equal(market.version(), "v1.6.1") || Strings.equal(market.version(), "v1.6"));
+            assertTrue(Strings.equal(market.version(), "v1.6.1"));
         }
         (bool success,) = address(vars.sizeFactory).call(
             abi.encodeWithSelector(ISizeFactoryV1_7.setAuthorization.selector, address(0x1000), 1)
@@ -82,8 +82,8 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
     }
 
     function testFork_ForkReinitializeV1_7_reinitialize() public {
-        // 2025-02-18T19:25Z
-        _testFork_ForkReinitializeV1_7_reinitialize("mainnet", 21875339);
-        _testFork_ForkReinitializeV1_7_reinitialize("base-production", 26558714);
+        // 2025-02-21T12:00Z
+        _testFork_ForkReinitializeV1_7_reinitialize("mainnet", 21894565);
+        _testFork_ForkReinitializeV1_7_reinitialize("base-production", 26674900);
     }
 }
