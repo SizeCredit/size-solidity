@@ -8,14 +8,20 @@ library Events {
     // actions
 
     event Initialize(address indexed sender);
-    event Deposit(address indexed sender, address indexed token, address indexed to, uint256 amount);
-    event Withdraw(address indexed sender, address indexed token, address indexed to, uint256 amount);
+    event Deposit(
+        address indexed sender, address indexed onBehalfOf, address indexed token, address to, uint256 amount
+    );
+    event Withdraw(
+        address indexed sender, address indexed onBehalfOf, address indexed token, address to, uint256 amount
+    );
     event UpdateConfig(address indexed sender, string indexed key, uint256 value);
     event VariablePoolBorrowRateUpdated(address indexed sender, uint128 oldBorrowRate, uint128 newBorrowRate);
-    event SellCreditMarket(
+    event SellCreditMarket( /* onBehalfOf */
+        address indexed sender,
         address indexed borrower,
         address indexed lender,
-        uint256 indexed creditPositionId,
+        address recipient,
+        uint256 creditPositionId,
         uint256 amount,
         uint256 tenor,
         uint256 deadline,
@@ -24,15 +30,18 @@ library Events {
     );
     event SellCreditLimit(
         address indexed sender,
+        address indexed onBehalfOf,
         uint256 maxDueDate,
         uint256[] curveRelativeTimeTenors,
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
-    event BuyCreditMarket(
+    event BuyCreditMarket( /* onBehalfOf */
+        address indexed sender,
         address indexed lender,
         address indexed borrower,
-        uint256 indexed creditPositionId,
+        address recipient,
+        uint256 creditPositionId,
         uint256 amount,
         uint256 tenor,
         uint256 deadline,
@@ -41,6 +50,7 @@ library Events {
     );
     event BuyCreditLimit(
         address indexed sender,
+        address indexed onBehalfOf,
         uint256 maxDueDate,
         uint256[] curveRelativeTimeTenors,
         int256[] curveRelativeTimeAprs,
@@ -56,7 +66,9 @@ library Events {
         uint256 collateralRatio,
         uint8 loanStatus
     );
-    event SelfLiquidate(address indexed sender, uint256 indexed creditPositionId);
+    event SelfLiquidate(
+        address indexed sender, address indexed borrower, uint256 indexed creditPositionId, address recipient
+    );
     event LiquidateWithReplacement(
         address indexed sender,
         uint256 indexed debtPositionId,
@@ -67,12 +79,14 @@ library Events {
     );
     event Compensate(
         address indexed sender,
+        address indexed onBehalfOf,
         uint256 indexed creditPositionWithDebtToRepayId,
-        uint256 indexed creditPositionToCompensateId,
+        uint256 creditPositionToCompensateId,
         uint256 amount
     );
     event SetUserConfiguration(
         address indexed sender,
+        address indexed onBehalfOf,
         uint256 openingLimitBorrowCR,
         bool allCreditPositionsForSaleDisabled,
         bool creditPositionIdsForSale,
@@ -80,6 +94,7 @@ library Events {
     );
     event CopyLimitOrders(
         address indexed sender,
+        address indexed onBehalfOf,
         address indexed copyAddress,
         uint256 minTenorLoanOffer,
         uint256 maxTenorLoanOffer,
@@ -92,7 +107,6 @@ library Events {
         uint256 maxAPRBorrowOffer,
         int256 offsetAPRBorrowOffer
     ); // v1.6.1
-    event OnBehalfOfParams(address indexed sender, address indexed onBehalfOf, uint8 indexed action, address recipient); // v1.7
 
     // creates
 

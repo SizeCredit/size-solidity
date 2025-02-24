@@ -106,7 +106,6 @@ library Deposit {
             state.depositUnderlyingCollateralToken(from, params.to, amount);
         }
 
-        emit Events.Deposit(msg.sender, params.token, params.to, amount);
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.DEPOSIT), params.to);
+        emit Events.Deposit(msg.sender, onBehalfOf, params.token, params.to, amount);
     }
 }

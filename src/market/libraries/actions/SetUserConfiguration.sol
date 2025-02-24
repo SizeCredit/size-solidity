@@ -96,11 +96,11 @@ library SetUserConfiguration {
 
         emit Events.SetUserConfiguration(
             msg.sender,
+            onBehalfOf,
             params.openingLimitBorrowCR,
             params.allCreditPositionsForSaleDisabled,
             params.creditPositionIdsForSale,
             params.creditPositionIds
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.SET_USER_CONFIGURATION), address(0));
     }
 }
