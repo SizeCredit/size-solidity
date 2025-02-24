@@ -38,7 +38,7 @@ jobs:
     strategy:
       fail-fast: true
 
-    name: Forge Fmt
+    name: Format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -59,7 +59,7 @@ jobs:
     strategy:
       fail-fast: true
 
-    name: Forge Test
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -80,7 +80,7 @@ jobs:
     strategy:
       fail-fast: true
 
-    name: Forge Fork Test
+    name: Fork Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -92,7 +92,7 @@ jobs:
         with:
           version: stable
 
-      - name: Test Fork
+      - name: Fork Test
         run: |
           forge test -vvv
         id: test
