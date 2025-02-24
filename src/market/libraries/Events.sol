@@ -16,7 +16,7 @@ library Events {
     );
     event UpdateConfig(address indexed sender, string indexed key, uint256 value);
     event VariablePoolBorrowRateUpdated(address indexed sender, uint128 oldBorrowRate, uint128 newBorrowRate);
-    event SellCreditMarket( /* onBehalfOf */
+    event SellCreditMarket(
         address indexed sender,
         address indexed borrower,
         address indexed lender,
@@ -27,7 +27,7 @@ library Events {
         uint256 deadline,
         uint256 maxAPR,
         bool exactAmountIn
-    );
+    ); // borrower == onBehalfOf
     event SellCreditLimit(
         address indexed sender,
         address indexed onBehalfOf,
@@ -36,7 +36,7 @@ library Events {
         int256[] curveRelativeTimeAprs,
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
-    event BuyCreditMarket( /* onBehalfOf */
+    event BuyCreditMarket(
         address indexed sender,
         address indexed lender,
         address indexed borrower,
@@ -47,7 +47,7 @@ library Events {
         uint256 deadline,
         uint256 minAPR,
         bool exactAmountIn
-    );
+    ); // lender == onBehalfOf
     event BuyCreditLimit(
         address indexed sender,
         address indexed onBehalfOf,
