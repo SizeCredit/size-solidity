@@ -11,12 +11,16 @@ Networks:
 
 ## Audits
 
-- [2024-12-10 - ChainDefenders](./audits/2024-12-10-ChainDefenders.pdf)
-- [2024-11-13 - Custodia Security](./audits/2024-11-13-Custodia-Security.pdf)
-- [2024-06-10 - Code4rena](https://code4rena.com/reports/2024-06-size)
-- [2024-06-08 - Spearbit](./audits/2024-06-08-Spearbit.pdf)
-- [2024-03-26 - Solidified](./audits/2024-03-26-Solidified.pdf)
-- [2024-03-19 - LightChaserV3](./audits/2024-03-19-LightChaserV3.md)
+| Date | Version | Auditor | Report |
+|------|---------|----------|---------|
+| TBD | v1.7 | TBD | TBD |
+| 2025-02-12 | v1.6.1 | Custodia Security | [Report](./audits/2025-02-12-Custodia-Security.pdf) |
+| 2024-12-10 | v1.5.1 | ChainDefenders | [Report](./audits/2024-12-10-ChainDefenders.pdf) |
+| 2024-11-13 | v1.5 | Custodia Security | [Report](./audits/2024-11-13-Custodia-Security.pdf) |
+| 2024-06-10 | v1.0 | Code4rena | [Report](https://code4rena.com/reports/2024-06-size) |
+| 2024-06-08 | v1.0-rc | Spearbit | [Report](./audits/2024-06-08-Spearbit.pdf) |
+| 2024-03-26 | v1.0-beta | Solidified | [Report](./audits/2024-03-26-Solidified.pdf) |
+| 2024-03-19 | v1.0-alpha | LightChaserV3 | [Report](./audits/2024-03-19-LightChaserV3.md) |
 
 For bug reports, please refer to our [Bug Bounty Program](https://app.hats.finance/bug-bounties/size-0xd915dc4630c8957e7aabb44df6309f6f4cfcf9c0/rewards)
 
