@@ -124,9 +124,12 @@ library Compensate {
         address onBehalfOf = externalParams.onBehalfOf;
 
         emit Events.Compensate(
-            msg.sender, params.creditPositionWithDebtToRepayId, params.creditPositionToCompensateId, params.amount
+            msg.sender,
+            onBehalfOf,
+            params.creditPositionWithDebtToRepayId,
+            params.creditPositionToCompensateId,
+            params.amount
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.COMPENSATE), address(0));
 
         CreditPosition storage creditPositionWithDebtToRepay =
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);

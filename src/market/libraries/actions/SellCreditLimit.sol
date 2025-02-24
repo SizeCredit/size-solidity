@@ -67,12 +67,12 @@ library SellCreditLimit {
 
         emit Events.SellCreditLimit(
             msg.sender,
+            onBehalfOf,
             params.maxDueDate,
             params.curveRelativeTime.tenors,
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.SELL_CREDIT_LIMIT), address(0));
 
         state.data.users[onBehalfOf].borrowOffer =
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});

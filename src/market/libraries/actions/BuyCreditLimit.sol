@@ -68,12 +68,12 @@ library BuyCreditLimit {
 
         emit Events.BuyCreditLimit(
             msg.sender,
+            onBehalfOf,
             params.maxDueDate,
             params.curveRelativeTime.tenors,
             params.curveRelativeTime.aprs,
             params.curveRelativeTime.marketRateMultipliers
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.BUY_CREDIT_LIMIT), address(0));
 
         state.data.users[onBehalfOf].loanOffer =
             LimitOrder({maxDueDate: params.maxDueDate, curveRelativeTime: params.curveRelativeTime});

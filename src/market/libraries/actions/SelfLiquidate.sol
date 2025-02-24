@@ -81,8 +81,7 @@ library SelfLiquidate {
         address onBehalfOf = externalParams.onBehalfOf;
         address recipient = externalParams.recipient;
 
-        emit Events.SelfLiquidate(msg.sender, params.creditPositionId);
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.SELF_LIQUIDATE), recipient);
+        emit Events.SelfLiquidate(msg.sender, onBehalfOf, params.creditPositionId, recipient);
 
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);

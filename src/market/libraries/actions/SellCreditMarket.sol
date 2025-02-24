@@ -214,8 +214,10 @@ library SellCreditMarket {
         address recipient = externalParams.recipient;
 
         emit Events.SellCreditMarket(
+            msg.sender,
             onBehalfOf,
             params.lender,
+            recipient,
             params.creditPositionId,
             params.amount,
             params.tenor,
@@ -223,7 +225,6 @@ library SellCreditMarket {
             params.maxAPR,
             params.exactAmountIn
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.SELL_CREDIT_MARKET), recipient);
 
         SwapDataSellCreditMarket memory swapData = getSwapData(state, params);
 

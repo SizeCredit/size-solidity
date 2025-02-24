@@ -215,7 +215,9 @@ library BuyCreditMarket {
 
         emit Events.BuyCreditMarket(
             msg.sender,
+            onBehalfOf,
             params.borrower,
+            recipient,
             params.creditPositionId,
             params.amount,
             params.tenor,
@@ -223,7 +225,6 @@ library BuyCreditMarket {
             params.minAPR,
             params.exactAmountIn
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.BUY_CREDIT_MARKET), recipient);
 
         SwapDataBuyCreditMarket memory swapData = getSwapData(state, params);
 

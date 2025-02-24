@@ -118,6 +118,7 @@ library CopyLimitOrders {
 
         emit Events.CopyLimitOrders(
             msg.sender,
+            onBehalfOf,
             params.copyAddress,
             params.copyLoanOffer.minTenor,
             params.copyLoanOffer.maxTenor,
@@ -130,7 +131,6 @@ library CopyLimitOrders {
             params.copyBorrowOffer.maxAPR,
             params.copyBorrowOffer.offsetAPR
         );
-        emit Events.OnBehalfOfParams(msg.sender, onBehalfOf, uint8(Action.COPY_LIMIT_ORDERS), address(0));
 
         state.data.usersCopyLimitOrders[onBehalfOf] = UserCopyLimitOrders({
             copyAddress: params.copyAddress,
