@@ -60,7 +60,7 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
         (bool success,) = address(vars.sizeFactory).call(
             abi.encodeWithSelector(ISizeFactoryV1_7.setAuthorization.selector, address(0x1000), 1)
         );
-        assertTrue(!success, "should not be able to call setAuthorization");
+        assertTrue(!success, "should not be able to call setAuthorization on v1.6.1");
         (success,) =
             address(vars.sizeFactory).call(abi.encodeWithSelector(IAccessControl.hasRole.selector, vars.owner, 0x00));
         assertTrue(!success, "should not be able to call hasRole");
@@ -82,7 +82,7 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
         (success,) = address(vars.sizeFactory).call(
             abi.encodeWithSelector(ISizeFactoryV1_7.setAuthorization.selector, address(0x1000), 1)
         );
-        assertTrue(success, "should be able to call setAuthorization");
+        assertTrue(success, "should be able to call setAuthorization on v1.7");
         (success,) =
             address(vars.sizeFactory).call(abi.encodeWithSelector(IAccessControl.hasRole.selector, vars.owner, 0x00));
         assertTrue(success, "should be able to call hasRole");
