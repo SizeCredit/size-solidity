@@ -4,15 +4,15 @@ pragma solidity 0.8.23;
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTest.sol";
 
-import {LoanStatus, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {DebtPosition} from "@src/libraries/LoanLibrary.sol";
-import {Math} from "@src/libraries/Math.sol";
-import {PERCENT} from "@src/libraries/Math.sol";
+import {LoanStatus, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {DebtPosition} from "@src/market/libraries/LoanLibrary.sol";
+import {Math} from "@src/market/libraries/Math.sol";
+import {PERCENT} from "@src/market/libraries/Math.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {LiquidateWithReplacementParams} from "@src/libraries/actions/LiquidateWithReplacement.sol";
+import {LiquidateWithReplacementParams} from "@src/market/libraries/actions/LiquidateWithReplacement.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
 contract LiquidateWithReplacementTest is BaseTest {
     function setUp() public override {

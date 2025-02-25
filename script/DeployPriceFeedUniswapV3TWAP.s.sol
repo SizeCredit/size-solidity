@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
+import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {console2 as console} from "forge-std/Script.sol";
 
 import {BaseScript, Deployment, Parameter} from "@script/BaseScript.sol";

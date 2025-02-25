@@ -4,8 +4,8 @@ pragma solidity 0.8.23;
 import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Errors} from "@src/libraries/Errors.sol";
-import {Math} from "@src/libraries/Math.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {Math} from "@src/market/libraries/Math.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";

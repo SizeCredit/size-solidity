@@ -11,7 +11,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
-import {Math} from "@src/libraries/Math.sol";
+import {Math} from "@src/market/libraries/Math.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
@@ -20,8 +20,8 @@ import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {PriceFeedMock} from "@test/mocks/PriceFeedMock.sol";
 
-import {Size} from "@src/Size.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
+import {Size} from "@src/market/Size.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {NetworkConfiguration} from "@script/Networks.sol";
 import {
@@ -30,14 +30,14 @@ import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
-} from "@src/libraries/actions/Initialize.sol";
+} from "@src/market/libraries/actions/Initialize.sol";
 import {SizeMock} from "@test/mocks/SizeMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 
-import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
-import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
-import {NonTransferrableScaledTokenV1_5} from "@src/v1.5/token/NonTransferrableScaledTokenV1_5.sol";
+import {SizeFactory} from "@src/factory/SizeFactory.sol";
+import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
+import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
 
 abstract contract Deploy {
     address internal implementation;
@@ -100,7 +100,8 @@ abstract contract Deploy {
             underlyingCollateralToken: address(weth),
             underlyingBorrowToken: address(usdc),
             variablePool: address(variablePool), // Aave v3
-            borrowATokenV1_5: address(borrowAToken)
+            borrowATokenV1_5: address(borrowAToken),
+            sizeFactory: address(sizeFactory)
         });
 
         implementation = address(new SizeMock());
@@ -184,7 +185,8 @@ abstract contract Deploy {
             underlyingCollateralToken: address(collateralToken),
             underlyingBorrowToken: address(borrowToken),
             variablePool: address(variablePool),
-            borrowATokenV1_5: address(borrowAToken)
+            borrowATokenV1_5: address(borrowAToken),
+            sizeFactory: address(sizeFactory)
         });
 
         implementation = address(new SizeMock());

@@ -5,22 +5,22 @@ import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTest.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
+import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {DebtPosition} from "@src/libraries/LoanLibrary.sol";
-import {RepayParams} from "@src/libraries/actions/Repay.sol";
+import {DebtPosition} from "@src/market/libraries/LoanLibrary.sol";
+import {RepayParams} from "@src/market/libraries/actions/Repay.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
+import {BuyCreditLimitParams} from "@src/market/libraries/actions/BuyCreditLimit.sol";
 
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 
-import {LiquidateParams} from "@src/libraries/actions/Liquidate.sol";
-import {SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
-import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
-import {WithdrawParams} from "@src/libraries/actions/Withdraw.sol";
+import {LiquidateParams} from "@src/market/libraries/actions/Liquidate.sol";
+import {SellCreditLimitParams} from "@src/market/libraries/actions/SellCreditLimit.sol";
+import {WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
+import {WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

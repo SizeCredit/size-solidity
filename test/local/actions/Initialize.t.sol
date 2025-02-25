@@ -5,7 +5,7 @@ import {BaseTest} from "@test/BaseTest.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {Size} from "@src/Size.sol";
+import {Size} from "@src/market/Size.sol";
 
 contract InitializeTest is BaseTest {
     function test_Initialize_implementation_cannot_be_initialized() public {
@@ -26,6 +26,7 @@ contract InitializeTest is BaseTest {
         );
 
         assertEq(Size(payable(proxy)).riskConfig().crLiquidation, 1.3e18);
+        assertEq(address(Size(payable(proxy)).sizeFactory()), address(sizeFactory));
     }
 
     function test_Initialize_wrong_initialization_reverts() public {

@@ -3,15 +3,15 @@ pragma solidity 0.8.23;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 
-import {VERSION} from "@src/interfaces/ISize.sol";
-import {Errors} from "@src/libraries/Errors.sol";
+import {SizeFactory} from "@src/factory/SizeFactory.sol";
+import {VERSION} from "@src/market/interfaces/ISize.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
-import {SizeFactory} from "@src/v1.5/SizeFactory.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
 import {SizeMock} from "@test/mocks/SizeMock.sol";
@@ -43,8 +43,8 @@ contract SizeFactoryTest is BaseTest {
         );
     }
 
-    function test_SizeFactory_owner() public view {
-        assertTrue(sizeFactory.owner() == owner);
+    function test_SizeFactory_admin() public view {
+        assertTrue(sizeFactory.hasRole(0x00, owner));
     }
 
     function test_SizeFactory_set_candidate() public {
@@ -312,7 +312,9 @@ contract SizeFactoryTest is BaseTest {
 
     function test_SizeFactory_addMarket_revert_on_unauthorized() public {
         vm.prank(address(0x123));
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, address(0x123)));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(0x123), 0x00)
+        );
         sizeFactory.addMarket(ISize(makeAddr("market")));
     }
 
@@ -466,42 +468,66 @@ contract SizeFactoryTest is BaseTest {
     function test_SizeFactory_addMarket_unauthorized() public {
         ISize market = ISize(makeAddr("market"));
         vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, makeAddr("unauthorized")));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
+            )
+        );
         sizeFactory.addMarket(market);
     }
 
     function test_SizeFactory_removeMarket_unauthorized() public {
         ISize market = ISize(makeAddr("market"));
         vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, makeAddr("unauthorized")));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
+            )
+        );
         sizeFactory.removeMarket(market);
     }
 
     function test_SizeFactory_addPrice_feed_unauthorized() public {
         PriceFeed priceFeed = PriceFeed(makeAddr("priceFeed"));
         vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, makeAddr("unauthorized")));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
+            )
+        );
         sizeFactory.addPriceFeed(priceFeed);
     }
 
     function test_SizeFactory_removePrice_feed_unauthorized() public {
         PriceFeed priceFeed = PriceFeed(makeAddr("priceFeed"));
         vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, makeAddr("unauthorized")));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
+            )
+        );
         sizeFactory.removePriceFeed(priceFeed);
     }
 
     function test_SizeFactory_addBorrowATokenV1_5_unauthorized() public {
         IERC20Metadata borrowAToken = IERC20Metadata(makeAddr("borrowAToken"));
         vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, makeAddr("unauthorized")));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
+            )
+        );
         sizeFactory.addBorrowATokenV1_5(borrowAToken);
     }
 
     function test_SizeFactory_removeBorrowATokenV1_5_unauthorized() public {
         IERC20Metadata borrowAToken = IERC20Metadata(makeAddr("borrowAToken"));
         vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, makeAddr("unauthorized")));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
+            )
+        );
         sizeFactory.removeBorrowATokenV1_5(borrowAToken);
     }
 
@@ -529,5 +555,16 @@ contract SizeFactoryTest is BaseTest {
         vm.prank(owner);
         sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(newImplementation);
         assertEq(sizeFactory.nonTransferrableScaledTokenV1_5Implementation(), newImplementation);
+    }
+
+    function test_SizeFactory_upgade() public {
+        SizeFactory implementation = new SizeFactory();
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(this), 0x00)
+        );
+        sizeFactory.upgradeToAndCall(address(implementation), bytes(""));
+
+        vm.prank(owner);
+        sizeFactory.upgradeToAndCall(address(implementation), bytes(""));
     }
 }

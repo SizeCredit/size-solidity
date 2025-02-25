@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Size} from "@src/Size.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
+import {Size} from "@src/market/Size.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {PriceFeed} from "@src/oracle/v1.5.1/PriceFeed.sol";

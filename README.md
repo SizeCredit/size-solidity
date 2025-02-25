@@ -83,6 +83,41 @@ A contract that provides the price of ETH in terms of USDC in 18 decimals. For e
 
 In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation on Aave's rate, convert it to 18 decimals, and store it in the Size contract. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000. The admin can disable this feature by setting the stale interval to zero. If the oracle information is stale, orders relying on the variable rate feed cannot be matched.
 
+#### Factory
+
+After v1.5, markets can be deployed through a `SizeFactory` contract. This contract is a central point of the Size ecosystem, as it enables `NonTransferrableScaledTokenV1_5` contracts (such as `saUSDC`) to mint/burn deposit tokens to users who deposit/withdraw, essentially enabling shared liquidity across different markets. For example, a user may deposit USDC to the WETH/USDC market but use the same liquidity to lend on the cbBTC/USDC market.
+
+After v1.7, the `SizeFactory` also holds the access control for all Size markets. A fallback mechanism is still used on individual markets, where roles are first checked on each deployment, and then on the factory contract. This means the administrator must take appropriate care to revoke roles both on the factory and on individual markets in case of a privilege de-escalation scenario. The benefit of this approach is that existing markets will continue to work as usual even if all accounts have not been granted roles on the SizeFactory contract.
+
+#### Authorization
+
+Users can authorize other operator accounts to perform specific actions or any action on their behalf on any market (per chain) through a new `setAuthorization` method called on the `SizeFactory` introduced in v1.7. This enables users to delegate all Size functionalities to third parties, enabling more complex strategies and automations.
+
+Some use cases of delegation are:
+
+- One-click leverage through a looping contract
+- Auto-refinancing of loans
+- Stop-loss for price drops in collateral through automated self-liquidations
+- Automated submission of limit orders into newly deployed markets
+
+This powerful capability comes with associated risks, and, as such, users must take extra care regarding whom and what they authorize, and should only authorize operators they fully trust, such as audited smart contracts or wallets they control.
+
+A non-exhaustive list of the risks of improper authorization includes:
+
+- Authorizing `deposit` enables the operator to deposit user funds to their account
+- Authorizing `withdraw` enables the operator to withdraw user funds to their account
+- Authorizing `sellCreditLimit` enables the operator to set sub-optimal borrow offers
+- Authorizing `buyCreditLimit` enables the operator to set sub-optimal loan offers
+- Authorizing both `buyCreditLimit` and `sellCreditLimit` enables the operator to set the borrow offer above the loan offer and create a self-arbitrage opportunity for the user
+- Authorizing `sellCreditMarket` enables the operator to borrow on behalf of the user and send the borrowed cash to their account
+- Authorizing `buyCreditMarket` enables the operator to lend on behalf of the user and send the credit to their account
+- Authorizing `selfLiquidate` enables the operator to self liquidate on their behalf when the debt position is likely to become liquidatable in the short term
+- Authorizing `compensate` enables the operator to compensate loans on their behalf from risky debt positions
+- Authorizing `setUserConfiguration` enables the operator to change opening CR and other important account configurations
+- Authorizing `copyLimitOrders` enables the operator to copy from addresses with parameters that would make market orders against them revert
+
+Because of the related risks, a recommended pattern is to authorize pre-vetted smart contracts in the beginning of a `multicall` operation, and revoke the authorization at the end of it. This way, the strategy contract will not hold any funds or credit on behalf of the user, and will be only responsible for specific actions during a limited time.
+
 #### Copy trading
 
 Since Size v1.6.1, users can copy other users' limit orders.

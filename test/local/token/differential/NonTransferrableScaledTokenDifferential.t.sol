@@ -29,7 +29,8 @@ contract NonTransferrableScaledTokenDifferentialTest is Test, SymTest {
         v1_2 = new NonTransferrableScaledTokenV1_2(pool, IERC20Metadata(underlying), owner, "Test", "TEST", 18);
     }
 
-    function check_NonTransferrableToken_differential(address[] memory senders) public {
+    // halmos does not complete
+    function _check_NonTransferrableToken_differential(address[] memory senders) private {
         bytes[] memory calls = new bytes[](senders.length);
         for (uint256 i = 0; i < senders.length; i++) {
             calls[i] = svm.createCalldata("INonTransferrableScaledTokenV1Call");

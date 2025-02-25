@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {CopyLimitOrder} from "@src/libraries/OfferLibrary.sol";
+import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
 
-import {UserCopyLimitOrders} from "@src/SizeStorage.sol";
-import {OfferLibrary} from "@src/libraries/OfferLibrary.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
+import {OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
-import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
-import {CopyLimitOrdersParams} from "@src/libraries/actions/CopyLimitOrders.sol";
-import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
+import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
+import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
+import {SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 

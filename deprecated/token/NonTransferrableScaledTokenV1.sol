@@ -5,10 +5,10 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 
-import {Math} from "@src/libraries/Math.sol";
-import {NonTransferrableToken} from "@src/token/NonTransferrableToken.sol";
+import {Math} from "@src/market/libraries/Math.sol";
+import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
 /// @title NonTransferrableScaledTokenV1
 /// @custom:security-contact security@size.credit

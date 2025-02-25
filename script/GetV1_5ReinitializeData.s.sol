@@ -5,11 +5,11 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import {BaseScript} from "@script/BaseScript.sol";
-import {ISizeFactory} from "@src/v1.5/interfaces/ISizeFactory.sol";
+import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 
 import {NonTransferrableScaledTokenV1_2} from "@deprecated/token/NonTransferrableScaledTokenV1_2.sol";
 import {Networks} from "@script/Networks.sol";
-import {ISize} from "@src/interfaces/ISize.sol";
+import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {Vm} from "forge-std/Vm.sol";
 import {console2 as console} from "forge-std/console2.sol";

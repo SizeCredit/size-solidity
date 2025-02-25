@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {DepositParams} from "@src/libraries/actions/Deposit.sol";
+import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 
-import {Math} from "@src/libraries/Math.sol";
+import {Math} from "@src/market/libraries/Math.sol";
 import {Vars} from "@test/BaseTest.sol";
 import {BaseTestGenericMarket} from "@test/BaseTestGenericMarket.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";

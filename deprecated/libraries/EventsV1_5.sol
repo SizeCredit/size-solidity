@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
 import {
     InitializeDataParams,
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
-} from "@src/libraries/actions/Initialize.sol";
+} from "@src/market/libraries/actions/Initialize.sol";
 
 /// @title EventsV1_5
 /// @custom:security-contact security@size.credit

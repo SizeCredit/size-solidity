@@ -1,25 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Size} from "@src/Size.sol";
+import {Size} from "@src/market/Size.sol";
 
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
-import {CREDIT_POSITION_ID_START, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {SellCreditMarketParams} from "@src/libraries/actions/SellCreditMarket.sol";
-import {SetUserConfiguration, SetUserConfigurationParams} from "@src/libraries/actions/SetUserConfiguration.sol";
+import {CREDIT_POSITION_ID_START, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {
+    SetUserConfiguration, SetUserConfigurationParams
+} from "@src/market/libraries/actions/SetUserConfiguration.sol";
 
-import {Math} from "@src/libraries/Math.sol";
-import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
-import {CompensateParams} from "@src/libraries/actions/Compensate.sol";
+import {Math} from "@src/market/libraries/Math.sol";
+import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
+import {CompensateParams} from "@src/market/libraries/actions/Compensate.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
-import {CreditPosition, DebtPosition, RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {BuyCreditLimitParams} from "@src/libraries/actions/BuyCreditLimit.sol";
-import {SellCreditLimitParams} from "@src/libraries/actions/SellCreditLimit.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {CreditPosition, DebtPosition, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {BuyCreditLimitParams} from "@src/market/libraries/actions/BuyCreditLimit.sol";
+import {SellCreditLimitParams} from "@src/market/libraries/actions/SellCreditLimit.sol";
 
 contract CompensateTest is BaseTest {
     function test_Compensate_compensate_reduces_repaid_loan_debt_and_compensated_loan_credit() public {
@@ -949,7 +951,7 @@ contract CompensateTest is BaseTest {
         (, creditPositionCount) = size.getPositionsCount();
         uint256 creditPositionToCompensateId = CREDIT_POSITION_ID_START + creditPositionCount - 1;
 
-        uint256 snapshot = vm.snapshot();
+        uint256 snapshot = vm.snapshotState();
         {
             uint256 beforeBalance = _state().alice.collateralTokenBalance;
             _compensate(alice, creditPositionWithDebtToRepayId, creditPositionToCompensateId);
@@ -957,7 +959,7 @@ contract CompensateTest is BaseTest {
             assertEq(afterBalance, beforeBalance);
         }
 
-        vm.revertTo(snapshot);
+        vm.revertToState(snapshot);
         _sellCreditLimit(bob, block.timestamp + 365 days, 0.04e18, 365 days);
         _buyCreditMarket(james, creditPositionWithDebtToRepayId, 50e6, false);
         {

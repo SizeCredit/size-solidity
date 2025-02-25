@@ -19,7 +19,7 @@ contract FoundryForkTester is Test, PropertiesSpecifications {
     function invariant() public {
         assertTrue(handler.property_LOAN());
         assertTrue(handler.property_UNDERWATER());
-        // assertTrue(handler.property_TOKENS()); // on a fork environment, there are more than 3 users
+        // assertTrue(handler.property_TOKENS()); // in production, there are more users than the default
         assertTrue(handler.property_SOLVENCY());
         assertTrue(handler.property_FEES());
     }

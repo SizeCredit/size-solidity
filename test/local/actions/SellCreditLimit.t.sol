@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Errors} from "@src/libraries/Errors.sol";
-import {YieldCurve} from "@src/libraries/YieldCurveLibrary.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
-import {DebtPosition} from "@src/libraries/LoanLibrary.sol";
-import {BuyCreditMarketParams} from "@src/libraries/actions/BuyCreditMarket.sol";
+import {DebtPosition} from "@src/market/libraries/LoanLibrary.sol";
+import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {LimitOrder, OfferLibrary} from "@src/libraries/OfferLibrary.sol";
+import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {LimitOrder, OfferLibrary} from "@src/market/libraries/OfferLibrary.sol";
 
 contract SellCreditLimitTest is BaseTest {
     using OfferLibrary for LimitOrder;

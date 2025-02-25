@@ -6,12 +6,12 @@ import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {YAMv2} from "@test/mocks/YAMv2.sol";
 
-import {Size} from "@src/Size.sol";
+import {Size} from "@src/market/Size.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";
 
-import {Errors} from "@src/libraries/Errors.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
 
 contract InitializeValidationTest is Test, BaseTest {
     function test_Initialize_validation() public {
@@ -58,6 +58,11 @@ contract InitializeValidationTest is Test, BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         r.minimumCreditBorrowAToken = 5e6;
+
+        r.borrowATokenCap = 0;
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        r.borrowATokenCap = 1_000_000e6;
 
         r.minTenor = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
@@ -110,5 +115,10 @@ contract InitializeValidationTest is Test, BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         d.borrowATokenV1_5 = address(sizeFactory.getBorrowATokenV1_5(0));
+
+        d.sizeFactory = address(0);
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
+        d.sizeFactory = address(sizeFactory);
     }
 }

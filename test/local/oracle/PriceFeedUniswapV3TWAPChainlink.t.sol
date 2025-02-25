@@ -6,8 +6,8 @@ import {MockERC20} from "forge-std/mocks/MockERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Errors} from "@src/libraries/Errors.sol";
-import {Math} from "@src/libraries/Math.sol";
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {Math} from "@src/market/libraries/Math.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {PriceFeedUniswapV3TWAPChainlink} from "@src/oracle/v1.5.2/PriceFeedUniswapV3TWAPChainlink.sol";
 import {BaseTest} from "@test/BaseTest.sol";
@@ -162,10 +162,13 @@ contract PriceFeedUniswapV3TWAPChainlinkTest is BaseTest {
         assertEq(price_1, price_2, price_3);
     }
 
-    function test_PriceFeedUniswapV3TWAPChainlink_description() public view {
-        assertEq(
-            priceFeedVirtualToUsdc.description(),
-            "PriceFeedUniswapV3TWAPChainlink | (VIRTUAL/WETH) (Uniswap v3 TWAP) * ((ETH / USD) / (USDC / USD)) (PriceFeed)"
-        );
+    function test_PriceFeedUniswapV3TWAPChainlink_description() public {
+        string memory expected =
+            "PriceFeedUniswapV3TWAPChainlink | (VIRTUAL/WETH) (Uniswap v3 TWAP) * ((ETH / USD) / (USDC / USD)) (PriceFeed)";
+        assertEq(priceFeedVirtualToUsdc.description(), expected);
+
+        _deployLocalSizeFactoryIfNeeded(address(this));
+        sizeFactory.addPriceFeed(PriceFeed(address(priceFeedVirtualToUsdc)));
+        assertEq(sizeFactory.getPriceFeedDescriptions()[0], expected);
     }
 }

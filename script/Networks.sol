@@ -5,6 +5,8 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
+import {IMultiSendCallOnly} from "@script/interfaces/IMultiSendCallOnly.sol";
 import {PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
@@ -322,5 +324,15 @@ abstract contract Networks {
             quoteStalePriceInterval: 0,
             sequencerUptimeFeed: AggregatorV3Interface(address(0))
         });
+    }
+
+    function multiSendCallOnly(string memory network) public pure returns (IMultiSendCallOnly) {
+        if (Strings.equal(network, "base-production")) {
+            return IMultiSendCallOnly(0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B);
+        } else if (Strings.equal(network, "mainnet")) {
+            return IMultiSendCallOnly(0x40A2aCCbd92BCA938b02010E17A5b8929b49130D);
+        } else {
+            revert InvalidNetworkConfiguration(network);
+        }
     }
 }

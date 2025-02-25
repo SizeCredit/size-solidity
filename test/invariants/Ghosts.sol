@@ -4,9 +4,9 @@ pragma solidity 0.8.23;
 import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {Asserts} from "@chimera/Asserts.sol";
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
-import {UserView} from "@src/SizeView.sol";
-import {RESERVED_ID} from "@src/libraries/LoanLibrary.sol";
-import {CreditPosition, DebtPosition, LoanStatus} from "@src/libraries/LoanLibrary.sol";
+import {UserView} from "@src/market/SizeView.sol";
+import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {CreditPosition, DebtPosition, LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
 
 import {Deploy} from "@script/Deploy.sol";
 
