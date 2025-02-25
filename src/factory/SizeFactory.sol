@@ -13,6 +13,7 @@ import {
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
 
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -39,6 +40,8 @@ import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Autho
 
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
 
+import {BORROW_RATE_UPDATER_ROLE, KEEPER_ROLE, PAUSER_ROLE} from "@src/factory/interfaces/ISizeFactory.sol";
+
 /// @title SizeFactory
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
@@ -49,6 +52,7 @@ contract SizeFactory is
     SizeFactoryEvents,
     MulticallUpgradeable,
     Ownable2StepUpgradeable,
+    AccessControlUpgradeable,
     UUPSUpgradeable
 {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -62,13 +66,31 @@ contract SizeFactory is
         __Ownable_init(_owner);
         __Multicall_init();
         __Ownable2Step_init();
+        __AccessControl_init();
         __UUPSUpgradeable_init();
+
+        _grantRole(DEFAULT_ADMIN_ROLE, _owner);
+        _grantRole(PAUSER_ROLE, _owner);
+        _grantRole(KEEPER_ROLE, _owner);
+        _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function reinitialize() external onlyOwner reinitializer(1_7_0) {
+        // grant `AccessControlUpgradeable` roles to the `Ownable2StepUpgradeable` owner
+        _grantRole(DEFAULT_ADMIN_ROLE, owner());
+        _grantRole(PAUSER_ROLE, owner());
+        _grantRole(KEEPER_ROLE, owner());
+        _grantRole(BORROW_RATE_UPDATER_ROLE, owner());
+        // transfer `Ownable2StepUpgradeable` ownership to the zero address to keep the state consistent
+        // in a future upgrade, we can simply remove `Ownable2StepUpgradeable` from the implementation
+        _transferOwnership(address(0));
+        // can only be called once
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
 
     /// @inheritdoc ISizeFactory
-    function setSizeImplementation(address _sizeImplementation) external onlyOwner {
+    function setSizeImplementation(address _sizeImplementation) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (_sizeImplementation == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
@@ -79,7 +101,7 @@ contract SizeFactory is
     /// @inheritdoc ISizeFactory
     function setNonTransferrableScaledTokenV1_5Implementation(address _nonTransferrableScaledTokenV1_5Implementation)
         external
-        onlyOwner
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
         if (_nonTransferrableScaledTokenV1_5Implementation == address(0)) {
             revert Errors.NULL_ADDRESS();
@@ -96,7 +118,7 @@ contract SizeFactory is
         InitializeRiskConfigParams calldata riskConfigParams,
         InitializeOracleParams calldata oracleParams,
         InitializeDataParams calldata dataParams
-    ) external onlyOwner returns (ISize market) {
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) returns (ISize market) {
         market = MarketFactoryLibrary.createMarket(
             sizeImplementation, owner(), feeConfigParams, riskConfigParams, oracleParams, dataParams
         );
@@ -104,7 +126,7 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
-    function addMarket(ISize market) external onlyOwner returns (bool existed) {
+    function addMarket(ISize market) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool existed) {
         existed = _addMarket(market);
     }
 
@@ -117,7 +139,7 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
-    function removeMarket(ISize market) external onlyOwner returns (bool existed) {
+    function removeMarket(ISize market) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool existed) {
         if (address(market) == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
@@ -125,17 +147,13 @@ contract SizeFactory is
         emit MarketRemoved(address(market), existed);
     }
 
-    function createPriceFeed(PriceFeedParams memory _priceFeedParams)
-        external
-        onlyOwner
-        returns (PriceFeed priceFeed)
-    {
+    function createPriceFeed(PriceFeedParams memory _priceFeedParams) external returns (PriceFeed priceFeed) {
         priceFeed = PriceFeedFactoryLibrary.createPriceFeed(_priceFeedParams);
         _addPriceFeed(priceFeed);
     }
 
     /// @inheritdoc ISizeFactory
-    function addPriceFeed(PriceFeed priceFeed) external onlyOwner returns (bool existed) {
+    function addPriceFeed(PriceFeed priceFeed) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool existed) {
         existed = _addPriceFeed(priceFeed);
     }
 
@@ -148,7 +166,7 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
-    function removePriceFeed(PriceFeed priceFeed) external onlyOwner returns (bool existed) {
+    function removePriceFeed(PriceFeed priceFeed) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool existed) {
         if (address(priceFeed) == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
@@ -159,7 +177,6 @@ contract SizeFactory is
     /// @inheritdoc ISizeFactory
     function createBorrowATokenV1_5(IPool variablePool, IERC20Metadata underlyingBorrowToken)
         external
-        onlyOwner
         returns (NonTransferrableScaledTokenV1_5 borrowATokenV1_5)
     {
         borrowATokenV1_5 = NonTransferrableScaledTokenV1_5FactoryLibrary.createNonTransferrableScaledTokenV1_5(
@@ -169,7 +186,11 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
-    function addBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5) external onlyOwner returns (bool existed) {
+    function addBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        returns (bool existed)
+    {
         existed = _addBorrowATokenV1_5(borrowATokenV1_5);
     }
 
@@ -182,7 +203,11 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
-    function removeBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5) external onlyOwner returns (bool existed) {
+    function removeBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        returns (bool existed)
+    {
         if (address(borrowATokenV1_5) == address(0)) {
             revert Errors.NULL_ADDRESS();
         }

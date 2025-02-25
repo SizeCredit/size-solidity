@@ -79,6 +79,12 @@ A contract that provides the price of ETH in terms of USDC in 18 decimals. For e
 
 In order to set the current market average value of USDC variable borrow rates, we perform an off-chain calculation on Aave's rate, convert it to 18 decimals, and store it in the Size contract. For example, a rate of 2.49% on Aave v3 is represented as 24900000000000000. The admin can disable this feature by setting the stale interval to zero. If the oracle information is stale, orders relying on the variable rate feed cannot be matched.
 
+#### Factory
+
+After v1.5, markets can be deployed through a `SizeFactory` contract. This contract is a central point of the Size ecosystem, as it enables `NonTransferrableScaledTokenV1_5` contracts (such as `saUSDC`) to mint/burn deposit tokens to users who deposit/withdraw, essentially enabling shared liquidity across different markets. For example, a user may deposit USDC to the WETH/USDC market but use the same liquidity to lend on the cbBTC/USDC market.
+
+After v1.7, the `SizeFactory` also holds the access control for all Size markets. A fallback mechanism is still used on individual markets, where roles are first checked on each deployment, and then on the factory contract. This means the administrator must take appropriate care to revoke roles both on the factory and on individual markets in case of a privilege de-escalation scenario. The benefit of this approach is that existing markets will continue to work as usual even if all accounts have not been granted roles on the SizeFactory contract.
+
 #### Authorization
 
 Users can authorize other operator accounts to perform specific actions or any action on their behalf on any market (per chain) through a new `setAuthorization` method called on the `SizeFactory` introduced in v1.7. This enables users to delegate all Size functionalities to third parties, enabling more complex strategies and automations.

@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
@@ -55,12 +55,16 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
         for (uint256 i = 0; i < markets.length; i++) {
             ISize market = markets[i];
             borrowATokenV1_5[i] = address(market.data().borrowAToken);
-            assertTrue(Strings.equal(market.version(), "v1.6.1"));
+            assertTrue(Strings.equal(market.version(), "v1.6.1"), "all markets should be in v1.6.1");
         }
         (bool success,) = address(vars.sizeFactory).call(
             abi.encodeWithSelector(ISizeFactoryV1_7.setAuthorization.selector, address(0x1000), 1)
         );
         assertTrue(!success, "should not be able to call setAuthorization on v1.6.1");
+        (success,) =
+            address(vars.sizeFactory).call(abi.encodeWithSelector(IAccessControl.hasRole.selector, vars.owner, 0x00));
+        assertTrue(!success, "should not be able to call hasRole");
+        assertTrue(OwnableUpgradeable(address(vars.sizeFactory)).owner() == address(vars.owner), "owner should be set");
         assertTrue(!Strings.equal(VERSION, "v1.6.1"), "VERSION should not be v1.6.1");
 
         console.log("to", to);
@@ -71,14 +75,18 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
         // post-checks
         for (uint256 i = 0; i < markets.length; i++) {
             ISize market = markets[i];
-            assertEq(address(market.data().borrowAToken), borrowATokenV1_5[i], "data() should not break");
-            assertEq(address(market.sizeFactory()), address(vars.sizeFactory), "sizeFactory should be set");
-            assertEq(market.version(), VERSION, "version should be set");
+            assertEq(address(market.data().borrowAToken), borrowATokenV1_5[i], "data() does not break");
+            assertEq(address(market.sizeFactory()), address(vars.sizeFactory), "all markets should have `sizeFactory`");
+            assertEq(market.version(), VERSION, "all markets should be in the new version");
         }
         (success,) = address(vars.sizeFactory).call(
             abi.encodeWithSelector(ISizeFactoryV1_7.setAuthorization.selector, address(0x1000), 1)
         );
         assertTrue(success, "should be able to call setAuthorization on v1.7");
+        (success,) =
+            address(vars.sizeFactory).call(abi.encodeWithSelector(IAccessControl.hasRole.selector, vars.owner, 0x00));
+        assertTrue(success, "should be able to call hasRole");
+        assertTrue(OwnableUpgradeable(address(vars.sizeFactory)).owner() == address(0), "owner should be set to zero");
     }
 
     function testFork_ForkReinitializeV1_7_reinitialize() public {
