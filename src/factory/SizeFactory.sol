@@ -13,8 +13,9 @@ import {
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
 
-import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {AccessControlEnumerableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -52,7 +53,7 @@ contract SizeFactory is
     SizeFactoryEvents,
     MulticallUpgradeable,
     Ownable2StepUpgradeable,
-    AccessControlUpgradeable,
+    AccessControlEnumerableUpgradeable,
     UUPSUpgradeable
 {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -67,6 +68,7 @@ contract SizeFactory is
         __Multicall_init();
         __Ownable2Step_init();
         __AccessControl_init();
+        __AccessControlEnumerable_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, _owner);
@@ -77,10 +79,11 @@ contract SizeFactory is
 
     function reinitialize() external onlyOwner reinitializer(1_7_0) {
         // grant `AccessControlUpgradeable` roles to the `Ownable2StepUpgradeable` owner
-        _grantRole(DEFAULT_ADMIN_ROLE, owner());
-        _grantRole(PAUSER_ROLE, owner());
-        _grantRole(KEEPER_ROLE, owner());
-        _grantRole(BORROW_RATE_UPDATER_ROLE, owner());
+        address _owner = owner();
+        _grantRole(DEFAULT_ADMIN_ROLE, _owner);
+        _grantRole(PAUSER_ROLE, _owner);
+        _grantRole(KEEPER_ROLE, _owner);
+        _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
         // transfer `Ownable2StepUpgradeable` ownership to the zero address to keep the state consistent
         // in a future upgrade, we can simply remove `Ownable2StepUpgradeable` from the implementation
         _transferOwnership(address(0));
@@ -119,8 +122,9 @@ contract SizeFactory is
         InitializeOracleParams calldata oracleParams,
         InitializeDataParams calldata dataParams
     ) external onlyRole(DEFAULT_ADMIN_ROLE) returns (ISize market) {
+        address admin = getRoleMember(DEFAULT_ADMIN_ROLE, 0);
         market = MarketFactoryLibrary.createMarket(
-            sizeImplementation, owner(), feeConfigParams, riskConfigParams, oracleParams, dataParams
+            sizeImplementation, admin, feeConfigParams, riskConfigParams, oracleParams, dataParams
         );
         _addMarket(market);
     }
@@ -179,8 +183,9 @@ contract SizeFactory is
         external
         returns (NonTransferrableScaledTokenV1_5 borrowATokenV1_5)
     {
+        address admin = getRoleMember(DEFAULT_ADMIN_ROLE, 0);
         borrowATokenV1_5 = NonTransferrableScaledTokenV1_5FactoryLibrary.createNonTransferrableScaledTokenV1_5(
-            nonTransferrableScaledTokenV1_5Implementation, owner(), variablePool, underlyingBorrowToken
+            nonTransferrableScaledTokenV1_5Implementation, admin, variablePool, underlyingBorrowToken
         );
         _addBorrowATokenV1_5(borrowATokenV1_5);
     }
