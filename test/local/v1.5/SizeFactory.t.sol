@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IPool} from "@aave/interfaces/IPool.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
@@ -116,7 +117,7 @@ contract SizeFactoryTest is BaseTest {
         assertEq(sizeFactory.getMarketsCount(), count);
     }
 
-    function test_SizeFactory_create_PriceFeed() public {
+    function test_SizeFactory_createPriceFeed() public {
         vm.expectRevert();
         vm.prank(owner);
         sizeFactory.getPriceFeed(0);
@@ -197,6 +198,49 @@ contract SizeFactoryTest is BaseTest {
         vm.prank(owner);
         bool existed = sizeFactory.removeBorrowATokenV1_5(token);
         assertFalse(existed);
+    }
+
+    function test_SizeFactory_createMarket_unauthorized() public {
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(alice), 0x00)
+        );
+        sizeFactory.createMarket(f, r, o, d);
+    }
+
+    function test_SizeFactory_createPriceFeed_unauthorized() public {
+        MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
+        MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
+        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
+        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
+        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
+
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(alice), 0x00)
+        );
+        sizeFactory.createPriceFeed(
+            PriceFeedParams({
+                baseAggregator: AggregatorV3Interface(address(aggregator1)),
+                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
+                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
+                baseStalePriceInterval: 1,
+                quoteStalePriceInterval: 2,
+                twapWindow: 30 minutes,
+                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
+                baseToken: IERC20Metadata(address(baseToken)),
+                quoteToken: IERC20Metadata(address(quoteToken)),
+                averageBlockTime: averageBlockTime
+            })
+        );
+    }
+
+    function test_SizeFactory_createBorrowATokenV1_5_unauthorized() public {
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(alice), 0x00)
+        );
+        sizeFactory.createBorrowATokenV1_5(IPool(address(0)), IERC20Metadata(address(0)));
     }
 
     function test_SizeFactory_addPriceFeed_1() public {

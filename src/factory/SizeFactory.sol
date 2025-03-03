@@ -147,7 +147,11 @@ contract SizeFactory is
         emit MarketRemoved(address(market), existed);
     }
 
-    function createPriceFeed(PriceFeedParams memory _priceFeedParams) external returns (PriceFeed priceFeed) {
+    function createPriceFeed(PriceFeedParams memory _priceFeedParams)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        returns (PriceFeed priceFeed)
+    {
         priceFeed = PriceFeedFactoryLibrary.createPriceFeed(_priceFeedParams);
         _addPriceFeed(priceFeed);
     }
@@ -177,6 +181,7 @@ contract SizeFactory is
     /// @inheritdoc ISizeFactory
     function createBorrowATokenV1_5(IPool variablePool, IERC20Metadata underlyingBorrowToken)
         external
+        onlyRole(DEFAULT_ADMIN_ROLE)
         returns (NonTransferrableScaledTokenV1_5 borrowATokenV1_5)
     {
         borrowATokenV1_5 = NonTransferrableScaledTokenV1_5FactoryLibrary.createNonTransferrableScaledTokenV1_5(
