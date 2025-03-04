@@ -153,8 +153,8 @@ abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage 
             return true;
         } else {
             uint256 nonce = authorizationNonces[onBehalfOf];
-            ActionsBitmap authorizations = authorizations[nonce][operator][onBehalfOf];
-            return Authorization.toUint256(authorizations) & Authorization.toUint256(actionsBitmap)
+            ActionsBitmap authorizationsActionsBitmap = authorizations[nonce][operator][onBehalfOf];
+            return Authorization.toUint256(authorizationsActionsBitmap) & Authorization.toUint256(actionsBitmap)
                 == Authorization.toUint256(actionsBitmap);
         }
     }
