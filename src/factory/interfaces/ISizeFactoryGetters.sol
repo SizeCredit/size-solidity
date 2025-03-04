@@ -2,6 +2,8 @@
 pragma solidity 0.8.23;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
+import {ActionsBitmap} from "@src/factory/libraries/Authorization.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {PriceFeed} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
@@ -76,6 +78,16 @@ interface ISizeFactoryGetters {
     ///         such as szaUSDC for a ETH/USDC borrow aToken
     /// @return descriptions The borrow aToken descriptions
     function getBorrowATokenV1_5Descriptions() external view returns (string[] memory descriptions);
+
+    /// @notice Check if an address is authorized for all actions
+    /// @param operator The operator to check
+    /// @param onBehalfOf The account on behalf of which the action is authorized
+    /// @param actionsBitmap The actions bitmap
+    /// @return authorized True if the address is authorized for all actions
+    function isAuthorizedAll(address operator, address onBehalfOf, ActionsBitmap actionsBitmap)
+        external
+        view
+        returns (bool);
 
     /// @notice Get the version of the size factory
     /// @return version The version of the size factory
