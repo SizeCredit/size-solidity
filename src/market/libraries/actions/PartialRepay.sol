@@ -29,6 +29,7 @@ struct PartialRepayParams {
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic for partial repaying a debt position by selecting a specific CreditPosition
+/// @dev Anyone can repay a debt position
 library PartialRepay {
     using AccountingLibrary for State;
     using LoanLibrary for State;
@@ -48,8 +49,8 @@ library PartialRepay {
         // N/A
 
         // validate creditPositionWithDebtToRepayId
-        if (state.getLoanStatus(params.creditPositionWithDebtToRepayId) != LoanStatus.ACTIVE) {
-            revert Errors.LOAN_NOT_ACTIVE(params.creditPositionWithDebtToRepayId);
+        if (state.getLoanStatus(params.creditPositionWithDebtToRepayId) == LoanStatus.REPAID) {
+            revert Errors.LOAN_ALREADY_REPAID(params.creditPositionWithDebtToRepayId);
         }
 
         // validate amount

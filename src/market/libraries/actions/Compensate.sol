@@ -121,9 +121,9 @@ library Compensate {
         CreditPosition storage creditPositionWithDebtToRepay =
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);
 
-        uint256 amountToCompensate = Math.min(params.amount, creditPositionWithDebtToRepay.credit);
-
         CreditPosition memory creditPositionToCompensate = state.getCreditPosition(params.creditPositionToCompensateId);
+        uint256 amountToCompensate =
+            Math.min(params.amount, Math.min(creditPositionWithDebtToRepay.credit, creditPositionToCompensate.credit));
         bool shouldChargeFragmentationFee = amountToCompensate != creditPositionToCompensate.credit;
 
         // debt and credit reduction

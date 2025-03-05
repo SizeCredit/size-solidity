@@ -17,11 +17,13 @@ import {RepayParams} from "@src/market/libraries/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/market/libraries/actions/SelfLiquidate.sol";
 
 import {CompensateParams} from "@src/market/libraries/actions/Compensate.sol";
+
 import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
+import {PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
 
 import {IMulticall} from "@src/market/interfaces/IMulticall.sol";
 import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
@@ -164,6 +166,14 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7 {
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     function compensate(CompensateParams calldata params) external payable;
+
+    /// @notice Partial repay a debt position by selecting a specific CreditPosition
+    /// @param params PartialRepayParams struct containing the following fields:
+    ///     - uint256 creditPositionWithDebtToRepayId: The id of the credit position with debt to repay
+    ///     - uint256 amount: The amount of tokens to repay (in decimals, e.g. 1_000e6 for 1000 aUSDC)
+    ///     - address borrower: The address of the borrower
+    /// @dev The partial repay amount should be less than the debt position future value
+    function partialRepay(PartialRepayParams calldata params) external payable;
 
     /// @notice Set the credit positions for sale
     /// @dev By default, all created creadit positions are for sale.
