@@ -13,9 +13,8 @@ import {
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
 
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {AccessControlEnumerableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -47,13 +46,14 @@ import {BORROW_RATE_UPDATER_ROLE, KEEPER_ROLE, PAUSER_ROLE} from "@src/factory/i
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISizeFactory}.
+/// @dev Expects `AccessControlUpgradeable` to have a single DEFAULT_ADMIN_ROLE role address set.
 contract SizeFactory is
     ISizeFactory,
     SizeFactoryGetters,
     SizeFactoryEvents,
     MulticallUpgradeable,
     Ownable2StepUpgradeable,
-    AccessControlEnumerableUpgradeable,
+    AccessControlUpgradeable,
     UUPSUpgradeable
 {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -68,7 +68,6 @@ contract SizeFactory is
         __Multicall_init();
         __Ownable2Step_init();
         __AccessControl_init();
-        __AccessControlEnumerable_init();
         __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, _owner);
@@ -122,7 +121,7 @@ contract SizeFactory is
         InitializeOracleParams calldata oracleParams,
         InitializeDataParams calldata dataParams
     ) external onlyRole(DEFAULT_ADMIN_ROLE) returns (ISize market) {
-        address admin = getRoleMember(DEFAULT_ADMIN_ROLE, 0);
+        address admin = msg.sender;
         market = MarketFactoryLibrary.createMarket(
             sizeImplementation, admin, feeConfigParams, riskConfigParams, oracleParams, dataParams
         );
@@ -183,7 +182,7 @@ contract SizeFactory is
         external
         returns (NonTransferrableScaledTokenV1_5 borrowATokenV1_5)
     {
-        address admin = getRoleMember(DEFAULT_ADMIN_ROLE, 0);
+        address admin = msg.sender;
         borrowATokenV1_5 = NonTransferrableScaledTokenV1_5FactoryLibrary.createNonTransferrableScaledTokenV1_5(
             nonTransferrableScaledTokenV1_5Implementation, admin, variablePool, underlyingBorrowToken
         );
