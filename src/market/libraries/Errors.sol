@@ -13,6 +13,7 @@ library Errors {
     error NULL_ARRAY();
     error NULL_OFFER();
     error INVALID_MSG_VALUE(uint256 value);
+    error INVALID_AMOUNT(uint256 amount);
     error TENORS_NOT_STRICTLY_INCREASING();
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
