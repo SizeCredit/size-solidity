@@ -498,4 +498,8 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.label(deployed, "IUniswapV3Factory");
         return IUniswapV3Factory(deployed);
     }
+
+    function _isUserUnderwater(address user) internal view returns (bool) {
+        return size.collateralRatio(user) < size.riskConfig().crLiquidation;
+    }
 }

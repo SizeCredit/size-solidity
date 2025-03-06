@@ -248,7 +248,7 @@ contract CompensateTest is BaseTest {
         _claim(james, creditPositionWithDebtToRepayId);
 
         _setPrice(0.1e18);
-        assertTrue(size.isUserUnderwater(bob));
+        assertTrue(_isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(loanToCompensateId));
 
         uint256 newCreditPositionId = size.getCreditPositionIdsByDebtPositionId(loanToCompensateId)[0];
