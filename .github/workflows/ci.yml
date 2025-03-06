@@ -147,9 +147,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        mode: [assertion, property]
+        mode: [assertion, property, medusa]
 
-    name: Echidna
+    name: Invariants
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -169,17 +169,35 @@ jobs:
         run: |
           pip install slither-analyzer
 
-      - name: Install Echidna
+      - name: Prepare Crytic
         run: |
-          wget https://github.com/crytic/echidna/releases/download/v2.2.3/echidna-2.2.3-x86_64-linux.tar.gz -O echidna.tar.gz
+          ./script/prepare_crytic.sh
+
+      - name: Install Echidna
+        if: matrix.mode == 'assertion' || matrix.mode == 'property'
+        run: |
+          wget https://github.com/crytic/echidna/releases/download/v2.2.6/echidna-2.2.6-x86_64-linux.tar.gz -O echidna.tar.gz
           tar -xvkf echidna.tar.gz
           rm echidna.tar.gz
           ./echidna --version
 
       - name: Echidna ${{ matrix.mode }}
+        if: matrix.mode == 'assertion' || matrix.mode == 'property'
         run: |
-          ./script/prepare_crytic.sh
           ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
+
+      - name: Install Medusa
+        if: matrix.mode == 'medusa'
+        run: |
+          wget https://github.com/crytic/medusa/releases/download/v1.1.1/medusa-linux-x64.tar.gz -O medusa.tar.gz
+          tar -xvkf medusa.tar.gz
+          rm medusa.tar.gz
+          ./medusa --version
+
+      - name: Medusa
+        if: matrix.mode == 'medusa'
+        run: |
+          ./medusa fuzz --test-limit 10000
 
   halmos:
     needs: [sizes, fmt, test, testFork, slither, solhint]
