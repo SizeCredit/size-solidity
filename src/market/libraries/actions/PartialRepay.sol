@@ -42,8 +42,9 @@ library PartialRepay {
     /// @param state The state of the protocol
     /// @param params The input parameters for partial repaying a debt position by selecting a specific CreditPosition
     function validatePartialRepay(State storage state, PartialRepayParams memory params) external view {
-        DebtPosition storage debtPositionToRepay =
-            state.getDebtPositionByCreditPositionId(params.creditPositionWithDebtToRepayId);
+        CreditPosition storage creditPositionWithDebtToRepay =
+            state.getCreditPosition(params.creditPositionWithDebtToRepayId);
+        DebtPosition storage debtPositionToRepay = state.getDebtPosition(creditPositionWithDebtToRepay.debtPositionId);
 
         // validate msg.sender
         // N/A
@@ -57,8 +58,8 @@ library PartialRepay {
         if (params.amount == 0) {
             revert Errors.NULL_AMOUNT();
         }
-        if (params.amount == debtPositionToRepay.futureValue) {
-            // disallows partial repayments of the entire debt
+        if (params.amount >= debtPositionToRepay.futureValue || params.amount > creditPositionWithDebtToRepay.credit) {
+            // disallows partial repayments of the entire debt or more than the credit position
             revert Errors.INVALID_AMOUNT(params.amount);
         }
 

@@ -27,6 +27,8 @@ abstract contract ExpectedErrors is Deploy, Properties {
     bytes4[] internal LIQUIDATE_WITH_REPLACEMENT_ERRORS;
     bytes4[] internal COMPENSATE_ERRORS;
     bytes4[] internal SET_USER_CONFIGURATION_ERRORS;
+    bytes4[] internal COPY_LIMIT_ORDERS_ERRORS;
+    bytes4[] internal PARTIAL_REPAY_ERRORS;
 
     constructor() {
         // DEPOSIT_ERRORS
@@ -129,6 +131,18 @@ abstract contract ExpectedErrors is Deploy, Properties {
         COMPENSATE_ERRORS.push(Errors.MUST_IMPROVE_COLLATERAL_RATIO.selector);
 
         // SET_USER_CONFIGURATION_ERRORS N/A
+
+        // COPY_LIMIT_ORDERS_ERRORS
+        COPY_LIMIT_ORDERS_ERRORS.push(Errors.INVALID_APR_RANGE.selector);
+        COPY_LIMIT_ORDERS_ERRORS.push(Errors.INVALID_TENOR_RANGE.selector);
+        COPY_LIMIT_ORDERS_ERRORS.push(Errors.INVALID_ADDRESS.selector);
+        COPY_LIMIT_ORDERS_ERRORS.push(Errors.NULL_ADDRESS.selector);
+
+        // PARTIAL_REPAY_ERRORS
+        PARTIAL_REPAY_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
+        PARTIAL_REPAY_ERRORS.push(Errors.NULL_AMOUNT.selector);
+        PARTIAL_REPAY_ERRORS.push(Errors.INVALID_AMOUNT.selector);
+        PARTIAL_REPAY_ERRORS.push(Errors.INVALID_BORROWER.selector);
     }
 
     modifier checkExpectedErrors(bytes4[] storage errors) {

@@ -42,6 +42,10 @@ import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol
 import {ExpectedErrors} from "@test/invariants/ExpectedErrors.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
+import {CopyLimitOrder} from "@src/market/libraries/OfferLibrary.sol";
+import {CopyLimitOrdersParams} from "@src/market/libraries/actions/CopyLimitOrders.sol";
+import {PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
+
 import {CREDIT_POSITION_ID_START, DEBT_POSITION_ID_START, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
 
 abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
@@ -448,6 +452,76 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         );
         if (success) {
             __after();
+        }
+    }
+
+    function copyLimitOrders(address copyAddress, int256 loanOffsetAPR, int256 borrowOffsetAPR)
+        public
+        getSender
+        checkExpectedErrors(COPY_LIMIT_ORDERS_ERRORS)
+    {
+        copyAddress = _getRandomUser(copyAddress);
+        loanOffsetAPR = between(loanOffsetAPR, -int256(MAX_PERCENT), int256(MAX_PERCENT));
+        borrowOffsetAPR = between(borrowOffsetAPR, -int256(MAX_PERCENT), int256(MAX_PERCENT));
+
+        __before();
+
+        hevm.prank(sender);
+        (success, returnData) = address(size).call(
+            abi.encodeCall(
+                size.copyLimitOrders,
+                CopyLimitOrdersParams({
+                    copyAddress: copyAddress,
+                    copyLoanOffer: CopyLimitOrder({
+                        minTenor: 0,
+                        maxTenor: type(uint256).max,
+                        minAPR: 0,
+                        maxAPR: type(uint256).max,
+                        offsetAPR: loanOffsetAPR
+                    }),
+                    copyBorrowOffer: CopyLimitOrder({
+                        minTenor: 0,
+                        maxTenor: type(uint256).max,
+                        minAPR: 0,
+                        maxAPR: type(uint256).max,
+                        offsetAPR: borrowOffsetAPR
+                    })
+                })
+            )
+        );
+        if (success) {
+            __after();
+        }
+    }
+
+    function partialRepay(uint256 creditPositionWithDebtToRepayId, uint256 amount, address borrower)
+        public
+        getSender
+        checkExpectedErrors(PARTIAL_REPAY_ERRORS)
+    {
+        creditPositionWithDebtToRepayId = _getCreditPositionId(creditPositionWithDebtToRepayId);
+        amount = between(amount, 0, MAX_AMOUNT_USDC);
+        borrower = _getRandomUser(borrower);
+
+        __before(creditPositionWithDebtToRepayId);
+
+        hevm.prank(sender);
+        (success, returnData) = address(size).call(
+            abi.encodeCall(
+                size.partialRepay,
+                PartialRepayParams({
+                    creditPositionWithDebtToRepayId: creditPositionWithDebtToRepayId,
+                    amount: amount,
+                    borrower: borrower
+                })
+            )
+        );
+        if (success) {
+            __after(creditPositionWithDebtToRepayId);
+
+            lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, PARTIAL_REPAY_01);
+            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, PARTIAL_REPAY_02);
+            eq(uint256(_after.loanStatus), uint256(_before.loanStatus), PARTIAL_REPAY_03);
         }
     }
 
