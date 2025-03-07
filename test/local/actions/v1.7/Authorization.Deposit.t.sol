@@ -5,11 +5,11 @@ import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {UserView} from "@src/market/SizeView.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
-
 import {DepositOnBehalfOfParams, DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 
 import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
-import {BaseTest} from "@test/BaseTest.sol";
+import {BaseTest, Vars} from "@test/BaseTest.sol";
+import {console} from "forge-std/console.sol";
 
 contract AuthorizationDepositTest is BaseTest {
     function test_AuthorizationDeposit_depositOnBehalfOf() public {
@@ -65,5 +65,84 @@ contract AuthorizationDepositTest is BaseTest {
                 onBehalfOf: bob
             })
         );
+    }
+
+    function test_AuthorizationDeposit_depositOnBehalfOf_msg_value() public {
+        _mint(address(weth), alice, 100e18);
+        _approve(alice, address(weth), address(size), type(uint256).max);
+
+        vm.deal(bob, 100e18);
+
+        vm.prank(alice);
+        sizeFactory.setAuthorization(bob, Authorization.getActionsBitmap(Action.DEPOSIT));
+
+        assertTrue(sizeFactory.isAuthorized(bob, alice, Action.DEPOSIT));
+
+        console.log("============= Initial state ============================");
+        {
+            Vars memory state = _state();
+            console.log("Alice's collateralToken balance: ", state.alice.collateralTokenBalance);
+            console.log("Alice's weth balance: ", weth.balanceOf(alice));
+            console.log("Bob's collateralToken balance: ", state.bob.collateralTokenBalance);
+            console.log("Bob's eth balance: ", bob.balance);
+        }
+
+        uint256 snapshot = vm.snapshotState();
+        console.log("============= Situation 1: txs are sent separately ============");
+        vm.prank(bob);
+        size.depositOnBehalfOf(
+            DepositOnBehalfOfParams({
+                params: DepositParams({token: address(weth), amount: 100e18, to: alice}),
+                onBehalfOf: alice
+            })
+        );
+        vm.prank(bob);
+        size.deposit{value: 100e18}(DepositParams({token: address(weth), amount: 100e18, to: bob}));
+        {
+            Vars memory state = _state();
+            console.log("Alice's collateralToken balance: ", state.alice.collateralTokenBalance);
+            console.log("Alice's weth balance: ", weth.balanceOf(alice));
+            console.log("Bob's collateralToken balance: ", state.bob.collateralTokenBalance);
+            console.log("Bob's eth balance: ", bob.balance);
+        }
+
+        vm.revertTo(snapshot);
+        console.log("============= Situation 2: txs are sent in multicall ============");
+        bytes[] memory txs = new bytes[](2);
+        txs[0] = abi.encodeCall(
+            size.depositOnBehalfOf,
+            (
+                DepositOnBehalfOfParams({
+                    params: DepositParams({token: address(weth), amount: 100e18, to: alice}),
+                    onBehalfOf: alice
+                })
+            )
+        );
+        txs[1] = abi.encodeCall(size.deposit, (DepositParams({token: address(weth), amount: 100e18, to: bob})));
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MSG_VALUE.selector, 100e18));
+        size.multicall{value: 100e18}(txs);
+        console.log("depositOnBehalfOf is not allowed with msg.value if recipient is not msg.sender");
+
+        console.log("============= Situation 3: txs are sent in multicall with onBehalfOf == msg.sender ============");
+
+        txs[0] = abi.encodeCall(
+            size.depositOnBehalfOf,
+            (
+                DepositOnBehalfOfParams({
+                    params: DepositParams({token: address(weth), amount: 100e18, to: bob}),
+                    onBehalfOf: bob
+                })
+            )
+        );
+        vm.prank(bob);
+        size.multicall{value: 100e18}(txs);
+        {
+            Vars memory state = _state();
+            console.log("Alice's collateralToken balance: ", state.alice.collateralTokenBalance);
+            console.log("Alice's weth balance: ", weth.balanceOf(alice));
+            console.log("Bob's collateralToken balance: ", state.bob.collateralTokenBalance);
+            console.log("Bob's eth balance: ", bob.balance);
+        }
     }
 }
