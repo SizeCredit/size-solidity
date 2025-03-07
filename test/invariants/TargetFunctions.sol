@@ -61,9 +61,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         hevm.prank(sender);
         (success, returnData) =
             address(size).call(abi.encodeCall(size.deposit, DepositParams({token: token, amount: amount, to: sender})));
+        __after();
         if (success) {
-            __after();
-
             if (token == address(weth)) {
                 eq(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance + amount, DEPOSIT_01);
                 eq(_after.senderCollateralAmount, _before.senderCollateralAmount - amount, DEPOSIT_01);
@@ -87,8 +86,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         (success, returnData) = address(size).call(
             abi.encodeCall(size.withdraw, WithdrawParams({token: token, amount: amount, to: sender}))
         );
+        __after();
         if (success) {
-            __after();
             uint256 withdrawnAmount;
 
             if (token == address(weth)) {
@@ -145,9 +144,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             )
         );
 
+        __after();
         if (success) {
-            __after();
-
             if (lender != sender) {
                 gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
             }
@@ -178,9 +176,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 SellCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
             )
         );
-        if (success) {
-            __after();
-        }
+        __after();
     }
 
     function buyCreditMarket(
@@ -212,9 +208,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 })
             )
         );
+        __after();
         if (success) {
-            __after();
-
             if (creditPositionId == RESERVED_ID) {
                 eq(_after.debtPositionsCount, _before.debtPositionsCount + 1, BORROW_02);
                 uint256 debtPositionId = DEBT_POSITION_ID_START + _after.debtPositionsCount - 1;
@@ -241,9 +236,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 BuyCreditLimitParams({maxDueDate: maxDueDate, curveRelativeTime: curveRelativeTime})
             )
         );
-        if (success) {
-            __after();
-        }
+        __after();
     }
 
     function repay(uint256 debtPositionId) public getSender hasLoans checkExpectedErrors(REPAY_ERRORS) {
@@ -257,9 +250,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 size.repay, RepayParams({debtPositionId: debtPositionId, borrower: _before.borrower.account})
             )
         );
+        __after(debtPositionId);
         if (success) {
-            __after(debtPositionId);
-
             lte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, REPAY_01);
             gte(_after.variablePoolBorrowAmount, _before.variablePoolBorrowAmount, REPAY_01);
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, REPAY_02);
@@ -276,9 +268,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         hevm.prank(sender);
         (success, returnData) =
             address(size).call(abi.encodeCall(size.claim, ClaimParams({creditPositionId: creditPositionId})));
+        __after(creditPositionId);
         if (success) {
-            __after(creditPositionId);
-
             gte(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, CLAIM_01);
             t(size.isCreditPositionId(creditPositionId), CLAIM_02);
         }
@@ -307,9 +298,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 })
             )
         );
+        __after(debtPositionId);
         if (success) {
-            __after(debtPositionId);
-
             uint256 liquidatorProfitCollateralToken = abi.decode(returnData, (uint256));
 
             if (sender != _before.borrower.account) {
@@ -341,9 +331,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         (success, returnData) = address(size).call(
             abi.encodeCall(size.selfLiquidate, SelfLiquidateParams({creditPositionId: creditPositionId}))
         );
+        __after(creditPositionId);
         if (success) {
-            __after(creditPositionId);
-
             if (sender != _before.borrower.account) {
                 gte(_after.sender.collateralTokenBalance, _before.sender.collateralTokenBalance, SELF_LIQUIDATE_01);
             }
@@ -378,8 +367,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 })
             )
         );
+        __after(debtPositionId);
         if (success) {
-            __after(debtPositionId);
             (uint256 liquidatorProfitCollateralToken,) = abi.decode(returnData, (uint256, uint256));
 
             if (sender != _before.borrower.account) {
@@ -420,9 +409,8 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 })
             )
         );
+        __after(creditPositionWithDebtToRepayId);
         if (success) {
-            __after(creditPositionWithDebtToRepayId);
-
             if (creditPositionToCompensateId == RESERVED_ID) {
                 eq(_after.borrower.debtBalance, _before.borrower.debtBalance, COMPENSATE_01);
             } else {
@@ -450,9 +438,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 })
             )
         );
-        if (success) {
-            __after();
-        }
+        __after();
     }
 
     function copyLimitOrders(address copyAddress, int256 loanOffsetAPR, int256 borrowOffsetAPR)
@@ -489,9 +475,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 })
             )
         );
-        if (success) {
-            __after();
-        }
+        __after();
     }
 
     function partialRepay(uint256 creditPositionWithDebtToRepayId, uint256 amount, address borrower)
@@ -516,9 +500,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
                 })
             )
         );
-        if (success) {
-            __after(creditPositionWithDebtToRepayId);
 
+        __after(creditPositionWithDebtToRepayId);
+        if (success) {
             lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, PARTIAL_REPAY_01);
             lt(_after.borrower.debtBalance, _before.borrower.debtBalance, PARTIAL_REPAY_02);
             eq(uint256(_after.loanStatus), uint256(_before.loanStatus), PARTIAL_REPAY_03);
