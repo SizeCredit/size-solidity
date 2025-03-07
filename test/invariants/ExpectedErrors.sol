@@ -144,6 +144,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         // PARTIAL_REPAY_ERRORS
         PARTIAL_REPAY_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_CREDIT_POSITION_ID.selector);
+        PARTIAL_REPAY_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.NULL_AMOUNT.selector);
         PARTIAL_REPAY_ERRORS.push(Errors.INVALID_AMOUNT.selector);
