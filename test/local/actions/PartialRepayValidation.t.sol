@@ -53,6 +53,10 @@ contract PartialRepayValidationTest is BaseTest {
         vm.prank(bob);
         size.partialRepay(PartialRepayParams({creditPositionWithDebtToRepayId: creditId, amount: 80e6, borrower: bob}));
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_AMOUNT.selector, 1e6));
+        vm.prank(bob);
+        size.partialRepay(PartialRepayParams({creditPositionWithDebtToRepayId: creditId, amount: 1e6, borrower: bob}));
+
         _repay(bob, debtPositionId, bob);
 
         vm.startPrank(bob);

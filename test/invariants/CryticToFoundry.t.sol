@@ -31,6 +31,12 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
         vm.roll(block.number + _block);
     }
 
+    function _setUp2(address _user, uint256 _time, uint256 _block) internal {
+        sender = _user;
+        vm.warp(_time);
+        vm.roll(_block);
+    }
+
     modifier getSender() override {
         Vars memory e;
         _before = e;
@@ -479,5 +485,35 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
             false
         );
         emit log_uint(size.collateralRatio(USER1));
+    }
+
+    function test_CryticToFoundry_30() public {
+        _setUp2(address(0x10000), 329209 seconds, 46770);
+        setLiquidityIndex(
+            24144280689161376411699655996641651355571594095744305902715123376333912,
+            1809250669253889360540750338129704068369285778592831420537954792139475538192
+        );
+        _setUp2(address(0x10000), 1130773 seconds, 127492);
+        deposit(
+            address(0xb0012f9561d77E9DDD3717864c8D506293E7048a),
+            5102802951401452168437584275815931536166756800209775828233386767131436092185
+        );
+        _setUp2(address(0x20000), 1673159 seconds, 129911);
+        buyCreditLimit(
+            1033845871685555748620879071399972530679096196126712049512941042701210132,
+            11804470974780652379408574193017582900328984161987784073305935771826829019986
+        );
+        _setUp2(address(0x20000), 1736184 seconds, 165619);
+        deposit(address(0xe31d2C3eB), 7232244833418451119370746085861572184889100922874313956198279854394584220);
+        _setUp2(address(0x10000), 1802787 seconds, 177868);
+        sellCreditMarket(
+            address(0x1c),
+            51738619771525102472409639288380803469255978726619665417551712644643365375176,
+            12702719031632657028050224530990704667218025429182159205724595743739898455004,
+            4955170433206369925557467405683212360067150392783249747653875028031334073727,
+            false
+        );
+        _setUp2(address(0x30000), 2306134 seconds, 207004);
+        partialRepay(87813795631914495780727710118247212507477432414910192161589577968797622429654, 1, address(0x435f));
     }
 }

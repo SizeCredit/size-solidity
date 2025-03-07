@@ -58,8 +58,14 @@ library PartialRepay {
         if (params.amount == 0) {
             revert Errors.NULL_AMOUNT();
         }
-        if (params.amount >= debtPositionToRepay.futureValue || params.amount > creditPositionWithDebtToRepay.credit) {
-            // disallows partial repayments of the entire debt or more than the credit position
+        if (
+            params.amount >= debtPositionToRepay.futureValue || params.amount > creditPositionWithDebtToRepay.credit
+                || params.amount < state.riskConfig.minimumCreditBorrowAToken
+        ) {
+            // disallows partial repayments of
+            // - the entire debt
+            // - more than the credit position
+            // - less than the minimumCreditBorrowAToken amount
             revert Errors.INVALID_AMOUNT(params.amount);
         }
 
