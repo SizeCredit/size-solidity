@@ -168,5 +168,8 @@ abstract contract ExpectedErrors is Deploy, Properties {
             t(expected, DOS);
             precondition(false);
         }
+
+        success = false;
+        returnData = bytes("");
     }
 }

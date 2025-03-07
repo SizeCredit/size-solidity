@@ -31,8 +31,9 @@ abstract contract PropertiesSpecifications {
 
     string internal constant PARTIAL_REPAY_01 =
         "PARTIAL_REPAY_01: PartialRepay transfers cash from the sender to the lender";
-    string internal constant PARTIAL_REPAY_02 = "PARTIAL_REPAY_02: PartialRepay decreases the borrower's debt";
-    string internal constant PARTIAL_REPAY_03 = "PARTIAL_REPAY_03: PartialRepay does not change the loan status";
+    string internal constant PARTIAL_REPAY_02 = "PARTIAL_REPAY_02: PartialRepay decreases the sender's cash";
+    string internal constant PARTIAL_REPAY_03 = "PARTIAL_REPAY_03: PartialRepay decreases the borrower's debt";
+    string internal constant PARTIAL_REPAY_04 = "PARTIAL_REPAY_04: PartialRepay does not change the loan status";
 
     string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
     string internal constant LOAN_02 = "LOAN_02: minTenor <= loan.tenor <= maxTenor";

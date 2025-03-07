@@ -37,6 +37,12 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
         vm.roll(_block);
     }
 
+    function _setUp2(uint256 _time, uint256 _block, address _user) internal {
+        sender = _user;
+        vm.warp(_time);
+        vm.roll(_block);
+    }
+
     modifier getSender() override {
         Vars memory e;
         _before = e;
@@ -515,5 +521,42 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
         );
         _setUp2(address(0x30000), 2306134 seconds, 207004);
         partialRepay(87813795631914495780727710118247212507477432414910192161589577968797622429654, 1, address(0x435f));
+    }
+
+    function test_CryticToFoundry_31() public {
+        _setUp2(166, 438425, address(0x20000));
+        sellCreditLimit(
+            6493950200230877380445862749605885918862942411489267021962701102515832,
+            125722648975718542242026677191677754488595573166898122
+        );
+        _setUp2(8799, 503665, address(0x30000));
+        setPrice(354799019315603478131068628955202262294569903751579818178515037114763646);
+        _setUp2(63828, 786237, address(0x30000));
+        copyLimitOrders(
+            address(0x2388d),
+            -226305955988121278682556131242956794266986625152212368009729130287401915740,
+            26485358679284639675051377527398819606534310692904963201271205653903680747271
+        );
+        _setUp2(81793, 1360096, address(0x30000));
+        deposit(address(0x8f0d180), 218580431141929169040002374518438899940749437000577673211465917804802061732);
+        _setUp2(137913, 1662592, address(0x10000));
+        deposit(
+            address(0x636F6e736F6c652e6c6f67),
+            1588926926490961752184255168840935526387389691874620264540521190519087500627
+        );
+        _setUp2(161972, 1754101, address(0x10000));
+        buyCreditMarket(
+            address(0x487A9a304539440000),
+            1776220930225236396583490756681955847836918964069871732367657493588895997765,
+            9895,
+            107609406658013663346164442751696756055427348610645356546991441233658132219,
+            true
+        );
+        _setUp2(193650, 2315918, address(0x10000));
+        partialRepay(
+            228388133290882084701357161134673899173288905438400808035211529211421126000,
+            9246262998130223345563508128587477701511167660738790331016664139690614602083,
+            address(0x113EBEc)
+        );
     }
 }

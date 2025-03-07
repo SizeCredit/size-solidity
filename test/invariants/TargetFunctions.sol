@@ -503,9 +503,16 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
 
         __after(creditPositionWithDebtToRepayId);
         if (success) {
-            lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, PARTIAL_REPAY_01);
-            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, PARTIAL_REPAY_02);
-            eq(uint256(_after.loanStatus), uint256(_before.loanStatus), PARTIAL_REPAY_03);
+            eq(
+                _after.sender.borrowATokenBalance - _before.sender.borrowATokenBalance,
+                _after.lender.borrowATokenBalance - _before.lender.borrowATokenBalance,
+                PARTIAL_REPAY_01
+            );
+            if (_after.sender.account != _before.lender.account) {
+                lt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, PARTIAL_REPAY_02);
+            }
+            lt(_after.borrower.debtBalance, _before.borrower.debtBalance, PARTIAL_REPAY_03);
+            eq(uint256(_after.loanStatus), uint256(_before.loanStatus), PARTIAL_REPAY_04);
         }
     }
 
