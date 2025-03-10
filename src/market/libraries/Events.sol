@@ -137,7 +137,9 @@ library Events {
 
     event SwapData(
         uint256 indexed creditPositionId,
+        // debt recipient
         address indexed borrower,
+        // credit recipient
         address indexed lender,
         uint256 credit,
         uint256 cashIn,

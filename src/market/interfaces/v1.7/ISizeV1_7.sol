@@ -42,9 +42,13 @@ interface ISizeV1_7 {
     function sellCreditLimitOnBehalfOf(SellCreditLimitOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `buyCreditMarket` but `onBehalfOf`
+    /// @dev When emitting the `SwapData` event, the recipient is set as the `lender` param, which is inconsistent with the `BuyCreditMarket` event emitted just before,
+    ///        where `lender` is passed as `onBehalfOf`. The reason is that `SwapData` emits only debt/credit recipients, while `BuyCreditMarket` emits both and also `onBehalfOf`.
     function buyCreditMarketOnBehalfOf(BuyCreditMarketOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `sellCreditMarket` but `onBehalfOf`
+    /// @dev When emitting the `SwapData` event, the `recipient` parameter is left out. The reason is that `SwapData` emits only debt/credit recipients,
+    ///      while `SellCreditMarket` emits both and also the cash recipient.
     function sellCreditMarketOnBehalfOf(SellCreditMarketOnBehalfOfParams memory params) external payable;
 
     // repay is permissionless
