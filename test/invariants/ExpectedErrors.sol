@@ -11,9 +11,6 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 import {Properties} from "@test/invariants/Properties.sol";
 
 abstract contract ExpectedErrors is Deploy, Properties {
-    bool internal success;
-    bytes internal returnData;
-
     bytes4[] internal DEPOSIT_ERRORS;
     bytes4[] internal WITHDRAW_ERRORS;
     bytes4[] internal SELL_CREDIT_MARKET_ERRORS;
