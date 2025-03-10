@@ -10,6 +10,8 @@ import {IMultiSendCallOnly} from "@script/interfaces/IMultiSendCallOnly.sol";
 import {PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
+import {IOracle} from "@src/oracle/v1.5.1/adapters/morpho/IOracle.sol";
+
 struct NetworkConfiguration {
     address weth;
     address underlyingCollateralToken;
@@ -324,6 +326,22 @@ abstract contract Networks {
             quoteStalePriceInterval: 0,
             sequencerUptimeFeed: AggregatorV3Interface(address(0))
         });
+    }
+
+    function priceFeedWstethUsdcBaseMainnet()
+        public
+        pure
+        returns (
+            AggregatorV3Interface sequencerUptimeFeed,
+            IOracle morphoOracle,
+            IERC20Metadata baseToken,
+            IERC20Metadata quoteToken
+        )
+    {
+        sequencerUptimeFeed = AggregatorV3Interface(0xBCF85224fc0756B9Fa45aA7892530B47e10b6433);
+        morphoOracle = IOracle(0x957e76d8f2D3ab0B4f342cd5f4b03A6f6eF2ce5F);
+        baseToken = IERC20Metadata(0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452);
+        quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
     }
 
     function multiSendCallOnly(string memory network) public pure returns (IMultiSendCallOnly) {
