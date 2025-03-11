@@ -173,33 +173,37 @@ jobs:
         run: |
           ./script/prepare_crytic.sh
 
-      - name: Install Echidna
-        if: matrix.mode == 'assertion' || matrix.mode == 'property'
+      - name: Install Fuzzer ${{ matrix.mode }}
         run: |
-          wget https://github.com/crytic/echidna/releases/download/v2.2.6/echidna-2.2.6-x86_64-linux.tar.gz -O echidna.tar.gz
-          tar -xvkf echidna.tar.gz
-          rm echidna.tar.gz
-          ./echidna --version
+          if [[ "${{ matrix.mode }}" == "assertion" || "${{ matrix.mode }}" == "property" ]]; then
+            TOOL="echidna"
+            URL="https://github.com/crytic/echidna/releases/download/v2.2.6/echidna-2.2.6-x86_64-linux.tar.gz"
+          elif [[ "${{ matrix.mode }}" == "medusa" ]]; then
+            TOOL="medusa"
+            URL="https://github.com/crytic/medusa/releases/download/v1.1.1/medusa-linux-x64.tar.gz"
+          else
+            echo "Unsupported mode: ${{ matrix.mode }}"
+            exit 1
+          fi
 
-      - name: Echidna ${{ matrix.mode }}
-        if: matrix.mode == 'assertion' || matrix.mode == 'property'
-        run: |
-          ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
+          wget "$URL" -O "$TOOL.tar.gz"
+          tar -xvkf "$TOOL.tar.gz"
+          rm "$TOOL.tar.gz"
+          ./$TOOL --version
 
-      - name: Install Medusa
-        if: matrix.mode == 'medusa'
+      - name: Run Fuzzer ${{ matrix.mode }}
         run: |
-          wget https://github.com/crytic/medusa/releases/download/v1.1.1/medusa-linux-x64.tar.gz -O medusa.tar.gz
-          tar -xvkf medusa.tar.gz
-          rm medusa.tar.gz
-          ./medusa --version
+          if [[ "${{ matrix.mode }}" == "assertion" || "${{ matrix.mode }}" == "property" ]]; then
+            ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
+          elif [[ "${{ matrix.mode }}" == "medusa" ]]; then
+            sed -i 's/\"testLimit\":.*/\"testLimit\": 50000,/g' medusa.json
+            sed -i 's/\"corpusDirectory\":.*/\"corpusDirectory\": \"medusa-corpus\",/g' medusa.json
+            ./medusa fuzz
+          else
+            echo "Unsupported mode: ${{ matrix.mode }}"
+            exit 1
+          fi
 
-      - name: Medusa
-        if: matrix.mode == 'medusa'
-        run: |
-          sed -i 's/\"testLimit\":.*/\"testLimit\": 10000,/g' medusa.json
-          sed -i 's/\"corpusDirectory\":.*/\"corpusDirectory\": \"medusa-corpus\",/g' medusa.json
-          ./medusa fuzz
 
   halmos:
     needs: [sizes, fmt, test, testFork, slither, solhint]
