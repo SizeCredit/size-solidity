@@ -199,7 +199,7 @@ jobs:
         run: |
           sed -i 's/\"testLimit\":.*/\"testLimit\": 10000,/g' medusa.json
           sed -i 's/\"corpusDirectory\":.*/\"corpusDirectory\": \"medusa-corpus\",/g' medusa.json
-          ./medusa fuzz --test-limit 10000
+          ./medusa fuzz
 
   halmos:
     needs: [sizes, fmt, test, testFork, slither, solhint]
