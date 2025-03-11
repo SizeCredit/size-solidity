@@ -197,9 +197,8 @@ jobs:
       - name: Medusa
         if: matrix.mode == 'medusa'
         run: |
-          mkdir -p medusa/call_sequences/mutable
-          mkdir -p medusa/call_sequences/immutable
-          sed -i 's/testLimit.*/\"testLimit\": 10000/g' medusa.json
+          sed -i 's/\"testLimit\":.*/\"testLimit\": 10000,/g' medusa.json
+          sed -i 's/\"corpusDirectory\":.*/\"corpusDirectory\": \"medusa-corpus\",/g' medusa.json
           ./medusa fuzz --test-limit 10000
 
   halmos:
