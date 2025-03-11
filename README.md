@@ -109,7 +109,7 @@ A non-exhaustive list of the risks of improper authorization includes:
 - Authorizing `sellCreditLimit` enables the operator to set sub-optimal borrow offers
 - Authorizing `buyCreditLimit` enables the operator to set sub-optimal loan offers
 - Authorizing both `buyCreditLimit` and `sellCreditLimit` enables the operator to set the borrow offer above the loan offer and create a self-arbitrage opportunity for the user
-- Authorizing `sellCreditMarket` enables the operator to borrow on behalf of the user and send the borrowed cash to their account
+- Authorizing `sellCreditMarket` enables the operator to borrow on behalf of the user and send the borrowed cash to their account, or to sell positions not for-sale
 - Authorizing `buyCreditMarket` enables the operator to lend on behalf of the user and send the credit to their account
 - Authorizing `selfLiquidate` enables the operator to self liquidate on their behalf when the debt position is likely to become liquidatable in the short term
 - Authorizing `compensate` enables the operator to compensate loans on their behalf from risky debt positions
