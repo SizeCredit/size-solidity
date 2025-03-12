@@ -9,10 +9,10 @@ import {SetupLocal} from "@test/invariants/SetupLocal.sol";
 
 import {Logger} from "@test/Logger.sol";
 
-import {Test} from "forge-std/Test.sol";
+import {BaseTest} from "@test/BaseTest.sol";
 
-contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, Logger {
-    function setUp() public {
+contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAsserts, Logger {
+    function setUp() public override {
         vm.deal(address(USER1), 100e18);
         vm.deal(address(USER2), 100e18);
         vm.deal(address(USER3), 100e18);
@@ -23,18 +23,14 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
         setup();
 
         sender = USER1;
+
+        _labels();
     }
 
     function _setUp(address _user, uint256 _time, uint256 _block) internal {
         sender = _user;
         vm.warp(block.timestamp + _time);
         vm.roll(block.number + _block);
-    }
-
-    function _setUp2(address _user, uint256 _time, uint256 _block) internal {
-        sender = _user;
-        vm.warp(_time);
-        vm.roll(_block);
     }
 
     function _setUp2(uint256 _time, uint256 _block, address _user) internal {
@@ -494,24 +490,24 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
     }
 
     function test_CryticToFoundry_30() public {
-        _setUp2(address(0x10000), 329209 seconds, 46770);
+        _setUp2(46770, 329209 seconds, address(0x10000));
         setLiquidityIndex(
             24144280689161376411699655996641651355571594095744305902715123376333912,
             1809250669253889360540750338129704068369285778592831420537954792139475538192
         );
-        _setUp2(address(0x10000), 1130773 seconds, 127492);
+        _setUp2(127492, 1130773 seconds, address(0x10000));
         deposit(
             address(0xb0012f9561d77E9DDD3717864c8D506293E7048a),
             5102802951401452168437584275815931536166756800209775828233386767131436092185
         );
-        _setUp2(address(0x20000), 1673159 seconds, 129911);
+        _setUp2(129911, 1673159 seconds, address(0x20000));
         buyCreditLimit(
             1033845871685555748620879071399972530679096196126712049512941042701210132,
             11804470974780652379408574193017582900328984161987784073305935771826829019986
         );
-        _setUp2(address(0x20000), 1736184 seconds, 165619);
+        _setUp2(165619, 1736184 seconds, address(0x20000));
         deposit(address(0xe31d2C3eB), 7232244833418451119370746085861572184889100922874313956198279854394584220);
-        _setUp2(address(0x10000), 1802787 seconds, 177868);
+        _setUp2(177868, 1802787 seconds, address(0x10000));
         sellCreditMarket(
             address(0x1c),
             51738619771525102472409639288380803469255978726619665417551712644643365375176,
@@ -519,7 +515,7 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
             4955170433206369925557467405683212360067150392783249747653875028031334073727,
             false
         );
-        _setUp2(address(0x30000), 2306134 seconds, 207004);
+        _setUp2(207004, 2306134 seconds, address(0x30000));
         partialRepay(87813795631914495780727710118247212507477432414910192161589577968797622429654, 1, address(0x435f));
     }
 
@@ -592,5 +588,47 @@ contract CryticToFoundry is Test, TargetFunctions, SetupLocal, FoundryAsserts, L
         _before.sig = liquidateWithReplacement.selector;
         _after.sig = liquidateWithReplacement.selector;
         property_LOAN();
+    }
+
+    function test_CryticToFoundry_33() public {
+        _setUp2(509958, 38112, address(0x10000));
+        buyCreditLimit(
+            86823489761229526587136877855793275713891334019096040613542971294927124205,
+            56539106072908298546665520023200347014542514857714818488802180404972268934
+        );
+        _setUp2(883528, 56559, address(0x10000));
+        deposit(
+            address(0x4bd7C2852A82e6e973C163b2D7E6364B39877fA8),
+            1729365889127702450358172259921221361365768609540681682087843215708993
+        );
+        _setUp2(1425914, 58978, address(0x20000));
+        buyCreditLimit(
+            3618457211197443973044755066024996915791360248926537994076533840686451510944, 1299999998737106654
+        );
+        _setUp2(1488939, 94686, address(0x20000));
+        deposit(address(0xe31d2C3eB), 50068785681508719104547488337786135736446719758444268747140664014083133914915);
+        _setUp2(1991107, 115083, address(0x30000));
+        setPrice(3297618813341096958085241632226394376551519996836301523185418155654507198392);
+        _setUp2(2057710, 127332, address(0x10000));
+        sellCreditMarket(
+            address(0x1c),
+            84347152461483838631829677660352875460212722564003295893159981519670974,
+            178415556052038492775063222100602913636015686791437373600344812433905788316,
+            24829726046809971511988451297831659811076393461405635289265340389412624034092,
+            false
+        );
+        _setUp2(6368529, 450120, address(0x20000));
+        setLiquidityIndex(
+            842404015964027556200177656582871449073411985127926655656492891092340127198,
+            13242839890133477086976714325692177759339228987157802619831600037970534296276
+        );
+        _setUp2(6444036, 463739, address(0x20000));
+        sellCreditMarket(
+            address(0x8dD541e08a116c6c53815C0Bd028192F7b626800),
+            2896945544755195503434723208013261347430426923821872775970565365087540909188,
+            1,
+            1552131752024866076968664758268551688392561045176396323169143409519343661,
+            false
+        );
     }
 }

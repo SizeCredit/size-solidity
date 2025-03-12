@@ -147,7 +147,12 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         __after();
         if (success) {
             if (lender != sender) {
-                gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
+                if (amount >= MIN_AMOUNT_USDC) {
+                    gt(_after.sender.borrowATokenBalance, _before.sender.borrowATokenBalance, BORROW_01);
+                } else {
+                    // fragmentationFee can eat the whole cash and leave only 1 as cashAmountOut,
+                    //   which would be rounded down in NonTransferrableScaledTokenV1_5.transferFrom
+                }
             }
 
             if (creditPositionId == RESERVED_ID) {
