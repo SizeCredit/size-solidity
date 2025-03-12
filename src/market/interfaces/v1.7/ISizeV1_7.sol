@@ -21,6 +21,7 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice The interface for the Size v1.7 authorization system
+/// @dev Modifiers are moved from bare functions (e.g. `deposit`) to OnBehalfOf functions (e.g. `depositOnBehalfOf`)
 interface ISizeV1_7 {
     /// @notice Reinitialize the size contract
     ///         In production, `sizeFactory` will not be set for existing markets before the v1.7 upgrade
