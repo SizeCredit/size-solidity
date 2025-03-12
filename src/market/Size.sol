@@ -404,11 +404,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function compensate(CompensateParams calldata params)
-        external
-        payable
-        override(ISize)
-    {
+    function compensate(CompensateParams calldata params) external payable override(ISize) {
         compensateOnBehalfOf(CompensateOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -425,11 +421,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function setUserConfiguration(SetUserConfigurationParams calldata params)
-        external
-        payable
-        override(ISize)
-    {
+    function setUserConfiguration(SetUserConfigurationParams calldata params) external payable override(ISize) {
         setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
