@@ -35,7 +35,7 @@ import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrabl
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {SizeFactoryEvents} from "@src/factory/SizeFactoryEvents.sol";
-import {SizeFactoryGetters} from "@src/factory/SizeFactoryGetters.sol";
+import {SizeFactoryOffchainGetters} from "@src/factory/SizeFactoryOffchainGetters.sol";
 import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Authorization.sol";
 
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
@@ -48,7 +48,7 @@ import {BORROW_RATE_UPDATER_ROLE, KEEPER_ROLE, PAUSER_ROLE} from "@src/factory/i
 /// @notice See the documentation in {ISizeFactory}.
 contract SizeFactory is
     ISizeFactory,
-    SizeFactoryGetters,
+    SizeFactoryOffchainGetters,
     SizeFactoryEvents,
     MulticallUpgradeable,
     Ownable2StepUpgradeable,
@@ -122,60 +122,18 @@ contract SizeFactory is
         market = MarketFactoryLibrary.createMarket(
             sizeImplementation, owner(), feeConfigParams, riskConfigParams, oracleParams, dataParams
         );
-        _addMarket(market);
+        markets.add(address(market));
+        emit CreateMarket(address(market));
     }
 
     /// @inheritdoc ISizeFactory
-    function addMarket(ISize market) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool existed) {
-        existed = _addMarket(market);
-    }
-
-    function _addMarket(ISize market) internal returns (bool existed) {
-        if (address(market) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        existed = !markets.add(address(market));
-        emit MarketAdded(address(market), existed);
-    }
-
-    /// @inheritdoc ISizeFactory
-    function removeMarket(ISize market) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool existed) {
-        if (address(market) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        existed = markets.remove(address(market));
-        emit MarketRemoved(address(market), existed);
-    }
-
     function createPriceFeed(PriceFeedParams memory _priceFeedParams)
         external
         onlyRole(DEFAULT_ADMIN_ROLE)
         returns (PriceFeed priceFeed)
     {
         priceFeed = PriceFeedFactoryLibrary.createPriceFeed(_priceFeedParams);
-        _addPriceFeed(priceFeed);
-    }
-
-    /// @inheritdoc ISizeFactory
-    function addPriceFeed(PriceFeed priceFeed) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool existed) {
-        existed = _addPriceFeed(priceFeed);
-    }
-
-    function _addPriceFeed(PriceFeed priceFeed) internal returns (bool existed) {
-        if (address(priceFeed) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        existed = !priceFeeds.add(address(priceFeed));
-        emit PriceFeedAdded(address(priceFeed), existed);
-    }
-
-    /// @inheritdoc ISizeFactory
-    function removePriceFeed(PriceFeed priceFeed) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool existed) {
-        if (address(priceFeed) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        existed = priceFeeds.remove(address(priceFeed));
-        emit PriceFeedRemoved(address(priceFeed), existed);
+        emit CreatePriceFeed(address(priceFeed));
     }
 
     /// @inheritdoc ISizeFactory
@@ -187,37 +145,7 @@ contract SizeFactory is
         borrowATokenV1_5 = NonTransferrableScaledTokenV1_5FactoryLibrary.createNonTransferrableScaledTokenV1_5(
             nonTransferrableScaledTokenV1_5Implementation, owner(), variablePool, underlyingBorrowToken
         );
-        _addBorrowATokenV1_5(borrowATokenV1_5);
-    }
-
-    /// @inheritdoc ISizeFactory
-    function addBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        returns (bool existed)
-    {
-        existed = _addBorrowATokenV1_5(borrowATokenV1_5);
-    }
-
-    function _addBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5) internal returns (bool existed) {
-        if (address(borrowATokenV1_5) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        existed = !borrowATokensV1_5.add(address(borrowATokenV1_5));
-        emit BorrowATokenV1_5Added(address(borrowATokenV1_5), existed);
-    }
-
-    /// @inheritdoc ISizeFactory
-    function removeBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        returns (bool existed)
-    {
-        if (address(borrowATokenV1_5) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        existed = borrowATokensV1_5.remove(address(borrowATokenV1_5));
-        emit BorrowATokenV1_5Removed(address(borrowATokenV1_5), existed);
+        emit CreateBorrowATokenV1_5(address(borrowATokenV1_5));
     }
 
     /// @inheritdoc ISizeFactory

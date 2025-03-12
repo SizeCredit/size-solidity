@@ -56,16 +56,17 @@ contract SizeFactoryTest is BaseTest {
         assertTrue(!sizeFactory.isMarket(address(candidate)));
 
         vm.prank(owner);
-        sizeFactory.addMarket(candidate);
-        assertTrue(sizeFactory.isMarket(address(candidate)));
+        address market = address(sizeFactory.createMarket(f, r, o, d));
+        assertTrue(sizeFactory.isMarket(market));
 
-        assertEq(address(sizeFactory.getMarket(1)), address(candidate));
+        assertEq(address(sizeFactory.getMarket(1)), market);
     }
 
     function test_SizeFactory_set_2_existing_markets_1() public {
         assertEq(address(sizeFactory.getMarket(0)), address(size));
         assertEq(sizeFactory.getMarketDescriptions()[0], string.concat("Size | WETH | USDC | 130 | ", VERSION));
 
+        shouldDeploySizeFactory = false;
         setupLocalGenericMarket(owner, feeRecipient, 60576e18, 0.9999e18, 8, 6, false, false);
 
         assertEq(address(sizeFactory.getMarket(1)), address(size));
@@ -76,6 +77,7 @@ contract SizeFactoryTest is BaseTest {
         assertEq(address(sizeFactory.getMarket(0)), address(size));
         assertEq(sizeFactory.getMarketDescriptions()[0], string.concat("Size | WETH | USDC | 130 | ", VERSION));
 
+        shouldDeploySizeFactory = false;
         setupLocalGenericMarket(owner, feeRecipient, 60576e18, 0.9999e18, 8, 6, false, false);
 
         assertEq(address(sizeFactory.getMarket(1)), address(size));
@@ -97,33 +99,7 @@ contract SizeFactoryTest is BaseTest {
         assertEq(sizeFactory.getMarketDescriptions()[2], string.concat("Size | stETH | WETH | 125 | ", VERSION));
     }
 
-    function test_SizeFactory_set_2_existing_markets_add_3rd_market_remove_1st_market_tryRemove_unexistent_market()
-        public
-    {
-        test_SizeFactory_set_2_existing_markets_add_3rd_market();
-
-        bool existed;
-
-        uint256 count = sizeFactory.getMarketsCount();
-
-        vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        existed = sizeFactory.addMarket(ISize(payable(address(0))));
-        assertEq(sizeFactory.getMarketsCount(), count);
-
-        vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        existed = sizeFactory.removeMarket(ISize(payable(address(0))));
-        assertEq(sizeFactory.getMarketsCount(), count);
-    }
-
     function test_SizeFactory_createPriceFeed() public {
-        vm.expectRevert();
-        vm.prank(owner);
-        sizeFactory.getPriceFeed(0);
-
-        assertTrue(!sizeFactory.isPriceFeed(address(priceFeed)));
-
         MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
         MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
         MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
@@ -150,54 +126,6 @@ contract SizeFactoryTest is BaseTest {
                 averageBlockTime: averageBlockTime
             })
         );
-        PriceFeed ipriceFeed = sizeFactory.getPriceFeed(0);
-        assertTrue(sizeFactory.isPriceFeed(address(ipriceFeed)));
-
-        assertEq(address(sizeFactory.getPriceFeed(0)), address(ipriceFeed));
-    }
-
-    function test_SizeFactory_removeMarket() public {
-        ISize candidate = ISize(makeAddr("candidate"));
-        vm.prank(owner);
-        sizeFactory.addMarket(candidate);
-
-        vm.prank(owner);
-        bool existed = sizeFactory.removeMarket(candidate);
-        assertTrue(existed);
-        assertFalse(sizeFactory.isMarket(address(candidate)));
-    }
-
-    function test_SizeFactory_remove_non_existent_market() public {
-        ISize candidate = ISize(makeAddr("candidate"));
-        vm.prank(owner);
-        bool existed = sizeFactory.removeMarket(candidate);
-        assertFalse(existed);
-    }
-
-    function test_SizeFactory_addBorrowATokenV1_5() public {
-        IERC20Metadata token = IERC20Metadata(makeAddr("token"));
-        vm.prank(owner);
-        bool existed = sizeFactory.addBorrowATokenV1_5(token);
-        assertFalse(existed);
-        assertTrue(sizeFactory.isBorrowATokenV1_5(address(token)));
-    }
-
-    function test_SizeFactory_removeBorrowATokenV1_5() public {
-        IERC20Metadata token = IERC20Metadata(makeAddr("token"));
-        vm.prank(owner);
-        sizeFactory.addBorrowATokenV1_5(token);
-
-        vm.prank(owner);
-        bool existed = sizeFactory.removeBorrowATokenV1_5(token);
-        assertTrue(existed);
-        assertFalse(sizeFactory.isBorrowATokenV1_5(address(token)));
-    }
-
-    function test_SizeFactory_remove_non_existent_borrow_a_token() public {
-        IERC20Metadata token = IERC20Metadata(makeAddr("token"));
-        vm.prank(owner);
-        bool existed = sizeFactory.removeBorrowATokenV1_5(token);
-        assertFalse(existed);
     }
 
     function test_SizeFactory_createMarket_unauthorized() public {
@@ -243,123 +171,19 @@ contract SizeFactoryTest is BaseTest {
         sizeFactory.createBorrowATokenV1_5(IPool(address(0)), IERC20Metadata(address(0)));
     }
 
-    function test_SizeFactory_addPriceFeed_1() public {
-        MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
-        MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
-        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
-        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
-
-        vm.prank(owner);
-        sizeFactory.createPriceFeed(
-            PriceFeedParams({
-                baseAggregator: AggregatorV3Interface(address(aggregator1)),
-                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
-                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
-                baseStalePriceInterval: 1,
-                quoteStalePriceInterval: 2,
-                twapWindow: 30 minutes,
-                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
-                baseToken: IERC20Metadata(address(baseToken)),
-                quoteToken: IERC20Metadata(address(quoteToken)),
-                averageBlockTime: averageBlockTime
-            })
-        );
-        PriceFeed priceFeed = sizeFactory.getPriceFeed(0);
-
-        vm.prank(owner);
-        bool existed = sizeFactory.addPriceFeed(priceFeed);
-        assertFalse(!existed);
-        assertTrue(sizeFactory.isPriceFeed(address(priceFeed)));
-    }
-
-    function test_SizeFactory_removePriceFeed() public {
-        MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
-        MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
-        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
-        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
-
-        vm.prank(owner);
-        sizeFactory.createPriceFeed(
-            PriceFeedParams({
-                baseAggregator: AggregatorV3Interface(address(aggregator1)),
-                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
-                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
-                baseStalePriceInterval: 1,
-                quoteStalePriceInterval: 2,
-                twapWindow: 30 minutes,
-                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
-                baseToken: IERC20Metadata(address(baseToken)),
-                quoteToken: IERC20Metadata(address(quoteToken)),
-                averageBlockTime: averageBlockTime
-            })
-        );
-        PriceFeed priceFeed = sizeFactory.getPriceFeed(0);
-
-        vm.prank(owner);
-        sizeFactory.addPriceFeed(priceFeed);
-
-        vm.prank(owner);
-        bool existed = sizeFactory.removePriceFeed(priceFeed);
-        assertTrue(existed);
-        assertFalse(sizeFactory.isPriceFeed(address(priceFeed)));
-    }
-
-    function test_SizeFactory_remove_non_existent_price_feed() public {
-        PriceFeed priceFeed = PriceFeed(makeAddr("priceFeed"));
-        vm.prank(owner);
-        bool existed = sizeFactory.removePriceFeed(priceFeed);
-        assertFalse(existed);
-    }
-
     function test_SizeFactory_getMarketsCount() public {
-        ISize candidate = ISize(makeAddr("candidate"));
+        assertEq(sizeFactory.getMarketsCount(), 1);
         vm.prank(owner);
-        sizeFactory.addMarket(candidate);
+        sizeFactory.createMarket(f, r, o, d);
         assertEq(sizeFactory.getMarketsCount(), 2);
     }
 
-    function test_SizeFactory_getPriceFeedsCount() public {
-        MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
-        MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
-        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
-        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        uint32 twapWindow = 30 minutes;
-        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
-
-        vm.prank(owner);
-        sizeFactory.createPriceFeed(
-            PriceFeedParams({
-                baseAggregator: AggregatorV3Interface(address(aggregator1)),
-                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
-                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
-                baseStalePriceInterval: 1,
-                quoteStalePriceInterval: 2,
-                twapWindow: twapWindow,
-                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
-                baseToken: IERC20Metadata(address(baseToken)),
-                quoteToken: IERC20Metadata(address(quoteToken)),
-                averageBlockTime: averageBlockTime
-            })
-        );
-
-        assertEq(sizeFactory.getPriceFeedsCount(), 1);
-    }
-
-    function test_SizeFactory_getBorrowATokensV1_5Count() public {
-        IERC20Metadata token = IERC20Metadata(makeAddr("token"));
-        vm.prank(owner);
-        sizeFactory.addBorrowATokenV1_5(token);
-        assertEq(sizeFactory.getBorrowATokensV1_5Count(), 2);
-    }
-
-    function test_SizeFactory_addMarket_revert_on_unauthorized() public {
+    function test_SizeFactory_createMarket_revert_on_unauthorized() public {
         vm.prank(address(0x123));
         vm.expectRevert(
             abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(0x123), 0x00)
         );
-        sizeFactory.addMarket(ISize(makeAddr("market")));
+        sizeFactory.createMarket(f, r, o, d);
     }
 
     function test_SizeFactory_initialize_multiple_markets_and_getDescriptions() public {
@@ -373,206 +197,13 @@ contract SizeFactoryTest is BaseTest {
 
         string[] memory descriptions = sizeFactory.getMarketDescriptions();
 
-        assertEq(descriptions.length, 3);
-        assertEq(descriptions[2], string.concat("Size | MTA | MTB | 120 | ", VERSION));
-    }
-
-    function test_SizeFactory_getPriceFeedDescriptions() public {
-        MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
-        MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
-        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
-        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        uint32 twapWindow = 30 minutes;
-        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
-
-        vm.prank(owner);
-        sizeFactory.createPriceFeed(
-            PriceFeedParams({
-                baseAggregator: AggregatorV3Interface(address(aggregator1)),
-                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
-                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
-                baseStalePriceInterval: 1,
-                quoteStalePriceInterval: 2,
-                twapWindow: twapWindow,
-                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
-                baseToken: IERC20Metadata(address(baseToken)),
-                quoteToken: IERC20Metadata(address(quoteToken)),
-                averageBlockTime: averageBlockTime
-            })
-        );
-        string[] memory descriptions = sizeFactory.getPriceFeedDescriptions();
-
-        assertEq(descriptions.length, 1);
-        assertEq(descriptions[0], "PriceFeed | v0.8/tests/MockV3Aggregator.sol | v0.8/tests/MockV3Aggregator.sol");
-    }
-
-    function test_SizeFactory_getBorrowATokenV1_5Descriptions() public {
-        MockERC20 token = new MockERC20("Mock Borrow Token", "MBT", 18);
-        vm.prank(owner);
-        sizeFactory.addBorrowATokenV1_5(IERC20Metadata(address(token)));
-
-        string[] memory descriptions = sizeFactory.getBorrowATokenV1_5Descriptions();
-
         assertEq(descriptions.length, 2);
-        assertEq(descriptions[1], "MBT");
+        assertEq(descriptions[1], string.concat("Size | MTA | MTB | 120 | ", VERSION));
     }
 
     function test_SizeFactory_version() public view {
         string memory version = sizeFactory.version();
         assertEq(version, VERSION);
-    }
-
-    function test_SizeFactory_addPriceFeed_reverts_on_null_address() public {
-        vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        sizeFactory.addPriceFeed(PriceFeed(address(0)));
-    }
-
-    function test_SizeFactory_removePriceFeed_reverts_on_null_address() public {
-        vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        sizeFactory.removePriceFeed(PriceFeed(address(0)));
-    }
-
-    function test_SizeFactory_addBorrowAToken_reverts_on_null_address() public {
-        vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        sizeFactory.addBorrowATokenV1_5(IERC20Metadata(address(0)));
-    }
-
-    function test_SizeFactory_removeBorrowAToken_reverts_on_null_address() public {
-        vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        sizeFactory.removeBorrowATokenV1_5(IERC20Metadata(address(0)));
-    }
-
-    function test_SizeFactory_get_price_feeds() public {
-        MockV3Aggregator aggregator1 = new MockV3Aggregator(2, 1000e2);
-        MockV3Aggregator aggregator2 = new MockV3Aggregator(2, 1e2);
-        MockERC20 baseToken = new MockERC20("Base Token", "BT", 18);
-        MockERC20 quoteToken = new MockERC20("Quote Token", "QT", 18);
-        IUniswapV3Pool uniswapV3Pool = _deployUniswapV3Pool(baseToken, quoteToken);
-
-        vm.prank(owner);
-        sizeFactory.createPriceFeed(
-            PriceFeedParams({
-                baseAggregator: AggregatorV3Interface(address(aggregator1)),
-                quoteAggregator: AggregatorV3Interface(address(aggregator2)),
-                sequencerUptimeFeed: AggregatorV3Interface(address(0x1)),
-                baseStalePriceInterval: 1,
-                quoteStalePriceInterval: 2,
-                twapWindow: 30 minutes,
-                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
-                baseToken: IERC20Metadata(address(baseToken)),
-                quoteToken: IERC20Metadata(address(quoteToken)),
-                averageBlockTime: averageBlockTime
-            })
-        );
-
-        vm.prank(owner);
-        sizeFactory.createPriceFeed(
-            PriceFeedParams({
-                baseAggregator: AggregatorV3Interface(address(aggregator2)),
-                quoteAggregator: AggregatorV3Interface(address(aggregator1)),
-                sequencerUptimeFeed: AggregatorV3Interface(address(0x2)),
-                baseStalePriceInterval: 1,
-                quoteStalePriceInterval: 2,
-                twapWindow: 30 minutes,
-                uniswapV3Pool: IUniswapV3Pool(address(uniswapV3Pool)),
-                baseToken: IERC20Metadata(address(baseToken)),
-                quoteToken: IERC20Metadata(address(quoteToken)),
-                averageBlockTime: averageBlockTime
-            })
-        );
-
-        PriceFeed[] memory priceFeeds = sizeFactory.getPriceFeeds();
-
-        assertEq(priceFeeds.length, 2);
-        assertEq(address(priceFeeds[0]), address(sizeFactory.getPriceFeed(0)));
-        assertEq(address(priceFeeds[1]), address(sizeFactory.getPriceFeed(1)));
-    }
-
-    function test_SizeFactory_get_borrow_a_tokens_v1_5() public {
-        MockERC20 token1 = new MockERC20("Borrow Token 1", "BT1", 18);
-        MockERC20 token2 = new MockERC20("Borrow Token 2", "BT2", 18);
-
-        vm.prank(owner);
-        sizeFactory.addBorrowATokenV1_5(IERC20Metadata(address(token1)));
-
-        vm.prank(owner);
-        sizeFactory.addBorrowATokenV1_5(IERC20Metadata(address(token2)));
-
-        IERC20Metadata[] memory borrowATokens = sizeFactory.getBorrowATokensV1_5();
-
-        assertEq(borrowATokens.length, 3);
-        assertEq(address(borrowATokens[1]), address(token1));
-        assertEq(address(borrowATokens[2]), address(token2));
-    }
-
-    function test_SizeFactory_addMarket_unauthorized() public {
-        ISize market = ISize(makeAddr("market"));
-        vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
-            )
-        );
-        sizeFactory.addMarket(market);
-    }
-
-    function test_SizeFactory_removeMarket_unauthorized() public {
-        ISize market = ISize(makeAddr("market"));
-        vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
-            )
-        );
-        sizeFactory.removeMarket(market);
-    }
-
-    function test_SizeFactory_addPrice_feed_unauthorized() public {
-        PriceFeed priceFeed = PriceFeed(makeAddr("priceFeed"));
-        vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
-            )
-        );
-        sizeFactory.addPriceFeed(priceFeed);
-    }
-
-    function test_SizeFactory_removePrice_feed_unauthorized() public {
-        PriceFeed priceFeed = PriceFeed(makeAddr("priceFeed"));
-        vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
-            )
-        );
-        sizeFactory.removePriceFeed(priceFeed);
-    }
-
-    function test_SizeFactory_addBorrowATokenV1_5_unauthorized() public {
-        IERC20Metadata borrowAToken = IERC20Metadata(makeAddr("borrowAToken"));
-        vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
-            )
-        );
-        sizeFactory.addBorrowATokenV1_5(borrowAToken);
-    }
-
-    function test_SizeFactory_removeBorrowATokenV1_5_unauthorized() public {
-        IERC20Metadata borrowAToken = IERC20Metadata(makeAddr("borrowAToken"));
-        vm.prank(makeAddr("unauthorized"));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector, makeAddr("unauthorized"), 0x00
-            )
-        );
-        sizeFactory.removeBorrowATokenV1_5(borrowAToken);
     }
 
     function test_SizeFactory_setSizeImplementation() public {
