@@ -169,11 +169,9 @@ library Compensate {
             forSale: creditPositionWithDebtToRepay.forSale
         });
         if (shouldChargeFragmentationFee) {
-            // charge the fragmentation fee in collateral tokens, capped by the user balance
-            uint256 fragmentationFeeInCollateral = Math.min(
-                state.debtTokenAmountToCollateralTokenAmount(state.feeConfig.fragmentationFee),
-                state.data.collateralToken.balanceOf(onBehalfOf)
-            );
+            // charge the fragmentation fee in collateral tokens
+            uint256 fragmentationFeeInCollateral =
+                state.debtTokenAmountToCollateralTokenAmount(state.feeConfig.fragmentationFee);
             state.data.collateralToken.transferFrom(
                 onBehalfOf, state.feeConfig.feeRecipient, fragmentationFeeInCollateral
             );
