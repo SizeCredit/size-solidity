@@ -353,6 +353,7 @@ for i in {0..5}; do halmos --loop $i; done
 - The Variable Pool Borrow Rate feed is trusted and users of rate hook adopt oracle risk of buying/selling credit at unsatisfactory prices
 - The insurance fund (out of scope for this project) may not be able to make all lenders whole, maybe unfair, and may be manipulated
 - LiquidateWithReplacement might not be available for the big enough debt positions
+- The fragmentation fee meant to subsidize `claim` operations by protocol-owned keeper bots during credit splits are not charged during loan origination
 - All issues acknowledged on previous audits and automated findings
 
 ## Deployment
