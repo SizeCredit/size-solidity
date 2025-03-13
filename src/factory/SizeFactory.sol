@@ -122,6 +122,7 @@ contract SizeFactory is
         market = MarketFactoryLibrary.createMarket(
             sizeImplementation, owner(), feeConfigParams, riskConfigParams, oracleParams, dataParams
         );
+        // slither-disable-next-line unused-return
         markets.add(address(market));
         emit CreateMarket(address(market));
     }
