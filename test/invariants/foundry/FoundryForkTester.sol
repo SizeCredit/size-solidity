@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {FoundryForkHandler} from "./FoundryForkHandler.sol";
-import {console2 as console} from "forge-std/console2.sol";
+import {console} from "forge-std/console.sol";
 
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 import {Test} from "forge-std/Test.sol";

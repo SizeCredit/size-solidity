@@ -248,7 +248,7 @@ contract CompensateTest is BaseTest {
         _claim(james, creditPositionWithDebtToRepayId);
 
         _setPrice(0.1e18);
-        assertTrue(size.isUserUnderwater(bob));
+        assertTrue(_isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(loanToCompensateId));
 
         uint256 newCreditPositionId = size.getCreditPositionIdsByDebtPositionId(loanToCompensateId)[0];
@@ -550,36 +550,6 @@ contract CompensateTest is BaseTest {
         _compensate(alice, creditPositionId, creditPositionId2);
     }
 
-    function test_Compensate_compensate_mintCredit_can_be_used_to_partially_repay_with_compensate() public {
-        _setPrice(1e18);
-        _updateConfig("swapFeeAPR", 0);
-        _deposit(alice, usdc, 200e6);
-        _deposit(bob, weth, 400e18);
-        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.5e18));
-
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 120e6, 365 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-
-        assertEq(size.getUserView(bob).borrowATokenBalance, 120e6);
-        assertEq(size.getUserView(bob).debtBalance, 180e6);
-
-        uint256[] memory receivableCreditPositionIds = new uint256[](1);
-        receivableCreditPositionIds[0] = type(uint256).max;
-
-        vm.prank(bob);
-        size.compensate(
-            CompensateParams({
-                creditPositionWithDebtToRepayId: creditPositionId,
-                creditPositionToCompensateId: RESERVED_ID,
-                amount: 70e6
-            })
-        );
-        _repay(bob, debtPositionId, bob);
-
-        assertEq(size.getUserView(bob).borrowATokenBalance, 120e6 - (180e6 - 70e6), 10e6);
-        assertEq(size.getUserView(bob).debtBalance, 70e6);
-    }
-
     function test_Compensate_compensate_split_credit_must_pay_fragmentationFee() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 500e6);
@@ -595,6 +565,14 @@ contract CompensateTest is BaseTest {
         aprs[0] = 0.2e18;
         tenors[0] = 365 days;
         marketRateMultipliers[0] = 0;
+
+        vm.prank(candy);
+        size.sellCreditLimit(
+            SellCreditLimitParams({
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs}),
+                maxDueDate: block.timestamp + 365 days
+            })
+        );
 
         vm.prank(bob);
         size.buyCreditLimit(
@@ -627,25 +605,33 @@ contract CompensateTest is BaseTest {
 
         uint256 creditPositionId = type(uint256).max / 2;
 
+        vm.prank(alice);
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: candy,
+                creditPositionId: type(uint256).max,
+                amount: 100e6,
+                tenor: 365 days,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: false
+            })
+        );
+
         Vars memory _before = _state();
         uint256 fragmentationFeeInCollateral =
             size.debtTokenAmountToCollateralTokenAmount(size.feeConfig().fragmentationFee);
-
-        uint256[] memory creditPositionIds = new uint256[](10);
-        creditPositionIds[0] = creditPositionId;
         uint256 n = 10;
 
-        for (uint256 i = 0; i < n; ++i) {
+        for (uint256 i = 0; i < n - 1; ++i) {
             vm.prank(alice);
             size.compensate(
                 CompensateParams({
                     creditPositionWithDebtToRepayId: creditPositionId,
-                    creditPositionToCompensateId: type(uint256).max,
+                    creditPositionToCompensateId: creditPositionId + 1,
                     amount: 10e6
                 })
             );
-
-            creditPositionIds[i] = creditPositionId + i;
         }
 
         Vars memory _after = _state();
@@ -654,7 +640,7 @@ contract CompensateTest is BaseTest {
             _after.alice.collateralTokenBalance,
             _before.alice.collateralTokenBalance - (n - 1) * fragmentationFeeInCollateral
         );
-        assertEq(size.getCreditPosition(creditPositionId).credit, 0);
+        assertEq(size.getCreditPosition(creditPositionId).credit, 10e6);
     }
 
     function test_Compensate_compensate_should_be_allowed_if_it_does_not_put_user_underwater() public {
@@ -746,22 +732,23 @@ contract CompensateTest is BaseTest {
         );
     }
 
-    function test_Compensate_compensate_should_revert_if_it_leaves_user_underwater() public {
+    function testFuzz_Compensate_compensate_should_revert_if_it_does_not_improve_cr(uint256 price) public {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 10e6);
+        _updateConfig("minimumCreditBorrowAToken", 10e6);
         _updateConfig("swapFeeAPR", 0);
         _deposit(bob, weth, 200e18);
         _deposit(bob, usdc, 5_000e6);
         _deposit(candy, weth, 200e18);
         _deposit(candy, usdc, 500e6);
-        _deposit(alice, weth, 1000e18);
+        _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 100e6);
 
         int256[] memory aprs = new int256[](1);
         uint256[] memory tenors = new uint256[](1);
         uint256[] memory marketRateMultipliers = new uint256[](1);
 
-        aprs[0] = 0.2e18;
+        aprs[0] = 0;
         tenors[0] = 365 days;
         marketRateMultipliers[0] = 0;
 
@@ -786,7 +773,7 @@ contract CompensateTest is BaseTest {
             BuyCreditMarketParams({
                 borrower: alice,
                 creditPositionId: type(uint256).max,
-                amount: 50e6,
+                amount: 30e6,
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
@@ -796,48 +783,52 @@ contract CompensateTest is BaseTest {
 
         uint256 creditPositionId_1 = type(uint256).max / 2;
 
-        vm.prank(candy);
-        size.buyCreditMarket(
-            BuyCreditMarketParams({
-                borrower: alice,
-                creditPositionId: type(uint256).max,
-                amount: 300e6,
-                tenor: 365 days,
-                deadline: block.timestamp,
-                minAPR: 0,
-                exactAmountIn: true
-            })
-        );
-
         vm.prank(alice);
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: candy,
                 creditPositionId: type(uint256).max,
-                amount: 50e6,
+                amount: 20e6,
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
                 exactAmountIn: false
             })
         );
+        (, uint256 creditPositionCount) = size.getPositionsCount();
+        uint256 creditPositionToCompensateId = CREDIT_POSITION_ID_START + creditPositionCount - 1;
 
-        _setPrice(0.54933036472970604e18);
+        price = bound(price, 1, 1e18);
+        _setPrice(price);
 
-        assertGe(size.collateralRatio(alice), size.riskConfig().crLiquidation);
+        uint256 crBefore = size.collateralRatio(alice);
 
         vm.prank(alice);
         try size.compensate(
             CompensateParams({
                 creditPositionWithDebtToRepayId: creditPositionId_1,
-                creditPositionToCompensateId: type(uint256).max,
-                amount: 50e6
+                creditPositionToCompensateId: creditPositionToCompensateId,
+                amount: 10e6
             })
         ) {
-            assertTrue(false);
+            uint256 crAfter = size.collateralRatio(alice);
+            assertGt(crAfter, crBefore);
         } catch (bytes memory err) {
-            assertEq(bytes4(err), Errors.USER_IS_UNDERWATER.selector);
+            assertIn(
+                bytes4(err),
+                [Errors.MUST_IMPROVE_COLLATERAL_RATIO.selector, Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector]
+            );
         }
+    }
+
+    function test_Compensate_compensate_should_revert_if_it_does_not_improve_cr_concrete_revert() public {
+        testFuzz_Compensate_compensate_should_revert_if_it_does_not_improve_cr(3067665046581166411735349628098);
+    }
+
+    function test_Compensate_compensate_should_revert_if_it_does_not_improve_cr_concrete_success() public {
+        testFuzz_Compensate_compensate_should_revert_if_it_does_not_improve_cr(
+            403631493092371811199370247613844744760271305507456038040894
+        );
     }
 
     function test_Compensate_borrower_cannot_force_position_for_sale() public {
@@ -847,6 +838,8 @@ contract CompensateTest is BaseTest {
         _deposit(bob, usdc, 500e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 500e6);
+        _deposit(james, weth, 100e18);
+        _deposit(james, usdc, 500e6);
 
         int256[] memory aprs = new int256[](1);
         uint256[] memory tenors = new uint256[](1);
@@ -881,6 +874,15 @@ contract CompensateTest is BaseTest {
             })
         );
 
+        // James creates a limit order
+        vm.prank(james);
+        size.sellCreditLimit(
+            SellCreditLimitParams({
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs}),
+                maxDueDate: block.timestamp + 365 days
+            })
+        );
+
         uint256 creditPositionId = type(uint256).max / 2;
 
         // Bob's credit position is for sale
@@ -907,12 +909,28 @@ contract CompensateTest is BaseTest {
 
         uint256 newAmount = 90e6;
 
+        // Alice has credit with newAmount
+        vm.prank(alice);
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: james,
+                creditPositionId: type(uint256).max,
+                amount: newAmount,
+                tenor: 365 days,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: false
+            })
+        );
+        (, uint256 creditPositionCount) = size.getPositionsCount();
+        uint256 creditPositionToCompensateId = CREDIT_POSITION_ID_START + creditPositionCount - 1;
+
         // Alice compensates the credit position with 90% of the amount
         vm.prank(alice);
         size.compensate(
             CompensateParams({
                 creditPositionWithDebtToRepayId: creditPositionId,
-                creditPositionToCompensateId: type(uint256).max,
+                creditPositionToCompensateId: creditPositionToCompensateId,
                 amount: newAmount
             })
         );

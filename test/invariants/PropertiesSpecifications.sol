@@ -27,7 +27,13 @@ abstract contract PropertiesSpecifications {
 
     string internal constant REPAY_01 = "REPAY_01: Repay transfers cash from the sender to the protocol";
     string internal constant REPAY_02 = "REPAY_02: Repay decreases the borrower's debt";
-    string internal constant REPAY_03 = "REPAY_02: Repay clears the loan's debt";
+    string internal constant REPAY_03 = "REPAY_03: Repay clears the loan's debt";
+
+    string internal constant PARTIAL_REPAY_01 =
+        "PARTIAL_REPAY_01: PartialRepay transfers cash from the sender to the lender";
+    string internal constant PARTIAL_REPAY_02 = "PARTIAL_REPAY_02: PartialRepay decreases the sender's cash";
+    string internal constant PARTIAL_REPAY_03 = "PARTIAL_REPAY_03: PartialRepay decreases the borrower's debt";
+    string internal constant PARTIAL_REPAY_04 = "PARTIAL_REPAY_04: PartialRepay does not change the loan status";
 
     string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
     string internal constant LOAN_02 = "LOAN_02: minTenor <= loan.tenor <= maxTenor";

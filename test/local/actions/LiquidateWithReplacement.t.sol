@@ -192,7 +192,7 @@ contract LiquidateWithReplacementTest is BaseTest {
 
         // Assert conditions for Alice's borrowing
         assertGe(size.collateralRatio(alice), size.riskConfig().crOpening, "Alice should be above CR opening");
-        assertTrue(!size.isUserUnderwater(alice), "Borrower should not be underwater");
+        assertTrue(!_isUserUnderwater(alice), "Borrower should not be underwater");
 
         // Candy places a borrow limit order (candy needs more collateral so that she can be replaced later)
         _deposit(candy, weth, 20000e18);
@@ -209,7 +209,7 @@ contract LiquidateWithReplacementTest is BaseTest {
         _setPrice(0.6e18);
 
         // Assert conditions for liquidation
-        assertTrue(size.isUserUnderwater(alice), "Borrower should be underwater");
+        assertTrue(_isUserUnderwater(alice), "Borrower should be underwater");
         assertTrue(size.isDebtPositionLiquidatable(0), "Loan should be liquidatable");
 
         DebtPosition memory loan = size.getDebtPosition(0);

@@ -68,6 +68,9 @@ interface ISizeV1_7 {
     /// @notice Same as `compensate` but `onBehalfOf`
     function compensateOnBehalfOf(CompensateOnBehalfOfParams memory params) external payable;
 
+    /// partialRepay is permissionless
+    // function partialRepayOnBehalfOf(PartialRepayOnBehalfOfParams memory params) external payable;
+
     /// @notice Same as `setUserConfiguration` but `onBehalfOf`
     function setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams memory params) external payable;
 

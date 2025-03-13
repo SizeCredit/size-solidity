@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {Deploy} from "@script/Deploy.sol";
 
@@ -10,9 +11,6 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 import {Properties} from "@test/invariants/Properties.sol";
 
 abstract contract ExpectedErrors is Deploy, Properties {
-    bool internal success;
-    bytes internal returnData;
-
     bytes4[] internal DEPOSIT_ERRORS;
     bytes4[] internal WITHDRAW_ERRORS;
     bytes4[] internal SELL_CREDIT_MARKET_ERRORS;
@@ -27,6 +25,8 @@ abstract contract ExpectedErrors is Deploy, Properties {
     bytes4[] internal LIQUIDATE_WITH_REPLACEMENT_ERRORS;
     bytes4[] internal COMPENSATE_ERRORS;
     bytes4[] internal SET_USER_CONFIGURATION_ERRORS;
+    bytes4[] internal COPY_LIMIT_ORDERS_ERRORS;
+    bytes4[] internal PARTIAL_REPAY_ERRORS;
 
     constructor() {
         // DEPOSIT_ERRORS
@@ -58,6 +58,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         SELL_CREDIT_MARKET_ERRORS.push(Errors.STALE_RATE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
         SELL_CREDIT_MARKET_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
+        SELL_CREDIT_MARKET_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
 
         // SELL_CREDIT_LIMIT_ERRORS
         SELL_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
@@ -79,6 +80,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         BUY_CREDIT_MARKET_ERRORS.push(Errors.STALE_RATE.selector);
         BUY_CREDIT_MARKET_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         BUY_CREDIT_MARKET_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
+        BUY_CREDIT_MARKET_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
 
         // BUY_CREDIT_LIMIT_ERRORS
         BUY_CREDIT_LIMIT_ERRORS.push(Errors.PAST_MAX_DUE_DATE.selector);
@@ -113,6 +115,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.DUE_DATE_GREATER_THAN_MAX_DUE_DATE.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
         LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(Errors.MISMATCHED_CURVES.selector);
+        LIQUIDATE_WITH_REPLACEMENT_ERRORS.push(SafeCast.SafeCastOverflowedIntToUint.selector);
 
         // COMPENSATE_ERRORS
         COMPENSATE_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
@@ -126,10 +129,24 @@ abstract contract ExpectedErrors is Deploy, Properties {
         COMPENSATE_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector);
         COMPENSATE_ERRORS.push(Errors.INVALID_CREDIT_POSITION_ID.selector);
         COMPENSATE_ERRORS.push(Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector);
-        COMPENSATE_ERRORS.push(Errors.USER_IS_UNDERWATER.selector);
-        COMPENSATE_ERRORS.push(Errors.TENOR_OUT_OF_RANGE.selector);
+        COMPENSATE_ERRORS.push(Errors.MUST_IMPROVE_COLLATERAL_RATIO.selector);
 
         // SET_USER_CONFIGURATION_ERRORS N/A
+
+        // COPY_LIMIT_ORDERS_ERRORS
+        COPY_LIMIT_ORDERS_ERRORS.push(Errors.INVALID_APR_RANGE.selector);
+        COPY_LIMIT_ORDERS_ERRORS.push(Errors.INVALID_TENOR_RANGE.selector);
+        COPY_LIMIT_ORDERS_ERRORS.push(Errors.INVALID_ADDRESS.selector);
+        COPY_LIMIT_ORDERS_ERRORS.push(Errors.NULL_ADDRESS.selector);
+
+        // PARTIAL_REPAY_ERRORS
+        PARTIAL_REPAY_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);
+        PARTIAL_REPAY_ERRORS.push(Errors.INVALID_CREDIT_POSITION_ID.selector);
+        PARTIAL_REPAY_ERRORS.push(Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT.selector);
+        PARTIAL_REPAY_ERRORS.push(Errors.LOAN_ALREADY_REPAID.selector);
+        PARTIAL_REPAY_ERRORS.push(Errors.NULL_AMOUNT.selector);
+        PARTIAL_REPAY_ERRORS.push(Errors.INVALID_AMOUNT.selector);
+        PARTIAL_REPAY_ERRORS.push(Errors.INVALID_BORROWER.selector);
     }
 
     modifier checkExpectedErrors(bytes4[] storage errors) {
@@ -149,5 +166,8 @@ abstract contract ExpectedErrors is Deploy, Properties {
             t(expected, DOS);
             precondition(false);
         }
+
+        success = false;
+        returnData = bytes("");
     }
 }

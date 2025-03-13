@@ -24,11 +24,6 @@ interface ISizeView is ISizeViewV1_7 {
     /// @return The collateral ratio of the user
     function collateralRatio(address user) external view returns (uint256);
 
-    /// @notice Check if a user is underwater
-    /// @param user The address of the user
-    /// @return True if the user is underwater, false otherwise
-    function isUserUnderwater(address user) external view returns (bool);
-
     /// @notice Check if a debt position is liquidatable
     /// @param debtPositionId The ID of the debt position
     /// @return True if the debt position is liquidatable, false otherwise

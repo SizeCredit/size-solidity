@@ -4,8 +4,11 @@ pragma solidity 0.8.23;
 import {LoanStatus} from "@src/market/libraries/LoanLibrary.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 
-import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+import {CREDIT_POSITION_ID_START, RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
+
+import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {CompensateParams} from "@src/market/libraries/actions/Compensate.sol";
+
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
@@ -145,9 +148,6 @@ contract CompensateValidationTest is BaseTest {
         );
         vm.stopPrank();
 
-        uint256 minTenor = size.riskConfig().minTenor;
-        uint256 maxTenor = size.riskConfig().maxTenor;
-
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -167,22 +167,6 @@ contract CompensateValidationTest is BaseTest {
             CompensateParams({
                 creditPositionWithDebtToRepayId: cSelf,
                 creditPositionToCompensateId: cSelf,
-                amount: type(uint256).max
-            })
-        );
-
-        _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, 365 days, false);
-        uint256 d2 = _sellCreditMarket(alice, james, RESERVED_ID, 20e6, 365 days, false);
-        uint256 c2 = size.getCreditPositionIdsByDebtPositionId(d2)[0];
-
-        vm.warp(block.timestamp + 365 days);
-
-        vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(Errors.TENOR_OUT_OF_RANGE.selector, 0, minTenor, maxTenor));
-        size.compensate(
-            CompensateParams({
-                creditPositionWithDebtToRepayId: c2,
-                creditPositionToCompensateId: type(uint256).max,
                 amount: type(uint256).max
             })
         );

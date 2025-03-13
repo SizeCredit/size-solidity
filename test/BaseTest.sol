@@ -30,7 +30,9 @@ import {ClaimParams} from "@src/market/libraries/actions/Claim.sol";
 import {LiquidateParams} from "@src/market/libraries/actions/Liquidate.sol";
 
 import {CompensateParams} from "@src/market/libraries/actions/Compensate.sol";
+
 import {LiquidateWithReplacementParams} from "@src/market/libraries/actions/LiquidateWithReplacement.sol";
+import {PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
 import {RepayParams} from "@src/market/libraries/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/market/libraries/actions/SelfLiquidate.sol";
 
@@ -350,6 +352,19 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         size.repay(RepayParams({debtPositionId: debtPositionId, borrower: borrower}));
     }
 
+    function _partialRepay(address user, uint256 creditPositionWithDebtToRepayId, uint256 amount, address borrower)
+        internal
+    {
+        vm.prank(user);
+        size.partialRepay(
+            PartialRepayParams({
+                creditPositionWithDebtToRepayId: creditPositionWithDebtToRepayId,
+                amount: amount,
+                borrower: borrower
+            })
+        );
+    }
+
     function _claim(address user, uint256 creditPositionId) internal {
         vm.prank(user);
         size.claim(ClaimParams({creditPositionId: creditPositionId}));
@@ -482,5 +497,9 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         }
         vm.label(deployed, "IUniswapV3Factory");
         return IUniswapV3Factory(deployed);
+    }
+
+    function _isUserUnderwater(address user) internal view returns (bool) {
+        return size.collateralRatio(user) < size.riskConfig().crLiquidation;
     }
 }
