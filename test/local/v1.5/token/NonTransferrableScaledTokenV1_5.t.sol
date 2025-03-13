@@ -18,51 +18,32 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
+
+import {BaseTest} from "@test/BaseTest.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 import {USDC} from "@test/mocks/USDC.sol";
-import {Test} from "forge-std/Test.sol";
 
-contract NonTransferrableScaledTokenV1_5Test is Test {
+contract NonTransferrableScaledTokenV1_5Test is BaseTest {
     NonTransferrableScaledTokenV1_5 public token;
-    SizeFactory public sizeFactory;
-    address user = address(0x1);
-    address owner = address(0x2);
-    address size = address(0x3);
+    address user = address(0x10000);
+    address owner = address(0x20000);
     USDC public underlying;
     IPool public pool;
 
-    function setUp() public {
-        underlying = new USDC(address(this));
-        pool = IPool(address(new PoolMock()));
-        PoolMock(address(pool)).setLiquidityIndex(address(underlying), WadRayMath.RAY);
-        sizeFactory = SizeFactory(
-            address(new ERC1967Proxy(address(new SizeFactory()), abi.encodeCall(SizeFactory.initialize, (owner))))
-        );
-        token = NonTransferrableScaledTokenV1_5(
-            address(
-                new ERC1967Proxy(
-                    address(new NonTransferrableScaledTokenV1_5()),
-                    abi.encodeCall(
-                        NonTransferrableScaledTokenV1_5.initialize,
-                        (
-                            sizeFactory,
-                            IPool(address(pool)),
-                            IERC20Metadata(address(underlying)),
-                            owner,
-                            "Test",
-                            "TEST",
-                            18
-                        )
-                    )
-                )
-            )
-        );
+    function setUp() public override {
+        setupLocal(owner, feeRecipient);
+
+        underlying = USDC(address(size.data().underlyingBorrowToken));
+        pool = size.data().variablePool;
+        token = size.data().borrowAToken;
+
+        _labels();
     }
 
     function test_NonTransferrableScaledTokenV1_5_initialize() public view {
-        assertEq(token.name(), "Test");
-        assertEq(token.symbol(), "TEST");
-        assertEq(token.decimals(), 18);
+        assertEq(token.name(), "Size Scaled USD Coin (v1.5)");
+        assertEq(token.symbol(), "saUSDC");
+        assertEq(token.decimals(), 6);
         assertEq(token.totalSupply(), 0);
         assertEq(token.owner(), owner);
         assertEq(address(token.sizeFactory()), address(sizeFactory));
@@ -103,71 +84,59 @@ contract NonTransferrableScaledTokenV1_5Test is Test {
     }
 
     function test_NonTransferrableScaledTokenV1_5_mintScaled() public {
-        vm.prank(owner);
-        sizeFactory.addMarket(ISize(size));
-
-        vm.prank(size);
+        vm.prank(address(size));
         token.mintScaled(user, 100);
         assertEq(token.balanceOf(user), 100);
 
-        vm.prank(size);
+        vm.prank(address(size));
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidReceiver.selector, address(0)));
         token.mintScaled(address(0), 100);
     }
 
     function test_NonTransferrableScaledTokenV1_5_burnScaled() public {
-        vm.prank(owner);
-        sizeFactory.addMarket(ISize(size));
-
-        vm.prank(size);
+        vm.prank(address(size));
         token.mintScaled(user, 100);
-        vm.prank(size);
+        vm.prank(address(size));
         token.burnScaled(user, 100);
         assertEq(token.balanceOf(user), 0);
 
-        vm.prank(size);
+        vm.prank(address(size));
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidSender.selector, address(0)));
         token.burnScaled(address(0), 100);
 
-        vm.prank(size);
+        vm.prank(address(size));
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InsufficientBalance.selector, user, 0, 100000));
         token.burnScaled(user, 100000);
     }
 
     function test_NonTransferrableScaledTokenV1_5_transferFrom() public {
-        vm.prank(owner);
-        sizeFactory.addMarket(ISize(size));
-
-        vm.prank(size);
+        vm.prank(address(size));
         token.mintScaled(user, 100);
 
         vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED.selector, owner));
         vm.prank(owner);
         token.transferFrom(user, address(this), 50);
 
-        vm.prank(size);
+        vm.prank(address(size));
         token.transferFrom(user, address(this), 50);
 
-        vm.prank(size);
+        vm.prank(address(size));
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidSender.selector, address(0)));
         token.transferFrom(address(0), address(this), 50);
 
-        vm.prank(size);
+        vm.prank(address(size));
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidReceiver.selector, address(0)));
         token.transferFrom(user, address(0), 50);
     }
 
     function test_NonTransferrableScaledTokenV1_5_transfer() public {
-        vm.prank(owner);
-        sizeFactory.addMarket(ISize(size));
-
-        vm.prank(size);
+        vm.prank(address(size));
         token.mintScaled(address(size), 100);
 
         assertEq(token.balanceOf(address(size)), 100);
         assertEq(token.balanceOf(user), 0);
 
-        vm.prank(size);
+        vm.prank(address(size));
         token.transfer(user, 30);
 
         assertEq(token.balanceOf(user), 30);
@@ -175,28 +144,19 @@ contract NonTransferrableScaledTokenV1_5Test is Test {
     }
 
     function test_NonTransferrableScaledTokenV1_5_scaledBalanceOf() public {
-        vm.prank(owner);
-        sizeFactory.addMarket(ISize(size));
-
-        vm.prank(size);
+        vm.prank(address(size));
         token.mintScaled(user, 200);
         assertEq(token.scaledBalanceOf(user), 200);
     }
 
     function test_NonTransferrableScaledTokenV1_5_totalSupply() public {
-        vm.prank(owner);
-        sizeFactory.addMarket(ISize(size));
-
-        vm.prank(size);
+        vm.prank(address(size));
         token.mintScaled(user, 300);
         assertEq(token.totalSupply(), 300);
     }
 
     function test_NonTransferrableScaledTokenV1_5_scaledTotalSupply() public {
-        vm.prank(owner);
-        sizeFactory.addMarket(ISize(size));
-
-        vm.prank(size);
+        vm.prank(address(size));
         token.mintScaled(user, 300);
 
         PoolMock(address(pool)).setLiquidityIndex(address(underlying), WadRayMath.RAY * 3 / 2);
@@ -205,16 +165,10 @@ contract NonTransferrableScaledTokenV1_5Test is Test {
         assertEq(token.totalSupply(), 450);
     }
 
-    function test_NonTransferrableScaledTokenV1_5_allowance() public {
+    function test_NonTransferrableScaledTokenV1_5_allowance() public view {
         assertEq(token.allowance(user, address(this)), 0);
         assertEq(token.allowance(user, owner), 0);
-        assertEq(token.allowance(user, size), 0);
-
-        vm.prank(owner);
-        sizeFactory.addMarket(ISize(size));
-        assertEq(token.allowance(user, address(this)), 0);
-        assertEq(token.allowance(user, owner), 0);
-        assertEq(token.allowance(user, size), type(uint256).max);
+        assertEq(token.allowance(user, address(size)), type(uint256).max);
     }
 
     function test_NonTransferrableScaledTokenV1_5_approveReverts() public {
@@ -229,26 +183,24 @@ contract NonTransferrableScaledTokenV1_5Test is Test {
 
     function test_NonTransferrableScaledTokenV1_5_deposit() public {
         vm.prank(owner);
-        sizeFactory.addMarket(ISize(size));
+        underlying.mint(address(size), 1000);
 
-        underlying.mint(size, 1000);
-        vm.prank(size);
+        vm.prank(address(size));
         underlying.approve(address(token), 1000);
-        vm.prank(size);
+        vm.prank(address(size));
         token.deposit(user, user, 1000);
         assertEq(token.balanceOf(user), 1000);
     }
 
     function test_NonTransferrableScaledTokenV1_5_withdraw() public {
         vm.prank(owner);
-        sizeFactory.addMarket(ISize(size));
+        underlying.mint(address(size), 1000);
 
-        underlying.mint(size, 1000);
-        vm.prank(size);
+        vm.prank(address(size));
         underlying.approve(address(token), 1000);
-        vm.prank(size);
+        vm.prank(address(size));
         token.deposit(user, user, 1000);
-        vm.prank(size);
+        vm.prank(address(size));
         token.withdraw(user, user, 500);
         assertEq(token.balanceOf(user), 500);
     }

@@ -166,9 +166,5 @@ contract PriceFeedUniswapV3TWAPChainlinkTest is BaseTest {
         string memory expected =
             "PriceFeedUniswapV3TWAPChainlink | (VIRTUAL/WETH) (Uniswap v3 TWAP) * ((ETH / USD) / (USDC / USD)) (PriceFeed)";
         assertEq(priceFeedVirtualToUsdc.description(), expected);
-
-        _deployLocalSizeFactoryIfNeeded(address(this));
-        sizeFactory.addPriceFeed(PriceFeed(address(priceFeedVirtualToUsdc)));
-        assertEq(sizeFactory.getPriceFeedDescriptions()[0], expected);
     }
 }

@@ -27,7 +27,8 @@ contract GetV1_5ReinitializeDataWethUsdcAfterCbbtcUsdcScript is BaseScript, Netw
     function run() external parseEnv ignoreGas {
         string memory marketName = "base-production-weth-usdc";
         uint256 deploymentBlock = uint256(17147278);
-        address borrowATokenV1_5 = address(sizeFactory.getBorrowATokensV1_5()[0]);
+        ISize market0 = sizeFactory.getMarket(0);
+        address borrowATokenV1_5 = address(market0.data().borrowAToken);
 
         console.log("GetV1_5ReinitializeDataWethUsdcAfterCbbtcUsdc...");
 

@@ -11,10 +11,10 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 abstract contract SizeFactoryStorage {
     // the markets
     EnumerableSet.AddressSet markets;
-    // the price feeds
-    EnumerableSet.AddressSet priceFeeds;
-    // the borrow aTokens v1.5
-    EnumerableSet.AddressSet borrowATokensV1_5;
+    // deprecated in v1.7
+    EnumerableSet.AddressSet ___unused_01;
+    // deprecated in v1.7
+    EnumerableSet.AddressSet ___unused_02;
     // the size implementation (used as implementation for proxy contracts, added on v1.6)
     address public sizeImplementation;
     // the non-transferrable scaled token v1.5 implementation (used as implementation for proxy contracts, added on v1.6)

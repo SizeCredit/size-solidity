@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -19,8 +20,12 @@ contract SizeFactoryReinitializeV1_7Test is BaseTest {
     }
 
     function test_SizeFactoryReinitializeV1_7_reinitialize_can_still_execute_actions() public {
+        address pauser = makeAddr("pauser");
         sizeFactory.reinitialize();
-        sizeFactory.removeMarket(size);
+        AccessControlUpgradeable(address(sizeFactory)).grantRole(PAUSER_ROLE, pauser);
+
+        vm.prank(pauser);
+        size.pause();
     }
 
     function test_SizeFactoryReinitializeV1_7_reinitialize_can_still_execute_upgrade() public {
