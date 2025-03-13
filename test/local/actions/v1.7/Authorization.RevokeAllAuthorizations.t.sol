@@ -21,6 +21,9 @@ contract AuthorizationRevokeAllAuthorizationsTest is BaseTest {
 
         assertTrue(sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_MARKET));
         assertTrue(sizeFactory.isAuthorized(bob, alice, Action.BUY_CREDIT_MARKET));
+        assertTrue(sizeFactory.isAuthorizedAll(bob, alice, Authorization.getActionsBitmap(actions)));
+        assertTrue(!sizeFactory.isAuthorizedAll(candy, alice, Authorization.getActionsBitmap(actions)));
+        assertTrue(sizeFactory.isAuthorizedAll(candy, candy, Authorization.getActionsBitmap(actions)));
 
         actions[0] = Action.SELL_CREDIT_LIMIT;
         actions[1] = Action.BUY_CREDIT_LIMIT;
@@ -31,9 +34,11 @@ contract AuthorizationRevokeAllAuthorizationsTest is BaseTest {
         assertTrue(!sizeFactory.isAuthorized(bob, alice, Action.BUY_CREDIT_MARKET));
         assertTrue(sizeFactory.isAuthorized(bob, alice, Action.SELL_CREDIT_LIMIT));
         assertTrue(sizeFactory.isAuthorized(bob, alice, Action.BUY_CREDIT_LIMIT));
+        assertTrue(sizeFactory.isAuthorizedAll(bob, alice, Authorization.getActionsBitmap(actions)));
 
         assertTrue(sizeFactory.isAuthorized(candy, alice, Action.SELL_CREDIT_LIMIT));
         assertTrue(sizeFactory.isAuthorized(candy, alice, Action.BUY_CREDIT_LIMIT));
+        assertTrue(sizeFactory.isAuthorizedAll(candy, alice, Authorization.getActionsBitmap(actions)));
 
         vm.prank(alice);
         sizeFactory.revokeAllAuthorizations();
@@ -42,5 +47,7 @@ contract AuthorizationRevokeAllAuthorizationsTest is BaseTest {
         assertTrue(!sizeFactory.isAuthorized(bob, alice, Action.BUY_CREDIT_MARKET));
         assertTrue(!sizeFactory.isAuthorized(candy, alice, Action.SELL_CREDIT_LIMIT));
         assertTrue(!sizeFactory.isAuthorized(candy, alice, Action.BUY_CREDIT_LIMIT));
+        assertTrue(!sizeFactory.isAuthorizedAll(bob, alice, Authorization.getActionsBitmap(actions)));
+        assertTrue(!sizeFactory.isAuthorizedAll(candy, alice, Authorization.getActionsBitmap(actions)));
     }
 }
