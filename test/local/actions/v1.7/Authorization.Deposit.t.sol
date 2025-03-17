@@ -145,4 +145,47 @@ contract AuthorizationDepositTest is BaseTest {
             console.log("Bob's eth balance: ", bob.balance);
         }
     }
+
+    function test_AuthorizationDeposit_depositOnBehalfOf_ether() public {
+        vm.deal(alice, 1 ether);
+
+        assertEq(address(alice).balance, 1 ether);
+        assertEq(_state().alice.collateralTokenBalance, 0);
+
+        vm.prank(alice);
+        size.depositOnBehalfOf{value: 0.3 ether}(
+            DepositOnBehalfOfParams({
+                params: DepositParams({token: address(weth), amount: 0.3 ether, to: alice}),
+                onBehalfOf: alice
+            })
+        );
+
+        assertEq(address(alice).balance, 0.7 ether);
+        assertEq(_state().alice.collateralTokenBalance, 0.3 ether);
+
+        vm.prank(alice);
+        size.depositOnBehalfOf{value: 0.5 ether}(
+            DepositOnBehalfOfParams({
+                params: DepositParams({token: address(weth), amount: 0.5 ether, to: bob}),
+                onBehalfOf: alice
+            })
+        );
+
+        assertEq(address(alice).balance, 0.2 ether);
+        assertEq(_state().alice.collateralTokenBalance, 0.3 ether);
+        assertEq(address(bob).balance, 0);
+        assertEq(_state().bob.collateralTokenBalance, 0.5 ether);
+
+        _setAuthorization(alice, bob, Authorization.getActionsBitmap(Action.DEPOSIT));
+        vm.deal(bob, 1 ether);
+
+        vm.prank(bob);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_MSG_VALUE.selector, 0.2 ether));
+        size.depositOnBehalfOf{value: 0.2 ether}(
+            DepositOnBehalfOfParams({
+                params: DepositParams({token: address(weth), amount: 0.2 ether, to: alice}),
+                onBehalfOf: alice
+            })
+        );
+    }
 }
