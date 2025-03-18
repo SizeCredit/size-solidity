@@ -1,6 +1,6 @@
 {
-  "name": "size-v2-solidity",
-  "description": "Size v2",
+  "name": "size-solidity",
+  "description": "Size",
   "scripts": {
     "solhint": "solhint \"src/**/*.sol\"  --max-warnings 0",
     "typechain": "npx typechain --target=ethers-v6 out/Size.sol/Size.json out/SizeFactory.sol/SizeFactory.json out/Errors.sol/Errors.json out/Events.sol/Events.json out/draft-IERC6093.sol/IERC20Errors.json",
@@ -13,5 +13,12 @@
   "devDependencies": {
     "@typechain/ethers-v6": "^0.5.1",
     "solhint": "^4.0.0"
+  },
+  "dependencies": {
+    "@ledgerhq/hw-app-eth": "^6.43.0",
+    "@ledgerhq/hw-transport-node-hid": "^6.29.5",
+    "@safe-global/api-kit": "^3.0.1",
+    "@safe-global/protocol-kit": "^6.0.1",
+    "@safe-global/types-kit": "^2.0.0"
   }
 }
