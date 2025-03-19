@@ -6,81 +6,68 @@ const TransportNodeHid = require("@ledgerhq/hw-transport-node-hid").default;
 const AppEth = require("@ledgerhq/hw-app-eth").default;
 const axios = require("axios");
 
+// Environment setup
 const RPC_URLS = {
   base: "https://base-mainnet.g.alchemy.com/v2/",
   mainnet: "https://eth-mainnet.g.alchemy.com/v2/",
 };
-
 const OWNER = process.env.OWNER;
 const API_KEY_ALCHEMY = process.env.API_KEY_ALCHEMY;
 const RPC_URL = RPC_URLS[process.env.RPC_URL] + API_KEY_ALCHEMY;
 const LEDGER_PATH = process.env.LEDGER_PATH;
-
 const TENDERLY_ACCESS_KEY = process.env.TENDERLY_ACCESS_KEY;
 const TENDERLY_ACCOUNT_NAME = process.env.TENDERLY_ACCOUNT_NAME;
 const TENDERLY_PROJECT_NAME = process.env.TENDERLY_PROJECT_NAME;
 
+// Input arguments
 if (process.argv.length < 4) {
-  console.error("Error: Missing required arguments. Usage: node script/proposeTransaction.js <TO> <DATA>");
+  console.error("Usage: node script/proposeTransaction.js <TO> <DATA>");
   process.exit(1);
 }
 const TO = process.argv[2];
 const DATA = process.argv[3];
 
-async function main() {
+async function setupProvider() {
   const provider = new ethers.JsonRpcProvider(RPC_URL);
   const network = await provider.getNetwork();
-  const apiKit = new SafeApiKit({ chainId: BigInt(network.chainId) });
+  return { provider, network };
+}
 
-  const safeAddress = OWNER;
-
+async function connectLedger() {
   const transport = await TransportNodeHid.create();
   const eth = new AppEth(transport);
+  const owner = await eth.getAddress(LEDGER_PATH);
+  return { transport, eth, owner };
+}
 
-  const owner1 = await eth.getAddress(LEDGER_PATH);
-  console.log("owner1:", owner1);
-
-  const protocolKit = await Safe.init({
+async function createSafeProtocolKit(ownerAddress) {
+  return Safe.init({
     provider: RPC_URL,
-    signer: owner1.address,
-    safeAddress: safeAddress,
+    signer: ownerAddress,
+    safeAddress: OWNER,
   });
+}
 
-  const safeTransactionData = {
-    to: TO,
-    value: "0",
-    data: DATA,
-    operation: OperationType.DelegateCall,
-  };
-  const safeTransaction = await protocolKit.createTransaction({
-    transactions: [safeTransactionData],
+async function buildSafeTransaction(protocolKit) {
+  return protocolKit.createTransaction({
+    transactions: [
+      {
+        to: TO,
+        value: "0",
+        data: DATA,
+        operation: OperationType.DelegateCall,
+      },
+    ],
   });
-  console.log("safeTransaction:", safeTransaction);
+}
 
-  const safeTxHash = await protocolKit.getTransactionHash(safeTransaction);
-  console.log("safeTxHash:", safeTxHash);
-
-  const messageHex = Buffer.from(safeTxHash.slice(2), "hex").toString("hex");
-  console.log("messageHex:", messageHex);
-
-  const typeData = {
-    account: owner1.address,
+async function buildEIP712Data(safeTx, network) {
+  return {
     domain: {
       chainId: BigInt(network.chainId),
-      verifyingContract: safeAddress,
+      verifyingContract: OWNER,
     },
-    message: {
-      to: safeTransaction.data.to,
-      value: safeTransaction.data.value,
-      data: safeTransaction.data.data,
-      operation: safeTransaction.data.operation,
-      safeTxGas: safeTransaction.data.safeTxGas,
-      baseGas: safeTransaction.data.baseGas,
-      gasPrice: safeTransaction.data.gasPrice,
-      gasToken: safeTransaction.data.gasToken,
-      refundReceiver: safeTransaction.data.refundReceiver,
-      nonce: safeTransaction.data.nonce,
-    },
+    message: { ...safeTx.data },
     primaryType: "SafeTx",
     types: {
       SafeTx: [
@@ -97,100 +84,125 @@ async function main() {
       ],
     },
   };
-  console.log("typeData:", typeData);
+}
 
-  const domainSeparator = ethers.TypedDataEncoder.hashDomain(typeData.domain);
-
-  const domainSeparatorHex = domainSeparator.slice(2);
-  console.log("domainSeparatorHex:", domainSeparatorHex);
-
-  const hashStruct = ethers.TypedDataEncoder.from(typeData.types).hash(
-    typeData.message
-  );
-  const hashStructMessageHex = hashStruct.slice(2);
-  console.log("hashStructMessageHex:", hashStructMessageHex);
-
+async function signTransaction(eth, typeData) {
+  const domainSeparator = ethers.TypedDataEncoder.hashDomain(
+    typeData.domain
+  ).slice(2);
+  const hashStruct = ethers.TypedDataEncoder.from(typeData.types)
+    .hash(typeData.message)
+    .slice(2);
   const signature = await eth.signEIP712HashedMessage(
     LEDGER_PATH,
-    domainSeparatorHex,
-    hashStructMessageHex
+    domainSeparator,
+    hashStruct
   );
-  console.log("signature:", signature);
 
   const r = signature.r.padStart(64, "0");
   const s = signature.s.padStart(64, "0");
   const v = signature.v.toString(16).padStart(2, "0");
-  const owner1Signature = `0x${r}${s}${v}`;
-  console.log("owner1Signature:", owner1Signature);
+  return `0x${r}${s}${v}`;
+}
 
-  console.log("owner1.address:", owner1.address);
-
+async function proposeTransaction(
+  apiKit,
+  safeTx,
+  safeTxHash,
+  senderAddress,
+  senderSignature
+) {
   await apiKit.proposeTransaction({
-    safeAddress: safeAddress,
-    safeTransactionData: safeTransaction.data,
-    safeTxHash: safeTxHash,
-    senderAddress: owner1.address,
-    senderSignature: owner1Signature,
+    safeAddress: OWNER,
+    safeTransactionData: safeTx.data,
+    safeTxHash,
+    senderAddress,
+    senderSignature,
   });
+}
 
-  await transport.close();
-
-  const gasPrice = (await provider.getFeeData()).gasPrice;
-  console.log("gasPrice:", gasPrice);
-
+async function buildExecTransactionData(safeTx, signature) {
   const safeAbi = [
     "function execTransaction(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,bytes signatures) public returns (bool success)",
   ];
-  const safeInterface = new ethers.Interface(safeAbi);
-  const execTransactionData = safeInterface.encodeFunctionData(
-    "execTransaction",
-    [
-      safeTransaction.data.to,
-      safeTransaction.data.value,
-      safeTransaction.data.data,
-      safeTransaction.data.operation,
-      safeTransaction.data.safeTxGas,
-      safeTransaction.data.baseGas,
-      safeTransaction.data.gasPrice,
-      safeTransaction.data.gasToken,
-      safeTransaction.data.refundReceiver,
-      owner1Signature,
-    ]
-  );
+  const iface = new ethers.Interface(safeAbi);
+  return iface.encodeFunctionData("execTransaction", [
+    safeTx.data.to,
+    safeTx.data.value,
+    safeTx.data.data,
+    safeTx.data.operation,
+    safeTx.data.safeTxGas,
+    safeTx.data.baseGas,
+    safeTx.data.gasPrice,
+    safeTx.data.gasToken,
+    safeTx.data.refundReceiver,
+    signature,
+  ]);
+}
 
-  const { data } = await axios.post(
-    `https://api.tenderly.co/api/v1/account/${TENDERLY_ACCOUNT_NAME}/project/${TENDERLY_PROJECT_NAME}/simulate`,
+async function simulateTransaction(network, execTxData, sender) {
+  const url = `https://api.tenderly.co/api/v1/account/${TENDERLY_ACCOUNT_NAME}/project/${TENDERLY_PROJECT_NAME}/simulate`;
+  const res = await axios.post(
+    url,
     {
       save: true,
       save_if_fails: true,
       simulation_type: "full",
       network_id: network.chainId.toString(),
-      from: owner1.address,
-      to: safeAddress,
-      input: execTransactionData,
+      from: sender,
+      to: OWNER,
+      input: execTxData,
       gas: 30e6,
       state_objects: {
-        [safeAddress]: {
+        [OWNER]: {
           storage: {
-            // threshold
+            // threshold = 1
             "0x0000000000000000000000000000000000000000000000000000000000000004":
-            // 1
               "0x0000000000000000000000000000000000000000000000000000000000000001",
           },
         },
       },
     },
     {
-      headers: {
-        "X-Access-Key": TENDERLY_ACCESS_KEY,
-      },
+      headers: { "X-Access-Key": TENDERLY_ACCESS_KEY },
     }
   );
 
-  const simulationId = data.simulation.id;
-
-  const simulationUrl = `https://dashboard.tenderly.co/${TENDERLY_ACCOUNT_NAME}/${TENDERLY_PROJECT_NAME}/simulator/${simulationId}`;
+  const simulationUrl = `https://dashboard.tenderly.co/${TENDERLY_ACCOUNT_NAME}/${TENDERLY_PROJECT_NAME}/simulator/${res.data.simulation.id}`;
   console.log("Simulation URL:", simulationUrl);
 }
 
-main();
+async function main() {
+  const { provider, network } = await setupProvider();
+  const apiKit = new SafeApiKit({ chainId: BigInt(network.chainId) });
+
+  const { transport, eth, owner } = await connectLedger();
+  console.log("Ledger Address:", owner.address);
+
+  const protocolKit = await createSafeProtocolKit(owner.address);
+  const safeTx = await buildSafeTransaction(protocolKit);
+  console.log("Safe Transaction Prepared");
+
+  const safeTxHash = await protocolKit.getTransactionHash(safeTx);
+  console.log("Safe Transaction Hash:", safeTxHash);
+
+  const typeData = await buildEIP712Data(safeTx, network);
+  const signature = await signTransaction(eth, typeData);
+  console.log("Signature:", signature);
+
+  await proposeTransaction(
+    apiKit,
+    safeTx,
+    safeTxHash,
+    owner.address,
+    signature
+  );
+  console.log("Transaction Proposed to Safe");
+
+  const execTxData = await buildExecTransactionData(safeTx, signature);
+  await simulateTransaction(network, execTxData, owner.address);
+
+  await transport.close();
+}
+
+main().catch(console.error);
