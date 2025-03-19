@@ -5,17 +5,19 @@ const { ethers } = require("ethers");
 const TransportNodeHid = require("@ledgerhq/hw-transport-node-hid").default;
 const AppEth = require("@ledgerhq/hw-app-eth").default;
 const axios = require("axios");
-const fs = require('fs');
+const fs = require("fs");
 
-const logsFile = '/tmp/logs.txt'
+const logsFile = "/tmp/proposeTransaction.log";
 
-const accessLogStream = fs.createWriteStream(logsFile, { flags: 'a' });
-const errorLogStream = fs.createWriteStream(logsFile, { flags: 'a' });
+if (fs.existsSync(logsFile)) {
+  fs.truncateSync(logsFile, 0);
+}
+const accessLogStream = fs.createWriteStream(logsFile, { flags: "a" });
+const errorLogStream = fs.createWriteStream(logsFile, { flags: "a" });
 
 process.stdout.write = accessLogStream.write.bind(accessLogStream);
 process.stderr.write = errorLogStream.write.bind(errorLogStream);
 
-// Environment setup
 const RPC_URLS = {
   base: "https://base-mainnet.g.alchemy.com/v2/",
   mainnet: "https://eth-mainnet.g.alchemy.com/v2/",
@@ -28,7 +30,6 @@ const TENDERLY_ACCESS_KEY = process.env.TENDERLY_ACCESS_KEY;
 const TENDERLY_ACCOUNT_NAME = process.env.TENDERLY_ACCOUNT_NAME;
 const TENDERLY_PROJECT_NAME = process.env.TENDERLY_PROJECT_NAME;
 
-// Input arguments
 if (process.argv.length < 4) {
   console.error("Usage: node script/proposeTransaction.js <TO> <DATA>");
   process.exit(1);
@@ -214,4 +215,4 @@ async function main() {
   await transport.close();
 }
 
-main()
+main();
