@@ -16,7 +16,7 @@ import {Networks} from "@script/Networks.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {console} from "forge-std/console.sol";
 
-contract GetV1_7ReinitializeDataScript is BaseScript, Networks {
+contract ProposeSafeTxV1_7ReinitializeScript is BaseScript, Networks {
     string private network;
     ISizeFactory private sizeFactory;
     IMultiSendCallOnly private multisendcallonly;
@@ -73,8 +73,18 @@ contract GetV1_7ReinitializeDataScript is BaseScript, Networks {
 
     function run() external parseEnv ignoreGas {
         multisendcallonly = multiSendCallOnly(network);
-        (address to, bytes memory data) = getV1_7ReinitializeData(sizeFactory, multisendcallonly);
-        // data is the `transaction` parameter of the `multiSend` function
-        exportV1_7ReinitializeData(network, to, data);
+        (address to, bytes memory multisendcallonlyData) = getV1_7ReinitializeData(sizeFactory, multisendcallonly);
+        bytes memory data = abi.encodeCall(IMultiSendCallOnly.multiSend, (multisendcallonlyData));
+        console.log("to: %s", to);
+        console.log("data:");
+        console.logBytes(data);
+
+        // run script/proposeTransaction.js <to> <data>
+        string[] memory args = new string[](4);
+        args[0] = "node";
+        args[1] = "script/proposeTransaction.js";
+        args[2] = vm.toString(to);
+        args[3] = vm.toString(data);
+        vm.ffi(args);
     }
 }

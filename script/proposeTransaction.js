@@ -5,6 +5,15 @@ const { ethers } = require("ethers");
 const TransportNodeHid = require("@ledgerhq/hw-transport-node-hid").default;
 const AppEth = require("@ledgerhq/hw-app-eth").default;
 const axios = require("axios");
+const fs = require('fs');
+
+const logsFile = '/tmp/logs.txt'
+
+const accessLogStream = fs.createWriteStream(logsFile, { flags: 'a' });
+const errorLogStream = fs.createWriteStream(logsFile, { flags: 'a' });
+
+process.stdout.write = accessLogStream.write.bind(accessLogStream);
+process.stderr.write = errorLogStream.write.bind(errorLogStream);
 
 // Environment setup
 const RPC_URLS = {
@@ -173,7 +182,7 @@ async function simulateTransaction(network, execTxData, sender) {
 }
 
 async function main() {
-  const { provider, network } = await setupProvider();
+  const { network } = await setupProvider();
   const apiKit = new SafeApiKit({ chainId: BigInt(network.chainId) });
 
   const { transport, eth, owner } = await connectLedger();
@@ -205,4 +214,4 @@ async function main() {
   await transport.close();
 }
 
-main().catch(console.error);
+main()

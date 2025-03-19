@@ -13,7 +13,7 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 import {Networks} from "@script/Networks.sol";
 import {console} from "forge-std/console.sol";
 
-contract GetUpdateConfigDataScript is BaseScript, Networks {
+contract ProposeSafeTxUpdateConfigScript is BaseScript, Networks {
     string private network;
     ISizeFactory private sizeFactory;
 
@@ -59,12 +59,18 @@ contract GetUpdateConfigDataScript is BaseScript, Networks {
 
     function run() external parseEnv ignoreGas {
         IMultiSendCallOnly multisendcallonly = multiSendCallOnly(network);
-        // data is the `transaction` parameter of the `multiSend` function
-        (address to, bytes memory data) = getUpdateConfigData(sizeFactory, multisendcallonly);
-        // full data is the full MultiSendCallOnly calldata
-        bytes memory fulldata = abi.encodeCall(IMultiSendCallOnly.multiSend, (data));
-        console.log("to (multisend): %s", to);
-        console.log("data (full):");
-        console.logBytes(fulldata);
+        (address to, bytes memory multisendcallonlyData) = getUpdateConfigData(sizeFactory, multisendcallonly);
+        bytes memory data = abi.encodeCall(IMultiSendCallOnly.multiSend, (multisendcallonlyData));
+        console.log("to: %s", to);
+        console.log("data:");
+        console.logBytes(data);
+
+        // run script/proposeTransaction.js <to> <data>
+        string[] memory args = new string[](4);
+        args[0] = "node";
+        args[1] = "script/proposeTransaction.js";
+        args[2] = vm.toString(to);
+        args[3] = vm.toString(data);
+        vm.ffi(args);
     }
 }
