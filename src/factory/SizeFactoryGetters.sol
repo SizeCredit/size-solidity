@@ -15,6 +15,8 @@ import {IPriceFeedV1_5_2} from "@src/oracle/v1.5.2/IPriceFeedV1_5_2.sol";
 
 import {SizeFactoryStorage} from "@src/factory/SizeFactoryStorage.sol";
 
+import {ActionsBitmap, Authorization} from "@src/factory/libraries/Authorization.sol";
+
 import {VERSION} from "@src/market/interfaces/ISize.sol";
 
 /// @title SizeFactoryGetters
@@ -139,6 +141,22 @@ abstract contract SizeFactoryGetters is ISizeFactoryGetters, SizeFactoryStorage 
             descriptions[i] = borrowATokenV1_5.symbol();
         }
         // slither-disable-end calls-loop
+    }
+
+    /// @inheritdoc ISizeFactoryGetters
+    function isAuthorizedAll(address operator, address onBehalfOf, ActionsBitmap actionsBitmap)
+        external
+        view
+        returns (bool)
+    {
+        if (operator == onBehalfOf) {
+            return true;
+        } else {
+            uint256 nonce = authorizationNonces[onBehalfOf];
+            ActionsBitmap authorizationsActionsBitmap = authorizations[nonce][operator][onBehalfOf];
+            return Authorization.toUint256(authorizationsActionsBitmap) & Authorization.toUint256(actionsBitmap)
+                == Authorization.toUint256(actionsBitmap);
+        }
     }
 
     /// @inheritdoc ISizeFactoryGetters

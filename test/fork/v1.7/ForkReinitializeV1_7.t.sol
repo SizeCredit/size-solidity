@@ -1,12 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IPool} from "@aave/interfaces/IPool.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
+
+import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
+import {
+    InitializeDataParams,
+    InitializeFeeConfigParams,
+    InitializeOracleParams,
+    InitializeRiskConfigParams
+} from "@src/market/libraries/actions/Initialize.sol";
+
 import {BaseTest} from "@test/BaseTest.sol";
 import {ForkTest} from "@test/fork/ForkTest.sol";
 import {Test} from "forge-std/Test.sol";
@@ -34,7 +45,7 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
         private
         returns (Vars memory vars)
     {
-        vm.createSelectFork(network, blockNumber);
+        vm.createSelectFork(Strings.equal(network, "base-production") ? "base_archive" : network, blockNumber);
         vars.sizeFactory = importSizeFactory(string.concat(network, "-size-factory"));
         vars.multiSendCallOnly = multiSendCallOnly(network);
         vars.owner = OwnableUpgradeable(address(vars.sizeFactory)).owner();
@@ -87,6 +98,44 @@ contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Ne
             address(vars.sizeFactory).call(abi.encodeWithSelector(IAccessControl.hasRole.selector, vars.owner, 0x00));
         assertTrue(success, "should be able to call hasRole");
         assertTrue(OwnableUpgradeable(address(vars.sizeFactory)).owner() == address(0), "owner should be set to zero");
+
+        Size market0 = Size(address(vars.sizeFactory.getMarket(0)));
+        f = InitializeFeeConfigParams({
+            swapFeeAPR: market0.feeConfig().swapFeeAPR,
+            fragmentationFee: market0.feeConfig().fragmentationFee,
+            liquidationRewardPercent: market0.feeConfig().liquidationRewardPercent,
+            overdueCollateralProtocolPercent: market0.feeConfig().overdueCollateralProtocolPercent,
+            collateralProtocolPercent: market0.feeConfig().collateralProtocolPercent,
+            feeRecipient: vars.owner
+        });
+        r = InitializeRiskConfigParams({
+            crOpening: market0.riskConfig().crOpening,
+            crLiquidation: market0.riskConfig().crLiquidation,
+            minimumCreditBorrowAToken: market0.riskConfig().minimumCreditBorrowAToken,
+            borrowATokenCap: market0.riskConfig().borrowATokenCap,
+            minTenor: market0.riskConfig().minTenor,
+            maxTenor: market0.riskConfig().maxTenor
+        });
+        o = InitializeOracleParams({
+            priceFeed: address(market0.oracle().priceFeed),
+            variablePoolBorrowRateStaleRateInterval: market0.oracle().variablePoolBorrowRateStaleRateInterval
+        });
+        d = InitializeDataParams({
+            weth: address(market0.data().underlyingCollateralToken),
+            underlyingCollateralToken: address(market0.data().underlyingCollateralToken),
+            underlyingBorrowToken: address(market0.data().underlyingBorrowToken),
+            variablePool: address(market0.data().variablePool),
+            borrowATokenV1_5: address(market0.data().borrowAToken),
+            sizeFactory: address(vars.sizeFactory)
+        });
+        vm.prank(vars.owner);
+        vars.sizeFactory.createMarket(f, r, o, d);
+
+        address _variablePool = address(market0.data().variablePool);
+        address _underlyingBorrowToken = address(market0.data().underlyingBorrowToken);
+
+        vm.prank(vars.owner);
+        vars.sizeFactory.createBorrowATokenV1_5(IPool(_variablePool), IERC20Metadata(_underlyingBorrowToken));
     }
 
     function testFork_ForkReinitializeV1_7_reinitialize() public {

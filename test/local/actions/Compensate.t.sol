@@ -249,7 +249,7 @@ contract CompensateTest is BaseTest {
         _claim(james, creditPositionWithDebtToRepayId);
 
         _setPrice(0.1e18);
-        assertTrue(size.isUserUnderwater(bob));
+        assertTrue(_isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(loanToCompensateId));
 
         uint256 newCreditPositionId = size.getCreditPositionIdsByDebtPositionId(loanToCompensateId)[0];
@@ -551,36 +551,6 @@ contract CompensateTest is BaseTest {
         _compensate(alice, creditPositionId, creditPositionId2);
     }
 
-    function test_Compensate_compensate_mintCredit_can_be_used_to_partially_repay_with_compensate() public {
-        _setPrice(1e18);
-        _updateConfig("swapFeeAPR", 0);
-        _deposit(alice, usdc, 200e6);
-        _deposit(bob, weth, 400e18);
-        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.5e18));
-
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 120e6, 365 days, false);
-        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
-
-        assertEq(size.getUserView(bob).borrowATokenBalance, 120e6);
-        assertEq(size.getUserView(bob).debtBalance, 180e6);
-
-        uint256[] memory receivableCreditPositionIds = new uint256[](1);
-        receivableCreditPositionIds[0] = type(uint256).max;
-
-        vm.prank(bob);
-        size.compensate(
-            CompensateParams({
-                creditPositionWithDebtToRepayId: creditPositionId,
-                creditPositionToCompensateId: RESERVED_ID,
-                amount: 70e6
-            })
-        );
-        _repay(bob, debtPositionId, bob);
-
-        assertEq(size.getUserView(bob).borrowATokenBalance, 120e6 - (180e6 - 70e6), 10e6);
-        assertEq(size.getUserView(bob).debtBalance, 70e6);
-    }
-
     function test_Compensate_compensate_split_credit_must_pay_fragmentationFee() public {
         _deposit(alice, weth, 100e18);
         _deposit(alice, usdc, 500e6);
@@ -596,6 +566,14 @@ contract CompensateTest is BaseTest {
         aprs[0] = 0.2e18;
         tenors[0] = 365 days;
         marketRateMultipliers[0] = 0;
+
+        vm.prank(candy);
+        size.sellCreditLimit(
+            SellCreditLimitParams({
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs}),
+                maxDueDate: block.timestamp + 365 days
+            })
+        );
 
         vm.prank(bob);
         size.buyCreditLimit(
@@ -628,25 +606,33 @@ contract CompensateTest is BaseTest {
 
         uint256 creditPositionId = type(uint256).max / 2;
 
+        vm.prank(alice);
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: candy,
+                creditPositionId: type(uint256).max,
+                amount: 100e6,
+                tenor: 365 days,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: false
+            })
+        );
+
         Vars memory _before = _state();
         uint256 fragmentationFeeInCollateral =
             size.debtTokenAmountToCollateralTokenAmount(size.feeConfig().fragmentationFee);
-
-        uint256[] memory creditPositionIds = new uint256[](10);
-        creditPositionIds[0] = creditPositionId;
         uint256 n = 10;
 
-        for (uint256 i = 0; i < n; ++i) {
+        for (uint256 i = 0; i < n - 1; ++i) {
             vm.prank(alice);
             size.compensate(
                 CompensateParams({
                     creditPositionWithDebtToRepayId: creditPositionId,
-                    creditPositionToCompensateId: type(uint256).max,
+                    creditPositionToCompensateId: creditPositionId + 1,
                     amount: 10e6
                 })
             );
-
-            creditPositionIds[i] = creditPositionId + i;
         }
 
         Vars memory _after = _state();
@@ -655,7 +641,7 @@ contract CompensateTest is BaseTest {
             _after.alice.collateralTokenBalance,
             _before.alice.collateralTokenBalance - (n - 1) * fragmentationFeeInCollateral
         );
-        assertEq(size.getCreditPosition(creditPositionId).credit, 0);
+        assertEq(size.getCreditPosition(creditPositionId).credit, 10e6);
     }
 
     function test_Compensate_compensate_should_be_allowed_if_it_does_not_put_user_underwater() public {
@@ -747,22 +733,23 @@ contract CompensateTest is BaseTest {
         );
     }
 
-    function test_Compensate_compensate_should_revert_if_it_leaves_user_underwater() public {
+    function testFuzz_Compensate_compensate_should_revert_if_it_does_not_improve_cr(uint256 price) public {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 10e6);
+        _updateConfig("minimumCreditBorrowAToken", 10e6);
         _updateConfig("swapFeeAPR", 0);
         _deposit(bob, weth, 200e18);
         _deposit(bob, usdc, 5_000e6);
         _deposit(candy, weth, 200e18);
         _deposit(candy, usdc, 500e6);
-        _deposit(alice, weth, 1000e18);
+        _deposit(alice, weth, 150e18);
         _deposit(alice, usdc, 100e6);
 
         int256[] memory aprs = new int256[](1);
         uint256[] memory tenors = new uint256[](1);
         uint256[] memory marketRateMultipliers = new uint256[](1);
 
-        aprs[0] = 0.2e18;
+        aprs[0] = 0;
         tenors[0] = 365 days;
         marketRateMultipliers[0] = 0;
 
@@ -787,7 +774,7 @@ contract CompensateTest is BaseTest {
             BuyCreditMarketParams({
                 borrower: alice,
                 creditPositionId: type(uint256).max,
-                amount: 50e6,
+                amount: 30e6,
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
@@ -797,48 +784,52 @@ contract CompensateTest is BaseTest {
 
         uint256 creditPositionId_1 = type(uint256).max / 2;
 
-        vm.prank(candy);
-        size.buyCreditMarket(
-            BuyCreditMarketParams({
-                borrower: alice,
-                creditPositionId: type(uint256).max,
-                amount: 300e6,
-                tenor: 365 days,
-                deadline: block.timestamp,
-                minAPR: 0,
-                exactAmountIn: true
-            })
-        );
-
         vm.prank(alice);
         size.buyCreditMarket(
             BuyCreditMarketParams({
                 borrower: candy,
                 creditPositionId: type(uint256).max,
-                amount: 50e6,
+                amount: 20e6,
                 tenor: 365 days,
                 deadline: block.timestamp,
                 minAPR: 0,
                 exactAmountIn: false
             })
         );
+        (, uint256 creditPositionCount) = size.getPositionsCount();
+        uint256 creditPositionToCompensateId = CREDIT_POSITION_ID_START + creditPositionCount - 1;
 
-        _setPrice(0.54933036472970604e18);
+        price = bound(price, 1, 1e18);
+        _setPrice(price);
 
-        assertGe(size.collateralRatio(alice), size.riskConfig().crLiquidation);
+        uint256 crBefore = size.collateralRatio(alice);
 
         vm.prank(alice);
         try size.compensate(
             CompensateParams({
                 creditPositionWithDebtToRepayId: creditPositionId_1,
-                creditPositionToCompensateId: type(uint256).max,
-                amount: 50e6
+                creditPositionToCompensateId: creditPositionToCompensateId,
+                amount: 10e6
             })
         ) {
-            assertTrue(false);
+            uint256 crAfter = size.collateralRatio(alice);
+            assertGt(crAfter, crBefore);
         } catch (bytes memory err) {
-            assertEq(bytes4(err), Errors.USER_IS_UNDERWATER.selector);
+            assertIn(
+                bytes4(err),
+                [Errors.MUST_IMPROVE_COLLATERAL_RATIO.selector, Errors.CREDIT_POSITION_NOT_TRANSFERRABLE.selector]
+            );
         }
+    }
+
+    function test_Compensate_compensate_should_revert_if_it_does_not_improve_cr_concrete_revert() public {
+        testFuzz_Compensate_compensate_should_revert_if_it_does_not_improve_cr(3067665046581166411735349628098);
+    }
+
+    function test_Compensate_compensate_should_revert_if_it_does_not_improve_cr_concrete_success() public {
+        testFuzz_Compensate_compensate_should_revert_if_it_does_not_improve_cr(
+            403631493092371811199370247613844744760271305507456038040894
+        );
     }
 
     function test_Compensate_borrower_cannot_force_position_for_sale() public {
@@ -848,6 +839,8 @@ contract CompensateTest is BaseTest {
         _deposit(bob, usdc, 500e6);
         _deposit(candy, weth, 100e18);
         _deposit(candy, usdc, 500e6);
+        _deposit(james, weth, 100e18);
+        _deposit(james, usdc, 500e6);
 
         int256[] memory aprs = new int256[](1);
         uint256[] memory tenors = new uint256[](1);
@@ -882,6 +875,15 @@ contract CompensateTest is BaseTest {
             })
         );
 
+        // James creates a limit order
+        vm.prank(james);
+        size.sellCreditLimit(
+            SellCreditLimitParams({
+                curveRelativeTime: YieldCurve({tenors: tenors, marketRateMultipliers: marketRateMultipliers, aprs: aprs}),
+                maxDueDate: block.timestamp + 365 days
+            })
+        );
+
         uint256 creditPositionId = type(uint256).max / 2;
 
         // Bob's credit position is for sale
@@ -908,12 +910,28 @@ contract CompensateTest is BaseTest {
 
         uint256 newAmount = 90e6;
 
+        // Alice has credit with newAmount
+        vm.prank(alice);
+        size.buyCreditMarket(
+            BuyCreditMarketParams({
+                borrower: james,
+                creditPositionId: type(uint256).max,
+                amount: newAmount,
+                tenor: 365 days,
+                deadline: block.timestamp,
+                minAPR: 0,
+                exactAmountIn: false
+            })
+        );
+        (, uint256 creditPositionCount) = size.getPositionsCount();
+        uint256 creditPositionToCompensateId = CREDIT_POSITION_ID_START + creditPositionCount - 1;
+
         // Alice compensates the credit position with 90% of the amount
         vm.prank(alice);
         size.compensate(
             CompensateParams({
                 creditPositionWithDebtToRepayId: creditPositionId,
-                creditPositionToCompensateId: type(uint256).max,
+                creditPositionToCompensateId: creditPositionToCompensateId,
                 amount: newAmount
             })
         );
@@ -1015,5 +1033,86 @@ contract CompensateTest is BaseTest {
 
             assertGt(size.data().collateralToken.balanceOf(bob), 0);
         }
+    }
+
+    function test_Compensate_borrower_forces_splitting_lender_single_credit_position_into_multiple_credit_positions()
+        public
+    {
+        _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0); // No swap fee for simplicity
+
+        // 5 USDC for the fragmentation fee
+        assertEq(size.feeConfig().fragmentationFee, 5e6);
+
+        assertEq(_state().feeRecipient.borrowATokenBalance, 0);
+        assertEq(_state().feeRecipient.collateralTokenBalance, 0);
+
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 200e18);
+
+        // No lending yield for simplicity
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
+
+        // Bob borrows Alice's 100 USDC (w/o interest for simplicity)
+        uint256 debtPositionId_bob = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
+        uint256 creditPositionId_alice = size.getCreditPositionIdsByDebtPositionId(debtPositionId_bob)[0];
+
+        // Bob maliciously splits Alice's lending liquidity (USDC) in a single source credit position into other 4 credit positions (20 USDC for each)
+        // and leaves the leftover 20 USDC in the source position
+        Vars memory _before = _state();
+
+        uint256[4] memory creditPositionId_alice_splits;
+        for (uint256 i = 0; i < 4; i++) {
+            // Self-borrowing, no lending yield
+            _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
+            uint256 debtPositionId_self_borrow_bob = _sellCreditMarket(bob, bob, RESERVED_ID, 20e6, 365 days, false);
+            uint256 creditPositionToCompensateId_bob =
+                size.getCreditPositionIdsByDebtPositionId(debtPositionId_self_borrow_bob)[0];
+
+            // Split Alice's source credit position
+            _compensate(bob, creditPositionId_alice, creditPositionToCompensateId_bob, 20e6);
+            creditPositionId_alice_splits[i] = creditPositionToCompensateId_bob;
+        }
+
+        Vars memory _after = _state();
+
+        // Bob neither paid fragmentation fees in borrowToken (USDC) nor collateralToken (WETH)
+        assertEq(_before.bob.borrowATokenBalance, _after.bob.borrowATokenBalance);
+        assertEq(_before.bob.collateralTokenBalance, _after.bob.collateralTokenBalance);
+
+        assertEq(_state().feeRecipient.borrowATokenBalance, 0);
+        assertEq(_state().feeRecipient.collateralTokenBalance, 0);
+
+        // Bob repays the source debt position's leftover (20 USDC) and all split debt positions (80 USDC in total)
+        _repay(bob, size.getCreditPosition(creditPositionId_alice).debtPositionId, bob);
+        for (uint256 i = 0; i < 4; i++) {
+            _repay(bob, size.getCreditPosition(creditPositionId_alice_splits[i]).debtPositionId, bob);
+        }
+
+        // Alice's lending liquidity (USDC) in a single credit position was maliciously split into 5 credit positions
+        assertEq(size.getCreditPosition(creditPositionId_alice).credit, 20e6);
+        assertEq(size.getCreditPosition(creditPositionId_alice_splits[0]).credit, 20e6);
+        assertEq(size.getCreditPosition(creditPositionId_alice_splits[1]).credit, 20e6);
+        assertEq(size.getCreditPosition(creditPositionId_alice_splits[2]).credit, 20e6);
+        assertEq(size.getCreditPosition(creditPositionId_alice_splits[3]).credit, 20e6);
+
+        // Alice (or the protocol's keeper bots) must execute the claim() 5 times to aggregate her lending liquidity (USDC) back
+        // -- (Scenario 1) If the protocol's keeper bots execute the claim() on behalf of Alice, this attack can drain the protocol's collected fragmentation fees
+        // -- (Scenario 2) If Alice executes the claim() by herself, she will be grieved by a significant amount of claiming gas fees, and she will finally eat the loss
+        _claim(alice, creditPositionId_alice);
+        _claim(alice, creditPositionId_alice_splits[0]);
+        _claim(alice, creditPositionId_alice_splits[1]);
+        _claim(alice, creditPositionId_alice_splits[2]);
+        _claim(alice, creditPositionId_alice_splits[3]);
+        assertEq(_state().alice.borrowATokenBalance, 100e6); // No yield collected from Bob for simplicity
+        assertEq(_state().alice.collateralTokenBalance, 0); // Further assertion
+
+        // Again, Bob neither paid fragmentation fees in borrowToken (USDC) nor collateralToken (WETH)
+        assertEq(_state().bob.borrowATokenBalance, 0); // No yield collected from self-borrowing
+        assertEq(_state().bob.collateralTokenBalance, 200e18);
+
+        assertEq(size.feeConfig().fragmentationFee, 5e6); // 5 USDC was set for the fragmentation fee
+        assertEq(_state().feeRecipient.borrowATokenBalance, 0); // No collecting fragmentation fees in borrowToken (USDC)
+        assertEq(_state().feeRecipient.collateralTokenBalance, 0); // No collecting fragmentation fees in collateralToken (WETH)
     }
 }

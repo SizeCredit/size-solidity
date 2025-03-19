@@ -30,7 +30,7 @@ contract AuthorizationSelfLiquidateTest is BaseTest {
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
         assertEq(size.getDebtPosition(debtPositionId).futureValue, 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
-        assertTrue(!size.isUserUnderwater(bob));
+        assertTrue(!_isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
 
         _setPrice(0.5e18);

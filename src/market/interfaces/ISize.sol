@@ -17,11 +17,13 @@ import {RepayParams} from "@src/market/libraries/actions/Repay.sol";
 import {SelfLiquidateParams} from "@src/market/libraries/actions/SelfLiquidate.sol";
 
 import {CompensateParams} from "@src/market/libraries/actions/Compensate.sol";
+
 import {
     InitializeFeeConfigParams,
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
+import {PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
 
 import {IMulticall} from "@src/market/interfaces/IMulticall.sol";
 import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
@@ -68,16 +70,16 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7 {
     ///     - uint256 maxDueDate: The maximum due date of the loan (e.g., 1712188800 for April 4th, 2024)
     ///     - YieldCurve curveRelativeTime: The yield curve for the loan offer, a struct containing the following fields:
     ///         - uint256[] tenors: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
-    ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
-    ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
+    ///         - int256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
+    ///         - uint256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
     function buyCreditLimit(BuyCreditLimitParams calldata params) external payable;
 
     /// @notice Places a new borrow offer in the orderbook
     /// @param params SellCreditLimitParams struct containing the following fields:
     ///     - YieldCurve curveRelativeTime: The yield curve for the borrow offer, a struct containing the following fields:
     ///         - uint256[] tenors: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
-    ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
-    ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
+    ///         - int256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
+    ///         - uint256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
     function sellCreditLimit(SellCreditLimitParams calldata params) external payable;
 
     /// @notice Obtains credit via lending or buying existing credit
@@ -164,6 +166,14 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7 {
     ///     - uint256 creditPositionToCompensateId: The id of the credit position to compensate
     ///     - uint256 amount: The amount of tokens to compensate (in decimals, e.g. 1_000e6 for 1000 aUSDC)
     function compensate(CompensateParams calldata params) external payable;
+
+    /// @notice Partial repay a debt position by selecting a specific CreditPosition
+    /// @param params PartialRepayParams struct containing the following fields:
+    ///     - uint256 creditPositionWithDebtToRepayId: The id of the credit position with debt to repay
+    ///     - uint256 amount: The amount of tokens to repay (in decimals, e.g. 1_000e6 for 1000 aUSDC)
+    ///     - address borrower: The address of the borrower
+    /// @dev The partial repay amount should be less than the debt position future value
+    function partialRepay(PartialRepayParams calldata params) external payable;
 
     /// @notice Set the credit positions for sale
     /// @dev By default, all created creadit positions are for sale.

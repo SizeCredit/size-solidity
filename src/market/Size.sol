@@ -52,6 +52,7 @@ import {Liquidate, LiquidateParams} from "@src/market/libraries/actions/Liquidat
 import {State} from "@src/market/SizeStorage.sol";
 import {Multicall} from "@src/market/libraries/Multicall.sol";
 import {Compensate, CompensateOnBehalfOfParams, CompensateParams} from "@src/market/libraries/actions/Compensate.sol";
+import {PartialRepay, PartialRepayParams} from "@src/market/libraries/actions/PartialRepay.sol";
 
 import {
     CopyLimitOrders,
@@ -104,6 +105,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     using SelfLiquidate for State;
     using LiquidateWithReplacement for State;
     using Compensate for State;
+    using PartialRepay for State;
     using SetUserConfiguration for State;
     using RiskLibrary for State;
     using CapsLibrary for State;
@@ -156,7 +158,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         external
         override(ISizeV1_7)
         onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
-        reinitializer(1_7_0)
+        reinitializer(1_07_00)
     {
         // validate _sizeFactory
         if (address(_sizeFactory) == address(0)) {
@@ -181,13 +183,13 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
     {}
 
-    /// @notice Validate that the user has not put themselves in underwater state
-    modifier shouldNotEndUpUnderwater(address onBehalfOf) {
-        bool isUserUnderwaterBefore = state.isUserUnderwater(onBehalfOf);
+    /// @notice Validate that the user has not decreased their collateral ratio
+    modifier mustImproveCollateralRatio(address onBehalfOf) {
+        uint256 collateralRatioBefore = state.collateralRatio(onBehalfOf);
         _;
-        bool isUserUnderwaterAfter = state.isUserUnderwater(onBehalfOf);
-        if (!isUserUnderwaterBefore && isUserUnderwaterAfter) {
-            revert Errors.USER_IS_UNDERWATER(onBehalfOf, state.collateralRatio(onBehalfOf));
+        uint256 collateralRatioAfter = state.collateralRatio(onBehalfOf);
+        if (collateralRatioAfter <= collateralRatioBefore) {
+            revert Errors.MUST_IMPROVE_COLLATERAL_RATIO(onBehalfOf, collateralRatioBefore, collateralRatioAfter);
         }
     }
 
@@ -235,7 +237,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function deposit(DepositParams calldata params) public payable override(ISize) whenNotPaused {
+    function deposit(DepositParams calldata params) public payable override(ISize) {
         depositOnBehalfOf(DepositOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -251,7 +253,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function withdraw(WithdrawParams calldata params) external payable override(ISize) whenNotPaused {
+    function withdraw(WithdrawParams calldata params) external payable override(ISize) {
         withdrawOnBehalfOf(WithdrawOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -267,7 +269,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function buyCreditLimit(BuyCreditLimitParams calldata params) external payable override(ISize) whenNotPaused {
+    function buyCreditLimit(BuyCreditLimitParams calldata params) external payable override(ISize) {
         buyCreditLimitOnBehalfOf(BuyCreditLimitOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -283,7 +285,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function sellCreditLimit(SellCreditLimitParams calldata params) external payable override(ISize) whenNotPaused {
+    function sellCreditLimit(SellCreditLimitParams calldata params) external payable override(ISize) {
         sellCreditLimitOnBehalfOf(SellCreditLimitOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -299,7 +301,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
+    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) {
         buyCreditMarketOnBehalfOf(
             BuyCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
         );
@@ -321,7 +323,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) whenNotPaused {
+    function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) {
         sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
         );
@@ -368,7 +370,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function selfLiquidate(SelfLiquidateParams calldata params) external payable override(ISize) whenNotPaused {
+    function selfLiquidate(SelfLiquidateParams calldata params) external payable override(ISize) {
         selfLiquidateOnBehalfOf(
             SelfLiquidateOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
         );
@@ -404,13 +406,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function compensate(CompensateParams calldata params)
-        external
-        payable
-        override(ISize)
-        whenNotPaused
-        shouldNotEndUpUnderwater(msg.sender)
-    {
+    function compensate(CompensateParams calldata params) external payable override(ISize) {
         compensateOnBehalfOf(CompensateOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -420,19 +416,19 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         payable
         override(ISizeV1_7)
         whenNotPaused
-        shouldNotEndUpUnderwater(externalParams.onBehalfOf)
+        mustImproveCollateralRatio(externalParams.onBehalfOf)
     {
         state.validateCompensate(externalParams);
         state.executeCompensate(externalParams);
     }
 
     /// @inheritdoc ISize
-    function setUserConfiguration(SetUserConfigurationParams calldata params)
-        external
-        payable
-        override(ISize)
-        whenNotPaused
-    {
+    function partialRepay(PartialRepayParams calldata params) external payable override(ISize) whenNotPaused {
+        state.validatePartialRepay(params);
+        state.executePartialRepay(params);
+    }
+
+    function setUserConfiguration(SetUserConfigurationParams calldata params) external payable override(ISize) {
         setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -448,7 +444,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable override(ISize) whenNotPaused {
+    function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable override(ISize) {
         copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 

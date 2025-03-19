@@ -46,6 +46,7 @@ import {BORROW_RATE_UPDATER_ROLE, KEEPER_ROLE, PAUSER_ROLE} from "@src/factory/i
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice See the documentation in {ISizeFactory}.
+/// @dev Expects `AccessControlUpgradeable` to have a single DEFAULT_ADMIN_ROLE role address set.
 contract SizeFactory is
     ISizeFactory,
     SizeFactoryGetters,
@@ -77,10 +78,11 @@ contract SizeFactory is
 
     function reinitialize() external onlyOwner reinitializer(1_7_0) {
         // grant `AccessControlUpgradeable` roles to the `Ownable2StepUpgradeable` owner
-        _grantRole(DEFAULT_ADMIN_ROLE, owner());
-        _grantRole(PAUSER_ROLE, owner());
-        _grantRole(KEEPER_ROLE, owner());
-        _grantRole(BORROW_RATE_UPDATER_ROLE, owner());
+        address _owner = owner();
+        _grantRole(DEFAULT_ADMIN_ROLE, _owner);
+        _grantRole(PAUSER_ROLE, _owner);
+        _grantRole(KEEPER_ROLE, _owner);
+        _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
         // transfer `Ownable2StepUpgradeable` ownership to the zero address to keep the state consistent
         // in a future upgrade, we can simply remove `Ownable2StepUpgradeable` from the implementation
         _transferOwnership(address(0));
@@ -119,8 +121,9 @@ contract SizeFactory is
         InitializeOracleParams calldata oracleParams,
         InitializeDataParams calldata dataParams
     ) external onlyRole(DEFAULT_ADMIN_ROLE) returns (ISize market) {
+        address admin = msg.sender;
         market = MarketFactoryLibrary.createMarket(
-            sizeImplementation, owner(), feeConfigParams, riskConfigParams, oracleParams, dataParams
+            sizeImplementation, admin, feeConfigParams, riskConfigParams, oracleParams, dataParams
         );
         _addMarket(market);
     }
@@ -179,8 +182,9 @@ contract SizeFactory is
         external
         returns (NonTransferrableScaledTokenV1_5 borrowATokenV1_5)
     {
+        address admin = msg.sender;
         borrowATokenV1_5 = NonTransferrableScaledTokenV1_5FactoryLibrary.createNonTransferrableScaledTokenV1_5(
-            nonTransferrableScaledTokenV1_5Implementation, owner(), variablePool, underlyingBorrowToken
+            nonTransferrableScaledTokenV1_5Implementation, admin, variablePool, underlyingBorrowToken
         );
         _addBorrowATokenV1_5(borrowATokenV1_5);
     }

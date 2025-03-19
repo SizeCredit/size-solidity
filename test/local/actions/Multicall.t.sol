@@ -13,15 +13,16 @@ import {RepayParams} from "@src/market/libraries/actions/Repay.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 
-import {BuyCreditLimitParams} from "@src/market/libraries/actions/BuyCreditLimit.sol";
+import {BuyCreditLimitOnBehalfOfParams, BuyCreditLimitParams} from "@src/market/libraries/actions/BuyCreditLimit.sol";
 
-import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
+import {DepositOnBehalfOfParams, DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 
 import {LiquidateParams} from "@src/market/libraries/actions/Liquidate.sol";
 import {SellCreditLimitParams} from "@src/market/libraries/actions/SellCreditLimit.sol";
 import {WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 import {WithdrawParams} from "@src/market/libraries/actions/Withdraw.sol";
 
+import {Action, Authorization} from "@src/factory/libraries/Authorization.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
 contract MulticallTest is BaseTest {
@@ -267,5 +268,44 @@ contract MulticallTest is BaseTest {
         size.multicall(data);
 
         assertEq(debtToken.balanceOf(bob), 0);
+    }
+
+    function test_Multicall_multicall_can_deposit_on_behalf_and_create_loanOffer_on_behalf() public {
+        vm.startPrank(alice);
+        uint256 amount = 100e6;
+        address token = address(usdc);
+        deal(token, alice, amount);
+        IERC20Metadata(token).approve(address(size), amount);
+
+        Action[] memory actions = new Action[](2);
+        actions[0] = Action.BUY_CREDIT_LIMIT;
+        actions[1] = Action.DEPOSIT;
+
+        sizeFactory.setAuthorization(bob, Authorization.getActionsBitmap(actions));
+
+        vm.startPrank(bob);
+
+        bytes[] memory data = new bytes[](2);
+        data[0] = abi.encodeCall(
+            size.depositOnBehalfOf,
+            (DepositOnBehalfOfParams((DepositParams({token: token, amount: amount, to: alice})), alice))
+        );
+        data[1] = abi.encodeCall(
+            size.buyCreditLimitOnBehalfOf,
+            (
+                BuyCreditLimitOnBehalfOfParams(
+                    BuyCreditLimitParams({
+                        maxDueDate: block.timestamp + 1 days,
+                        curveRelativeTime: YieldCurveHelper.flatCurve()
+                    }),
+                    alice
+                )
+            )
+        );
+        bytes[] memory results = size.multicall(data);
+
+        assertEq(results.length, 2);
+        assertEq(results[0], bytes(""));
+        assertEq(results[1], bytes(""));
     }
 }

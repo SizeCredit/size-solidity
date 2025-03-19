@@ -54,7 +54,10 @@ library Deposit {
         }
 
         // validate msg.value
-        if (msg.value != 0 && (msg.value != params.amount || params.token != address(state.data.weth))) {
+        if (
+            msg.value != 0
+                && (msg.value != params.amount || params.token != address(state.data.weth) || onBehalfOf != msg.sender)
+        ) {
             revert Errors.INVALID_MSG_VALUE(msg.value);
         }
 

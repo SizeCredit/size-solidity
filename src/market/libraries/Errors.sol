@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 library Errors {
-    error USER_IS_UNDERWATER(address account, uint256 cr);
+    error MUST_IMPROVE_COLLATERAL_RATIO(address account, uint256 crBefore, uint256 crAfter);
     error NULL_ADDRESS();
     error NULL_AMOUNT();
     error NULL_TENOR();
@@ -13,6 +13,7 @@ library Errors {
     error NULL_ARRAY();
     error NULL_OFFER();
     error INVALID_MSG_VALUE(uint256 value);
+    error INVALID_AMOUNT(uint256 amount);
     error TENORS_NOT_STRICTLY_INCREASING();
     error ARRAY_LENGTHS_MISMATCH();
     error INVALID_TOKEN(address token);
