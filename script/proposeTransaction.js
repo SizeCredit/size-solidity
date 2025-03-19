@@ -4,6 +4,7 @@ const { OperationType } = require("@safe-global/types-kit");
 const { ethers } = require("ethers");
 const TransportNodeHid = require("@ledgerhq/hw-transport-node-hid").default;
 const AppEth = require("@ledgerhq/hw-app-eth").default;
+const axios = require("axios");
 
 const RPC_URLS = {
   base: "https://base-mainnet.g.alchemy.com/v2/",
@@ -15,6 +16,10 @@ const API_KEY_ALCHEMY = process.env.API_KEY_ALCHEMY;
 const RPC_URL = RPC_URLS[process.env.RPC_URL] + API_KEY_ALCHEMY;
 const LEDGER_PATH = process.env.LEDGER_PATH;
 
+const TENDERLY_ACCESS_KEY = process.env.TENDERLY_ACCESS_KEY;
+const TENDERLY_ACCOUNT_NAME = process.env.TENDERLY_ACCOUNT_NAME;
+const TENDERLY_PROJECT_NAME = process.env.TENDERLY_PROJECT_NAME;
+
 const TO = process.env.TO;
 const DATA = process.env.DATA;
 
@@ -22,6 +27,8 @@ async function main() {
   const provider = new ethers.JsonRpcProvider(RPC_URL);
   const network = await provider.getNetwork();
   const apiKit = new SafeApiKit({ chainId: BigInt(network.chainId) });
+
+  const safeAddress = OWNER;
 
   const transport = await TransportNodeHid.create();
   const eth = new AppEth(transport);
@@ -32,7 +39,7 @@ async function main() {
   const protocolKit = await Safe.init({
     provider: RPC_URL,
     signer: owner1.address,
-    safeAddress: OWNER,
+    safeAddress: safeAddress,
   });
 
   const safeTransactionData = {
@@ -56,7 +63,7 @@ async function main() {
     account: owner1.address,
     domain: {
       chainId: BigInt(network.chainId),
-      verifyingContract: OWNER,
+      verifyingContract: safeAddress,
     },
     message: {
       to: safeTransaction.data.to,
@@ -115,7 +122,7 @@ async function main() {
   console.log("owner1.address:", owner1.address);
 
   await apiKit.proposeTransaction({
-    safeAddress: OWNER,
+    safeAddress: safeAddress,
     safeTransactionData: safeTransaction.data,
     safeTxHash: safeTxHash,
     senderAddress: owner1.address,
@@ -123,6 +130,61 @@ async function main() {
   });
 
   await transport.close();
+
+  const gasPrice = (await provider.getFeeData()).gasPrice;
+  console.log("gasPrice:", gasPrice);
+
+  const safeAbi = [
+    "function execTransaction(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,bytes signatures) public returns (bool success)",
+  ];
+  const safeInterface = new ethers.Interface(safeAbi);
+  const execTransactionData = safeInterface.encodeFunctionData(
+    "execTransaction",
+    [
+      safeTransaction.data.to,
+      safeTransaction.data.value,
+      safeTransaction.data.data,
+      safeTransaction.data.operation,
+      safeTransaction.data.safeTxGas,
+      safeTransaction.data.baseGas,
+      safeTransaction.data.gasPrice,
+      safeTransaction.data.gasToken,
+      safeTransaction.data.refundReceiver,
+      owner1Signature,
+    ]
+  );
+
+  const { data } = await axios.post(
+    `https://api.tenderly.co/api/v1/account/${TENDERLY_ACCOUNT_NAME}/project/${TENDERLY_PROJECT_NAME}/simulate`,
+    {
+      save: true,
+      save_if_fails: true,
+      simulation_type: "full",
+      network_id: network.chainId.toString(),
+      from: owner1.address,
+      to: safeAddress,
+      input: execTransactionData,
+      gas: 30e6,
+      state_objects: {
+        [safeAddress]: {
+          storage: {
+            "0x0000000000000000000000000000000000000000000000000000000000000004":
+              "0x0000000000000000000000000000000000000000000000000000000000000001",
+          },
+        },
+      },
+    },
+    {
+      headers: {
+        "X-Access-Key": TENDERLY_ACCESS_KEY,
+      },
+    }
+  );
+
+  const simulationId = data.simulation.id;
+
+  const simulationUrl = `https://dashboard.tenderly.co/${TENDERLY_ACCOUNT_NAME}/${TENDERLY_PROJECT_NAME}/simulator/${simulationId}`;
+  console.log("Simulation URL:", simulationUrl);
 }
 
 main();
