@@ -16,7 +16,7 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
-import {ISizeFactoryGetters} from "@src/factory/interfaces/ISizeFactoryGetters.sol";
+import {ISizeFactoryOffchainGetters} from "@src/factory/interfaces/ISizeFactoryOffchainGetters.sol";
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
 
 bytes32 constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
@@ -27,7 +27,7 @@ bytes32 constant BORROW_RATE_UPDATER_ROLE = keccak256("BORROW_RATE_UPDATER_ROLE"
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice The interface for the size factory
-interface ISizeFactory is ISizeFactoryGetters, ISizeFactoryV1_7 {
+interface ISizeFactory is ISizeFactoryOffchainGetters, ISizeFactoryV1_7 {
     /// @notice Set the size implementation
     /// @param _sizeImplementation The new size implementation
     function setSizeImplementation(address _sizeImplementation) external;
@@ -53,36 +53,6 @@ interface ISizeFactory is ISizeFactoryGetters, ISizeFactoryV1_7 {
     function createBorrowATokenV1_5(IPool variablePool, IERC20Metadata underlyingBorrowToken)
         external
         returns (NonTransferrableScaledTokenV1_5);
-
-    /// @notice Add a market to the factory
-    /// @param market The market to add
-    /// @return existed True if the market existed before
-    function addMarket(ISize market) external returns (bool existed);
-
-    /// @notice Add a price feed to the factory
-    /// @param priceFeed The price feed to add
-    /// @return existed True if the price feed existed before
-    function addPriceFeed(PriceFeed priceFeed) external returns (bool existed);
-
-    /// @notice Add a borrow aToken to the factory
-    /// @param borrowATokenV1_5 The borrow aToken to add
-    /// @return existed True if the borrow aToken existed before
-    function addBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5) external returns (bool existed);
-
-    /// @notice Remove a market from the factory
-    /// @param market The market to remove
-    /// @return existed True if the market existed before
-    function removeMarket(ISize market) external returns (bool existed);
-
-    /// @notice Remove a price feed from the factory
-    /// @param priceFeed The price feed to remove
-    /// @return existed True if the price feed existed before
-    function removePriceFeed(PriceFeed priceFeed) external returns (bool existed);
-
-    /// @notice Remove a borrow aToken from the factory
-    /// @param borrowATokenV1_5 The borrow aToken to remove
-    /// @return existed True if the borrow aToken existed before
-    function removeBorrowATokenV1_5(IERC20Metadata borrowATokenV1_5) external returns (bool existed);
 
     /// @notice Check if an address is a registered market
     /// @param candidate The candidate to check
