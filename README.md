@@ -20,7 +20,6 @@ Networks:
 | 2024-06-10 | v1.0 | Code4rena | [Report](https://code4rena.com/reports/2024-06-size) |
 | 2024-06-08 | v1.0-rc | Spearbit | [Report](./audits/2024-06-08-Spearbit.pdf) |
 | 2024-03-26 | v1.0-beta | Solidified | [Report](./audits/2024-03-26-Solidified.pdf) |
-| 2024-03-19 | v1.0-alpha | LightChaserV3 | [Report](./audits/2024-03-19-LightChaserV3.md) |
 
 For bug reports, please refer to our [Bug Bounty Program](https://app.hats.finance/bug-bounties/size-0xd915dc4630c8957e7aabb44df6309f6f4cfcf9c0/rewards)
 
