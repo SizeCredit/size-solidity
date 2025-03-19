@@ -25,7 +25,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
         assertEq(size.getDebtPosition(debtPositionId).futureValue, 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
-        assertTrue(!size.isUserUnderwater(bob));
+        assertTrue(!_isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
 
         _setPrice(0.5e18);
@@ -73,7 +73,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 200e18);
         assertEq(size.getDebtPosition(debtPositionId).futureValue, 100e6);
         assertEq(size.collateralRatio(bob), 2.0e18);
-        assertTrue(!size.isUserUnderwater(bob));
+        assertTrue(!_isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
 
         _setPrice(0.6e18);
@@ -123,7 +123,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(size.getDebtPositionAssignedCollateral(debtPositionId), 150e18);
         assertEq(size.getDebtPosition(debtPositionId).futureValue, 100e6);
         assertEq(size.collateralRatio(bob), 1.5e18);
-        assertTrue(!size.isUserUnderwater(bob));
+        assertTrue(!_isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId));
 
         _setPrice(0.5e18);
@@ -255,7 +255,7 @@ contract SelfLiquidateTest is BaseTest {
         assertEq(size.getDebtPosition(debtPositionId1).futureValue, 100e6);
         assertEq(size.getCreditPosition(creditPositionId1).credit, 70e6);
         assertEq(size.collateralRatio(alice), 1.5e18);
-        assertTrue(!size.isUserUnderwater(bob));
+        assertTrue(!_isUserUnderwater(bob));
         assertTrue(!size.isDebtPositionLiquidatable(debtPositionId1));
         _setPrice(0.5e18);
         assertEq(size.collateralRatio(alice), 0.75e18);
@@ -289,7 +289,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _selfLiquidate(candy, creditPositionId1);
 
-        assertTrue(size.isUserUnderwater(alice));
+        assertTrue(_isUserUnderwater(alice));
         _selfLiquidate(james, creditPositionId2);
     }
 
@@ -323,7 +323,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _selfLiquidate(candy, creditPositionId1);
 
-        assertTrue(size.isUserUnderwater(alice));
+        assertTrue(_isUserUnderwater(alice));
         _selfLiquidate(james, creditPositionId2);
     }
 
@@ -462,7 +462,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _selfLiquidate(candy, creditPositionId1);
 
-        assertTrue(size.isUserUnderwater(alice));
+        assertTrue(_isUserUnderwater(alice));
         _selfLiquidate(james, creditPositionId2);
     }
 
@@ -477,7 +477,7 @@ contract SelfLiquidateTest is BaseTest {
 
         _setPrice(0.3e18);
 
-        assertTrue(size.isUserUnderwater(alice));
+        assertTrue(_isUserUnderwater(alice));
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
         _selfLiquidate(bob, size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0]);

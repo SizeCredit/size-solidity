@@ -149,7 +149,7 @@ contract LiquidateTest is BaseTest {
         Vars memory _before = _state();
         (uint256 loansBefore,) = size.getPositionsCount();
         assertGt(size.getDebtPosition(debtPositionId).futureValue, 0);
-        assertTrue(!size.isUserUnderwater(bob));
+        assertTrue(!_isUserUnderwater(bob));
         assertEq(size.collateralRatio(bob), 1.5e18);
 
         uint256 debtInCollateralToken = size.debtTokenAmountToCollateralTokenAmount(futureValue);
@@ -164,7 +164,7 @@ contract LiquidateTest is BaseTest {
             debtInCollateralToken * (size.riskConfig().crLiquidation - PERCENT) / PERCENT
         ) * size.feeConfig().overdueCollateralProtocolPercent / PERCENT;
 
-        assertTrue(!size.isUserUnderwater(bob));
+        assertTrue(!_isUserUnderwater(bob));
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId));
 
         _liquidate(liquidator, debtPositionId);
@@ -302,7 +302,7 @@ contract LiquidateTest is BaseTest {
         );
         uint256 liquidatorProfitCollateralToken = debtInCollateralToken + liquidatorReward;
 
-        assertTrue(size.isUserUnderwater(bob));
+        assertTrue(_isUserUnderwater(bob));
         _liquidate(liquidator, debtPositionId);
 
         Vars memory _after = _state();
@@ -359,11 +359,11 @@ contract LiquidateTest is BaseTest {
         _deposit(alice, weth, 200e18);
         uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, 6 days, false);
         assertGe(size.collateralRatio(alice), size.riskConfig().crOpening);
-        assertTrue(!size.isUserUnderwater(alice), "borrower should not be underwater");
+        assertTrue(!_isUserUnderwater(alice), "borrower should not be underwater");
         vm.warp(block.timestamp + 1 days);
         _setPrice(0.6e18);
 
-        assertTrue(size.isUserUnderwater(alice), "borrower should be underwater");
+        assertTrue(_isUserUnderwater(alice), "borrower should be underwater");
         assertTrue(size.isDebtPositionLiquidatable(debtPositionId), "loan should be liquidatable");
 
         _deposit(liquidator, usdc, 10_000e6);
@@ -425,10 +425,10 @@ contract LiquidateTest is BaseTest {
         _deposit(alice, weth, 200e18 + collateral);
         uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 100e6, 6 days, false);
         assertGe(size.collateralRatio(alice), size.riskConfig().crOpening);
-        assertTrue(!size.isUserUnderwater(alice), "borrower should not be underwater");
+        assertTrue(!_isUserUnderwater(alice), "borrower should not be underwater");
         _setPrice(price);
 
-        if (size.isUserUnderwater(alice)) {
+        if (_isUserUnderwater(alice)) {
             _deposit(liquidator, usdc, 10_000e6);
             _liquidate(liquidator, debtPositionId);
         }
