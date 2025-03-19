@@ -428,6 +428,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         state.executePartialRepay(params);
     }
 
+    /// @inheritdoc ISize
     function setUserConfiguration(SetUserConfigurationParams calldata params) external payable override(ISize) {
         setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
@@ -448,6 +449,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
+    /// @inheritdoc ISizeV1_7
     function copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams memory externalParams)
         public
         payable

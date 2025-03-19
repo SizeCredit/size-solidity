@@ -1008,7 +1008,7 @@ contract CompensateTest is BaseTest {
         _setPrice(0.2e18);
 
         // Bob is liquidatable
-        assertTrue(size.isUserUnderwater(bob));
+        assertTrue(_isUserUnderwater(bob));
 
         // Bob holds some WETH
         assertGt(size.data().collateralToken.balanceOf(bob), 0);
