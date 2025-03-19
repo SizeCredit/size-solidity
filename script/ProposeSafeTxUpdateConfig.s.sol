@@ -65,7 +65,6 @@ contract ProposeSafeTxUpdateConfigScript is BaseScript, Networks {
         console.log("data:");
         console.logBytes(data);
 
-        // run script/proposeTransaction.js <to> <data>
         string[] memory args = new string[](4);
         args[0] = "node";
         args[1] = "script/proposeTransaction.js";
