@@ -21,6 +21,7 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice The interface for the Size v1.7 authorization system
+/// @dev Modifiers are moved from bare functions (e.g. `deposit`) to OnBehalfOf functions (e.g. `depositOnBehalfOf`)
 interface ISizeV1_7 {
     /// @notice Reinitialize the size contract
     ///         In production, `sizeFactory` will not be set for existing markets before the v1.7 upgrade
@@ -42,9 +43,13 @@ interface ISizeV1_7 {
     function sellCreditLimitOnBehalfOf(SellCreditLimitOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `buyCreditMarket` but `onBehalfOf`
+    /// @dev When emitting the `SwapData` event, the recipient is set as the `lender` param, which is inconsistent with the `BuyCreditMarket` event emitted just before,
+    ///        where `lender` is passed as `onBehalfOf`. The reason is that `SwapData` emits only debt/credit recipients, while `BuyCreditMarket` emits both and also `onBehalfOf`.
     function buyCreditMarketOnBehalfOf(BuyCreditMarketOnBehalfOfParams memory params) external payable;
 
     /// @notice Same as `sellCreditMarket` but `onBehalfOf`
+    /// @dev When emitting the `SwapData` event, the `recipient` parameter is left out. The reason is that `SwapData` emits only debt/credit recipients,
+    ///      while `SellCreditMarket` emits both and also the cash recipient.
     function sellCreditMarketOnBehalfOf(SellCreditMarketOnBehalfOfParams memory params) external payable;
 
     // repay is permissionless

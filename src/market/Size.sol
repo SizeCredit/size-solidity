@@ -158,7 +158,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         external
         override(ISizeV1_7)
         onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
-        reinitializer(1_7_0)
+        reinitializer(1_07_00)
     {
         // validate _sizeFactory
         if (address(_sizeFactory) == address(0)) {
@@ -237,7 +237,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function deposit(DepositParams calldata params) public payable override(ISize) whenNotPaused {
+    function deposit(DepositParams calldata params) public payable override(ISize) {
         depositOnBehalfOf(DepositOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -253,7 +253,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function withdraw(WithdrawParams calldata params) external payable override(ISize) whenNotPaused {
+    function withdraw(WithdrawParams calldata params) external payable override(ISize) {
         withdrawOnBehalfOf(WithdrawOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -269,7 +269,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function buyCreditLimit(BuyCreditLimitParams calldata params) external payable override(ISize) whenNotPaused {
+    function buyCreditLimit(BuyCreditLimitParams calldata params) external payable override(ISize) {
         buyCreditLimitOnBehalfOf(BuyCreditLimitOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -285,7 +285,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function sellCreditLimit(SellCreditLimitParams calldata params) external payable override(ISize) whenNotPaused {
+    function sellCreditLimit(SellCreditLimitParams calldata params) external payable override(ISize) {
         sellCreditLimitOnBehalfOf(SellCreditLimitOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -301,7 +301,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) whenNotPaused {
+    function buyCreditMarket(BuyCreditMarketParams calldata params) external payable override(ISize) {
         buyCreditMarketOnBehalfOf(
             BuyCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
         );
@@ -323,7 +323,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) whenNotPaused {
+    function sellCreditMarket(SellCreditMarketParams memory params) external payable override(ISize) {
         sellCreditMarketOnBehalfOf(
             SellCreditMarketOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
         );
@@ -370,7 +370,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function selfLiquidate(SelfLiquidateParams calldata params) external payable override(ISize) whenNotPaused {
+    function selfLiquidate(SelfLiquidateParams calldata params) external payable override(ISize) {
         selfLiquidateOnBehalfOf(
             SelfLiquidateOnBehalfOfParams({params: params, onBehalfOf: msg.sender, recipient: msg.sender})
         );
@@ -406,13 +406,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function compensate(CompensateParams calldata params)
-        external
-        payable
-        override(ISize)
-        whenNotPaused
-        mustImproveCollateralRatio(msg.sender)
-    {
+    function compensate(CompensateParams calldata params) external payable override(ISize) {
         compensateOnBehalfOf(CompensateOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -434,13 +428,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         state.executePartialRepay(params);
     }
 
-    /// @inheritdoc ISize
-    function setUserConfiguration(SetUserConfigurationParams calldata params)
-        external
-        payable
-        override(ISize)
-        whenNotPaused
-    {
+    function setUserConfiguration(SetUserConfigurationParams calldata params) external payable override(ISize) {
         setUserConfigurationOnBehalfOf(SetUserConfigurationOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 
@@ -456,7 +444,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
     }
 
     /// @inheritdoc ISize
-    function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable override(ISize) whenNotPaused {
+    function copyLimitOrders(CopyLimitOrdersParams calldata params) external payable override(ISize) {
         copyLimitOrdersOnBehalfOf(CopyLimitOrdersOnBehalfOfParams({params: params, onBehalfOf: msg.sender}));
     }
 

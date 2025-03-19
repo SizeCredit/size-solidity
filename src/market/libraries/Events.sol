@@ -70,7 +70,7 @@ library Events {
         uint8 loanStatus
     );
     event SelfLiquidate(
-        address indexed sender, address indexed borrower, uint256 indexed creditPositionId, address recipient
+        address indexed sender, address indexed lender, uint256 indexed creditPositionId, address recipient
     );
     event LiquidateWithReplacement(
         address indexed sender,
@@ -140,7 +140,9 @@ library Events {
 
     event SwapData(
         uint256 indexed creditPositionId,
+        // debt recipient
         address indexed borrower,
+        // credit recipient
         address indexed lender,
         uint256 credit,
         uint256 cashIn,

@@ -70,16 +70,16 @@ interface ISize is ISizeView, ISizeAdmin, IMulticall, ISizeV1_7 {
     ///     - uint256 maxDueDate: The maximum due date of the loan (e.g., 1712188800 for April 4th, 2024)
     ///     - YieldCurve curveRelativeTime: The yield curve for the loan offer, a struct containing the following fields:
     ///         - uint256[] tenors: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
-    ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
-    ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
+    ///         - int256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
+    ///         - uint256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [1e18, 1.2e18, 1.3e18] to represent 100%, 120%, and 130% of the market borrow rate, respectively)
     function buyCreditLimit(BuyCreditLimitParams calldata params) external payable;
 
     /// @notice Places a new borrow offer in the orderbook
     /// @param params SellCreditLimitParams struct containing the following fields:
     ///     - YieldCurve curveRelativeTime: The yield curve for the borrow offer, a struct containing the following fields:
     ///         - uint256[] tenors: The relative timestamps of the yield curve (for example, [30 days, 60 days, 90 days])
-    ///         - uint256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
-    ///         - int256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
+    ///         - int256[] aprs: The aprs of the yield curve (for example, [0.05e18, 0.07e18, 0.08e18] to represent 5% APR, 7% APR, and 8% APR, linear interest, respectively)
+    ///         - uint256[] marketRateMultipliers: The market rate multipliers of the yield curve (for example, [0.99e18, 1e18, 1.1e18] to represent 99%, 100%, and 110% of the market borrow rate, respectively)
     function sellCreditLimit(SellCreditLimitParams calldata params) external payable;
 
     /// @notice Obtains credit via lending or buying existing credit
