@@ -11,6 +11,7 @@ import {
     SetUserConfiguration, SetUserConfigurationParams
 } from "@src/market/libraries/actions/SetUserConfiguration.sol";
 
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {Math} from "@src/market/libraries/Math.sol";
 import {BuyCreditMarketParams} from "@src/market/libraries/actions/BuyCreditMarket.sol";
 import {CompensateParams} from "@src/market/libraries/actions/Compensate.sol";
@@ -985,6 +986,52 @@ contract CompensateTest is BaseTest {
             _compensate(alice, creditPositionWithDebtToRepayId, creditPositionToCompensateId);
             uint256 afterBalance = _state().alice.collateralTokenBalance;
             assertLt(afterBalance, beforeBalance);
+        }
+    }
+
+    function test_Compensate_with_fragmentation_cannot_skip_fees() public {
+        // Alice deposits WETH and USDC
+        _deposit(alice, weth, 100e18);
+        _deposit(alice, usdc, 100e6);
+
+        // Bob deposits WETH
+        _deposit(bob, weth, 0.05e18);
+
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 1e18));
+
+        // Bob borrows 20 USDC from Alice
+        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 20e6, 365 days, false);
+        uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
+        uint256 newCreditPositionId = creditPositionId;
+
+        // WETH price drops
+        _setPrice(0.2e18);
+
+        // Bob is liquidatable
+        assertTrue(size.isUserUnderwater(bob));
+
+        // Bob holds some WETH
+        assertGt(size.data().collateralToken.balanceOf(bob), 0);
+
+        for (uint256 i = 1; i <= 4; i++) {
+            ++newCreditPositionId;
+
+            vm.prank(bob);
+            try size.compensate(
+                CompensateParams({
+                    creditPositionWithDebtToRepayId: creditPositionId,
+                    creditPositionToCompensateId: RESERVED_ID,
+                    amount: 5e6
+                })
+            ) {
+                assertEq(size.getCreditPosition(newCreditPositionId).credit, 5e6);
+            } catch (bytes memory err) {
+                if (i > 1) {
+                    assertEq(bytes4(err), IERC20Errors.ERC20InsufficientBalance.selector);
+                }
+            }
+
+            assertGt(size.data().collateralToken.balanceOf(bob), 0);
         }
     }
 
