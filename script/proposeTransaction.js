@@ -20,8 +20,12 @@ const TENDERLY_ACCESS_KEY = process.env.TENDERLY_ACCESS_KEY;
 const TENDERLY_ACCOUNT_NAME = process.env.TENDERLY_ACCOUNT_NAME;
 const TENDERLY_PROJECT_NAME = process.env.TENDERLY_PROJECT_NAME;
 
-const TO = process.env.TO;
-const DATA = process.env.DATA;
+if (process.argv.length < 4) {
+  console.error("Error: Missing required arguments. Usage: node script/proposeTransaction.js <TO> <DATA>");
+  process.exit(1);
+}
+const TO = process.argv[2];
+const DATA = process.argv[3];
 
 async function main() {
   const provider = new ethers.JsonRpcProvider(RPC_URL);
@@ -168,7 +172,9 @@ async function main() {
       state_objects: {
         [safeAddress]: {
           storage: {
+            // threshold
             "0x0000000000000000000000000000000000000000000000000000000000000004":
+            // 1
               "0x0000000000000000000000000000000000000000000000000000000000000001",
           },
         },
