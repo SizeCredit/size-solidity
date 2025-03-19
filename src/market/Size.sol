@@ -156,7 +156,7 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
         external
         override(ISizeV1_7)
         onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
-        reinitializer(1_07_0)
+        reinitializer(1_07_00)
     {
         // validate _sizeFactory
         if (address(_sizeFactory) == address(0)) {
