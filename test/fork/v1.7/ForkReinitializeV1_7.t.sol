@@ -26,7 +26,7 @@ import {console} from "forge-std/console.sol";
 import {Networks} from "@script/Networks.sol";
 import {IMultiSendCallOnly} from "@script/interfaces/IMultiSendCallOnly.sol";
 
-import {GetV1_7ReinitializeDataScript} from "@script/GetV1_7ReinitializeData.s.sol";
+import {ProposeSafeTxV1_7ReinitializeScript} from "@script/ProposeSafeTxV1_7Reinitialize.s.sol";
 
 import {ISafe} from "@script/interfaces/ISafe.sol";
 import {VERSION} from "@src/market/interfaces/ISize.sol";
@@ -34,7 +34,7 @@ import {SafeUtils} from "@test/SafeUtils.sol";
 
 import {ActionsBitmap} from "@src/factory/libraries/Authorization.sol";
 
-contract ForkReinitializeV1_7Test is ForkTest, GetV1_7ReinitializeDataScript, Networks, SafeUtils {
+contract ForkReinitializeV1_7Test is ForkTest, ProposeSafeTxV1_7ReinitializeScript, SafeUtils {
     struct Vars {
         ISizeFactory sizeFactory;
         IMultiSendCallOnly multiSendCallOnly;

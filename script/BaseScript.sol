@@ -115,17 +115,6 @@ abstract contract BaseScript is Script {
         vm.writeJson(finalObject, path);
     }
 
-    function exportV1_7ReinitializeData(string memory network, address to, bytes memory data) internal {
-        root = vm.projectRoot();
-        path = string.concat(root, "/deployments/v1.7/");
-        path = string.concat(path, string.concat(network, "-reinitialize-data", ".json"));
-
-        string memory finalObject;
-        finalObject = vm.serializeAddress(".", "to", to);
-        finalObject = vm.serializeBytes(".", "data", data);
-        vm.writeJson(finalObject, path);
-    }
-
     function importV1_5ReinitializeData(string memory networkConfiguration, EnumerableMap.AddressToUintMap storage map)
         internal
         returns (uint256 blockNumber, bytes memory data)
