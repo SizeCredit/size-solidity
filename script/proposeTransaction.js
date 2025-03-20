@@ -7,17 +7,6 @@ const AppEth = require("@ledgerhq/hw-app-eth").default;
 const axios = require("axios");
 const fs = require("fs");
 
-const logsFile = "/tmp/proposeTransaction.log";
-
-if (fs.existsSync(logsFile)) {
-  fs.truncateSync(logsFile, 0);
-}
-const accessLogStream = fs.createWriteStream(logsFile, { flags: "a" });
-const errorLogStream = fs.createWriteStream(logsFile, { flags: "a" });
-
-process.stdout.write = accessLogStream.write.bind(accessLogStream);
-process.stderr.write = errorLogStream.write.bind(errorLogStream);
-
 const RPC_URLS = {
   base: "https://base-mainnet.g.alchemy.com/v2/",
   mainnet: "https://eth-mainnet.g.alchemy.com/v2/",
@@ -29,6 +18,8 @@ const LEDGER_PATH = process.env.LEDGER_PATH;
 const TENDERLY_ACCESS_KEY = process.env.TENDERLY_ACCESS_KEY;
 const TENDERLY_ACCOUNT_NAME = process.env.TENDERLY_ACCOUNT_NAME;
 const TENDERLY_PROJECT_NAME = process.env.TENDERLY_PROJECT_NAME;
+const OPERATION =
+  OperationType.DelegateCall; /* required for MultiSendCallOnly */
 
 if (process.argv.length < 4) {
   console.error("Usage: node script/proposeTransaction.js <TO> <DATA>");
@@ -36,6 +27,18 @@ if (process.argv.length < 4) {
 }
 const TO = process.argv[2];
 const DATA = process.argv[3];
+const LOG_FILE = process.argv[4] || "/tmp/proposeTransaction.log";
+
+if (LOG_FILE !== "stdout") {
+  if (fs.existsSync(LOG_FILE)) {
+    fs.truncateSync(LOG_FILE, 0);
+  }
+  const accessLogStream = fs.createWriteStream(logsFile, { flags: "a" });
+  const errorLogStream = fs.createWriteStream(logsFile, { flags: "a" });
+
+  process.stdout.write = accessLogStream.write.bind(accessLogStream);
+  process.stderr.write = errorLogStream.write.bind(errorLogStream);
+}
 
 async function setupProvider() {
   const provider = new ethers.JsonRpcProvider(RPC_URL);
@@ -65,7 +68,7 @@ async function buildSafeTransaction(protocolKit) {
         to: TO,
         value: "0",
         data: DATA,
-        operation: OperationType.DelegateCall,
+        operation: OPERATION,
       },
     ],
   });
@@ -150,7 +153,7 @@ async function buildExecTransactionData(safeTx, signature) {
   ]);
 }
 
-async function simulateTransaction(network, execTxData, sender) {
+async function simulateTransaction(network, execTransactionData, sender) {
   const url = `https://api.tenderly.co/api/v1/account/${TENDERLY_ACCOUNT_NAME}/project/${TENDERLY_PROJECT_NAME}/simulate`;
   const res = await axios.post(
     url,
@@ -161,7 +164,7 @@ async function simulateTransaction(network, execTxData, sender) {
       network_id: network.chainId.toString(),
       from: sender,
       to: OWNER,
-      input: execTxData,
+      input: execTransactionData,
       gas: 30e6,
       state_objects: {
         [OWNER]: {
@@ -178,8 +181,101 @@ async function simulateTransaction(network, execTxData, sender) {
     }
   );
 
-  const simulationUrl = `https://dashboard.tenderly.co/${TENDERLY_ACCOUNT_NAME}/${TENDERLY_PROJECT_NAME}/simulator/${res.data.simulation.id}`;
-  console.log("Simulation URL:", simulationUrl);
+  return res.data.simulation.id;
+}
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+async function listVirtualTestnets() {
+  const url = `https://api.tenderly.co/api/v1/account/${TENDERLY_ACCOUNT_NAME}/project/${TENDERLY_PROJECT_NAME}/vnets`;
+  const res = await axios.get(url, {
+    headers: { "X-Access-Key": TENDERLY_ACCESS_KEY },
+  });
+  return res.data;
+}
+
+async function deleteVirtualTestnet(vnetId) {
+  const url = `https://api.tenderly.co/api/v1/account/${TENDERLY_ACCOUNT_NAME}/project/${TENDERLY_PROJECT_NAME}/vnets/${vnetId}`;
+  const res = await axios.delete(url, {
+    headers: { "X-Access-Key": TENDERLY_ACCESS_KEY },
+  });
+  return res.data;
+}
+
+async function createVirtualTestnet(network, simulationId) {
+  const url = `https://api.tenderly.co/api/v1/account/${TENDERLY_ACCOUNT_NAME}/project/${TENDERLY_PROJECT_NAME}/vnets`;
+  const res = await axios.post(
+    url,
+    {
+      slug: `${TENDERLY_PROJECT_NAME}-${network.name}-vnet-${simulationId}`,
+      display_name: `${capitalize(
+        network.name
+      )} Virtual TestNet (${simulationId})`,
+      fork_config: {
+        network_id: Number(network.chainId),
+        block_number: "latest",
+      },
+      virtual_network_config: {
+        chain_config: {
+          chain_id: Number(network.chainId),
+        },
+      },
+      sync_state_config: {
+        enabled: false, // true only on the Pro plan
+      },
+      explorer_page_config: {
+        enabled: true,
+        verification_visibility: "src",
+      },
+    },
+    {
+      headers: { "X-Access-Key": TENDERLY_ACCESS_KEY },
+    }
+  );
+
+  return res.data;
+}
+
+async function sendVirtualTestnetTransaction(
+  vnetId,
+  adminRpcUrl,
+  sender,
+  execTransactionData
+) {
+  const stateOverride = {
+    jsonrpc: "2.0",
+    method: "tenderly_setStorageAt",
+    params: [
+      OWNER,
+      "0x0000000000000000000000000000000000000000000000000000000000000004",
+      "0x0000000000000000000000000000000000000000000000000000000000000001",
+    ],
+    id: "1",
+  };
+  const response = await axios.post(adminRpcUrl, stateOverride);
+  console.log("State Override Response:", response.data);
+
+  const url = `https://api.tenderly.co/api/v1/account/${TENDERLY_ACCOUNT_NAME}/project/${TENDERLY_PROJECT_NAME}/vnets/${vnetId}/transactions`;
+  const res = await axios.post(
+    url,
+    {
+      callArgs: {
+        from: sender,
+        to: OWNER,
+        gas: `0x${(30e6).toString(16)}`,
+        gasPrice: "0x0",
+        value: "0x0",
+        data: execTransactionData,
+      },
+    },
+    {
+      headers: { "X-Access-Key": TENDERLY_ACCESS_KEY },
+    }
+  );
+
+  return res.data.tx_hash;
 }
 
 async function main() {
@@ -191,12 +287,12 @@ async function main() {
 
   const protocolKit = await createSafeProtocolKit(owner.address);
   const safeTx = await buildSafeTransaction(protocolKit);
-  console.log("Safe Transaction Prepared");
 
   const safeTxHash = await protocolKit.getTransactionHash(safeTx);
   console.log("Safe Transaction Hash:", safeTxHash);
 
   const typeData = await buildEIP712Data(safeTx, network);
+  console.log("Signing Transaction...");
   const signature = await signTransaction(eth, typeData);
   console.log("Signature:", signature);
 
@@ -209,8 +305,46 @@ async function main() {
   );
   console.log("Transaction Proposed to Safe");
 
-  const execTxData = await buildExecTransactionData(safeTx, signature);
-  await simulateTransaction(network, execTxData, owner.address);
+  const execTransactionData = await buildExecTransactionData(safeTx, signature);
+  const simulationId = await simulateTransaction(
+    network,
+    execTransactionData,
+    owner.address
+  );
+  const simulationUrl = `https://dashboard.tenderly.co/${TENDERLY_ACCOUNT_NAME}/${TENDERLY_PROJECT_NAME}/simulator/${simulationId}`;
+  console.log("Simulation URL:", simulationUrl);
+  const vnets = await listVirtualTestnets();
+  console.log("Virtual Testnets:", vnets);
+  await Promise.all(
+    vnets.map(async (vnet) => {
+      console.log("Deleting Virtual Testnet:", vnet.id);
+      await deleteVirtualTestnet(vnet.id);
+    })
+  );
+  const vnet = await createVirtualTestnet(network, simulationId);
+  const vnetUrl = `https://dashboard.tenderly.co/${TENDERLY_ACCOUNT_NAME}/${TENDERLY_PROJECT_NAME}/testnet/${vnet.id}`;
+  console.log("Virtual Testnet:", vnet);
+  console.log("Virtual Testnet URL:", vnetUrl);
+  const adminRpcUrl = vnet.rpcs.find((rpc) =>
+    rpc.name.toLowerCase().includes("admin rpc")
+  ).url;
+  const publicRpcUrl = vnet.rpcs.find((rpc) =>
+    rpc.name.toLowerCase().includes("public rpc")
+  ).url;
+  const virtualTestnetTxHash = await sendVirtualTestnetTransaction(
+    vnet.id,
+    adminRpcUrl,
+    owner.address,
+    execTransactionData
+  );
+  console.log("Virtual Testnet Transaction Hash:", virtualTestnetTxHash);
+
+  const sizeMinimalistFrontendUrl = `https://size-minimalist-frontend.vercel.app/?chainId=${encodeURIComponent(
+    network.chainId
+  )}&rpcUrl=${encodeURIComponent(
+    publicRpcUrl
+  )}&blockExplorerUrl=${encodeURIComponent(vnetUrl)}`;
+  console.log("Size Minimalist Frontend URL:", sizeMinimalistFrontendUrl);
 
   await transport.close();
 }
