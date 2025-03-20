@@ -57,6 +57,9 @@ library Events {
         uint256[] curveRelativeTimeMarketRateMultipliers
     );
     event Repay(address indexed sender, uint256 indexed debtPositionId, address indexed borrower);
+    event PartialRepay(
+        address indexed sender, uint256 indexed creditPositionWithDebtToRepayId, uint256 amount, address borrower
+    );
     event Claim(address indexed sender, uint256 indexed creditPositionId);
     event Liquidate(
         address indexed sender,
@@ -67,7 +70,7 @@ library Events {
         uint8 loanStatus
     );
     event SelfLiquidate(
-        address indexed sender, address indexed borrower, uint256 indexed creditPositionId, address recipient
+        address indexed sender, address indexed lender, uint256 indexed creditPositionId, address recipient
     );
     event LiquidateWithReplacement(
         address indexed sender,
@@ -137,7 +140,9 @@ library Events {
 
     event SwapData(
         uint256 indexed creditPositionId,
+        // debt recipient
         address indexed borrower,
+        // credit recipient
         address indexed lender,
         uint256 credit,
         uint256 cashIn,

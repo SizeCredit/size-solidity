@@ -13,14 +13,13 @@ Networks:
 
 | Date | Version | Auditor | Report |
 |------|---------|----------|---------|
-| TBD | v1.7 | TBD | TBD |
+| 2025-02-26 | v1.7 | Cantina | TBD |
 | 2025-02-12 | v1.6.1 | Custodia Security | [Report](./audits/2025-02-12-Custodia-Security.pdf) |
 | 2024-12-10 | v1.5.1 | ChainDefenders | [Report](./audits/2024-12-10-ChainDefenders.pdf) |
 | 2024-11-13 | v1.5 | Custodia Security | [Report](./audits/2024-11-13-Custodia-Security.pdf) |
 | 2024-06-10 | v1.0 | Code4rena | [Report](https://code4rena.com/reports/2024-06-size) |
 | 2024-06-08 | v1.0-rc | Spearbit | [Report](./audits/2024-06-08-Spearbit.pdf) |
 | 2024-03-26 | v1.0-beta | Solidified | [Report](./audits/2024-03-26-Solidified.pdf) |
-| 2024-03-19 | v1.0-alpha | LightChaserV3 | [Report](./audits/2024-03-19-LightChaserV3.md) |
 
 For bug reports, please refer to our [Bug Bounty Program](https://app.hats.finance/bug-bounties/size-0xd915dc4630c8957e7aabb44df6309f6f4cfcf9c0/rewards)
 
@@ -87,7 +86,7 @@ In order to set the current market average value of USDC variable borrow rates, 
 
 After v1.5, markets can be deployed through a `SizeFactory` contract. This contract is a central point of the Size ecosystem, as it enables `NonTransferrableScaledTokenV1_5` contracts (such as `saUSDC`) to mint/burn deposit tokens to users who deposit/withdraw, essentially enabling shared liquidity across different markets. For example, a user may deposit USDC to the WETH/USDC market but use the same liquidity to lend on the cbBTC/USDC market.
 
-After v1.7, the `SizeFactory` also holds the access control for all Size markets. A fallback mechanism is still used on individual markets, where roles are first checked on each deployment, and then on the factory contract. This means the administrator must take appropriate care to revoke roles both on the factory and on individual markets in case of a privilege de-escalation scenario. The benefit of this approach is that existing markets will continue to work as usual even if all accounts have not been granted roles on the SizeFactory contract.
+After v1.7, the `SizeFactory` also holds the access control for all Size markets. A fallback mechanism is still used on individual markets, where roles are first checked on each deployment, and then on the factory contract. This means the administrator must take appropriate care to revoke roles both on the factory and on individual markets in case of a privilege de-escalation scenario. The benefit of this approach is that existing markets will continue to work as usual even if all accounts have not been granted roles on the SizeFactory contract. Note: This change allows the factory access control to act on behalf of a role (e.g., pause a market) but does not grant it the ability to manage roles (grant/revoke). Role management in `AccessControl`'s for market is strictly governed by the market-scoped `DEFAULT_ADMIN_ROLE`, which is not overridden by the factory access control, which means, if the admin revokes his role with `renounceRole`, it may not be able to revoke other roles later.
 
 #### Authorization
 
@@ -109,7 +108,7 @@ A non-exhaustive list of the risks of improper authorization includes:
 - Authorizing `sellCreditLimit` enables the operator to set sub-optimal borrow offers
 - Authorizing `buyCreditLimit` enables the operator to set sub-optimal loan offers
 - Authorizing both `buyCreditLimit` and `sellCreditLimit` enables the operator to set the borrow offer above the loan offer and create a self-arbitrage opportunity for the user
-- Authorizing `sellCreditMarket` enables the operator to borrow on behalf of the user and send the borrowed cash to their account
+- Authorizing `sellCreditMarket` enables the operator to borrow on behalf of the user and send the borrowed cash to their account, or to sell positions not for-sale
 - Authorizing `buyCreditMarket` enables the operator to lend on behalf of the user and send the credit to their account
 - Authorizing `selfLiquidate` enables the operator to self liquidate on their behalf when the debt position is likely to become liquidatable in the short term
 - Authorizing `compensate` enables the operator to compensate loans on their behalf from risky debt positions
@@ -358,6 +357,7 @@ for i in {0..5}; do halmos --loop $i; done
 - The Variable Pool Borrow Rate feed is trusted and users of rate hook adopt oracle risk of buying/selling credit at unsatisfactory prices
 - The insurance fund (out of scope for this project) may not be able to make all lenders whole, maybe unfair, and may be manipulated
 - LiquidateWithReplacement might not be available for the big enough debt positions
+- The fragmentation fee meant to subsidize `claim` operations by protocol-owned keeper bots during credit splits are not charged during loan origination
 - All issues acknowledged on previous audits and automated findings
 
 ## Deployment

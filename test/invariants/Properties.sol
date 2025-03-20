@@ -10,6 +10,7 @@ import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecification
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
 import {UserView} from "@src/market/SizeView.sol";
+import {console} from "forge-std/console.sol";
 
 import {
     CREDIT_POSITION_ID_START,
@@ -21,6 +22,9 @@ import {
 } from "@src/market/libraries/LoanLibrary.sol";
 
 abstract contract Properties is Ghosts, PropertiesSpecifications {
+    bool internal success;
+    bytes internal returnData;
+
     using LoanLibrary for DebtPosition;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
@@ -40,8 +44,10 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         gte(_after.creditPositionsCount, _after.debtPositionsCount, LOAN_03);
 
         if (
-            _after.debtPositionsCount > _before.debtPositionsCount
-                || _after.sig == ITargetFunctions.liquidateWithReplacement.selector
+            (
+                _after.debtPositionsCount > _before.debtPositionsCount
+                    || _after.sig == ITargetFunctions.liquidateWithReplacement.selector
+            ) && success
         ) {
             uint256 debtPositionId = _after.debtPositionsCount > _before.debtPositionsCount
                 ? _after.debtPositionsCount - 1
@@ -122,8 +128,8 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
             DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
             outstandingDebt += debtPosition.futureValue;
 
-            (bool success, uint256 value) = positionsDebtPerUser.tryGet(debtPosition.borrower);
-            if (!success) positionsDebtPerUser.set(debtPosition.borrower, debtPosition.futureValue);
+            (bool _success, uint256 value) = positionsDebtPerUser.tryGet(debtPosition.borrower);
+            if (!_success) positionsDebtPerUser.set(debtPosition.borrower, debtPosition.futureValue);
             else positionsDebtPerUser.set(debtPosition.borrower, value + debtPosition.futureValue);
         }
 
@@ -145,7 +151,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
     function property_FEES() public returns (bool) {
         if (
             _after.debtPositionsCount == _before.debtPositionsCount
-                && _after.creditPositionsCount > _before.creditPositionsCount
+                && _after.creditPositionsCount > _before.creditPositionsCount && success
         ) {
             if (_before.sig == ITargetFunctions.compensate.selector) {
                 gte(_after.feeRecipient.collateralTokenBalance, _before.feeRecipient.collateralTokenBalance, FEES_01);
@@ -158,7 +164,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
             (
                 _before.sig == ITargetFunctions.sellCreditMarket.selector
                     || _before.sig == ITargetFunctions.buyCreditMarket.selector
-            )
+            ) && success
                 && (
                     Math.mulDivDown(
                         size.riskConfig().minimumCreditBorrowAToken,

@@ -23,6 +23,7 @@ interface ISizeFactoryV1_7 {
     ///      In order to possible to authorize/revoke many actions at once, simply construct the actions bitmap using bitmap operations
     ///      For example, to revoke an operator, simply set the authorization bitmap for that operator to `uint256(0)`
     ///      To revoke all authorizations for all operators at once, use `revokeAllAuthorizations`
+    ///      Calling this function twice will set the actionsBitmap for the operator with the new value
     function setAuthorization(address operator, ActionsBitmap actionsBitmap) external;
 
     /// @notice Revoke all authorizations for the `msg.sender` account
