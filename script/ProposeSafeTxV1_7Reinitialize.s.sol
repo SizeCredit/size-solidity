@@ -20,15 +20,20 @@ contract ProposeSafeTxV1_7ReinitializeScript is BaseScript, Networks {
     string private network;
     ISizeFactory private sizeFactory;
     IMultiSendCallOnly private multisendcallonly;
+    Size private sizeV1_7;
+    SizeFactory private sizeFactoryV1_7;
 
     modifier parseEnv() {
         network = vm.envString("NETWORK");
         sizeFactory = ISizeFactory(vm.envAddress("SIZE_FACTORY"));
+        sizeV1_7 = Size(vm.envAddress("SIZE_V1_7"));
+        sizeFactoryV1_7 = SizeFactory(vm.envAddress("SIZE_FACTORY_V1_7"));
         _;
     }
 
     function getV1_7ReinitializeData(ISizeFactory _sizeFactory, IMultiSendCallOnly _multiSendCallOnly)
         internal
+        view
         returns (address _to, bytes memory _data)
     {
         ISize[] memory markets = _sizeFactory.getMarkets();
@@ -38,8 +43,8 @@ contract ProposeSafeTxV1_7ReinitializeScript is BaseScript, Networks {
 
         _to = address(_multiSendCallOnly);
 
-        Size sizeV1_7 = new Size();
-        SizeFactory sizeFactoryV1_7 = new SizeFactory();
+        console.log("sizeV1_7: %s", address(sizeV1_7));
+        console.log("sizeFactoryV1_7: %s", address(sizeFactoryV1_7));
 
         bytes memory data;
         bytes memory transaction;

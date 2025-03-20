@@ -33,8 +33,8 @@ if (LOG_FILE !== "stdout") {
   if (fs.existsSync(LOG_FILE)) {
     fs.truncateSync(LOG_FILE, 0);
   }
-  const accessLogStream = fs.createWriteStream(logsFile, { flags: "a" });
-  const errorLogStream = fs.createWriteStream(logsFile, { flags: "a" });
+  const accessLogStream = fs.createWriteStream(LOG_FILE, { flags: "a" });
+  const errorLogStream = fs.createWriteStream(LOG_FILE, { flags: "a" });
 
   process.stdout.write = accessLogStream.write.bind(accessLogStream);
   process.stderr.write = errorLogStream.write.bind(errorLogStream);
