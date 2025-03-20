@@ -79,15 +79,15 @@ abstract contract Ghosts is Deploy, Asserts, PropertiesConstants {
                 vars.debtPositionId = positionId;
             }
             vars.borrower = size.getUserView(d.borrower);
-            vars.isBorrowerUnderwater = size.isUserUnderwater(d.borrower);
             vars.borrowerCR = size.collateralRatio(d.borrower);
+            vars.isBorrowerUnderwater = vars.borrowerCR < size.riskConfig().crLiquidation;
             vars.loanStatus = size.getLoanStatus(positionId);
         }
         vars.sender = size.getUserView(sender);
         vars.feeRecipient = size.getUserView(size.feeConfig().feeRecipient);
         address[3] memory users = [USER1, USER2, USER3];
         for (uint256 i = 0; i < users.length; i++) {
-            vars.isUserUnderwater[i] = size.isUserUnderwater(users[i]);
+            vars.isUserUnderwater[i] = size.collateralRatio(users[i]) < size.riskConfig().crLiquidation;
         }
         vars.senderCollateralAmount = weth.balanceOf(sender);
         vars.senderBorrowAmount = usdc.balanceOf(sender);

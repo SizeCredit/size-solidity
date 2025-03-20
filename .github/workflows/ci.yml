@@ -147,9 +147,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        mode: [assertion, property]
+        mode: [assertion, property, medusa]
 
-    name: Echidna
+    name: Invariants
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -169,17 +169,41 @@ jobs:
         run: |
           pip install slither-analyzer
 
-      - name: Install Echidna
-        run: |
-          wget https://github.com/crytic/echidna/releases/download/v2.2.3/echidna-2.2.3-x86_64-linux.tar.gz -O echidna.tar.gz
-          tar -xvkf echidna.tar.gz
-          rm echidna.tar.gz
-          ./echidna --version
-
-      - name: Echidna ${{ matrix.mode }}
+      - name: Prepare Crytic
         run: |
           ./script/prepare_crytic.sh
-          ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
+
+      - name: Install Fuzzer ${{ matrix.mode }}
+        run: |
+          if [[ "${{ matrix.mode }}" == "assertion" || "${{ matrix.mode }}" == "property" ]]; then
+            TOOL="echidna"
+            URL="https://github.com/crytic/echidna/releases/download/v2.2.6/echidna-2.2.6-x86_64-linux.tar.gz"
+          elif [[ "${{ matrix.mode }}" == "medusa" ]]; then
+            TOOL="medusa"
+            URL="https://github.com/crytic/medusa/releases/download/v1.1.1/medusa-linux-x64.tar.gz"
+          else
+            echo "Unsupported mode: ${{ matrix.mode }}"
+            exit 1
+          fi
+
+          wget "$URL" -O "$TOOL.tar.gz"
+          tar -xvkf "$TOOL.tar.gz"
+          rm "$TOOL.tar.gz"
+          ./$TOOL --version
+
+      - name: Run Fuzzer ${{ matrix.mode }}
+        run: |
+          if [[ "${{ matrix.mode }}" == "assertion" || "${{ matrix.mode }}" == "property" ]]; then
+            ./echidna . --contract CryticTester --config echidna.yaml --test-mode ${{ matrix.mode }} --corpus-dir corpus --test-limit 10000
+          elif [[ "${{ matrix.mode }}" == "medusa" ]]; then
+            sed -i 's/\"testLimit\":.*/\"testLimit\": 50000,/g' medusa.json
+            sed -i 's/\"corpusDirectory\":.*/\"corpusDirectory\": \"medusa-corpus\",/g' medusa.json
+            ./medusa fuzz
+          else
+            echo "Unsupported mode: ${{ matrix.mode }}"
+            exit 1
+          fi
+
 
   halmos:
     needs: [sizes, fmt, test, testFork, slither, solhint]
@@ -280,3 +304,24 @@ jobs:
           git push https://${{ env.token }}@github.com/${{ github.event.repository.full_name }}.git
         env:
           token: ${{ secrets.SIZE_BOT_PAT }}
+
+  upload-selectors:
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: true
+
+    name: Upload Selectors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Upload Selectors
+        run: |
+          forge selectors upload --all

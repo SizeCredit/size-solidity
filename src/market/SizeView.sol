@@ -58,11 +58,6 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
-    function isUserUnderwater(address user) external view returns (bool) {
-        return state.isUserUnderwater(user);
-    }
-
-    /// @inheritdoc ISizeView
     function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool) {
         return state.isDebtPositionLiquidatable(debtPositionId);
     }

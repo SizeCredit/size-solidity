@@ -12,18 +12,18 @@ import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
 
+import {Networks} from "@script/Networks.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {console} from "forge-std/console.sol";
 
-contract GetV1_7ReinitializeDataScript is BaseScript {
+contract ProposeSafeTxV1_7ReinitializeScript is BaseScript, Networks {
     string private network;
     ISizeFactory private sizeFactory;
-    IMultiSendCallOnly private multiSendCallOnly;
+    IMultiSendCallOnly private multisendcallonly;
 
     modifier parseEnv() {
         network = vm.envString("NETWORK");
         sizeFactory = ISizeFactory(vm.envAddress("SIZE_FACTORY"));
-        multiSendCallOnly = IMultiSendCallOnly(vm.envAddress("MULTI_SEND_CALL_ONLY"));
         _;
     }
 
@@ -32,7 +32,7 @@ contract GetV1_7ReinitializeDataScript is BaseScript {
         returns (address _to, bytes memory _data)
     {
         ISize[] memory markets = _sizeFactory.getMarkets();
-        bytes1 operation = bytes1(uint8(0x00));
+        bytes1 operation = bytes1(0x00);
         uint256 value = 0;
         uint256 dataLength = 0;
 
@@ -72,8 +72,18 @@ contract GetV1_7ReinitializeDataScript is BaseScript {
     }
 
     function run() external parseEnv ignoreGas {
-        (address to, bytes memory data) = getV1_7ReinitializeData(sizeFactory, multiSendCallOnly);
-        // data is the `transaction` parameter of the `multiSend` function
-        exportV1_7ReinitializeData(network, to, data);
+        multisendcallonly = multiSendCallOnly(network);
+        (address to, bytes memory multisendcallonlyData) = getV1_7ReinitializeData(sizeFactory, multisendcallonly);
+        bytes memory data = abi.encodeCall(IMultiSendCallOnly.multiSend, (multisendcallonlyData));
+        console.log("to: %s", to);
+        console.log("data:");
+        console.logBytes(data);
+
+        string[] memory args = new string[](4);
+        args[0] = "node";
+        args[1] = "script/proposeTransaction.js";
+        args[2] = vm.toString(to);
+        args[3] = vm.toString(data);
+        vm.ffi(args);
     }
 }
