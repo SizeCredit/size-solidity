@@ -133,9 +133,14 @@ contract PartialRepayTest is BaseTest {
         _deposit(bob, usdc, 100e6);
 
         vm.prank(bob);
-        vm.expectRevert();
         size.partialRepay(
             PartialRepayParams({creditPositionWithDebtToRepayId: creditPositionId, amount: credit1, borrower: bob})
+        );
+    }
+
+    function test_PartialRepay_partialRepay_after_minimumCreditBorrowAToken_is_increased_concrete() public {
+        testFuzz_PartialRepay_partialRepay_after_minimumCreditBorrowAToken_is_increased(
+            15049080452407218967367839778534779
         );
     }
 }

@@ -106,7 +106,7 @@ contract AuthorizationDepositTest is BaseTest {
             console.log("Bob's eth balance: ", bob.balance);
         }
 
-        vm.revertTo(snapshot);
+        vm.revertToState(snapshot);
         console.log("============= Situation 2: txs are sent in multicall ============");
         bytes[] memory txs = new bytes[](2);
         txs[0] = abi.encodeCall(
