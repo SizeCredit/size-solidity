@@ -12,7 +12,13 @@ import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
 
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {Networks} from "@script/Networks.sol";
+
+import {ISafe} from "@script/interfaces/ISafe.sol";
+import {PAUSER_ROLE} from "@src/factory/interfaces/ISizeFactory.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {console} from "forge-std/console.sol";
 
@@ -60,6 +66,20 @@ contract ProposeSafeTxV1_7ReinitializeScript is BaseScript, Networks {
 
         // SizeFactory.setSizeImplementation
         data = abi.encodeCall(ISizeFactory.setSizeImplementation, (address(sizeV1_7)));
+        dataLength = data.length;
+        transaction = abi.encodePacked(operation, address(_sizeFactory), value, dataLength, data);
+        _data = abi.encodePacked(_data, transaction);
+
+        // SizeFactory.grantRole(PAUSER_ROLE, _) for all multisig owners
+        address multisig = OwnableUpgradeable(address(_sizeFactory)).owner();
+        address[] memory owners = ISafe(multisig).getOwners();
+        bytes[] memory grantRoles = new bytes[](owners.length);
+        for (uint256 i = 0; i < owners.length; i++) {
+            grantRoles[i] = abi.encodeCall(AccessControlUpgradeable.grantRole, (PAUSER_ROLE, owners[i]));
+        }
+        bytes memory multicall = abi.encodeCall(MulticallUpgradeable.multicall, (grantRoles));
+
+        data = multicall;
         dataLength = data.length;
         transaction = abi.encodePacked(operation, address(_sizeFactory), value, dataLength, data);
         _data = abi.encodePacked(_data, transaction);
