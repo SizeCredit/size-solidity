@@ -9,6 +9,7 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
 
+import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {
@@ -41,6 +42,10 @@ contract ForkReinitializeV1_7Test is ForkTest, ProposeSafeTxV1_7ReinitializeScri
         address owner;
     }
 
+    function setUp() public override {
+        super.setUp();
+    }
+
     function _getV1_7ReinitializeAddresses(string memory network, uint256 blockNumber)
         private
         returns (Vars memory vars)
@@ -49,6 +54,9 @@ contract ForkReinitializeV1_7Test is ForkTest, ProposeSafeTxV1_7ReinitializeScri
         vars.sizeFactory = importSizeFactory(string.concat(network, "-size-factory"));
         vars.multiSendCallOnly = multiSendCallOnly(network);
         vars.owner = OwnableUpgradeable(address(vars.sizeFactory)).owner();
+
+        sizeV1_7 = new Size();
+        sizeFactoryV1_7 = new SizeFactory();
 
         vm.label(address(vars.sizeFactory), "SizeFactory");
         vm.label(address(vars.multiSendCallOnly), "MultiSendCallOnly");

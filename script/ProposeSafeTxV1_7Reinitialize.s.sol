@@ -26,8 +26,8 @@ contract ProposeSafeTxV1_7ReinitializeScript is BaseScript, Networks {
     string private network;
     ISizeFactory private sizeFactory;
     IMultiSendCallOnly private multisendcallonly;
-    Size private sizeV1_7;
-    SizeFactory private sizeFactoryV1_7;
+    Size internal sizeV1_7;
+    SizeFactory internal sizeFactoryV1_7;
 
     modifier parseEnv() {
         network = vm.envString("NETWORK");
