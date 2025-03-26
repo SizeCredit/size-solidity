@@ -10,6 +10,8 @@ import {IPPYLpOracle} from "@pendle/contracts/interfaces/IPPYLpOracle.sol";
 
 import {IPPrincipalToken} from "@pendle/contracts/interfaces/IPPrincipalToken.sol";
 import {IStandardizedYield} from "@pendle/contracts/interfaces/IStandardizedYield.sol";
+
+import {Errors} from "@src/market/libraries/Errors.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {PendlePTPriceFeed} from "@src/oracle/adapters/PendlePTPriceFeed.sol";
 import {PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
@@ -36,15 +38,14 @@ contract PriceFeedPendleChainlinkUniswapV3TWAPx2 is IPriceFeedV1_7_1 {
         IPMarket basePendleMarket,
         uint32 baseTwapWindow,
         uint32 baseAverageBlockTime,
-        PriceFeedParams memory quoteChainlinkPriceFeedParams,
-        PriceFeedParams memory quoteUniswapV3BasePriceFeedParams,
-        PriceFeedParams memory quoteUniswapV3QuotePriceFeedParams
+        PriceFeedChainlinkUniswapV3TWAPx2 _quotePriceFeed
     ) {
+        if (address(_quotePriceFeed) == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
         basePriceFeed =
             new PendlePTPriceFeed(basePendlePyLpOracle, basePendleMarket, baseTwapWindow, baseAverageBlockTime);
-        quotePriceFeed = new PriceFeedChainlinkUniswapV3TWAPx2(
-            quoteChainlinkPriceFeedParams, quoteUniswapV3BasePriceFeedParams, quoteUniswapV3QuotePriceFeedParams
-        );
+        quotePriceFeed = _quotePriceFeed;
     }
 
     function getPrice() external view override returns (uint256) {
