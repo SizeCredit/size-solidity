@@ -10,7 +10,7 @@ import {IMultiSendCallOnly} from "@script/interfaces/IMultiSendCallOnly.sol";
 import {PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
-import {IOracle} from "@src/oracle/v1.5.1/adapters/morpho/IOracle.sol";
+import {IOracle} from "@src/oracle/adapters/morpho/IOracle.sol";
 
 struct NetworkConfiguration {
     address weth;
