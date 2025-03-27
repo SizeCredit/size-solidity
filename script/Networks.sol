@@ -10,6 +10,7 @@ import {IMultiSendCallOnly} from "@script/interfaces/IMultiSendCallOnly.sol";
 import {PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
+import {IMorphoChainlinkOracleV2} from "@src/oracle/adapters/morpho/IMorphoChainlinkOracleV2.sol";
 import {IOracle} from "@src/oracle/adapters/morpho/IOracle.sol";
 
 struct NetworkConfiguration {
@@ -341,6 +342,16 @@ abstract contract Networks {
         sequencerUptimeFeed = AggregatorV3Interface(0xBCF85224fc0756B9Fa45aA7892530B47e10b6433);
         morphoOracle = IOracle(0x957e76d8f2D3ab0B4f342cd5f4b03A6f6eF2ce5F);
         baseToken = IERC20Metadata(0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452);
+        quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+    }
+
+    function priceFeedMorphoPtSusde29May2025UsdcMainnet()
+        public
+        pure
+        returns (IMorphoChainlinkOracleV2 morphoOracle, IERC20Metadata baseToken, IERC20Metadata quoteToken)
+    {
+        morphoOracle = IMorphoChainlinkOracleV2(0xcc62A6fad56ee6277250eabe49959002dA42191C);
+        baseToken = IERC20Metadata(0xb7de5dFCb74d25c2f21841fbd6230355C50d9308);
         quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
     }
 
