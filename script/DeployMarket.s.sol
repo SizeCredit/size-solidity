@@ -40,7 +40,7 @@ contract DeployMarketScript is BaseScript, Networks, Deploy {
             borrowATokenV1_5: address(market.data().borrowAToken),
             sizeFactory: address(sizeFactory)
         });
-        console.logBytes(abi.encodeCall(sizeFactory.createMarket, (f, r, o, d)));
+        sizeFactory.createMarket(f, r, o, d);
 
         console.log("[Market] done");
     }
