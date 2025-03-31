@@ -5,38 +5,53 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {RESERVED_ID} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 import {BuyCreditLimitParams} from "@src/market/libraries/actions/BuyCreditLimit.sol";
 import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 import {SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
+import {Tenderly} from "@tenderly/Tenderly.sol";
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
 contract GetCalldataScript is Script {
-    function run() external view {
+    using Tenderly for *;
+
+    Tenderly.Client tenderly;
+
+    function setUp() public {
+        string memory accountSlug = vm.envString("TENDERLY_ACCOUNT_NAME");
+        string memory projectSlug = vm.envString("TENDERLY_PROJECT_NAME");
+        string memory accessKey = vm.envString("TENDERLY_ACCESS_KEY");
+
+        tenderly.initialize(accountSlug, projectSlug, accessKey);
+    }
+
+    function run() external {
         console.log("GetCalldata...");
 
         address size = vm.envAddress("SIZE_ADDRESS");
-        address token = vm.envAddress("TOKEN");
-        address deployer = vm.envAddress("DEPLOYER_ADDRESS");
+        address borrower = vm.envAddress("BORROWER");
         address lender = vm.envAddress("LENDER");
 
         console.log("size", size);
-        console.log("token", token);
-        console.log("deployer", deployer);
+        console.log("borrower", borrower);
         console.log("lender", lender);
 
+        IERC20Metadata underlyingBorrowToken = ISize(size).data().underlyingBorrowToken;
         bytes memory approve = abi.encodeCall(IERC20.approve, (address(size), 2000e18));
 
-        console.log(block.timestamp);
+        Tenderly.VirtualTestnet memory vnet =
+            tenderly.createVirtualTestnet(string.concat("vnet-", vm.toString(block.chainid)), 1_000_000 + block.chainid);
 
-        console.logBytes(approve);
+        tenderly.sendTransaction(vnet.id, borrower, address(underlyingBorrowToken), 0, approve);
 
-        bytes memory deposit =
-            abi.encodeCall(ISize.deposit, (DepositParams({token: token, amount: 2000e18, to: deployer})));
+        bytes memory deposit = abi.encodeCall(
+            ISize.deposit, (DepositParams({token: address(underlyingBorrowToken), amount: 2000e18, to: borrower}))
+        );
 
-        console.logBytes(deposit);
+        tenderly.sendTransaction(vnet.id, borrower, address(size), 0, deposit);
 
         uint256[] memory tenors = new uint256[](1);
         tenors[0] = 30 days;
@@ -50,7 +65,7 @@ contract GetCalldataScript is Script {
             ISize.buyCreditLimit, (BuyCreditLimitParams({maxDueDate: type(uint256).max, curveRelativeTime: curve}))
         );
 
-        console.logBytes(buyCreditLimit);
+        tenderly.sendTransaction(vnet.id, lender, address(size), 0, buyCreditLimit);
 
         bytes memory sellCreditMarket = abi.encodeCall(
             ISize.sellCreditMarket,
@@ -67,6 +82,6 @@ contract GetCalldataScript is Script {
             )
         );
 
-        console.logBytes(sellCreditMarket);
+        tenderly.sendTransaction(vnet.id, lender, address(size), 0, sellCreditMarket);
     }
 }
