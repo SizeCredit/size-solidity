@@ -13,7 +13,7 @@ Networks:
 
 | Date | Version | Auditor | Report |
 |------|---------|----------|---------|
-| 2025-02-26 | v1.7 | Cantina | TBD |
+| 2025-02-26 | v1.7 | Cantina | [Report](https://cantina.xyz/competitions/d88cb915-64c9-4488-8062-dd16ede7a4a0/leaderboard) |
 | 2025-02-12 | v1.6.1 | Custodia Security | [Report](./audits/2025-02-12-Custodia-Security.pdf) |
 | 2024-12-10 | v1.5.1 | ChainDefenders | [Report](./audits/2024-12-10-ChainDefenders.pdf) |
 | 2024-11-13 | v1.5 | Custodia Security | [Report](./audits/2024-11-13-Custodia-Security.pdf) |
