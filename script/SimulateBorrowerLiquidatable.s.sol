@@ -39,49 +39,55 @@ contract GetCalldataScript is Script {
         console.log("borrower", borrower);
         console.log("lender", lender);
 
-        IERC20Metadata underlyingBorrowToken = ISize(size).data().underlyingBorrowToken;
-        bytes memory approve = abi.encodeCall(IERC20.approve, (address(size), 2000e18));
-
         Tenderly.VirtualTestnet memory vnet =
             tenderly.createVirtualTestnet(string.concat("vnet-", vm.toString(block.chainid)), 1_000_000 + block.chainid);
 
-        tenderly.sendTransaction(vnet.id, borrower, address(underlyingBorrowToken), 0, approve);
+        IERC20Metadata underlyingBorrowToken = ISize(size).data().underlyingBorrowToken;
 
-        bytes memory deposit = abi.encodeCall(
-            ISize.deposit, (DepositParams({token: address(underlyingBorrowToken), amount: 2000e18, to: borrower}))
+        tenderly.sendTransaction(
+            vnet.id, borrower, address(underlyingBorrowToken), abi.encodeCall(IERC20.approve, (address(size), 2000e18))
         );
-
-        tenderly.sendTransaction(vnet.id, borrower, address(size), 0, deposit);
-
+        tenderly.sendTransaction(
+            vnet.id,
+            borrower,
+            address(size),
+            abi.encodeCall(
+                ISize.deposit, (DepositParams({token: address(underlyingBorrowToken), amount: 2000e18, to: borrower}))
+            )
+        );
         uint256[] memory tenors = new uint256[](1);
         tenors[0] = 30 days;
         int256[] memory aprs = new int256[](1);
         aprs[0] = 0.05e18;
         uint256[] memory marketRateMultipliers = new uint256[](1);
         marketRateMultipliers[0] = 0;
-
         YieldCurve memory curve = YieldCurve({tenors: tenors, aprs: aprs, marketRateMultipliers: marketRateMultipliers});
-        bytes memory buyCreditLimit = abi.encodeCall(
-            ISize.buyCreditLimit, (BuyCreditLimitParams({maxDueDate: type(uint256).max, curveRelativeTime: curve}))
-        );
-
-        tenderly.sendTransaction(vnet.id, lender, address(size), 0, buyCreditLimit);
-
-        bytes memory sellCreditMarket = abi.encodeCall(
-            ISize.sellCreditMarket,
-            (
-                SellCreditMarketParams({
-                    lender: lender,
-                    creditPositionId: RESERVED_ID,
-                    tenor: 30 days,
-                    amount: 1000e6,
-                    deadline: type(uint256).max,
-                    maxAPR: type(uint256).max,
-                    exactAmountIn: false
-                })
+        tenderly.sendTransaction(
+            vnet.id,
+            lender,
+            address(size),
+            abi.encodeCall(
+                ISize.buyCreditLimit, (BuyCreditLimitParams({maxDueDate: type(uint256).max, curveRelativeTime: curve}))
             )
         );
-
-        tenderly.sendTransaction(vnet.id, lender, address(size), 0, sellCreditMarket);
+        tenderly.sendTransaction(
+            vnet.id,
+            lender,
+            address(size),
+            abi.encodeCall(
+                ISize.sellCreditMarket,
+                (
+                    SellCreditMarketParams({
+                        lender: lender,
+                        creditPositionId: RESERVED_ID,
+                        tenor: 30 days,
+                        amount: 1000e6,
+                        deadline: type(uint256).max,
+                        maxAPR: type(uint256).max,
+                        exactAmountIn: false
+                    })
+                )
+            )
+        );
     }
 }
