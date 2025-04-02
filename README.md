@@ -17,7 +17,7 @@ Networks:
 | 2025-02-12 | v1.6.1 | Custodia Security | [Report](./audits/2025-02-12-Custodia-Security.pdf) |
 | 2024-12-10 | v1.5.1 | ChainDefenders | [Report](./audits/2024-12-10-ChainDefenders.pdf) |
 | 2024-11-13 | v1.5 | Custodia Security | [Report](./audits/2024-11-13-Custodia-Security.pdf) |
-| 2024-06-10 | v1.0 | Code4rena | [Report](https://code4rena.com/reports/2024-06-size) |
+| 2024-06-10 | v1.0 | Code4rena | [Report](./audits/2024-06-10-Code4rena.pdf) |
 | 2024-06-08 | v1.0-rc | Spearbit | [Report](./audits/2024-06-08-Spearbit.pdf) |
 | 2024-03-26 | v1.0-beta | Solidified | [Report](./audits/2024-03-26-Solidified.pdf) |
 
