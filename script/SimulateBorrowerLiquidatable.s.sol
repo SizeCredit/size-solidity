@@ -10,7 +10,7 @@ import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 import {BuyCreditLimitParams} from "@src/market/libraries/actions/BuyCreditLimit.sol";
 import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 import {SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
-import {Tenderly} from "@tenderly/Tenderly.sol";
+import {Tenderly} from "@tenderly-utils/Tenderly.sol";
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";

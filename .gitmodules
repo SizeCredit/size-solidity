@@ -34,9 +34,9 @@
 [submodule "lib/pendle-core-v2-public"]
 	path = lib/pendle-core-v2-public
 	url = https://github.com/pendle-finance/pendle-core-v2-public
-[submodule "lib/tenderly-utils"]
-	path = lib/tenderly-utils
-	url = https://github.com/Recon-Fuzz/tenderly-utils
 [submodule "lib/safe-utils"]
 	path = lib/safe-utils
 	url = https://github.com/Recon-Fuzz/safe-utils
+[submodule "lib/tenderly-utils"]
+	path = lib/tenderly-utils
+	url = https://github.com/Recon-Fuzz/tenderly-utils
