@@ -6,7 +6,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {IOracle} from "@src/oracle/v1.5.1/adapters/morpho/IOracle.sol";
+import {IOracle} from "@src/oracle/adapters/morpho/IOracle.sol";
 
 /// @title MorphoPriceFeed
 /// @custom:security-contact security@size.credit
