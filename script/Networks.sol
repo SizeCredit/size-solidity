@@ -26,11 +26,35 @@ struct NetworkConfiguration {
     PriceFeedParams priceFeedParams;
 }
 
+enum Contract {
+    WETH,
+    SIZE_FACTORY,
+    MORPHO_CHAINLINK_ORACLE_V2_FACTORY
+}
+
 abstract contract Networks {
     error InvalidNetworkConfiguration(string networkConfiguration);
 
+    uint256 public constant ETHEREUM_MAINNET = 1;
     uint256 public constant BASE_MAINNET = 8453;
     uint256 public constant BASE_SEPOLIA = 84532;
+
+    mapping(uint256 => mapping(Contract => address)) public addresses;
+
+    constructor() {
+        addresses[ETHEREUM_MAINNET][Contract.WETH] = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+        addresses[BASE_MAINNET][Contract.WETH] = 0x4200000000000000000000000000000000000006;
+        addresses[BASE_SEPOLIA][Contract.WETH] = 0x4200000000000000000000000000000000000006;
+
+        addresses[ETHEREUM_MAINNET][Contract.SIZE_FACTORY] = 0x3A9C05c3Da48E6E26f39928653258D7D4Eb594C1;
+        addresses[BASE_MAINNET][Contract.SIZE_FACTORY] = 0x330Dc31dB45672c1F565cf3EC91F9a01f8f3DF0b;
+        addresses[BASE_SEPOLIA][Contract.SIZE_FACTORY] = 0xB653e1eda8AB42ddF6B82696a4045A029D5f9d8c;
+
+        addresses[ETHEREUM_MAINNET][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] =
+            0x3A7bB36Ee3f3eE32A60e9f2b33c1e5f2E83ad766;
+        addresses[BASE_MAINNET][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] = address(0);
+        addresses[BASE_SEPOLIA][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] = address(0);
+    }
 
     function params(string memory networkConfiguration) public pure returns (NetworkConfiguration memory) {
         if (Strings.equal(networkConfiguration, "base-sepolia-weth-usdc")) {
@@ -352,6 +376,26 @@ abstract contract Networks {
     {
         morphoOracle = IMorphoChainlinkOracleV2(0xcc62A6fad56ee6277250eabe49959002dA42191C);
         baseToken = IERC20Metadata(0xb7de5dFCb74d25c2f21841fbd6230355C50d9308);
+        quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+    }
+
+    function priceFeedMorphoPtSusde30July2025UsdcMainnet()
+        public
+        pure
+        returns (IMorphoChainlinkOracleV2 morphoOracle, IERC20Metadata baseToken, IERC20Metadata quoteToken)
+    {
+        morphoOracle = IMorphoChainlinkOracleV2(0x1D76667375c081e2263554F30B675242D8991B3f);
+        baseToken = IERC20Metadata(0x3b3fB9C57858EF816833dC91565EFcd85D96f634);
+        quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+    }
+
+    function priceFeedMorphoPtEusde29May2025UsdcMainnet()
+        public
+        pure
+        returns (IMorphoChainlinkOracleV2 morphoOracle, IERC20Metadata baseToken, IERC20Metadata quoteToken)
+    {
+        morphoOracle = IMorphoChainlinkOracleV2(0x9c0363336Bf9DaF57a16BB4e2867459bf4Dd5EB0);
+        baseToken = IERC20Metadata(0x50D2C7992b802Eef16c04FeADAB310f31866a545);
         quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
     }
 

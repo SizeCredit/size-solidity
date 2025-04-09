@@ -47,7 +47,7 @@ contract ProposeSafeTxUpdateKeeperRoleAllMarketsScript is BaseScript {
         safe.proposeTransaction(to, data, sender);
         Tenderly.VirtualTestnet memory vnet =
             tenderly.createVirtualTestnet("ProposeSafeTxUpdateKeeperRoleAllMarkets", 1_000_000 + block.chainid);
-        bytes memory execTransactionData = safe.getExecTransactionData(to, data);
+        bytes memory execTransactionData = safe.getExecTransactionData(to, data, sender);
         tenderly.sendTransaction(vnet.id, safeAddress, to, execTransactionData);
     }
 }
