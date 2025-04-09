@@ -16,6 +16,8 @@ import {
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
+
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 import {IMorphoChainlinkOracleV2} from "@src/oracle/adapters/morpho/IMorphoChainlinkOracleV2.sol";
 import {PriceFeedMorphoChainlinkOracleV2} from "@src/oracle/v1.7.1/PriceFeedMorphoChainlinkOracleV2.sol";
 import {Tenderly} from "@tenderly-utils/Tenderly.sol";
@@ -52,8 +54,7 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
     }
 
     function run() external parseEnv ignoreGas {
-        (IMorphoChainlinkOracleV2 morphoOracle, IERC20Metadata baseToken,) =
-            priceFeedMorphoPtSusde29May2025UsdcMainnet();
+        (IPriceFeed priceFeed,, IERC20Metadata baseToken,) = priceFeedMorphoPtSusde29May2025UsdcMainnet();
 
         address weth = contracts[block.chainid][Contract.WETH];
 
@@ -65,9 +66,7 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
         riskConfigParams.crLiquidation = 1.09e18;
 
         InitializeOracleParams memory oracleParams = market.oracle();
-        PriceFeedMorphoChainlinkOracleV2 priceFeedMorphoChainlinkOracleV2 =
-            new PriceFeedMorphoChainlinkOracleV2(morphoOracle);
-        oracleParams.priceFeed = address(priceFeedMorphoChainlinkOracleV2);
+        oracleParams.priceFeed = address(priceFeed);
 
         DataView memory dataView = market.data();
         InitializeDataParams memory dataParams = InitializeDataParams({
@@ -82,9 +81,9 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
             abi.encodeCall(ISizeFactory.createMarket, (feeConfigParams, riskConfigParams, oracleParams, dataParams));
         address to = address(sizeFactory);
         safe.proposeTransaction(to, data, signer, derivationPath);
-        Tenderly.VirtualTestnet memory vnet =
-            tenderly.createVirtualTestnet("pt-markets-vnet", 1_000_000 + block.chainid);
+        Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("pt-markets-vnet", block.chainid);
         bytes memory execTransactionData = safe.getExecTransactionData(to, data, signer, derivationPath);
-        tenderly.sendTransaction(vnet.id, safeAddress, to, execTransactionData);
+        tenderly.setStorageAt(vnet, safe.instance().safe, bytes32(uint256(4)), bytes32(uint256(1)));
+        tenderly.sendTransaction(vnet.id, signer, safe.instance().safe, execTransactionData);
     }
 }

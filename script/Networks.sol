@@ -13,6 +13,8 @@ import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Po
 import {IMorphoChainlinkOracleV2} from "@src/oracle/adapters/morpho/IMorphoChainlinkOracleV2.sol";
 import {IOracle} from "@src/oracle/adapters/morpho/IOracle.sol";
 
+import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
+
 struct NetworkConfiguration {
     address weth;
     address underlyingCollateralToken;
@@ -372,8 +374,14 @@ abstract contract Networks {
     function priceFeedMorphoPtSusde29May2025UsdcMainnet()
         public
         pure
-        returns (IMorphoChainlinkOracleV2 morphoOracle, IERC20Metadata baseToken, IERC20Metadata quoteToken)
+        returns (
+            IPriceFeed priceFeed,
+            IMorphoChainlinkOracleV2 morphoOracle,
+            IERC20Metadata baseToken,
+            IERC20Metadata quoteToken
+        )
     {
+        priceFeed = IPriceFeed(0xFa64CC164b87De05382dD7EfB3B2236ce8D90709);
         morphoOracle = IMorphoChainlinkOracleV2(0xcc62A6fad56ee6277250eabe49959002dA42191C);
         baseToken = IERC20Metadata(0xb7de5dFCb74d25c2f21841fbd6230355C50d9308);
         quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
@@ -382,8 +390,14 @@ abstract contract Networks {
     function priceFeedMorphoPtSusde30July2025UsdcMainnet()
         public
         pure
-        returns (IMorphoChainlinkOracleV2 morphoOracle, IERC20Metadata baseToken, IERC20Metadata quoteToken)
+        returns (
+            IPriceFeed priceFeed,
+            IMorphoChainlinkOracleV2 morphoOracle,
+            IERC20Metadata baseToken,
+            IERC20Metadata quoteToken
+        )
     {
+        priceFeed = IPriceFeed(address(0));
         morphoOracle = IMorphoChainlinkOracleV2(0x1D76667375c081e2263554F30B675242D8991B3f);
         baseToken = IERC20Metadata(0x3b3fB9C57858EF816833dC91565EFcd85D96f634);
         quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
@@ -392,8 +406,14 @@ abstract contract Networks {
     function priceFeedMorphoPtEusde29May2025UsdcMainnet()
         public
         pure
-        returns (IMorphoChainlinkOracleV2 morphoOracle, IERC20Metadata baseToken, IERC20Metadata quoteToken)
+        returns (
+            IPriceFeed priceFeed,
+            IMorphoChainlinkOracleV2 morphoOracle,
+            IERC20Metadata baseToken,
+            IERC20Metadata quoteToken
+        )
     {
+        priceFeed = IPriceFeed(address(0));
         morphoOracle = IMorphoChainlinkOracleV2(0x9c0363336Bf9DaF57a16BB4e2867459bf4Dd5EB0);
         baseToken = IERC20Metadata(0x50D2C7992b802Eef16c04FeADAB310f31866a545);
         quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
