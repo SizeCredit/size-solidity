@@ -26,7 +26,8 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
     using Tenderly for *;
     using Safe for *;
 
-    address sender;
+    address signer;
+    string derivationPath;
     Tenderly.Client tenderly;
     Safe.Client safe;
 
@@ -34,8 +35,8 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
     address private safeAddress;
 
     modifier parseEnv() {
-        sender = vm.envAddress("SENDER");
-
+        signer = vm.envAddress("SIGNER");
+        derivationPath = vm.envString("LEDGER_PATH");
         sizeFactory = ISizeFactory(addresses[block.chainid][Contract.SIZE_FACTORY]);
 
         string memory accountSlug = vm.envString("TENDERLY_ACCOUNT_NAME");
@@ -44,7 +45,7 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
 
         tenderly.initialize(accountSlug, projectSlug, accessKey);
 
-        safeAddress = vm.envAddress("SAFE_ADDRESS");
+        safeAddress = vm.envAddress("OWNER");
         safe.initialize(safeAddress);
 
         _;
@@ -80,10 +81,10 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
         bytes memory data =
             abi.encodeCall(ISizeFactory.createMarket, (feeConfigParams, riskConfigParams, oracleParams, dataParams));
         address to = address(sizeFactory);
-        safe.proposeTransaction(to, data, sender);
+        safe.proposeTransaction(to, data, signer, derivationPath);
         Tenderly.VirtualTestnet memory vnet =
             tenderly.createVirtualTestnet("pt-markets-vnet", 1_000_000 + block.chainid);
-        bytes memory execTransactionData = safe.getExecTransactionData(to, data, sender);
+        bytes memory execTransactionData = safe.getExecTransactionData(to, data, signer, derivationPath);
         tenderly.sendTransaction(vnet.id, safeAddress, to, execTransactionData);
     }
 }
