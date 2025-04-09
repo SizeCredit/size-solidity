@@ -37,7 +37,7 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
     modifier parseEnv() {
         signer = vm.envAddress("SIGNER");
         derivationPath = vm.envString("LEDGER_PATH");
-        sizeFactory = ISizeFactory(addresses[block.chainid][Contract.SIZE_FACTORY]);
+        sizeFactory = ISizeFactory(contracts[block.chainid][Contract.SIZE_FACTORY]);
 
         string memory accountSlug = vm.envString("TENDERLY_ACCOUNT_NAME");
         string memory projectSlug = vm.envString("TENDERLY_PROJECT_NAME");
@@ -55,7 +55,7 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
         (IMorphoChainlinkOracleV2 morphoOracle, IERC20Metadata baseToken,) =
             priceFeedMorphoPtSusde29May2025UsdcMainnet();
 
-        address weth = addresses[block.chainid][Contract.WETH];
+        address weth = contracts[block.chainid][Contract.WETH];
 
         ISize market = sizeFactory.getMarket(0);
         InitializeFeeConfigParams memory feeConfigParams = market.feeConfig();

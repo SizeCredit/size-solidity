@@ -39,21 +39,21 @@ abstract contract Networks {
     uint256 public constant BASE_MAINNET = 8453;
     uint256 public constant BASE_SEPOLIA = 84532;
 
-    mapping(uint256 => mapping(Contract => address)) public addresses;
+    mapping(uint256 => mapping(Contract => address)) public contracts;
 
     constructor() {
-        addresses[ETHEREUM_MAINNET][Contract.WETH] = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
-        addresses[BASE_MAINNET][Contract.WETH] = 0x4200000000000000000000000000000000000006;
-        addresses[BASE_SEPOLIA][Contract.WETH] = 0x4200000000000000000000000000000000000006;
+        contracts[ETHEREUM_MAINNET][Contract.WETH] = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+        contracts[BASE_MAINNET][Contract.WETH] = 0x4200000000000000000000000000000000000006;
+        contracts[BASE_SEPOLIA][Contract.WETH] = 0x4200000000000000000000000000000000000006;
 
-        addresses[ETHEREUM_MAINNET][Contract.SIZE_FACTORY] = 0x3A9C05c3Da48E6E26f39928653258D7D4Eb594C1;
-        addresses[BASE_MAINNET][Contract.SIZE_FACTORY] = 0x330Dc31dB45672c1F565cf3EC91F9a01f8f3DF0b;
-        addresses[BASE_SEPOLIA][Contract.SIZE_FACTORY] = 0xB653e1eda8AB42ddF6B82696a4045A029D5f9d8c;
+        contracts[ETHEREUM_MAINNET][Contract.SIZE_FACTORY] = 0x3A9C05c3Da48E6E26f39928653258D7D4Eb594C1;
+        contracts[BASE_MAINNET][Contract.SIZE_FACTORY] = 0x330Dc31dB45672c1F565cf3EC91F9a01f8f3DF0b;
+        contracts[BASE_SEPOLIA][Contract.SIZE_FACTORY] = 0xB653e1eda8AB42ddF6B82696a4045A029D5f9d8c;
 
-        addresses[ETHEREUM_MAINNET][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] =
+        contracts[ETHEREUM_MAINNET][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] =
             0x3A7bB36Ee3f3eE32A60e9f2b33c1e5f2E83ad766;
-        addresses[BASE_MAINNET][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] = address(0);
-        addresses[BASE_SEPOLIA][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] = address(0);
+        contracts[BASE_MAINNET][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] = address(0);
+        contracts[BASE_SEPOLIA][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY] = address(0);
     }
 
     function params(string memory networkConfiguration) public pure returns (NetworkConfiguration memory) {

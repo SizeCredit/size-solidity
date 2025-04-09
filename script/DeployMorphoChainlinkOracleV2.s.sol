@@ -19,7 +19,7 @@ contract DeployMorphoChainlinkOracleV2Script is BaseScript, Networks, Deploy {
         console.log("[MorphoChainlinkOracleV2] deploying...");
 
         IMorphoChainlinkOracleV2Factory morphoChainlinkOracleV2Factory =
-            IMorphoChainlinkOracleV2Factory(addresses[block.chainid][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY]);
+            IMorphoChainlinkOracleV2Factory(contracts[block.chainid][Contract.MORPHO_CHAINLINK_ORACLE_V2_FACTORY]);
 
         console.log("[MorphoChainlinkOracleV2] morphoChainlinkOracleV2Factory", address(morphoChainlinkOracleV2Factory));
 
