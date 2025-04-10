@@ -59,6 +59,11 @@ contract ProposeSafeTxUpdateConfigScript is BaseScript, Networks {
 
         safe.proposeTransactions(targets, datas, signer, derivationPath);
 
+        Tenderly.VirtualTestnet[] memory vnets = tenderly.getVirtualTestnets();
+        for (uint256 i = 0; i < vnets.length; i++) {
+            tenderly.deleteVirtualTestnetById(vnets[i].id);
+        }
+
         Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("update-config", block.chainid);
         tenderly.setStorageAt(vnet, safe.instance().safe, bytes32(uint256(4)), bytes32(uint256(1)));
         tenderly.sendTransaction(
