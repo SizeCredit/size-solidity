@@ -18,7 +18,7 @@ contract DeployPriceFeedMorphoChainlinkOracleV2Script is BaseScript, Networks, D
     function run() public broadcast {
         console.log("[PriceFeedMorphoChainlinkOracleV2] deploying...");
 
-        (IMorphoChainlinkOracleV2 morphoOracle,,) = priceFeedMorphoPtSusde29May2025UsdcMainnet();
+        (, IMorphoChainlinkOracleV2 morphoOracle,,) = priceFeedMorphoPtSusde29May2025UsdcMainnet();
 
         PriceFeedMorphoChainlinkOracleV2 priceFeedMorphoChainlinkOracleV2 =
             new PriceFeedMorphoChainlinkOracleV2(morphoOracle);
