@@ -50,36 +50,20 @@ contract ProposeSafeTxDeployPTPriceFeedScript is BaseScript, Networks {
 
     function run() external parseEnv deleteVirtualTestnets {
         vm.createSelectFork("mainnet");
-        (
-            ,
-            PendleSparkLinearDiscountOracle pendleOracle,
-            AggregatorV3Interface underlyingChainlinkOracle,
-            AggregatorV3Interface quoteChainlinkOracle,
-            uint256 underlyingStalePriceInterval,
-            uint256 quoteStalePriceInterval,
-            ,
-        ) = priceFeedPendleChainlink29May2025UsdcMainnet();
+        (IPriceFeed priceFeed,,,,,,,) = priceFeedPendleChainlink29May2025UsdcMainnet();
 
         ISize market = sizeFactory.getMarket(1);
-        IPriceFeed priceFeed = IPriceFeed(market.oracle().priceFeed);
-        uint256 oldPrice = priceFeed.getPrice();
-        console.log("old Price Feed", address(priceFeed));
+        IPriceFeed oldPriceFeed = IPriceFeed(market.oracle().priceFeed);
+        uint256 oldPrice = oldPriceFeed.getPrice();
+        console.log("old Price Feed", address(oldPriceFeed));
 
         console.log("oldPrice", oldPrice);
 
-        PriceFeedPendleChainlink priceFeedPendleChainlink = new PriceFeedPendleChainlink(
-            pendleOracle,
-            underlyingChainlinkOracle,
-            quoteChainlinkOracle,
-            underlyingStalePriceInterval,
-            quoteStalePriceInterval
-        );
-
-        console.log("new Price Feed", address(priceFeedPendleChainlink));
+        console.log("new Price Feed", address(priceFeed));
 
         bytes memory data = abi.encodeCall(
             ISizeAdmin.updateConfig,
-            (UpdateConfigParams({key: "priceFeed", value: uint256(uint160(address(priceFeedPendleChainlink)))}))
+            (UpdateConfigParams({key: "priceFeed", value: uint256(uint160(address(priceFeed)))}))
         );
         address to = address(market);
         safe.proposeTransaction(to, data, signer, derivationPath);

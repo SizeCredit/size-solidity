@@ -403,7 +403,7 @@ abstract contract Networks {
             IERC20Metadata quoteToken
         )
     {
-        priceFeed = IPriceFeed(address(0));
+        priceFeed = IPriceFeed(0x3614FEc3f8bf0c0512F54A419DEcF7D878842CA0);
         pendleOracle = PendleSparkLinearDiscountOracle(0x51EFC18301789beaF5F0e5D4C72e4FACE72E3658);
         underlyingChainlinkOracle = AggregatorV3Interface(0xa569d910839Ae8865Da8F8e70FfFb0cBA869F961);
         quoteChainlinkOracle = AggregatorV3Interface(0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6);
