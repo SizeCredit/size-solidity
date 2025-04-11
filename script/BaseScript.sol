@@ -14,6 +14,9 @@ import {stdJson} from "forge-std/StdJson.sol";
 import {Vm} from "forge-std/Vm.sol";
 import {console2 as console} from "forge-std/console2.sol";
 
+import {Safe} from "@safe-utils/Safe.sol";
+import {Tenderly} from "@tenderly-utils/Tenderly.sol";
+
 struct Deployment {
     string name;
     address addr;
@@ -27,6 +30,11 @@ struct Parameter {
 abstract contract BaseScript is Script {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
     using stdJson for string;
+    using Safe for *;
+    using Tenderly for *;
+
+    Safe.Client safe;
+    Tenderly.Client tenderly;
 
     error InvalidChainId(uint256 chainid);
     error InvalidPrivateKey(string privateKey);
@@ -49,6 +57,14 @@ abstract contract BaseScript is Script {
         vm.pauseGasMetering();
         _;
         vm.resumeGasMetering();
+    }
+
+    modifier deleteVirtualTestnets() {
+        Tenderly.VirtualTestnet[] memory vnets = tenderly.getVirtualTestnets();
+        for (uint256 i = 0; i < vnets.length; i++) {
+            tenderly.deleteVirtualTestnetById(vnets[i].id);
+        }
+        _;
     }
 
     function exportDeployments(string memory networkConfiguration) internal {

@@ -20,8 +20,6 @@ contract ProposeSafeTxUpdateConfigScript is BaseScript, Networks {
     using Safe for *;
     using Tenderly for *;
 
-    Safe.Client safe;
-    Tenderly.Client tenderly;
     address signer;
     string derivationPath;
     ISizeFactory private sizeFactory;

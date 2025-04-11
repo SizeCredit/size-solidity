@@ -30,8 +30,6 @@ contract ProposeSafeTxDeployPTMarketsScript is BaseScript, Networks {
 
     address signer;
     string derivationPath;
-    Tenderly.Client tenderly;
-    Safe.Client safe;
 
     ISizeFactory private sizeFactory;
     address private safeAddress;

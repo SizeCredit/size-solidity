@@ -15,8 +15,6 @@ contract ProposeSafeTxUpdateKeeperRoleAllMarketsScript is BaseScript {
     using Safe for *;
 
     address sender;
-    Tenderly.Client tenderly;
-    Safe.Client safe;
 
     ISizeFactory private sizeFactory;
     address private liquidator;
