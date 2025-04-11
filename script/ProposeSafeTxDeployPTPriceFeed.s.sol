@@ -49,6 +49,7 @@ contract ProposeSafeTxDeployPTPriceFeedScript is BaseScript, Networks {
     }
 
     function run() external parseEnv deleteVirtualTestnets {
+        vm.createSelectFork("mainnet");
         (
             ,
             PendleSparkLinearDiscountOracle pendleOracle,
@@ -60,7 +61,10 @@ contract ProposeSafeTxDeployPTPriceFeedScript is BaseScript, Networks {
         ) = priceFeedPendleChainlink29May2025UsdcMainnet();
 
         ISize market = sizeFactory.getMarket(1);
-        uint256 oldPrice = IPriceFeed(market.oracle().priceFeed).getPrice();
+        IPriceFeed priceFeed = IPriceFeed(market.oracle().priceFeed);
+        uint256 oldPrice = priceFeed.getPrice();
+        console.log("old Price Feed", address(priceFeed));
+
         console.log("oldPrice", oldPrice);
 
         PriceFeedPendleChainlink priceFeedPendleChainlink = new PriceFeedPendleChainlink(
@@ -70,6 +74,8 @@ contract ProposeSafeTxDeployPTPriceFeedScript is BaseScript, Networks {
             underlyingStalePriceInterval,
             quoteStalePriceInterval
         );
+
+        console.log("new Price Feed", address(priceFeedPendleChainlink));
 
         bytes memory data = abi.encodeCall(
             ISizeAdmin.updateConfig,
