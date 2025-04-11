@@ -4,7 +4,9 @@ pragma solidity 0.8.23;
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {PendleSparkLinearDiscountOracle} from "@pendle/contracts/oracles/internal/PendleSparkLinearDiscountOracle.sol";
 
 import {IMultiSendCallOnly} from "@script/interfaces/IMultiSendCallOnly.sol";
 import {PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
@@ -383,6 +385,30 @@ abstract contract Networks {
     {
         priceFeed = IPriceFeed(0xFa64CC164b87De05382dD7EfB3B2236ce8D90709);
         morphoOracle = IMorphoChainlinkOracleV2(0xcc62A6fad56ee6277250eabe49959002dA42191C);
+        baseToken = IERC20Metadata(0xb7de5dFCb74d25c2f21841fbd6230355C50d9308);
+        quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
+    }
+
+    function priceFeedPendleChainlink29May2025UsdcMainnet()
+        public
+        pure
+        returns (
+            IPriceFeed priceFeed,
+            PendleSparkLinearDiscountOracle pendleOracle,
+            AggregatorV3Interface underlyingChainlinkOracle,
+            AggregatorV3Interface quoteChainlinkOracle,
+            uint256 underlyingStalePriceInterval,
+            uint256 quoteStalePriceInterval,
+            IERC20Metadata baseToken,
+            IERC20Metadata quoteToken
+        )
+    {
+        priceFeed = IPriceFeed(address(0));
+        pendleOracle = PendleSparkLinearDiscountOracle(0x51EFC18301789beaF5F0e5D4C72e4FACE72E3658);
+        underlyingChainlinkOracle = AggregatorV3Interface(0xa569d910839Ae8865Da8F8e70FfFb0cBA869F961);
+        quoteChainlinkOracle = AggregatorV3Interface(0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6);
+        underlyingStalePriceInterval = 86400 * 1.1e18 / 1e18;
+        quoteStalePriceInterval = 86400 * 1.1e18 / 1e18;
         baseToken = IERC20Metadata(0xb7de5dFCb74d25c2f21841fbd6230355C50d9308);
         quoteToken = IERC20Metadata(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
     }
