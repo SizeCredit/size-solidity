@@ -54,6 +54,7 @@ contract PriceFeedPendleChainlink is IPriceFeedV1_7_1 {
     }
 
     function getPrice() external view override returns (uint256) {
+        // slither-disable-next-line unused-return
         (, int256 answer,,,) = ptToUnderlyingPriceFeed.latestRoundData();
         uint256 ptToUnderlyingPrice = SafeCast.toUint256(answer);
         uint256 underlyingToQuotePrice = underlyingToQuotePriceFeed.getPrice();
@@ -63,6 +64,7 @@ contract PriceFeedPendleChainlink is IPriceFeedV1_7_1 {
     function description() external view override returns (string memory) {
         PendlePrincipalToken pt = PendlePrincipalToken(ptToUnderlyingPriceFeed.PT());
         IStandardizedYield sy = IStandardizedYield(pt.SY());
+        // slither-disable-next-line unused-return
         (, address asset,) = sy.assetInfo();
         IERC20Metadata underlying = IERC20Metadata(asset);
         return string.concat(
