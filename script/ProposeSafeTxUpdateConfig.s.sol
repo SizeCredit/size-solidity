@@ -42,7 +42,7 @@ contract ProposeSafeTxUpdateConfigScript is BaseScript, Networks {
         ISize[] memory markets = sizeFactory.getMarkets();
 
         string memory updateConfigKey = "swapFeeAPR";
-        uint256 updateConfigValue = 0.05e18;
+        uint256 updateConfigValue = 0.005e18;
 
         address[] memory targets = new address[](markets.length);
         bytes[] memory datas = new bytes[](markets.length);
