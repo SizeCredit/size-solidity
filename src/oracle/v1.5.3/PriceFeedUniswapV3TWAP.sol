@@ -6,10 +6,10 @@ import {Math} from "@src/market/libraries/Math.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
+import {ChainlinkSequencerUptimeFeed} from "@src/oracle/adapters/ChainlinkSequencerUptimeFeed.sol";
+import {UniswapV3PriceFeed} from "@src/oracle/adapters/UniswapV3PriceFeed.sol";
 import {PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 import {PriceFeed} from "@src/oracle/v1.5.1/PriceFeed.sol";
-import {ChainlinkSequencerUptimeFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkSequencerUptimeFeed.sol";
-import {UniswapV3PriceFeed} from "@src/oracle/v1.5.1/adapters/UniswapV3PriceFeed.sol";
 import {IPriceFeedV1_5_3} from "@src/oracle/v1.5.3/IPriceFeedV1_5_3.sol";
 
 /// @title PriceFeedUniswapV3TWAP

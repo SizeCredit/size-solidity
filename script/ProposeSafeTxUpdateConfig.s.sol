@@ -10,66 +10,62 @@ import {UpdateConfigParams} from "@src/market/libraries/actions/UpdateConfig.sol
 import {Size} from "@src/market/Size.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 
-import {Networks} from "@script/Networks.sol";
+import {Contract, Networks} from "@script/Networks.sol";
 import {console} from "forge-std/console.sol";
 
+import {Safe} from "@safe-utils/Safe.sol";
+import {Tenderly} from "@tenderly-utils/Tenderly.sol";
+
 contract ProposeSafeTxUpdateConfigScript is BaseScript, Networks {
-    string private network;
+    using Safe for *;
+    using Tenderly for *;
+
+    address signer;
+    string derivationPath;
     ISizeFactory private sizeFactory;
 
     modifier parseEnv() {
-        network = vm.envString("NETWORK");
+        safe.initialize(vm.envAddress("OWNER"));
+        tenderly.initialize(
+            vm.envString("TENDERLY_ACCOUNT_NAME"),
+            vm.envString("TENDERLY_PROJECT_NAME"),
+            vm.envString("TENDERLY_ACCESS_KEY")
+        );
+        signer = vm.envAddress("SIGNER");
+        derivationPath = vm.envString("LEDGER_PATH");
         sizeFactory = ISizeFactory(vm.envAddress("SIZE_FACTORY"));
+
         _;
     }
 
-    function getUpdateConfigData(ISizeFactory _sizeFactory, IMultiSendCallOnly _multiSendCallOnly)
-        internal
-        view
-        returns (address _to, bytes memory _data)
-    {
-        ISize[] memory markets = _sizeFactory.getMarkets();
-        bytes1 operation = bytes1(0x00);
-        uint256 value = 0;
-        uint256 dataLength = 0;
-
-        _to = address(_multiSendCallOnly);
-
-        bytes memory data;
-        bytes memory transaction;
+    function run() public parseEnv broadcast {
+        ISize[] memory markets = sizeFactory.getMarkets();
 
         string memory updateConfigKey = "swapFeeAPR";
-        uint256 updateConfigValue = 0;
+        uint256 updateConfigValue = 0.05e18;
 
-        uint256[] memory swapFeeAPRs = new uint256[](markets.length);
+        address[] memory targets = new address[](markets.length);
+        bytes[] memory datas = new bytes[](markets.length);
 
         // Size.updateConfig(key, value) for all markets
         for (uint256 i = 0; i < markets.length; i++) {
-            swapFeeAPRs[i] = markets[i].feeConfig().swapFeeAPR;
-            console.log("swapFeeAPRs[%s]: %s", i, swapFeeAPRs[i]);
-
-            data = abi.encodeCall(
+            targets[i] = address(markets[i]);
+            datas[i] = abi.encodeCall(
                 Size.updateConfig, (UpdateConfigParams({key: updateConfigKey, value: updateConfigValue}))
             );
-            dataLength = data.length;
-            transaction = abi.encodePacked(operation, address(markets[i]), value, dataLength, data);
-            _data = abi.encodePacked(_data, transaction);
         }
-    }
 
-    function run() external parseEnv ignoreGas {
-        IMultiSendCallOnly multisendcallonly = multiSendCallOnly(network);
-        (address to, bytes memory multisendcallonlyData) = getUpdateConfigData(sizeFactory, multisendcallonly);
-        bytes memory data = abi.encodeCall(IMultiSendCallOnly.multiSend, (multisendcallonlyData));
-        console.log("to: %s", to);
-        console.log("data:");
-        console.logBytes(data);
+        safe.proposeTransactions(targets, datas, signer, derivationPath);
 
-        string[] memory args = new string[](4);
-        args[0] = "node";
-        args[1] = "script/proposeTransaction.js";
-        args[2] = vm.toString(to);
-        args[3] = vm.toString(data);
-        vm.ffi(args);
+        Tenderly.VirtualTestnet[] memory vnets = tenderly.getVirtualTestnets();
+        for (uint256 i = 0; i < vnets.length; i++) {
+            tenderly.deleteVirtualTestnetById(vnets[i].id);
+        }
+
+        Tenderly.VirtualTestnet memory vnet = tenderly.createVirtualTestnet("update-config", block.chainid);
+        tenderly.setStorageAt(vnet, safe.instance().safe, bytes32(uint256(4)), bytes32(uint256(1)));
+        tenderly.sendTransaction(
+            vnet.id, signer, safe.instance().safe, safe.getExecTransactionsData(targets, datas, signer, derivationPath)
+        );
     }
 }

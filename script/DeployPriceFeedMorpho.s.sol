@@ -10,7 +10,7 @@ import {NetworkConfiguration, Networks} from "@script/Networks.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IOracle} from "@src/oracle/v1.5.1/adapters/morpho/IOracle.sol";
+import {IOracle} from "@src/oracle/adapters/morpho/IOracle.sol";
 import {PriceFeedMorpho} from "@src/oracle/v1.6.2/PriceFeedMorpho.sol";
 
 contract DeployPriceFeedMorphoScript is BaseScript, Networks, Deploy {

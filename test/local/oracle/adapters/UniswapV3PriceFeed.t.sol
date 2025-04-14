@@ -7,7 +7,7 @@ import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Math} from "@src/market/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {UniswapV3PriceFeed} from "@src/oracle/v1.5.1/adapters/UniswapV3PriceFeed.sol";
+import {UniswapV3PriceFeed} from "@src/oracle/adapters/UniswapV3PriceFeed.sol";
 import {BaseTest} from "@test/BaseTest.sol";
 import {USDC} from "@test/mocks/USDC.sol";
 import {WETH} from "@test/mocks/WETH.sol";

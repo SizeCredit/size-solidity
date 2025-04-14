@@ -12,3 +12,6 @@
 halmos-cheatcodes=lib/halmos-cheatcodes/src
 @uniswap/v3-core=lib/v3-core
 @uniswap/v3-periphery=lib/v3-periphery
+@pendle=lib/pendle-core-v2-public
+@tenderly-utils/=lib/tenderly-utils/src/
+@safe-utils/=lib/safe-utils/src/

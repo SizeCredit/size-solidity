@@ -5,9 +5,9 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
-import {ChainlinkSequencerUptimeFeed} from "@src/oracle/v1.5.1/adapters/ChainlinkSequencerUptimeFeed.sol";
-import {IOracle} from "@src/oracle/v1.5.1/adapters/morpho/IOracle.sol";
-import {MorphoPriceFeed} from "@src/oracle/v1.5.1/adapters/morpho/MorphoPriceFeed.sol";
+import {ChainlinkSequencerUptimeFeed} from "@src/oracle/adapters/ChainlinkSequencerUptimeFeed.sol";
+import {IOracle} from "@src/oracle/adapters/morpho/IOracle.sol";
+import {MorphoPriceFeed} from "@src/oracle/adapters/morpho/MorphoPriceFeed.sol";
 import {IPriceFeedV1_6_2} from "@src/oracle/v1.6.2/IPriceFeedV1_6_2.sol";
 
 /// @title PriceFeedMorpho
