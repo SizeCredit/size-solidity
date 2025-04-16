@@ -46,9 +46,7 @@ library AccountingLibrary {
         state.data.debtToken.burn(debtPosition.borrower, repayAmount);
         debtPosition.futureValue -= repayAmount;
 
-        emit Events.UpdateDebtPosition(
-            debtPositionId, debtPosition.borrower, debtPosition.futureValue, debtPosition.liquidityIndexAtRepayment
-        );
+        emit Events.UpdateDebtPosition(debtPositionId, debtPosition.borrower, debtPosition.futureValue);
     }
 
     /// @notice Creates a debt and credit position
@@ -68,7 +66,7 @@ library AccountingLibrary {
         uint256 dueDate
     ) external returns (CreditPosition memory creditPosition) {
         DebtPosition memory debtPosition =
-            DebtPosition({borrower: borrower, futureValue: futureValue, dueDate: dueDate, liquidityIndexAtRepayment: 0});
+            DebtPosition({borrower: borrower, futureValue: futureValue, dueDate: dueDate, __unused: 0});
 
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;

@@ -14,7 +14,7 @@ import {Vault} from "@src/market/token/Vault.sol";
 
 struct SetUserConfigurationParams {
     // the vault to deposit borrow tokens into
-    address vault;
+    address borrowTokenVault;
     // The opening limit borrow CR
     uint256 openingLimitBorrowCR;
     // Whether all credit positions for sale are disabled
@@ -54,11 +54,11 @@ library SetUserConfiguration {
         }
 
         // validate vault
-        if (params.vault == address(0)) {
+        if (params.borrowTokenVault == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        if (!state.data.sizeFactory.isVault(params.vault)) {
-            revert Errors.INVALID_VAULT(params.vault);
+        if (!state.data.sizeFactory.isVault(params.borrowTokenVault)) {
+            revert Errors.INVALID_VAULT(params.borrowTokenVault);
         }
 
         // validate openingLimitBorrowCR
@@ -95,7 +95,7 @@ library SetUserConfiguration {
 
         User storage user = state.data.users[onBehalfOf];
 
-        state.data.userVault[onBehalfOf] = Vault(params.vault);
+        state.data.userBorrowTokenVault[onBehalfOf] = Vault(params.borrowTokenVault);
 
         user.openingLimitBorrowCR = params.openingLimitBorrowCR;
         user.allCreditPositionsForSaleDisabled = params.allCreditPositionsForSaleDisabled;
@@ -111,7 +111,7 @@ library SetUserConfiguration {
         emit Events.SetUserConfiguration(
             msg.sender,
             onBehalfOf,
-            params.vault,
+            params.borrowTokenVault,
             params.openingLimitBorrowCR,
             params.allCreditPositionsForSaleDisabled,
             params.creditPositionIdsForSale,

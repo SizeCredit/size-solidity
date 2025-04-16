@@ -90,7 +90,7 @@ library Events {
     event SetUserConfiguration( // v1.8
         address indexed sender,
         address indexed onBehalfOf,
-        address indexed vault,
+        address indexed borrowTokenVault,
         uint256 openingLimitBorrowCR,
         bool allCreditPositionsForSaleDisabled,
         bool creditPositionIdsForSale,
@@ -132,9 +132,7 @@ library Events {
 
     // updates
 
-    event UpdateDebtPosition(
-        uint256 indexed debtPositionId, address indexed borrower, uint256 futureValue, uint256 liquidityIndexAtRepayment
-    );
+    event UpdateDebtPosition(uint256 indexed debtPositionId, address indexed borrower, uint256 futureValue);
     event UpdateCreditPosition(uint256 indexed creditPositionId, address indexed lender, uint256 credit, bool forSale);
 
     // analytics

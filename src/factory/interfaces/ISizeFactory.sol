@@ -33,11 +33,6 @@ interface ISizeFactory is ISizeFactoryOffchainGetters, ISizeFactoryV1_7, ISizeFa
     /// @param _sizeImplementation The new size implementation
     function setSizeImplementation(address _sizeImplementation) external;
 
-    /// @notice Set the non-transferrable scaled token v1.5 implementation
-    /// @param _nonTransferrableScaledTokenV1_5Implementation The new non-transferrable scaled token v1.5 implementation
-    function setNonTransferrableScaledTokenV1_5Implementation(address _nonTransferrableScaledTokenV1_5Implementation)
-        external;
-
     /// @notice Creates a new market
     /// @dev The contract owner is set as the owner of the market
     function createMarket(

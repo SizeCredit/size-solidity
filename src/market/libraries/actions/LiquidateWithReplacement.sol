@@ -147,14 +147,8 @@ library LiquidateWithReplacement {
 
         debtPosition.borrower = params.borrower;
         debtPosition.futureValue = debtPositionCopy.futureValue;
-        debtPosition.liquidityIndexAtRepayment = 0;
 
-        emit Events.UpdateDebtPosition(
-            params.debtPositionId,
-            debtPosition.borrower,
-            debtPosition.futureValue,
-            debtPosition.liquidityIndexAtRepayment
-        );
+        emit Events.UpdateDebtPosition(params.debtPositionId, debtPosition.borrower, debtPosition.futureValue);
 
         state.data.debtToken.mint(params.borrower, debtPosition.futureValue);
         state.data.transferBorrowToken(address(this), params.borrower, issuanceValue);

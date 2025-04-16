@@ -21,9 +21,8 @@ struct DebtPosition {
     // The due date of the loan
     // Updated on debt reduction
     uint256 dueDate;
-    // The liquidity index of the Variable Pool at the repayment
-    // Set on full repayment
-    uint256 liquidityIndexAtRepayment;
+    // Deprecated in v1.8
+    uint256 __unused;
 }
 
 struct CreditPosition {

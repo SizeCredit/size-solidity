@@ -51,10 +51,8 @@ library Claim {
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
-        uint256 claimAmount = Math.mulDivDown(
-            creditPosition.credit, state.data.borrowATokenV1_5.liquidityIndex(), debtPosition.liquidityIndexAtRepayment
-        );
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
-        state.data.transferBorrowToken(address(this), creditPosition.lender, claimAmount);
+        // assumes between `Repay` and `Claim`, no variable yield is generated, ie, `address(this)` uses a vanilla vault
+        state.data.transferBorrowToken(address(this), creditPosition.lender, creditPosition.credit);
     }
 }
