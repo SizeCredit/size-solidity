@@ -58,10 +58,10 @@ contract AuthorizationBuyCreditMarketTest is BaseTest {
         (uint256 loansAfter,) = size.getPositionsCount();
 
         assertEq(
-            _after.alice.borrowATokenBalance,
-            _before.alice.borrowATokenBalance + amountIn - size.getSwapFee(amountIn, tenor)
+            _after.alice.borrowTokenBalance,
+            _before.alice.borrowTokenBalance + amountIn - size.getSwapFee(amountIn, tenor)
         );
-        assertEq(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance - amountIn);
+        assertEq(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance - amountIn);
         assertEq(_after.alice.debtBalance, _before.alice.debtBalance + futureValue);
         assertEq(loansAfter, loansBefore + 1);
         assertEq(size.getDebtPosition(debtPositionId).futureValue, futureValue);

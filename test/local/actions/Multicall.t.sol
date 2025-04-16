@@ -33,7 +33,7 @@ contract MulticallTest is BaseTest {
         deal(token, alice, amount);
         IERC20Metadata(token).approve(address(size), amount);
 
-        assertEq(size.getUserView(alice).borrowATokenBalance, 0);
+        assertEq(size.getUserView(alice).borrowTokenBalance, 0);
 
         bytes[] memory data = new bytes[](2);
         data[0] = abi.encodeCall(size.deposit, (DepositParams({token: token, amount: amount, to: alice})));
@@ -47,7 +47,7 @@ contract MulticallTest is BaseTest {
         assertEq(results[0], bytes(""));
         assertEq(results[1], bytes(""));
 
-        assertEq(size.getUserView(alice).borrowATokenBalance, amount);
+        assertEq(size.getUserView(alice).borrowTokenBalance, amount);
     }
 
     function test_Multicall_multicall_can_deposit_ether_and_create_borrowOffer() public {
@@ -163,7 +163,7 @@ contract MulticallTest is BaseTest {
         uint256 afterLiquidatorWETH = weth.balanceOf(liquidator);
 
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance - futureValue, 0);
-        assertEq(_after.liquidator.borrowATokenBalance, _before.liquidator.borrowATokenBalance, 0);
+        assertEq(_after.liquidator.borrowTokenBalance, _before.liquidator.borrowTokenBalance, 0);
         assertEq(_after.liquidator.collateralTokenBalance, _before.liquidator.collateralTokenBalance, 0);
         assertGt(
             _after.feeRecipient.collateralTokenBalance,
@@ -181,7 +181,7 @@ contract MulticallTest is BaseTest {
         _updateConfig("swapFeeAPR", 0);
         uint256 amount = 100e6;
         uint256 cap = amount;
-        _updateConfig("borrowATokenCap", cap);
+        _updateConfig("borrowTokenCap", cap);
 
         _deposit(alice, usdc, cap);
         _deposit(bob, weth, 200e18);
@@ -194,7 +194,7 @@ contract MulticallTest is BaseTest {
 
         assertEq(_state().bob.debtBalance, futureValue);
 
-        uint256 remaining = futureValue - size.getUserView(bob).borrowATokenBalance;
+        uint256 remaining = futureValue - size.getUserView(bob).borrowTokenBalance;
         _mint(address(usdc), bob, remaining);
         _approve(bob, address(usdc), address(size), remaining);
 
@@ -220,7 +220,7 @@ contract MulticallTest is BaseTest {
         uint256 cap = 100e6;
         _mint(address(usdc), alice, cap + 1);
         _approve(alice, address(usdc), address(size), cap + 1);
-        _updateConfig("borrowATokenCap", cap);
+        _updateConfig("borrowTokenCap", cap);
 
         // should not go over cap
         bytes[] memory data = new bytes[](1);
@@ -240,7 +240,7 @@ contract MulticallTest is BaseTest {
 
         _setLiquidityIndex(index);
         uint256 cap = 1000e6;
-        _updateConfig("borrowATokenCap", cap);
+        _updateConfig("borrowTokenCap", cap);
 
         uint256 tenor = 365 days;
         _deposit(alice, usdc, cap);
@@ -249,10 +249,10 @@ contract MulticallTest is BaseTest {
         _deposit(bob, weth, 100e18);
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
 
-        _withdraw(bob, usdc, size.getUserView(bob).borrowATokenBalance);
+        _withdraw(bob, usdc, size.getUserView(bob).borrowTokenBalance);
 
         uint256 debtAmount = debtToken.balanceOf(bob);
-        uint256 currentDeposit = size.getUserView(bob).borrowATokenBalance;
+        uint256 currentDeposit = size.getUserView(bob).borrowTokenBalance;
         uint256 depositRequiredToRepay = debtAmount - currentDeposit;
         _mint(address(usdc), bob, depositRequiredToRepay);
         _approve(bob, address(usdc), address(size), depositRequiredToRepay);

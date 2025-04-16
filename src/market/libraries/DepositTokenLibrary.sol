@@ -50,7 +50,7 @@ library DepositTokenLibrary {
     function depositUnderlyingBorrowTokenToVault(State storage state, address from, address to, uint256 amount)
         external
     {
-        Vault vault = getVault(state, to);
+        Vault vault = getBorrowTokenVault(state, to);
         state.data.underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
         state.data.underlyingBorrowToken.forceApprove(address(vault), amount);
         vault.deposit(from, to, amount);
@@ -65,15 +65,25 @@ library DepositTokenLibrary {
     /// @param to The address to which the underlying borrow token is transferred
     /// @param amount The amount of underlying borrow token to withdraw
     function withdrawUnderlyingTokenFromVault(State storage state, address from, address to, uint256 amount) external {
-        Vault vault = getVault(state, from);
+        Vault vault = getBorrowTokenVault(state, from);
         vault.withdraw(from, to, amount);
     }
 
-    /// @notice Get the vault for a user
+    /// @notice Get the borrow token vault for a user
     /// @param state The state struct
     /// @param user The user address
-    /// @return The vault for the user
-    function getVault(State storage state, address user) internal view returns (Vault) {
-        return state.data.userVault[user] == Vault(address(0)) ? state.data.defaultVault : state.data.userVault[user];
+    /// @return The borrow token vault for the user
+    function getBorrowTokenVault(State storage state, address user) internal view returns (Vault) {
+        return state.data.userBorrowTokenVault[user] == Vault(address(0))
+            ? state.data.defaultBorrowTokenVault
+            : state.data.userBorrowTokenVault[user];
+    }
+
+    function transferBorrowToken(State storage state, address from, address to, uint256 amount) internal {
+        Vault vaultFrom = getBorrowTokenVault(state, from);
+        vaultFrom.withdraw(from, address(this), amount);
+        Vault vaultTo = getBorrowTokenVault(state, to);
+        state.data.underlyingBorrowToken.forceApprove(address(vaultTo), amount);
+        vaultTo.deposit(address(this), to, amount);
     }
 }

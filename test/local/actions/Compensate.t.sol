@@ -97,7 +97,7 @@ contract CompensateTest is BaseTest {
         uint256 amount = 200e6;
 
         rate = bound(rate, 0, 1e18);
-        borrowAmount = bound(borrowAmount, size.riskConfig().minimumCreditBorrowAToken, amount);
+        borrowAmount = bound(borrowAmount, size.riskConfig().minimumCreditBorrowToken, amount);
         uint256 exitAmount = borrowAmount / 2;
 
         _deposit(alice, weth, 2e18);
@@ -208,7 +208,7 @@ contract CompensateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance + 200e6, 200e6);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance + 200e6, 200e6);
     }
 
     function test_Compensate_compensate_compensated_loan_can_be_liquidated() public {
@@ -354,12 +354,12 @@ contract CompensateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertGt(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance);
-        assertLt(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance);
+        assertGt(_after.candy.borrowTokenBalance, _before.candy.borrowTokenBalance);
+        assertLt(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance);
         assertGt(_after.candy.debtBalance, _before.candy.debtBalance);
         assertLt(_after.bob.debtBalance, _before.bob.debtBalance);
         assertEq(creditPositionAfter.credit, 0);
-        assertGt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance);
+        assertGt(_after.feeRecipient.borrowTokenBalance, _before.feeRecipient.borrowTokenBalance);
         assertEq(debtPositionBefore.borrower, bob);
         assertEq(debtPositionAfter.borrower, bob);
         assertEq(_before.alice, _after.alice);
@@ -393,10 +393,10 @@ contract CompensateTest is BaseTest {
 
         assertEq(creditPositionAfter.credit, 0);
         assertEq(_before.alice, _after.alice);
-        assertGt(_after.feeRecipient.borrowATokenBalance, _before.feeRecipient.borrowATokenBalance);
+        assertGt(_after.feeRecipient.borrowTokenBalance, _before.feeRecipient.borrowTokenBalance);
         assertEq(_after.bob.collateralTokenBalance, _before.bob.collateralTokenBalance);
         assertEq(_after.bob.debtBalance, _before.bob.debtBalance);
-        assertLt(_after.bob.borrowATokenBalance, _before.bob.borrowATokenBalance);
+        assertLt(_after.bob.borrowTokenBalance, _before.bob.borrowTokenBalance);
         assertEq(loansAfter, loansBefore + 1);
     }
 
@@ -432,7 +432,7 @@ contract CompensateTest is BaseTest {
         _setPrice(1e18);
         vm.warp(block.timestamp + 12345 days);
 
-        _updateConfig("borrowATokenCap", type(uint256).max);
+        _updateConfig("borrowTokenCap", type(uint256).max);
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1500e6);
         _deposit(candy, weth, 2000e18);
@@ -455,8 +455,8 @@ contract CompensateTest is BaseTest {
         uint256 swapFee1 = size.getSwapFee(Math.mulDivUp(futureValue, 1e18, 1e18 + r), tenor);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
-        assertEq(_state().feeRecipient.borrowATokenBalance, swapFee1);
-        assertEq(_state().alice.borrowATokenBalance, amount);
+        assertEq(_state().feeRecipient.borrowTokenBalance, swapFee1);
+        assertEq(_state().alice.borrowTokenBalance, amount);
 
         uint256 aliceCollateralBefore = _state().alice.collateralTokenBalance;
 
@@ -485,7 +485,7 @@ contract CompensateTest is BaseTest {
         _setPrice(1e18);
         vm.warp(block.timestamp + 12345 days);
 
-        _updateConfig("borrowATokenCap", type(uint256).max);
+        _updateConfig("borrowTokenCap", type(uint256).max);
         _updateConfig("swapFeeAPR", 0.1e18);
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1000e6);
@@ -518,10 +518,10 @@ contract CompensateTest is BaseTest {
     function test_Compensate_compensate_used_to_borrower_exit_experiment() public {
         _setPrice(1e18);
 
-        _updateConfig("borrowATokenCap", type(uint256).max);
+        _updateConfig("borrowTokenCap", type(uint256).max);
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowATokenBalance, 100e6);
+        assertEq(_state().bob.borrowTokenBalance, 100e6);
 
         // Bob lends as limit order
         _buyCreditLimit(
@@ -539,7 +539,7 @@ contract CompensateTest is BaseTest {
         // Alice deposits in WETH and USDC
         _deposit(alice, weth, 5000e18);
         _deposit(alice, usdc, 200e6);
-        assertEq(_state().alice.borrowATokenBalance, 200e6);
+        assertEq(_state().alice.borrowTokenBalance, 200e6);
 
         // Alice borrows from Bob's offer
         uint256 debtPositionId = _sellCreditMarket(alice, bob, RESERVED_ID, 70e6, 5 days, false);
@@ -736,7 +736,7 @@ contract CompensateTest is BaseTest {
     function testFuzz_Compensate_compensate_should_revert_if_it_does_not_improve_cr(uint256 price) public {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 10e6);
-        _updateConfig("minimumCreditBorrowAToken", 10e6);
+        _updateConfig("minimumCreditBorrowToken", 10e6);
         _updateConfig("swapFeeAPR", 0);
         _deposit(bob, weth, 200e18);
         _deposit(bob, usdc, 5_000e6);
@@ -998,7 +998,7 @@ contract CompensateTest is BaseTest {
         // 5 USDC for the fragmentation fee
         assertEq(size.feeConfig().fragmentationFee, 5e6);
 
-        assertEq(_state().feeRecipient.borrowATokenBalance, 0);
+        assertEq(_state().feeRecipient.borrowTokenBalance, 0);
         assertEq(_state().feeRecipient.collateralTokenBalance, 0);
 
         _deposit(alice, usdc, 100e6);
@@ -1031,10 +1031,10 @@ contract CompensateTest is BaseTest {
         Vars memory _after = _state();
 
         // Bob neither paid fragmentation fees in borrowToken (USDC) nor collateralToken (WETH)
-        assertEq(_before.bob.borrowATokenBalance, _after.bob.borrowATokenBalance);
+        assertEq(_before.bob.borrowTokenBalance, _after.bob.borrowTokenBalance);
         assertEq(_before.bob.collateralTokenBalance, _after.bob.collateralTokenBalance);
 
-        assertEq(_state().feeRecipient.borrowATokenBalance, 0);
+        assertEq(_state().feeRecipient.borrowTokenBalance, 0);
         assertEq(_state().feeRecipient.collateralTokenBalance, 0);
 
         // Bob repays the source debt position's leftover (20 USDC) and all split debt positions (80 USDC in total)
@@ -1058,15 +1058,15 @@ contract CompensateTest is BaseTest {
         _claim(alice, creditPositionId_alice_splits[1]);
         _claim(alice, creditPositionId_alice_splits[2]);
         _claim(alice, creditPositionId_alice_splits[3]);
-        assertEq(_state().alice.borrowATokenBalance, 100e6); // No yield collected from Bob for simplicity
+        assertEq(_state().alice.borrowTokenBalance, 100e6); // No yield collected from Bob for simplicity
         assertEq(_state().alice.collateralTokenBalance, 0); // Further assertion
 
         // Again, Bob neither paid fragmentation fees in borrowToken (USDC) nor collateralToken (WETH)
-        assertEq(_state().bob.borrowATokenBalance, 0); // No yield collected from self-borrowing
+        assertEq(_state().bob.borrowTokenBalance, 0); // No yield collected from self-borrowing
         assertEq(_state().bob.collateralTokenBalance, 200e18);
 
         assertEq(size.feeConfig().fragmentationFee, 5e6); // 5 USDC was set for the fragmentation fee
-        assertEq(_state().feeRecipient.borrowATokenBalance, 0); // No collecting fragmentation fees in borrowToken (USDC)
+        assertEq(_state().feeRecipient.borrowTokenBalance, 0); // No collecting fragmentation fees in borrowToken (USDC)
         assertEq(_state().feeRecipient.collateralTokenBalance, 0); // No collecting fragmentation fees in collateralToken (WETH)
     }
 }

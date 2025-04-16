@@ -35,7 +35,7 @@ abstract contract PropertiesSpecifications {
     string internal constant PARTIAL_REPAY_03 = "PARTIAL_REPAY_03: PartialRepay decreases the borrower's debt";
     string internal constant PARTIAL_REPAY_04 = "PARTIAL_REPAY_04: PartialRepay does not change the loan status";
 
-    string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowAToken";
+    string internal constant LOAN_01 = "LOAN_01: loan.credit >= minimumCreditBorrowToken";
     string internal constant LOAN_02 = "LOAN_02: minTenor <= loan.tenor <= maxTenor";
     string internal constant LOAN_03 = "LOAN_03: COUNT(credit positions) >= COUNT(debt positions)";
     string internal constant LOAN_04 = "LOAN_04: loan.liquidityIndexAtRepayment > 0 => loan.loanStatus == REPAID";

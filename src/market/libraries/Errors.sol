@@ -54,8 +54,8 @@ library Errors {
 
     error NOT_ENOUGH_BORROW_ATOKEN_BALANCE(address account, uint256 balance, uint256 required);
     error NOT_ENOUGH_BORROW_ATOKEN_LIQUIDITY(uint256 liquidity, uint256 required);
-    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 credit, uint256 minimumCreditBorrowAToken);
-    error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 credit, uint256 minimumCreditBorrowAToken);
+    error CREDIT_LOWER_THAN_MINIMUM_CREDIT(uint256 credit, uint256 minimumCreditBorrowToken);
+    error CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(uint256 credit, uint256 minimumCreditBorrowToken);
 
     error CREDIT_POSITION_ALREADY_CLAIMED(uint256 positionId);
 
@@ -80,8 +80,8 @@ library Errors {
     error NULL_STALE_RATE();
     error STALE_RATE(uint128 updatedAt);
 
-    error BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE(uint256 borrowATokenIncrease, uint256 debtTokenDecrease);
-    error BORROW_ATOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
+    error BORROW_TOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE(uint256 borrowTokenIncrease, uint256 debtTokenDecrease);
+    error BORROW_TOKEN_CAP_EXCEEDED(uint256 cap, uint256 amount);
 
     error NOT_SUPPORTED();
     error REINITIALIZE_MIGRATION_EXPECTED_IN_ONE_TRANSACTION(uint256 totalSupply);

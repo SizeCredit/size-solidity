@@ -25,8 +25,8 @@ struct NetworkConfiguration {
     uint256 fragmentationFee;
     uint256 crOpening;
     uint256 crLiquidation;
-    uint256 minimumCreditBorrowAToken;
-    uint256 borrowATokenCap;
+    uint256 minimumCreditBorrowToken;
+    uint256 borrowTokenCap;
     PriceFeedParams priceFeedParams;
 }
 
@@ -70,8 +70,8 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
+                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -94,8 +94,8 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
+                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -118,8 +118,8 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
+                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -142,8 +142,8 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
+                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -166,8 +166,8 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
+                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -190,8 +190,8 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
+                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -214,8 +214,8 @@ abstract contract Networks {
                 fragmentationFee: 0.0005e18,
                 crOpening: 1.3e18,
                 crLiquidation: 1.1e18,
-                minimumCreditBorrowAToken: 0.005e18,
-                borrowATokenCap: 500e18,
+                minimumCreditBorrowToken: 0.005e18,
+                borrowTokenCap: 500e18,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -238,8 +238,8 @@ abstract contract Networks {
                 fragmentationFee: 1e6,
                 crOpening: 1.3e18,
                 crLiquidation: 1.1e18,
-                minimumCreditBorrowAToken: 10e6,
-                borrowATokenCap: 1_000_000e6,
+                minimumCreditBorrowToken: 10e6,
+                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,

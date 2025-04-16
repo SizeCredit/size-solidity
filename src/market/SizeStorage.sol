@@ -57,9 +57,9 @@ struct RiskConfig {
     // maximum collateral ratio for liquidation
     uint256 crLiquidation;
     // minimum credit value of loans
-    uint256 minimumCreditBorrowAToken;
-    // maximum amount of deposited borrowed aTokens
-    uint256 borrowATokenCap;
+    uint256 minimumCreditBorrowToken;
+    // maximum amount of deposited borrowed tokens
+    uint256 borrowTokenCap;
     // minimum tenor for a loan
     uint256 minTenor;
     // maximum tenor for a loan
@@ -110,10 +110,10 @@ struct Data {
     mapping(address => UserCopyLimitOrders) usersCopyLimitOrders;
     // Size Factory (added on v1.7)
     ISizeFactory sizeFactory;
-    // Default vault (added on v1.8)
-    Vault defaultVault;
-    // mapping of user vault (added on v1.8)
-    mapping(address => Vault) userVault;
+    // Default borrow token vault (added on v1.8)
+    Vault defaultBorrowTokenVault;
+    // mapping of user borrow token vault (added on v1.8)
+    mapping(address => Vault) userBorrowTokenVault;
 }
 
 struct State {

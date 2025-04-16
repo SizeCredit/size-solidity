@@ -55,6 +55,6 @@ library Claim {
             creditPosition.credit, state.data.borrowATokenV1_5.liquidityIndex(), debtPosition.liquidityIndexAtRepayment
         );
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
-        state.data.borrowATokenV1_5.transferFrom(address(this), creditPosition.lender, claimAmount);
+        state.data.transferBorrowToken(address(this), creditPosition.lender, claimAmount);
     }
 }

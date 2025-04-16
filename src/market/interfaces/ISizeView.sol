@@ -30,9 +30,9 @@ interface ISizeView is ISizeViewV1_7 {
     function isDebtPositionLiquidatable(uint256 debtPositionId) external view returns (bool);
 
     /// @notice Convert debt token amount to collateral token amount
-    /// @param borrowATokenAmount The amount of borrow A tokens
+    /// @param amount The amount of debt tokens
     /// @return The equivalent amount of collateral tokens
-    function debtTokenAmountToCollateralTokenAmount(uint256 borrowATokenAmount) external view returns (uint256);
+    function debtTokenAmountToCollateralTokenAmount(uint256 amount) external view returns (uint256);
 
     /// @notice Get the fee configuration parameters
     /// @return The fee configuration parameters

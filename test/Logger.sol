@@ -52,7 +52,7 @@ abstract contract Logger {
             }
         }
         console.log("collateralBalance", userView.collateralTokenBalance);
-        console.log("borrowATokenBalance", userView.borrowATokenBalance);
+        console.log("borrowTokenBalance", userView.borrowTokenBalance);
         console.log("debtBalance", userView.debtBalance);
     }
 

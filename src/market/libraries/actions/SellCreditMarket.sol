@@ -247,8 +247,8 @@ library SellCreditMarket {
             credit: swapData.creditAmountIn,
             forSale: true
         });
-        state.data.borrowATokenV1_5.transferFrom(params.lender, recipient, swapData.cashAmountOut);
-        state.data.borrowATokenV1_5.transferFrom(
+        state.data.transferBorrowToken(params.lender, recipient, swapData.cashAmountOut);
+        state.data.transferBorrowToken(
             params.lender, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
         );
 

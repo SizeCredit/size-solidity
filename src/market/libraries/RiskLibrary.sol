@@ -19,8 +19,8 @@ library RiskLibrary {
     /// @param state The state
     /// @param credit The remaining credit
     function validateMinimumCredit(State storage state, uint256 credit) public view {
-        if (0 < credit && credit < state.riskConfig.minimumCreditBorrowAToken) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.riskConfig.minimumCreditBorrowAToken);
+        if (0 < credit && credit < state.riskConfig.minimumCreditBorrowToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT(credit, state.riskConfig.minimumCreditBorrowToken);
         }
     }
 
@@ -29,8 +29,8 @@ library RiskLibrary {
     /// @param state The state
     /// @param credit The credit
     function validateMinimumCreditOpening(State storage state, uint256 credit) public view {
-        if (credit < state.riskConfig.minimumCreditBorrowAToken) {
-            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(credit, state.riskConfig.minimumCreditBorrowAToken);
+        if (credit < state.riskConfig.minimumCreditBorrowToken) {
+            revert Errors.CREDIT_LOWER_THAN_MINIMUM_CREDIT_OPENING(credit, state.riskConfig.minimumCreditBorrowToken);
         }
     }
 

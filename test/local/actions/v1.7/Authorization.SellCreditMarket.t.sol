@@ -53,8 +53,8 @@ contract AuthorizationSellCreditMarketTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_after.alice.borrowATokenBalance, _before.alice.borrowATokenBalance - amount - swapFee);
-        assertEq(_after.candy.borrowATokenBalance, _before.candy.borrowATokenBalance + amount);
+        assertEq(_after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance - amount - swapFee);
+        assertEq(_after.candy.borrowTokenBalance, _before.candy.borrowTokenBalance + amount);
         assertEq(_after.variablePool.collateralTokenBalance, _before.variablePool.collateralTokenBalance);
         assertEq(_after.bob.debtBalance, futureValue);
     }

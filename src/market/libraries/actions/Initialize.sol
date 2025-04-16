@@ -39,8 +39,8 @@ struct InitializeFeeConfigParams {
 struct InitializeRiskConfigParams {
     uint256 crOpening;
     uint256 crLiquidation;
-    uint256 minimumCreditBorrowAToken;
-    uint256 borrowATokenCap;
+    uint256 minimumCreditBorrowToken;
+    uint256 borrowTokenCap;
     uint256 minTenor;
     uint256 maxTenor;
 }
@@ -55,7 +55,7 @@ struct InitializeDataParams {
     address underlyingCollateralToken;
     address underlyingBorrowToken;
     address variablePool;
-    address defaultVault;
+    address defaultBorrowTokenVault;
     address sizeFactory;
 }
 
@@ -64,7 +64,7 @@ struct InitializeDataParams {
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic to initialize the protocol
 /// @dev The collateralToken (e.g. szETH) and debtToken (e.g. szDebt) are created in the `executeInitialize` function
-///      The borrowAToken (e.g. szaUSDC) must have been deployed before the initialization
+///      The defaultBorrowTokenVault (e.g. szvUSDC) must have been deployed before the initialization
 library Initialize {
     using SafeERC20 for IERC20;
 
@@ -120,13 +120,13 @@ library Initialize {
             revert Errors.INVALID_LIQUIDATION_COLLATERAL_RATIO(r.crOpening, r.crLiquidation);
         }
 
-        // validate minimumCreditBorrowAToken
-        if (r.minimumCreditBorrowAToken == 0) {
+        // validate minimumCreditBorrowToken
+        if (r.minimumCreditBorrowToken == 0) {
             revert Errors.NULL_AMOUNT();
         }
 
-        // validate borrowATokenCap
-        if (r.borrowATokenCap == 0) {
+        // validate borrowTokenCap
+        if (r.borrowTokenCap == 0) {
             revert Errors.NULL_AMOUNT();
         }
 
@@ -236,9 +236,9 @@ library Initialize {
         state.riskConfig.crOpening = r.crOpening;
         state.riskConfig.crLiquidation = r.crLiquidation;
 
-        state.riskConfig.minimumCreditBorrowAToken = r.minimumCreditBorrowAToken;
+        state.riskConfig.minimumCreditBorrowToken = r.minimumCreditBorrowToken;
 
-        state.riskConfig.borrowATokenCap = r.borrowATokenCap;
+        state.riskConfig.borrowTokenCap = r.borrowTokenCap;
 
         state.riskConfig.minTenor = r.minTenor;
         state.riskConfig.maxTenor = r.maxTenor;
@@ -277,7 +277,7 @@ library Initialize {
             IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
         state.data.sizeFactory = ISizeFactory(d.sizeFactory);
-        state.data.defaultVault = Vault(d.defaultVault);
+        state.data.defaultBorrowTokenVault = Vault(d.defaultBorrowTokenVault);
     }
 
     /// @notice Executes the initialization of the protocol

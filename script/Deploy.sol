@@ -93,8 +93,8 @@ abstract contract Deploy {
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            minimumCreditBorrowAToken: 5e6,
-            borrowATokenCap: 1_000_000e6,
+            minimumCreditBorrowToken: 5e6,
+            borrowTokenCap: 1_000_000e6,
             minTenor: 1 hours,
             maxTenor: 5 * 365 days
         });
@@ -173,10 +173,10 @@ abstract contract Deploy {
         r = InitializeRiskConfigParams({
             crOpening: 1.5e18,
             crLiquidation: 1.3e18,
-            minimumCreditBorrowAToken: Math.mulDivDown(
+            minimumCreditBorrowToken: Math.mulDivDown(
                 10 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
             ),
-            borrowATokenCap: Math.mulDivDown(
+            borrowTokenCap: Math.mulDivDown(
                 1_000_000 * 10 ** borrowToken.decimals(), 10 ** priceFeed.decimals(), borrowTokenPriceUSD
             ),
             minTenor: 1 hours,

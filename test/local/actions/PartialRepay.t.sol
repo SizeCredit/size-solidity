@@ -23,14 +23,14 @@ contract PartialRepayTest is BaseTest {
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 120e6, 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
-        assertEq(size.getUserView(bob).borrowATokenBalance, 120e6);
+        assertEq(size.getUserView(bob).borrowTokenBalance, 120e6);
         assertEq(size.getUserView(bob).debtBalance, 180e6);
 
         _deposit(bob, usdc, 100e6);
 
         _partialRepay(bob, creditPositionId, 70e6, bob);
 
-        assertEq(size.getUserView(bob).borrowATokenBalance, 120e6 + 100e6 - 70e6, 150e6);
+        assertEq(size.getUserView(bob).borrowTokenBalance, 120e6 + 100e6 - 70e6, 150e6);
         assertEq(size.getUserView(bob).debtBalance, 180e6 - 70e6, 110e6);
     }
 
@@ -44,7 +44,7 @@ contract PartialRepayTest is BaseTest {
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, 120e6, 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
-        assertEq(size.getUserView(bob).borrowATokenBalance, 120e6);
+        assertEq(size.getUserView(bob).borrowTokenBalance, 120e6);
         assertEq(size.getUserView(bob).debtBalance, 180e6);
 
         _deposit(james, usdc, 100e6);
@@ -57,26 +57,26 @@ contract PartialRepayTest is BaseTest {
         assertEq(size.getUserView(bob).debtBalance, 180e6 - 10e6, 170e6);
     }
 
-    function testFuzz_PartialRepay_partialRepay_if_credit_lt_2x_minimumCreditBorrowAToken(uint256 partialRepayAmount)
+    function testFuzz_PartialRepay_partialRepay_if_credit_lt_2x_minimumCreditBorrowToken(uint256 partialRepayAmount)
         public
     {
-        // If the credit amount is less than 2 * minimumCreditBorrowAToken, then it's only possible to partially repay the whole credit
-        //   because both the repaying and remaining amount should be greater than minimumCreditBorrowAToken
+        // If the credit amount is less than 2 * minimumCreditBorrowToken, then it's only possible to partially repay the whole credit
+        //   because both the repaying and remaining amount should be greater than minimumCreditBorrowToken
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
         _updateConfig("fragmentationFee", 0);
-        _updateConfig("minimumCreditBorrowAToken", 10e6);
+        _updateConfig("minimumCreditBorrowToken", 10e6);
         _deposit(alice, usdc, 60e6);
         _deposit(bob, weth, 120e18);
         _deposit(candy, usdc, 60e6);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
         _buyCreditLimit(candy, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0));
-        uint256 futureValue = size.riskConfig().minimumCreditBorrowAToken * 3;
+        uint256 futureValue = size.riskConfig().minimumCreditBorrowToken * 3;
 
         uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, futureValue, 365 days, false);
         uint256 creditPositionId = size.getCreditPositionIdsByDebtPositionId(debtPositionId)[0];
 
-        uint256 credit2 = size.riskConfig().minimumCreditBorrowAToken * 2 - 1;
+        uint256 credit2 = size.riskConfig().minimumCreditBorrowToken * 2 - 1;
         uint256 credit1 = futureValue - credit2;
 
         _sellCreditMarket(alice, candy, creditPositionId, credit2, 365 days, false);
@@ -102,13 +102,13 @@ contract PartialRepayTest is BaseTest {
         );
     }
 
-    function testFuzz_PartialRepay_partialRepay_after_minimumCreditBorrowAToken_is_increased(uint256 amount) public {
-        // If the credit amount is less than minimumCreditBorrowAToken (it might happen when minimumCreditBorrowAToken was increased later),
+    function testFuzz_PartialRepay_partialRepay_after_minimumCreditBorrowToken_is_increased(uint256 amount) public {
+        // If the credit amount is less than minimumCreditBorrowToken (it might happen when minimumCreditBorrowToken was increased later),
         //   it should be possible to partially repay even if the user wants to repay the full credit amount
         _setPrice(1e18);
         _updateConfig("swapFeeAPR", 0);
         _updateConfig("fragmentationFee", 0);
-        _updateConfig("minimumCreditBorrowAToken", 10e6);
+        _updateConfig("minimumCreditBorrowToken", 10e6);
         _deposit(alice, usdc, 30e6);
         _deposit(bob, weth, 60e18);
         _deposit(candy, usdc, 30e6);
@@ -129,7 +129,7 @@ contract PartialRepayTest is BaseTest {
         assertEq(size.getCreditPosition(creditPositionId).credit, credit1);
         assertEq(size.getCreditPosition(creditPositionId2).credit, credit2);
 
-        _updateConfig("minimumCreditBorrowAToken", credit1 + 1);
+        _updateConfig("minimumCreditBorrowToken", credit1 + 1);
         _deposit(bob, usdc, 100e6);
 
         vm.prank(bob);
@@ -138,8 +138,8 @@ contract PartialRepayTest is BaseTest {
         );
     }
 
-    function test_PartialRepay_partialRepay_after_minimumCreditBorrowAToken_is_increased_concrete() public {
-        testFuzz_PartialRepay_partialRepay_after_minimumCreditBorrowAToken_is_increased(
+    function test_PartialRepay_partialRepay_after_minimumCreditBorrowToken_is_increased_concrete() public {
+        testFuzz_PartialRepay_partialRepay_after_minimumCreditBorrowToken_is_increased(
             15049080452407218967367839778534779
         );
     }

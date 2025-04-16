@@ -115,8 +115,8 @@ contract LiquidateTest is BaseTest {
         assertLt(liquidatorProfit, futureValueCollateral);
         assertEq(liquidatorProfit, assignedCollateral);
         assertEq(
-            _after.feeRecipient.borrowATokenBalance,
-            _before.feeRecipient.borrowATokenBalance,
+            _after.feeRecipient.borrowTokenBalance,
+            _before.feeRecipient.borrowTokenBalance,
             size.getSwapFee(Math.mulDivUp(futureValue, 1e18, 1.03e18), 365 days)
         );
         assertEq(
@@ -276,8 +276,8 @@ contract LiquidateTest is BaseTest {
 
         Vars memory _after = _state();
 
-        assertEq(_interest.alice.borrowATokenBalance, _before.alice.borrowATokenBalance * 1.1e27 / 1e27);
-        assertEq(_after.alice.borrowATokenBalance, _interest.alice.borrowATokenBalance + futureValue * 1.1e27 / 1e27);
+        assertEq(_interest.alice.borrowTokenBalance, _before.alice.borrowTokenBalance * 1.1e27 / 1e27);
+        assertEq(_after.alice.borrowTokenBalance, _interest.alice.borrowTokenBalance + futureValue * 1.1e27 / 1e27);
     }
 
     function test_Liquidate_liquidate_overdue_underwater() public {
@@ -373,7 +373,7 @@ contract LiquidateTest is BaseTest {
     function test_Liquidate_overdue_experiment() public {
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
-        assertEq(_state().bob.borrowATokenBalance, 100e6);
+        assertEq(_state().bob.borrowTokenBalance, 100e6);
 
         // Bob lends as limit order
         _buyCreditLimit(

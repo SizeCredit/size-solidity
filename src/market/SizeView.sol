@@ -15,10 +15,10 @@ import {
 } from "@src/market/libraries/LoanLibrary.sol";
 import {UpdateConfig} from "@src/market/libraries/actions/UpdateConfig.sol";
 
-import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";
-import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
-
 import {DataView, UserView} from "@src/market/SizeViewData.sol";
+import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";
+import {DepositTokenLibrary} from "@src/market/libraries/DepositTokenLibrary.sol";
+import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 
 import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
@@ -43,6 +43,7 @@ import {VERSION} from "@src/market/interfaces/ISize.sol";
 /// @author Size (https://size.credit/)
 /// @notice View methods for the Size protocol
 abstract contract SizeView is SizeStorage, ISizeView {
+    using DepositTokenLibrary for State;
     using OfferLibrary for LimitOrder;
     using OfferLibrary for State;
     using LoanLibrary for DebtPosition;
@@ -63,8 +64,8 @@ abstract contract SizeView is SizeStorage, ISizeView {
     }
 
     /// @inheritdoc ISizeView
-    function debtTokenAmountToCollateralTokenAmount(uint256 borrowATokenAmount) external view returns (uint256) {
-        return state.debtTokenAmountToCollateralTokenAmount(borrowATokenAmount);
+    function debtTokenAmountToCollateralTokenAmount(uint256 amount) external view returns (uint256) {
+        return state.debtTokenAmountToCollateralTokenAmount(amount);
     }
 
     /// @inheritdoc ISizeView
@@ -91,7 +92,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
             underlyingBorrowToken: state.data.underlyingBorrowToken,
             variablePool: state.data.variablePool,
             collateralToken: state.data.collateralToken,
-            borrowAToken: state.data.borrowATokenV1_5,
+            defaultBorrowTokenVault: state.data.defaultBorrowTokenVault,
             debtToken: state.data.debtToken
         });
     }
@@ -107,7 +108,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
             user: state.data.users[user],
             account: user,
             collateralTokenBalance: state.data.collateralToken.balanceOf(user),
-            borrowATokenBalance: state.data.borrowATokenV1_5.balanceOf(user),
+            borrowTokenBalance: state.getVault(user).maxWithdraw(user),
             debtBalance: state.data.debtToken.balanceOf(user)
         });
     }

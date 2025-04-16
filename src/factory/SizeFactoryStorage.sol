@@ -17,8 +17,8 @@ abstract contract SizeFactoryStorage {
     EnumerableSet.AddressSet ___unused_02;
     // the size implementation (used as implementation for proxy contracts, added on v1.6)
     address public sizeImplementation;
-    // the non-transferrable scaled token v1.5 implementation (used as implementation for proxy contracts, added on v1.6)
-    address public nonTransferrableScaledTokenV1_5Implementation;
+    // deprecated in v1.8
+    address public ___unused_03;
     // mapping of authorized actions for operators per account (added on v1.7)
     mapping(
         uint256 nonce

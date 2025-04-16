@@ -147,7 +147,7 @@ contract SellCreditLimitTest is BaseTest {
         uint256 creditPositionId2 = size.getCreditPositionIdsByDebtPositionId(debtPositionId2)[0];
         _compensate(bob, creditPositionId, creditPositionId2);
 
-        assertEqApprox(_state().bob.borrowATokenBalance, 42e6, 1e6);
+        assertEqApprox(_state().bob.borrowTokenBalance, 42e6, 1e6);
         assertEq(_state().bob.debtBalance, 0);
     }
 }

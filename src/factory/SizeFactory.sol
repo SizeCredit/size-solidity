@@ -26,13 +26,10 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {MarketFactoryLibrary} from "@src/factory/libraries/MarketFactoryLibrary.sol";
-import {NonTransferrableScaledTokenV1_5FactoryLibrary} from
-    "@src/factory/libraries/NonTransferrableScaledTokenV1_5FactoryLibrary.sol";
 import {PriceFeedFactoryLibrary} from "@src/factory/libraries/PriceFeedFactoryLibrary.sol";
 
 import {IPriceFeedV1_5_2} from "@src/oracle/v1.5.2/IPriceFeedV1_5_2.sol";
 
-import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
 import {SizeFactoryEvents} from "@src/factory/SizeFactoryEvents.sol";
@@ -87,20 +84,6 @@ contract SizeFactory is
         }
         emit SizeImplementationSet(sizeImplementation, _sizeImplementation);
         sizeImplementation = _sizeImplementation;
-    }
-
-    /// @inheritdoc ISizeFactory
-    function setNonTransferrableScaledTokenV1_5Implementation(address _nonTransferrableScaledTokenV1_5Implementation)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        if (_nonTransferrableScaledTokenV1_5Implementation == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        emit NonTransferrableScaledTokenV1_5ImplementationSet(
-            nonTransferrableScaledTokenV1_5Implementation, _nonTransferrableScaledTokenV1_5Implementation
-        );
-        nonTransferrableScaledTokenV1_5Implementation = _nonTransferrableScaledTokenV1_5Implementation;
     }
 
     /// @inheritdoc ISizeFactory

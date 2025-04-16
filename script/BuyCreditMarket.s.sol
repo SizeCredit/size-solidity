@@ -36,7 +36,7 @@ contract BuyCreditMarketScript is Script, Logger {
             minAPR: apr,
             exactAmountIn: false
         });
-        console.log("lender USDC", size.getUserView(lender).borrowATokenBalance);
+        console.log("lender USDC", size.getUserView(lender).borrowTokenBalance);
         vm.startBroadcast(deployerPrivateKey);
         size.buyCreditMarket(params);
         vm.stopBroadcast();

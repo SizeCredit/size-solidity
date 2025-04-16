@@ -32,8 +32,8 @@ contract AuthorizationDepositTest is BaseTest {
 
         UserView memory aliceUser = size.getUserView(alice);
         UserView memory bobUser = size.getUserView(bob);
-        assertEq(bobUser.borrowATokenBalance, 1e6);
-        assertEq(aliceUser.borrowATokenBalance, 0);
+        assertEq(bobUser.borrowTokenBalance, 1e6);
+        assertEq(aliceUser.borrowTokenBalance, 0);
         assertEq(bobUser.collateralTokenBalance, 0);
         assertEq(aliceUser.collateralTokenBalance, 0);
         assertEq(usdc.balanceOf(address(aToken)), 1e6);
@@ -49,8 +49,8 @@ contract AuthorizationDepositTest is BaseTest {
         aliceUser = size.getUserView(alice);
         bobUser = size.getUserView(bob);
 
-        assertEq(aliceUser.borrowATokenBalance, 0);
-        assertEq(bobUser.borrowATokenBalance, 1e6);
+        assertEq(aliceUser.borrowTokenBalance, 0);
+        assertEq(bobUser.borrowTokenBalance, 1e6);
         assertEq(aliceUser.collateralTokenBalance, 0);
         assertEq(bobUser.collateralTokenBalance, 2e18);
         assertEq(weth.balanceOf(address(size)), 2e18);

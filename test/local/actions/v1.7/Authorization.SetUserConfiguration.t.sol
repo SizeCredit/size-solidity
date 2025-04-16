@@ -23,7 +23,7 @@ contract AuthorizationSetUserConfigurationTest is BaseTest {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
 
-        _updateConfig("borrowATokenCap", type(uint256).max);
+        _updateConfig("borrowTokenCap", type(uint256).max);
 
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1600e18);
