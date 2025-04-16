@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH} from "@src/market/interfaces/IWETH.sol";
+import {Vault} from "@src/market/token/Vault.sol";
 
 import {CreditPosition, DebtPosition} from "@src/market/libraries/LoanLibrary.sol";
 import {CopyLimitOrder, LimitOrder} from "@src/market/libraries/OfferLibrary.sol";
@@ -103,12 +104,16 @@ struct Data {
     IPool variablePool;
     // Multicall lock to check if multicall is in progress
     bool isMulticall;
-    // Size deposit underlying borrow aToken (added on v1.5)
-    NonTransferrableScaledTokenV1_5 borrowATokenV1_5;
+    // Size deposit underlying borrow aToken (deprecated)
+    address ___deprecated_borrowATokenV1_5;
     // mapping of copy limit orders (added on v1.6.1)
     mapping(address => UserCopyLimitOrders) usersCopyLimitOrders;
     // Size Factory (added on v1.7)
     ISizeFactory sizeFactory;
+    // Default vault (added on v1.8)
+    Vault defaultVault;
+    // mapping of user vault (added on v1.8)
+    mapping(address => Vault) userVault;
 }
 
 struct State {

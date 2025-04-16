@@ -2,9 +2,9 @@
 pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
-
 import {MulticallUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/MulticallUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+
 import {Math, PERCENT} from "@src/market/libraries/Math.sol";
 import {
     InitializeDataParams,
@@ -12,6 +12,7 @@ import {
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
+import {Vault} from "@src/market/token/Vault.sol";
 
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
@@ -39,6 +40,7 @@ import {SizeFactoryOffchainGetters} from "@src/factory/SizeFactoryOffchainGetter
 import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Authorization.sol";
 
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
+import {ISizeFactoryV1_8} from "@src/factory/interfaces/ISizeFactoryV1_8.sol";
 
 import {BORROW_RATE_UPDATER_ROLE, KEEPER_ROLE, PAUSER_ROLE} from "@src/factory/interfaces/ISizeFactory.sol";
 
@@ -74,19 +76,6 @@ contract SizeFactory is
         _grantRole(PAUSER_ROLE, _owner);
         _grantRole(KEEPER_ROLE, _owner);
         _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
-    }
-
-    function reinitialize() external onlyOwner reinitializer(1_7_0) {
-        // grant `AccessControlUpgradeable` roles to the `Ownable2StepUpgradeable` owner
-        address _owner = owner();
-        _grantRole(DEFAULT_ADMIN_ROLE, _owner);
-        _grantRole(PAUSER_ROLE, _owner);
-        _grantRole(KEEPER_ROLE, _owner);
-        _grantRole(BORROW_RATE_UPDATER_ROLE, _owner);
-        // transfer `Ownable2StepUpgradeable` ownership to the zero address to keep the state consistent
-        // in a future upgrade, we can simply remove `Ownable2StepUpgradeable` from the implementation
-        _transferOwnership(address(0));
-        // can only be called once
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
@@ -141,19 +130,6 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
-    function createBorrowATokenV1_5(IPool variablePool, IERC20Metadata underlyingBorrowToken)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        returns (NonTransferrableScaledTokenV1_5 borrowATokenV1_5)
-    {
-        address admin = msg.sender;
-        borrowATokenV1_5 = NonTransferrableScaledTokenV1_5FactoryLibrary.createNonTransferrableScaledTokenV1_5(
-            nonTransferrableScaledTokenV1_5Implementation, admin, variablePool, underlyingBorrowToken
-        );
-        emit CreateBorrowATokenV1_5(address(borrowATokenV1_5));
-    }
-
-    /// @inheritdoc ISizeFactory
     function isMarket(address candidate) external view returns (bool) {
         return markets.contains(candidate);
     }
@@ -191,5 +167,28 @@ contract SizeFactory is
             uint256 nonce = authorizationNonces[onBehalfOf];
             return Authorization.isActionSet(authorizations[nonce][operator][onBehalfOf], action);
         }
+    }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function isVault(address candidate) external view returns (bool) {
+        return vaults.contains(candidate);
+    }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function addVault(Vault _vault) external returns (bool existed) {
+        if (address(_vault) == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        existed = vaults.add(address(_vault));
+        emit AddVault(address(_vault), existed);
+    }
+
+    /// @inheritdoc ISizeFactoryV1_8
+    function removeVault(Vault _vault) external returns (bool existed) {
+        if (address(_vault) == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        existed = !vaults.remove(address(_vault));
+        emit RemoveVault(address(_vault), existed);
     }
 }

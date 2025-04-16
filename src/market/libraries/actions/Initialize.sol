@@ -18,8 +18,8 @@ import {PERCENT} from "@src/market/libraries/Math.sol";
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
 import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
+import {Vault} from "@src/market/token/Vault.sol";
 
 import {State} from "@src/market/SizeStorage.sol";
 
@@ -55,7 +55,7 @@ struct InitializeDataParams {
     address underlyingCollateralToken;
     address underlyingBorrowToken;
     address variablePool;
-    address borrowATokenV1_5;
+    address defaultVault;
     address sizeFactory;
 }
 
@@ -183,8 +183,8 @@ library Initialize {
             revert Errors.NULL_ADDRESS();
         }
 
-        // validate borrowATokenV1_5
-        if (d.borrowATokenV1_5 == address(0)) {
+        // validate defaultVault
+        if (d.defaultVault == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
@@ -276,8 +276,8 @@ library Initialize {
             string.concat("szDebt", IERC20Metadata(state.data.underlyingBorrowToken).symbol()),
             IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
-        state.data.borrowATokenV1_5 = NonTransferrableScaledTokenV1_5(d.borrowATokenV1_5);
         state.data.sizeFactory = ISizeFactory(d.sizeFactory);
+        state.data.defaultVault = Vault(d.defaultVault);
     }
 
     /// @notice Executes the initialization of the protocol

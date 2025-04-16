@@ -5,6 +5,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {State} from "@src/market/SizeStorage.sol";
+import {Vault} from "@src/market/token/Vault.sol";
 
 /// @title DepositTokenLibrary
 /// @custom:security-contact security@size.credit
@@ -39,35 +40,40 @@ library DepositTokenLibrary {
     }
 
     /// @notice Deposit underlying borrow token to the Size protocol
-    /// @dev The underlying borrow token is deposited to the Variable Pool,
-    ///        and the corresponding Size borrow token is minted in scaled amounts.
-    ///      The underlying tokens are held by the borrowAToken contract
+    /// @dev The underlying borrow token is deposited to a Size vault,
+    ///      and the corresponding Size borrow token is minted according to the share conversion rate.
+    ///      The underlying tokens are held by the vault
     /// @param state The state struct
     /// @param from The address from which the underlying borrow token is transferred
     /// @param to The address to which the Size borrow token is minted
     /// @param amount The amount of underlying borrow token to deposit
-    function depositUnderlyingBorrowTokenToVariablePoolV1_5(
-        State storage state,
-        address from,
-        address to,
-        uint256 amount
-    ) external {
+    function depositUnderlyingBorrowTokenToVault(State storage state, address from, address to, uint256 amount)
+        external
+    {
+        Vault vault = getVault(state, to);
         state.data.underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
-        state.data.underlyingBorrowToken.forceApprove(address(state.data.borrowATokenV1_5), amount);
-        state.data.borrowATokenV1_5.deposit(from, to, amount);
+        state.data.underlyingBorrowToken.forceApprove(address(vault), amount);
+        vault.deposit(from, to, amount);
     }
 
     /// @notice Withdraw underlying borrow token from the Size protocol
-    /// @dev The underlying borrow token is withdrawn from the Variable Pool,
-    ///        and the corresponding Size borrow token is burned in scaled amounts.
-    ///      The underlying tokens are transferred from the borrowAToken contract `from` account to the `to` account
+    /// @dev The underlying borrow token is withdrawn from a Size vault,
+    ///      and the corresponding Size borrow token is burned according to the share conversion rate
+    ///      The underlying tokens are transferred from the vault `from` account to the `to` account
     /// @param state The state struct
     /// @param from The address from which the Size borrow token is burned
     /// @param to The address to which the underlying borrow token is transferred
     /// @param amount The amount of underlying borrow token to withdraw
-    function withdrawUnderlyingTokenFromVariablePoolV1_5(State storage state, address from, address to, uint256 amount)
-        external
-    {
-        state.data.borrowATokenV1_5.withdraw(from, to, amount);
+    function withdrawUnderlyingTokenFromVault(State storage state, address from, address to, uint256 amount) external {
+        Vault vault = getVault(state, from);
+        vault.withdraw(from, to, amount);
+    }
+
+    /// @notice Get the vault for a user
+    /// @param state The state struct
+    /// @param user The user address
+    /// @return The vault for the user
+    function getVault(State storage state, address user) internal view returns (Vault) {
+        return state.data.userVault[user] == Vault(address(0)) ? state.data.defaultVault : state.data.userVault[user];
     }
 }

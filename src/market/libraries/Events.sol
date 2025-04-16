@@ -87,9 +87,10 @@ library Events {
         uint256 creditPositionToCompensateId,
         uint256 amount
     );
-    event SetUserConfiguration(
+    event SetUserConfiguration( // v1.8
         address indexed sender,
         address indexed onBehalfOf,
+        address indexed vault,
         uint256 openingLimitBorrowCR,
         bool allCreditPositionsForSaleDisabled,
         bool creditPositionIdsForSale,

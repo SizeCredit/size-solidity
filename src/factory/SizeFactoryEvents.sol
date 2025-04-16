@@ -13,10 +13,12 @@ abstract contract SizeFactoryEvents {
 
     event CreateMarket(address indexed market);
     event CreatePriceFeed(address indexed priceFeed);
-    event CreateBorrowATokenV1_5(address indexed borrowATokenV1_5);
 
     event SetAuthorization(
         address indexed sender, address indexed operator, uint256 indexed actionsBitmap, uint256 nonce
     ); // v1.7
     event RevokeAllAuthorizations(address indexed sender); // v1.7
+
+    event AddVault(address indexed vault, bool existed); // v1.8
+    event RemoveVault(address indexed vault, bool existed); // v1.8
 }

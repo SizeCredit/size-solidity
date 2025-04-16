@@ -26,4 +26,6 @@ abstract contract SizeFactoryStorage {
     ) public authorizations;
     // mapping of authorization nonces per account (added on v1.7)
     mapping(address onBehalfOf => uint256 nonce) public authorizationNonces;
+    // the vaults (added on v1.8)
+    EnumerableSet.AddressSet vaults;
 }
