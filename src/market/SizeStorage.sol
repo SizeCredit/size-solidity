@@ -113,7 +113,7 @@ struct Data {
     // Default borrow token vault (added on v1.8)
     Vault defaultBorrowTokenVault;
     // mapping of user borrow token vault (added on v1.8)
-    mapping(address => Vault) userBorrowTokenVault;
+    mapping(address => Vault) userBorrowTokenVault; // TODO move this to the Vault contract
 }
 
 struct State {

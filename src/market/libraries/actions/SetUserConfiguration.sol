@@ -60,6 +60,11 @@ library SetUserConfiguration {
         if (!state.data.sizeFactory.isVault(params.borrowTokenVault)) {
             revert Errors.INVALID_VAULT(params.borrowTokenVault);
         }
+        Vault borrowTokenVault = state.getBorrowTokenVault(onBehalfOf);
+        if (borrowTokenVault.balanceOf(onBehalfOf) != 0) {
+            // you should empty your vault balance before changing vaults
+            revert Errors.NOT_SUPPORTED();
+        }
 
         // validate openingLimitBorrowCR
         // N/A
