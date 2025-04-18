@@ -103,7 +103,7 @@ library Deposit {
             // borrow aToken cap is not validated in multicall,
             //   since users must be able to deposit more tokens to repay debt
             if (!state.data.isMulticall) {
-                state.validateborrowTokenCap();
+                state.validateBorrowTokenCap();
             }
         } else {
             state.depositUnderlyingCollateralToken(from, params.to, amount);

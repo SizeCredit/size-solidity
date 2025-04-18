@@ -26,7 +26,7 @@ library Multicall {
     function multicall(State storage state, bytes[] calldata data) internal returns (bytes[] memory results) {
         state.data.isMulticall = true;
 
-        uint256 borrowATokenSupplyBefore = state.data.borrowATokenV1_5.totalSupply();
+        uint256 borrowATokenSupplyBefore = state.data.borrowTokenVault.totalSupply();
         uint256 debtTokenSupplyBefore = state.data.debtToken.totalSupply();
 
         results = new bytes[](data.length);
@@ -34,10 +34,10 @@ library Multicall {
             results[i] = Address.functionDelegateCall(address(this), data[i]);
         }
 
-        uint256 borrowATokenSupplyAfter = state.data.borrowATokenV1_5.totalSupply();
+        uint256 borrowATokenSupplyAfter = state.data.borrowTokenVault.totalSupply();
         uint256 debtTokenSupplyAfter = state.data.debtToken.totalSupply();
 
-        state.validateBorrowATokenIncreaseLteDebtTokenDecrease(
+        state.validateBorrowTokenIncreaseLteDebtTokenDecrease(
             borrowATokenSupplyBefore, debtTokenSupplyBefore, borrowATokenSupplyAfter, debtTokenSupplyAfter
         );
 

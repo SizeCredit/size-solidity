@@ -90,7 +90,7 @@ library Events {
     event SetUserConfiguration( // v1.8
         address indexed sender,
         address indexed onBehalfOf,
-        address indexed borrowTokenVault,
+        address indexed userVault,
         uint256 openingLimitBorrowCR,
         bool allCreditPositionsForSaleDisabled,
         bool creditPositionIdsForSale,

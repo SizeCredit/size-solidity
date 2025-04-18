@@ -92,7 +92,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
             underlyingBorrowToken: state.data.underlyingBorrowToken,
             variablePool: state.data.variablePool,
             collateralToken: state.data.collateralToken,
-            defaultBorrowTokenVault: state.data.defaultBorrowTokenVault,
+            borrowTokenVault: state.data.borrowTokenVault,
             debtToken: state.data.debtToken
         });
     }
@@ -108,7 +108,7 @@ abstract contract SizeView is SizeStorage, ISizeView {
             user: state.data.users[user],
             account: user,
             collateralTokenBalance: state.data.collateralToken.balanceOf(user),
-            borrowTokenBalance: state.getVault(user).maxWithdraw(user),
+            borrowTokenBalance: state.data.borrowTokenVault.balanceOf(user),
             debtBalance: state.data.debtToken.balanceOf(user)
         });
     }

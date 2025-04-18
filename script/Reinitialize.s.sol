@@ -14,7 +14,7 @@ import {Networks} from "@script/Networks.sol";
 contract ReinitializeScript is BaseScript, Networks, Deploy {
     address deployer;
     string networkConfiguration;
-    address borrowATokenV1_5;
+    address borrowTokenVault;
     address[] users;
 
     function setUp() public {}
@@ -22,7 +22,7 @@ contract ReinitializeScript is BaseScript, Networks, Deploy {
     modifier parseEnv() {
         deployer = vm.envOr("DEPLOYER_ADDRESS", vm.addr(vm.deriveKey(TEST_MNEMONIC, 0)));
         networkConfiguration = vm.envOr("NETWORK_CONFIGURATION", TEST_NETWORK_CONFIGURATION);
-        borrowATokenV1_5 = vm.envAddress("BORROW_A_TOKEN_V1_5");
+        borrowTokenVault = vm.envAddress("BORROW_A_TOKEN_V1_5");
         users = vm.envAddress("USERS", ",");
         _;
     }
@@ -35,7 +35,7 @@ contract ReinitializeScript is BaseScript, Networks, Deploy {
 
         (ISize proxy,,) = importDeployments(networkConfiguration);
 
-        ISizeV1_5(address(proxy)).reinitialize(borrowATokenV1_5, users);
+        ISizeV1_5(address(proxy)).reinitialize(borrowTokenVault, users);
 
         console.log("[Size v1.5] done");
     }

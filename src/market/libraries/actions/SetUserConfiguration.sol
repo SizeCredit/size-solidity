@@ -10,11 +10,11 @@ import {Action} from "@src/factory/libraries/Authorization.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
 
-import {Vault} from "@src/market/token/Vault.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
 struct SetUserConfigurationParams {
-    // the vault to deposit borrow tokens into
-    address borrowTokenVault;
+    // the user vault to deposit borrow tokens into
+    address userVault;
     // The opening limit borrow CR
     uint256 openingLimitBorrowCR;
     // Whether all credit positions for sale are disabled
@@ -54,14 +54,7 @@ library SetUserConfiguration {
         }
 
         // validate vault
-        if (params.borrowTokenVault == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        if (!state.data.sizeFactory.isVault(params.borrowTokenVault)) {
-            revert Errors.INVALID_VAULT(params.borrowTokenVault);
-        }
-        Vault borrowTokenVault = state.getBorrowTokenVault(onBehalfOf);
-        if (borrowTokenVault.balanceOf(onBehalfOf) != 0) {
+        if (state.data.borrowTokenVault.balanceOf(onBehalfOf) != 0) {
             // you should empty your vault balance before changing vaults
             revert Errors.NOT_SUPPORTED();
         }
@@ -100,8 +93,6 @@ library SetUserConfiguration {
 
         User storage user = state.data.users[onBehalfOf];
 
-        state.data.userBorrowTokenVault[onBehalfOf] = Vault(params.borrowTokenVault);
-
         user.openingLimitBorrowCR = params.openingLimitBorrowCR;
         user.allCreditPositionsForSaleDisabled = params.allCreditPositionsForSaleDisabled;
 
@@ -113,10 +104,12 @@ library SetUserConfiguration {
             );
         }
 
+        state.data.borrowTokenVault.setUserVault(onBehalfOf, IERC4626(params.userVault));
+
         emit Events.SetUserConfiguration(
             msg.sender,
             onBehalfOf,
-            params.borrowTokenVault,
+            params.userVault,
             params.openingLimitBorrowCR,
             params.allCreditPositionsForSaleDisabled,
             params.creditPositionIdsForSale,

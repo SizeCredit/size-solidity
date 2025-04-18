@@ -38,7 +38,7 @@ import {WETH} from "@test/mocks/WETH.sol";
 
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
-import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
+import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
 abstract contract Deploy {
     address internal implementation;
@@ -74,13 +74,13 @@ abstract contract Deploy {
             );
         }
 
-        address borrowATokenV1_5Implementation = address(new NonTransferrableScaledTokenV1_5());
+        address borrowTokenVaultImplementation = address(new NonTransferrableTokenVault());
 
         hevm.prank(owner);
-        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(borrowATokenV1_5Implementation);
+        sizeFactory.setNonTransferrableTokenVaultImplementation(borrowTokenVaultImplementation);
 
         hevm.prank(owner);
-        NonTransferrableScaledTokenV1_5 borrowATokenV1_5 = sizeFactory.createBorrowATokenV1_5(variablePool, usdc);
+        NonTransferrableTokenVault borrowTokenVault = sizeFactory.createBorrowTokenVault(variablePool, usdc);
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -104,7 +104,7 @@ abstract contract Deploy {
             underlyingCollateralToken: address(weth),
             underlyingBorrowToken: address(usdc),
             variablePool: address(variablePool), // Aave v3
-            borrowATokenV1_5: address(borrowATokenV1_5),
+            borrowTokenVault: address(borrowTokenVault),
             sizeFactory: address(sizeFactory)
         });
 
@@ -152,13 +152,13 @@ abstract contract Deploy {
             );
         }
 
-        address borrowATokenV1_5Implementation = address(new NonTransferrableScaledTokenV1_5());
+        address borrowTokenVaultImplementation = address(new NonTransferrableTokenVault());
 
         hevm.prank(owner);
-        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(borrowATokenV1_5Implementation);
+        sizeFactory.setNonTransferrableTokenVaultImplementation(borrowTokenVaultImplementation);
 
         hevm.prank(owner);
-        NonTransferrableScaledTokenV1_5 borrowATokenV1_5 = sizeFactory.createBorrowATokenV1_5(variablePool, borrowToken);
+        NonTransferrableTokenVault borrowTokenVault = sizeFactory.createBorrowTokenVault(variablePool, borrowToken);
 
         f = InitializeFeeConfigParams({
             swapFeeAPR: 0.005e18,
@@ -188,7 +188,7 @@ abstract contract Deploy {
             underlyingCollateralToken: address(collateralToken),
             underlyingBorrowToken: address(borrowToken),
             variablePool: address(variablePool),
-            borrowATokenV1_5: address(borrowATokenV1_5),
+            borrowTokenVault: address(borrowTokenVault),
             sizeFactory: address(sizeFactory)
         });
 

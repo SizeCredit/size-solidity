@@ -53,6 +53,6 @@ library Claim {
 
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
         // assumes between `Repay` and `Claim`, no variable yield is generated, ie, `address(this)` uses a vanilla vault
-        state.data.transferBorrowToken(address(this), creditPosition.lender, creditPosition.credit);
+        state.data.borrowTokenVault.transferFrom(address(this), creditPosition.lender, creditPosition.credit);
     }
 }

@@ -245,10 +245,10 @@ library BuyCreditMarket {
             });
         }
 
-        state.data.transferBorrowToken(
+        state.data.borrowTokenVault.transferFrom(
             onBehalfOf, swapData.borrower, swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee
         );
-        state.data.transferBorrowToken(
+        state.data.borrowTokenVault.transferFrom(
             onBehalfOf, state.feeConfig.feeRecipient, swapData.swapFee + swapData.fragmentationFee
         );
 

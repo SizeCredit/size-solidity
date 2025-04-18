@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {Test} from "forge-std/Test.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {NonTransferrableScaledTokenV1_5} from "@src/market/token/NonTransferrableScaledTokenV1_5.sol";
+import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 import {YAMv2} from "@test/mocks/YAMv2.sol";
 
 import {Size} from "@src/market/Size.sol";
@@ -112,10 +112,10 @@ contract InitializeValidationTest is Test, BaseTest {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         d.variablePool = address(variablePool);
 
-        d.borrowATokenV1_5 = address(0);
+        d.borrowTokenVault = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        d.borrowATokenV1_5 = address(new NonTransferrableScaledTokenV1_5());
+        d.borrowTokenVault = address(new NonTransferrableTokenVault());
 
         d.sizeFactory = address(0);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));

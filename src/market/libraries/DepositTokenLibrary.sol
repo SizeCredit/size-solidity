@@ -5,7 +5,6 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {State} from "@src/market/SizeStorage.sol";
-import {Vault} from "@src/market/token/Vault.sol";
 
 /// @title DepositTokenLibrary
 /// @custom:security-contact security@size.credit
@@ -40,50 +39,33 @@ library DepositTokenLibrary {
     }
 
     /// @notice Deposit underlying borrow token to the Size protocol
-    /// @dev The underlying borrow token is deposited to a Size vault,
-    ///      and the corresponding Size borrow token is minted according to the share conversion rate.
-    ///      The underlying tokens are held by the vault
+    /// @dev The underlying borrow token is deposited to the borrowTokenVault,
+    ///        and the corresponding Size borrow token is minted.
+    ///      The underlying tokens are held by the borrowTokenVault contract
     /// @param state The state struct
     /// @param from The address from which the underlying borrow token is transferred
     /// @param to The address to which the Size borrow token is minted
     /// @param amount The amount of underlying borrow token to deposit
-    function depositUnderlyingBorrowTokenToVault(State storage state, address from, address to, uint256 amount)
-        external
-    {
-        Vault vault = getBorrowTokenVault(state, to);
+    function depositUnderlyingBorrowTokenToVault(
+        State storage state,
+        address from,
+        address to,
+        uint256 amount
+    ) external {
         state.data.underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
-        state.data.underlyingBorrowToken.forceApprove(address(vault), amount);
-        vault.deposit(from, to, amount);
+        state.data.underlyingBorrowToken.forceApprove(address(state.data.borrowTokenVault), amount);
+        state.data.borrowTokenVault.deposit(from, to, amount);
     }
 
     /// @notice Withdraw underlying borrow token from the Size protocol
-    /// @dev The underlying borrow token is withdrawn from a Size vault,
-    ///      and the corresponding Size borrow token is burned according to the share conversion rate
-    ///      The underlying tokens are transferred from the vault `from` account to the `to` account
+    /// @dev The underlying borrow token is withdrawn from the borrowTokenVault,
+    ///        and the corresponding Size borrow token is burned.
+    ///      The underlying tokens are transferred from the borrowTokenVault contract `from` account to the `to` account
     /// @param state The state struct
     /// @param from The address from which the Size borrow token is burned
     /// @param to The address to which the underlying borrow token is transferred
     /// @param amount The amount of underlying borrow token to withdraw
     function withdrawUnderlyingTokenFromVault(State storage state, address from, address to, uint256 amount) external {
-        Vault vault = getBorrowTokenVault(state, from);
-        vault.withdraw(from, to, amount);
-    }
-
-    /// @notice Get the borrow token vault for a user
-    /// @param state The state struct
-    /// @param user The user address
-    /// @return The borrow token vault for the user
-    function getBorrowTokenVault(State storage state, address user) internal view returns (Vault) {
-        return state.data.userBorrowTokenVault[user] == Vault(address(0))
-            ? state.data.defaultBorrowTokenVault
-            : state.data.userBorrowTokenVault[user];
-    }
-
-    function transferBorrowToken(State storage state, address from, address to, uint256 amount) internal {
-        Vault vaultFrom = getBorrowTokenVault(state, from);
-        vaultFrom.withdraw(from, address(this), amount);
-        Vault vaultTo = getBorrowTokenVault(state, to);
-        state.data.underlyingBorrowToken.forceApprove(address(vaultTo), amount);
-        vaultTo.deposit(address(this), to, amount);
+        state.data.borrowTokenVault.withdraw(from, to, amount);
     }
 }

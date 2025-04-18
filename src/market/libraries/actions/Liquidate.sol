@@ -129,7 +129,7 @@ library Liquidate {
             liquidatorProfitCollateralToken = assignedCollateral;
         }
 
-        state.data.transferBorrowToken(msg.sender, address(this), debtPosition.futureValue);
+        state.data.borrowTokenVault.transferFrom(msg.sender, address(this), debtPosition.futureValue);
         state.data.collateralToken.transferFrom(debtPosition.borrower, msg.sender, liquidatorProfitCollateralToken);
         state.data.collateralToken.transferFrom(
             debtPosition.borrower, state.feeConfig.feeRecipient, protocolProfitCollateralToken

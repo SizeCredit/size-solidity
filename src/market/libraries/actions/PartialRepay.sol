@@ -88,7 +88,7 @@ library PartialRepay {
             state.getCreditPosition(params.creditPositionWithDebtToRepayId);
 
         // transfer cash directly to the lender since it's a partial repayment
-        state.data.transferBorrowToken(msg.sender, creditPositionWithDebtToRepay.lender, params.amount);
+        state.data.borrowTokenVault.transferFrom(msg.sender, creditPositionWithDebtToRepay.lender, params.amount);
         // debt and credit reduction
         state.reduceDebtAndCredit(
             creditPositionWithDebtToRepay.debtPositionId, params.creditPositionWithDebtToRepayId, params.amount

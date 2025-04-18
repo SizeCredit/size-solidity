@@ -17,8 +17,8 @@ abstract contract SizeFactoryStorage {
     EnumerableSet.AddressSet ___unused_02;
     // the size implementation (used as implementation for proxy contracts, added on v1.6)
     address public sizeImplementation;
-    // deprecated in v1.8
-    address public ___unused_03;
+    // the non-transferrable token vault implementation (upgraded on v1.8)
+    address public nonTransferrableTokenVaultImplementation;
     // mapping of authorized actions for operators per account (added on v1.7)
     mapping(
         uint256 nonce
@@ -26,6 +26,4 @@ abstract contract SizeFactoryStorage {
     ) public authorizations;
     // mapping of authorization nonces per account (added on v1.7)
     mapping(address onBehalfOf => uint256 nonce) public authorizationNonces;
-    // the vaults (added on v1.8)
-    EnumerableSet.AddressSet vaults;
 }

@@ -49,9 +49,9 @@ library CapsLibrary {
     /// @param state The state struct
     function validateBorrowTokenCap(State storage state) external view {
         // TODO: this is not cheching against ALL vaults
-        if (state.data.defaultBorrowTokenVault.totalAssets() > state.riskConfig.borrowTokenCap) {
+        if (state.data.borrowTokenVault.totalSupply() > state.riskConfig.borrowTokenCap) {
             revert Errors.BORROW_TOKEN_CAP_EXCEEDED(
-                state.riskConfig.borrowTokenCap, state.data.defaultBorrowTokenVault.totalAssets()
+                state.riskConfig.borrowTokenCap, state.data.borrowTokenVault.totalSupply()
             );
         }
     }

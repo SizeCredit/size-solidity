@@ -74,7 +74,7 @@ library Withdraw {
 
         uint256 amount;
         if (params.token == address(state.data.underlyingBorrowToken)) {
-            amount = Math.min(params.amount, state.getVault(onBehalfOf).maxWithdraw(onBehalfOf));
+            amount = Math.min(params.amount, state.data.borrowTokenVault.balanceOf(onBehalfOf));
             if (amount > 0) {
                 state.withdrawUnderlyingTokenFromVault(onBehalfOf, params.to, amount);
             }

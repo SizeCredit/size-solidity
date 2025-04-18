@@ -28,7 +28,7 @@ contract GetV1_5ReinitializeDataWethUsdcAfterCbbtcUsdcScript is BaseScript, Netw
         string memory marketName = "base-production-weth-usdc";
         uint256 deploymentBlock = uint256(17147278);
         ISize market0 = sizeFactory.getMarket(0);
-        address borrowATokenV1_5 = address(market0.data().borrowAToken);
+        address borrowTokenVault = address(market0.data().borrowAToken);
 
         console.log("GetV1_5ReinitializeDataWethUsdcAfterCbbtcUsdc...");
 
@@ -73,6 +73,6 @@ contract GetV1_5ReinitializeDataWethUsdcAfterCbbtcUsdcScript is BaseScript, Netw
 
         string memory networkConfiguration = string.concat(marketName, "-after-cbbtc-usdc");
 
-        exportV1_5ReinitializeData(networkConfiguration, addresses, toBlock, borrowATokenV1_5);
+        exportV1_5ReinitializeData(networkConfiguration, addresses, toBlock, borrowTokenVault);
     }
 }

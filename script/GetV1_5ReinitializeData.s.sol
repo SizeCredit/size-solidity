@@ -34,7 +34,7 @@ contract GetV1_5ReinitializeDataScript is BaseScript, Networks {
             ? [uint256(17147278), uint256(20637165)]
             : [uint256(18082649), uint256(18082796)];
         ISize market0 = sizeFactory.getMarket(0);
-        address borrowATokenV1_5 = address(market0.data().borrowAToken);
+        address borrowTokenVault = address(market0.data().borrowAToken);
 
         console.log("GetV1_5ReinitializeData...");
 
@@ -80,7 +80,7 @@ contract GetV1_5ReinitializeDataScript is BaseScript, Networks {
 
             console.log("Market: %s, Users: %s", markets[i], addresses.length());
 
-            exportV1_5ReinitializeData(markets[i], addresses, toBlock, borrowATokenV1_5);
+            exportV1_5ReinitializeData(markets[i], addresses, toBlock, borrowTokenVault);
         }
     }
 }

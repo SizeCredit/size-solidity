@@ -56,7 +56,7 @@ library Repay {
 
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
-        state.data.transferBorrowToken(msg.sender, address(this), debtPosition.futureValue);
+        state.data.borrowTokenVault.transferFrom(msg.sender, address(this), debtPosition.futureValue);
         state.repayDebt(params.debtPositionId, debtPosition.futureValue);
     }
 }

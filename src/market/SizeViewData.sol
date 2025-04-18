@@ -7,7 +7,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {User} from "@src/market/SizeStorage.sol";
 
 import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
-import {Vault} from "@src/market/token/Vault.sol";
+import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
 struct UserView {
     // The user struct
@@ -34,7 +34,7 @@ struct DataView {
     // The collateral token
     NonTransferrableToken collateralToken;
     // The default borrow token vault
-    Vault defaultBorrowTokenVault;
+    NonTransferrableTokenVault borrowTokenVault;
     // The debt token
     NonTransferrableToken debtToken;
     // The variable pool

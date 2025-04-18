@@ -151,7 +151,7 @@ library LiquidateWithReplacement {
         emit Events.UpdateDebtPosition(params.debtPositionId, debtPosition.borrower, debtPosition.futureValue);
 
         state.data.debtToken.mint(params.borrower, debtPosition.futureValue);
-        state.data.transferBorrowToken(address(this), params.borrower, issuanceValue);
-        state.data.transferBorrowToken(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowToken);
+        state.data.borrowTokenVault.transferFrom(address(this), params.borrower, issuanceValue);
+        state.data.borrowTokenVault.transferFrom(address(this), state.feeConfig.feeRecipient, liquidatorProfitBorrowToken);
     }
 }

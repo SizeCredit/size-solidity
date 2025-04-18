@@ -7,7 +7,6 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
-import {Vault} from "@src/market/token/Vault.sol";
 
 import {
     Initialize,
@@ -81,7 +80,6 @@ import {IMulticall} from "@src/market/interfaces/IMulticall.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 import {ISizeAdmin} from "@src/market/interfaces/ISizeAdmin.sol";
 import {ISizeV1_7} from "@src/market/interfaces/v1.7/ISizeV1_7.sol";
-import {ISizeV1_8} from "@src/market/interfaces/v1.8/ISizeV1_8.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 
 import {
@@ -154,30 +152,6 @@ contract Size is ISize, SizeView, Initializable, AccessControlUpgradeable, Pausa
             revert AccessControlUnauthorizedAccount(msg.sender, role);
         }
         _;
-    }
-
-    /// @inheritdoc ISizeV1_8
-    function reinitialize(Vault _defaultVault)
-        external
-        override(ISizeV1_8)
-        onlyRoleOrSizeFactoryHasRole(DEFAULT_ADMIN_ROLE)
-        reinitializer(1_08_00)
-    {
-        // validate _defaultVault
-        if (address(_defaultVault) == address(0)) {
-            // _defaultVault cannot be 0 address
-            revert Errors.NULL_ADDRESS();
-        }
-        if (address(state.data.sizeFactory) != address(0)) {
-            // _defaultVault cannot be already set
-            revert Errors.NOT_SUPPORTED();
-        }
-        if (!state.data.sizeFactory.isVault(_defaultVault)) {
-            // _defaultVault must be a Size Vault
-            revert Errors.INVALID_VAULT(address(_defaultVault));
-        }
-
-        state.data.defaultVault = _defaultVault;
     }
 
     function _authorizeUpgrade(address newImplementation)

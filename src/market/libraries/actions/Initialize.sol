@@ -19,7 +19,7 @@ import {PERCENT} from "@src/market/libraries/Math.sol";
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
 import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
-import {Vault} from "@src/market/token/Vault.sol";
+import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
 import {State} from "@src/market/SizeStorage.sol";
 
@@ -55,7 +55,7 @@ struct InitializeDataParams {
     address underlyingCollateralToken;
     address underlyingBorrowToken;
     address variablePool;
-    address defaultBorrowTokenVault;
+    address borrowTokenVault;
     address sizeFactory;
 }
 
@@ -64,7 +64,7 @@ struct InitializeDataParams {
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic to initialize the protocol
 /// @dev The collateralToken (e.g. szETH) and debtToken (e.g. szDebt) are created in the `executeInitialize` function
-///      The defaultBorrowTokenVault (e.g. szvUSDC) must have been deployed before the initialization
+///      The borrowTokenVault (e.g. svUSDC) must have been deployed before the initialization
 library Initialize {
     using SafeERC20 for IERC20;
 
@@ -183,8 +183,8 @@ library Initialize {
             revert Errors.NULL_ADDRESS();
         }
 
-        // validate defaultVault
-        if (d.defaultVault == address(0)) {
+        // validate borrowTokenVault
+        if (d.borrowTokenVault == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
 
@@ -277,7 +277,7 @@ library Initialize {
             IERC20Metadata(state.data.underlyingBorrowToken).decimals()
         );
         state.data.sizeFactory = ISizeFactory(d.sizeFactory);
-        state.data.defaultBorrowTokenVault = Vault(d.defaultBorrowTokenVault);
+        state.data.borrowTokenVault = NonTransferrableTokenVault(d.borrowTokenVault);
     }
 
     /// @notice Executes the initialization of the protocol

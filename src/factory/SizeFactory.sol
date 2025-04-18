@@ -12,7 +12,6 @@ import {
     InitializeOracleParams,
     InitializeRiskConfigParams
 } from "@src/market/libraries/actions/Initialize.sol";
-import {Vault} from "@src/market/token/Vault.sol";
 
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
@@ -37,7 +36,6 @@ import {SizeFactoryOffchainGetters} from "@src/factory/SizeFactoryOffchainGetter
 import {Action, ActionsBitmap, Authorization} from "@src/factory/libraries/Authorization.sol";
 
 import {ISizeFactoryV1_7} from "@src/factory/interfaces/ISizeFactoryV1_7.sol";
-import {ISizeFactoryV1_8} from "@src/factory/interfaces/ISizeFactoryV1_8.sol";
 
 import {BORROW_RATE_UPDATER_ROLE, KEEPER_ROLE, PAUSER_ROLE} from "@src/factory/interfaces/ISizeFactory.sol";
 
@@ -87,6 +85,21 @@ contract SizeFactory is
     }
 
     /// @inheritdoc ISizeFactory
+    function setNonTransferrableTokenVaultImplementation(address _nonTransferrableTokenVaultImplementation)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        if (_nonTransferrableTokenVaultImplementation == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        emit NonTransferrableTokenVaultImplementationSet(
+            nonTransferrableTokenVaultImplementation,
+            _nonTransferrableTokenVaultImplementation
+        );
+        nonTransferrableTokenVaultImplementation = _nonTransferrableTokenVaultImplementation;
+    }
+
+    /// @inheritdoc ISizeFactory
     function createMarket(
         InitializeFeeConfigParams calldata feeConfigParams,
         InitializeRiskConfigParams calldata riskConfigParams,
@@ -100,6 +113,15 @@ contract SizeFactory is
         // slither-disable-next-line unused-return
         markets.add(address(market));
         emit CreateMarket(address(market));
+    }
+
+    /// @inheritdoc ISizeFactory
+    function createBorrowTokenVault(IPool variablePool, IERC20Metadata underlyingBorrowToken)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        returns (NonTransferrableTokenVault borrowTokenVault)
+    {
+        // TODO
     }
 
     /// @inheritdoc ISizeFactory
@@ -150,28 +172,5 @@ contract SizeFactory is
             uint256 nonce = authorizationNonces[onBehalfOf];
             return Authorization.isActionSet(authorizations[nonce][operator][onBehalfOf], action);
         }
-    }
-
-    /// @inheritdoc ISizeFactoryV1_8
-    function isVault(address candidate) external view returns (bool) {
-        return vaults.contains(candidate);
-    }
-
-    /// @inheritdoc ISizeFactoryV1_8
-    function addVault(Vault _vault) external returns (bool existed) {
-        if (address(_vault) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        existed = vaults.add(address(_vault));
-        emit AddVault(address(_vault), existed);
-    }
-
-    /// @inheritdoc ISizeFactoryV1_8
-    function removeVault(Vault _vault) external returns (bool existed) {
-        if (address(_vault) == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        existed = !vaults.remove(address(_vault));
-        emit RemoveVault(address(_vault), existed);
     }
 }
