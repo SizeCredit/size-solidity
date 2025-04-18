@@ -46,6 +46,7 @@ contract AuthorizationSetUserConfigurationTest is BaseTest {
         size.setUserConfigurationOnBehalfOf(
             SetUserConfigurationOnBehalfOfParams({
                 params: SetUserConfigurationParams({
+                    userVault: address(0),
                     openingLimitBorrowCR: 0,
                     allCreditPositionsForSaleDisabled: true,
                     creditPositionIdsForSale: false,
@@ -67,6 +68,7 @@ contract AuthorizationSetUserConfigurationTest is BaseTest {
         size.setUserConfigurationOnBehalfOf(
             SetUserConfigurationOnBehalfOfParams({
                 params: SetUserConfigurationParams({
+                    userVault: address(0),
                     openingLimitBorrowCR: 0,
                     allCreditPositionsForSaleDisabled: true,
                     creditPositionIdsForSale: false,

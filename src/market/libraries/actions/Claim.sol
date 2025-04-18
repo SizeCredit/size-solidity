@@ -49,7 +49,6 @@ library Claim {
         emit Events.Claim(msg.sender, params.creditPositionId);
 
         CreditPosition storage creditPosition = state.getCreditPosition(params.creditPositionId);
-        DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
         // assumes between `Repay` and `Claim`, no variable yield is generated, ie, `address(this)` uses a vanilla vault

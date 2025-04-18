@@ -57,14 +57,6 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
             t(size.riskConfig().minTenor <= tenor && tenor <= size.riskConfig().maxTenor, LOAN_02);
         }
 
-        for (uint256 i = 0; i < _after.debtPositionsCount; i++) {
-            uint256 debtPositionId = DEBT_POSITION_ID_START + i;
-            DebtPosition memory debtPosition = size.getDebtPosition(debtPositionId);
-            if (debtPosition.liquidityIndexAtRepayment > 0) {
-                eq(uint256(size.getLoanStatus(debtPositionId)), uint256(LoanStatus.REPAID), LOAN_04);
-            }
-        }
-
         return true;
     }
 
@@ -97,7 +89,7 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         }
 
         eq(weth.balanceOf(address(size)), collateralTokenBalance, TOKENS_01);
-        gte(size.data().borrowAToken.totalSupply(), borrowTokenBalance, TOKENS_02);
+        gte(size.data().borrowTokenVault.totalSupply(), borrowTokenBalance, TOKENS_02);
 
         return true;
     }

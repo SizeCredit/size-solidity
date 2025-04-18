@@ -94,7 +94,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.label(address(variablePool), "VariablePool");
 
         vm.label(address(size.data().collateralToken), "szWETH");
-        vm.label(address(size.data().borrowAToken), "szaUSDC");
+        vm.label(address(size.data().borrowTokenVault), "szaUSDC");
         vm.label(address(size.data().debtToken), "szDebtUSDC");
 
         vm.label(address(sizeFactory), "SizeFactory");
@@ -442,6 +442,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
 
     function _setUserConfiguration(
         address user,
+        address userVault,
         uint256 openingLimitBorrowCR,
         bool allCreditPositionsForSaleDisabled,
         bool creditPositionIdsForSale,
@@ -450,6 +451,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.prank(user);
         size.setUserConfiguration(
             SetUserConfigurationParams({
+                userVault: userVault,
                 openingLimitBorrowCR: openingLimitBorrowCR,
                 allCreditPositionsForSaleDisabled: allCreditPositionsForSaleDisabled,
                 creditPositionIdsForSale: creditPositionIdsForSale,

@@ -15,7 +15,7 @@ contract GenericMarket_sUSDe_USDC_Test is BaseTestGenericMarket {
 
     function test_GenericMarket_sUSDe_USDC_decimals() public view {
         assertEq(size.data().collateralToken.decimals(), 18);
-        assertEq(size.data().borrowAToken.decimals(), 6);
+        assertEq(size.data().borrowTokenVault.decimals(), 6);
         assertEq(size.data().debtToken.decimals(), 6);
     }
 

@@ -163,12 +163,12 @@ contract SizeFactoryTest is BaseTest {
         );
     }
 
-    function test_SizeFactory_createBorrowATokenV1_5_unauthorized() public {
+    function test_SizeFactory_createBorrowTokenVault_unauthorized() public {
         vm.prank(alice);
         vm.expectRevert(
             abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(alice), 0x00)
         );
-        sizeFactory.createBorrowATokenV1_5(IPool(address(0)), IERC20Metadata(address(0)));
+        sizeFactory.createBorrowTokenVault(IPool(address(0)), IERC20Metadata(address(0)));
     }
 
     function test_SizeFactory_getMarketsCount() public {
@@ -221,15 +221,15 @@ contract SizeFactoryTest is BaseTest {
         assertEq(SizeMock(address(sizeFactory.getMarket(1))).v(), 2);
     }
 
-    function test_SizeFactory_setNonTransferrableScaledTokenV1_5Implementation() public {
+    function test_SizeFactory_setNonTransferrableTokenVaultImplementation() public {
         vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(address(0));
+        sizeFactory.setNonTransferrableTokenVaultImplementation(address(0));
 
         address newImplementation = makeAddr("newImplementation");
         vm.prank(owner);
-        sizeFactory.setNonTransferrableScaledTokenV1_5Implementation(newImplementation);
-        assertEq(sizeFactory.nonTransferrableScaledTokenV1_5Implementation(), newImplementation);
+        sizeFactory.setNonTransferrableTokenVaultImplementation(newImplementation);
+        assertEq(sizeFactory.nonTransferrableTokenVaultImplementation(), newImplementation);
     }
 
     function test_SizeFactory_upgade() public {

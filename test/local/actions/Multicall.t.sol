@@ -199,7 +199,7 @@ contract MulticallTest is BaseTest {
         _approve(bob, address(usdc), address(size), remaining);
 
         // attempt to deposit to repay, but it reverts due to cap
-        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, cap, cap + remaining));
+        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_TOKEN_CAP_EXCEEDED.selector, cap, cap + remaining));
         vm.prank(bob);
         size.deposit(DepositParams({token: address(usdc), amount: remaining, to: bob}));
 
@@ -227,7 +227,7 @@ contract MulticallTest is BaseTest {
         data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: cap + 1, to: alice}));
         vm.prank(alice);
         vm.expectRevert(
-            abi.encodeWithSelector(Errors.BORROW_ATOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE.selector, cap + 1, 0)
+            abi.encodeWithSelector(Errors.BORROW_TOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE.selector, cap + 1, 0)
         );
         size.multicall(data);
     }

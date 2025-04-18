@@ -34,7 +34,7 @@ abstract contract ExpectedErrors is Deploy, Properties {
         DEPOSIT_ERRORS.push(Errors.INVALID_TOKEN.selector);
         DEPOSIT_ERRORS.push(Errors.NULL_AMOUNT.selector);
         DEPOSIT_ERRORS.push(Errors.NULL_ADDRESS.selector);
-        DEPOSIT_ERRORS.push(Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector);
+        DEPOSIT_ERRORS.push(Errors.BORROW_TOKEN_CAP_EXCEEDED.selector);
 
         // WITHDRAW_ERRORS
         WITHDRAW_ERRORS.push(IERC20Errors.ERC20InsufficientBalance.selector);

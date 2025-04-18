@@ -15,7 +15,7 @@ contract GenericMarket_wstETH_ETH_Test is BaseTestGenericMarket {
 
     function test_GenericMarket_wstETH_ETH_decimals() public view {
         assertEq(size.data().collateralToken.decimals(), 18);
-        assertEq(size.data().borrowAToken.decimals(), 18);
+        assertEq(size.data().borrowTokenVault.decimals(), 18);
         assertEq(size.data().debtToken.decimals(), 18);
     }
 

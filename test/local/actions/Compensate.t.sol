@@ -896,6 +896,7 @@ contract CompensateTest is BaseTest {
         vm.prank(bob);
         size.setUserConfiguration(
             SetUserConfigurationParams({
+                userVault: address(0),
                 openingLimitBorrowCR: 0,
                 allCreditPositionsForSaleDisabled: false,
                 creditPositionIdsForSale: false,

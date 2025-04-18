@@ -34,7 +34,7 @@ contract GetV1_5ReinitializeDataScript is BaseScript, Networks {
             ? [uint256(17147278), uint256(20637165)]
             : [uint256(18082649), uint256(18082796)];
         ISize market0 = sizeFactory.getMarket(0);
-        address borrowTokenVault = address(market0.data().borrowAToken);
+        address borrowTokenVault = address(market0.data().borrowTokenVault);
 
         console.log("GetV1_5ReinitializeData...");
 
@@ -43,10 +43,10 @@ contract GetV1_5ReinitializeDataScript is BaseScript, Networks {
             EnumerableMap.AddressToUintMap storage addresses =
                 Strings.equal(markets[i], markets[0]) ? addressesWethUsdc : addressesCbbtcUsdc;
 
-            // We use .data().borrowAToken here since, before the migration, it points to the V1_2 token.
+            // We use .data().borrowTokenVault here since, before the migration, it points to the V1_2 token.
             // After the migration, it will point to the V1_5 token
             NonTransferrableScaledTokenV1_2 borrowATokenV1_2 =
-                NonTransferrableScaledTokenV1_2(address(market.data().borrowAToken));
+                NonTransferrableScaledTokenV1_2(address(market.data().borrowTokenVault));
 
             bytes32[] memory topics = new bytes32[](1);
             topics[0] = IERC20.Transfer.selector;

@@ -16,7 +16,7 @@ contract GenericMarket_USDT_cbBTC_Test is BaseTestGenericMarket {
 
     function test_GenericMarket_USDT_cbBTC_decimals() public view {
         assertEq(size.data().collateralToken.decimals(), 6);
-        assertEq(size.data().borrowAToken.decimals(), 8);
+        assertEq(size.data().borrowTokenVault.decimals(), 8);
         assertEq(size.data().debtToken.decimals(), 8);
     }
 

@@ -458,9 +458,9 @@ contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAssert
             5600056819510204218881125300736394812903208854577664090813535893675594506082,
             false
         );
-        uint256 borrowTokenBalanceBefore = size.data().borrowAToken.balanceOf(size.feeConfig().feeRecipient);
+        uint256 borrowTokenBalanceBefore = size.data().borrowTokenVault.balanceOf(size.feeConfig().feeRecipient);
         sellCreditMarket(address(0x0), 0, 8474006695743451680011881010275008915614345497988616, 0, false);
-        uint256 borrowTokenBalanceAfter = size.data().borrowAToken.balanceOf(size.feeConfig().feeRecipient);
+        uint256 borrowTokenBalanceAfter = size.data().borrowTokenVault.balanceOf(size.feeConfig().feeRecipient);
         gte(borrowTokenBalanceAfter, borrowTokenBalanceBefore, FEES_01);
     }
 

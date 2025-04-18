@@ -45,7 +45,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     mapping(address user => uint256 scaledBalance) public scaledBalanceOf;
 
     // v1.8
-    mapping(address user => IERC4626 vault) public userVaults;
+    mapping(address user => IERC4626 vault) public userVault;
 
     event UserVaultSet(address indexed user, IERC4626 indexed vault);
 
@@ -172,15 +172,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
             revert Errors.NULL_ADDRESS();
         }
         emit UserVaultSet(user, vault);
-        userVaults[user] = vault;
-    }
-
-    /// @notice Get the user vault
-    /// @param user The user to get the vault for
-    /// @return The vault for the user
-    /// @dev Returns the default vault if the user has no vault set
-    function getUserVault(address user) external view returns (IERC4626) {
-        return userVaults[user];
+        userVault[user] = vault;
     }
 
     /// @notice Unscales a scaled amount

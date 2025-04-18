@@ -38,7 +38,7 @@ contract DepositValidationTest is BaseTest {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                Errors.BORROW_ATOKEN_CAP_EXCEEDED.selector, size.riskConfig().borrowTokenCap, amount * 1e6
+                Errors.BORROW_TOKEN_CAP_EXCEEDED.selector, size.riskConfig().borrowTokenCap, amount * 1e6
             )
         );
         size.deposit(DepositParams({token: address(usdc), amount: amount * 1e6, to: alice}));
