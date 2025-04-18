@@ -119,13 +119,13 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
             }
         } else {
             if (address(vaultFrom) != address(0)) {
-                _withdrawFromVault(from, to, value, vaultFrom);
+                _withdrawFromVault(from, address(this), value, vaultFrom);
             }
 
             if (address(vaultTo) != address(0)) {
-                _depositToVault(from, to, value, vaultTo);
+                _depositToVault(address(this), to, value, vaultTo);
             } else {
-                _depositToAave(from, to, value);
+                _depositToAave(address(this), to, value);
             }
         }
 
