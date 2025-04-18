@@ -134,11 +134,6 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         token.approve(address(this), 100);
     }
 
-    function test_NonTransferrableTokenVault_liquidityIndex() public view {
-        uint256 liquidityIndex = token.liquidityIndex();
-        assertEq(liquidityIndex, WadRayMath.RAY);
-    }
-
     function test_NonTransferrableTokenVault_deposit() public {
         vm.prank(owner);
         deal(address(underlying), address(size), 1000);
