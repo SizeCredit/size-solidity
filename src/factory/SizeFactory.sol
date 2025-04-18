@@ -25,7 +25,10 @@ import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {MarketFactoryLibrary} from "@src/factory/libraries/MarketFactoryLibrary.sol";
+
+import {NonTransferrableTokenVaultLibrary} from "@src/factory/libraries/NonTransferrableTokenVaultLibrary.sol";
 import {PriceFeedFactoryLibrary} from "@src/factory/libraries/PriceFeedFactoryLibrary.sol";
+import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
 import {IPriceFeedV1_5_2} from "@src/oracle/v1.5.2/IPriceFeedV1_5_2.sol";
 
@@ -93,8 +96,7 @@ contract SizeFactory is
             revert Errors.NULL_ADDRESS();
         }
         emit NonTransferrableTokenVaultImplementationSet(
-            nonTransferrableTokenVaultImplementation,
-            _nonTransferrableTokenVaultImplementation
+            nonTransferrableTokenVaultImplementation, _nonTransferrableTokenVaultImplementation
         );
         nonTransferrableTokenVaultImplementation = _nonTransferrableTokenVaultImplementation;
     }
@@ -121,7 +123,11 @@ contract SizeFactory is
         onlyRole(DEFAULT_ADMIN_ROLE)
         returns (NonTransferrableTokenVault borrowTokenVault)
     {
-        // TODO
+        address admin = msg.sender;
+        borrowTokenVault = NonTransferrableTokenVaultLibrary.createNonTransferrableTokenVault(
+            nonTransferrableTokenVaultImplementation, admin, variablePool, underlyingBorrowToken
+        );
+        emit CreateBorrowTokenVault(address(borrowTokenVault));
     }
 
     /// @inheritdoc ISizeFactory

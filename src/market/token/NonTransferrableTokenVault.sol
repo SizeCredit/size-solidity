@@ -11,8 +11,9 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 
 import {Math} from "@src/market/libraries/Math.sol";
@@ -22,7 +23,7 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 /// @title NonTransferrableTokenVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-/// @notice An ERC-20 that is not transferrable from outside of the protocol. This vault holds aTokens and ERC4626 tokens on behalf of users and mints 
+/// @notice An ERC-20 that is not transferrable from outside of the protocol. This vault holds aTokens and ERC4626 tokens on behalf of users and mints
 ///         a rebasing ERC20 deposit token to users representing their underlying token amount.
 /// @dev The contract owner (i.e. the Size contract) can still mint, burn, and transfer tokens
 ///      This contract was upgraded from NonTransferrableScaledTokenV1_5 in v1.8
@@ -81,6 +82,11 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         name = name_;
         symbol = symbol_;
         decimals = decimals_;
+    }
+
+    function reinitialize(string memory name_, string memory symbol_) external onlyOwner reinitializer(1_08_00) {
+        name = name_;
+        symbol = symbol_;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

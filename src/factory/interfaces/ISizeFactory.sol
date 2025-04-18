@@ -11,6 +11,7 @@ import {
 } from "@src/market/libraries/actions/Initialize.sol";
 
 import {ISize} from "@src/market/interfaces/ISize.sol";
+import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
 import {PriceFeed, PriceFeedParams} from "@src/oracle/v1.5.1/PriceFeed.sol";
 
@@ -32,8 +33,7 @@ interface ISizeFactory is ISizeFactoryOffchainGetters, ISizeFactoryV1_7 {
 
     /// @notice Set the non-transferrable token vault implementation
     /// @param _nonTransferrableTokenVaultImplementation The new non-transferrable token vault implementation
-    function setNonTransferrableTokenVaultImplementation(address _nonTransferrableTokenVaultImplementation)
-        external;
+    function setNonTransferrableTokenVaultImplementation(address _nonTransferrableTokenVaultImplementation) external;
 
     /// @notice Creates a new market
     /// @dev The contract owner is set as the owner of the market
@@ -43,6 +43,12 @@ interface ISizeFactory is ISizeFactoryOffchainGetters, ISizeFactoryV1_7 {
         InitializeOracleParams calldata oracleParams,
         InitializeDataParams calldata dataParams
     ) external returns (ISize);
+
+    /// @notice Creates a new borrow token vault
+    /// @dev The contract owner is set as the owner of the borrow token vault
+    function createBorrowTokenVault(IPool variablePool, IERC20Metadata underlyingBorrowToken)
+        external
+        returns (NonTransferrableTokenVault);
 
     /// @notice Creates a new price feed
     function createPriceFeed(PriceFeedParams calldata priceFeedParams) external returns (PriceFeed);

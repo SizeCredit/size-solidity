@@ -10,8 +10,8 @@ import {CopyLimitOrder, LimitOrder} from "@src/market/libraries/OfferLibrary.sol
 
 import {IPriceFeed} from "@src/oracle/IPriceFeed.sol";
 
-import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 import {NonTransferrableToken} from "@src/market/token/NonTransferrableToken.sol";
+import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 

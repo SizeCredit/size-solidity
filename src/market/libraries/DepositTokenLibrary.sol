@@ -46,12 +46,9 @@ library DepositTokenLibrary {
     /// @param from The address from which the underlying borrow token is transferred
     /// @param to The address to which the Size borrow token is minted
     /// @param amount The amount of underlying borrow token to deposit
-    function depositUnderlyingBorrowTokenToVault(
-        State storage state,
-        address from,
-        address to,
-        uint256 amount
-    ) external {
+    function depositUnderlyingBorrowTokenToVault(State storage state, address from, address to, uint256 amount)
+        external
+    {
         state.data.underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
         state.data.underlyingBorrowToken.forceApprove(address(state.data.borrowTokenVault), amount);
         state.data.borrowTokenVault.deposit(from, to, amount);
