@@ -242,7 +242,6 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     }
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
-    // slither-disable-next-line reentrancy-benign
     function deposit(address from, address to, uint256 amount) external onlyMarket {
         underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
 
@@ -257,7 +256,6 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     }
 
     /// @notice Withdraw underlying tokens from the variable pool and burn scaled tokens
-    // slither-disable-next-line reentrancy-benign
     function withdraw(address from, address to, uint256 amount) external onlyMarket {
         IERC4626 vault = userVault[to];
         if (address(vault) != address(0)) {
@@ -299,6 +297,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @param to The address to deposit the tokens to
     /// @param amount The amount of tokens to deposit
     /// @param vault The vault to deposit the tokens to
+    // slither-disable-next-line reentrancy-benign
     function _depositToVault(address, /*from*/ address to, uint256 amount, IERC4626 vault) private {
         underlyingToken.forceApprove(address(vault), amount);
 
@@ -316,6 +315,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @param /*from*/ The address to deposit the tokens from
     /// @param to The address to deposit the tokens to
     /// @param amount The amount of tokens to deposit
+    // slither-disable-next-line reentrancy-benign
     function _depositToAave(address, /*from*/ address to, uint256 amount) private {
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
 
@@ -334,9 +334,11 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @param to The address to withdraw the tokens to
     /// @param amount The amount of tokens to withdraw
     /// @param vault The vault to withdraw the tokens from
+    // slither-disable-next-line reentrancy-benign
     function _withdrawFromVault(address from, address to, uint256 amount, IERC4626 vault) private {
         uint256 sharesBefore = vault.balanceOf(address(this));
 
+        // slither-disable-next-line unused-return
         vault.withdraw(amount, to, address(this));
 
         uint256 sharesAfter = vault.balanceOf(address(this));
@@ -349,6 +351,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @param from The address to withdraw the tokens from
     /// @param to The address to withdraw the tokens to
     /// @param amount The amount of tokens to withdraw
+    // slither-disable-next-line reentrancy-benign
     function _withdrawFromAave(address from, address to, uint256 amount) private {
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
 
