@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+
 import {State} from "@src/market/SizeStorage.sol";
 
 import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";

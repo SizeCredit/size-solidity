@@ -47,7 +47,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     // v1.8
     mapping(address user => IERC4626 vault) public userVault;
     mapping(address user => uint256 shares) public userVaultShares;
-    uint256 public userVaultsApproximateTotalSupply;
+    uint256 public userVaultsApproxTotalAssets;
 
     event UserVaultSet(address indexed user, IERC4626 indexed vault);
 
@@ -104,8 +104,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @param from The account to transfer the tokens from
     /// @param to The account to transfer the tokens to
     /// @param value The unscaled amount of tokens to transfer
-    /// @dev Emits TransferUnscaled events representing the actual unscaled amount
-    ///      Scales the amount by the current liquidity index before transferring scaled tokens
+    /// @dev Due to rounding, the Transfer event may not represent the actual unscaled amount or the actual number of shares
     /// @return True if the transfer was successful
     function transferFrom(address from, address to, uint256 value) public virtual onlyMarket returns (bool) {
         IERC4626 vaultFrom = userVault[from];
@@ -113,9 +112,9 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
         if (vaultFrom == vaultTo) {
             if (address(vaultFrom) != address(0)) {
-                return _transferFromVaultSame(from, to, value, vaultFrom);
+                _transferFromVaultSame(from, to, value, vaultFrom);
             } else {
-                return _transferFromAaveSame(from, to, value);
+                _transferFromAaveSame(from, to, value);
             }
         } else {
             if (address(vaultFrom) != address(0)) {
@@ -132,10 +131,11 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         }
 
         emit Transfer(from, to, value);
+        return true;
     }
 
     /// @inheritdoc IERC20
-    function transfer(address to, uint256 value) public virtual override returns (bool) {
+    function transfer(address, uint256) public virtual override returns (bool) {
         revert Errors.NOT_SUPPORTED();
     }
 
@@ -174,10 +174,11 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         }
     }
 
-    /// @notice Returns the approximate total supply
-    /// @return The unscaled total supply of Aave ATokens plus the approximate number of assets of ERC4626 tokens
+    /// @notice Returns the approximate total supply of underlying tokens
+    /// @return The unscaled total supply of Aave ATokens plus the approximate number of assets in all ERC4626 vaults
+    /// @dev This number should not be trusted
     function totalSupply() public view returns (uint256) {
-        return _unscale(scaledTotalSupply) + userVaultsApproximateTotalSupply;
+        return _unscale(scaledTotalSupply) + userVaultsApproxTotalAssets;
     }
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
@@ -208,7 +209,18 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         emit Transfer(from, address(0), amount);
     }
 
-    function _depositToVault(address from, address to, uint256 amount, IERC4626 vault) private {
+    /// @notice Returns the current PPS of the vault, in RAY
+    /// @param vault The vault to get the PPS for
+    /// @return The current PPS of the vault
+    function pps(IERC4626 vault) public view returns (uint256) {
+        if (address(vault) != address(0)) {
+            return Math.mulDivDown(vault.totalAssets(), WadRayMath.RAY, vault.totalSupply());
+        } else {
+            return _liquidityIndex();
+        }
+    }
+
+    function _depositToVault(address, address to, uint256 amount, IERC4626 vault) private {
         underlyingToken.forceApprove(address(vault), amount);
 
         uint256 sharesBefore = vault.balanceOf(address(this));
@@ -258,7 +270,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         _burnScaled(from, scaledAmount);
     }
 
-    function _transferFromVaultSame(address from, address to, uint256 value, IERC4626 vault) private returns (bool) {
+    function _transferFromVaultSame(address from, address to, uint256 value, IERC4626 vault) private {
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));
         }
@@ -276,7 +288,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         userVaultShares[to] += sharesBefore;
     }
 
-    function _transferFromAaveSame(address from, address to, uint256 value) private returns (bool) {
+    function _transferFromAaveSame(address from, address to, uint256 value) private {
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));
         }
@@ -318,7 +330,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         }
 
         userVaultShares[to] += shares;
-        userVaultsApproximateTotalSupply += assets;
+        userVaultsApproxTotalAssets += assets;
     }
 
     /// @notice Mints NonTransferrableTokenVault tokens based on the number of scaled tokens deposited into the Aave pool
@@ -336,8 +348,6 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         unchecked {
             scaledBalanceOf[to] += scaledAmount;
         }
-
-        uint256 unscaledAmount = _unscale(scaledAmount);
     }
 
     /// @notice Burns NonTransferrableTokenVault tokens based on the number of scaled tokens deposited into the Aave pool
@@ -372,6 +382,10 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         }
 
         userVaultShares[from] -= shares;
-        userVaultsApproximateTotalSupply -= assets;
+        if (userVaultsApproxTotalAssets > assets) {
+            userVaultsApproxTotalAssets -= assets;
+        } else {
+            userVaultsApproxTotalAssets = 0;
+        }
     }
 }
