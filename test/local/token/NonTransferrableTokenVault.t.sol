@@ -6,6 +6,7 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 import {IPool} from "@aave/interfaces/IPool.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -124,7 +125,7 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         assertEq(token.balanceOf(address(size)), 100);
     }
 
-    function test_NonTransferrableTokenVault_totalSupply() public {
+    function test_NonTransferrableTokenVault_totalSupply_1() public {
         deal(address(underlying), alice, 300);
         _deposit(alice, address(underlying), 300);
         assertEq(token.totalSupply(), 300);
@@ -169,12 +170,27 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         vm.prank(owner);
         token.setUserVaultWhitelistEnabled(false);
         assertTrue(!token.isUserVaultWhitelistEnabled());
-    }
 
-    function test_NonTransferrableTokenVault_setUserVaultWhitelisted() public {
         vm.prank(owner);
         token.setUserVaultWhitelisted(vault, true);
         assertTrue(token.isUserVaultWhitelisted(vault));
+    }
+
+    function test_NonTransferrableTokenVault_setUserVault() public {
+        vm.prank(address(size));
+        vm.expectRevert(abi.encodeWithSelector(Errors.USER_VAULT_NOT_WHITELISTED.selector, address(vault)));
+        token.setUserVault(alice, vault);
+
+        vm.prank(address(size));
+        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
+        token.setUserVault(address(0), vault);
+
+        vm.prank(owner);
+        token.setUserVaultWhitelisted(vault, true);
+
+        vm.prank(address(size));
+        token.setUserVault(alice, vault);
+        assertEq(address(token.userVault(alice)), address(vault));
     }
 
     function test_NonTransferrableTokenVault_userVault_deposit_withdraw_path() public {
@@ -198,6 +214,8 @@ contract NonTransferrableTokenVaultTest is BaseTest {
     }
 
     function test_NonTransferrableTokenVault_pps() public {
+        assertEq(token.pps(IERC4626(address(0))), token.liquidityIndex());
+
         vm.prank(owner);
         token.setUserVaultWhitelistEnabled(false);
 
@@ -234,5 +252,33 @@ contract NonTransferrableTokenVaultTest is BaseTest {
 
         vm.prank(address(size));
         token.transferFrom(user, owner, 100);
+    }
+
+    function test_NonTransferrableTokenVault_totalSupply_2() public {
+        vm.prank(owner);
+        token.setUserVaultWhitelisted(vault, true);
+
+        vm.prank(address(size));
+        token.setUserVault(user, vault);
+
+        deal(address(underlying), address(size), 1_000e6);
+        vm.prank(address(size));
+        underlying.approve(address(token), 1_000e6);
+
+        vm.prank(address(size));
+        token.deposit(user, user, 1_000e6);
+        assertEq(token.balanceOf(user), 1_000e6);
+
+        deal(address(underlying), address(size), 300e6);
+        vm.prank(address(size));
+        underlying.approve(address(token), 300e6);
+
+        vm.prank(address(size));
+        token.deposit(bob, bob, 300e6);
+        assertEq(token.balanceOf(bob), 300e6);
+
+        deal(address(underlying), address(vault), 1_200e6);
+
+        assertEq(token.totalSupply(), 1_300e6);
     }
 }
