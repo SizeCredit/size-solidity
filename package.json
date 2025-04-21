@@ -8,7 +8,7 @@
     "echidna-property": "echidna . --contract CryticTester --config echidna.yaml --test-mode property",
     "echidna-assertion": "echidna . --contract CryticTester --config echidna.yaml --test-mode assertion",
     "echidna-coverage": "open $(find echidna -name '*.html' | sort | tail -1)",
-    "coverage": "forge coverage --no-match-coverage \"(script|test|deprecated)\" --report lcov && genhtml lcov.info -o report --branch-coverage && open report/index.html"
+    "coverage": "forge coverage --no-match-coverage \"(script|test|deprecated)\" --report lcov && genhtml lcov.info -o report --branch-coverage --ignore-errors inconsistent,corrupt && open report/index.html"
   },
   "devDependencies": {
     "@typechain/ethers-v6": "^0.5.1",
