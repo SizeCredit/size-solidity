@@ -48,7 +48,7 @@ library CapsLibrary {
     ///      Due to rounding, the borrow aToken supply may be slightly less than the actual AToken supply, which is acceptable.
     /// @param state The state struct
     function validateBorrowTokenCap(State storage state) external view {
-        // TODO: this is not cheching against ALL vaults
+        // TODO: this is an approximate number. Remove the borrow cap?
         if (state.data.borrowTokenVault.totalSupply() > state.riskConfig.borrowTokenCap) {
             revert Errors.BORROW_TOKEN_CAP_EXCEEDED(
                 state.riskConfig.borrowTokenCap, state.data.borrowTokenVault.totalSupply()
