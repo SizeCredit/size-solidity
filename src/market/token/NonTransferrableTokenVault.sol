@@ -32,6 +32,10 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2StepUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20Metadata;
 
+    /*//////////////////////////////////////////////////////////////
+                            STORAGE
+    //////////////////////////////////////////////////////////////*/
+
     // v1.5
     ISizeFactory public sizeFactory;
     IPool public aavePool;
@@ -51,9 +55,34 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     mapping(IERC4626 vault => bool isWhitelisted) public isUserVaultWhitelisted;
     bool public isUserVaultWhitelistEnabled;
 
+    /*//////////////////////////////////////////////////////////////
+                            EVENTS
+    //////////////////////////////////////////////////////////////*/
+
     event UserVaultSet(address indexed user, IERC4626 indexed vault);
     event UserVaultWhitelistEnabled(bool indexed previousValue, bool indexed newValue);
     event UserVaultWhitelisted(IERC4626 indexed vault, bool indexed previousValue, bool indexed newValue);
+
+    /*//////////////////////////////////////////////////////////////
+                            ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+    error OnlyMarket();
+
+    /*//////////////////////////////////////////////////////////////
+                            MODIFIERS
+    //////////////////////////////////////////////////////////////*/
+
+    modifier onlyMarket() {
+        if (!sizeFactory.isMarket(msg.sender)) {
+            revert Errors.UNAUTHORIZED(msg.sender);
+        }
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            CONSTRUCTOR/INITIALIZER
+    //////////////////////////////////////////////////////////////*/
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -94,6 +123,10 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         isUserVaultWhitelisted[IERC4626(address(0))] = true;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            OWNER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
     function reinitialize(string memory name_, string memory symbol_) external onlyOwner reinitializer(1_08_00) {
         name = name_;
         symbol = symbol_;
@@ -115,12 +148,9 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         isUserVaultWhitelisted[vault] = whitelisted;
     }
 
-    modifier onlyMarket() {
-        if (!sizeFactory.isMarket(msg.sender)) {
-            revert Errors.UNAUTHORIZED(msg.sender);
-        }
-        _;
-    }
+    /*//////////////////////////////////////////////////////////////
+                            ERC20 FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
 
     /// @notice Transfer tokens from one account to another
     /// @param from The account to transfer the tokens from
@@ -171,23 +201,6 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         revert Errors.NOT_SUPPORTED();
     }
 
-    /// @notice Set the user vault
-    /// @param user The user to set the vault for
-    /// @param vault The vault to set for the user
-    /// @dev This function is only callable by the market
-    ///      Setting the vault to `address(0)` will use the default variable pool
-    function setUserVault(address user, IERC4626 vault) external onlyMarket {
-        if (user == address(0)) {
-            revert Errors.NULL_ADDRESS();
-        }
-        if (isUserVaultWhitelistEnabled && !isUserVaultWhitelisted[vault]) {
-            revert Errors.USER_VAULT_NOT_WHITELISTED(address(vault));
-        }
-
-        emit UserVaultSet(user, vault);
-        userVault[user] = vault;
-    }
-
     /// @notice Returns the unscaled balance of an account
     /// @param account The account to get the balance of
     /// @return The unscaled balance of the account
@@ -205,6 +218,27 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @dev This number should not be trusted
     function totalSupply() public view returns (uint256) {
         return _unscale(scaledTotalSupply) + userVaultsApproxTotalAssets;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            VAULT FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Set the user vault
+    /// @param user The user to set the vault for
+    /// @param vault The vault to set for the user
+    /// @dev This function is only callable by the market
+    ///      Setting the vault to `address(0)` will use the default variable pool
+    function setUserVault(address user, IERC4626 vault) external onlyMarket {
+        if (user == address(0)) {
+            revert Errors.NULL_ADDRESS();
+        }
+        if (isUserVaultWhitelistEnabled && !isUserVaultWhitelisted[vault]) {
+            revert Errors.USER_VAULT_NOT_WHITELISTED(address(vault));
+        }
+
+        emit UserVaultSet(user, vault);
+        userVault[user] = vault;
     }
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
@@ -235,6 +269,10 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         emit Transfer(from, address(0), amount);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            HELPER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice Returns the current PPS of the vault, in RAY
     /// @param vault The vault to get the PPS for
     /// @return The current PPS of the vault
@@ -245,6 +283,16 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
             return liquidityIndex();
         }
     }
+
+    /// @notice Returns the current liquidity index of the variable pool
+    /// @return The current liquidity index of the variable pool
+    function liquidityIndex() public view returns (uint256) {
+        return aavePool.getReserveNormalizedIncome(address(underlyingToken));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            PRIVATE FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
 
     /// @notice Deposits underlying tokens into a user vault
     /// @param /*from*/ The address to deposit the tokens from
@@ -359,12 +407,6 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
         scaledBalanceOf[from] -= scaledAmount;
         scaledBalanceOf[to] += scaledAmount;
-    }
-
-    /// @notice Returns the current liquidity index of the variable pool
-    /// @return The current liquidity index of the variable pool
-    function liquidityIndex() public view returns (uint256) {
-        return aavePool.getReserveNormalizedIncome(address(underlyingToken));
     }
 
     /// @notice Unscales a scaled amount
