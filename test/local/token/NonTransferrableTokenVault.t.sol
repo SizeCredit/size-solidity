@@ -11,7 +11,6 @@ import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.so
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
@@ -38,6 +37,13 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         token = size.data().borrowTokenVault;
 
         _labels();
+
+        // first deposit
+        deal(address(underlying), address(alice), 1e18);
+        vm.prank(alice);
+        underlying.approve(address(vault), 1e18);
+        vm.prank(alice);
+        vault.deposit(1e18, alice);
     }
 
     function test_NonTransferrableTokenVault_initialize() public view {
@@ -157,5 +163,76 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         vm.prank(address(size));
         token.withdraw(user, user, 500);
         assertEq(token.balanceOf(user), 500);
+    }
+
+    function test_NonTransferrableTokenVault_setUserVaultWhitelistEnabled() public {
+        vm.prank(owner);
+        token.setUserVaultWhitelistEnabled(false);
+        assertTrue(!token.isUserVaultWhitelistEnabled());
+    }
+
+    function test_NonTransferrableTokenVault_setUserVaultWhitelisted() public {
+        vm.prank(owner);
+        token.setUserVaultWhitelisted(vault, true);
+        assertTrue(token.isUserVaultWhitelisted(vault));
+    }
+
+    function test_NonTransferrableTokenVault_userVault_deposit_withdraw_path() public {
+        vm.prank(owner);
+        token.setUserVaultWhitelisted(vault, true);
+
+        vm.prank(address(size));
+        token.setUserVault(user, vault);
+
+        deal(address(underlying), address(size), 1000);
+        vm.prank(address(size));
+        underlying.approve(address(token), 1000);
+
+        vm.prank(address(size));
+        token.deposit(user, user, 1000);
+        assertEq(token.balanceOf(user), 1000);
+
+        vm.prank(address(size));
+        token.withdraw(user, user, 500);
+        assertEq(token.balanceOf(user), 500);
+    }
+
+    function test_NonTransferrableTokenVault_pps() public {
+        vm.prank(owner);
+        token.setUserVaultWhitelistEnabled(false);
+
+        vm.prank(address(size));
+        token.setUserVault(user, vault);
+
+        deal(address(underlying), address(size), 1000);
+        vm.prank(address(size));
+        underlying.approve(address(token), 1000);
+        vm.prank(address(size));
+        token.deposit(user, user, 1000);
+
+        assertEq(token.pps(vault), 1e27);
+
+        deal(address(underlying), address(vault), 1500);
+        assertEq(token.pps(vault), uint256(1500 * 1e27) / (1e18 + 1000));
+    }
+
+    function test_NonTransferrableTokenVault_transferFromVaultSame() public {
+        vm.prank(owner);
+        token.setUserVaultWhitelistEnabled(false);
+
+        vm.prank(address(size));
+        token.setUserVault(user, vault);
+        vm.prank(address(size));
+        token.setUserVault(owner, vault);
+
+        deal(address(underlying), address(size), 500);
+        vm.prank(address(size));
+        underlying.approve(address(token), 500);
+
+        vm.prank(address(size));
+        token.deposit(user, user, 500);
+
+        vm.prank(address(size));
+        token.transferFrom(user, owner, 100);
     }
 }

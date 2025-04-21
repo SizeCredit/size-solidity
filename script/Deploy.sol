@@ -5,11 +5,13 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {MockERC4626} from "@solady/../test/utils/mocks/MockERC4626.sol";
 
 import "@crytic/properties/contracts/util/Hevm.sol";
+
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
 import {Math} from "@src/market/libraries/Math.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
@@ -60,6 +62,8 @@ abstract contract Deploy {
 
     bool internal shouldDeploySizeFactory = true;
 
+    IERC4626 internal vault;
+
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
         weth = new WETH();
@@ -75,6 +79,8 @@ abstract contract Deploy {
         }
 
         address borrowTokenVaultImplementation = address(new NonTransferrableTokenVault());
+
+        vault = IERC4626(address(new MockERC4626(address(usdc), "Vault", "VAULT", true, 0)));
 
         hevm.prank(owner);
         sizeFactory.setNonTransferrableTokenVaultImplementation(borrowTokenVaultImplementation);
@@ -153,6 +159,8 @@ abstract contract Deploy {
         }
 
         address borrowTokenVaultImplementation = address(new NonTransferrableTokenVault());
+
+        vault = IERC4626(address(new MockERC4626(address(borrowToken), "Vault", "VAULT", true, 0)));
 
         hevm.prank(owner);
         sizeFactory.setNonTransferrableTokenVaultImplementation(borrowTokenVaultImplementation);

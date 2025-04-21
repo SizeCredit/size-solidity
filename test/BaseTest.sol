@@ -94,7 +94,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.label(address(variablePool), "VariablePool");
 
         vm.label(address(size.data().collateralToken), "szWETH");
-        vm.label(address(size.data().borrowTokenVault), "szaUSDC");
+        vm.label(address(size.data().borrowTokenVault), "szvUSDC");
         vm.label(address(size.data().debtToken), "szDebtUSDC");
 
         vm.label(address(sizeFactory), "SizeFactory");

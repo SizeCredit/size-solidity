@@ -304,7 +304,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
         uint256 sharesBefore = vault.balanceOf(address(this));
 
-        vault.deposit(amount, to);
+        vault.deposit(amount, address(this));
 
         uint256 sharesAfter = vault.balanceOf(address(this));
         uint256 shares = sharesAfter - sharesBefore;
@@ -337,10 +337,10 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     function _withdrawFromVault(address from, address to, uint256 amount, IERC4626 vault) private {
         uint256 sharesBefore = vault.balanceOf(address(this));
 
-        vault.withdraw(amount, to, from);
+        vault.withdraw(amount, to, address(this));
 
         uint256 sharesAfter = vault.balanceOf(address(this));
-        uint256 shares = sharesAfter - sharesBefore;
+        uint256 shares = sharesBefore - sharesAfter;
 
         _burnVault(from, shares, vault.convertToAssets(shares));
     }
