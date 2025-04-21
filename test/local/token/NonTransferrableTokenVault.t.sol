@@ -234,7 +234,64 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         assertEq(token.pps(vault), uint256(1500 * 1e27) / (1e18 + 1000));
     }
 
-    function test_NonTransferrableTokenVault_transferFromVaultSame() public {
+    function test_NonTransferrableTokenVault_transferFrom_aave_to_aave() public {
+        vm.prank(owner);
+        token.setUserVaultWhitelistEnabled(false);
+
+        deal(address(underlying), address(size), 500);
+        vm.prank(address(size));
+        underlying.approve(address(token), 500);
+
+        vm.prank(address(size));
+        token.deposit(user, user, 500);
+
+        vm.prank(address(size));
+        token.transferFrom(user, owner, 100);
+        assertEq(token.balanceOf(user), 400);
+        assertEq(token.balanceOf(owner), 100);
+    }
+
+    function test_NonTransferrableTokenVault_transferFrom_aave_to_vault() public {
+        vm.prank(owner);
+        token.setUserVaultWhitelistEnabled(false);
+
+        vm.prank(address(size));
+        token.setUserVault(owner, vault);
+
+        deal(address(underlying), address(size), 500);
+        vm.prank(address(size));
+        underlying.approve(address(token), 500);
+
+        vm.prank(address(size));
+        token.deposit(user, user, 500);
+
+        vm.prank(address(size));
+        token.transferFrom(user, owner, 100);
+        assertEq(token.balanceOf(user), 400);
+        assertEq(token.balanceOf(owner), 100);
+    }
+
+    function test_NonTransferrableTokenVault_transferFrom_vault_to_aave() public {
+        vm.prank(owner);
+        token.setUserVaultWhitelistEnabled(false);
+
+        vm.prank(address(size));
+        token.setUserVault(user, vault);
+
+        deal(address(underlying), address(size), 500);
+        vm.prank(address(size));
+        underlying.approve(address(token), 500);
+
+        vm.prank(address(size));
+        token.deposit(user, user, 500);
+
+        vm.prank(address(size));
+        token.transferFrom(user, owner, 100);
+        assertEq(token.balanceOf(user), 400);
+        assertEq(token.balanceOf(owner), 100);
+    }
+
+    function test_NonTransferrableTokenVault_transferFrom_vault_to_vault() public {
         vm.prank(owner);
         token.setUserVaultWhitelistEnabled(false);
 
@@ -252,6 +309,8 @@ contract NonTransferrableTokenVaultTest is BaseTest {
 
         vm.prank(address(size));
         token.transferFrom(user, owner, 100);
+        assertEq(token.balanceOf(user), 400);
+        assertEq(token.balanceOf(owner), 100);
     }
 
     function test_NonTransferrableTokenVault_totalSupply_2() public {

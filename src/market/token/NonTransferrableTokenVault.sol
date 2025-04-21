@@ -201,9 +201,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         revert Errors.NOT_SUPPORTED();
     }
 
-    /// @notice Returns the unscaled balance of an account
-    /// @param account The account to get the balance of
-    /// @return The unscaled balance of the account
+    /// @inheritdoc IERC20
     function balanceOf(address account) public view returns (uint256) {
         IERC4626 vault = userVault[account];
         if (address(vault) != address(0)) {
@@ -213,9 +211,9 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         }
     }
 
-    /// @notice Returns the approximate total supply of underlying tokens
-    /// @return The unscaled total supply of Aave ATokens plus the approximate number of assets in all ERC4626 vaults
-    /// @dev This number should not be trusted
+    /// @inheritdoc IERC20
+    /// @notice Returns the approximate total supply of underlying tokens by adding the approximate number of assets in all ERC4626 vaults and the unscaled total supply
+    /// @dev This number should be only used for informational purposes
     function totalSupply() public view returns (uint256) {
         return _unscale(scaledTotalSupply) + userVaultsApproxTotalAssets;
     }
