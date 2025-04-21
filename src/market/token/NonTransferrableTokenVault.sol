@@ -301,6 +301,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
         uint256 sharesBefore = vault.balanceOf(address(this));
 
+        // slither-disable-next-line unused-return
         vault.deposit(amount, address(this));
 
         uint256 sharesAfter = vault.balanceOf(address(this));
