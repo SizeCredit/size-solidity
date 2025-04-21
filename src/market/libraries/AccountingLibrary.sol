@@ -38,23 +38,17 @@ library AccountingLibrary {
 
     /// @notice Repays a debt position
     /// @dev Upon repayment, the debt position future value and the borrower's total debt tracker are updated
-    ///      The PPS at repayment is also updated to the current PPS of the protocol's user vault (default vault)
-    ///        This is so that the protocol can change its default vault but previous loans' credits will still be compensated correctly between `repay/liquidate` and `claim` events
     /// @param state The state object
     /// @param debtPositionId The debt position id
     /// @param repayAmount The amount to repay
     function repayDebt(State storage state, uint256 debtPositionId, uint256 repayAmount) public {
         DebtPosition storage debtPosition = state.getDebtPosition(debtPositionId);
 
-        IERC4626 userVault = state.data.borrowTokenVault.userVault(address(this));
-        debtPosition.userVault = address(userVault);
-        debtPosition.ppsAtRepayment = state.data.borrowTokenVault.pps(userVault);
-
         state.data.debtToken.burn(debtPosition.borrower, repayAmount);
         debtPosition.futureValue -= repayAmount;
 
         emit Events.UpdateDebtPosition(
-            debtPositionId, debtPosition.borrower, debtPosition.futureValue, debtPosition.ppsAtRepayment
+            debtPositionId, debtPosition.borrower, debtPosition.futureValue, debtPosition.liquidityIndexAtRepayment
         );
     }
 
@@ -74,13 +68,8 @@ library AccountingLibrary {
         uint256 futureValue,
         uint256 dueDate
     ) external returns (CreditPosition memory creditPosition) {
-        DebtPosition memory debtPosition = DebtPosition({
-            borrower: borrower,
-            futureValue: futureValue,
-            dueDate: dueDate,
-            ppsAtRepayment: 0,
-            userVault: address(0)
-        });
+        DebtPosition memory debtPosition =
+            DebtPosition({borrower: borrower, futureValue: futureValue, dueDate: dueDate, liquidityIndexAtRepayment: 0});
 
         uint256 debtPositionId = state.data.nextDebtPositionId++;
         state.data.debtPositions[debtPositionId] = debtPosition;

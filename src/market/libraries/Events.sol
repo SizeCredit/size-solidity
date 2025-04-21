@@ -133,7 +133,7 @@ library Events {
     // updates
 
     event UpdateDebtPosition(
-        uint256 indexed debtPositionId, address indexed borrower, uint256 futureValue, uint256 ppsAtRepayment
+        uint256 indexed debtPositionId, address indexed borrower, uint256 futureValue, uint256 liquidityIndexAtRepayment
     );
     event UpdateCreditPosition(uint256 indexed creditPositionId, address indexed lender, uint256 credit, bool forSale);
 

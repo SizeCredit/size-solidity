@@ -135,6 +135,7 @@ library Liquidate {
             debtPosition.borrower, state.feeConfig.feeRecipient, protocolProfitCollateralToken
         );
 
+        debtPosition.liquidityIndexAtRepayment = state.data.borrowTokenVault.liquidityIndex();
         state.repayDebt(params.debtPositionId, debtPosition.futureValue);
     }
 }

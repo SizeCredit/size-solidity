@@ -216,7 +216,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         if (address(vault) != address(0)) {
             return Math.mulDivDown(vault.totalAssets(), WadRayMath.RAY, vault.totalSupply());
         } else {
-            return _liquidityIndex();
+            return liquidityIndex();
         }
     }
 
@@ -296,7 +296,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
             revert ERC20InvalidReceiver(address(0));
         }
 
-        uint256 scaledAmount = Math.mulDivDown(value, WadRayMath.RAY, _liquidityIndex());
+        uint256 scaledAmount = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
 
         if (scaledBalanceOf[from] < scaledAmount) {
             revert ERC20InsufficientBalance(from, balanceOf(from), value);
@@ -308,7 +308,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
     /// @notice Returns the current liquidity index of the variable pool
     /// @return The current liquidity index of the variable pool
-    function _liquidityIndex() private view returns (uint256) {
+    function liquidityIndex() public view returns (uint256) {
         return aavePool.getReserveNormalizedIncome(address(underlyingToken));
     }
 
@@ -317,7 +317,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @return The unscaled amount
     /// @dev The unscaled amount is the scaled amount divided by the current liquidity index
     function _unscale(uint256 scaledAmount) private view returns (uint256) {
-        return Math.mulDivDown(scaledAmount, _liquidityIndex(), WadRayMath.RAY);
+        return Math.mulDivDown(scaledAmount, liquidityIndex(), WadRayMath.RAY);
     }
 
     /// @notice Mints NonTransferrableTokenVault tokens based on the number of shares deposited into the user vault

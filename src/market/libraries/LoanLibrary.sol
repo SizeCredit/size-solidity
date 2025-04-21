@@ -21,11 +21,9 @@ struct DebtPosition {
     // The due date of the loan
     // Updated on debt reduction
     uint256 dueDate;
-    // The PPS of the Variable Pool at the repayment
-    // Set on full repayment (renamed from liquidityIndexAtRepayment in v1.8)
-    uint256 ppsAtRepayment;
-    // The user vault address (added in v1.8)
-    address userVault;
+    // The liquidity index of the Variable Pool at the repayment
+    // Set on full repayment
+    uint256 liquidityIndexAtRepayment;
 }
 
 struct CreditPosition {

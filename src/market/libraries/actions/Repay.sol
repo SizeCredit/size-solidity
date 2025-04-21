@@ -59,6 +59,7 @@ library Repay {
         DebtPosition storage debtPosition = state.getDebtPosition(params.debtPositionId);
 
         state.data.borrowTokenVault.transferFrom(msg.sender, address(this), debtPosition.futureValue);
+        debtPosition.liquidityIndexAtRepayment = state.data.borrowTokenVault.liquidityIndex();
         state.repayDebt(params.debtPositionId, debtPosition.futureValue);
     }
 }

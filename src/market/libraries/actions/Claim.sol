@@ -54,9 +54,7 @@ library Claim {
         DebtPosition storage debtPosition = state.getDebtPositionByCreditPositionId(params.creditPositionId);
 
         uint256 claimAmount = Math.mulDivDown(
-            creditPosition.credit,
-            state.data.borrowTokenVault.pps(IERC4626(debtPosition.userVault)),
-            debtPosition.ppsAtRepayment
+            creditPosition.credit, state.data.borrowTokenVault.liquidityIndex(), debtPosition.liquidityIndexAtRepayment
         );
         state.reduceCredit(params.creditPositionId, creditPosition.credit);
         state.data.borrowTokenVault.transferFrom(address(this), creditPosition.lender, claimAmount);
