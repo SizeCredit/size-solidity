@@ -48,8 +48,12 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     mapping(address user => IERC4626 vault) public userVault;
     mapping(address user => uint256 shares) public userVaultShares;
     uint256 public userVaultsApproxTotalAssets;
+    mapping(IERC4626 vault => bool isWhitelisted) public isUserVaultWhitelisted;
+    bool public isUserVaultWhitelistEnabled;
 
     event UserVaultSet(address indexed user, IERC4626 indexed vault);
+    event UserVaultWhitelistEnabled(bool indexed previousValue, bool indexed newValue);
+    event UserVaultWhitelisted(IERC4626 indexed vault, bool indexed previousValue, bool indexed newValue);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -84,14 +88,32 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         name = name_;
         symbol = symbol_;
         decimals = decimals_;
+
+        // v1.8
+        isUserVaultWhitelistEnabled = true;
+        isUserVaultWhitelisted[IERC4626(address(0))] = true;
     }
 
     function reinitialize(string memory name_, string memory symbol_) external onlyOwner reinitializer(1_08_00) {
         name = name_;
         symbol = symbol_;
+
+        // v1.8
+        isUserVaultWhitelistEnabled = true;
+        isUserVaultWhitelisted[IERC4626(address(0))] = true;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    function setUserVaultWhitelistEnabled(bool enabled) external onlyOwner {
+        emit UserVaultWhitelistEnabled(isUserVaultWhitelistEnabled, enabled);
+        isUserVaultWhitelistEnabled = enabled;
+    }
+
+    function setUserVaultWhitelisted(IERC4626 vault, bool whitelisted) external onlyOwner {
+        emit UserVaultWhitelisted(vault, isUserVaultWhitelisted[vault], whitelisted);
+        isUserVaultWhitelisted[vault] = whitelisted;
+    }
 
     modifier onlyMarket() {
         if (!sizeFactory.isMarket(msg.sender)) {
@@ -158,6 +180,10 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
+        if (isUserVaultWhitelistEnabled && !isUserVaultWhitelisted[vault]) {
+            revert Errors.USER_VAULT_NOT_WHITELISTED(address(vault));
+        }
+
         emit UserVaultSet(user, vault);
         userVault[user] = vault;
     }
@@ -220,7 +246,12 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         }
     }
 
-    function _depositToVault(address, address to, uint256 amount, IERC4626 vault) private {
+    /// @notice Deposits underlying tokens into a user vault
+    /// @param /*from*/ The address to deposit the tokens from
+    /// @param to The address to deposit the tokens to
+    /// @param amount The amount of tokens to deposit
+    /// @param vault The vault to deposit the tokens to
+    function _depositToVault(address, /*from*/ address to, uint256 amount, IERC4626 vault) private {
         underlyingToken.forceApprove(address(vault), amount);
 
         uint256 sharesBefore = vault.balanceOf(address(this));
@@ -233,7 +264,11 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         _mintVault(to, shares, vault.convertToAssets(shares));
     }
 
-    function _depositToAave(address, address to, uint256 amount) private {
+    /// @notice Deposits underlying tokens into the Aave pool
+    /// @param /*from*/ The address to deposit the tokens from
+    /// @param to The address to deposit the tokens to
+    /// @param amount The amount of tokens to deposit
+    function _depositToAave(address, /*from*/ address to, uint256 amount) private {
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
 
         uint256 scaledBalanceBefore = aToken.scaledBalanceOf(address(this));
@@ -246,6 +281,11 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         _mintScaled(to, scaledAmount);
     }
 
+    /// @notice Withdraws underlying tokens from a user vault
+    /// @param from The address to withdraw the tokens from
+    /// @param to The address to withdraw the tokens to
+    /// @param amount The amount of tokens to withdraw
+    /// @param vault The vault to withdraw the tokens from
     function _withdrawFromVault(address from, address to, uint256 amount, IERC4626 vault) private {
         uint256 sharesBefore = vault.balanceOf(address(this));
 
@@ -257,6 +297,10 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         _burnVault(from, shares, vault.convertToAssets(shares));
     }
 
+    /// @notice Withdraws underlying tokens from the Aave pool
+    /// @param from The address to withdraw the tokens from
+    /// @param to The address to withdraw the tokens to
+    /// @param amount The amount of tokens to withdraw
     function _withdrawFromAave(address from, address to, uint256 amount) private {
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
 
@@ -270,6 +314,12 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         _burnScaled(from, scaledAmount);
     }
 
+    /// @notice Transfers assets between a user vault and another user from the same vault
+    /// @dev The assets are converted to shares and then transferred internally
+    /// @param from The address to transfer the assets from
+    /// @param to The address to transfer the assets to
+    /// @param value The amount of assets to transfer
+    /// @param vault The vault to transfer the assets from
     function _transferFromVaultSame(address from, address to, uint256 value, IERC4626 vault) private {
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));
@@ -288,6 +338,11 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         userVaultShares[to] += sharesBefore;
     }
 
+    /// @notice Transfers underlying tokens between the Aave pool and a user from the same vault
+    /// @dev The underlying tokens are converted to scaled tokens and then transferred internally
+    /// @param from The address to transfer the tokens from
+    /// @param to The address to transfer the tokens to
+    /// @param value The amount of tokens to transfer
     function _transferFromAaveSame(address from, address to, uint256 value) private {
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));

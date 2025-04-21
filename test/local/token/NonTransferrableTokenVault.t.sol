@@ -110,16 +110,17 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         assertEq(token.balanceOf(address(size)), 100);
         assertEq(token.balanceOf(user), 0);
 
+        vm.expectRevert(abi.encodeWithSelector(Errors.NOT_SUPPORTED.selector));
         vm.prank(address(size));
         token.transfer(user, 30);
 
-        assertEq(token.balanceOf(user), 30);
-        assertEq(token.balanceOf(address(size)), 70);
+        assertEq(token.balanceOf(user), 0);
+        assertEq(token.balanceOf(address(size)), 100);
     }
 
     function test_NonTransferrableTokenVault_totalSupply() public {
-        deal(address(underlying), address(size), 300);
-        vm.prank(address(size));
+        deal(address(underlying), alice, 300);
+        _deposit(alice, address(underlying), 300);
         assertEq(token.totalSupply(), 300);
     }
 
