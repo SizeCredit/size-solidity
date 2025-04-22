@@ -261,8 +261,6 @@ contract ClaimTest is BaseTest {
     function test_Claim_test_borrow_repay_claim() public {
         _setPrice(1e18);
 
-        _updateConfig("borrowTokenCap", type(uint256).max);
-
         _deposit(alice, usdc, 120e6);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
         _deposit(james, weth, 5000e18);

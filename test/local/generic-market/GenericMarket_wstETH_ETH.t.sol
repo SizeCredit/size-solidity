@@ -22,7 +22,6 @@ contract GenericMarket_wstETH_ETH_Test is BaseTestGenericMarket {
     function test_GenericMarket_wstETH_ETH_config() public view {
         assertEqApprox(size.feeConfig().fragmentationFee, 0.00197e18, 0.0001e18);
         assertEqApprox(size.riskConfig().minimumCreditBorrowToken, 0.00377e18, 0.0001e18);
-        assertEqApprox(size.riskConfig().borrowTokenCap, 377e18, 1e18);
     }
 
     function test_GenericMarket_wstETH_ETH_debtTokenAmountToCollateralTokenAmount() public view {

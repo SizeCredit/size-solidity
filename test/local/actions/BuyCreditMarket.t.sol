@@ -251,7 +251,6 @@ contract BuyCreditMarketLendTest is BaseTest {
         _setPrice(1e18);
         _updateConfig("fragmentationFee", 0);
         _updateConfig("swapFeeAPR", 0);
-        _updateConfig("borrowTokenCap", type(uint256).max);
 
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1600e18);
@@ -283,7 +282,6 @@ contract BuyCreditMarketLendTest is BaseTest {
 
     function test_BuyCreditMarket_buyCreditMarket_fee_properties() public {
         _setPrice(1e18);
-        _updateConfig("borrowTokenCap", type(uint256).max);
 
         _deposit(alice, usdc, 1000e6);
         _deposit(bob, weth, 1600e18);

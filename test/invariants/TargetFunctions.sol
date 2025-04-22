@@ -541,11 +541,10 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
     }
 
     function updateConfig(uint256 i, uint256 value) public clear {
-        string[12] memory keys = [
+        string[11] memory keys = [
             "crOpening",
             "crLiquidation",
             "minimumCreditBorrowToken",
-            "borrowTokenCap",
             "minTenor",
             "maxTenor",
             "swapFeeAPR",
@@ -555,10 +554,9 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             "collateralProtocolPercent",
             "variablePoolBorrowRateStaleRateInterval"
         ];
-        uint256[12] memory maxValues = [
+        uint256[11] memory maxValues = [
             MAX_PERCENT,
             MAX_PERCENT,
-            MAX_AMOUNT_USDC,
             MAX_AMOUNT_USDC,
             MAX_DURATION,
             MAX_DURATION,

@@ -60,11 +60,6 @@ contract InitializeValidationTest is Test, BaseTest {
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
         r.minimumCreditBorrowToken = 5e6;
 
-        r.borrowTokenCap = 0;
-        vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
-        proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));
-        r.borrowTokenCap = 1_000_000e6;
-
         r.minTenor = 0;
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_AMOUNT.selector));
         proxy = new ERC1967Proxy(address(implementation), abi.encodeCall(Size.initialize, (owner, f, r, o, d)));

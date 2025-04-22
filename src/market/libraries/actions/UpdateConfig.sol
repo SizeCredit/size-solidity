@@ -58,7 +58,6 @@ library UpdateConfig {
             crOpening: state.riskConfig.crOpening,
             crLiquidation: state.riskConfig.crLiquidation,
             minimumCreditBorrowToken: state.riskConfig.minimumCreditBorrowToken,
-            borrowTokenCap: state.riskConfig.borrowTokenCap,
             minTenor: state.riskConfig.minTenor,
             maxTenor: state.riskConfig.maxTenor
         });
@@ -95,8 +94,6 @@ library UpdateConfig {
             state.riskConfig.crLiquidation = params.value;
         } else if (Strings.equal(params.key, "minimumCreditBorrowToken")) {
             state.riskConfig.minimumCreditBorrowToken = params.value;
-        } else if (Strings.equal(params.key, "borrowTokenCap")) {
-            state.riskConfig.borrowTokenCap = params.value;
         } else if (Strings.equal(params.key, "minTenor")) {
             if (
                 state.feeConfig.swapFeeAPR != 0

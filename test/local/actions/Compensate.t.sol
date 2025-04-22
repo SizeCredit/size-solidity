@@ -432,7 +432,6 @@ contract CompensateTest is BaseTest {
         _setPrice(1e18);
         vm.warp(block.timestamp + 12345 days);
 
-        _updateConfig("borrowTokenCap", type(uint256).max);
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1500e6);
         _deposit(candy, weth, 2000e18);
@@ -485,7 +484,6 @@ contract CompensateTest is BaseTest {
         _setPrice(1e18);
         vm.warp(block.timestamp + 12345 days);
 
-        _updateConfig("borrowTokenCap", type(uint256).max);
         _updateConfig("swapFeeAPR", 0.1e18);
         _deposit(alice, weth, 2000e18);
         _deposit(bob, usdc, 1000e6);
@@ -518,7 +516,6 @@ contract CompensateTest is BaseTest {
     function test_Compensate_compensate_used_to_borrower_exit_experiment() public {
         _setPrice(1e18);
 
-        _updateConfig("borrowTokenCap", type(uint256).max);
         // Bob deposits in USDC
         _deposit(bob, usdc, 100e6);
         assertEq(_state().bob.borrowTokenBalance, 100e6);

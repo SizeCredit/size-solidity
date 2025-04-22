@@ -40,7 +40,6 @@ struct InitializeRiskConfigParams {
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 minimumCreditBorrowToken;
-    uint256 borrowTokenCap;
     uint256 minTenor;
     uint256 maxTenor;
 }
@@ -122,11 +121,6 @@ library Initialize {
 
         // validate minimumCreditBorrowToken
         if (r.minimumCreditBorrowToken == 0) {
-            revert Errors.NULL_AMOUNT();
-        }
-
-        // validate borrowTokenCap
-        if (r.borrowTokenCap == 0) {
             revert Errors.NULL_AMOUNT();
         }
 
@@ -237,8 +231,6 @@ library Initialize {
         state.riskConfig.crLiquidation = r.crLiquidation;
 
         state.riskConfig.minimumCreditBorrowToken = r.minimumCreditBorrowToken;
-
-        state.riskConfig.borrowTokenCap = r.borrowTokenCap;
 
         state.riskConfig.minTenor = r.minTenor;
         state.riskConfig.maxTenor = r.maxTenor;

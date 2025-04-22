@@ -26,7 +26,6 @@ struct NetworkConfiguration {
     uint256 crOpening;
     uint256 crLiquidation;
     uint256 minimumCreditBorrowToken;
-    uint256 borrowTokenCap;
     PriceFeedParams priceFeedParams;
 }
 
@@ -71,7 +70,6 @@ abstract contract Networks {
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
                 minimumCreditBorrowToken: 10e6,
-                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -95,7 +93,6 @@ abstract contract Networks {
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
                 minimumCreditBorrowToken: 10e6,
-                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -119,7 +116,6 @@ abstract contract Networks {
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
                 minimumCreditBorrowToken: 10e6,
-                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -143,7 +139,6 @@ abstract contract Networks {
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
                 minimumCreditBorrowToken: 10e6,
-                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -167,7 +162,6 @@ abstract contract Networks {
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
                 minimumCreditBorrowToken: 10e6,
-                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -191,7 +185,6 @@ abstract contract Networks {
                 crOpening: 1.5e18,
                 crLiquidation: 1.3e18,
                 minimumCreditBorrowToken: 10e6,
-                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -215,7 +208,6 @@ abstract contract Networks {
                 crOpening: 1.3e18,
                 crLiquidation: 1.1e18,
                 minimumCreditBorrowToken: 0.005e18,
-                borrowTokenCap: 500e18,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,
@@ -239,7 +231,6 @@ abstract contract Networks {
                 crOpening: 1.3e18,
                 crLiquidation: 1.1e18,
                 minimumCreditBorrowToken: 10e6,
-                borrowTokenCap: 1_000_000e6,
                 priceFeedParams: PriceFeedParams({
                     twapWindow: 0,
                     averageBlockTime: 0,

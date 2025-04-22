@@ -57,8 +57,8 @@ struct RiskConfig {
     uint256 crLiquidation;
     // minimum credit value of loans
     uint256 minimumCreditBorrowToken;
-    // maximum amount of deposited borrowed tokens
-    uint256 borrowTokenCap;
+    // maximum amount of deposited borrowed tokens (deprecated in v1.8)
+    uint256 ___deprecated_borrowTokenCap;
     // minimum tenor for a loan
     uint256 minTenor;
     // maximum tenor for a loan
@@ -95,14 +95,14 @@ struct Data {
     IERC20Metadata underlyingBorrowToken;
     // Size deposit underlying collateral token
     NonTransferrableToken collateralToken;
-    // Size deposit underlying borrow aToken v1.2 (deprecated)
+    // Size deposit underlying borrow aToken v1.2 (deprecated in v1.5)
     address ___deprecated_borrowATokenV1_2;
     // Size tokenized debt
     NonTransferrableToken debtToken;
     // Variable Pool (Aave v3)
     IPool variablePool;
-    // Multicall lock to check if multicall is in progress
-    bool isMulticall;
+    // Multicall lock to check if multicall is in progress (deprecated in v1.8)
+    bool ___deprecated_isMulticall;
     // Size deposit underlying borrow token (upgraded in v1.8)
     NonTransferrableTokenVault borrowTokenVault;
     // mapping of copy limit orders (added in v1.6.1)

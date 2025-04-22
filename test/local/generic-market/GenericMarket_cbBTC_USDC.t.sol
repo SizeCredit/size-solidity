@@ -26,7 +26,6 @@ contract GenericMarket_cbBTC_USDC_Test is BaseTestGenericMarket {
     function test_GenericMarket_cbBTC_USDC_config() public view {
         assertEqApprox(size.feeConfig().fragmentationFee, 5e6, 0.01e6);
         assertEqApprox(size.riskConfig().minimumCreditBorrowToken, 10e6, 0.01e6);
-        assertEqApprox(size.riskConfig().borrowTokenCap, 1_000_000e6, 1000e6);
     }
 
     function test_GenericMarket_cbBTC_USDC_deposit_eth_reverts() public {

@@ -32,8 +32,6 @@ contract WithdrawTest is BaseTest {
     }
 
     function testFuzz_Withdraw_withdraw_decreases_user_balance(uint256 x, uint256 y, uint256 z, uint256 w) public {
-        _updateConfig("borrowTokenCap", type(uint256).max);
-
         x = bound(x, 1, type(uint96).max);
         y = bound(y, 1, type(uint96).max);
         z = bound(z, 1, type(uint128).max);
@@ -56,7 +54,6 @@ contract WithdrawTest is BaseTest {
     }
 
     function testFuzz_Withdraw_deposit_withdraw_identity(uint256 valueUSDC, uint256 valueWETH) public {
-        _updateConfig("borrowTokenCap", type(uint256).max);
         IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
 
         valueUSDC = bound(valueUSDC, 1, type(uint96).max);
@@ -91,7 +88,6 @@ contract WithdrawTest is BaseTest {
         uint256 valueWETH,
         uint256 index
     ) public {
-        _updateConfig("borrowTokenCap", type(uint256).max);
         IAToken aToken = IAToken(variablePool.getReserveData(address(usdc)).aTokenAddress);
         index = bound(index, WadRayMath.RAY, WadRayMath.RAY * 2);
         _setLiquidityIndex(index);

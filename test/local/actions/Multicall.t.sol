@@ -176,18 +176,17 @@ contract MulticallTest is BaseTest {
         assertEq(afterLiquidatorUSDC, 0);
     }
 
-    function test_Multicall_repay_when_borrowAToken_cap(uint256 index, uint256 amount) public {
+    function test_Multicall_repay(uint256 index, uint256 amount) public {
         IERC20Metadata debtToken = IERC20Metadata(address(size.data().debtToken));
 
         index = bound(index, 1e27, 2e27);
         amount = bound(amount, 100e6, 200e6);
 
         _setLiquidityIndex(index);
-        uint256 cap = 1000e6;
-        _updateConfig("borrowTokenCap", cap);
+        uint256 val = 1000e6;
 
         uint256 tenor = 365 days;
-        _deposit(alice, usdc, cap);
+        _deposit(alice, usdc, val);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(tenor, 0.03e18));
 
         _deposit(bob, weth, 100e18);
