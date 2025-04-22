@@ -74,7 +74,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     //////////////////////////////////////////////////////////////*/
 
     error OnlyMarket();
-    error ERC20InsufficientTotalAssets(address vault, uint256 totalAssets, uint256 amount);
+    error InsufficientTotalAssets(address vault, uint256 totalAssets, uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                             MODIFIERS
@@ -166,26 +166,33 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @dev Due to rounding, the Transfer event may not represent the actual unscaled amount or the actual number of shares
     /// @return True if the transfer was successful
     function transferFrom(address from, address to, uint256 value) public virtual onlyMarket returns (bool) {
+        if (from == address(0)) {
+            revert ERC20InvalidSender(address(0));
+        }
+        if (to == address(0)) {
+            revert ERC20InvalidReceiver(address(0));
+        }
+
         IERC4626 vaultFrom = userVault[from];
         IERC4626 vaultTo = userVault[to];
 
         if (vaultFrom == vaultTo) {
-            if (vaultFrom != DEFAULT_VAULT) {
-                _transferFromVaultSame(from, to, value, vaultFrom);
-            } else {
+            if (vaultFrom == DEFAULT_VAULT) {
                 _transferFromAaveSame(from, to, value);
+            } else {
+                _transferFromVaultSame(from, to, value, vaultFrom);
             }
         } else {
-            if (vaultFrom != DEFAULT_VAULT) {
-                _withdrawFromVault(from, address(this), value, vaultFrom);
-            } else {
+            if (vaultFrom == DEFAULT_VAULT) {
                 _withdrawFromAave(from, address(this), value);
+            } else {
+                _withdrawFromVault(from, address(this), value, vaultFrom);
             }
 
-            if (vaultTo != DEFAULT_VAULT) {
-                _depositToVault(address(this), to, value, vaultTo);
-            } else {
+            if (vaultTo == DEFAULT_VAULT) {
                 _depositToAave(address(this), to, value);
+            } else {
+                _depositToVault(address(this), to, value, vaultTo);
             }
         }
 
@@ -211,10 +218,10 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @inheritdoc IERC20
     function balanceOf(address account) public view returns (uint256) {
         IERC4626 vault = userVault[account];
-        if (vault != DEFAULT_VAULT) {
-            return vault.convertToAssets(userVaultShares[account]);
-        } else {
+        if (vault == DEFAULT_VAULT) {
             return _unscale(scaledBalanceOf[account]);
+        } else {
+            return vault.convertToAssets(userVaultShares[account]);
         }
     }
 
@@ -251,10 +258,10 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
 
         IERC4626 vault = userVault[to];
-        if (vault != DEFAULT_VAULT) {
-            _depositToVault(from, to, amount, vault);
-        } else {
+        if (vault == DEFAULT_VAULT) {
             _depositToAave(from, to, amount);
+        } else {
+            _depositToVault(from, to, amount, vault);
         }
 
         emit Transfer(address(0), to, amount);
@@ -263,10 +270,10 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @notice Withdraw underlying tokens from the variable pool and burn scaled tokens
     function withdraw(address from, address to, uint256 amount) external onlyMarket {
         IERC4626 vault = userVault[to];
-        if (vault != DEFAULT_VAULT) {
-            _withdrawFromVault(from, to, amount, vault);
-        } else {
+        if (vault == DEFAULT_VAULT) {
             _withdrawFromAave(from, to, amount);
+        } else {
+            _withdrawFromVault(from, to, amount, vault);
         }
 
         emit Transfer(from, address(0), amount);
@@ -280,10 +287,10 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @param vault The vault to get the PPS for
     /// @return The current PPS of the vault
     function pps(IERC4626 vault) public view returns (uint256) {
-        if (vault != DEFAULT_VAULT) {
-            return Math.mulDivDown(vault.totalAssets(), WadRayMath.RAY, vault.totalSupply());
-        } else {
+        if (vault == DEFAULT_VAULT) {
             return liquidityIndex();
+        } else {
+            return Math.mulDivDown(vault.totalAssets(), WadRayMath.RAY, vault.totalSupply());
         }
     }
 
@@ -379,14 +386,8 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @param value The amount of assets to transfer
     /// @param vault The vault to transfer the assets from
     function _transferFromVaultSame(address from, address to, uint256 value, IERC4626 vault) private {
-        if (from == address(0)) {
-            revert ERC20InvalidSender(address(0));
-        }
-        if (to == address(0)) {
-            revert ERC20InvalidReceiver(address(0));
-        }
         if (vault.totalAssets() < value) {
-            revert ERC20InsufficientTotalAssets(address(vault), vault.totalAssets(), value);
+            revert InsufficientTotalAssets(address(vault), vault.totalAssets(), value);
         }
 
         uint256 shares = vault.convertToShares(value);
@@ -408,17 +409,9 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @param to The address to transfer the tokens to
     /// @param value The amount of tokens to transfer
     function _transferFromAaveSame(address from, address to, uint256 value) private {
-        if (from == address(0)) {
-            revert ERC20InvalidSender(address(0));
-        }
-        if (to == address(0)) {
-            revert ERC20InvalidReceiver(address(0));
-        }
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
         if (underlyingToken.balanceOf(address(aToken)) < value) {
-            revert ERC20InsufficientTotalAssets(
-                address(DEFAULT_VAULT), underlyingToken.balanceOf(address(aToken)), value
-            );
+            revert InsufficientTotalAssets(address(DEFAULT_VAULT), underlyingToken.balanceOf(address(aToken)), value);
         }
 
         uint256 scaledAmount = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());

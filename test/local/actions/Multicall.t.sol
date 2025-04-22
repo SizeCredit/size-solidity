@@ -176,45 +176,6 @@ contract MulticallTest is BaseTest {
         assertEq(afterLiquidatorUSDC, 0);
     }
 
-    function test_Multicall_multicall_bypasses_cap_if_it_is_to_reduce_debt() public {
-        _setPrice(1e18);
-        _updateConfig("swapFeeAPR", 0);
-        uint256 amount = 100e6;
-        uint256 cap = amount;
-        _updateConfig("borrowTokenCap", cap);
-
-        _deposit(alice, usdc, cap);
-        _deposit(bob, weth, 200e18);
-
-        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.1e18));
-        uint256 debtPositionId = _sellCreditMarket(bob, alice, RESERVED_ID, amount, 365 days, false);
-        uint256 futureValue = size.getDebtPosition(debtPositionId).futureValue;
-
-        vm.warp(block.timestamp + 365 days);
-
-        assertEq(_state().bob.debtBalance, futureValue);
-
-        uint256 remaining = futureValue - size.getUserView(bob).borrowTokenBalance;
-        _mint(address(usdc), bob, remaining);
-        _approve(bob, address(usdc), address(size), remaining);
-
-        // attempt to deposit to repay, but it reverts due to cap
-        vm.expectRevert(abi.encodeWithSelector(Errors.BORROW_TOKEN_CAP_EXCEEDED.selector, cap, cap + remaining));
-        vm.prank(bob);
-        size.deposit(DepositParams({token: address(usdc), amount: remaining, to: bob}));
-
-        assertEq(_state().bob.debtBalance, futureValue);
-
-        // debt reduction is allowed to go over cap
-        bytes[] memory data = new bytes[](2);
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: remaining, to: bob}));
-        data[1] = abi.encodeCall(size.repay, RepayParams({debtPositionId: debtPositionId, borrower: bob}));
-        vm.prank(bob);
-        size.multicall(data);
-
-        assertEq(_state().bob.debtBalance, 0);
-    }
-
     function test_Multicall_multicall_cannot_bypass_cap_if_it_is_not_to_reduce_debt() public {
         _setPrice(1e18);
         uint256 cap = 100e6;

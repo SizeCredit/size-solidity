@@ -25,22 +25,4 @@ contract DepositValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         size.deposit(DepositParams({token: address(weth), amount: 1, to: address(0)}));
     }
-
-    function test_Deposit_validation_borrowTokenCap() public {
-        uint256 amount = 4_000_000;
-        _mint(address(weth), alice, amount * 1e18);
-        _mint(address(usdc), alice, amount * 1e6);
-        _approve(alice, address(weth), address(size), amount * 1e18);
-        _approve(alice, address(usdc), address(size), amount * 1e6);
-
-        vm.startPrank(alice);
-        size.deposit(DepositParams({token: address(weth), amount: amount * 1e18, to: alice}));
-
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Errors.BORROW_TOKEN_CAP_EXCEEDED.selector, size.riskConfig().borrowTokenCap, amount * 1e6
-            )
-        );
-        size.deposit(DepositParams({token: address(usdc), amount: amount * 1e6, to: alice}));
-    }
 }

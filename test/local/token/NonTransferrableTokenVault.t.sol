@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {IPool} from "@aave/interfaces/IPool.sol";
 
-import {IPool} from "@aave/interfaces/IPool.sol";
+import {IAToken} from "@aave/interfaces/IAToken.sol";
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
@@ -25,10 +25,13 @@ import {USDC} from "@test/mocks/USDC.sol";
 
 contract NonTransferrableTokenVaultTest is BaseTest {
     NonTransferrableTokenVault public token;
-    address user = address(0x10000);
-    address owner = address(0x20000);
+    address user = address(0x10);
+    address owner = address(0x20);
     USDC public underlying;
     IPool public pool;
+    IAToken public aToken;
+
+    uint256 public constant INITIAL_VAULT_ASSETS = 1e18;
 
     function setUp() public override {
         setupLocal(owner, feeRecipient);
@@ -36,15 +39,16 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         underlying = USDC(address(size.data().underlyingBorrowToken));
         pool = size.data().variablePool;
         token = size.data().borrowTokenVault;
+        aToken = IAToken(pool.getReserveData(address(underlying)).aTokenAddress);
 
         _labels();
 
         // first deposit
-        deal(address(underlying), address(alice), 1e18);
+        deal(address(underlying), address(alice), INITIAL_VAULT_ASSETS);
         vm.prank(alice);
-        underlying.approve(address(vault), 1e18);
+        underlying.approve(address(vault), INITIAL_VAULT_ASSETS);
         vm.prank(alice);
-        vault.deposit(1e18, alice);
+        vault.deposit(INITIAL_VAULT_ASSETS, alice);
     }
 
     function test_NonTransferrableTokenVault_initialize() public view {
@@ -90,24 +94,58 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         token.upgradeToAndCall(address(implementation), bytes(""));
     }
 
-    function test_NonTransferrableTokenVault_transferFrom() public {
-        vm.prank(address(size));
-        deal(address(token), user, 100);
-
+    function test_NonTransferrableTokenVault_transferFrom_validation() public {
         vm.expectRevert(abi.encodeWithSelector(Errors.UNAUTHORIZED.selector, owner));
         vm.prank(owner);
         token.transferFrom(user, address(this), 50);
 
         vm.prank(address(size));
+        vm.expectRevert(
+            abi.encodeWithSelector(NonTransferrableTokenVault.InsufficientTotalAssets.selector, address(0), 0, 50)
+        );
         token.transferFrom(user, address(this), 50);
+
+        deal(address(underlying), address(size), 100);
+        vm.prank(address(size));
+        underlying.approve(address(token), 100);
+        vm.prank(address(size));
+        token.deposit(user, user, 100);
+
+        deal(address(underlying), address(aToken), 100);
+        vm.prank(address(size));
+        token.transferFrom(user, address(this), 50);
+
+        vm.prank(address(owner));
+        token.setUserVaultWhitelistEnabled(false);
+        vm.prank(address(size));
+        token.setUserVault(user, vault);
+        vm.prank(address(size));
+        token.setUserVault(address(this), vault);
+
+        vm.prank(address(size));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                NonTransferrableTokenVault.InsufficientTotalAssets.selector, address(vault), INITIAL_VAULT_ASSETS, 50e18
+            )
+        );
+        token.transferFrom(user, address(this), 50e18);
+
+        deal(address(underlying), address(size), 100e18);
+        vm.prank(address(size));
+        underlying.approve(address(token), 100e18);
+        vm.prank(address(size));
+        token.deposit(user, user, 100e18);
+
+        vm.prank(address(size));
+        token.transferFrom(user, address(this), 50e18);
 
         vm.prank(address(size));
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidSender.selector, address(0)));
-        token.transferFrom(address(0), address(this), 50);
+        token.transferFrom(address(0), address(this), 50e18);
 
         vm.prank(address(size));
         vm.expectRevert(abi.encodeWithSelector(IERC20Errors.ERC20InvalidReceiver.selector, address(0)));
-        token.transferFrom(user, address(0), 50);
+        token.transferFrom(user, address(0), 50e18);
     }
 
     function test_NonTransferrableTokenVault_transfer() public {
