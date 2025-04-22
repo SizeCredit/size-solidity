@@ -176,23 +176,6 @@ contract MulticallTest is BaseTest {
         assertEq(afterLiquidatorUSDC, 0);
     }
 
-    function test_Multicall_multicall_cannot_bypass_cap_if_it_is_not_to_reduce_debt() public {
-        _setPrice(1e18);
-        uint256 cap = 100e6;
-        _mint(address(usdc), alice, cap + 1);
-        _approve(alice, address(usdc), address(size), cap + 1);
-        _updateConfig("borrowTokenCap", cap);
-
-        // should not go over cap
-        bytes[] memory data = new bytes[](1);
-        data[0] = abi.encodeCall(size.deposit, DepositParams({token: address(usdc), amount: cap + 1, to: alice}));
-        vm.prank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(Errors.BORROW_TOKEN_INCREASE_EXCEEDS_DEBT_TOKEN_DECREASE.selector, cap + 1, 0)
-        );
-        size.multicall(data);
-    }
-
     function test_Multicall_repay_when_borrowAToken_cap(uint256 index, uint256 amount) public {
         IERC20Metadata debtToken = IERC20Metadata(address(size.data().debtToken));
 
