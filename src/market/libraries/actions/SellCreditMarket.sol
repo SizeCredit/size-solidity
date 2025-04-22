@@ -207,7 +207,6 @@ library SellCreditMarket {
     /// @param externalParams The input parameters for selling credit as a market order
     function executeSellCreditMarket(State storage state, SellCreditMarketOnBehalfOfParams calldata externalParams)
         external
-        returns (uint256)
     {
         SellCreditMarketParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
@@ -263,7 +262,5 @@ library SellCreditMarket {
             swapData.fragmentationFee,
             swapData.tenor
         );
-
-        return swapData.cashAmountOut;
     }
 }

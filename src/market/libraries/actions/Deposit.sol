@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWETH} from "@src/market/interfaces/IWETH.sol";
-import {CapsLibrary} from "@src/market/libraries/CapsLibrary.sol";
 
 import {State} from "@src/market/SizeStorage.sol";
 
@@ -39,7 +38,6 @@ library Deposit {
     using SafeERC20 for IWETH;
 
     using DepositTokenLibrary for State;
-    using CapsLibrary for State;
 
     /// @notice Validates the deposit parameters
     /// @param state The state of the protocol
@@ -100,11 +98,6 @@ library Deposit {
 
         if (params.token == address(state.data.underlyingBorrowToken)) {
             state.depositUnderlyingBorrowTokenToVault(from, params.to, amount);
-            // borrow aToken cap is not validated in multicall,
-            //   since users must be able to deposit more tokens to repay debt
-            if (!state.data.isMulticall) {
-                state.validateBorrowTokenCap();
-            }
         } else {
             state.depositUnderlyingCollateralToken(from, params.to, amount);
         }

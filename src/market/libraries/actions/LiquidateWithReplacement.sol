@@ -113,12 +113,11 @@ library LiquidateWithReplacement {
     /// @notice Executes the liquidation of a debt position with a replacement borrower
     /// @param state The state
     /// @param params The input parameters for liquidating a debt position with a replacement borrower
-    /// @return issuanceValue The issuance value
     /// @return liquidatorProfitCollateralToken The profit in collateral tokens expected by the liquidator
     /// @return liquidatorProfitBorrowToken The profit in borrow tokens expected by the liquidator
     function executeLiquidateWithReplacement(State storage state, LiquidateWithReplacementParams calldata params)
         external
-        returns (uint256 issuanceValue, uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
+        returns (uint256 liquidatorProfitCollateralToken, uint256 liquidatorProfitBorrowToken)
     {
         emit Events.LiquidateWithReplacement(
             msg.sender,
@@ -142,7 +141,7 @@ library LiquidateWithReplacement {
         );
 
         uint256 ratePerTenor = state.getBorrowOfferRatePerTenor(params.borrower, tenor);
-        issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
+        uint256 issuanceValue = Math.mulDivDown(debtPositionCopy.futureValue, PERCENT, PERCENT + ratePerTenor);
         liquidatorProfitBorrowToken = debtPositionCopy.futureValue - issuanceValue;
 
         debtPosition.borrower = params.borrower;

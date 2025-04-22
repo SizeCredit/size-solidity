@@ -207,7 +207,6 @@ library BuyCreditMarket {
     /// @param externalParams The input parameters for buying credit as a market order
     function executeBuyCreditMarket(State storage state, BuyCreditMarketOnBehalfOfParams calldata externalParams)
         external
-        returns (uint256 netCashAmountIn)
     {
         BuyCreditMarketParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
@@ -266,7 +265,5 @@ library BuyCreditMarket {
             swapData.fragmentationFee,
             swapData.tenor
         );
-
-        return swapData.cashAmountIn - swapData.swapFee - swapData.fragmentationFee;
     }
 }
