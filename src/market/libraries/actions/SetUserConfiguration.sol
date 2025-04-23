@@ -54,11 +54,7 @@ library SetUserConfiguration {
         }
 
         // validate vault
-        IERC4626 userVault = state.data.borrowTokenVault.userVault(onBehalfOf);
-        if (address(userVault) != params.userVault && state.data.borrowTokenVault.balanceOf(onBehalfOf) != 0) {
-            // you should empty your vault balance before changing vaults
-            revert Errors.NOT_SUPPORTED();
-        }
+        // N/A
 
         // validate openingLimitBorrowCR
         // N/A

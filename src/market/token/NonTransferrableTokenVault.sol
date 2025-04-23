@@ -56,7 +56,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
     // v1.8
     mapping(address user => IERC4626 vault) public userVault;
-    mapping(address user => uint256 shares) public userVaultShares;
+    mapping(address user => uint256 shares) public userVaultShares; // TODO can we reuse `scaledBalanceOf`? TODO can we have dust shares?
     uint256 public userVaultsApproxTotalAssets;
     mapping(IERC4626 vault => bool isWhitelisted) public isUserVaultWhitelisted;
     bool public isUserVaultWhitelistEnabled;
@@ -65,9 +65,9 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
                             EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event UserVaultSet(address indexed user, IERC4626 indexed vault);
-    event UserVaultWhitelistEnabled(bool indexed previousValue, bool indexed newValue);
-    event UserVaultWhitelisted(IERC4626 indexed vault, bool indexed previousValue, bool indexed newValue);
+    event UserVaultSet(address indexed user, IERC4626 indexed previousVault, IERC4626 indexed newVault);
+    event UserVaultWhitelistEnabled(bool indexed previousEnabled, bool indexed newEnabled);
+    event UserVaultWhitelisted(IERC4626 indexed vault, bool indexed previousWhitelisted, bool indexed newWhitelisted);
 
     /*//////////////////////////////////////////////////////////////
                             ERRORS
@@ -173,28 +173,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
             revert ERC20InvalidReceiver(address(0));
         }
 
-        IERC4626 vaultFrom = userVault[from];
-        IERC4626 vaultTo = userVault[to];
-
-        if (vaultFrom == vaultTo) {
-            if (vaultFrom == DEFAULT_VAULT) {
-                _transferFromAaveSame(from, to, value);
-            } else {
-                _transferFromVaultSame(from, to, value, vaultFrom);
-            }
-        } else {
-            if (vaultFrom == DEFAULT_VAULT) {
-                _withdrawFromAave(from, address(this), value);
-            } else {
-                _withdrawFromVault(from, address(this), value, vaultFrom);
-            }
-
-            if (vaultTo == DEFAULT_VAULT) {
-                _depositToAave(address(this), to, value);
-            } else {
-                _depositToVault(address(this), to, value, vaultTo);
-            }
-        }
+        _transferFrom(from, to, value, userVault[from], userVault[to]);
 
         emit Transfer(from, to, value);
         return true;
@@ -241,41 +220,36 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @param vault The vault to set for the user
     /// @dev This function is only callable by the market
     ///      Setting the vault to `address(0)` will use the default variable pool
+    ///      Setting the user vault to a different address will withdraw all the user's assets
+    ///        from the previous vault and deposit them into the new vault
+    ///      Does not revert if whitelist is enabled
     function setUserVault(address user, IERC4626 vault) external onlyMarket {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
-        if (isUserVaultWhitelistEnabled && !isUserVaultWhitelisted[vault]) {
-            revert Errors.USER_VAULT_NOT_WHITELISTED(address(vault));
-        }
+        if ((!isUserVaultWhitelistEnabled || isUserVaultWhitelisted[vault]) && userVault[user] != vault) {
+            uint256 amount = balanceOf(user);
+            if (amount > 0) {
+                _transferFrom(user, user, amount, userVault[user], vault);
+            }
 
-        emit UserVaultSet(user, vault);
-        userVault[user] = vault;
+            emit UserVaultSet(user, userVault[user], vault);
+            userVault[user] = vault;
+        }
     }
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
     function deposit(address from, address to, uint256 amount) external onlyMarket {
         underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
 
-        IERC4626 vault = userVault[to];
-        if (vault == DEFAULT_VAULT) {
-            _depositToAave(from, to, amount);
-        } else {
-            _depositToVault(from, to, amount, vault);
-        }
+        _deposit(from, to, amount, userVault[to]);
 
         emit Transfer(address(0), to, amount);
     }
 
     /// @notice Withdraw underlying tokens from the variable pool and burn scaled tokens
     function withdraw(address from, address to, uint256 amount) external onlyMarket {
-        IERC4626 vault = userVault[to];
-        if (vault == DEFAULT_VAULT) {
-            _withdrawFromAave(from, to, amount);
-        } else {
-            _withdrawFromVault(from, to, amount, vault);
-        }
-
+        _withdraw(from, to, amount, userVault[from]);
         emit Transfer(from, address(0), amount);
     }
 
@@ -304,6 +278,51 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
                             PRIVATE FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Deposits underlying tokens into the vault
+    /// @param from The address to deposit the tokens from
+    /// @param to The address to deposit the tokens to
+    /// @param amount The amount of tokens to deposit
+    /// @param vault The vault to deposit the tokens to
+    function _deposit(address from, address to, uint256 amount, IERC4626 vault) private {
+        if (vault == DEFAULT_VAULT) {
+            _depositToAave(from, to, amount);
+        } else {
+            _depositToVault(from, to, amount, vault);
+        }
+    }
+
+    /// @notice Withdraws underlying tokens from the vault
+    /// @param from The address to withdraw the tokens from
+    /// @param to The address to withdraw the tokens to
+    /// @param amount The amount of tokens to withdraw
+    /// @param vault The vault to withdraw the tokens from
+    function _withdraw(address from, address to, uint256 amount, IERC4626 vault) private {
+        if (vault == DEFAULT_VAULT) {
+            _withdrawFromAave(from, to, amount);
+        } else {
+            _withdrawFromVault(from, to, amount, vault);
+        }
+    }
+
+    /// @notice Transfers underlying tokens between the vaults
+    /// @param from The address to transfer the tokens from
+    /// @param to The address to transfer the tokens to
+    /// @param value The amount of tokens to transfer
+    /// @param vaultFrom The vault to transfer the tokens from
+    /// @param vaultTo The vault to transfer the tokens to
+    function _transferFrom(address from, address to, uint256 value, IERC4626 vaultFrom, IERC4626 vaultTo) private {
+        if (vaultFrom == vaultTo) {
+            if (vaultFrom == DEFAULT_VAULT) {
+                _transferFromAaveSame(from, to, value);
+            } else {
+                _transferFromVaultSame(from, to, value, vaultFrom);
+            }
+        } else {
+            _withdraw(from, address(this), value, vaultFrom);
+            _deposit(address(this), to, value, vaultTo);
+        }
+    }
+
     /// @notice Deposits underlying tokens into a user vault
     /// @param /*from*/ The address to deposit the tokens from
     /// @param to The address to deposit the tokens to
@@ -311,10 +330,9 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     /// @param vault The vault to deposit the tokens to
     // slither-disable-next-line reentrancy-benign
     function _depositToVault(address, /*from*/ address to, uint256 amount, IERC4626 vault) private {
-        underlyingToken.forceApprove(address(vault), amount);
-
         uint256 sharesBefore = vault.balanceOf(address(this));
 
+        underlyingToken.forceApprove(address(vault), amount);
         // slither-disable-next-line unused-return
         vault.deposit(amount, address(this));
 

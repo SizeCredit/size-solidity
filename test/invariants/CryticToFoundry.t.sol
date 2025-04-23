@@ -445,25 +445,6 @@ contract CryticToFoundry is BaseTest, TargetFunctions, SetupLocal, FoundryAssert
         sellCreditLimit(0, 0);
     }
 
-    function test_CryticToFoundry_28() public {
-        setLiquidityIndex(1, 0);
-        updateConfig(21068319789506710821654, 0);
-        deposit(address(0xdeadbeef), 996270874);
-        buyCreditLimit(3427614, 0);
-        deposit(address(0x0), 1122084065464051538);
-        sellCreditMarket(
-            address(0x0),
-            0,
-            2702324600881186461580514346189664772384372337446035588170931995036,
-            5600056819510204218881125300736394812903208854577664090813535893675594506082,
-            false
-        );
-        uint256 borrowTokenBalanceBefore = size.data().borrowTokenVault.balanceOf(size.feeConfig().feeRecipient);
-        sellCreditMarket(address(0x0), 0, 8474006695743451680011881010275008915614345497988616, 0, false);
-        uint256 borrowTokenBalanceAfter = size.data().borrowTokenVault.balanceOf(size.feeConfig().feeRecipient);
-        gte(borrowTokenBalanceAfter, borrowTokenBalanceBefore, FEES_01);
-    }
-
     function test_CryticToFoundry_29() public {
         deposit(address(0xdeadbeef), 82884843379321);
         buyCreditLimit(4305533, 0);

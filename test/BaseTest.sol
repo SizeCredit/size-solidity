@@ -6,6 +6,7 @@ import {Test} from "forge-std/Test.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {AssertsHelper} from "@test/helpers/AssertsHelper.sol";
 
+import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 import {UNISWAP_V3_FACTORY_BYTECODE} from "@test/mocks/UniswapV3FactoryBytecode.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
@@ -484,6 +485,12 @@ contract BaseTest is Test, Deploy, AssertsHelper {
     function _setLiquidityIndex(address token, uint256 index) internal {
         vm.prank(address(this));
         PoolMock(address(variablePool)).setLiquidityIndex(token, index);
+    }
+
+    function _setUserVaultWhitelistEnabled(bool enabled) internal {
+        NonTransferrableTokenVault borrowTokenVault = NonTransferrableTokenVault(address(size.data().borrowTokenVault));
+        vm.prank(address(this));
+        borrowTokenVault.setUserVaultWhitelistEnabled(enabled);
     }
 
     function _setLiquidityIndex(uint256 index) internal {

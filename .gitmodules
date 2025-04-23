@@ -40,3 +40,6 @@
 [submodule "lib/safe-utils"]
 	path = lib/safe-utils
 	url = https://github.com/Recon-Fuzz/safe-utils
+[submodule "lib/ERC-7540-Reference"]
+	path = lib/ERC-7540-Reference
+	url = https://github.com/ERC4626-Alliance/ERC-7540-Reference
