@@ -7,7 +7,7 @@
   no_match_test = 'testFork_'
   solc_version = '0.8.23'
   evm_version = 'shanghai'
-  ignored_warnings_from = ["lib/aave-v3-core", "lib/properties/lib/solmate"]
+  ignored_warnings_from = ["lib"]
   optimizer = true
   optimizer_runs = 200
 
