@@ -3,7 +3,9 @@ pragma solidity 0.8.23;
 
 import {State} from "@src/market/SizeStorage.sol";
 
-import {DepositTokenLibrary} from "@src/market/libraries/DepositTokenLibrary.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 import {Math} from "@src/market/libraries/Math.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
@@ -34,7 +36,7 @@ struct WithdrawOnBehalfOfParams {
 /// @author Size (https://size.credit/)
 /// @notice Contains the logic for withdrawing tokens from the protocol
 library Withdraw {
-    using DepositTokenLibrary for State;
+    using SafeERC20 for IERC20Metadata;
     using RiskLibrary for State;
 
     /// @notice Validates the withdraw parameters
@@ -68,6 +70,11 @@ library Withdraw {
         }
     }
 
+    /// @notice Executes the withdraw
+    /// @param state The state of the protocol
+    /// @param externalParams The input parameters for withdrawing tokens
+    /// @dev The actual withdrawn amount is capped to the sender's balance
+    ///      The actual withdrawn amount can be lower than the requested amount based on the vault withdraw and rounding logic
     function executeWithdraw(State storage state, WithdrawOnBehalfOfParams memory externalParams) public {
         WithdrawParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
@@ -76,12 +83,13 @@ library Withdraw {
         if (params.token == address(state.data.underlyingBorrowToken)) {
             amount = Math.min(params.amount, state.data.borrowTokenVault.balanceOf(onBehalfOf));
             if (amount > 0) {
-                state.withdrawUnderlyingTokenFromVault(onBehalfOf, params.to, amount);
+                amount = state.data.borrowTokenVault.withdraw(onBehalfOf, params.to, amount);
             }
         } else {
             amount = Math.min(params.amount, state.data.collateralToken.balanceOf(onBehalfOf));
             if (amount > 0) {
-                state.withdrawUnderlyingCollateralToken(onBehalfOf, params.to, amount);
+                state.data.collateralToken.burn(onBehalfOf, amount);
+                state.data.underlyingCollateralToken.safeTransfer(params.to, amount);
             }
             state.validateUserIsNotBelowOpeningLimitBorrowCR(onBehalfOf);
         }

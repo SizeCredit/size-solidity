@@ -8,7 +8,6 @@ import {IWETH} from "@src/market/interfaces/IWETH.sol";
 import {State} from "@src/market/SizeStorage.sol";
 
 import {Action} from "@src/factory/libraries/Authorization.sol";
-import {DepositTokenLibrary} from "@src/market/libraries/DepositTokenLibrary.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
@@ -36,8 +35,6 @@ struct DepositOnBehalfOfParams {
 library Deposit {
     using SafeERC20 for IERC20Metadata;
     using SafeERC20 for IWETH;
-
-    using DepositTokenLibrary for State;
 
     /// @notice Validates the deposit parameters
     /// @param state The state of the protocol
@@ -81,6 +78,7 @@ library Deposit {
     /// @notice Executes the deposit
     /// @param state The state of the protocol
     /// @param externalParams The input parameters for depositing tokens
+    /// @dev The actual deposited amount can be lower than the input amount based on the vault deposit and rounding logic
     function executeDeposit(State storage state, DepositOnBehalfOfParams memory externalParams) public {
         DepositParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;
@@ -97,9 +95,12 @@ library Deposit {
         }
 
         if (params.token == address(state.data.underlyingBorrowToken)) {
-            state.depositUnderlyingBorrowTokenToVault(from, params.to, amount);
+            state.data.underlyingBorrowToken.safeTransferFrom(from, address(this), amount);
+            state.data.underlyingBorrowToken.forceApprove(address(state.data.borrowTokenVault), amount);
+            amount = state.data.borrowTokenVault.deposit(from, params.to, amount);
         } else {
-            state.depositUnderlyingCollateralToken(from, params.to, amount);
+            state.data.underlyingCollateralToken.safeTransferFrom(from, address(this), amount);
+            state.data.collateralToken.mint(params.to, amount);
         }
 
         emit Events.Deposit(msg.sender, onBehalfOf, params.token, params.to, amount);

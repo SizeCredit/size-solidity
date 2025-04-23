@@ -2,12 +2,14 @@
 pragma solidity 0.8.23;
 
 import {RESERVED_ID} from "@src/market/libraries/LoanLibrary.sol";
-import {BaseTest} from "@test/BaseTest.sol";
+import {BaseTest, Vars} from "@test/BaseTest.sol";
 import {YieldCurveHelper} from "@test/helpers/libraries/YieldCurveHelper.sol";
 
+import {DepositParams} from "@src/market/libraries/actions/Deposit.sol";
 import {SellCreditMarketParams} from "@src/market/libraries/actions/SellCreditMarket.sol";
 
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {MockERC4626} from "@solady/../test/utils/mocks/MockERC4626.sol";
@@ -18,6 +20,9 @@ import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol"
 import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
 
 import {FullyAsyncVault} from "@ERC-7540-Reference/FullyAsyncVault.sol";
+
+import {Errors} from "@src/market/libraries/Errors.sol";
+import {Events} from "@src/market/libraries/Events.sol";
 
 contract UserVaultsTest is BaseTest {
     IERC4626 vault2;
@@ -171,9 +176,73 @@ contract UserVaultsTest is BaseTest {
         );
     }
 
-    function test_UserVaults_fee_on_transfer_vault() public {}
-    function test_UserVaults_vault_with_wrong_underlying() public {}
-    function test_UserVaults_non_erc4626_contract() public {}
+    function test_UserVaults_fee_on_transfer_vault() public {
+        _updateConfig("swapFeeAPR", 0);
+
+        _setUserVaultWhitelistEnabled(false);
+        _setUserConfiguration(alice, address(vaultFeeOnTransfer), 1.5e18, false, false, new uint256[](0));
+
+        _mint(address(usdc), alice, 200e6);
+        _approve(alice, address(usdc), address(size), 200e6);
+
+        address borrowTokenVault = address(size.data().borrowTokenVault);
+        address owner = address(FeeOnTransferERC4626(address(vaultFeeOnTransfer)).owner());
+
+        vm.expectEmit(address(vaultFeeOnTransfer));
+        emit IERC20.Transfer(address(0), borrowTokenVault, 200e6);
+        emit IERC20.Transfer(borrowTokenVault, address(0), 20e6);
+        emit IERC20.Transfer(address(0), owner, 20e6);
+        vm.expectEmit(address(size));
+        emit Events.Deposit(alice, alice, address(usdc), alice, 180e6);
+        vm.prank(alice);
+        size.deposit(DepositParams({token: address(usdc), amount: 200e6, to: alice}));
+
+        assertEq(_state().alice.borrowTokenBalance, 180e6);
+        assertEq(usdc.balanceOf(address(vaultFeeOnTransfer)), 200e6);
+        assertEq(vaultFeeOnTransfer.balanceOf(address(borrowTokenVault)), 180e6);
+        assertEq(vaultFeeOnTransfer.balanceOf(address(owner)), 20e6);
+
+        _deposit(bob, weth, 100e18);
+        _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
+
+        uint256 amount = 100e6;
+        uint256 tenor = 365 days;
+
+        uint256 feeOnTransfer = amount / 10;
+
+        Vars memory _before = _state();
+
+        _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
+
+        Vars memory _after = _state();
+
+        assertEq(
+            _after.bob.borrowTokenBalance,
+            _before.bob.borrowTokenBalance + amount,
+            "bob should have received the amount"
+        );
+        assertEq(
+            _after.alice.borrowTokenBalance,
+            _before.alice.borrowTokenBalance - amount - feeOnTransfer,
+            "alice should have sent the amount minus the fee"
+        );
+        assertEq(usdc.balanceOf(address(vaultFeeOnTransfer)), 100e6);
+        assertEq(vaultFeeOnTransfer.balanceOf(address(borrowTokenVault)), 70e6);
+        assertEq(vaultFeeOnTransfer.balanceOf(address(owner)), 30e6);
+    }
+
+    function test_UserVaults_vault_with_wrong_underlying() public {
+        _setUserVaultWhitelistEnabled(false);
+        vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultInvalidUnderlying)));
+        _setUserConfiguration(alice, address(vaultInvalidUnderlying), 1.5e18, false, false, new uint256[](0));
+    }
+
+    function test_UserVaults_non_erc4626_contract() public {
+        _setUserVaultWhitelistEnabled(false);
+        vm.expectRevert();
+        _setUserConfiguration(alice, address(vaultNonERC4626), 1.5e18, false, false, new uint256[](0));
+    }
+
     function test_UserVaults_erc7540_contract() public {}
     function test_UserVaults_dust_shares_when_changing_vaults() public {}
     function test_UserVaults_total_supply_across_multiple_vaults() public {}

@@ -17,7 +17,6 @@ import {UpdateConfig} from "@src/market/libraries/actions/UpdateConfig.sol";
 
 import {DataView, UserView} from "@src/market/SizeViewData.sol";
 import {AccountingLibrary} from "@src/market/libraries/AccountingLibrary.sol";
-import {DepositTokenLibrary} from "@src/market/libraries/DepositTokenLibrary.sol";
 import {RiskLibrary} from "@src/market/libraries/RiskLibrary.sol";
 
 import {ISizeView} from "@src/market/interfaces/ISizeView.sol";
@@ -43,7 +42,6 @@ import {VERSION} from "@src/market/interfaces/ISize.sol";
 /// @author Size (https://size.credit/)
 /// @notice View methods for the Size protocol
 abstract contract SizeView is SizeStorage, ISizeView {
-    using DepositTokenLibrary for State;
     using OfferLibrary for LimitOrder;
     using OfferLibrary for State;
     using LoanLibrary for DebtPosition;

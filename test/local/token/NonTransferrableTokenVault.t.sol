@@ -214,11 +214,7 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         assertTrue(token.isUserVaultWhitelisted(vault));
     }
 
-    function test_NonTransferrableTokenVault_setUserVault() public {
-        vm.prank(address(size));
-        vm.expectRevert(abi.encodeWithSelector(Errors.USER_VAULT_NOT_WHITELISTED.selector, address(vault)));
-        token.setUserVault(alice, vault);
-
+    function test_NonTransferrableTokenVault_setUserVault_1() public {
         vm.prank(address(size));
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
         token.setUserVault(address(0), vault);
@@ -249,27 +245,6 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         vm.prank(address(size));
         token.withdraw(user, user, 500);
         assertEq(token.balanceOf(user), 500);
-    }
-
-    function test_NonTransferrableTokenVault_pps() public {
-        assertEq(token.pps(IERC4626(address(0))), token.liquidityIndex());
-
-        vm.prank(owner);
-        token.setUserVaultWhitelistEnabled(false);
-
-        vm.prank(address(size));
-        token.setUserVault(user, vault);
-
-        deal(address(underlying), address(size), 1000);
-        vm.prank(address(size));
-        underlying.approve(address(token), 1000);
-        vm.prank(address(size));
-        token.deposit(user, user, 1000);
-
-        assertEq(token.pps(vault), 1e27);
-
-        deal(address(underlying), address(vault), 1500);
-        assertEq(token.pps(vault), uint256(1500 * 1e27) / (1e18 + 1000));
     }
 
     function test_NonTransferrableTokenVault_transferFrom_aave_to_aave() public {
