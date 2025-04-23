@@ -21,7 +21,7 @@ Networks:
 | 2024-06-08 | v1.0-rc | Spearbit | [Report](./audits/2024-06-08-Spearbit.pdf) |
 | 2024-03-26 | v1.0-beta | Solidified | [Report](./audits/2024-03-26-Solidified.pdf) |
 
-For bug reports, please refer to our [Bug Bounty Program](https://app.hats.finance/bug-bounties/size-0xd915dc4630c8957e7aabb44df6309f6f4cfcf9c0/rewards)
+For bug reports, please refer to our [Bug Bounty Program](https://cantina.xyz/code/c5811be1-cc87-4418-80b0-f0b50f7e5849/overview)
 
 ## Documentation
 
@@ -135,6 +135,7 @@ Notes
 
 1. Copying another account's limit orders introduces the risk of them placing suboptimal rates and executing market orders against delegators, incurring monetary losses. Only trusted addresses should be copied.
 2. The max/min params from the `copyLimitOrder` method are not global max/min for the user-defined limit orders; they are specific to copy offers. Once the copy address offer is no longer valid, max/min guards for mismatched curves will not be applied. The only reason to stop market orders is in the event of "self arbitrage," i.e., for a given tenor, when the borrow curve >= lending curve, since these users could be drained by an attacker by borrowing high and lending low in a single transaction.
+3. The offset APR parameters are not validated and can cause market orders reverts depending on the final APR result
 
 ## Test
 
