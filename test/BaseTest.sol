@@ -10,6 +10,7 @@ import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableToke
 import {UNISWAP_V3_FACTORY_BYTECODE} from "@test/mocks/UniswapV3FactoryBytecode.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Size} from "@src/market/Size.sol";
 import {YieldCurve} from "@src/market/libraries/YieldCurveLibrary.sol";
 
@@ -487,10 +488,10 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         PoolMock(address(variablePool)).setLiquidityIndex(token, index);
     }
 
-    function _setUserVaultWhitelistEnabled(bool enabled) internal {
+    function _setUserVaultWhitelisted(IERC4626 vault, bool whitelisted) internal {
         NonTransferrableTokenVault borrowTokenVault = NonTransferrableTokenVault(address(size.data().borrowTokenVault));
         vm.prank(address(this));
-        borrowTokenVault.setUserVaultWhitelistEnabled(enabled);
+        borrowTokenVault.setUserVaultWhitelisted(vault, whitelisted);
     }
 
     function _setLiquidityIndex(uint256 index) internal {

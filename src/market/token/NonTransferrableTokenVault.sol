@@ -25,10 +25,10 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 /// @author Size (https://size.credit/)
 /// @notice An ERC-20 that is not transferrable from outside of the protocol. This vault holds Aave's aTokens and ERC4626 tokens on behalf of users and mints
 ///         a rebasing ERC20 deposit token to users representing their underlying token amount.
-/// @dev The contract owner (i.e. the Size contract) can still mint, burn, and transfer tokens
-///      This contract was upgraded from NonTransferrableScaledTokenV1_5 in v1.8
-///      By default, underlying tokens are deposited into the Aave pool, unless the user has set a vault
-///      User vaults are untrusted. TODO: do we need to put reentrancy guards everywhere???
+/// @dev This contract was upgraded from NonTransferrableScaledTokenV1_5 in v1.8
+///      By default, underlying tokens are deposited into the Aave pool, unless the user has set a vault.
+///      User vaults are whitelisted, and are assumed to be standard ERC4626 tokens.
+///      Vaults with features such as pause, fee on transfer, and asynchronous share minting/burning are not supported.
 contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2StepUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20Metadata;
 
@@ -59,14 +59,12 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     mapping(address user => uint256 shares) public userVaultShares; // TODO can we reuse `scaledBalanceOf`? TODO can we have dust shares?
     uint256 public userVaultsApproxTotalAssets;
     mapping(IERC4626 vault => bool isWhitelisted) public isUserVaultWhitelisted;
-    bool public isUserVaultWhitelistEnabled;
 
     /*//////////////////////////////////////////////////////////////
                             EVENTS
     //////////////////////////////////////////////////////////////*/
 
     event UserVaultSet(address indexed user, IERC4626 indexed previousVault, IERC4626 indexed newVault);
-    event UserVaultWhitelistEnabled(bool indexed previousEnabled, bool indexed newEnabled);
     event UserVaultWhitelisted(IERC4626 indexed vault, bool indexed previousWhitelisted, bool indexed newWhitelisted);
 
     /*//////////////////////////////////////////////////////////////
@@ -126,8 +124,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         decimals = decimals_;
 
         // v1.8
-        isUserVaultWhitelistEnabled = true;
-        isUserVaultWhitelisted[DEFAULT_VAULT] = true;
+        _setUserVaultWhitelisted(DEFAULT_VAULT, true);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -139,20 +136,13 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         symbol = symbol_;
 
         // v1.8
-        isUserVaultWhitelistEnabled = true;
-        isUserVaultWhitelisted[DEFAULT_VAULT] = true;
+        _setUserVaultWhitelisted(DEFAULT_VAULT, true);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function setUserVaultWhitelistEnabled(bool enabled) external onlyOwner {
-        emit UserVaultWhitelistEnabled(isUserVaultWhitelistEnabled, enabled);
-        isUserVaultWhitelistEnabled = enabled;
-    }
-
     function setUserVaultWhitelisted(IERC4626 vault, bool whitelisted) external onlyOwner {
-        emit UserVaultWhitelisted(vault, isUserVaultWhitelisted[vault], whitelisted);
-        isUserVaultWhitelisted[vault] = whitelisted;
+        _setUserVaultWhitelisted(vault, whitelisted);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -222,7 +212,6 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     ///      Setting the vault to `address(0)` will use the default variable pool
     ///      Setting the user vault to a different address will withdraw all the user's assets
     ///        from the previous vault and deposit them into the new vault
-    ///      Does not revert if whitelist is on
     ///      Reverts if the vault asset is not the same as the NonTransferrableTokenVault's underlying token
     function setUserVault(address user, IERC4626 vault) external onlyMarket {
         if (user == address(0)) {
@@ -231,7 +220,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         if (vault != DEFAULT_VAULT && vault.asset() != address(underlyingToken)) {
             revert Errors.INVALID_VAULT(address(vault));
         }
-        if ((!isUserVaultWhitelistEnabled || isUserVaultWhitelisted[vault]) && userVault[user] != vault) {
+        if (isUserVaultWhitelisted[vault] && userVault[user] != vault) {
             _transferFrom(user, user, balanceOf(user), userVault[user], vault);
 
             emit UserVaultSet(user, userVault[user], vault);
@@ -374,13 +363,16 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     // slither-disable-next-line reentrancy-benign
     function _withdrawFromVault(address from, address to, uint256 amount, IERC4626 vault) private returns (uint256) {
         uint256 sharesBefore = vault.balanceOf(address(this));
+        uint256 assetsBefore = underlyingToken.balanceOf(address(this));
 
         // slither-disable-next-line unused-return
-        vault.withdraw(amount, to, address(this));
+        vault.withdraw(amount, address(this), address(this));
 
         uint256 shares = sharesBefore - vault.balanceOf(address(this));
+        uint256 assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
 
-        uint256 assets = vault.convertToAssets(shares);
+        underlyingToken.transfer(to, assets);
+
         _burnVault(from, shares, assets);
 
         return assets;
@@ -530,5 +522,13 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         } else {
             userVaultsApproxTotalAssets = 0;
         }
+    }
+
+    /// @notice Sets the whitelist status of a user vault
+    /// @param vault The vault to set the whitelist status for
+    /// @param whitelisted The whitelist status to set
+    function _setUserVaultWhitelisted(IERC4626 vault, bool whitelisted) private {
+        emit UserVaultWhitelisted(vault, isUserVaultWhitelisted[vault], whitelisted);
+        isUserVaultWhitelisted[vault] = whitelisted;
     }
 }

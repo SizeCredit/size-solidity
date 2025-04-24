@@ -10,20 +10,22 @@ import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableToke
 import {BaseTest} from "@test/BaseTest.sol";
 
 contract ReinitializeV1_8Test is BaseTest {
-    bytes32 internal IS_USER_VAULT_WHITELIST_ENABLED_STORAGE_SLOT = bytes32(uint256(12));
     NonTransferrableTokenVault public borrowTokenVault;
     string name = "Token";
     string symbol = "TKN";
 
-    function _rollbackToV1_7(address _borrowTokenVault) internal {
-        // reset isUserVaultWhitelistEnabled to false (only useful for local tests)
-        vm.store(_borrowTokenVault, IS_USER_VAULT_WHITELIST_ENABLED_STORAGE_SLOT, bytes32(uint256(0)));
+    function _rollbackToV1_7() internal {
+        // reset isUserVaultWhitelisted[DEFAULT_VAIULT] to false (only useful for local tests)
+        address k = address(borrowTokenVault.DEFAULT_VAULT());
+        uint256 p = 11;
+        bytes32 slot = keccak256(abi.encode(k, p));
+        vm.store(address(borrowTokenVault), slot, bytes32(uint256(0)));
     }
 
     function setUp() public override {
         super.setUp();
         borrowTokenVault = NonTransferrableTokenVault(address(size.data().borrowTokenVault));
-        _rollbackToV1_7(address(borrowTokenVault));
+        _rollbackToV1_7();
     }
 
     function test_ReinitializeV1_8_reinitialize_onlyOwner() public {
@@ -33,9 +35,9 @@ contract ReinitializeV1_8Test is BaseTest {
     }
 
     function test_ReinitializeV1_8_reinitialize_cannot_reinitialize_twice() public {
-        assertEq(borrowTokenVault.isUserVaultWhitelistEnabled(), false);
+        assertEq(borrowTokenVault.isUserVaultWhitelisted(borrowTokenVault.DEFAULT_VAULT()), false);
         borrowTokenVault.reinitialize(name, symbol);
-        assertEq(borrowTokenVault.isUserVaultWhitelistEnabled(), true);
+        assertEq(borrowTokenVault.isUserVaultWhitelisted(borrowTokenVault.DEFAULT_VAULT()), true);
 
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         borrowTokenVault.reinitialize(name, symbol);
