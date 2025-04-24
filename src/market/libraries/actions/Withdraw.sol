@@ -83,7 +83,7 @@ library Withdraw {
         if (params.token == address(state.data.underlyingBorrowToken)) {
             amount = Math.min(params.amount, state.data.borrowTokenVault.balanceOf(onBehalfOf));
             if (amount > 0) {
-                amount = state.data.borrowTokenVault.withdraw(onBehalfOf, params.to, amount);
+                (amount,) = state.data.borrowTokenVault.withdraw(onBehalfOf, params.to, amount);
             }
         } else {
             amount = Math.min(params.amount, state.data.collateralToken.balanceOf(onBehalfOf));

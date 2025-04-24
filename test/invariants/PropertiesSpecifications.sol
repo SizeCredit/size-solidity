@@ -59,6 +59,10 @@ abstract contract PropertiesSpecifications {
     string internal constant SOLVENCY_03 = "SOLVENCY_03: SUM(positions debt) == user total debt, for each user";
     string internal constant SOLVENCY_04 = "SOLVENCY_04: SUM(positions debt) == SUM(debt)";
 
+    string internal constant USER_VAULTS_01 = "USER_VAULTS_01: SUM(balanceOf) <= totalSupply";
+    string internal constant USER_VAULTS_02 = "USER_VAULTS_02: Changing a user vault does not leave dust shares";
+    string internal constant USER_VAULTS_03 = "USER_VAULTS_03: underlying.balanceOf(borrowTokenVault) == 0";
+
     string internal constant FEES_01 =
         "FEES_01: Fragmentation fees are applied whenever there is a credit fractionalization";
     string internal constant FEES_02 = "FEES_02: Cash swap operations increase the fee recipient balance";

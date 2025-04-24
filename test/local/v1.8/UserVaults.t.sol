@@ -329,6 +329,25 @@ contract UserVaultsTest is BaseTest {
         _withdraw(bob, address(usdc), 100e6);
     }
 
-    function test_UserVaults_dust_shares_when_changing_vaults() public {}
-    function test_UserVaults_total_supply_across_multiple_vaults() public {}
+    function test_UserVaults_total_supply_across_multiple_vaults() public {
+        _setUserVaultWhitelisted(vault2, true);
+        _setUserConfiguration(alice, address(vault2), 1.5e18, false, false, new uint256[](0));
+
+        _deposit(alice, usdc, 200e6);
+        _deposit(bob, usdc, 100e6);
+
+        assertEq(size.data().borrowTokenVault.totalSupply(), 300e6);
+
+        deal(address(usdc), address(vault2), 210e6);
+
+        address aToken = size.data().variablePool.getReserveData(address(usdc)).aTokenAddress;
+
+        assertEq(size.data().borrowTokenVault.totalSupply(), 300e6);
+        assertEq(usdc.balanceOf(address(vault2)) + usdc.balanceOf(aToken), 310e6);
+
+        _withdraw(alice, usdc, 50e6);
+
+        assertEq(size.data().borrowTokenVault.totalSupply(), 250e6);
+        assertEq(usdc.balanceOf(address(vault2)) + usdc.balanceOf(aToken), 260e6);
+    }
 }

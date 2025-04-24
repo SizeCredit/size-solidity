@@ -29,6 +29,7 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 ///      By default, underlying tokens are deposited into the Aave pool, unless the user has set a vault.
 ///      User vaults are whitelisted, and are assumed to be standard ERC4626 tokens.
 ///      Vaults with features such as pause, fee on transfer, and asynchronous share minting/burning are not supported.
+///      The `userVaultsApproxTotalAssets` is an approximate number because assets belong to different vaults and can grow over time
 contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2StepUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20Metadata;
 
@@ -56,7 +57,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
     // v1.8
     mapping(address user => IERC4626 vault) public userVault;
-    mapping(address user => uint256 shares) public userVaultShares; // TODO can we reuse `scaledBalanceOf`? TODO can we have dust shares?
+    mapping(address user => uint256 shares) public userVaultShares;
     uint256 public userVaultsApproxTotalAssets;
     mapping(IERC4626 vault => bool isWhitelisted) public isUserVaultWhitelisted;
 
@@ -149,12 +150,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
                             ERC20 FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Transfer tokens from one account to another
-    /// @param from The account to transfer the tokens from
-    /// @param to The account to transfer the tokens to
-    /// @param value The unscaled amount of tokens to transfer
-    /// @dev Due to rounding, the Transfer event may not represent the actual unscaled amount or the actual number of shares
-    /// @return True if the transfer was successful
+    /// @inheritdoc IERC20
     function transferFrom(address from, address to, uint256 value) public virtual onlyMarket returns (bool) {
         if (from == address(0)) {
             revert ERC20InvalidSender(address(0));
@@ -163,6 +159,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
             revert ERC20InvalidReceiver(address(0));
         }
 
+        // slither-disable-next-line unused-return
         _transferFrom(from, to, value, userVault[from], userVault[to]);
 
         emit Transfer(from, to, value);
@@ -195,8 +192,9 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     }
 
     /// @inheritdoc IERC20
-    /// @notice Returns the approximate total supply of underlying tokens by adding the approximate number of assets in all ERC4626 vaults and the unscaled total supply
-    /// @dev This number should be only used for informational purposes
+    /// @notice Returns the approximate total supply of underlying tokens by adding
+    ///           the approximate number of assets in all ERC4626 vaults and the unscaled total supply on Aave
+    /// @dev This number should be used for informational purposes only
     function totalSupply() public view returns (uint256) {
         return _unscale(scaledTotalSupply) + userVaultsApproxTotalAssets;
     }
@@ -206,8 +204,6 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Set the user vault
-    /// @param user The user to set the vault for
-    /// @param vault The vault to set for the user
     /// @dev This function is only callable by the market
     ///      Setting the vault to `address(0)` will use the default variable pool
     ///      Setting the user vault to a different address will withdraw all the user's assets
@@ -230,20 +226,42 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
     /// @notice Deposit underlying tokens into the variable pool and mint scaled tokens
     /// @dev The actual deposited amount can be lower than the input amount based on the vault deposit and rounding logic
-    function deposit(address from, address to, uint256 amount) external onlyMarket returns (uint256 depositAmount) {
+    function deposit(address from, address to, uint256 amount)
+        external
+        onlyMarket
+        returns (uint256 assets, uint256 shares)
+    {
+        if (from == address(0)) {
+            revert ERC20InvalidSender(address(0));
+        }
+        if (to == address(0)) {
+            revert ERC20InvalidReceiver(address(0));
+        }
+
         underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
 
-        depositAmount = _deposit(from, to, amount, userVault[to]);
+        (assets, shares) = _deposit(from, to, amount, userVault[to]);
 
-        emit Transfer(address(0), to, depositAmount);
+        emit Transfer(address(0), to, assets);
     }
 
     /// @notice Withdraw underlying tokens from the variable pool and burn scaled tokens
     /// @dev The actual withdrawn amount can be lower than the input amount based on the vault withdraw and rounding logic
-    function withdraw(address from, address to, uint256 amount) external onlyMarket returns (uint256 withdrawAmount) {
-        withdrawAmount = _withdraw(from, to, amount, userVault[from]);
+    function withdraw(address from, address to, uint256 amount)
+        external
+        onlyMarket
+        returns (uint256 assets, uint256 shares)
+    {
+        if (from == address(0)) {
+            revert ERC20InvalidSender(address(0));
+        }
+        if (to == address(0)) {
+            revert ERC20InvalidReceiver(address(0));
+        }
 
-        emit Transfer(from, address(0), withdrawAmount);
+        (assets, shares) = _withdraw(from, to, amount, userVault[from]);
+
+        emit Transfer(from, address(0), assets);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -260,131 +278,115 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
                             PRIVATE FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Deposits underlying tokens into the vault
-    /// @param from The address to deposit the tokens from
-    /// @param to The address to deposit the tokens to
-    /// @param amount The amount of tokens to deposit
-    /// @param vault The vault to deposit the tokens to
-    /// @return The actual amount of tokens to be credited to the user
-    function _deposit(address from, address to, uint256 amount, IERC4626 vault) private returns (uint256) {
+    /// @notice Deposits underlying tokens into an ERC4626 vault or the Aave pool
+    function _deposit(address from, address to, uint256 amount, IERC4626 vault)
+        private
+        returns (uint256 assets, uint256 shares)
+    {
         if (vault == DEFAULT_VAULT) {
-            return _depositToAave(from, to, amount);
+            (assets, shares) = _depositToAave(from, to, amount);
         } else {
-            return _depositToVault(from, to, amount, vault);
+            (assets, shares) = _depositToVault(from, to, amount, vault);
         }
     }
 
-    /// @notice Withdraws underlying tokens from the vault
-    /// @param from The address to withdraw the tokens from
-    /// @param to The address to withdraw the tokens to
-    /// @param amount The amount of tokens to withdraw
-    /// @param vault The vault to withdraw the tokens from
-    /// @return The actual amount of tokens to be credited to the user
-    function _withdraw(address from, address to, uint256 amount, IERC4626 vault) private returns (uint256) {
+    /// @notice Withdraws underlying tokens from an ERC4626 vault or the Aave pool
+    function _withdraw(address from, address to, uint256 amount, IERC4626 vault)
+        private
+        returns (uint256 assets, uint256 shares)
+    {
         if (vault == DEFAULT_VAULT) {
-            return _withdrawFromAave(from, to, amount);
+            (assets, shares) = _withdrawFromAave(from, to, amount);
         } else {
-            return _withdrawFromVault(from, to, amount, vault);
+            (assets, shares) = _withdrawFromVault(from, to, amount, vault);
         }
     }
 
-    /// @notice Transfers underlying tokens between the vaults
-    /// @param from The address to transfer the tokens from
-    /// @param to The address to transfer the tokens to
-    /// @param value The amount of tokens to transfer
-    /// @param vaultFrom The vault to transfer the tokens from
-    /// @param vaultTo The vault to transfer the tokens to
+    /// @notice Transfers underlying tokens between users and vaults or Aave
     /// @dev If the amount is 0, short circuit, as some vaults revert on 0 deposit/withdraw/transfer
-    function _transferFrom(address from, address to, uint256 value, IERC4626 vaultFrom, IERC4626 vaultTo) private {
-        if (value == 0) return;
+    function _transferFrom(address from, address to, uint256 value, IERC4626 vaultFrom, IERC4626 vaultTo)
+        private
+        returns (uint256 assets, uint256 shares)
+    {
+        if (value == 0) return (0, 0);
 
         if (vaultFrom == vaultTo) {
             if (vaultFrom == DEFAULT_VAULT) {
-                _transferFromAaveSame(from, to, value);
+                (assets, shares) = _transferFromAaveSame(from, to, value);
             } else {
-                _transferFromVaultSame(from, to, value, vaultFrom);
+                (assets, shares) = _transferFromVaultSame(from, to, value, vaultFrom);
             }
         } else {
-            _withdraw(from, address(this), value, vaultFrom);
-            _deposit(address(this), to, value, vaultTo);
+            (assets, shares) = _withdraw(from, address(this), value, vaultFrom);
+            (assets, shares) = _deposit(address(this), to, assets, vaultTo);
         }
     }
 
-    /// @notice Deposits underlying tokens into a user vault
-    /// @param /*from*/ The address to deposit the tokens from
-    /// @param to The address to deposit the tokens to
-    /// @param amount The amount of tokens to deposit
-    /// @param vault The vault to deposit the tokens to
-    /// @return The actual amount of tokens to be credited to the user
-    // slither-disable-next-line reentrancy-benign
-    function _depositToVault(address, /*from*/ address to, uint256 amount, IERC4626 vault) private returns (uint256) {
+    /// @notice Deposits underlying tokens into an ERC4626 vault
+    function _depositToVault(address, address to, uint256 amount, IERC4626 vault)
+        private
+        returns (uint256 assets, uint256 shares)
+    {
+        underlyingToken.forceApprove(address(vault), amount);
+
         uint256 sharesBefore = vault.balanceOf(address(this));
 
-        underlyingToken.forceApprove(address(vault), amount);
         // slither-disable-next-line unused-return
         vault.deposit(amount, address(this));
 
-        uint256 shares = vault.balanceOf(address(this)) - sharesBefore;
-        uint256 assets = vault.convertToAssets(shares);
+        shares = vault.balanceOf(address(this)) - sharesBefore;
+        assets = vault.convertToAssets(shares);
 
-        _mintVault(to, shares, assets);
-
-        return assets;
+        userVaultShares[to] += shares;
+        userVaultsApproxTotalAssets += assets;
     }
 
     /// @notice Deposits underlying tokens into the Aave pool
-    /// @param /*from*/ The address to deposit the tokens from
-    /// @param to The address to deposit the tokens to
-    /// @param amount The amount of tokens to deposit
-    /// @return The actual amount of tokens to be credited to the user
     // slither-disable-next-line reentrancy-benign
-    function _depositToAave(address, /*from*/ address to, uint256 amount) private returns (uint256) {
+    function _depositToAave(address, address to, uint256 amount) private returns (uint256 assets, uint256 shares) {
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
 
-        uint256 scaledBalanceBefore = aToken.scaledBalanceOf(address(this));
+        uint256 sharesBefore = aToken.scaledBalanceOf(address(this));
 
         underlyingToken.forceApprove(address(aavePool), amount);
         aavePool.supply(address(underlyingToken), amount, address(this), 0);
 
-        uint256 scaledAmount = aToken.scaledBalanceOf(address(this)) - scaledBalanceBefore;
-        uint256 unscaledAmount = _unscale(scaledAmount);
+        shares = aToken.scaledBalanceOf(address(this)) - sharesBefore;
+        assets = _unscale(shares);
 
-        _mintScaled(to, scaledAmount, unscaledAmount);
-
-        return unscaledAmount;
+        scaledTotalSupply += shares;
+        scaledBalanceOf[to] += shares;
     }
 
-    /// @notice Withdraws underlying tokens from a user vault
-    /// @param from The address to withdraw the tokens from
-    /// @param to The address to withdraw the tokens to
-    /// @param amount The amount of tokens to withdraw
-    /// @param vault The vault to withdraw the tokens from
-    /// @return The actual amount of tokens to be credited to the user
-    // slither-disable-next-line reentrancy-benign
-    function _withdrawFromVault(address from, address to, uint256 amount, IERC4626 vault) private returns (uint256) {
+    /// @notice Withdraws underlying tokens from an ERC4626 vault
+    function _withdrawFromVault(address from, address to, uint256 amount, IERC4626 vault)
+        private
+        returns (uint256 assets, uint256 shares)
+    {
         uint256 sharesBefore = vault.balanceOf(address(this));
         uint256 assetsBefore = underlyingToken.balanceOf(address(this));
 
         // slither-disable-next-line unused-return
         vault.withdraw(amount, address(this), address(this));
 
-        uint256 shares = sharesBefore - vault.balanceOf(address(this));
-        uint256 assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
+        shares = sharesBefore - vault.balanceOf(address(this));
+        assets = underlyingToken.balanceOf(address(this)) - assetsBefore;
 
-        underlyingToken.transfer(to, assets);
+        underlyingToken.safeTransfer(to, assets);
 
-        _burnVault(from, shares, assets);
-
-        return assets;
+        userVaultShares[from] -= shares;
+        if (userVaultsApproxTotalAssets > assets) {
+            userVaultsApproxTotalAssets -= assets;
+        } else {
+            userVaultsApproxTotalAssets = 0;
+        }
     }
 
     /// @notice Withdraws underlying tokens from the Aave pool
-    /// @param from The address to withdraw the tokens from
-    /// @param to The address to withdraw the tokens to
-    /// @param amount The amount of tokens to withdraw
-    /// @return The actual amount of tokens to be credited to the user
-    // slither-disable-next-line reentrancy-benign
-    function _withdrawFromAave(address from, address to, uint256 amount) private returns (uint256) {
+    function _withdrawFromAave(address from, address to, uint256 amount)
+        private
+        returns (uint256 assets, uint256 shares)
+    {
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
 
         uint256 scaledBalanceBefore = aToken.scaledBalanceOf(address(this));
@@ -392,27 +394,30 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         // slither-disable-next-line unused-return
         aavePool.withdraw(address(underlyingToken), amount, to);
 
-        uint256 scaledAmount = scaledBalanceBefore - aToken.scaledBalanceOf(address(this));
-        uint256 unscaledAmount = _unscale(scaledAmount);
+        shares = scaledBalanceBefore - aToken.scaledBalanceOf(address(this));
+        assets = _unscale(shares);
 
-        _burnScaled(from, scaledAmount, unscaledAmount);
+        if (scaledBalanceOf[from] < shares) {
+            revert ERC20InsufficientBalance(from, balanceOf(from), amount);
+        }
 
-        return unscaledAmount;
+        scaledBalanceOf[from] -= shares;
+        scaledTotalSupply -= shares;
     }
 
-    /// @notice Transfers assets between a user vault and another user from the same vault
+    /// @notice Transfers assets between an ERC4626 vault and the same ERC4626 vault
     /// @dev The assets are converted to shares and then transferred internally
     ///      The share amount is rounded down
-    /// @param from The address to transfer the assets from
-    /// @param to The address to transfer the assets to
-    /// @param value The amount of assets to transfer
-    /// @param vault The vault to transfer the assets from
-    function _transferFromVaultSame(address from, address to, uint256 value, IERC4626 vault) private {
+    function _transferFromVaultSame(address from, address to, uint256 value, IERC4626 vault)
+        private
+        returns (uint256 assets, uint256 shares)
+    {
         if (vault.totalAssets() < value) {
             revert InsufficientTotalAssets(address(vault), vault.totalAssets(), value);
         }
 
-        uint256 shares = vault.convertToShares(value);
+        shares = vault.convertToShares(value);
+        assets = value;
 
         if (userVaultShares[from] < shares) {
             revert ERC20InsufficientBalance(from, balanceOf(from), value);
@@ -427,106 +432,34 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     ///      The scaled amount is rounded down
     ///      If the Aave pool has insufficient liquidity, the ERC20InsufficientTotalAssets error is thrown with DEFAULT_VAULT as the vault parameter,
     ///        even though the underlying balance is checked against the Aave pool
-    /// @param from The address to transfer the tokens from
-    /// @param to The address to transfer the tokens to
-    /// @param value The amount of tokens to transfer
-    function _transferFromAaveSame(address from, address to, uint256 value) private {
+    function _transferFromAaveSame(address from, address to, uint256 value)
+        private
+        returns (uint256 assets, uint256 shares)
+    {
         IAToken aToken = IAToken(aavePool.getReserveData(address(underlyingToken)).aTokenAddress);
         if (underlyingToken.balanceOf(address(aToken)) < value) {
             revert InsufficientTotalAssets(address(DEFAULT_VAULT), underlyingToken.balanceOf(address(aToken)), value);
         }
 
-        uint256 scaledAmount = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
+        shares = Math.mulDivDown(value, WadRayMath.RAY, liquidityIndex());
+        assets = value;
 
-        if (scaledBalanceOf[from] < scaledAmount) {
+        if (scaledBalanceOf[from] < shares) {
             revert ERC20InsufficientBalance(from, balanceOf(from), value);
         }
 
-        scaledBalanceOf[from] -= scaledAmount;
-        scaledBalanceOf[to] += scaledAmount;
+        scaledBalanceOf[from] -= shares;
+        scaledBalanceOf[to] += shares;
     }
 
     /// @notice Unscales a scaled amount
-    /// @param scaledAmount The scaled amount to unscale
     /// @return The unscaled amount
     /// @dev The unscaled amount is the scaled amount divided by the current liquidity index
     function _unscale(uint256 scaledAmount) private view returns (uint256) {
         return Math.mulDivDown(scaledAmount, liquidityIndex(), WadRayMath.RAY);
     }
 
-    /// @notice Mints NonTransferrableTokenVault tokens based on the number of shares deposited into the user vault
-    /// @param to The address to mint the tokens to
-    /// @param shares The number of shares to mint
-    /// @param assets The number of assets that the shares represent
-    function _mintVault(address to, uint256 shares, uint256 assets) private {
-        if (to == address(0)) {
-            revert ERC20InvalidReceiver(address(0));
-        }
-
-        userVaultShares[to] += shares;
-        userVaultsApproxTotalAssets += assets;
-    }
-
-    /// @notice Mints NonTransferrableTokenVault tokens based on the number of scaled tokens deposited into the Aave pool
-    /// @param to The address to mint the tokens to
-    /// @param scaledAmount The number of scaled tokens to mint
-    /// @param /*amount*/ The unscaled amount
-    function _mintScaled(address to, uint256 scaledAmount, uint256 /* amount*/ ) private {
-        if (to == address(0)) {
-            revert ERC20InvalidReceiver(address(0));
-        }
-
-        scaledTotalSupply += scaledAmount;
-
-        // Cannot overflow because the sum of all user
-        // balances can't exceed the max uint256 value.
-        unchecked {
-            scaledBalanceOf[to] += scaledAmount;
-        }
-    }
-
-    /// @notice Burns NonTransferrableTokenVault tokens based on the number of scaled tokens deposited into the Aave pool
-    /// @param from The address to burn the tokens from
-    /// @param scaledAmount The number of scaled tokens to burn
-    /// @param amount The unscaled amount
-    function _burnScaled(address from, uint256 scaledAmount, uint256 amount) private {
-        if (from == address(0)) {
-            revert ERC20InvalidSender(address(0));
-        }
-
-        if (scaledBalanceOf[from] < scaledAmount) {
-            revert ERC20InsufficientBalance(from, balanceOf(from), amount);
-        }
-
-        scaledBalanceOf[from] -= scaledAmount;
-
-        // Cannot underflow because a user's balance
-        // will never be larger than the total supply.
-        unchecked {
-            scaledTotalSupply -= scaledAmount;
-        }
-    }
-
-    /// @notice Burns NonTransferrableTokenVault tokens based on the number of shares and assets
-    /// @param from The address to burn the tokens from
-    /// @param shares The number of shares to burn
-    /// @param assets The number of assets that the shares represent
-    function _burnVault(address from, uint256 shares, uint256 assets) private {
-        if (from == address(0)) {
-            revert ERC20InvalidSender(address(0));
-        }
-
-        userVaultShares[from] -= shares;
-        if (userVaultsApproxTotalAssets > assets) {
-            userVaultsApproxTotalAssets -= assets;
-        } else {
-            userVaultsApproxTotalAssets = 0;
-        }
-    }
-
     /// @notice Sets the whitelist status of a user vault
-    /// @param vault The vault to set the whitelist status for
-    /// @param whitelisted The whitelist status to set
     function _setUserVaultWhitelisted(IERC4626 vault, bool whitelisted) private {
         emit UserVaultWhitelisted(vault, isUserVaultWhitelisted[vault], whitelisted);
         isUserVaultWhitelisted[vault] = whitelisted;
