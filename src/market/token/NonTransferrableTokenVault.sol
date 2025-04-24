@@ -309,6 +309,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         private
         returns (uint256 assets, uint256 shares)
     {
+        // slither-disable-next-line incorrect-equality
         if (value == 0) return (0, 0);
 
         if (vaultFrom == vaultTo) {
@@ -318,12 +319,15 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
                 (assets, shares) = _transferFromVaultSame(from, to, value, vaultFrom);
             }
         } else {
-            (assets, shares) = _withdraw(from, address(this), value, vaultFrom);
+            // slither-disable-next-line unused-return
+            (assets,) = _withdraw(from, address(this), value, vaultFrom);
+            // slither-disable-next-line write-after-write
             (assets, shares) = _deposit(address(this), to, assets, vaultTo);
         }
     }
 
     /// @notice Deposits underlying tokens into an ERC4626 vault
+    // slither-disable-next-line reentrancy-benign
     function _depositToVault(address, address to, uint256 amount, IERC4626 vault)
         private
         returns (uint256 assets, uint256 shares)
@@ -360,6 +364,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     }
 
     /// @notice Withdraws underlying tokens from an ERC4626 vault
+    // slither-disable-next-line reentrancy-benign
     function _withdrawFromVault(address from, address to, uint256 amount, IERC4626 vault)
         private
         returns (uint256 assets, uint256 shares)
@@ -384,6 +389,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     }
 
     /// @notice Withdraws underlying tokens from the Aave pool
+    // slither-disable-next-line reentrancy-benign
     function _withdrawFromAave(address from, address to, uint256 amount)
         private
         returns (uint256 assets, uint256 shares)

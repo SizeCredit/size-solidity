@@ -83,6 +83,7 @@ library Withdraw {
         if (params.token == address(state.data.underlyingBorrowToken)) {
             amount = Math.min(params.amount, state.data.borrowTokenVault.balanceOf(onBehalfOf));
             if (amount > 0) {
+                // slither-disable-next-line unused-return
                 (amount,) = state.data.borrowTokenVault.withdraw(onBehalfOf, params.to, amount);
             }
         } else {
