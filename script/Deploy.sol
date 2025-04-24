@@ -42,6 +42,16 @@ import {SizeFactory} from "@src/factory/SizeFactory.sol";
 import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+import {ERC4626} from "@solady/tokens/ERC4626.sol";
+import {ERC20} from "solmate/tokens/ERC20.sol";
+
+import {ControlledAsyncDeposit} from "@ERC-7540-Reference/ControlledAsyncDeposit.sol";
+import {ControlledAsyncRedeem} from "@ERC-7540-Reference/ControlledAsyncRedeem.sol";
+import {FullyAsyncVault} from "@ERC-7540-Reference/FullyAsyncVault.sol";
+import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
+import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
+
 abstract contract Deploy {
     address internal implementation;
     ERC1967Proxy internal proxy;
@@ -63,6 +73,16 @@ abstract contract Deploy {
     bool internal shouldDeploySizeFactory = true;
 
     IERC4626 internal vault;
+    IERC4626 internal vault2;
+    IERC4626 internal vaultMalicious;
+    IERC4626 internal vaultFeeOnTransfer;
+    IERC4626 internal vaultNonERC4626;
+    IERC4626 internal vaultERC7540FullyAsync;
+    IERC4626 internal vaultERC7540ControlledAsyncDeposit;
+    IERC4626 internal vaultERC7540ControlledAsyncRedeem;
+    IERC4626 internal vaultInvalidUnderlying;
+
+    uint256 public constant TIMELOCK = 24 hours;
 
     function setupLocal(address owner, address feeRecipient) internal {
         priceFeed = new PriceFeedMock(owner);
@@ -80,7 +100,7 @@ abstract contract Deploy {
 
         address borrowTokenVaultImplementation = address(new NonTransferrableTokenVault());
 
-        vault = IERC4626(address(new MockERC4626(address(usdc), "Vault", "VAULT", true, 0)));
+        _deployVaults();
 
         hevm.prank(owner);
         sizeFactory.setNonTransferrableTokenVaultImplementation(borrowTokenVaultImplementation);
@@ -216,5 +236,23 @@ abstract contract Deploy {
         variablePool = IPool(_variablePool);
         weth = WETH(payable(_weth));
         usdc = USDC(_usdc);
+    }
+
+    function _deployVaults() internal {
+        vault = IERC4626(address(new MockERC4626(address(usdc), "Vault", "VAULT", true, 0)));
+        vault2 = IERC4626(address(new MockERC4626(address(usdc), "Vault2", "VAULT2", true, 0)));
+        vaultMalicious = IERC4626(address(new MaliciousERC4626(usdc, "VaultMalicious", "VAULTMALICIOUS")));
+        vaultFeeOnTransfer =
+            IERC4626(address(new FeeOnTransferERC4626(usdc, "VaultFeeOnTransfer", "VAULTFEEONTXFER", 0.1e18)));
+        vaultNonERC4626 = IERC4626(address(new ERC20Mock()));
+        vaultERC7540FullyAsync =
+            IERC4626(address(new FullyAsyncVault(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
+        vaultERC7540ControlledAsyncDeposit =
+            IERC4626(address(new ControlledAsyncDeposit(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
+        vaultERC7540ControlledAsyncRedeem =
+            IERC4626(address(new ControlledAsyncRedeem(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
+        vaultInvalidUnderlying = IERC4626(
+            address(new MockERC4626(address(weth), "VaultInvalidUnderlying", "VAULTINVALIDUNDERLYING", true, 0))
+        );
     }
 }

@@ -16,46 +16,16 @@ import {MockERC4626} from "@solady/../test/utils/mocks/MockERC4626.sol";
 import {ERC4626} from "@solady/tokens/ERC4626.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
-import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
-import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
-
 import {ControlledAsyncDeposit} from "@ERC-7540-Reference/ControlledAsyncDeposit.sol";
 import {ControlledAsyncRedeem} from "@ERC-7540-Reference/ControlledAsyncRedeem.sol";
 import {FullyAsyncVault} from "@ERC-7540-Reference/FullyAsyncVault.sol";
+import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
+import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
 
 contract VaultsTest is BaseTest {
-    IERC4626 vault2;
-    IERC4626 vaultMalicious;
-    IERC4626 vaultFeeOnTransfer;
-    IERC4626 vaultNonERC4626;
-    IERC4626 vaultERC7540FullyAsync;
-    IERC4626 vaultERC7540ControlledAsyncDeposit;
-    IERC4626 vaultERC7540ControlledAsyncRedeem;
-
-    IERC4626 vaultInvalidUnderlying;
-    uint256 public constant TIMELOCK = 24 hours;
-
-    function setUp() public override {
-        super.setUp();
-        vault2 = IERC4626(address(new MockERC4626(address(usdc), "Vault2", "VAULT2", true, 0)));
-        vaultMalicious = IERC4626(address(new MaliciousERC4626(usdc, "VaultMalicious", "VAULTMALICIOUS")));
-        vaultFeeOnTransfer =
-            IERC4626(address(new FeeOnTransferERC4626(usdc, "VaultFeeOnTransfer", "VAULTFEEONTXFER", 0.1e18)));
-        vaultNonERC4626 = IERC4626(address(new ERC20Mock()));
-        vaultERC7540FullyAsync =
-            IERC4626(address(new FullyAsyncVault(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
-        vaultERC7540ControlledAsyncDeposit =
-            IERC4626(address(new ControlledAsyncDeposit(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
-        vaultERC7540ControlledAsyncRedeem =
-            IERC4626(address(new ControlledAsyncRedeem(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));
-        vaultInvalidUnderlying = IERC4626(
-            address(new MockERC4626(address(weth), "VaultInvalidUnderlying", "VAULTINVALIDUNDERLYING", true, 0))
-        );
-    }
-
     function test_vaults_borrower_vault_lender_aave() public {
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 100e18);

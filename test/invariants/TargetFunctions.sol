@@ -424,21 +424,23 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
         }
     }
 
-    function setUserConfiguration(uint256 openingLimitBorrowCR, bool allCreditPositionsForSaleDisabled)
-        public
-        getSender
-        checkExpectedErrors(SET_USER_CONFIGURATION_ERRORS)
-    {
+    function setUserConfiguration(
+        address _vault,
+        uint256 _openingLimitBorrowCR,
+        bool _allCreditPositionsForSaleDisabled
+    ) public getSender checkExpectedErrors(SET_USER_CONFIGURATION_ERRORS) {
         __before();
+
+        _vault = _getRandomVault(_vault);
 
         hevm.prank(sender);
         (success, returnData) = address(size).call(
             abi.encodeCall(
                 size.setUserConfiguration,
                 SetUserConfigurationParams({
-                    vault: address(0),
-                    openingLimitBorrowCR: openingLimitBorrowCR,
-                    allCreditPositionsForSaleDisabled: allCreditPositionsForSaleDisabled,
+                    vault: _vault,
+                    openingLimitBorrowCR: _openingLimitBorrowCR,
+                    allCreditPositionsForSaleDisabled: _allCreditPositionsForSaleDisabled,
                     creditPositionIdsForSale: false,
                     creditPositionIds: new uint256[](0)
                 })
