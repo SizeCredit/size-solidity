@@ -9,6 +9,10 @@ import {Math, PERCENT} from "@src/market/libraries/Math.sol";
 import {PropertiesSpecifications} from "@test/invariants/PropertiesSpecifications.sol";
 import {ITargetFunctions} from "@test/invariants/interfaces/ITargetFunctions.sol";
 
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {DataView} from "@src/market/SizeViewData.sol";
+import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
+
 import {UserView} from "@src/market/SizeView.sol";
 import {console} from "forge-std/console.sol";
 
@@ -136,6 +140,26 @@ abstract contract Properties is Ghosts, PropertiesSpecifications {
         }
 
         eq(totalDebt, size.data().debtToken.totalSupply(), SOLVENCY_04);
+
+        return true;
+    }
+
+    function property_VAULTS() public returns (bool) {
+        DataView memory data = size.data();
+        NonTransferrableTokenVault borrowTokenVault = data.borrowTokenVault;
+        IERC20Metadata underlyingBorrowToken = data.underlyingBorrowToken;
+        address feeRecipient = size.feeConfig().feeRecipient;
+        address[5] memory users = [USER1, USER2, USER3, address(size), address(feeRecipient)];
+        uint256 totalSupply = borrowTokenVault.totalSupply();
+        uint256 totalBalance;
+        for (uint256 i = 0; i < users.length; i++) {
+            UserView memory userView = size.getUserView(users[i]);
+            totalBalance += userView.borrowTokenBalance;
+        }
+        t(totalBalance <= totalSupply, VAULTS_01);
+
+        // TODO VAULTS_02
+        eq(underlyingBorrowToken.balanceOf(address(borrowTokenVault)), 0, VAULTS_03);
 
         return true;
     }

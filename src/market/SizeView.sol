@@ -4,6 +4,8 @@ pragma solidity 0.8.23;
 import {SizeStorage, State, User, UserCopyLimitOrders} from "@src/market/SizeStorage.sol";
 import {VariablePoolBorrowRateParams} from "@src/market/libraries/YieldCurveLibrary.sol";
 
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+
 import {
     CREDIT_POSITION_ID_START,
     CreditPosition,
@@ -114,6 +116,11 @@ abstract contract SizeView is SizeStorage, ISizeView {
     /// @inheritdoc ISizeView
     function getUserCopyLimitOrders(address user) external view returns (UserCopyLimitOrders memory) {
         return state.data.usersCopyLimitOrders[user];
+    }
+
+    /// @inheritdoc ISizeView
+    function getUserVault(address user) external view returns (IERC4626) {
+        return state.data.borrowTokenVault.vaultOf(user);
     }
 
     /// @inheritdoc ISizeView
