@@ -444,7 +444,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
 
     function _setUserConfiguration(
         address user,
-        address userVault,
+        address vault,
         uint256 openingLimitBorrowCR,
         bool allCreditPositionsForSaleDisabled,
         bool creditPositionIdsForSale,
@@ -453,7 +453,7 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         vm.prank(user);
         size.setUserConfiguration(
             SetUserConfigurationParams({
-                userVault: userVault,
+                vault: vault,
                 openingLimitBorrowCR: openingLimitBorrowCR,
                 allCreditPositionsForSaleDisabled: allCreditPositionsForSaleDisabled,
                 creditPositionIdsForSale: creditPositionIdsForSale,
@@ -488,10 +488,10 @@ contract BaseTest is Test, Deploy, AssertsHelper {
         PoolMock(address(variablePool)).setLiquidityIndex(token, index);
     }
 
-    function _setUserVaultWhitelisted(IERC4626 vault, bool whitelisted) internal {
+    function _setVaultWhitelisted(IERC4626 vault, bool whitelisted) internal {
         NonTransferrableTokenVault borrowTokenVault = NonTransferrableTokenVault(address(size.data().borrowTokenVault));
         vm.prank(address(this));
-        borrowTokenVault.setUserVaultWhitelisted(vault, whitelisted);
+        borrowTokenVault.setVaultWhitelisted(vault, whitelisted);
     }
 
     function _setLiquidityIndex(uint256 index) internal {

@@ -26,7 +26,7 @@ contract SetUserConfigurationValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_CREDIT_POSITION_ID.selector, creditPositionId));
         size.setUserConfiguration(
             SetUserConfigurationParams({
-                userVault: address(0),
+                vault: address(0),
                 openingLimitBorrowCR: 0,
                 allCreditPositionsForSaleDisabled: false,
                 creditPositionIdsForSale: true,
@@ -42,7 +42,7 @@ contract SetUserConfigurationValidationTest is BaseTest {
         vm.expectRevert(abi.encodeWithSelector(Errors.LOAN_NOT_ACTIVE.selector, creditPositionId));
         size.setUserConfiguration(
             SetUserConfigurationParams({
-                userVault: address(0),
+                vault: address(0),
                 openingLimitBorrowCR: 0,
                 allCreditPositionsForSaleDisabled: false,
                 creditPositionIdsForSale: true,

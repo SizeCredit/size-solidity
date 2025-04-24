@@ -118,11 +118,11 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         token.transferFrom(user, address(this), 50);
 
         vm.prank(address(owner));
-        token.setUserVaultWhitelisted(vault, true);
+        token.setVaultWhitelisted(vault, true);
         vm.prank(address(size));
-        token.setUserVault(user, vault);
+        token.setVault(user, vault);
         vm.prank(address(size));
-        token.setUserVault(address(this), vault);
+        token.setVault(address(this), vault);
 
         vm.prank(address(size));
         vm.expectRevert(
@@ -209,33 +209,33 @@ contract NonTransferrableTokenVaultTest is BaseTest {
         assertEq(token.balanceOf(user), 500);
     }
 
-    function test_NonTransferrableTokenVault_setUserVaultWhitelisted() public {
-        assertTrue(!token.isUserVaultWhitelisted(vault));
+    function test_NonTransferrableTokenVault_setVaultWhitelisted() public {
+        assertTrue(!token.vaultWhitelisted(vault));
 
         vm.prank(owner);
-        token.setUserVaultWhitelisted(vault, true);
-        assertTrue(token.isUserVaultWhitelisted(vault));
+        token.setVaultWhitelisted(vault, true);
+        assertTrue(token.vaultWhitelisted(vault));
     }
 
-    function test_NonTransferrableTokenVault_setUserVault_1() public {
+    function test_NonTransferrableTokenVault_setVault_1() public {
         vm.prank(address(size));
         vm.expectRevert(abi.encodeWithSelector(Errors.NULL_ADDRESS.selector));
-        token.setUserVault(address(0), vault);
+        token.setVault(address(0), vault);
 
         vm.prank(owner);
-        token.setUserVaultWhitelisted(vault, true);
+        token.setVaultWhitelisted(vault, true);
 
         vm.prank(address(size));
-        token.setUserVault(alice, vault);
-        assertEq(address(token.userVault(alice)), address(vault));
+        token.setVault(alice, vault);
+        assertEq(address(token.vaultOf(alice)), address(vault));
     }
 
-    function test_NonTransferrableTokenVault_userVault_deposit_withdraw_path() public {
+    function test_NonTransferrableTokenVault_vault_deposit_withdraw_path() public {
         vm.prank(owner);
-        token.setUserVaultWhitelisted(vault, true);
+        token.setVaultWhitelisted(vault, true);
 
         vm.prank(address(size));
-        token.setUserVault(user, vault);
+        token.setVault(user, vault);
 
         deal(address(underlying), address(size), 1000);
         vm.prank(address(size));
@@ -252,7 +252,7 @@ contract NonTransferrableTokenVaultTest is BaseTest {
 
     function test_NonTransferrableTokenVault_transferFrom_aave_to_aave() public {
         vm.prank(owner);
-        token.setUserVaultWhitelisted(vault, true);
+        token.setVaultWhitelisted(vault, true);
 
         deal(address(underlying), address(size), 500);
         vm.prank(address(size));
@@ -269,10 +269,10 @@ contract NonTransferrableTokenVaultTest is BaseTest {
 
     function test_NonTransferrableTokenVault_transferFrom_aave_to_vault() public {
         vm.prank(owner);
-        token.setUserVaultWhitelisted(vault, true);
+        token.setVaultWhitelisted(vault, true);
 
         vm.prank(address(size));
-        token.setUserVault(owner, vault);
+        token.setVault(owner, vault);
 
         deal(address(underlying), address(size), 500);
         vm.prank(address(size));
@@ -289,10 +289,10 @@ contract NonTransferrableTokenVaultTest is BaseTest {
 
     function test_NonTransferrableTokenVault_transferFrom_vault_to_aave() public {
         vm.prank(owner);
-        token.setUserVaultWhitelisted(vault, true);
+        token.setVaultWhitelisted(vault, true);
 
         vm.prank(address(size));
-        token.setUserVault(user, vault);
+        token.setVault(user, vault);
 
         deal(address(underlying), address(size), 500);
         vm.prank(address(size));
@@ -309,12 +309,12 @@ contract NonTransferrableTokenVaultTest is BaseTest {
 
     function test_NonTransferrableTokenVault_transferFrom_vault_to_vault() public {
         vm.prank(owner);
-        token.setUserVaultWhitelisted(vault, true);
+        token.setVaultWhitelisted(vault, true);
 
         vm.prank(address(size));
-        token.setUserVault(user, vault);
+        token.setVault(user, vault);
         vm.prank(address(size));
-        token.setUserVault(owner, vault);
+        token.setVault(owner, vault);
 
         deal(address(underlying), address(size), 500);
         vm.prank(address(size));
@@ -331,10 +331,10 @@ contract NonTransferrableTokenVaultTest is BaseTest {
 
     function test_NonTransferrableTokenVault_totalSupply_2() public {
         vm.prank(owner);
-        token.setUserVaultWhitelisted(vault, true);
+        token.setVaultWhitelisted(vault, true);
 
         vm.prank(address(size));
-        token.setUserVault(user, vault);
+        token.setVault(user, vault);
 
         deal(address(underlying), address(size), 1_000e6);
         vm.prank(address(size));

@@ -26,7 +26,7 @@ import {FullyAsyncVault} from "@ERC-7540-Reference/FullyAsyncVault.sol";
 import {Errors} from "@src/market/libraries/Errors.sol";
 import {Events} from "@src/market/libraries/Events.sol";
 
-contract UserVaultsTest is BaseTest {
+contract VaultsTest is BaseTest {
     IERC4626 vault2;
     IERC4626 vaultMalicious;
     IERC4626 vaultFeeOnTransfer;
@@ -56,7 +56,7 @@ contract UserVaultsTest is BaseTest {
         );
     }
 
-    function test_UserVaults_borrower_vault_lender_aave() public {
+    function test_vaults_borrower_vault_lender_aave() public {
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 100e18);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
@@ -64,13 +64,13 @@ contract UserVaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setUserVaultWhitelisted(vault, true);
+        _setVaultWhitelisted(vault, true);
         _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
     }
 
-    function test_UserVaults_borrower_aave_lender_vault() public {
+    function test_vaults_borrower_aave_lender_vault() public {
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 100e18);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
@@ -78,13 +78,13 @@ contract UserVaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setUserVaultWhitelisted(vault, true);
+        _setVaultWhitelisted(vault, true);
         _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
     }
 
-    function test_UserVaults_borrower_vault_lender_vault() public {
+    function test_vaults_borrower_vault_lender_vault() public {
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 100e18);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
@@ -92,14 +92,14 @@ contract UserVaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setUserVaultWhitelisted(vault, true);
+        _setVaultWhitelisted(vault, true);
         _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
 
         _sellCreditMarket(bob, alice, RESERVED_ID, amount, tenor, false);
     }
 
-    function test_UserVaults_borrower_aave_lender_changes_vault_2_times_after_repay() public {
+    function test_vaults_borrower_aave_lender_changes_vault_2_times_after_repay() public {
         _deposit(alice, usdc, 200e6);
         _deposit(bob, weth, 100e18);
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
@@ -107,7 +107,7 @@ contract UserVaultsTest is BaseTest {
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        _setUserVaultWhitelisted(vault, true);
+        _setVaultWhitelisted(vault, true);
         _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(bob, address(vault), 1.5e18, false, false, new uint256[](0));
 
@@ -123,8 +123,8 @@ contract UserVaultsTest is BaseTest {
         _claim(alice, creditPositionId);
     }
 
-    function test_UserVaults_lender_vault_low_liquidity() public {
-        _setUserVaultWhitelisted(vault2, true);
+    function test_vaults_lender_vault_low_liquidity() public {
+        _setVaultWhitelisted(vault2, true);
         _setUserConfiguration(alice, address(vault2), 1.5e18, false, false, new uint256[](0));
 
         _deposit(alice, usdc, 100e6);
@@ -160,8 +160,8 @@ contract UserVaultsTest is BaseTest {
         assertEq(usdc.balanceOf(alice), balanceBefore + 99e6, "user should have received only available liquidity");
     }
 
-    function test_UserVaults_malicious_vault() public {
-        _setUserVaultWhitelisted(vaultMalicious, true);
+    function test_vaults_malicious_vault() public {
+        _setVaultWhitelisted(vaultMalicious, true);
         _setUserConfiguration(alice, address(vaultMalicious), 1.5e18, false, false, new uint256[](0));
 
         _deposit(alice, usdc, 200e6);
@@ -186,10 +186,10 @@ contract UserVaultsTest is BaseTest {
         );
     }
 
-    function test_UserVaults_fee_on_transfer_vault() public {
+    function test_vaults_fee_on_transfer_vault() public {
         _updateConfig("swapFeeAPR", 0);
 
-        _setUserVaultWhitelisted(vaultFeeOnTransfer, true);
+        _setVaultWhitelisted(vaultFeeOnTransfer, true);
         _setUserConfiguration(alice, address(vaultFeeOnTransfer), 1.5e18, false, false, new uint256[](0));
 
         _mint(address(usdc), alice, 200e6);
@@ -241,22 +241,22 @@ contract UserVaultsTest is BaseTest {
         assertEq(vaultFeeOnTransfer.balanceOf(address(owner)), 30e6);
     }
 
-    function test_UserVaults_vault_with_wrong_underlying() public {
-        _setUserVaultWhitelisted(vaultInvalidUnderlying, true);
+    function test_vaults_vault_with_wrong_underlying() public {
+        _setVaultWhitelisted(vaultInvalidUnderlying, true);
         vm.expectRevert(abi.encodeWithSelector(Errors.INVALID_VAULT.selector, address(vaultInvalidUnderlying)));
         _setUserConfiguration(alice, address(vaultInvalidUnderlying), 1.5e18, false, false, new uint256[](0));
     }
 
-    function test_UserVaults_non_erc4626_contract() public {
-        _setUserVaultWhitelisted(vaultNonERC4626, true);
+    function test_vaults_non_erc4626_contract() public {
+        _setVaultWhitelisted(vaultNonERC4626, true);
         vm.expectRevert();
         _setUserConfiguration(alice, address(vaultNonERC4626), 1.5e18, false, false, new uint256[](0));
     }
 
-    function test_UserVaults_erc7540_fully_async_contract() public {
+    function test_vaults_erc7540_fully_async_contract() public {
         // fully async ERC7540 vaults revert on deposit/withdraw
 
-        _setUserVaultWhitelisted(vaultERC7540FullyAsync, true);
+        _setVaultWhitelisted(vaultERC7540FullyAsync, true);
         _setUserConfiguration(alice, address(vaultERC7540FullyAsync), 1.5e18, false, false, new uint256[](0));
 
         _mint(address(usdc), alice, 200e6);
@@ -266,10 +266,10 @@ contract UserVaultsTest is BaseTest {
         size.deposit(DepositParams({token: address(usdc), amount: 200e6, to: alice}));
     }
 
-    function test_UserVaults_erc7540_controlled_async_deposit_contract() public {
+    function test_vaults_erc7540_controlled_async_deposit_contract() public {
         // controlled async deposit ERC7540 vaults revert on deposit
 
-        _setUserVaultWhitelisted(vaultERC7540ControlledAsyncDeposit, true);
+        _setVaultWhitelisted(vaultERC7540ControlledAsyncDeposit, true);
         _setUserConfiguration(
             alice, address(vaultERC7540ControlledAsyncDeposit), 1.5e18, false, false, new uint256[](0)
         );
@@ -281,12 +281,12 @@ contract UserVaultsTest is BaseTest {
         size.deposit(DepositParams({token: address(usdc), amount: 200e6, to: alice}));
     }
 
-    function test_UserVaults_erc7540_controlled_async_redeem_contract() public {
+    function test_vaults_erc7540_controlled_async_redeem_contract() public {
         // controlled async redeem ERC7540 vaults revert on withdraw
 
         _updateConfig("swapFeeAPR", 0);
 
-        _setUserVaultWhitelisted(vaultERC7540ControlledAsyncRedeem, true);
+        _setVaultWhitelisted(vaultERC7540ControlledAsyncRedeem, true);
         _setUserConfiguration(alice, address(vaultERC7540ControlledAsyncRedeem), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(bob, address(vaultERC7540ControlledAsyncRedeem), 1.5e18, false, false, new uint256[](0));
         _setUserConfiguration(
@@ -329,8 +329,8 @@ contract UserVaultsTest is BaseTest {
         _withdraw(bob, address(usdc), 100e6);
     }
 
-    function test_UserVaults_total_supply_across_multiple_vaults() public {
-        _setUserVaultWhitelisted(vault2, true);
+    function test_vaults_total_supply_across_multiple_vaults() public {
+        _setVaultWhitelisted(vault2, true);
         _setUserConfiguration(alice, address(vault2), 1.5e18, false, false, new uint256[](0));
 
         _deposit(alice, usdc, 200e6);

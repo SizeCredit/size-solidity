@@ -436,7 +436,7 @@ abstract contract TargetFunctions is Helper, ExpectedErrors, ITargetFunctions {
             abi.encodeCall(
                 size.setUserConfiguration,
                 SetUserConfigurationParams({
-                    userVault: address(0),
+                    vault: address(0),
                     openingLimitBorrowCR: openingLimitBorrowCR,
                     allCreditPositionsForSaleDisabled: allCreditPositionsForSaleDisabled,
                     creditPositionIdsForSale: false,

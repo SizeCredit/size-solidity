@@ -15,7 +15,7 @@ contract ReinitializeV1_8Test is BaseTest {
     string symbol = "TKN";
 
     function _rollbackToV1_7() internal {
-        // reset isUserVaultWhitelisted[DEFAULT_VAIULT] to false (only useful for local tests)
+        // reset vaultWhitelisted[DEFAULT_VAIULT] to false (only useful for local tests)
         address k = address(borrowTokenVault.DEFAULT_VAULT());
         uint256 p = 11;
         bytes32 slot = keccak256(abi.encode(k, p));
@@ -35,9 +35,9 @@ contract ReinitializeV1_8Test is BaseTest {
     }
 
     function test_ReinitializeV1_8_reinitialize_cannot_reinitialize_twice() public {
-        assertEq(borrowTokenVault.isUserVaultWhitelisted(borrowTokenVault.DEFAULT_VAULT()), false);
+        assertEq(borrowTokenVault.vaultWhitelisted(borrowTokenVault.DEFAULT_VAULT()), false);
         borrowTokenVault.reinitialize(name, symbol);
-        assertEq(borrowTokenVault.isUserVaultWhitelisted(borrowTokenVault.DEFAULT_VAULT()), true);
+        assertEq(borrowTokenVault.vaultWhitelisted(borrowTokenVault.DEFAULT_VAULT()), true);
 
         vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         borrowTokenVault.reinitialize(name, symbol);

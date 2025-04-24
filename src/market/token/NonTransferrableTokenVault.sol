@@ -23,13 +23,14 @@ import {Errors} from "@src/market/libraries/Errors.sol";
 /// @title NonTransferrableTokenVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-/// @notice An ERC-20 that is not transferrable from outside of the protocol. This vault holds Aave's aTokens and ERC4626 tokens on behalf of users and mints
-///         a rebasing ERC20 deposit token to users representing their underlying token amount.
+/// @notice An ERC-20 that is not transferrable from outside of the protocol.
+///         This vault holds Aave's aTokens and ERC4626 tokens on behalf of users and mints
+///           a rebasing ERC20 deposit token to users representing their underlying token amount.
 /// @dev This contract was upgraded from NonTransferrableScaledTokenV1_5 in v1.8
 ///      By default, underlying tokens are deposited into the Aave pool, unless the user has set a vault.
-///      User vaults are whitelisted, and are assumed to be standard ERC4626 tokens.
+///      vaults are whitelisted, and are assumed to be standard ERC4626 tokens.
 ///      Vaults with features such as pause, fee on transfer, and asynchronous share minting/burning are not supported.
-///      The `userVaultsApproxTotalAssets` is an approximate number because assets belong to different vaults and can grow over time
+///      The `approxTotalAssets` is an approximate number because assets belong to different vaults and can grow over time
 contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2StepUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20Metadata;
 
@@ -56,17 +57,17 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     mapping(address user => uint256 scaledBalance) public scaledBalanceOf;
 
     // v1.8
-    mapping(address user => IERC4626 vault) public userVault;
-    mapping(address user => uint256 shares) public userVaultShares;
-    uint256 public userVaultsApproxTotalAssets;
-    mapping(IERC4626 vault => bool isWhitelisted) public isUserVaultWhitelisted;
+    mapping(address user => IERC4626 vault) public vaultOf;
+    mapping(address user => uint256 shares) public sharesOf;
+    uint256 public approxTotalAssets;
+    mapping(IERC4626 vault => bool whitelisted) public vaultWhitelisted;
 
     /*//////////////////////////////////////////////////////////////
                             EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event UserVaultSet(address indexed user, IERC4626 indexed previousVault, IERC4626 indexed newVault);
-    event UserVaultWhitelisted(IERC4626 indexed vault, bool indexed previousWhitelisted, bool indexed newWhitelisted);
+    event VaultSet(address indexed user, IERC4626 indexed previousVault, IERC4626 indexed newVault);
+    event VaultWhitelisted(IERC4626 indexed vault, bool indexed previousWhitelisted, bool indexed newWhitelisted);
 
     /*//////////////////////////////////////////////////////////////
                             ERRORS
@@ -125,7 +126,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         decimals = decimals_;
 
         // v1.8
-        _setUserVaultWhitelisted(DEFAULT_VAULT, true);
+        _setVaultWhitelisted(DEFAULT_VAULT, true);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -137,13 +138,13 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         symbol = symbol_;
 
         // v1.8
-        _setUserVaultWhitelisted(DEFAULT_VAULT, true);
+        _setVaultWhitelisted(DEFAULT_VAULT, true);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function setUserVaultWhitelisted(IERC4626 vault, bool whitelisted) external onlyOwner {
-        _setUserVaultWhitelisted(vault, whitelisted);
+    function setVaultWhitelisted(IERC4626 vault, bool whitelisted) external onlyOwner {
+        _setVaultWhitelisted(vault, whitelisted);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -160,7 +161,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         }
 
         // slither-disable-next-line unused-return
-        _transferFrom(from, to, value, userVault[from], userVault[to]);
+        _transferFrom(from, to, value, vaultOf[from], vaultOf[to]);
 
         emit Transfer(from, to, value);
         return true;
@@ -183,11 +184,11 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
     /// @inheritdoc IERC20
     function balanceOf(address account) public view returns (uint256) {
-        IERC4626 vault = userVault[account];
+        IERC4626 vault = vaultOf[account];
         if (vault == DEFAULT_VAULT) {
             return _unscale(scaledBalanceOf[account]);
         } else {
-            return vault.convertToAssets(userVaultShares[account]);
+            return vault.convertToAssets(sharesOf[account]);
         }
     }
 
@@ -196,31 +197,31 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     ///           the approximate number of assets in all ERC4626 vaults and the unscaled total supply on Aave
     /// @dev This number should be used for informational purposes only
     function totalSupply() public view returns (uint256) {
-        return _unscale(scaledTotalSupply) + userVaultsApproxTotalAssets;
+        return _unscale(scaledTotalSupply) + approxTotalAssets;
     }
 
     /*//////////////////////////////////////////////////////////////
                             VAULT FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Set the user vault
+    /// @notice Set the vault
     /// @dev This function is only callable by the market
     ///      Setting the vault to `address(0)` will use the default variable pool
-    ///      Setting the user vault to a different address will withdraw all the user's assets
+    ///      Setting the vault to a different address will withdraw all the user's assets
     ///        from the previous vault and deposit them into the new vault
     ///      Reverts if the vault asset is not the same as the NonTransferrableTokenVault's underlying token
-    function setUserVault(address user, IERC4626 vault) external onlyMarket {
+    function setVault(address user, IERC4626 vault) external onlyMarket {
         if (user == address(0)) {
             revert Errors.NULL_ADDRESS();
         }
         if (vault != DEFAULT_VAULT && vault.asset() != address(underlyingToken)) {
             revert Errors.INVALID_VAULT(address(vault));
         }
-        if (isUserVaultWhitelisted[vault] && userVault[user] != vault) {
-            _transferFrom(user, user, balanceOf(user), userVault[user], vault);
+        if (vaultWhitelisted[vault] && vaultOf[user] != vault) {
+            _transferFrom(user, user, balanceOf(user), vaultOf[user], vault);
 
-            emit UserVaultSet(user, userVault[user], vault);
-            userVault[user] = vault;
+            emit VaultSet(user, vaultOf[user], vault);
+            vaultOf[user] = vault;
         }
     }
 
@@ -240,7 +241,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
         underlyingToken.safeTransferFrom(msg.sender, address(this), amount);
 
-        (assets, shares) = _deposit(from, to, amount, userVault[to]);
+        (assets, shares) = _deposit(from, to, amount, vaultOf[to]);
 
         emit Transfer(address(0), to, assets);
     }
@@ -259,7 +260,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
             revert ERC20InvalidReceiver(address(0));
         }
 
-        (assets, shares) = _withdraw(from, to, amount, userVault[from]);
+        (assets, shares) = _withdraw(from, to, amount, vaultOf[from]);
 
         emit Transfer(from, address(0), assets);
     }
@@ -302,8 +303,8 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         }
     }
 
-    /// @notice Transfers underlying tokens between users and vaults or Aave
-    /// @dev If the amount is 0, short circuit, as some vaults revert on 0 deposit/withdraw/transfer
+    /// @notice Transfers underlying tokens between users (ERC4626 vaults or Aave)
+    /// @dev If the amount is 0, short circuit, as some ERC4626 vaults revert on 0 deposit/withdraw/transfer
     function _transferFrom(address from, address to, uint256 value, IERC4626 vaultFrom, IERC4626 vaultTo)
         private
         returns (uint256 assets, uint256 shares)
@@ -337,8 +338,8 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         shares = vault.balanceOf(address(this)) - sharesBefore;
         assets = vault.convertToAssets(shares);
 
-        userVaultShares[to] += shares;
-        userVaultsApproxTotalAssets += assets;
+        sharesOf[to] += shares;
+        approxTotalAssets += assets;
     }
 
     /// @notice Deposits underlying tokens into the Aave pool
@@ -374,11 +375,11 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
         underlyingToken.safeTransfer(to, assets);
 
-        userVaultShares[from] -= shares;
-        if (userVaultsApproxTotalAssets > assets) {
-            userVaultsApproxTotalAssets -= assets;
+        sharesOf[from] -= shares;
+        if (approxTotalAssets > assets) {
+            approxTotalAssets -= assets;
         } else {
-            userVaultsApproxTotalAssets = 0;
+            approxTotalAssets = 0;
         }
     }
 
@@ -419,15 +420,15 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         shares = vault.convertToShares(value);
         assets = value;
 
-        if (userVaultShares[from] < shares) {
+        if (sharesOf[from] < shares) {
             revert ERC20InsufficientBalance(from, balanceOf(from), value);
         }
 
-        userVaultShares[from] -= shares;
-        userVaultShares[to] += shares;
+        sharesOf[from] -= shares;
+        sharesOf[to] += shares;
     }
 
-    /// @notice Transfers underlying tokens between the Aave pool and a user from the same vault
+    /// @notice Transfers underlying tokens between the users using Aave as their vault choice
     /// @dev The underlying tokens are converted to scaled tokens and then transferred internally
     ///      The scaled amount is rounded down
     ///      If the Aave pool has insufficient liquidity, the ERC20InsufficientTotalAssets error is thrown with DEFAULT_VAULT as the vault parameter,
@@ -459,9 +460,9 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
         return Math.mulDivDown(scaledAmount, liquidityIndex(), WadRayMath.RAY);
     }
 
-    /// @notice Sets the whitelist status of a user vault
-    function _setUserVaultWhitelisted(IERC4626 vault, bool whitelisted) private {
-        emit UserVaultWhitelisted(vault, isUserVaultWhitelisted[vault], whitelisted);
-        isUserVaultWhitelisted[vault] = whitelisted;
+    /// @notice Sets the whitelist status of a vault
+    function _setVaultWhitelisted(IERC4626 vault, bool whitelisted) private {
+        emit VaultWhitelisted(vault, vaultWhitelisted[vault], whitelisted);
+        vaultWhitelisted[vault] = whitelisted;
     }
 }

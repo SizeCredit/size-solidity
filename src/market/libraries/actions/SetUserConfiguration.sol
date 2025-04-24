@@ -14,7 +14,7 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
 struct SetUserConfigurationParams {
     // the user vault to deposit borrow tokens into
-    address userVault;
+    address vault;
     // The opening limit borrow CR
     uint256 openingLimitBorrowCR;
     // Whether all credit positions for sale are disabled
@@ -101,12 +101,12 @@ library SetUserConfiguration {
             );
         }
 
-        state.data.borrowTokenVault.setUserVault(onBehalfOf, IERC4626(params.userVault));
+        state.data.borrowTokenVault.setVault(onBehalfOf, IERC4626(params.vault));
 
         emit Events.SetUserConfiguration(
             msg.sender,
             onBehalfOf,
-            params.userVault,
+            params.vault,
             params.openingLimitBorrowCR,
             params.allCreditPositionsForSaleDisabled,
             params.creditPositionIdsForSale,
