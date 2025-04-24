@@ -11,7 +11,7 @@
 			"CryticTester"
 		],
 		"targetContractsBalances": [],
-		"predeployedContracts": {"DepositTokenLibrary": "0x10","OfferLibrary": "0x11","Errors": "0x12","CapsLibrary": "0x13","Events": "0x14","LoanLibrary": "0x15","RiskLibrary": "0x16","Multicall": "0x17","LiquidateWithReplacement": "0x18","UpdateConfig": "0x19","Claim": "0x1a","Deposit": "0x1b","PartialRepay": "0x1c","Compensate": "0x1d","SellCreditLimit": "0x1e","BuyCreditMarket": "0x1f","Withdraw": "0x20","Liquidate": "0x21","Repay": "0x22","CopyLimitOrders": "0x23","SellCreditMarket": "0x24","SelfLiquidate": "0x25","BuyCreditLimit": "0x26","Initialize": "0x27","SetUserConfiguration": "0x28","Math": "0x29","YieldCurveLibrary": "0x2a","AccountingLibrary": "0x2b","MarketFactoryLibrary": "0x2c","NonTransferrableScaledTokenV1_5FactoryLibrary": "0x2d","PriceFeedFactoryLibrary": "0x2e","Authorization": "0x2f","YieldCurveHelper": "0x30"},
+		"predeployedContracts": {"OfferLibrary": "0x10","Errors": "0x11","Events": "0x12","LoanLibrary": "0x13","RiskLibrary": "0x14","Multicall": "0x15","LiquidateWithReplacement": "0x16","UpdateConfig": "0x17","Claim": "0x18","Deposit": "0x19","PartialRepay": "0x1a","Compensate": "0x1b","SellCreditLimit": "0x1c","BuyCreditMarket": "0x1d","Withdraw": "0x1e","Liquidate": "0x1f","Repay": "0x20","CopyLimitOrders": "0x21","SellCreditMarket": "0x22","SelfLiquidate": "0x23","BuyCreditLimit": "0x24","Initialize": "0x25","SetUserConfiguration": "0x26","Math": "0x27","YieldCurveLibrary": "0x28","AccountingLibrary": "0x29","MarketFactoryLibrary": "0x2a","NonTransferrableTokenVaultLibrary": "0x2b","PriceFeedFactoryLibrary": "0x2c","Authorization": "0x2d","YieldCurveHelper": "0x2e"},
 		"constructorArgs": {},
 		"deployerAddress": "0x30000",
 		"senderAddresses": [
@@ -72,7 +72,7 @@
 			"target": ".",
 			"solcVersion": "",
 			"exportDirectory": "",
-			"args": ["--compile-libraries=(DepositTokenLibrary,0x10),(OfferLibrary,0x11),(Errors,0x12),(CapsLibrary,0x13),(Events,0x14),(LoanLibrary,0x15),(RiskLibrary,0x16),(Multicall,0x17),(LiquidateWithReplacement,0x18),(UpdateConfig,0x19),(Claim,0x1a),(Deposit,0x1b),(PartialRepay,0x1c),(Compensate,0x1d),(SellCreditLimit,0x1e),(BuyCreditMarket,0x1f),(Withdraw,0x20),(Liquidate,0x21),(Repay,0x22),(CopyLimitOrders,0x23),(SellCreditMarket,0x24),(SelfLiquidate,0x25),(BuyCreditLimit,0x26),(Initialize,0x27),(SetUserConfiguration,0x28),(Math,0x29),(YieldCurveLibrary,0x2a),(AccountingLibrary,0x2b),(MarketFactoryLibrary,0x2c),(NonTransferrableScaledTokenV1_5FactoryLibrary,0x2d),(PriceFeedFactoryLibrary,0x2e),(Authorization,0x2f),(YieldCurveHelper,0x30)","--foundry-compile-all"]
+			"args": ["--compile-libraries=(OfferLibrary,0x10),(Errors,0x11),(Events,0x12),(LoanLibrary,0x13),(RiskLibrary,0x14),(Multicall,0x15),(LiquidateWithReplacement,0x16),(UpdateConfig,0x17),(Claim,0x18),(Deposit,0x19),(PartialRepay,0x1a),(Compensate,0x1b),(SellCreditLimit,0x1c),(BuyCreditMarket,0x1d),(Withdraw,0x1e),(Liquidate,0x1f),(Repay,0x20),(CopyLimitOrders,0x21),(SellCreditMarket,0x22),(SelfLiquidate,0x23),(BuyCreditLimit,0x24),(Initialize,0x25),(SetUserConfiguration,0x26),(Math,0x27),(YieldCurveLibrary,0x28),(AccountingLibrary,0x29),(MarketFactoryLibrary,0x2a),(NonTransferrableTokenVaultLibrary,0x2b),(PriceFeedFactoryLibrary,0x2c),(Authorization,0x2d),(YieldCurveHelper,0x2e)","--foundry-compile-all"]
 		}
 	},
 	"logging": {
