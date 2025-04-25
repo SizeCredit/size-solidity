@@ -292,14 +292,22 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     }
 
     /// @notice Withdraws underlying tokens from an ERC4626 vault or the Aave pool
+    /// @dev If the amount is equal to the balance of the user, the shares are reset to 0 to avoid dust shares on vault changes
     function _withdraw(address from, address to, uint256 amount, IERC4626 vault)
         private
         returns (uint256 assets, uint256 shares)
     {
+        bool resetShares = amount == balanceOf(from);
         if (vault == DEFAULT_VAULT) {
             (assets, shares) = _withdrawFromAave(from, to, amount);
+            if (resetShares) {
+                scaledBalanceOf[from] = 0;
+            }
         } else {
             (assets, shares) = _withdrawFromVault(from, to, amount, vault);
+            if (resetShares) {
+                sharesOf[from] = 0;
+            }
         }
     }
 
