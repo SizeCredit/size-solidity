@@ -43,13 +43,18 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
+
+import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
 import {ERC4626} from "@solady/src/tokens/ERC4626.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {ControlledAsyncDeposit} from "@ERC-7540-Reference/src/ControlledAsyncDeposit.sol";
 import {ControlledAsyncRedeem} from "@ERC-7540-Reference/src/ControlledAsyncRedeem.sol";
 import {FullyAsyncVault} from "@ERC-7540-Reference/src/FullyAsyncVault.sol";
+
+import {FeeOnEntryExitERC4626} from "@test/mocks/vaults/FeeOnEntryExitERC4626.sol";
 import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
+import {LimitsERC4626} from "@test/mocks/vaults/LimitsERC4626.sol";
 import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
 
 abstract contract Deploy {
@@ -76,6 +81,8 @@ abstract contract Deploy {
     IERC4626 internal vault2;
     IERC4626 internal vaultMalicious;
     IERC4626 internal vaultFeeOnTransfer;
+    IERC4626 internal vaultFeeOnEntryExit;
+    IERC4626 internal vaultLimits;
     IERC4626 internal vaultNonERC4626;
     IERC4626 internal vaultERC7540FullyAsync;
     IERC4626 internal vaultERC7540ControlledAsyncDeposit;
@@ -240,10 +247,15 @@ abstract contract Deploy {
 
     function _deployVaults() internal {
         vault = IERC4626(address(new MockERC4626(address(usdc), "Vault", "VAULT", true, 0)));
-        vault2 = IERC4626(address(new MockERC4626(address(usdc), "Vault2", "VAULT2", true, 0)));
+        vault2 = IERC4626(address(new ERC4626Mock(address(usdc))));
         vaultMalicious = IERC4626(address(new MaliciousERC4626(usdc, "VaultMalicious", "VAULTMALICIOUS")));
         vaultFeeOnTransfer =
             IERC4626(address(new FeeOnTransferERC4626(usdc, "VaultFeeOnTransfer", "VAULTFEEONTXFER", 0.1e18)));
+        vaultFeeOnEntryExit = IERC4626(
+            address(new FeeOnEntryExitERC4626(usdc, "VaultFeeOnEntryExit", "VAULTFEEONENTRYEXIT", 0.1e4, 0.2e4))
+        );
+        vaultLimits =
+            IERC4626(address(new LimitsERC4626(usdc, "VaultLimits", "VAULTLIMITS", 1000e6, 2000e6, 3000e6, 4000e6)));
         vaultNonERC4626 = IERC4626(address(new ERC20Mock()));
         vaultERC7540FullyAsync =
             IERC4626(address(new FullyAsyncVault(ERC20(address(usdc)), "VaultERC7540", "VAULTERC7540")));

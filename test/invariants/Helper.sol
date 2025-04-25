@@ -17,7 +17,7 @@ abstract contract Helper is Deploy, PropertiesConstants, Bounds {
     }
 
     function _getRandomVault(address v) internal view returns (address) {
-        uint256 branches = 11;
+        uint256 branches = 13;
         if (uint160(v) % branches == 0) {
             return address(0);
         } else if (uint160(v) % branches == 1) {
@@ -29,14 +29,18 @@ abstract contract Helper is Deploy, PropertiesConstants, Bounds {
         } else if (uint160(v) % branches == 4) {
             return address(vaultFeeOnTransfer);
         } else if (uint160(v) % branches == 5) {
-            return address(vaultNonERC4626);
+            return address(vaultFeeOnEntryExit);
         } else if (uint160(v) % branches == 6) {
-            return address(vaultERC7540FullyAsync);
+            return address(vaultLimits);
         } else if (uint160(v) % branches == 7) {
-            return address(vaultERC7540ControlledAsyncDeposit);
+            return address(vaultNonERC4626);
         } else if (uint160(v) % branches == 8) {
-            return address(vaultERC7540ControlledAsyncRedeem);
+            return address(vaultERC7540FullyAsync);
         } else if (uint160(v) % branches == 9) {
+            return address(vaultERC7540ControlledAsyncDeposit);
+        } else if (uint160(v) % branches == 10) {
+            return address(vaultERC7540ControlledAsyncRedeem);
+        } else if (uint160(v) % branches == 11) {
             return address(vaultInvalidUnderlying);
         } else {
             return address(v);

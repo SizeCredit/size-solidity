@@ -74,7 +74,7 @@ library Withdraw {
     /// @param state The state of the protocol
     /// @param externalParams The input parameters for withdrawing tokens
     /// @dev The actual withdrawn amount is capped to the sender's balance
-    ///      The actual withdrawn amount can be lower than the requested amount based on the vault withdraw and rounding logic
+    ///      The actual withdrawn amount can be lower than the requested amount based on the vault withdraw/rounding logic
     function executeWithdraw(State storage state, WithdrawOnBehalfOfParams memory externalParams) public {
         WithdrawParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;

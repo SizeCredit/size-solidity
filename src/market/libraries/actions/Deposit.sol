@@ -78,7 +78,7 @@ library Deposit {
     /// @notice Executes the deposit
     /// @param state The state of the protocol
     /// @param externalParams The input parameters for depositing tokens
-    /// @dev The actual deposited amount can be lower than the input amount based on the vault deposit and rounding logic
+    /// @dev The actual deposited amount can be lower than the input amount based on the vault deposit/rounding logic
     function executeDeposit(State storage state, DepositOnBehalfOfParams memory externalParams) public {
         DepositParams memory params = externalParams.params;
         address onBehalfOf = externalParams.onBehalfOf;

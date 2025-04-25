@@ -16,14 +16,18 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
-import {ERC4626} from "@solady/src/tokens/ERC4626.sol";
+import {ERC4626 as ERC4626OpenZeppelin} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
+import {ERC4626 as ERC4626Solady} from "@solady/src/tokens/ERC4626.sol";
 import {MockERC4626} from "@solady/test/utils/mocks/MockERC4626.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
 import {ControlledAsyncDeposit} from "@ERC-7540-Reference/src/ControlledAsyncDeposit.sol";
 import {ControlledAsyncRedeem} from "@ERC-7540-Reference/src/ControlledAsyncRedeem.sol";
 import {FullyAsyncVault} from "@ERC-7540-Reference/src/FullyAsyncVault.sol";
+
+import {FeeOnEntryExitERC4626} from "@test/mocks/vaults/FeeOnEntryExitERC4626.sol";
 import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
+import {LimitsERC4626} from "@test/mocks/vaults/LimitsERC4626.sol";
 import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
 
 import {Errors} from "@src/market/libraries/Errors.sol";
@@ -98,8 +102,8 @@ contract VaultsTest is BaseTest {
     }
 
     function test_Vaults_lender_vault_low_liquidity() public {
-        _setVaultWhitelisted(vault2, true);
-        _setUserConfiguration(alice, address(vault2), 1.5e18, false, false, new uint256[](0));
+        _setVaultWhitelisted(vault, true);
+        _setUserConfiguration(alice, address(vault), 1.5e18, false, false, new uint256[](0));
 
         _deposit(alice, usdc, 100e6);
         _deposit(bob, weth, 100e18);
@@ -107,12 +111,12 @@ contract VaultsTest is BaseTest {
         _buyCreditLimit(alice, block.timestamp + 365 days, YieldCurveHelper.pointCurve(365 days, 0.03e18));
 
         // vault loses liquidity
-        deal(address(usdc), address(vault2), 99e6);
+        deal(address(usdc), address(vault), 99e6);
 
         uint256 amount = 100e6;
         uint256 tenor = 365 days;
 
-        vm.expectRevert(abi.encodeWithSelector(ERC4626.WithdrawMoreThanMax.selector));
+        vm.expectRevert(abi.encodeWithSelector(ERC4626Solady.WithdrawMoreThanMax.selector));
         vm.prank(bob);
         size.sellCreditMarket(
             SellCreditMarketParams({
@@ -301,6 +305,45 @@ contract VaultsTest is BaseTest {
 
         vm.expectRevert();
         _withdraw(bob, address(usdc), 100e6);
+    }
+
+    function test_Vaults_limits_vault() public {
+        _setVaultWhitelisted(vaultLimits, true);
+        _setUserConfiguration(alice, address(vaultLimits), 1.5e18, false, false, new uint256[](0));
+        _setUserConfiguration(bob, address(vaultLimits), 1.5e18, false, false, new uint256[](0));
+        _setUserConfiguration(candy, address(vaultLimits), 1.5e18, false, false, new uint256[](0));
+
+        _deposit(alice, usdc, 300e6);
+        _deposit(bob, usdc, 600e6);
+        _deposit(candy, usdc, 900e6);
+
+        NonTransferrableTokenVault borrowTokenVault = size.data().borrowTokenVault;
+
+        _mint(address(usdc), candy, 1200e6);
+        _approve(candy, address(usdc), address(size), 1200e6);
+
+        vm.prank(candy);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC4626OpenZeppelin.ERC4626ExceededMaxDeposit.selector, address(borrowTokenVault), 1200e6, 1000e6
+            )
+        );
+        size.deposit(DepositParams({token: address(usdc), amount: 1200e6, to: candy}));
+    }
+
+    function test_Vaults_fee_on_entry_exit_vault() public {
+        _setVaultWhitelisted(vaultFeeOnEntryExit, true);
+        _setUserConfiguration(alice, address(vaultFeeOnEntryExit), 1.5e18, false, false, new uint256[](0));
+
+        Vars memory _before = _state();
+
+        _deposit(alice, usdc, 1000e6);
+
+        Vars memory _after = _state();
+
+        assertEq(
+            _after.alice.borrowTokenBalance, _before.alice.borrowTokenBalance + 1000e6 * uint256(1e4) / uint256(1.1e4)
+        );
     }
 
     function test_Vaults_total_supply_across_multiple_vaults() public {

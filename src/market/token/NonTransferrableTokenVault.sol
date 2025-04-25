@@ -247,7 +247,15 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     }
 
     /// @notice Withdraw underlying tokens from the variable pool and burn scaled tokens
-    /// @dev The actual withdrawn amount can be lower than the input amount based on the vault withdraw and rounding logic
+    /// @dev The actual withdrawn amount can be lower than the input amount based on the vault withdraw and rounding logic.
+    ///      If `amount` is equal to the user's `balanceOf`, a full withdrawal is performed
+    ///        and the user's shares in the vault are reset to 0 to avoid leaving behind dust.
+    ///        This is important because small residual share amounts (due to rounding) can lead to
+    ///        inconsistencies when the user changes vaults. For example, if the user switches to a new
+    ///        vault but still holds a dust amount of shares in the previous one, the underlying tokens
+    ///        held by the new vault may not accurately reflect the current vault assignment, leading to
+    ///        misattribution of assets. The dust is sent to the owner.
+    ///        See https://slowmist.medium.com/slowmist-aave-v2-security-audit-checklist-0d9ef442436b#5aed
     function withdraw(address from, address to, uint256 amount)
         external
         onlyMarket
@@ -292,22 +300,15 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
     }
 
     /// @notice Withdraws underlying tokens from an ERC4626 vault or the Aave pool
-    /// @dev If the amount is equal to the balance of the user, the shares are reset to 0 to avoid dust shares on vault changes
     function _withdraw(address from, address to, uint256 amount, IERC4626 vault)
         private
         returns (uint256 assets, uint256 shares)
     {
-        bool resetShares = amount == balanceOf(from);
+        bool fullWithdraw = amount == balanceOf(from);
         if (vault == DEFAULT_VAULT) {
-            (assets, shares) = _withdrawFromAave(from, to, amount);
-            if (resetShares) {
-                scaledBalanceOf[from] = 0;
-            }
+            (assets, shares) = _withdrawFromAave(from, to, amount, fullWithdraw);
         } else {
-            (assets, shares) = _withdrawFromVault(from, to, amount, vault);
-            if (resetShares) {
-                sharesOf[from] = 0;
-            }
+            (assets, shares) = _withdrawFromVault(from, to, amount, fullWithdraw, vault);
         }
     }
 
@@ -373,7 +374,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
     /// @notice Withdraws underlying tokens from an ERC4626 vault
     // slither-disable-next-line reentrancy-benign
-    function _withdrawFromVault(address from, address to, uint256 amount, IERC4626 vault)
+    function _withdrawFromVault(address from, address to, uint256 amount, bool fullWithdraw, IERC4626 vault)
         private
         returns (uint256 assets, uint256 shares)
     {
@@ -388,7 +389,14 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
         underlyingToken.safeTransfer(to, assets);
 
-        sharesOf[from] -= shares;
+        if (fullWithdraw) {
+            uint256 dust = sharesOf[from] - shares;
+            sharesOf[from] = 0;
+            sharesOf[owner()] += dust;
+        } else {
+            sharesOf[from] -= shares;
+        }
+
         if (approxTotalAssets > assets) {
             approxTotalAssets -= assets;
         } else {
@@ -398,7 +406,7 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
 
     /// @notice Withdraws underlying tokens from the Aave pool
     // slither-disable-next-line reentrancy-benign
-    function _withdrawFromAave(address from, address to, uint256 amount)
+    function _withdrawFromAave(address from, address to, uint256 amount, bool fullWithdraw)
         private
         returns (uint256 assets, uint256 shares)
     {
@@ -416,7 +424,13 @@ contract NonTransferrableTokenVault is IERC20Metadata, IERC20Errors, Ownable2Ste
             revert ERC20InsufficientBalance(from, balanceOf(from), amount);
         }
 
-        scaledBalanceOf[from] -= shares;
+        if (fullWithdraw) {
+            uint256 dust = scaledBalanceOf[from] - shares;
+            scaledBalanceOf[from] = 0;
+            scaledBalanceOf[owner()] += dust;
+        } else {
+            scaledBalanceOf[from] -= shares;
+        }
         scaledTotalSupply -= shares;
     }
 
