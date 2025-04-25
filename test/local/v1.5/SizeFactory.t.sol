@@ -6,7 +6,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
+import {MockERC20} from "@solady/test/utils/mocks/MockERC20.sol";
 import {ISize} from "@src/market/interfaces/ISize.sol";
 
 import {SizeFactory} from "@src/factory/SizeFactory.sol";

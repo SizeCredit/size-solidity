@@ -5,14 +5,14 @@ import {IPool} from "@aave/interfaces/IPool.sol";
 
 import {WadRayMath} from "@aave/protocol/libraries/math/WadRayMath.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import {MockERC4626} from "@solady/../test/utils/mocks/MockERC4626.sol";
+import {MockERC4626} from "@solady/test/utils/mocks/MockERC4626.sol";
 
 import "@crytic/properties/contracts/util/Hevm.sol";
 
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {MockERC20} from "@solady/../test/utils/mocks/MockERC20.sol";
+import {MockERC20} from "@solady/test/utils/mocks/MockERC20.sol";
 import {Math} from "@src/market/libraries/Math.sol";
 import {PoolMock} from "@test/mocks/PoolMock.sol";
 
@@ -43,12 +43,12 @@ import {ISizeFactory} from "@src/factory/interfaces/ISizeFactory.sol";
 import {NonTransferrableTokenVault} from "@src/market/token/NonTransferrableTokenVault.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
-import {ERC4626} from "@solady/tokens/ERC4626.sol";
+import {ERC4626} from "@solady/src/tokens/ERC4626.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
-import {ControlledAsyncDeposit} from "@ERC-7540-Reference/ControlledAsyncDeposit.sol";
-import {ControlledAsyncRedeem} from "@ERC-7540-Reference/ControlledAsyncRedeem.sol";
-import {FullyAsyncVault} from "@ERC-7540-Reference/FullyAsyncVault.sol";
+import {ControlledAsyncDeposit} from "@ERC-7540-Reference/src/ControlledAsyncDeposit.sol";
+import {ControlledAsyncRedeem} from "@ERC-7540-Reference/src/ControlledAsyncRedeem.sol";
+import {FullyAsyncVault} from "@ERC-7540-Reference/src/FullyAsyncVault.sol";
 import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
 import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
 

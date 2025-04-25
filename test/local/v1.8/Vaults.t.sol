@@ -12,13 +12,14 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
-import {MockERC4626} from "@solady/../test/utils/mocks/MockERC4626.sol";
-import {ERC4626} from "@solady/tokens/ERC4626.sol";
+
+import {ERC4626} from "@solady/src/tokens/ERC4626.sol";
+import {MockERC4626} from "@solady/test/utils/mocks/MockERC4626.sol";
 import {ERC20} from "solmate/tokens/ERC20.sol";
 
-import {ControlledAsyncDeposit} from "@ERC-7540-Reference/ControlledAsyncDeposit.sol";
-import {ControlledAsyncRedeem} from "@ERC-7540-Reference/ControlledAsyncRedeem.sol";
-import {FullyAsyncVault} from "@ERC-7540-Reference/FullyAsyncVault.sol";
+import {ControlledAsyncDeposit} from "@ERC-7540-Reference/src/ControlledAsyncDeposit.sol";
+import {ControlledAsyncRedeem} from "@ERC-7540-Reference/src/ControlledAsyncRedeem.sol";
+import {FullyAsyncVault} from "@ERC-7540-Reference/src/FullyAsyncVault.sol";
 import {FeeOnTransferERC4626} from "@test/mocks/vaults/FeeOnTransferERC4626.sol";
 import {MaliciousERC4626} from "@test/mocks/vaults/MaliciousERC4626.sol";
 

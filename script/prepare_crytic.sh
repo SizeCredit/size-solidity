@@ -29,6 +29,9 @@ sed -i "s/\"args\".*/\"args\": [\"--compile-libraries=$COMPILE_LIBRARIES\",\"--f
 sed -i "s/deployContracts.*/deployContracts: [$DEPLOY_CONTRACTS]/g" echidna.yaml
 sed -i "s/\"predeployedContracts\".*/\"predeployedContracts\": {$PREDEPLOYED_CONTRACTS},/g" medusa.json
 
+# Foundry specific imports
+sed -i "s|\"src/|\"./|" lib/ERC-7540-Reference/src/*.sol
+
 rm COMPILE_LIBRARIES.txt || true
 rm DEPLOY_CONTRACTS.txt || true
 rm PREDEPLOYED_CONTRACTS.txt || true
